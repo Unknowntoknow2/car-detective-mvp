@@ -1,10 +1,10 @@
 
 // src/utils/scrapers/facebook.ts
 
-import puppeteer from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-
-puppeteer.use(StealthPlugin());
+/**
+ * Facebook Marketplace mock scraper
+ * Uses mock data instead of Puppeteer for improved reliability and build compatibility
+ */
 
 export async function fetchFacebookMarketplaceListings(
   make: string,
@@ -12,97 +12,73 @@ export async function fetchFacebookMarketplaceListings(
   zip = '95814',
   maxResults = 5
 ) {
-  const listings: any[] = [];
-
-  try {
-    // In browser environments or if Puppeteer fails, return mock data
-    if (typeof window !== 'undefined') {
-      throw new Error('Puppeteer not available in browser environment');
-    }
-
-    console.log('Attempting to launch browser with Puppeteer...');
-    
-    // Use a conditional import or mock when browser is not available
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      // Use installed Chromium in container if available
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-      ignoreDefaultArgs: ['--disable-extensions'],
-    });
-
-    const page = await browser.newPage();
-
-    // Emulate iPhone browser
-    await page.setUserAgent(
-      'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15A372 Safari/604.1'
-    );
-    await page.setViewport({ width: 375, height: 812, isMobile: true });
-
-    const query = encodeURIComponent(`${make} ${model}`);
-    const url = `https://www.facebook.com/marketplace/${zip}/search?query=${query}`;
-    console.log('🌐 Navigating to:', url);
-
-    try {
-      await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
-
-      await page.waitForSelector('[role="article"]', { timeout: 20000 });
-
-      const results = await page.evaluate((max) => {
-        const items: any[] = [];
-        const cards = document.querySelectorAll('[role="article"]');
-        for (let i = 0; i < cards.length && items.length < max; i++) {
-          const el = cards[i];
-          const title = el.querySelector('span')?.textContent || '';
-          const price = el.querySelector('span[dir="auto"]')?.textContent?.replace(/[^\d]/g, '') || '';
-          const image = el.querySelector('img')?.getAttribute('src') || '';
-          const link = el.querySelector('a')?.getAttribute('href') || '';
-
-          items.push({
-            title,
-            price: Number(price),
-            image,
-            url: link ? `https://www.facebook.com${link}` : '',
-            source: 'facebook',
-            location: 'Marketplace',
-            postedDate: new Date().toISOString(),
-          });
-        }
-        return items;
-      }, maxResults);
-
-      listings.push(...results);
-    } catch (error: any) {
-      console.error('❌ Facebook Marketplace scrape failed:', error.message);
-    }
-
-    await browser.close();
-  } catch (error) {
-    console.error('❌ Failed to initialize Puppeteer:', error);
-    console.log('Using mock Facebook Marketplace data instead');
-    
-    // Return mock data with the make/model included
-    listings.push(
-      {
-        title: `${make} ${model} (Mock Data)`,
-        price: 15000 + Math.floor(Math.random() * 10000),
-        image: 'https://via.placeholder.com/200',
-        url: 'https://facebook.com/marketplace',
-        source: 'facebook',
-        location: 'Marketplace (Mock)',
-        postedDate: new Date().toISOString(),
-      },
-      {
-        title: `${make} ${model} Premium (Mock Data)`,
-        price: 18000 + Math.floor(Math.random() * 12000),
-        image: 'https://via.placeholder.com/200',
-        url: 'https://facebook.com/marketplace',
-        source: 'facebook',
-        location: 'Marketplace (Mock)',
-        postedDate: new Date().toISOString(),
-      }
-    );
-  }
-
+  console.log(`🔍 Mocking Facebook Marketplace search for ${make} ${model} in ${zip}`);
+  
+  // Generate a consistent set of mock listings based on the input parameters
+  const listings = generateMockListings(make, model, zip, maxResults);
+  
   return listings;
+}
+
+/**
+ * Generates realistic mock data for Facebook Marketplace listings
+ */
+function generateMockListings(make: string, model: string, zip: string, count: number) {
+  const basePrice = getBasePrice(make, model);
+  const listings = [];
+  
+  for (let i = 0; i < count; i++) {
+    // Generate slightly different prices for variety
+    const priceVariation = Math.floor(Math.random() * 2000) - 1000;
+    const price = basePrice + priceVariation + (i * 250); // Each listing slightly more expensive
+    
+    // Generate a year between 2015 and 2022
+    const year = 2015 + Math.floor(Math.random() * 8);
+    
+    // Generate random mileage appropriate for the year
+    const mileageBase = (2023 - year) * 12000;
+    const mileage = mileageBase + Math.floor(Math.random() * 15000);
+    
+    listings.push({
+      title: `${year} ${make} ${model} - ${mileage.toLocaleString()} miles`,
+      price: price,
+      image: `https://via.placeholder.com/200?text=${make}+${model}`,
+      url: 'https://facebook.com/marketplace',
+      source: 'facebook',
+      location: `${zip} area (Mock)`,
+      postedDate: new Date(Date.now() - (i * 86400000)).toISOString(), // Each post a day apart
+      mileage: mileage,
+      year: year
+    });
+  }
+  
+  return listings;
+}
+
+/**
+ * Returns a realistic base price for the make and model
+ */
+function getBasePrice(make: string, model: string): number {
+  // Define some base prices for common makes
+  const basePrices: Record<string, Record<string, number>> = {
+    'toyota': { 'camry': 15000, 'corolla': 13000, 'rav4': 18000, 'default': 16000 },
+    'honda': { 'accord': 16000, 'civic': 14000, 'cr-v': 19000, 'default': 15000 },
+    'ford': { 'f-150': 25000, 'escape': 15000, 'explorer': 20000, 'default': 18000 },
+    'chevrolet': { 'malibu': 14000, 'silverado': 26000, 'equinox': 17000, 'default': 16000 },
+    'nissan': { 'altima': 14000, 'sentra': 12000, 'rogue': 16000, 'default': 14000 },
+  };
+  
+  const makeLower = make.toLowerCase();
+  const modelLower = model.toLowerCase();
+  
+  // Return appropriate price or default values
+  if (basePrices[makeLower]) {
+    if (basePrices[makeLower][modelLower]) {
+      return basePrices[makeLower][modelLower];
+    }
+    return basePrices[makeLower].default;
+  }
+  
+  // Default base price if make not found
+  return 15000 + Math.floor(Math.random() * 10000);
 }
