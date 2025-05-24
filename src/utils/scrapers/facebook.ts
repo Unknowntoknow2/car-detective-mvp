@@ -3,7 +3,7 @@
 
 /**
  * Facebook Marketplace mock scraper
- * This is a mock implementation that doesn't require Puppeteer
+ * This is a mock implementation that doesn't require any browser automation
  */
 
 export async function fetchFacebookMarketplaceListings(

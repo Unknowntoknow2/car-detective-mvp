@@ -8,6 +8,8 @@ WORKDIR /app
 # Set environment variables to skip Puppeteer downloads
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_SKIP_DOWNLOAD=1
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
 
 # Copy package files first (for better layer caching)
 COPY package*.json ./
@@ -16,6 +18,10 @@ COPY .npmrc ./
 # Set environment variables to increase memory and timeout limits
 ENV NODE_OPTIONS="--max-old-space-size=8192"
 ENV NPM_CONFIG_NETWORK_TIMEOUT=600000
+
+# Remove problematic puppeteer cache if it exists
+RUN rm -rf ~/.cache/puppeteer || true
+RUN mkdir -p ~/.cache && touch ~/.cache/.puppeteerrc.js && echo "module.exports = { skipDownload: true };" > ~/.cache/.puppeteerrc.js
 
 # Install dependencies with retries and increased timeout
 RUN npm install --no-fund --prefer-offline --loglevel=error || \

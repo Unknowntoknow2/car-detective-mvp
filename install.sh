@@ -4,12 +4,14 @@
 
 echo "Starting enhanced installation process..."
 
-# Set larger Node memory allocation
-export NODE_OPTIONS="--max-old-space-size=8192"
-
-# Set environment variables to skip Puppeteer download
+# Forcefully set Puppeteer variables
 export PUPPETEER_SKIP_DOWNLOAD=true
 export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+export PUPPETEER_SKIP_DOWNLOAD=1
+export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
+
+# Set larger Node memory allocation
+export NODE_OPTIONS="--max-old-space-size=8192"
 
 # Create a faster .npmrc configuration
 cat > .npmrc << EOL
@@ -25,9 +27,19 @@ loglevel=error
 node-options=--max-old-space-size=8192
 puppeteer_skip_download=true
 puppeteer_skip_chromium_download=true
+puppeteer_skip_download=1
+puppeteer_skip_chromium_download=1
 PUPPETEER_SKIP_DOWNLOAD=true
 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+PUPPETEER_SKIP_DOWNLOAD=1
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
 EOL
+
+# Remove any existing puppeteer cache to avoid incomplete downloads
+echo "Cleaning up any problematic Puppeteer installations..."
+rm -rf node_modules/puppeteer
+rm -rf ~/.cache/puppeteer
+rm -rf ~/.cache/chromium
 
 # Try NPM install first with core dependencies and longer timeout
 echo "Attempting NPM install with core dependencies..."
