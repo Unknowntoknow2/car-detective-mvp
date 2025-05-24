@@ -52,22 +52,23 @@ export function ManualLookup({
         if (error) {
           console.error('Error saving to Supabase:', error);
           toast({
-            title: "Error saving data",
+            title: "Error",
             description: error.message,
             variant: "destructive",
           });
         } else {
           toast({
-            title: "Data saved successfully",
+            title: "Success",
+            description: "Data saved successfully",
             variant: "success",
           });
         }
       } else {
         // If no user, just show a toast
         toast({
-          title: "Not logged in",
+          title: "Not Logged In",
           description: "Your data is not being saved. Sign in to save your entries.",
-          variant: "warning", // Now this is a valid variant
+          variant: "warning",
         });
       }
       
@@ -77,7 +78,7 @@ export function ManualLookup({
     } catch (error: any) {
       console.error('Error in ManualLookup:', error);
       toast({
-        title: "Something went wrong",
+        title: "Error",
         description: error.message || "Could not process your request",
         variant: "destructive",
       });

@@ -11,6 +11,7 @@ const ManualLookupPage = () => {
     
     // Show toast with proper structure
     toast({
+      title: "Success",
       description: "Vehicle information submitted successfully!",
       variant: "success",
     });

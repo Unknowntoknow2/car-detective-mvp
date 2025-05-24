@@ -71,13 +71,14 @@ export default function ValuationFollowupPage() {
         if (error) {
           console.error('Error saving to Supabase:', error);
           toast({
-            title: "Error saving data",
+            title: "Error Saving Data",
             description: error.message,
             variant: "destructive",
           });
         } else {
           toast({
-            title: "Vehicle details saved",
+            title: "Success",
+            description: "Vehicle details saved",
             variant: "success",
           });
         }
@@ -116,7 +117,7 @@ export default function ValuationFollowupPage() {
       navigate('/valuation-result');
     } else {
       toast({
-        title: "Cannot skip",
+        title: "Cannot Skip",
         description: "Cannot skip without VIN information",
         variant: "destructive",
       });
