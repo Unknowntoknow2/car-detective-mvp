@@ -1,11 +1,15 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './lib/sentry'; // Import Sentry first for early error capture
+// import './lib/sentry'; // ⚠️ TEMP DISABLED to avoid TS2307 errors in Lovable
+import { initSentry } from './lib/sentry'; // Import the stub function instead
 import App from './App';
 import './index.css';
 import { AppProviders } from './providers/AppProviders';
 import { setupTrackingErrorHandler, enableReactDevMode } from './utils/errorHandling';
+
+// Initialize the Sentry stub
+initSentry();
 
 // Setup error handling for third-party scripts
 setupTrackingErrorHandler();

@@ -1,26 +1,26 @@
 
-import * as Sentry from "@sentry/react";
-import { BrowserTracing } from "@sentry/tracing";
+// src/lib/sentry.ts
 
-console.log("[✅ Sentry loaded]");
+// 🧪 TEMP DISABLED: Sentry is not available in Lovable until proper install confirmed
+console.log("[⚠️ Sentry temporarily disabled]");
 
-const dsn = import.meta.env.VITE_SENTRY_DSN;
-const isProd = import.meta.env.MODE === "production";
+// Export a mock Sentry object with empty implementations
+export const Sentry = {
+  captureException: () => {},
+  captureMessage: () => {},
+  setUser: () => {},
+  setTag: () => {},
+  setTags: () => {},
+  setExtra: () => {},
+  setExtras: () => {},
+  lastEventId: () => null,
+  showReportDialog: () => {},
+  init: () => {},
+  // Add other commonly used Sentry methods as needed
+};
 
-try {
-  if (isProd && dsn) {
-    Sentry.init({
-      dsn,
-      integrations: [new BrowserTracing()],
-      tracesSampleRate: 0.1, // reduce to avoid 429 errors
-      replaysSessionSampleRate: 0.0, // disable until needed
-      replaysOnErrorSampleRate: 0.0,
-    });
-  } else {
-    console.info("[Sentry] Skipped initialization — not production or DSN missing.");
+export const initSentry = () => {
+  if (import.meta.env.MODE === 'production') {
+    console.warn('Sentry initialization skipped in development.');
   }
-} catch (error) {
-  console.warn("[Sentry] Failed to initialize:", error);
-}
-
-export { Sentry };
+};
