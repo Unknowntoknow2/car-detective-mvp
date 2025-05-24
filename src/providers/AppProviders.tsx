@@ -1,17 +1,17 @@
 
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { ToastProvider } from './ToastProvider';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { HelmetProvider } from 'react-helmet-async';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 // Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
       retry: 1,
-      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
     },
   },
 });
@@ -19,13 +19,15 @@ const queryClient = new QueryClient({
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+      <HelmetProvider>
+        <ThemeProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </QueryClientProvider>
+        </ThemeProvider>
+      </HelmetProvider>
     </BrowserRouter>
   );
 };
