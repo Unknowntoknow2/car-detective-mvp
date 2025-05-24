@@ -7,19 +7,16 @@ WORKDIR /app
 
 # Copy package files first (for better layer caching)
 COPY package*.json ./
-
-# Copy our enhanced config files
 COPY .npmrc ./
-COPY install.sh ./
-RUN chmod +x ./install.sh
 
 # Set environment variables to increase memory and timeout limits
 ENV NODE_OPTIONS="--max-old-space-size=8192"
 ENV NPM_CONFIG_NETWORK_TIMEOUT=600000
 
 # Install dependencies with retries and increased timeout
-RUN apk add --no-cache bash && \
-    ./install.sh || npm install --no-fund --prefer-offline
+RUN npm install --no-fund --prefer-offline --loglevel=error || \
+    npm install --no-fund --prefer-offline --loglevel=error || \
+    (apk add --no-cache curl && npm cache clean --force && npm install --no-fund --prefer-offline)
 
 # Copy the rest of the project files
 COPY . .
