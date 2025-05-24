@@ -39,7 +39,12 @@ export const setupTrackingErrorHandler = () => {
       'Cannot add property',
       'object is not extensible',
       'getConfiguration',
-      'TypeError: Cannot add property'
+      'TypeError: Cannot add property',
+      'Browser download failed',
+      'Unable to download browser',
+      'Cannot assign to read only property',
+      'frozen object',
+      'Cannot read properties of null'
     ];
     
     // Only log errors that don't match our suppress patterns

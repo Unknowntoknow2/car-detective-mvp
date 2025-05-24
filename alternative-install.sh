@@ -9,6 +9,8 @@ export PUPPETEER_SKIP_DOWNLOAD=true
 export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 export PUPPETEER_SKIP_DOWNLOAD=1
 export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
+export SKIP_PUPPETEER_DOWNLOAD=true
+export PUPPETEER_SKIP_CHROME_DOWNLOAD=true
 
 # Set memory allocation and timeout
 export NODE_OPTIONS="--max-old-space-size=4096"
@@ -20,6 +22,10 @@ rm -rf node_modules/puppeteer
 rm -rf node_modules/puppeteer-*
 rm -rf ~/.cache/puppeteer
 rm -rf ~/.cache/chromium
+
+# Create empty puppeteer config to prevent downloads
+mkdir -p ~/.cache
+echo "export default { skipDownload: true, skipChromiumDownload: true, cacheDirectory: '/dev/null' };" > ~/.cache/.puppeteerrc.js
 
 # Install only the most essential packages first
 echo "Installing minimal dependencies..."
