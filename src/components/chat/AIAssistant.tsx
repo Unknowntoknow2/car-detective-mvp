@@ -1,15 +1,16 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { X, Send, Sparkles, MessageCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { X, Send, Sparkles, MessageCircle, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
-interface ChatMessage {
+interface Message {
+  id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
@@ -26,141 +27,134 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   valuationId, 
   isPremium = false 
 }) => {
-  const { user } = useAuth();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Test connection on mount
   useEffect(() => {
     testConnection();
-    // Add welcome message
-    setMessages([{
-      role: 'assistant',
-      content: "Hello! I'm AIN — Auto Intelligence Network™, your AI-powered vehicle valuation assistant. I can help you with car valuations, market trends, CARFAX® insights, and premium report benefits. How can I assist you today?",
-      timestamp: new Date()
-    }]);
   }, []);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const testConnection = async () => {
     try {
+      console.log('Testing AI connection...');
       const { data, error } = await supabase.functions.invoke('ask-ai', {
-        body: {
-          question: 'test',
-          userContext: {
-            isPremium,
-            hasDealerAccess: false,
-            vehicleContext: valuationId ? { valuationId } : undefined
-          }
-        }
+        body: { question: 'test' }
       });
-
-      if (!error && data) {
-        setIsConnected(true);
-        console.log('✅ AI Assistant connected successfully');
-      } else {
-        console.error('❌ AI Assistant connection failed:', error);
-        setIsConnected(false);
-      }
+      
+      if (error) throw error;
+      
+      setIsConnected(true);
+      console.log('AI connection successful');
+      
+      // Add welcome message
+      setMessages([{
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: "Hi! I'm AIN — Auto Intelligence Network™, your AI-powered vehicle assistant. I can help you with car valuations, market trends, CARFAX® insights, and more. What would you like to know about your vehicle?",
+        timestamp: new Date()
+      }]);
     } catch (error) {
-      console.error('❌ AI Assistant connection test failed:', error);
+      console.error('AI connection failed:', error);
       setIsConnected(false);
+      toast.error('AI assistant is temporarily unavailable. Please try again later.');
     }
   };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const sendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return;
 
-    const userMessage: ChatMessage = {
+    const userMessage: Message = {
+      id: Date.now().toString(),
       role: 'user',
-      content: input.trim(),
+      content: inputValue.trim(),
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInput('');
+    setInputValue('');
     setIsLoading(true);
 
     try {
-      const userContext = {
-        isPremium,
-        hasDealerAccess: user?.user_metadata?.role === 'dealer',
-        vehicleContext: valuationId ? { valuationId } : undefined,
-        userLocation: user?.user_metadata?.zipCode ? { zipCode: user.user_metadata.zipCode } : undefined
-      };
-
+      console.log('Sending message to AI:', userMessage.content);
+      
       const { data, error } = await supabase.functions.invoke('ask-ai', {
         body: {
-          question: input.trim(),
-          userContext,
-          chatHistory: messages.slice(-10), // Send last 10 messages for context
-          systemPrompt: `You are AIN — Auto Intelligence Network™, a GPT-4o-powered vehicle valuation assistant built by Car Detective. Your job is to assist users with car valuations, market trends, premium report benefits, dealer offers, and CARFAX® insights.
-
-Use the user's context (make, model, year, mileage, condition, ZIP, premium status, dealer role) to give smart, helpful answers. Always respond in a confident, conversational tone.
-
-Never guess. If info is missing (e.g., no valuation), ask for it clearly.
-
-Your goal: help individuals sell smarter and help dealers make profitable decisions with speed and trust.
-
-User context: ${JSON.stringify(userContext)}`
+          question: userMessage.content,
+          userContext: {
+            isPremium,
+            hasDealerAccess: false,
+            valuationId
+          },
+          chatHistory: messages.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          }))
         }
       });
 
       if (error) {
-        throw new Error(error.message || 'Failed to get AI response');
+        console.error('AI API Error:', error);
+        throw error;
       }
 
-      const assistantMessage: ChatMessage = {
+      console.log('AI Response received:', data);
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.answer || 'Sorry, I couldn\'t generate a response. Please try again.',
+        content: data.answer || 'I apologize, but I couldn\'t generate a response. Please try again.',
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
+      toast.error('Failed to send message. Please try again.');
       
-      const errorMessage: ChatMessage = {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'I apologize, but I\'m having trouble connecting right now. Please try again in a moment. If the issue persists, please contact support.',
+        content: 'I apologize, but I\'m having trouble processing your request right now. Please try again in a moment.',
         timestamp: new Date()
       };
-
+      
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[85vh]">
-      {/* Header */}
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
-        <div className="flex items-center space-x-2">
+    <Card className="h-full flex flex-col border-primary/20">
+      <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
+        <div className="flex items-center space-x-3">
           <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div>
-            <CardTitle className="text-lg">AIN Assistant</CardTitle>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
+            <h3 className="font-semibold">AIN — Auto Intelligence Network™</h3>
+            <div className="flex items-center space-x-2">
               <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-              {isConnected ? 'Connected' : 'Connecting...'}
-              {isPremium && <span className="text-primary font-medium">• Premium</span>}
-            </p>
+              <span className="text-xs text-muted-foreground">
+                {isConnected ? 'Connected' : 'Reconnecting...'}
+              </span>
+            </div>
           </div>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose}>
@@ -168,81 +162,90 @@ User context: ${JSON.stringify(userContext)}`
         </Button>
       </CardHeader>
 
-      {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-        <div className="space-y-4">
-          <AnimatePresence initial={false}>
-            {messages.map((message, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[80%] rounded-lg px-3 py-2 ${
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
+      <CardContent className="flex-1 flex flex-col p-0">
+        <ScrollArea className="flex-1 p-4">
+          <div className="space-y-4">
+            <AnimatePresence>
+              {messages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  <p className={`text-xs mt-1 opacity-70 ${
-                    message.role === 'user' ? 'text-primary-foreground' : 'text-muted-foreground'
-                  }`}>
-                    {formatTime(message.timestamp)}
-                  </p>
+                  <div
+                    className={`max-w-[80%] rounded-lg p-3 ${
+                      message.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted'
+                    }`}
+                  >
+                    <p className="text-sm">{message.content}</p>
+                    <span className="text-xs opacity-70 mt-1 block">
+                      {message.timestamp.toLocaleTimeString()}
+                    </span>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            
+            {isLoading && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex justify-start"
+              >
+                <div className="bg-muted rounded-lg p-3">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce delay-100" />
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce delay-200" />
+                  </div>
                 </div>
               </motion.div>
-            ))}
-          </AnimatePresence>
-          
-          {isLoading && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex justify-start"
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+
+        <div className="p-4 border-t">
+          <div className="flex space-x-2">
+            <Input
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask about car valuations, market trends, or vehicle insights..."
+              className="flex-1"
+              disabled={isLoading || !isConnected}
+            />
+            <Button 
+              onClick={sendMessage} 
+              disabled={isLoading || !inputValue.trim() || !isConnected}
+              size="icon"
             >
-              <div className="bg-muted rounded-lg px-3 py-2 flex items-center space-x-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm">AIN is thinking...</span>
-              </div>
-            </motion.div>
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {!isConnected && (
+            <div className="flex items-center justify-center mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={testConnection}
+                className="text-xs"
+              >
+                <MessageCircle className="h-3 w-3 mr-1" />
+                Reconnect
+              </Button>
+            </div>
           )}
         </div>
-      </ScrollArea>
-
-      {/* Input */}
-      <div className="border-t p-4">
-        <form onSubmit={handleSendMessage} className="flex space-x-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about car valuations, market trends, or CARFAX® reports..."
-            disabled={isLoading || !isConnected}
-            className="flex-1"
-          />
-          <Button 
-            type="submit" 
-            disabled={isLoading || !input.trim() || !isConnected}
-            size="sm"
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </Button>
-        </form>
-        
-        {!isConnected && (
-          <p className="text-xs text-muted-foreground mt-2">
-            Connecting to AI assistant...
-          </p>
-        )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
+
+export default AIAssistant;
