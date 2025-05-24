@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { RouteObject } from 'react-router-dom';
+import { RouteObject, Navigate } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
 import AboutPage from './pages/AboutPage';
 import VinLookupPage from './pages/VinLookupPage';
@@ -8,7 +8,6 @@ import NotFound from './pages/NotFound';
 import ValuationPage from './pages/ValuationPage';
 import PremiumValuationPage from './pages/PremiumValuationPage';
 import ValuationResultPage from '@/pages/ValuationResultPage';
-import ResultPage from './pages/ResultPage';
 import DealerDashboardPage from './pages/dealer/DealerDashboardPage';
 import DealerVehicleDetailsPage from './pages/dealer/DealerVehicleDetailsPage';
 import DealerLayoutPage from './pages/dealer/DealerLayoutPage';
@@ -41,7 +40,8 @@ export const routes = [
         path: 'vin-lookup',
         element: <VinLookupPage />
       },
-      // New auth flow routes
+      
+      // Core auth routes
       {
         path: 'auth',
         element: <UnifiedAuthPage />
@@ -62,55 +62,64 @@ export const routes = [
         path: 'auth/dealer',
         element: <DealerAuthPage />
       },
+      
       // Legacy auth routes - redirect to unified auth
       {
         path: 'login',
-        element: <UnifiedAuthPage />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'register',
-        element: <UnifiedAuthPage />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'sign-up',
-        element: <UnifiedAuthPage />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'signup',
-        element: <UnifiedAuthPage />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'signup/individual',
-        element: <IndividualAuthPage />
+        element: <Navigate to="/auth/individual" replace />
       },
       {
         path: 'signup/dealer',
-        element: <DealerAuthPage />
+        element: <Navigate to="/auth/dealer" replace />
       },
       {
         path: 'sign-in',
-        element: <UnifiedAuthPage />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'signin',
-        element: <UnifiedAuthPage />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'signin/individual',
-        element: <IndividualAuthPage />
+        element: <Navigate to="/auth/individual" replace />
       },
       {
         path: 'signin/dealer',
-        element: <DealerAuthPage />
+        element: <Navigate to="/auth/dealer" replace />
       },
       {
         path: 'dealer-signup',
-        element: <UnifiedAuthPage />
+        element: <Navigate to="/auth/dealer" replace />
       },
+      
+      // Dashboard routes
       {
         path: 'dashboard',
         element: <DashboardPage />
       },
+      {
+        path: 'dashboard/individual',
+        element: <Navigate to="/dashboard" replace />
+      },
+      
+      // Valuation routes
       {
         path: 'valuation',
         element: <ValuationPage />
@@ -125,8 +134,10 @@ export const routes = [
       },
       {
         path: 'result',
-        element: <ResultPage />
+        element: <Navigate to="/valuation" replace />
       },
+      
+      // Profile and account routes
       {
         path: 'profile',
         element: <ProfilePage />
@@ -139,6 +150,8 @@ export const routes = [
         path: 'service-history',
         element: <ServiceHistoryPage />
       },
+      
+      // Dealer routes
       {
         path: 'dealer',
         element: <DealerLayoutPage />,
@@ -153,6 +166,8 @@ export const routes = [
           }
         ]
       },
+      
+      // Catch-all 404 route
       {
         path: '*',
         element: <NotFound />
@@ -161,7 +176,7 @@ export const routes = [
   },
   {
     path: '/valuation/:id',
-    element: <ValuationResultPage />
+    element: <Navigate to={params => `/valuation/result/${params.id}`} replace />
   }
 ];
 

@@ -19,7 +19,7 @@ const DashboardRouter: React.FC = () => {
         
         if (error || !user) {
           console.error('Authentication error:', error);
-          navigate('/auth/choose');
+          navigate('/auth');
           return;
         }
 
@@ -31,19 +31,25 @@ const DashboardRouter: React.FC = () => {
         // Route based on role
         switch (role) {
           case 'dealer':
-            navigate('/dealer');
+            navigate('/dealer/dashboard');
             break;
           case 'admin':
             navigate('/admin/dashboard');
             break;
           default:
-            navigate('/dashboard/individual');
+            // For individual users, show the individual dashboard
+            // Use the same URL to avoid unnecessary redirects
+            setIsLoading(false);
             break;
         }
       } catch (err) {
         console.error('Error checking user role:', err);
-        toast.error('Failed to load dashboard. Please try again.');
-        navigate('/auth/choose');
+        toast({
+          title: "Error",
+          description: "Failed to load dashboard. Please try again.",
+          variant: "destructive"
+        });
+        navigate('/auth');
       } finally {
         setIsLoading(false);
       }
@@ -64,7 +70,8 @@ const DashboardRouter: React.FC = () => {
     );
   }
 
-  return null;
+  // If we got here and not redirected, we should show the individual dashboard
+  return <div>Individual Dashboard Content</div>;
 };
 
 export default DashboardRouter;

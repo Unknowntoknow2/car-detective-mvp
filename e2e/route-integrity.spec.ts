@@ -4,10 +4,12 @@ import { test, expect } from '@playwright/test';
 // Define the critical pages and some content that must appear on each
 const criticalPages = [
   { path: '/', contentCheck: /get started|valuation/i },
-  { path: '/login', contentCheck: /sign in|log in/i },
-  { path: '/dealer-dashboard', contentCheck: /dealer|dashboard|leads/i },
-  { path: '/dealer-insights', contentCheck: /insights|analytics|performance/i },
-  { path: '/premium', contentCheck: /premium|valuation|features/i },
+  { path: '/auth', contentCheck: /sign in|log in/i },
+  { path: '/auth/individual', contentCheck: /sign in|log in|individual/i },
+  { path: '/auth/dealer', contentCheck: /sign in|log in|dealer/i },
+  { path: '/dealer', contentCheck: /dealer|dashboard|leads/i },
+  { path: '/dealer/dashboard', contentCheck: /dealer|dashboard|leads/i },
+  { path: '/premium-valuation', contentCheck: /premium|valuation|features/i },
 ];
 
 test.describe('Route Integrity Tests', () => {
@@ -30,17 +32,31 @@ test.describe('Route Integrity Tests', () => {
     // Start at home
     await page.goto('/');
     
-    // Navigate to the dealer dashboard (this would require login in a real test)
-    await page.getByRole('link', { name: /dashboard/i }).click();
-    await expect(page).toHaveURL(/.*login/);
+    // Navigate to the auth page
+    await page.getByRole('link', { name: /sign in|log in/i }).click();
+    await expect(page).toHaveURL(/.*auth/);
     
     // If we had a test user, we would login here
     // await page.fill('input[name="email"]', 'test@example.com');
     // await page.fill('input[name="password"]', 'password');
     // await page.click('button[type="submit"]');
     
-    // After login, check we can navigate to insights
-    // await page.getByRole('link', { name: /insights/i }).click();
-    // await expect(page).toHaveURL(/.*insights/);
+    // After login, check we can navigate to dashboard
+    // await expect(page).toHaveURL(/.*dashboard/);
+  });
+  
+  // Test redirects from legacy routes
+  test('Legacy routes should redirect correctly', async ({ page }) => {
+    // Test login redirect
+    await page.goto('/login');
+    await expect(page).toHaveURL('/auth');
+    
+    // Test signup redirect
+    await page.goto('/signup');
+    await expect(page).toHaveURL('/auth');
+    
+    // Test dealer signup redirect
+    await page.goto('/dealer-signup');
+    await expect(page).toHaveURL('/auth/dealer');
   });
 });
