@@ -11,6 +11,7 @@ export NPM_CONFIG_NETWORK_TIMEOUT=300000
 # Skip Puppeteer download
 export PUPPETEER_SKIP_DOWNLOAD=true
 export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+export PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Install only the most essential packages first
 echo "Installing minimal dependencies..."
