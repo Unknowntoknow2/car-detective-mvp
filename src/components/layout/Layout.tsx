@@ -1,16 +1,20 @@
-
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { Header } from './Header';
-import { Footer } from './Footer';
+import Header from '@/components/common/Header';
+import Footer from '@/components/common/Footer';
 
-const Layout = () => {
+const Layout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="flex flex-col min-h-screen">
+      {/* Sticky Header */}
       <Header />
-      <main className="flex-grow">
+
+      {/* Main Content */}
+      <main className="flex-1">
         <Outlet />
       </main>
+
+      {/* Footer */}
       <Footer />
     </div>
   );
