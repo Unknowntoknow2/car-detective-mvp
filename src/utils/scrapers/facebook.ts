@@ -3,7 +3,7 @@
 
 /**
  * Facebook Marketplace mock scraper
- * Uses mock data instead of Puppeteer for improved reliability and build compatibility
+ * Uses mock data only - no browser automation needed
  */
 
 export async function fetchFacebookMarketplaceListings(
@@ -82,3 +82,4 @@ function getBasePrice(make: string, model: string): number {
   // Default base price if make not found
   return 15000 + Math.floor(Math.random() * 10000);
 }
+

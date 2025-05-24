@@ -11,3 +11,4 @@ import { fetchFacebookMarketplaceListings } from '../utils/scrapers/facebook';
   console.log('✅ Facebook Listings (Mock):', results);
   console.log(`Found ${results.length} mock listings`);
 })();
+
