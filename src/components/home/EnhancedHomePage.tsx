@@ -12,6 +12,7 @@ import { OnboardingTour } from '@/components/home/OnboardingTour';
 import { PdfPreview } from '@/components/home/PdfPreview';
 import { LookupTabs } from '@/components/home/LookupTabs';
 import { AiAssistantPreview } from '@/components/home/AiAssistantPreview';
+import { AIAssistantTrigger } from '@/components/chat/AIAssistantTrigger';
 import { SEO } from '@/components/common/SEO';
 
 export const EnhancedHomePage: React.FC = () => {
@@ -89,6 +90,9 @@ export const EnhancedHomePage: React.FC = () => {
         {/* Always show onboarding tour */}
         <OnboardingTour />
       </div>
+
+      {/* Add AI Assistant Trigger - floating chat button */}
+      <AIAssistantTrigger />
     </>
   );
 };
