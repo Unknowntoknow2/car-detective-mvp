@@ -220,6 +220,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// Export the useAuth hook for easy consumption by components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   
