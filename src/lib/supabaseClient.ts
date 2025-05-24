@@ -1,5 +1,5 @@
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Use environment variables or fallback to placeholders for development
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://xltxqqzattxogxtqrggt.supabase.co';
@@ -7,9 +7,9 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIU
 
 // Create a singleton instance of the Supabase client
 // We use let here so the instance can be mocked in tests if needed
-let instance = null;
+let instance: SupabaseClient | null = null;
 
-export const getSupabaseClient = () => {
+export const getSupabaseClient = (): SupabaseClient => {
   if (instance) return instance;
   
   instance = createClient(supabaseUrl, supabaseAnonKey, {
