@@ -33,36 +33,38 @@ PUPPETEER_SKIP_DOWNLOAD=true
 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 PUPPETEER_SKIP_DOWNLOAD=1
 PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
+legacy-peer-deps=true
 EOL
 
 # Remove any existing puppeteer cache to avoid incomplete downloads
 echo "Cleaning up any problematic Puppeteer installations..."
 rm -rf node_modules/puppeteer
+rm -rf node_modules/puppeteer-*
 rm -rf ~/.cache/puppeteer
 rm -rf ~/.cache/chromium
 
-# Try NPM install first with core dependencies and longer timeout
+# Try NPM install first with core dependencies and longer timeout, explicitly exclude puppeteer
 echo "Attempting NPM install with core dependencies..."
-npm install react react-dom @supabase/supabase-js --no-fund --no-audit --prefer-offline --loglevel=error --timeout=600000 || {
+npm install react react-dom @supabase/supabase-js --no-fund --no-audit --prefer-offline --loglevel=error --timeout=600000 --legacy-peer-deps || {
   echo "First attempt failed. Trying with alternative approach..."
   
   # Try with yarn as fallback
   echo "Attempting yarn installation..."
   if command -v yarn &> /dev/null; then
-    yarn install --network-timeout 600000 || {
+    yarn install --network-timeout 600000 --ignore-optional || {
       echo "Yarn install failed. Trying final approach with npm..."
       
       # Final attempt with npm
       echo "Final attempt with npm and minimal dependencies..."
-      npm install react react-dom --no-package-lock --no-fund --prefer-offline
+      npm install react react-dom --no-package-lock --no-fund --prefer-offline --legacy-peer-deps
     }
   else
     echo "Yarn not available. Using npm with limited concurrency..."
-    npm install --no-package-lock --no-fund --prefer-offline --loglevel=error
+    npm install --no-package-lock --no-fund --prefer-offline --loglevel=error --legacy-peer-deps
   fi
 }
 
 echo "Core dependencies installation completed. Installing remaining packages..."
-npm install --prefer-offline --no-fund --loglevel=error
+npm install --prefer-offline --no-fund --loglevel=error --legacy-peer-deps
 
 echo "Installation process completed."

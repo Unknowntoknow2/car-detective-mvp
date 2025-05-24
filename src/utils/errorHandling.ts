@@ -35,7 +35,11 @@ export const setupTrackingErrorHandler = () => {
       'Chromium download failed',
       'chrome v',
       'browser folder',
-      'headless-shell'
+      'headless-shell',
+      'Cannot add property',
+      'object is not extensible',
+      'getConfiguration',
+      'TypeError: Cannot add property'
     ];
     
     // Only log errors that don't match our suppress patterns
