@@ -1,84 +1,51 @@
 
-// src/utils/scrapers/facebook.ts
-
 /**
- * Facebook Marketplace mock scraper
- * This is a mock implementation that doesn't require any browser automation
+ * Mock Facebook Marketplace scraper
+ * This is a completely mock implementation that doesn't use Puppeteer
  */
 
-export async function fetchFacebookMarketplaceListings(
-  make: string,
-  model: string,
-  zip = '95814',
-  maxResults = 5
-) {
-  console.log(`🔍 Mocking Facebook Marketplace search for ${make} ${model} in ${zip}`);
-  
-  // Generate a consistent set of mock listings based on the input parameters
-  const listings = generateMockListings(make, model, zip, maxResults);
-  
-  return listings;
+interface FacebookListing {
+  id: string;
+  title: string;
+  price: number;
+  location: string;
+  image: string;
+  url: string;
+  postedDate: string;
+  condition: string;
 }
 
-/**
- * Generates realistic mock data for Facebook Marketplace listings
- */
-function generateMockListings(make: string, model: string, zip: string, count: number) {
-  const basePrice = getBasePrice(make, model);
-  const listings = [];
+export const fetchFacebookMarketplaceListings = async (
+  make: string,
+  model: string,
+  zipCode: string,
+  limit: number = 10
+): Promise<FacebookListing[]> => {
+  console.log(`[MOCK] Searching Facebook Marketplace for ${make} ${model} in ${zipCode}`);
   
-  for (let i = 0; i < count; i++) {
-    // Generate slightly different prices for variety
-    const priceVariation = Math.floor(Math.random() * 2000) - 1000;
-    const price = basePrice + priceVariation + (i * 250); // Each listing slightly more expensive
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Generate mock data instead of scraping
+  const mockListings: FacebookListing[] = [];
+  
+  for (let i = 0; i < limit; i++) {
+    const id = Math.floor(Math.random() * 10000000).toString();
+    const year = 2010 + Math.floor(Math.random() * 12);
+    const mileage = Math.floor(Math.random() * 100000) + 10000;
+    const price = Math.floor(Math.random() * 15000) + 5000;
     
-    // Generate a year between 2015 and 2022
-    const year = 2015 + Math.floor(Math.random() * 8);
-    
-    // Generate random mileage appropriate for the year
-    const mileageBase = (2023 - year) * 12000;
-    const mileage = mileageBase + Math.floor(Math.random() * 15000);
-    
-    listings.push({
-      title: `${year} ${make} ${model} - ${mileage.toLocaleString()} miles`,
-      price: price,
-      image: `https://via.placeholder.com/200?text=${make}+${model}`,
-      url: 'https://facebook.com/marketplace',
-      source: 'facebook',
-      location: `${zip} area (Mock)`,
-      postedDate: new Date(Date.now() - (i * 86400000)).toISOString(), // Each post a day apart
-      mileage: mileage,
-      year: year
+    mockListings.push({
+      id,
+      title: `${year} ${make} ${model} - ${mileage} miles`,
+      price,
+      location: `${zipCode} area`,
+      image: `https://picsum.photos/id/${i + 100}/400/300`,
+      url: `https://www.facebook.com/marketplace/item/${id}`,
+      postedDate: new Date(Date.now() - Math.floor(Math.random() * 604800000)).toISOString(),
+      condition: Math.random() > 0.7 ? 'Excellent' : Math.random() > 0.4 ? 'Good' : 'Fair'
     });
   }
   
-  return listings;
-}
-
-/**
- * Returns a realistic base price for the make and model
- */
-function getBasePrice(make: string, model: string): number {
-  // Define some base prices for common makes
-  const basePrices: Record<string, Record<string, number>> = {
-    'toyota': { 'camry': 15000, 'corolla': 13000, 'rav4': 18000, 'default': 16000 },
-    'honda': { 'accord': 16000, 'civic': 14000, 'cr-v': 19000, 'default': 15000 },
-    'ford': { 'f-150': 25000, 'escape': 15000, 'explorer': 20000, 'default': 18000 },
-    'chevrolet': { 'malibu': 14000, 'silverado': 26000, 'equinox': 17000, 'default': 16000 },
-    'nissan': { 'altima': 14000, 'sentra': 12000, 'rogue': 16000, 'default': 14000 },
-  };
-  
-  const makeLower = make.toLowerCase();
-  const modelLower = model.toLowerCase();
-  
-  // Return appropriate price or default values
-  if (basePrices[makeLower]) {
-    if (basePrices[makeLower][modelLower]) {
-      return basePrices[makeLower][modelLower];
-    }
-    return basePrices[makeLower].default;
-  }
-  
-  // Default base price if make not found
-  return 15000 + Math.floor(Math.random() * 10000);
-}
+  return mockListings;
+};

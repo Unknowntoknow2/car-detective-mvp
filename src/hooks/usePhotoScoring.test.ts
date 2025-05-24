@@ -1,7 +1,7 @@
 
 import { renderHook, act } from '../test-utils/testingLibraryHookStub';
 import { usePhotoScoring } from './usePhotoScoring';
-import { Photo, PhotoScore } from '@/types/photo';
+import { Photo } from '@/types/photo';
 
 // Mock implementation
 jest.mock('@/services/photoService', () => ({
