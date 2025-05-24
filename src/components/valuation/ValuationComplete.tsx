@@ -1,257 +1,31 @@
 
-import { useEffect, useState } from 'react';
-import { PhotoUploadAndScore } from './PhotoUploadAndScore';
-import { PredictionResult } from './PredictionResult';
-import { ValuationAuditTrail } from './ValuationAuditTrail';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
-import { NextStepsCard } from './valuation-complete';
-import { calculateFinalValuation } from '@/utils/valuationEngine';
+import React from 'react';
+import { ValuationHeader } from './valuation-complete/ValuationHeader';
+import { NextStepsCard } from './valuation-complete/NextStepsCard';
 import { ChatBubble } from '@/components/chat/ChatBubble';
-import { getBestPhotoAssessment } from '@/utils/valuationService';
-import { UnifiedValuationHeader } from './header/UnifiedValuationHeader';
-
-// Add this interface to handle audit trail type
-export interface AuditTrail {
-  factor: string;
-  impact: number;
-  description: string;
-}
+import { Valuation } from '@/types/valuation-history';
 
 interface ValuationCompleteProps {
-  valuationId: string;
-  valuationData: {
-    make: string;
-    model: string;
-    year: number;
-    trim?: string;
-    mileage?: number;
-    vin?: string;
-    estimatedValue?: number;
-    condition?: string;
-  };
+  valuation: Valuation;
 }
 
-export function ValuationComplete({ valuationId, valuationData }: ValuationCompleteProps) {
-  const [photoSubmitted, setPhotoSubmitted] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [photoScore, setPhotoScore] = useState<number | null>(null);
-  const [aiCondition, setAiCondition] = useState<any | null>(null);
-  const [auditTrail, setAuditTrail] = useState<AuditTrail[] | null>(null);
-  const [estimatedValue, setEstimatedValue] = useState<number | undefined>(valuationData.estimatedValue);
-  const [calculationInProgress, setCalculationInProgress] = useState(false);
-  const [bestPhotoUrl, setBestPhotoUrl] = useState<string | undefined>(undefined);
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  // Check for existing photo assessment on load
-  useEffect(() => {
-    const loadPhotoAssessment = async () => {
-      try {
-        // getBestPhotoAssessment only expects one parameter
-        const { aiCondition, photoScores } = await getBestPhotoAssessment(valuationId);
-        
-        if (aiCondition) {
-          setAiCondition(aiCondition);
-          setPhotoSubmitted(true);
-          
-          // Find the highest score photo
-          if (photoScores.length > 0) {
-            const bestScore = [...photoScores].sort((a, b) => b.score - a.score)[0];
-            setBestPhotoUrl(bestScore?.url);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading photo assessment:', error);
-      }
-    };
-    
-    if (valuationId) {
-      loadPhotoAssessment();
-    }
-  }, [valuationId]);
-
-  // Recalculate valuation when photo score or AI condition changes
-  useEffect(() => {
-    if ((photoScore || aiCondition) && valuationData) {
-      const calculateNewValuation = async () => {
-        setCalculationInProgress(true);
-        try {
-          // Fix: Pass proper parameters to calculateFinalValuation with baseMarketValue
-          const result = await calculateFinalValuation({
-            make: valuationData.make,
-            model: valuationData.model,
-            year: valuationData.year,
-            mileage: valuationData.mileage || 0,
-            condition: aiCondition?.condition || valuationData.condition || 'good',
-            zipCode: '90210', // Default zipCode
-            // Properly pass the AI condition data
-            aiConditionOverride: aiCondition ? {
-              condition: aiCondition.condition,
-              confidenceScore: aiCondition.confidenceScore,
-              issuesDetected: aiCondition.issuesDetected,
-              aiSummary: aiCondition.aiSummary
-            } : undefined,
-            photoScore: photoScore || undefined,
-            baseMarketValue: 25000 // Default base value
-          });
-          
-          if (result) {
-            setEstimatedValue(result.estimatedValue || result.finalValue);
-            
-            // Convert the result adjustments to AuditTrail format if needed
-            if ('adjustments' in result && Array.isArray(result.adjustments)) {
-              // Type assertion to help TypeScript
-              const convertedAdjustments = (result.adjustments as any[]).map(adj => ({
-                factor: adj.factor || adj.name || 'Unknown',
-                impact: adj.impact || adj.value || 0,
-                description: adj.description || ''
-              }));
-              setAuditTrail(convertedAdjustments as AuditTrail[]);
-            } else {
-              setAuditTrail(null);
-            }
-          }
-        } catch (error) {
-          console.error("Error calculating valuation:", error);
-          toast.error("Failed to update valuation with photo analysis");
-        } finally {
-          setCalculationInProgress(false);
-        }
-      };
-      
-      calculateNewValuation();
-    }
-  }, [photoScore, aiCondition, valuationData]);
-
-  const handlePhotoScoreChange = (score: number, condition?: any) => {
-    setPhotoScore(score);
-    setAiCondition(condition);
-    setPhotoSubmitted(true);
-    
-    // Find the highest score photo from the condition
-    if (condition?.bestPhotoUrl) {
-      setBestPhotoUrl(condition.bestPhotoUrl);
-    }
-    
-    toast.success(`Photos analyzed and vehicle condition assessed`);
-  };
-
-  const saveToAccount = async () => {
-    if (!user) {
-      toast.error("Please sign in to save this valuation");
-      navigate('/auth');
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const { data, error } = await supabase
-        .from('saved_valuations')
-        .insert({
-          user_id: user.id,
-          make: valuationData.make,
-          model: valuationData.model,
-          year: valuationData.year,
-          vin: valuationData.vin, // This is optional in the DB
-          valuation: estimatedValue || 0,
-          confidence_score: photoSubmitted ? 92 : 85, // Higher confidence with photo
-          condition_score: photoScore ? Math.round(photoScore * 100) : null,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      toast.success("Valuation saved successfully");
-    } catch (err) {
-      console.error("Error saving valuation:", err);
-      toast.error("Failed to save valuation");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const shareValuation = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: `${valuationData.year} ${valuationData.make} ${valuationData.model} Valuation`,
-        text: `Check out my car valuation for a ${valuationData.year} ${valuationData.make} ${valuationData.model}`,
-        url: window.location.href,
-      }).then(() => {
-        // Success case handling
-      }).catch(err => {
-        console.error('Share failed:', err);
-      });
-    } else {
-      // Fallback for browsers that don't support the Web Share API
-      navigator.clipboard.writeText(window.location.href);
-      toast.success("Link copied to clipboard");
-    }
-  };
-
+export const ValuationComplete: React.FC<ValuationCompleteProps> = ({ valuation }) => {
   return (
-    <div className="space-y-8">
-      <UnifiedValuationHeader
-        vehicleInfo={valuationData}
-        estimatedValue={estimatedValue || 0}
-        confidenceScore={photoSubmitted ? 92 : 85}
-        photoCondition={aiCondition}
-        isPremium={true}
-        onShare={shareValuation}
-        onDownload={() => {}}
-        onSaveToAccount={saveToAccount}
-        isSaving={isSaving}
-        photoSubmitted={photoSubmitted}
-        calculationInProgress={calculationInProgress}
-        bestPhotoUrl={bestPhotoUrl}
-      />
-
-      {auditTrail && (
-        <div className="mt-4">
-          <ValuationAuditTrail 
-            auditTrail={{ 
-              basePrice: estimatedValue ? estimatedValue * 0.85 : 0,
-              adjustments: auditTrail.map(item => ({
-                name: item.factor,
-                value: item.impact,
-                description: item.description,
-                percentAdjustment: estimatedValue ? (item.impact / (estimatedValue * 0.85)) * 100 : 0
-              })),
-              totalAdjustment: auditTrail.reduce((sum, item) => sum + item.impact, 0),
-              estimatedValue: estimatedValue || 0,
-              timestamp: new Date().toISOString(),
-              inputData: {
-                year: valuationData.year,
-                make: valuationData.make,
-                model: valuationData.model,
-                mileage: valuationData.mileage || 0,
-                condition: aiCondition?.condition || valuationData.condition || 'good'
-              }
-            }}
-            photoUrl={bestPhotoUrl}
-            aiCondition={aiCondition}
-          />
-        </div>
-      )}
-
-      <PredictionResult valuationId={valuationId} />
-
-      <PhotoUploadAndScore 
-        valuationId={valuationId} 
-        onScoreChange={handlePhotoScoreChange} 
-        isPremium={true}
-      />
-
-      <NextStepsCard valuationId={valuationId} />
-
-      {/* Add Car Detective Chat Bubble */}
-      <ChatBubble 
-        valuationId={valuationId} 
-        initialMessage="Tell me about my car's valuation"
-      />
+    <div className="space-y-6">
+      <ValuationHeader valuation={valuation} />
+      <NextStepsCard />
+      
+      {/* Instead of directly rendering a ChatBubble with missing props, 
+          we'll render it with all required props */}
+      <div className="mt-4">
+        <ChatBubble 
+          content={`Ask me about your ${valuation.year} ${valuation.make} ${valuation.model} valuation`}
+          sender="assistant"
+          timestamp={new Date()}
+          valuationId={valuation.id}
+          initialMessage="Tell me more about my valuation"
+        />
+      </div>
     </div>
   );
-}
+};
