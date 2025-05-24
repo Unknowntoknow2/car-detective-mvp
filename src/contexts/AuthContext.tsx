@@ -17,9 +17,12 @@ export interface UserDetails {
 interface User {
   id: string;
   email: string;
+  created_at?: string;
   user_metadata?: {
     role?: UserRole;
     name?: string;
+    full_name?: string;
+    dealership_name?: string;
   };
 }
 
@@ -45,13 +48,24 @@ const mockUsers = [
     id: '1', 
     email: 'user@example.com', 
     password: 'password',
-    user_metadata: { role: 'individual' as UserRole }
+    created_at: new Date().toISOString(),
+    user_metadata: { 
+      role: 'individual' as UserRole,
+      full_name: 'Example User',
+      name: 'Example User'
+    }
   },
   { 
     id: '2', 
     email: 'dealer@example.com', 
     password: 'password',
-    user_metadata: { role: 'dealer' as UserRole }
+    created_at: new Date().toISOString(),
+    user_metadata: { 
+      role: 'dealer' as UserRole,
+      full_name: 'Example Dealer',
+      name: 'Example Dealer',
+      dealership_name: 'Example Dealership'
+    }
   },
 ];
 
@@ -88,7 +102,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: parsedUser.id,
           email: parsedUser.email,
           role: role,
-          full_name: parsedUser.user_metadata?.name
+          full_name: parsedUser.user_metadata?.full_name || parsedUser.user_metadata?.name,
+          dealership_name: parsedUser.user_metadata?.dealership_name
         });
       }
     } catch (err) {
@@ -127,7 +142,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: user.id,
         email: user.email,
         role: user.user_metadata?.role || 'individual',
-        full_name: user.user_metadata?.name
+        full_name: user.user_metadata?.full_name || user.user_metadata?.name,
+        dealership_name: user.user_metadata?.dealership_name
       });
       
       localStorage.setItem('auth_user', JSON.stringify(user));
@@ -154,7 +170,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const newUser = {
         id: newId,
         email,
-        user_metadata: metadata || { role: 'individual' }
+        created_at: new Date().toISOString(),
+        user_metadata: metadata || { 
+          role: 'individual',
+          full_name: email.split('@')[0],
+          name: email.split('@')[0]
+        }
       };
       
       // Create session object
@@ -173,7 +194,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: newUser.id,
         email: newUser.email,
         role: newUser.user_metadata?.role || 'individual',
-        full_name: newUser.user_metadata?.name
+        full_name: newUser.user_metadata?.full_name || newUser.user_metadata?.name,
+        dealership_name: newUser.user_metadata?.dealership_name
       });
       
       localStorage.setItem('auth_user', JSON.stringify(newUser));
