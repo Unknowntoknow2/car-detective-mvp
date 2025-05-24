@@ -13,7 +13,7 @@ interface ValuationHeaderProps {
 export const ValuationHeader: React.FC<ValuationHeaderProps> = ({ valuation }) => {
   const { year, make, model } = valuation;
   // Use optional chaining for properties that might not exist
-  const trim = valuation.trim || '';
+  const trimValue = valuation.trim || '';
   const formattedDate = valuation.created_at ? new Date(valuation.created_at).toLocaleDateString() : 'N/A';
   const estimatedValue = valuation.estimated_value || 0;
   
@@ -22,7 +22,7 @@ export const ValuationHeader: React.FC<ValuationHeaderProps> = ({ valuation }) =
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
         <div>
           <h1 className="text-2xl font-bold">
-            {year} {make} {model} {trim}
+            {year} {make} {model} {trimValue}
           </h1>
           <div className="flex flex-wrap items-center gap-2 mt-2">
             <Badge variant="outline" className="flex items-center gap-1">
