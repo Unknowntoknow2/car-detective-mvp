@@ -174,9 +174,10 @@ export const routes = [
       }
     ]
   },
+  // Fix this redirect route to use a string pattern instead of a function
   {
     path: '/valuation/:id',
-    element: <Navigate to={({ params }) => `/valuation/result/${params?.id || ''}`} replace />
+    element: <Navigate to="/valuation/result/:id" replace />
   }
 ];
 
