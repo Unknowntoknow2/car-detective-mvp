@@ -1,48 +1,68 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { LogOut, User } from 'lucide-react';
+import { Menu, LogOut, UserCircle, GaugeCircle, Star } from 'lucide-react';
 
-export const Header = () => {
-  const { user, signOut } = useAuth();
+export const Header: React.FC = () => {
+  const { user, signOut, userRole } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSignOut = async () => {
+  const handleLogout = async () => {
     await signOut();
+    navigate('/');
+  };
+
+  const goToDashboard = () => {
+    if (userRole === 'dealer') return navigate('/dealer/dashboard');
+    if (userRole === 'admin') return navigate('/admin/dashboard');
+    return navigate('/dashboard');
   };
 
   return (
-    <header className="border-b bg-background">
-      <div className="container mx-auto py-4 px-4 flex items-center justify-between">
-        <Link to="/" className="font-bold text-xl text-primary">Car Detective</Link>
-        
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link to="/valuation" className="text-muted-foreground hover:text-foreground">Valuation</Link>
-          <Link to="/premium-valuation" className="text-muted-foreground hover:text-foreground">Premium</Link>
-          <Link to="/about" className="text-muted-foreground hover:text-foreground">About</Link>
-          <Link to="/vin-lookup" className="text-muted-foreground hover:text-foreground">VIN Lookup</Link>
-        </nav>
-        
-        <div className="flex items-center space-x-4">
-          {user ? (
-            <div className="flex items-center space-x-4">
-              <Link to="/dashboard" className="flex items-center space-x-2">
-                <User className="h-4 w-4" />
-                <span className="hidden md:inline">Dashboard</span>
-              </Link>
-              <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                <span className="hidden md:inline">Sign Out</span>
-              </Button>
-            </div>
-          ) : (
-            <Link to="/auth">
-              <Button variant="default" size="sm">Sign In</Button>
-            </Link>
+    <header className="sticky top-0 z-50 w-full bg-background border-b shadow-sm">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        {/* Logo */}
+        <Link to="/" className="text-xl font-bold tracking-tight text-primary">
+          Car Detective
+        </Link>
+
+        {/* Navigation Links */}
+        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+          <Link to="/" className="hover:text-primary">Home</Link>
+          <Link to="/valuation" className="hover:text-primary">Valuation</Link>
+          <Link to="/premium" className="hover:text-primary">Premium</Link>
+          {user && (
+            <Button variant="ghost" onClick={goToDashboard} className="flex items-center gap-1">
+              <GaugeCircle className="h-4 w-4" /> Dashboard
+            </Button>
           )}
+        </nav>
+
+        {/* Auth Buttons or Profile */}
+        <div className="flex items-center gap-4">
+          {user ? (
+            <>
+              <Button variant="ghost" onClick={handleLogout} className="flex items-center gap-1">
+                <LogOut className="h-4 w-4" /> Logout
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link to="/auth" className="text-sm font-medium hover:text-primary">Sign In</Link>
+              <Link to="/register" className="text-sm font-medium hover:text-primary">Sign Up</Link>
+            </>
+          )}
+        </div>
+
+        {/* Mobile Toggle */}
+        <div className="md:hidden">
+          <Menu className="h-6 w-6 text-muted-foreground" />
         </div>
       </div>
     </header>
   );
 };
+
+export default Header;
