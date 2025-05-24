@@ -1,23 +1,46 @@
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Menu, LogOut, UserCircle, GaugeCircle, Star } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const { user, signOut, userRole } = useAuth();
-  const navigate = useNavigate();
+  
+  // Wrap router hooks in error boundary
+  let navigate: any;
+  let location: any;
+  
+  try {
+    navigate = useNavigate();
+    location = useLocation();
+  } catch (error) {
+    console.error('Router context not available:', error);
+    // Fallback for when router context is not available
+    navigate = () => {};
+    location = { pathname: '/' };
+  }
 
   const handleLogout = async () => {
     await signOut();
-    navigate('/');
+    try {
+      navigate('/');
+    } catch (error) {
+      window.location.href = '/';
+    }
   };
 
   const goToDashboard = () => {
-    if (userRole === 'dealer') return navigate('/dealer/dashboard');
-    if (userRole === 'admin') return navigate('/admin/dashboard');
-    return navigate('/dashboard');
+    try {
+      if (userRole === 'dealer') return navigate('/dealer/dashboard');
+      if (userRole === 'admin') return navigate('/admin/dashboard');
+      return navigate('/dashboard');
+    } catch (error) {
+      if (userRole === 'dealer') window.location.href = '/dealer/dashboard';
+      else if (userRole === 'admin') window.location.href = '/admin/dashboard';
+      else window.location.href = '/dashboard';
+    }
   };
 
   return (

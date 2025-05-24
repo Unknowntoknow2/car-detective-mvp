@@ -21,7 +21,7 @@ if (typeof window !== 'undefined') {
 
 // Suppress React Router future flags warnings if enabled in env
 if (import.meta.env.VITE_ROUTER_FUTURE_FLAGS) {
-  window.__reactRouterFutureFlags = {
+  (window as any).__reactRouterFutureFlags = {
     v7_startTransition: true,
     v7_relativeSplatPath: true
   };
