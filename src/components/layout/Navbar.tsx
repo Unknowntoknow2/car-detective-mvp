@@ -36,7 +36,7 @@ const navLinks = [
 export function Navbar() {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, userDetails, signOut } = useAuth();
+  const { user, userDetails, signOut, userRole } = useAuth();
 
   const isActive = (path: string) => {
     if (path === '/' && location.pathname !== '/') {
@@ -103,14 +103,14 @@ export function Navbar() {
               <Button variant="ghost" className="rounded-full" size="icon">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {getInitials(userDetails?.full_name)}
+                    {getInitials(userDetails?.full_name || '')}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to={userDetails?.role === 'dealer' ? '/dealer/dashboard' : '/dashboard'} className="cursor-pointer">
+                <Link to={userRole === 'dealer' ? '/dealer/dashboard' : '/dashboard'} className="cursor-pointer">
                   <User className="mr-2 h-4 w-4" />
                   Dashboard
                 </Link>
