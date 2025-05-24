@@ -23,7 +23,7 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({
   
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="h-[85vh] max-h-[85vh] flex flex-col">
+      <DrawerContent className="h-[60vh] max-h-[600px] flex flex-col">
         <AIAssistant 
           onClose={onClose} 
           valuationId={valuationId}
