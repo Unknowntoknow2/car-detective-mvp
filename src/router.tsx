@@ -134,7 +134,7 @@ const routes: RouteObject[] = [
       },
       {
         path: 'valuation/:id',
-        element: <Navigate to={params => `/valuation/result/${params.id}`} replace />
+        element: <Navigate to={({ params }) => `/valuation/result/${params?.id || ''}`} replace />
       },
       
       // Profile and account routes
