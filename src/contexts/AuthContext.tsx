@@ -9,6 +9,7 @@ interface AuthContextProps {
   user: User | null;
   userDetails: UserDetails | null;
   session: Session | null;
+  userRole: string | null; // Add userRole property
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
@@ -26,6 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   // Function to fetch user details from profiles table
   const fetchUserDetails = async (userId: string) => {
@@ -63,9 +65,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setTimeout(async () => {
             const details = await fetchUserDetails(session.user.id);
             setUserDetails(details);
+            
+            // Set userRole based on user details or metadata
+            const role = details?.role || session.user.user_metadata?.role || null;
+            setUserRole(role);
           }, 0);
         } else {
           setUserDetails(null);
+          setUserRole(null);
         }
       }
     );
@@ -78,6 +85,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (session?.user) {
         fetchUserDetails(session.user.id).then(details => {
           setUserDetails(details);
+          
+          // Set initial userRole based on user details or metadata
+          const role = details?.role || session.user.user_metadata?.role || null;
+          setUserRole(role);
+          
           setIsLoading(false);
         });
       } else {
@@ -150,6 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     userDetails,
     session,
+    userRole, // Include userRole in the context value
     signIn,
     signUp,
     signOut,
