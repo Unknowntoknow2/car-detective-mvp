@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
@@ -19,6 +20,7 @@ import DashboardPage from './pages/DashboardPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import IndividualAuthPage from './pages/auth/IndividualAuthPage';
 import DealerAuthPage from './pages/auth/DealerAuthPage';
+import PlatformDiagnosticsPage from './pages/PlatformDiagnosticsPage';
 
 // Export routes configuration
 const routes: RouteObject[] = [
@@ -55,6 +57,12 @@ const routes: RouteObject[] = [
       {
         path: 'auth/callback',
         element: <AuthCallbackPage />
+      },
+      
+      // Platform diagnostics page
+      {
+        path: 'platform-diagnostics',
+        element: <PlatformDiagnosticsPage />
       },
       
       // Redirect legacy auth routes to the canonical paths

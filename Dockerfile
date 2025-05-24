@@ -12,6 +12,9 @@ COPY .npmrc ./
 # Set environment variables to increase memory and timeout limits
 ENV NODE_OPTIONS="--max-old-space-size=8192"
 ENV NPM_CONFIG_NETWORK_TIMEOUT=600000
+# Skip Puppeteer browser download to avoid build errors
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # Install dependencies with retries and increased timeout
 RUN npm install --no-fund --prefer-offline --loglevel=error || \
