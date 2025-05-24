@@ -7,7 +7,7 @@ import { DealerHeader } from '@/components/dealer/DealerHeader';
 import Loading from '@/components/Loading';
 
 const DealerLayoutPage: React.FC = () => {
-  const { user, userRole, isLoading } = useAuth();
+  const { user, userDetails, isLoading, userRole } = useAuth();
   
   if (isLoading) {
     return <Loading />;
@@ -17,12 +17,14 @@ const DealerLayoutPage: React.FC = () => {
   if (!user || userRole !== 'dealer') {
     return <Navigate to="/auth/dealer" replace />;
   }
+
+  const dealerName = userDetails?.dealership_name || user?.user_metadata?.dealership_name || userDetails?.full_name || user?.user_metadata?.full_name || 'Dealer';
   
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       <DealerSidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
-        <DealerHeader />
+        <DealerHeader dealerName={dealerName} />
         <main className="flex-1 overflow-y-auto p-4">
           <Outlet />
         </main>
