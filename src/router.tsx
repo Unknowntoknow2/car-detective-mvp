@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
@@ -133,7 +134,7 @@ const routes: RouteObject[] = [
       },
       {
         path: 'valuation/:id',
-        element: <Navigate to="/valuation/result/:id" replace />
+        element: <Navigate to={`/valuation/result/:id`} replace />
       },
       
       // Profile and account routes
