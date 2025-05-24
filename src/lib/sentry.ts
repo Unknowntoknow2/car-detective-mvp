@@ -1,6 +1,4 @@
 
-// src/lib/sentry.ts
-
 /**
  * Sentry error tracking configuration
  * This file handles Sentry initialization with proper error handling
