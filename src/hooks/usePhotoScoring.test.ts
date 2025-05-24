@@ -1,5 +1,5 @@
 
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '../test-utils/testingLibraryHookStub';
 import { usePhotoScoring } from './usePhotoScoring';
 import { Photo, PhotoScore } from '@/types/photo';
 
