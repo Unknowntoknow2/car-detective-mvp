@@ -1,64 +1,24 @@
-@import './styles/base/reset.css';
-@import './styles/base/variables.css';
-@import './styles/components/buttons.css';
-@import './styles/components/cards.css';
-@import './styles/components/effects.css';
-@import './styles/components/forms.css';
-@import './styles/components/steps.css';
-@import './styles/components/multistep-form.css';
-@import './styles/components/patterns.css';
-@import './styles/utilities/animations.css';
-@import './styles/utilities/transforms.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'styles/index.css';
+
+:root {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+html {
+  font-family: 'Inter', sans-serif;
+}
 
 body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
-    'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  box-sizing: border-box;
 }
 
-html, body, #root {
-  height: 100%;
-  width: 100%;
-  max-width: 100vw;
-  overflow-x: hidden;
+@supports (font-variation-settings: normal) {
+  html, body {
+    font-family: 'Inter var', sans-serif;
+  }
 }
 
-*, *::before, *::after {
-  box-sizing: inherit;
-}
-
-@keyframes typingAnimation {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-5px); }
-  100% { transform: translateY(0px); }
-}
-
-.typing-dot {
-  width: 8px;
-  height: 8px;
-  background-color: #718096;
-  border-radius: 50%;
-  display: inline-block;
-  margin: 0 2px;
-  animation: typingAnimation 1s infinite;
-}
-
-.typing-dot:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.typing-dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.typing-dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
+/* Add any additional global styles here */

@@ -5,9 +5,19 @@ import { initSentry } from './lib/sentry';
 import App from './App';
 import './index.css';
 import { AppProviders } from './providers/AppProviders';
+import { loadFonts } from './lib/fonts';
+import { setupTrackingErrorHandler } from './utils/errorHandling';
 
 // Initialize Sentry with proper error handling
 initSentry();
+
+// Load the Inter font from CDN
+loadFonts();
+
+// Set up error handling for third-party scripts
+if (typeof window !== 'undefined') {
+  setupTrackingErrorHandler();
+}
 
 // Suppress React Router future flags warnings if enabled in env
 if (import.meta.env.VITE_ROUTER_FUTURE_FLAGS) {
