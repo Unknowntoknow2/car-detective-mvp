@@ -157,7 +157,7 @@ export async function fetchTrimOptions(make: string, model: string, year: number
       .eq('year', year);
       
     if (trimData && !dbError && trimData.length > 0) {
-      return trimData.map(item => item.trim_name);
+      return trimData.map((item: { trim_name: string }) => item.trim_name);
     }
     
     // If not in database, simulate a response with common trim levels

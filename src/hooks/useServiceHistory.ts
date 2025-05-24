@@ -38,7 +38,7 @@ export function useServiceHistory({ vin }: UseServiceHistoryProps) {
       }
       
       // Convert database record IDs from number to string if needed
-      const formattedRecords = data.map(record => ({
+      const formattedRecords = data.map((record: any) => ({
         ...record,
         id: String(record.id) // Ensure id is string type
       })) as ServiceRecord[];
