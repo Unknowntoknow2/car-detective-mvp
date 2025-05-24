@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileDown, Loader2 } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { saveAs } from 'file-saver';
 import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
@@ -25,6 +25,7 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
   const handleDownload = async () => {
     if (!isPremium) {
       toast({
+        title: "Premium Access Required",
         description: "Premium access required to download PDF reports",
         variant: "destructive",
       });
@@ -33,6 +34,7 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
     
     if (!valuationResult) {
       toast({
+        title: "No Data Available",
         description: "No valuation data available to generate PDF",
         variant: "destructive",
       });
@@ -82,11 +84,13 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
       saveAs(pdfBlob, filename);
       
       toast({
+        title: "Download Complete",
         description: "PDF report downloaded successfully",
       });
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast({
+        title: "Download Failed",
         description: "Failed to generate PDF report",
         variant: "destructive",
       });
