@@ -67,7 +67,7 @@ export function ManualLookup({
         toast({
           title: "Not logged in",
           description: "Your data is not being saved. Sign in to save your entries.",
-          variant: "warning",
+          variant: "warning", // Now this is a valid variant
         });
       }
       

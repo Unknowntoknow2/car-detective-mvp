@@ -1,3 +1,4 @@
+
 // src/components/lookup/followup/FollowUpForm.tsx
 
 import React, { useState } from 'react';
@@ -8,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface FollowUpFormProps {
   onSubmit?: (data: FollowUpFormData) => void;
@@ -51,14 +52,20 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ onSubmit }) => {
     const { name, email, phone, message } = formData;
 
     if (!name || !email || !phone || !message) {
-      toast({ description: '❌ Please fill out all required fields.' });
+      toast({ 
+        title: "Missing Information", 
+        description: "Please fill out all required fields." 
+      });
       return;
     }
 
     try {
       setLoading(true);
       await new Promise((res) => setTimeout(res, 1000));
-      toast({ description: '✅ Message Sent! We will get back to you soon.' });
+      toast({ 
+        title: "Message Sent", 
+        description: "We will get back to you soon." 
+      });
 
       onSubmit?.(formData);
       setFormData({
@@ -73,7 +80,10 @@ const FollowUpForm: React.FC<FollowUpFormProps> = ({ onSubmit }) => {
         financing: '',
       });
     } catch (err) {
-      toast({ description: '❌ Failed to send message. Try again later.' });
+      toast({ 
+        title: "Error", 
+        description: "Failed to send message. Try again later."
+      });
     } finally {
       setLoading(false);
     }

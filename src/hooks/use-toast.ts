@@ -2,27 +2,31 @@
 import { toast as sonnerToast } from 'sonner';
 
 type ToastProps = {
-  title: string;
+  title?: string;
   description?: string;
-  variant?: 'default' | 'destructive' | 'success';
+  variant?: 'default' | 'destructive' | 'success' | 'warning';
 };
 
 export const toast = ({ title, description, variant = 'default' }: ToastProps) => {
+  // If only description is provided, use it as the title for sonner
+  const message = title || description || '';
+  const options = {
+    description: title ? description : undefined,
+  };
+  
   if (variant === 'destructive') {
-    return sonnerToast.error(title, {
-      description,
-    });
+    return sonnerToast.error(message, options);
   }
   
   if (variant === 'success') {
-    return sonnerToast.success(title, {
-      description,
-    });
+    return sonnerToast.success(message, options);
   }
   
-  return sonnerToast(title, {
-    description,
-  });
+  if (variant === 'warning') {
+    return sonnerToast.warning(message, options);
+  }
+  
+  return sonnerToast(message, options);
 };
 
 export const useToast = () => {
