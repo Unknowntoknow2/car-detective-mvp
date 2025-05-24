@@ -1,17 +1,19 @@
 
 import React from 'react';
 import { useRoutes } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
+import { Toaster } from '@/components/ui/toaster';
 import routes from './router';
-import { Toaster } from 'sonner';
+import './App.css';
 
 function App() {
-  const routeElements = useRoutes(routes);
+  const content = useRoutes(routes);
   
   return (
-    <>
-      <Toaster position="top-center" richColors />
-      {routeElements}
-    </>
+    <HelmetProvider>
+      {content}
+      <Toaster />
+    </HelmetProvider>
   );
 }
 

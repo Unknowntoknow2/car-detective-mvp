@@ -2,102 +2,50 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-export function Footer() {
-  const currentYear = new Date().getFullYear();
-  
+export const Footer = () => {
   return (
-    <footer className="bg-background border-t py-8">
+    <footer className="border-t bg-background py-6">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-white font-bold">
-                CD
-              </div>
-              <span className="text-xl font-bold tracking-tight">CarDetective</span>
-            </div>
-            <p className="text-muted-foreground text-sm mb-4">
-              Accurate vehicle valuations powered by market data and AI analysis.
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Car Detective</h3>
+            <p className="text-muted-foreground text-sm">
+              Get accurate valuations and detailed reports for your vehicle.
             </p>
           </div>
           
           <div>
-            <h3 className="font-medium mb-4">Product</h3>
+            <h4 className="font-medium mb-4">Services</h4>
             <ul className="space-y-2 text-sm">
-              <li>
-                <Link to="/valuation" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Get Valuation
-                </Link>
-              </li>
-              <li>
-                <Link to="/premium" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Premium Features
-                </Link>
-              </li>
-              <li>
-                <Link to="/dealer" className="text-muted-foreground hover:text-foreground transition-colors">
-                  For Dealers
-                </Link>
-              </li>
+              <li><Link to="/valuation" className="text-muted-foreground hover:text-foreground">Basic Valuation</Link></li>
+              <li><Link to="/premium-valuation" className="text-muted-foreground hover:text-foreground">Premium Valuation</Link></li>
+              <li><Link to="/vin-lookup" className="text-muted-foreground hover:text-foreground">VIN Lookup</Link></li>
             </ul>
           </div>
           
           <div>
-            <h3 className="font-medium mb-4">Company</h3>
+            <h4 className="font-medium mb-4">Account</h4>
             <ul className="space-y-2 text-sm">
-              <li>
-                <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Contact
-                </Link>
-              </li>
-              <li>
-                <Link to="/careers" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Careers
-                </Link>
-              </li>
+              <li><Link to="/auth" className="text-muted-foreground hover:text-foreground">Sign In</Link></li>
+              <li><Link to="/auth/individual" className="text-muted-foreground hover:text-foreground">Individual Account</Link></li>
+              <li><Link to="/auth/dealer" className="text-muted-foreground hover:text-foreground">Dealer Account</Link></li>
             </ul>
           </div>
           
           <div>
-            <h3 className="font-medium mb-4">Legal</h3>
+            <h4 className="font-medium mb-4">Legal</h4>
             <ul className="space-y-2 text-sm">
-              <li>
-                <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link to="/cookies" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Cookie Policy
-                </Link>
-              </li>
+              <li><Link to="/about" className="text-muted-foreground hover:text-foreground">About Us</Link></li>
+              <li><Link to="/privacy" className="text-muted-foreground hover:text-foreground">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="text-muted-foreground hover:text-foreground">Terms of Service</Link></li>
             </ul>
           </div>
         </div>
         
-        <div className="border-t mt-8 pt-6 text-sm text-muted-foreground flex flex-col md:flex-row justify-between items-center">
-          <div>
-            &copy; {currentYear} CarDetective. All rights reserved.
-          </div>
-          <div className="flex gap-4 mt-4 md:mt-0">
-            <a href="#" className="hover:text-foreground transition-colors">Twitter</a>
-            <a href="#" className="hover:text-foreground transition-colors">Facebook</a>
-            <a href="#" className="hover:text-foreground transition-colors">LinkedIn</a>
-          </div>
+        <div className="mt-8 pt-4 border-t text-center text-sm text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} Car Detective. All rights reserved.</p>
         </div>
       </div>
     </footer>
   );
-}
-
-export default Footer;
+};

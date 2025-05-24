@@ -1,6 +1,4 @@
 
-// This file re-exports the useAuth hook from the AuthContext
-// This ensures all components import from the same source
 import { useContext } from 'react';
 import { AuthContext } from '@/contexts/AuthContext';
 
