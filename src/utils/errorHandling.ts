@@ -1,6 +1,3 @@
-
-import { toast } from 'sonner';
-
 // Setup error handler for third-party tracking scripts
 export const setupTrackingErrorHandler = () => {
   // If in development or test, suppress most tracking errors
