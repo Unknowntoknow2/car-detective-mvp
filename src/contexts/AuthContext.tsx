@@ -1,122 +1,68 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { UserRole } from '@/types/auth';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+import { UserDetails } from '@/types/user';
 
-interface AuthContextType {
-  user: any | null;
+interface AuthContextProps {
+  user: User | null;
   userDetails: UserDetails | null;
-  session: any | null;
-  isLoading: boolean;
-  userRole: UserRole | null;
+  session: Session | null;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
-  updateUserDetails: (details: Partial<UserDetails>) => Promise<void>;
-  error?: string | null;
+  isLoading: boolean;
+  error: string | null;
 }
 
-interface UserDetails {
-  id: string;
-  full_name?: string;
-  avatar_url?: string;
-  role?: UserRole;
-  email?: string;
-  dealership_name?: string;
-  premium_access?: boolean;
-  created_at?: string;
-}
+// Create context with a default value
+const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
+// Provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<any | null>(null);
-  const [session, setSession] = useState<any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Derive userRole from userDetails for easier access
-  const userRole = userDetails?.role || null;
+  // Function to fetch user details from profiles table
+  const fetchUserDetails = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
 
-  useEffect(() => {
-    // Check for existing session
-    const checkUser = async () => {
-      try {
-        setIsLoading(true);
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
-          setError(error.message);
-          return;
-        }
-
-        if (session) {
-          setSession(session);
-          setUser(session.user);
-          
-          // Get user profile details
-          const { data, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (profileError) {
-            console.error('Error getting profile:', profileError);
-            setError(profileError.message);
-          } else if (data) {
-            setUserDetails({
-              id: session.user.id,
-              full_name: data.full_name,
-              avatar_url: data.avatar_url,
-              role: data.role || data.user_role,
-              email: session.user.email,
-              dealership_name: data.dealership_name,
-              premium_access: data.premium_access,
-              created_at: data.created_at
-            });
-          }
-        }
-      } catch (error: any) {
-        console.error('Auth error:', error);
-        setError(error.message);
-      } finally {
-        setIsLoading(false);
+      if (error) {
+        console.error('Error fetching user details:', error);
+        return null;
       }
-    };
 
-    // Set up auth state change listener
+      return data;
+    } catch (err) {
+      console.error('Unexpected error fetching user details:', err);
+      return null;
+    }
+  };
+
+  // Initialize auth state and set up listener
+  useEffect(() => {
+    setIsLoading(true);
+    
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Get user profile details
+          // Use setTimeout to prevent deadlocks
           setTimeout(async () => {
-            const { data, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-            
-            if (profileError) {
-              console.error('Error getting profile:', profileError);
-            } else if (data) {
-              setUserDetails({
-                id: session.user.id,
-                full_name: data.full_name,
-                avatar_url: data.avatar_url,
-                role: data.role || data.user_role,
-                email: session.user.email,
-                dealership_name: data.dealership_name,
-                premium_access: data.premium_access,
-                created_at: data.created_at
-              });
-            }
+            const details = await fetchUserDetails(session.user.id);
+            setUserDetails(details);
           }, 0);
         } else {
           setUserDetails(null);
@@ -124,151 +70,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    checkUser();
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        fetchUserDetails(session.user.id).then(details => {
+          setUserDetails(details);
+          setIsLoading(false);
+        });
+      } else {
+        setIsLoading(false);
+      }
+    });
 
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
+  // Sign in function
   const signIn = async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       });
 
       if (error) {
-        console.error('Sign in error:', error);
-        toast({
-          title: 'Sign in failed',
-          description: error.message,
-          variant: 'destructive'
-        });
+        setError(error.message);
         return { success: false, error: error.message };
       }
 
-      toast({
-        title: 'Signed in successfully',
-        variant: 'success'
-      });
-      
+      toast.success('Signed in successfully!');
       return { success: true };
-    } catch (error: any) {
-      console.error('Unexpected sign in error:', error);
-      toast({
-        title: 'Sign in failed',
-        description: error.message,
-        variant: 'destructive'
-      });
-      return { success: false, error: error.message };
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to sign in';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
+  // Sign up function
   const signUp = async (email: string, password: string, metadata?: any) => {
     try {
-      // Configure the options for signup
-      const options = metadata ? { data: metadata } : undefined;
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options
+        options: metadata ? { data: metadata } : undefined,
       });
 
       if (error) {
-        console.error('Sign up error:', error);
-        toast({
-          title: 'Sign up failed',
-          description: error.message,
-          variant: 'destructive'
-        });
+        setError(error.message);
         return { success: false, error: error.message };
       }
 
-      toast({
-        title: 'Sign up successful',
-        description: 'Welcome to Car Detective!',
-        variant: 'success'
-      });
-      
+      toast.success('Sign up successful! Please check your email to verify your account.');
       return { success: true };
-    } catch (error: any) {
-      console.error('Unexpected sign up error:', error);
-      toast({
-        title: 'Sign up failed',
-        description: error.message,
-        variant: 'destructive'
-      });
-      return { success: false, error: error.message };
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to sign up';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
+  // Sign out function
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('Sign out error:', error);
-        toast({
-          title: 'Sign out failed',
-          description: error.message,
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      setUser(null);
-      setSession(null);
-      setUserDetails(null);
-      
-      toast({
-        title: 'Signed out successfully',
-        variant: 'success'
-      });
-    } catch (error: any) {
-      console.error('Unexpected sign out error:', error);
-      toast({
-        title: 'Sign out failed',
-        description: error.message,
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const updateUserDetails = async (details: Partial<UserDetails>) => {
-    if (!user) return;
-    
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(details)
-        .eq('id', user.id);
-      
-      if (error) {
-        console.error('Profile update error:', error);
-        toast({
-          title: 'Profile update failed',
-          description: error.message,
-          variant: 'destructive'
-        });
-        return;
-      }
-      
-      // Update local state
-      setUserDetails(prev => prev ? { ...prev, ...details } : null);
-      
-      toast({
-        title: 'Profile updated successfully',
-        variant: 'success'
-      });
-    } catch (error: any) {
-      console.error('Unexpected profile update error:', error);
-      toast({
-        title: 'Profile update failed',
-        description: error.message,
-        variant: 'destructive'
-      });
+      await supabase.auth.signOut();
+      toast.success('You have been signed out');
+    } catch (err: any) {
+      setError(err.message);
+      toast.error('Failed to sign out');
     }
   };
 
@@ -276,22 +150,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     userDetails,
     session,
-    isLoading,
-    userRole,
     signIn,
     signUp,
     signOut,
-    updateUserDetails,
-    error
+    isLoading,
+    error,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// Custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
+  
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
+  
   return context;
 };
+
+export { AuthContext };
