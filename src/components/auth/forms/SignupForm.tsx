@@ -80,7 +80,7 @@ export const SignupForm = ({
       
       // If sign-up was successful
       toast({
-        title: "Account created successfully!",
+        title: "Account created successfully",
         description: "Welcome to Car Detective!",
         variant: "success",
       });

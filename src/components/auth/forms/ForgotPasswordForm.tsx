@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 export const ForgotPasswordForm = () => {
   const [email, setEmail] = useState('');
@@ -31,7 +31,11 @@ export const ForgotPasswordForm = () => {
       // For now, just show a success message since resetPassword might not be available
       // if auth.resetPassword is available, we would call it
       setSuccess(true);
-      toast.success('If an account exists with this email, you will receive password reset instructions.');
+      toast({
+        title: "Reset instructions sent",
+        description: "If an account exists with this email, you will receive password reset instructions.",
+        variant: "success",
+      });
       
       // Simulate API call delay
       setTimeout(() => {
@@ -40,7 +44,11 @@ export const ForgotPasswordForm = () => {
     } catch (err: any) {
       console.error('Password reset error:', err);
       setError(err.message || 'An unexpected error occurred');
-      toast.error(err.message || 'Failed to send reset instructions');
+      toast({
+        title: "Reset failed",
+        description: err.message || 'Failed to send reset instructions',
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

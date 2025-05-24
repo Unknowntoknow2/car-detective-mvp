@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 export const ResetPasswordForm = () => {
   const [password, setPassword] = useState('');
@@ -43,7 +43,11 @@ export const ResetPasswordForm = () => {
       // For now, just show a success message since updatePassword might not be available
       // if auth.updatePassword is available, we would call it
       setSuccess(true);
-      toast.success('Your password has been reset successfully!');
+      toast({
+        title: "Password reset successful",
+        description: "Your password has been reset successfully!",
+        variant: "success",
+      });
       
       // Simulate API call delay
       setTimeout(() => {
@@ -52,7 +56,11 @@ export const ResetPasswordForm = () => {
     } catch (err: any) {
       console.error('Password reset error:', err);
       setError(err.message || 'An unexpected error occurred');
-      toast.error(err.message || 'Failed to reset password');
+      toast({
+        title: "Reset failed",
+        description: err.message || 'Failed to reset password',
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
