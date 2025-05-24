@@ -1,7 +1,7 @@
 
 /**
  * Mock Facebook Marketplace scraper
- * This is a completely mock implementation that doesn't use Puppeteer
+ * This is a completely mock implementation with no Puppeteer dependencies
  */
 
 interface FacebookListing {
@@ -15,6 +15,10 @@ interface FacebookListing {
   condition: string;
 }
 
+/**
+ * Mock implementation that generates realistic-looking data
+ * without any browser automation dependencies
+ */
 export const fetchFacebookMarketplaceListings = async (
   make: string,
   model: string,
@@ -29,23 +33,56 @@ export const fetchFacebookMarketplaceListings = async (
   // Generate mock data instead of scraping
   const mockListings: FacebookListing[] = [];
   
+  // Generate a set of realistic years for the vehicle
+  const currentYear = new Date().getFullYear();
+  const startYear = currentYear - 15;
+  
   for (let i = 0; i < limit; i++) {
     const id = Math.floor(Math.random() * 10000000).toString();
-    const year = 2010 + Math.floor(Math.random() * 12);
+    const year = startYear + Math.floor(Math.random() * 15);
     const mileage = Math.floor(Math.random() * 100000) + 10000;
     const price = Math.floor(Math.random() * 15000) + 5000;
+    const daysAgo = Math.floor(Math.random() * 30);
+    const postedDate = new Date(Date.now() - daysAgo * 86400000).toISOString();
+    
+    // Generate condition based on year and mileage
+    let condition = 'Good';
+    if (year > currentYear - 3 && mileage < 30000) {
+      condition = 'Excellent';
+    } else if (year < currentYear - 10 || mileage > 100000) {
+      condition = 'Fair';
+    }
     
     mockListings.push({
       id,
       title: `${year} ${make} ${model} - ${mileage} miles`,
       price,
       location: `${zipCode} area`,
-      image: `https://picsum.photos/id/${i + 100}/400/300`,
+      image: `https://picsum.photos/seed/${id}/400/300`,
       url: `https://www.facebook.com/marketplace/item/${id}`,
-      postedDate: new Date(Date.now() - Math.floor(Math.random() * 604800000)).toISOString(),
-      condition: Math.random() > 0.7 ? 'Excellent' : Math.random() > 0.4 ? 'Good' : 'Fair'
+      postedDate,
+      condition
     });
   }
   
   return mockListings;
+};
+
+// Add a mock for any other Facebook marketplace functions that might be needed
+export const getMarketplaceDetails = async (listingId: string) => {
+  return {
+    id: listingId,
+    title: `Vehicle Details for ${listingId}`,
+    description: 'This is a mock description for a Facebook Marketplace listing.',
+    sellerInfo: {
+      name: 'Mock Seller',
+      rating: 4.7,
+      memberSince: '2019'
+    },
+    additionalImages: [
+      `https://picsum.photos/seed/${listingId}-1/400/300`,
+      `https://picsum.photos/seed/${listingId}-2/400/300`,
+      `https://picsum.photos/seed/${listingId}-3/400/300`
+    ]
+  };
 };

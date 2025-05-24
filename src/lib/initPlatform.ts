@@ -4,23 +4,48 @@ import { initSentry } from './sentry';
 import { setupTrackingErrorHandler, enableReactDevMode } from '../utils/errorHandling';
 
 // Define global skip configurations
-const disablePuppeteer = () => {
+const disablePuppeteerCompletely = () => {
   try {
     // Set environment variables to prevent Puppeteer downloads
     if (typeof process !== 'undefined' && process.env) {
-      process.env.PUPPETEER_SKIP_DOWNLOAD = 'true';
-      process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = 'true';
-      process.env.SKIP_PUPPETEER_DOWNLOAD = 'true';
+      // Set all possible environment variables
+      const preventionVars = [
+        'PUPPETEER_SKIP_DOWNLOAD',
+        'PUPPETEER_SKIP_CHROMIUM_DOWNLOAD',
+        'SKIP_PUPPETEER_DOWNLOAD',
+        'PUPPETEER_SKIP_CHROME_DOWNLOAD',
+        'PUPPETEER_NO_DOWNLOAD',
+        'PUPPETEER_EXECUTABLE_PATH',
+        'PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD',
+        'PLAYWRIGHT_BROWSERS_PATH'
+      ];
+      
+      preventionVars.forEach(varName => {
+        process.env[varName] = varName.includes('PATH') ? '/bin/false' : 'true';
+      });
     }
     
     // Browser context
     if (typeof window !== 'undefined') {
       // Set global flags to prevent Puppeteer
-      (window as any).PUPPETEER_SKIP_DOWNLOAD = true;
-      (window as any).PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = true;
-      (window as any).__PUPPETEER_DISABLED__ = true;
+      const preventionProps = [
+        'PUPPETEER_SKIP_DOWNLOAD',
+        'PUPPETEER_SKIP_CHROMIUM_DOWNLOAD',
+        '__PUPPETEER_DISABLED__',
+        'PUPPETEER_NO_DOWNLOAD',
+        'SKIP_CHROMIUM_DOWNLOAD',
+        'SKIP_BROWSER_DOWNLOAD'
+      ];
       
-      // Create a disabled Puppeteer shim
+      preventionProps.forEach(prop => {
+        Object.defineProperty(window, prop, {
+          value: true,
+          writable: false,
+          configurable: false
+        });
+      });
+      
+      // Create a fully disabled Puppeteer shim
       const puppeteerShim = {
         launch: () => Promise.reject(new Error('Puppeteer is disabled')),
         connect: () => Promise.reject(new Error('Puppeteer is disabled')),
@@ -30,15 +55,39 @@ const disablePuppeteer = () => {
           download: () => Promise.reject(new Error('Puppeteer is disabled')),
           localRevisions: () => Promise.resolve([]),
           revisionInfo: () => ({ local: false, url: '', revision: '', folderPath: '' })
-        })
+        }),
+        // Add getters that reject any attempt to use Puppeteer
+        get browser() {
+          throw new Error('Puppeteer is disabled');
+        },
+        get page() {
+          throw new Error('Puppeteer is disabled');
+        }
       };
       
-      // Attempt to override any Puppeteer global
-      Object.defineProperty(window, 'puppeteer', {
-        value: puppeteerShim,
-        writable: false,
-        configurable: false
-      });
+      // Attempt to override any Puppeteer global with both methods
+      try {
+        window.puppeteer = puppeteerShim;
+      } catch (e) {}
+      
+      try {
+        Object.defineProperty(window, 'puppeteer', {
+          value: puppeteerShim,
+          writable: false,
+          configurable: false
+        });
+      } catch (e) {}
+      
+      // Also trap global require attempts if in a Node.js context
+      if (typeof global !== 'undefined' && global.require) {
+        const originalRequire = global.require;
+        global.require = function(name) {
+          if (name.includes('puppeteer') || name.includes('chromium')) {
+            return puppeteerShim;
+          }
+          return originalRequire(name);
+        };
+      }
     }
   } catch (e) {
     // Silently handle any errors from our prevention attempts
@@ -46,11 +95,11 @@ const disablePuppeteer = () => {
 };
 
 // Call the disabler immediately
-disablePuppeteer();
+disablePuppeteerCompletely();
 
 export const initPlatform = () => {
   // Call it again in the init function
-  disablePuppeteer();
+  disablePuppeteerCompletely();
   
   // Load fonts from CDN
   loadFonts();

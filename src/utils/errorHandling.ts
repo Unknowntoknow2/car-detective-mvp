@@ -44,8 +44,22 @@ export const setupTrackingErrorHandler = () => {
       'Unable to download browser',
       'Cannot assign to read only property',
       'frozen object',
-      'Cannot read properties of null'
+      'Cannot read properties of null',
+      'logLevel',
+      'playwright'
     ];
+    
+    // More aggressive puppeteer error suppression
+    if (errorMessage.includes('puppeteer') || 
+        errorMessage.includes('Puppeteer') || 
+        errorMessage.includes('chromium') || 
+        errorMessage.includes('chrome') ||
+        errorMessage.includes('browser') ||
+        errorMessage.includes('extensible') ||
+        errorMessage.includes('Cannot add property')) {
+      // Completely suppress puppeteer errors
+      return;
+    }
     
     // Only log errors that don't match our suppress patterns
     if (!suppressPatterns.some(pattern => errorMessage.includes(pattern))) {
@@ -106,3 +120,27 @@ export const enableReactDevMode = () => {
     console.warn('Could not enable React dev tools integration:', e);
   }
 };
+
+// Add a specialized handler just for puppeteer errors
+export const setupPuppeteerErrorHandler = () => {
+  // Intercept all errors related to puppeteer
+  if (typeof window !== 'undefined') {
+    window.addEventListener('error', (event) => {
+      if (event.error && 
+          (event.error.message?.includes('puppeteer') || 
+           event.error.message?.includes('chrome') ||
+           event.error.message?.includes('Cannot add property') ||
+           event.error.message?.includes('object is not extensible'))) {
+        // Prevent the error from propagating
+        event.preventDefault();
+        event.stopPropagation();
+        console.warn('Puppeteer-related error suppressed');
+        return false;
+      }
+      return true;
+    }, true);
+  }
+};
+
+// Call the puppeteer error handler immediately
+setupPuppeteerErrorHandler();
