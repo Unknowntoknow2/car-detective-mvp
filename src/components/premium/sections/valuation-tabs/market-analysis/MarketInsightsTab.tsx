@@ -105,6 +105,13 @@ export function MarketInsightsTab({
   // Extract data from the query result
   const comparableVehicles = data.comparableVehicles || [];
   
+  // Map the trend direction values from useMarketInsights to what MarketTrendCard expects
+  const mapTrendDirection = (direction: 'up' | 'down' | 'stable'): 'increasing' | 'decreasing' | 'stable' => {
+    if (direction === 'up') return 'increasing';
+    if (direction === 'down') return 'decreasing';
+    return 'stable';
+  };
+  
   return (
     <Card>
       <CardHeader>
@@ -120,7 +127,7 @@ export function MarketInsightsTab({
           <TabsContent value="trends" className="space-y-6 pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <MarketTrendCard 
-                trend={data.trendDirection}
+                trend={mapTrendDirection(data.trendDirection)}
                 trendPercentage={data.trendPercentage}
                 listingCount={data.similarListings}
                 averageDaysOnMarket={45} // Sample value
