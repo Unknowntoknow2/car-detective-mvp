@@ -2,13 +2,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Send, Sparkles, MessageCircle, RotateCcw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { X, Send, Loader2, RotateCcw, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { askAIN } from '@/services/ainService';
 import { useAINStore } from '@/stores/useAINStore';
+import { askAIN } from '@/services/ainService';
+import { getValuationContext } from '@/utils/getValuationContext';
 
 interface AdvancedAIAssistantProps {
   onClose: () => void;
@@ -18,23 +17,32 @@ interface AdvancedAIAssistantProps {
 }
 
 const suggestedQuestions = [
-  "What factors affect my car's value?",
-  "How does mileage impact vehicle pricing?",
-  "What's the difference between trade-in and private party value?",
-  "How do market trends affect car values?"
+  "How is my vehicle's value calculated?",
+  "What affects my car's market value?",
+  "Should I sell or keep my vehicle?",
+  "What's the best time to sell?",
 ];
 
-export const AdvancedAIAssistant: React.FC<AdvancedAIAssistantProps> = ({ 
-  onClose, 
+export const AdvancedAIAssistant: React.FC<AdvancedAIAssistantProps> = ({
+  onClose,
   valuationId,
   isPremium = false,
   contextualGreeting
 }) => {
-  const { messages, isLoading, error, addMessage, setLoading, setError, clearMessages } = useAINStore();
-  const [inputValue, setInputValue] = useState('');
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { messages, isLoading, error, addMessage, setLoading, setError } = useAINStore();
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Add contextual greeting on mount
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   useEffect(() => {
     if (contextualGreeting && messages.length === 0) {
       addMessage({
@@ -44,270 +52,227 @@ export const AdvancedAIAssistant: React.FC<AdvancedAIAssistantProps> = ({
     }
   }, [contextualGreeting, messages.length, addMessage]);
 
-  // Auto-scroll to bottom when new messages are added
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
-      }
-    }
-  }, [messages, isLoading]);
-
-  const handleSendMessage = async (messageText?: string) => {
-    const messageToSend = messageText || inputValue.trim();
-    if (!messageToSend || isLoading) return;
+  const handleSubmit = async (message: string) => {
+    if (!message.trim() || isLoading) return;
 
     // Add user message
-    addMessage({
-      role: 'user',
-      content: messageToSend
-    });
-
-    setInputValue('');
+    addMessage({ role: 'user', content: message.trim() });
+    setInput('');
     setLoading(true);
     setError(null);
-
+    setIsTyping(true);
+    
     try {
-      console.log('🤖 Sending message to AIN:', messageToSend);
-      
+      // Get vehicle context if valuationId is provided
+      let vehicleContext = undefined;
+      if (valuationId) {
+        const context = await getValuationContext(valuationId);
+        if (context) {
+          vehicleContext = {
+            make: context.make,
+            model: context.model,
+            year: context.year,
+            mileage: context.mileage,
+            condition: context.condition,
+            zipCode: context.zipCode,
+            estimatedValue: context.estimatedValue,
+            color: context.color,
+            bodyType: context.bodyType
+          };
+        }
+      }
+
       const response = await askAIN(
-        messageToSend,
-        valuationId ? { valuationId } : undefined,
-        messages.map(msg => ({
-          role: msg.role,
-          content: msg.content
-        }))
+        message.trim(),
+        vehicleContext,
+        messages.slice(-10) // Include last 10 messages for context
       );
 
       if (response.error) {
-        setError(response.error);
-        addMessage({
-          role: 'assistant',
-          content: response.error
-        });
-      } else {
-        addMessage({
-          role: 'assistant',
-          content: response.answer
-        });
+        throw new Error(response.error);
       }
+
+      addMessage({ 
+        role: 'assistant', 
+        content: response.answer 
+      });
+      setRetryCount(0);
     } catch (error) {
-      console.error('❌ Error sending message:', error);
-      const errorMessage = 'I\'m having trouble connecting right now. Please try again in a moment.';
-      setError(errorMessage);
+      console.error('❌ AIN request failed:', error);
+      setError(error instanceof Error ? error.message : 'Failed to get response');
+      
+      // Add error message with retry option
       addMessage({
         role: 'assistant',
-        content: errorMessage
+        content: retryCount < 2 
+          ? "I'm having trouble right now. Please try asking again, or rephrase your question."
+          : "AIN is temporarily unavailable. Our team has been notified and we're working to resolve this."
       });
+      
+      setRetryCount(prev => prev + 1);
     } finally {
       setLoading(false);
+      setIsTyping(false);
     }
+  };
+
+  const handleSuggestedQuestion = (question: string) => {
+    handleSubmit(question);
   };
 
   const handleRetry = () => {
     if (messages.length > 0) {
-      const lastUserMessage = [...messages].reverse().find(msg => msg.role === 'user');
+      const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
       if (lastUserMessage) {
-        handleSendMessage(lastUserMessage.content);
+        handleSubmit(lastUserMessage.content);
       }
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
   return (
-    <div className="flex flex-col h-full max-h-[90vh]">
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <CardHeader className="flex-shrink-0 border-b bg-gradient-to-r from-primary/5 to-blue-50">
+      <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-blue-50 shrink-0">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <motion.div 
-              className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-primary to-blue-600 rounded-full shadow-lg"
-              animate={{ rotate: [0, 5, -5, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Sparkles className="h-6 w-6 text-white" />
-            </motion.div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-primary to-blue-600">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
             <div>
-              <CardTitle className="text-xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-                AIN — Auto Intelligence Network™
-              </CardTitle>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="secondary" className="text-xs font-medium">
-                  <MessageCircle className="h-3 w-3 mr-1" />
-                  GPT-4o Powered
-                </Badge>
-                {isPremium && (
-                  <Badge className="text-xs bg-gradient-to-r from-yellow-400 to-orange-500">Premium</Badge>
-                )}
-              </div>
+              <CardTitle className="text-lg font-semibold">AIN Assistant</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {isPremium ? 'Premium AI Assistant' : 'Auto Intelligence Network'}
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {messages.length > 1 && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={clearMessages}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Clear
-              </Button>
-            )}
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
         </div>
       </CardHeader>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
-        <div className="space-y-4 py-4">
-          <AnimatePresence>
-            {messages.map((message, index) => (
-              <motion.div
-                key={message.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[85%] p-4 rounded-2xl shadow-sm ${
-                    message.role === 'user'
-                      ? 'bg-gradient-to-br from-primary to-blue-600 text-white'
-                      : 'bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200'
-                  }`}
-                >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                  <span className={`text-xs mt-2 block ${
-                    message.role === 'user' ? 'text-white/70' : 'text-slate-500'
-                  }`}>
-                    {message.timestamp.toLocaleTimeString([], { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-
-          {/* Typing indicator */}
-          {isLoading && (
+      <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+        <AnimatePresence>
+          {messages.map((message, index) => (
             <motion.div
+              key={message.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex justify-start"
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className="bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 p-4 rounded-2xl shadow-sm">
-                <div className="flex items-center space-x-2">
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 1, repeat: Infinity }}
-                    className="w-2 h-2 bg-primary rounded-full"
-                  />
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
-                    className="w-2 h-2 bg-primary rounded-full"
-                  />
-                  <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
-                    className="w-2 h-2 bg-primary rounded-full"
-                  />
-                  <span className="text-sm text-slate-600 ml-2">AIN is thinking...</span>
-                </div>
+              <div
+                className={`max-w-[80%] p-3 rounded-lg ${
+                  message.role === 'user'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted'
+                }`}
+              >
+                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
               </div>
             </motion.div>
-          )}
+          ))}
+        </AnimatePresence>
 
-          {/* Error state with retry */}
-          {error && !isLoading && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex justify-center"
-            >
-              <div className="bg-red-50 border border-red-200 p-4 rounded-lg flex items-center gap-3">
-                <p className="text-sm text-red-700">{error}</p>
+        {/* Typing Indicator */}
+        {isTyping && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex justify-start"
+          >
+            <div className="bg-muted p-3 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm text-muted-foreground">AIN is thinking...</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Error State with Retry */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex justify-center"
+          >
+            <div className="bg-destructive/10 border border-destructive/20 p-3 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm text-destructive">{error}</span>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleRetry}
+                className="w-full"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Try Again
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Suggested Questions */}
+        {messages.length <= 1 && !isLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-2"
+          >
+            <p className="text-sm text-muted-foreground">Try asking:</p>
+            <div className="grid grid-cols-1 gap-2">
+              {suggestedQuestions.map((question, index) => (
                 <Button
+                  key={index}
                   variant="outline"
                   size="sm"
-                  onClick={handleRetry}
-                  className="text-red-700 border-red-200 hover:bg-red-100"
+                  onClick={() => handleSuggestedQuestion(question)}
+                  className="text-left justify-start h-auto p-3 whitespace-normal"
+                  disabled={isLoading}
                 >
-                  <RotateCcw className="h-3 w-3 mr-1" />
-                  Retry
+                  {question}
                 </Button>
-              </div>
-            </motion.div>
-          )}
+              ))}
+            </div>
+          </motion.div>
+        )}
 
-          {/* Suggested questions (only show when no messages) */}
-          {messages.length === 0 && !isLoading && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-3"
-            >
-              <p className="text-center text-sm text-slate-600 font-medium">Try asking me about:</p>
-              <div className="grid grid-cols-1 gap-2">
-                {suggestedQuestions.map((question, index) => (
-                  <motion.button
-                    key={question}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    onClick={() => handleSendMessage(question)}
-                    className="text-left p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg hover:from-blue-100 hover:to-indigo-100 transition-colors text-sm text-slate-700 hover:text-slate-900"
-                  >
-                    {question}
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </div>
-      </ScrollArea>
+        <div ref={messagesEndRef} />
+      </CardContent>
 
       {/* Input */}
-      <div className="flex-shrink-0 border-t p-4 bg-gradient-to-r from-slate-50 to-slate-100">
-        <div className="flex space-x-3">
+      <div className="border-t p-4 shrink-0">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit(input);
+          }}
+          className="flex gap-2"
+        >
           <Input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask about vehicle values, market trends, or pricing insights..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask AIN anything about your vehicle..."
             disabled={isLoading}
-            className="flex-1 bg-white border-slate-300 focus:border-primary"
+            className="flex-1"
           />
-          <motion.div whileTap={{ scale: 0.95 }}>
-            <Button 
-              onClick={() => handleSendMessage()}
-              disabled={!inputValue.trim() || isLoading}
-              size="icon"
-              className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700"
-            >
+          <Button 
+            type="submit" 
+            disabled={!input.trim() || isLoading}
+            size="icon"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
               <Send className="h-4 w-4" />
-            </Button>
-          </motion.div>
-        </div>
-        <p className="text-xs text-slate-500 mt-2 text-center">
-          AIN can make mistakes. Please verify important information.
-        </p>
+            )}
+          </Button>
+        </form>
       </div>
     </div>
   );
 };
-
-export default AdvancedAIAssistant;
