@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { getCarPricePrediction } from '@/services/carPricePredictionService';
 import { DecodedVehicleInfo } from '@/types/vehicle';
@@ -103,5 +102,92 @@ export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo
   } catch (error) {
     console.error('Error in fetchVehicleByVin:', error);
     throw new Error('Failed to fetch vehicle information');
+  }
+}
+
+export async function fetchVehicleByPlate(plate: string, state: string): Promise<DecodedVehicleInfo> {
+  try {
+    // Mock plate decoding (in production, this would use a real plate lookup API)
+    const mockDecoded = {
+      make: 'Honda',
+      model: 'Accord',
+      year: 2019,
+      fuelType: 'Gasoline',
+      transmission: 'CVT',
+      bodyType: 'Sedan',
+      color: 'Blue'
+    };
+
+    // Get real valuation from pricing API
+    const prediction = await getCarPricePrediction({
+      make: mockDecoded.make,
+      model: mockDecoded.model,
+      year: mockDecoded.year,
+      mileage: 52000,
+      condition: 'good',
+      zipCode: '90210',
+      fuelType: mockDecoded.fuelType,
+      transmission: mockDecoded.transmission,
+      color: mockDecoded.color,
+      bodyType: mockDecoded.bodyType
+    });
+
+    return {
+      vin: `PLATE-${plate}-${state}`,
+      make: prediction.make,
+      model: prediction.model,
+      year: prediction.year,
+      trim: 'EX',
+      engine: '1.5L Turbo',
+      transmission: prediction.transmission,
+      drivetrain: 'FWD',
+      bodyType: prediction.bodyType,
+      fuelType: prediction.fuelType,
+      exteriorColor: prediction.color,
+      features: ['Sunroof', 'Lane Assist', 'Heated Seats'],
+      estimatedValue: prediction.estimatedValue,
+      confidenceScore: prediction.confidenceScore,
+      valuationId: `plate-${Date.now()}`
+    };
+  } catch (error) {
+    console.error('Error in fetchVehicleByPlate:', error);
+    throw new Error('Failed to fetch vehicle information by plate');
+  }
+}
+
+export async function fetchTrimOptions(make: string, model: string, year: number): Promise<string[]> {
+  try {
+    // Query the model_trims table for available trims
+    const { data, error } = await supabase
+      .from('model_trims')
+      .select('trim_name')
+      .eq('year', year)
+      .ilike('model_name', `%${model}%`)
+      .order('trim_name');
+
+    if (error) {
+      console.error('Error fetching trim options:', error);
+      // Return default options if query fails
+      return ['Standard', 'Deluxe', 'Premium', 'Sport'];
+    }
+
+    if (data && data.length > 0) {
+      const trims = data.map(item => item.trim_name).filter(Boolean);
+      return trims.length > 0 ? trims : ['Standard'];
+    }
+
+    // Return default options based on make/model if no data found
+    const defaultTrims = {
+      'Toyota': ['LE', 'SE', 'XLE', 'Limited'],
+      'Honda': ['LX', 'EX', 'EX-L', 'Touring'],
+      'Ford': ['S', 'SE', 'SEL', 'Titanium'],
+      'Chevrolet': ['LS', 'LT', 'Premier'],
+      'Nissan': ['S', 'SV', 'SL', 'Platinum']
+    };
+
+    return defaultTrims[make as keyof typeof defaultTrims] || ['Standard', 'Deluxe', 'Premium', 'Sport'];
+  } catch (error) {
+    console.error('Error in fetchTrimOptions:', error);
+    return ['Standard', 'Deluxe', 'Premium', 'Sport'];
   }
 }
