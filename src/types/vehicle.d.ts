@@ -39,6 +39,9 @@ export interface DecodedVehicleInfo {
   zipCode?: string; 
   mileage?: number;
   valuationId?: string;
+  // Add the missing valuation properties
+  estimatedValue?: number;
+  confidenceScore?: number;
 }
 
 export interface VehicleValuation {
