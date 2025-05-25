@@ -16,8 +16,9 @@ serve(async (req) => {
     const { message, vinContext, chatHistory } = await req.json();
     
     if (!message || typeof message !== 'string') {
+      console.error('Invalid message:', message);
       return new Response(
-        JSON.stringify({ error: 'Message is required' }),
+        JSON.stringify({ error: 'Message is required and must be a string' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -27,7 +28,7 @@ serve(async (req) => {
     if (!apiKey) {
       console.error("Missing OpenAI API key");
       return new Response(
-        JSON.stringify({ error: "AI service temporarily unavailable" }),
+        JSON.stringify({ error: "AI service configuration error. Please contact support." }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -112,10 +113,24 @@ Always aim to provide valuable, accurate information that helps users make infor
     if (!response.ok) {
       const error = await response.json();
       console.error('OpenAI API error:', error);
-      return new Response(
-        JSON.stringify({ error: 'Failed to get response from AI assistant' }), 
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      
+      // Handle specific OpenAI errors
+      if (error.error?.code === 'invalid_api_key') {
+        return new Response(
+          JSON.stringify({ error: 'AI service authentication failed. Please contact support.' }), 
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } else if (error.error?.code === 'rate_limit_exceeded') {
+        return new Response(
+          JSON.stringify({ error: 'AI service is busy. Please try again in a moment.' }), 
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } else {
+        return new Response(
+          JSON.stringify({ error: 'AI service temporarily unavailable. Please try again.' }), 
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     const responseData = await response.json();
@@ -130,7 +145,7 @@ Always aim to provide valuable, accurate information that helps users make infor
   } catch (error) {
     console.error('Error processing AIN request:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to get response from AI assistant' }),
+      JSON.stringify({ error: 'Internal server error. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
