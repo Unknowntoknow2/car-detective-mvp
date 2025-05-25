@@ -15,42 +15,14 @@ export async function askAIN(
   try {
     console.log('🤖 Sending request to AIN:', { question, hasContext: !!vehicleContext });
     
-    const userContext: AssistantContext = {
-      isPremium: true, // TODO: Get from user context
-      hasDealerAccess: false, // TODO: Get from user context
-      vehicleContext,
+    const requestBody = {
+      message: question,
+      vinContext: vehicleContext,
+      chatHistory
     };
 
-    const request: AskAIRequest = {
-      question,
-      userContext,
-      chatHistory,
-      systemPrompt: `You are AIN — Auto Intelligence Network™, a GPT-4o-powered vehicle valuation assistant built by Car Detective. 
-
-Your role is to help users understand car valuations, market trends, and vehicle insights with confidence and expertise.
-
-Key capabilities:
-- Vehicle valuation analysis and explanations
-- Market trend insights and forecasting
-- Accident impact assessment
-- Dealer vs private party pricing guidance
-- Regional market variations
-- CARFAX® report interpretation
-
-Response style:
-- Be conversational but authoritative
-- Provide specific, actionable insights
-- Use data-driven explanations when possible
-- Be helpful and educational
-- Ask clarifying questions when needed
-
-${vehicleContext ? `Current vehicle context: ${JSON.stringify(vehicleContext)}` : 'No specific vehicle context provided'}
-
-Always aim to provide valuable, accurate information that helps users make informed decisions about their vehicles.`
-    };
-
-    const { data, error } = await supabase.functions.invoke('ask-ai', {
-      body: request
+    const { data, error } = await supabase.functions.invoke('ask-ain', {
+      body: requestBody
     });
 
     if (error) {
