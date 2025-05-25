@@ -1,13 +1,14 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Send, Sparkles, X, Minimize2, Maximize2, RotateCcw, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { X, Send, Loader2, RotateCcw, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Card } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAINStore } from '@/stores/useAINStore';
 import { askAIN } from '@/services/ainService';
-import { getValuationContext } from '@/utils/getValuationContext';
+import { toast } from 'sonner';
 
 interface AdvancedAIAssistantProps {
   onClose: () => void;
@@ -16,35 +17,34 @@ interface AdvancedAIAssistantProps {
   contextualGreeting?: string;
 }
 
-const suggestedQuestions = [
-  "How is my vehicle's value calculated?",
-  "What affects my car's market value?",
-  "Should I sell or keep my vehicle?",
-  "What's the best time to sell?",
-];
-
 export const AdvancedAIAssistant: React.FC<AdvancedAIAssistantProps> = ({
   onClose,
   valuationId,
   isPremium = false,
   contextualGreeting
 }) => {
-  const { messages, isLoading, error, addMessage, setLoading, setError } = useAINStore();
+  const { messages, addMessage, isLoading, setLoading, clearMessages } = useAINStore();
   const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Focus input when component mounts
   useEffect(() => {
-    if (contextualGreeting && messages.length === 0) {
+    if (!isMinimized) {
+      inputRef.current?.focus();
+    }
+  }, [isMinimized]);
+
+  // Add contextual greeting when component mounts
+  useEffect(() => {
+    if (messages.length === 0 && contextualGreeting) {
       addMessage({
         role: 'assistant',
         content: contextualGreeting
@@ -52,227 +52,287 @@ export const AdvancedAIAssistant: React.FC<AdvancedAIAssistantProps> = ({
     }
   }, [contextualGreeting, messages.length, addMessage]);
 
-  const handleSubmit = async (message: string) => {
-    if (!message.trim() || isLoading) return;
+  const handleSendMessage = async () => {
+    if (!input.trim() || isLoading) return;
 
-    // Add user message
-    addMessage({ role: 'user', content: message.trim() });
+    const userMessage = input.trim();
     setInput('');
-    setLoading(true);
-    setError(null);
-    setIsTyping(true);
     
+    // Add user message to store
+    addMessage({
+      role: 'user',
+      content: userMessage
+    });
+
+    setLoading(true);
+    setIsThinking(true);
+
     try {
-      // Get vehicle context if valuationId is provided
-      let vehicleContext = undefined;
-      if (valuationId) {
-        const context = await getValuationContext(valuationId);
-        if (context) {
-          vehicleContext = {
-            make: context.make,
-            model: context.model,
-            year: context.year,
-            mileage: context.mileage,
-            condition: context.condition,
-            zipCode: context.zipCode,
-            estimatedValue: context.estimatedValue,
-            color: context.color,
-            bodyType: context.bodyType
-          };
-        }
-      }
+      // Prepare chat history for context
+      const chatHistory = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
 
-      const response = await askAIN(
-        message.trim(),
-        vehicleContext,
-        messages.slice(-10) // Include last 10 messages for context
-      );
-
-      if (response.error) {
-        throw new Error(response.error);
-      }
-
-      addMessage({ 
-        role: 'assistant', 
-        content: response.answer 
-      });
-      setRetryCount(0);
-    } catch (error) {
-      console.error('❌ AIN request failed:', error);
-      setError(error instanceof Error ? error.message : 'Failed to get response');
+      const response = await askAIN(userMessage, undefined, chatHistory);
       
-      // Add error message with retry option
+      if (response.error) {
+        toast.error(response.error);
+        addMessage({
+          role: 'assistant',
+          content: "I'm having trouble connecting right now. Please try again in a moment."
+        });
+      } else {
+        addMessage({
+          role: 'assistant',
+          content: response.answer
+        });
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message. Please try again.');
       addMessage({
         role: 'assistant',
-        content: retryCount < 2 
-          ? "I'm having trouble right now. Please try asking again, or rephrase your question."
-          : "AIN is temporarily unavailable. Our team has been notified and we're working to resolve this."
+        content: "I encountered an error. Please try again."
       });
-      
-      setRetryCount(prev => prev + 1);
     } finally {
       setLoading(false);
-      setIsTyping(false);
+      setIsThinking(false);
     }
   };
 
-  const handleSuggestedQuestion = (question: string) => {
-    handleSubmit(question);
-  };
-
-  const handleRetry = () => {
-    if (messages.length > 0) {
-      const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
-      if (lastUserMessage) {
-        handleSubmit(lastUserMessage.content);
-      }
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
+
+  const quickActions = [
+    { text: "Explain my valuation", icon: Zap },
+    { text: "Market trends", icon: Sparkles },
+    { text: "Compare prices", icon: RotateCcw },
+  ];
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className="h-full flex flex-col bg-gradient-to-br from-background via-background to-primary/5"
+    >
       {/* Header */}
-      <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-blue-50 shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-primary to-blue-600">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
+      <motion.div 
+        className="p-4 border-b bg-gradient-to-r from-primary to-blue-600 text-white relative overflow-hidden"
+        layoutId="header"
+      >
+        {/* Animated background pattern */}
+        <motion.div
+          className="absolute inset-0 opacity-20"
+          animate={{ backgroundPosition: ['0% 0%', '100% 100%'] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          style={{
+            backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+            backgroundSize: '20px 20px'
+          }}
+        />
+        
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <motion.div
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            >
+              <Sparkles className="h-6 w-6" />
+            </motion.div>
             <div>
-              <CardTitle className="text-lg font-semibold">AIN Assistant</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {isPremium ? 'Premium AI Assistant' : 'Auto Intelligence Network'}
-              </p>
+              <h3 className="font-bold text-lg">AIN Assistant</h3>
+              <p className="text-sm opacity-90">Auto Intelligence Network</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-      </CardHeader>
-
-      {/* Messages */}
-      <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-        <AnimatePresence>
-          {messages.map((message, index) => (
-            <motion.div
-              key={message.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMinimized(!isMinimized)}
+              className="text-white hover:bg-white/20"
             >
-              <div
-                className={`max-w-[80%] p-3 rounded-lg ${
-                  message.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted'
-                }`}
-              >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+              {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="text-white hover:bg-white/20"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </motion.div>
 
-        {/* Typing Indicator */}
-        {isTyping && (
+      <AnimatePresence>
+        {!isMinimized && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex justify-start"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="flex-1 flex flex-col"
           >
-            <div className="bg-muted p-3 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm text-muted-foreground">AIN is thinking...</span>
-              </div>
-            </div>
-          </motion.div>
-        )}
+            {/* Messages Area */}
+            <ScrollArea className="flex-1 p-4">
+              <div className="space-y-4">
+                {messages.length === 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center py-8"
+                  >
+                    <motion.div
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <Sparkles className="h-12 w-12 text-primary mx-auto mb-4" />
+                    </motion.div>
+                    <h4 className="text-lg font-semibold mb-2">Welcome to AIN!</h4>
+                    <p className="text-muted-foreground mb-4">
+                      Ask me anything about vehicle valuations, market trends, or car insights.
+                    </p>
+                    
+                    {/* Quick Actions */}
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {quickActions.map((action, index) => (
+                        <motion.button
+                          key={action.text}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: index * 0.1 }}
+                          onClick={() => setInput(action.text)}
+                          className="inline-flex items-center space-x-2 px-3 py-2 bg-primary/10 hover:bg-primary/20 
+                                   rounded-full text-sm transition-colors"
+                        >
+                          <action.icon className="h-4 w-4" />
+                          <span>{action.text}</span>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
 
-        {/* Error State with Retry */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex justify-center"
-          >
-            <div className="bg-destructive/10 border border-destructive/20 p-3 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm text-destructive">{error}</span>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleRetry}
-                className="w-full"
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Try Again
-              </Button>
-            </div>
-          </motion.div>
-        )}
+                {messages.map((message, index) => (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <Card className={`max-w-[80%] p-3 ${
+                      message.role === 'user' 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'bg-muted/50 backdrop-blur-sm'
+                    }`}>
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    </Card>
+                  </motion.div>
+                ))}
 
-        {/* Suggested Questions */}
-        {messages.length <= 1 && !isLoading && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-2"
-          >
-            <p className="text-sm text-muted-foreground">Try asking:</p>
-            <div className="grid grid-cols-1 gap-2">
-              {suggestedQuestions.map((question, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleSuggestedQuestion(question)}
-                  className="text-left justify-start h-auto p-3 whitespace-normal"
+                {/* Thinking indicator */}
+                {isThinking && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex justify-start"
+                  >
+                    <Card className="p-3 bg-muted/50 backdrop-blur-sm">
+                      <div className="flex items-center space-x-2">
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        >
+                          <Sparkles className="h-4 w-4 text-primary" />
+                        </motion.div>
+                        <span className="text-sm text-muted-foreground">AIN is thinking...</span>
+                        <motion.div className="flex space-x-1">
+                          {[0, 1, 2].map((i) => (
+                            <motion.div
+                              key={i}
+                              className="w-2 h-2 bg-primary rounded-full"
+                              animate={{ scale: [1, 1.2, 1] }}
+                              transition={{ 
+                                duration: 0.6, 
+                                repeat: Infinity, 
+                                delay: i * 0.2 
+                              }}
+                            />
+                          ))}
+                        </motion.div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                )}
+                
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+
+            {/* Input Area */}
+            <motion.div 
+              className="p-4 border-t bg-background/50 backdrop-blur-sm"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+            >
+              <div className="flex space-x-2">
+                <Input
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask AIN anything about vehicles..."
                   disabled={isLoading}
+                  className="flex-1"
+                />
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!input.trim() || isLoading}
+                  size="icon"
+                  className="shrink-0"
                 >
-                  {question}
+                  {isLoading ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                    </motion.div>
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </Button>
-              ))}
-            </div>
+              </div>
+              
+              {messages.length > 0 && (
+                <div className="flex justify-between items-center mt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearMessages}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Clear chat
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    {isPremium ? "Premium" : "Free"} • {messages.length} messages
+                  </p>
+                </div>
+              )}
+            </motion.div>
           </motion.div>
         )}
-
-        <div ref={messagesEndRef} />
-      </CardContent>
-
-      {/* Input */}
-      <div className="border-t p-4 shrink-0">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSubmit(input);
-          }}
-          className="flex gap-2"
-        >
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask AIN anything about your vehicle..."
-            disabled={isLoading}
-            className="flex-1"
-          />
-          <Button 
-            type="submit" 
-            disabled={!input.trim() || isLoading}
-            size="icon"
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </Button>
-        </form>
-      </div>
-    </div>
+      </AnimatePresence>
+    </motion.div>
   );
 };
+
+export default AdvancedAIAssistant;
