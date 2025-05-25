@@ -1,5 +1,5 @@
 
-import { AskAIRequest, AskAIResponse } from '@/types/assistant';
+import { AskAIRequest, AskAIResponse, ChatMessage } from '@/types/assistant';
 
 const SUPABASE_URL = 'https://xltxqqzattxogxtqrggt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsdHhxcXphdHR4b2d4dHFyZ2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NTYxMjYsImV4cCI6MjA2MTAzMjEyNn0.kUPmsyUdpcpnPLHWlnP7vODQiRgzCrWjOBfLib3lpvY';
@@ -38,7 +38,7 @@ export const askAI = async (request: AskAIRequest): Promise<AskAIResponse> => {
 };
 
 // Legacy support for existing components
-export const askAIN = async (messages: { role: string; content: string }[]) => {
+export const askAIN = async (messages: ChatMessage[]) => {
   try {
     const lastMessage = messages[messages.length - 1];
     const question = lastMessage?.content || '';
@@ -46,7 +46,10 @@ export const askAIN = async (messages: { role: string; content: string }[]) => {
     const response = await askAI({
       question,
       chatHistory: messages.slice(0, -1),
-      userContext: null,
+      userContext: {
+        isPremium: false,
+        hasDealerAccess: false
+      },
       systemPrompt: `You are AIN — Auto Intelligence Network™, a GPT-4o-powered vehicle valuation assistant built by Car Detective. Your job is to assist users with car valuations, market trends, premium report benefits, dealer offers, and CARFAX® insights.
 
 CORE EXPERTISE:
