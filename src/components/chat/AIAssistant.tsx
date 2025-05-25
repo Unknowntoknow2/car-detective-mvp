@@ -66,7 +66,10 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
       const response = await askAI({
         question: messageContent,
         chatHistory: messages,
-        userContext: null,
+        userContext: {
+          isPremium,
+          hasDealerAccess: false
+        },
         systemPrompt: `You are AIN — Auto Intelligence Network™, a GPT-4o-powered vehicle valuation assistant built by Car Detective. Your job is to assist users with car valuations, market trends, premium report benefits, dealer offers, and CARFAX® insights.
 
 CORE EXPERTISE:
@@ -136,7 +139,7 @@ Your goal: help individuals sell smarter and help dealers make profitable decisi
                 {message.content}
               </div>
               <div className="text-xs opacity-70 mt-1">
-                {message.timestamp.toLocaleTimeString([], { 
+                {new Date(message.timestamp).toLocaleTimeString([], { 
                   hour: '2-digit', 
                   minute: '2-digit' 
                 })}
