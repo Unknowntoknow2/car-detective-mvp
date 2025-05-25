@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 import { toast } from 'sonner';
+import { getCarPricePrediction } from '@/services/carPricePredictionService';
 
 interface VehicleLookupResult {
   isLoading: boolean;
@@ -35,87 +36,141 @@ export function useVehicleLookup(): VehicleLookupResult {
     setError(null);
     
     try {
-      // Simulate API call - in a real app, this would be an actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       let result: DecodedVehicleInfo | null = null;
       
       if (type === 'manual' && manualData) {
-        // Handle manual entry
-        result = {
-          vin: manualData.vin || 'MANUAL_ENTRY',
+        // Handle manual entry with real API call
+        const predictionResult = await getCarPricePrediction({
           make: manualData.make,
           model: manualData.model,
           year: manualData.year,
           mileage: manualData.mileage,
-          trim: manualData.trim,
+          condition: manualData.condition.toString(),
+          zipCode: manualData.zipCode,
           fuelType: manualData.fuelType,
           transmission: manualData.transmission,
+          color: manualData.color,
           bodyType: manualData.bodyStyle,
-          exteriorColor: manualData.color,
+          vin: manualData.vin
+        });
+
+        result = {
+          vin: manualData.vin || 'MANUAL_ENTRY',
+          make: predictionResult.make,
+          model: predictionResult.model,
+          year: predictionResult.year,
+          mileage: predictionResult.mileage,
+          trim: manualData.trim,
+          fuelType: predictionResult.fuelType,
+          transmission: predictionResult.transmission,
+          bodyType: predictionResult.bodyType,
+          exteriorColor: predictionResult.color,
+          estimatedValue: predictionResult.estimatedValue,
+          confidenceScore: predictionResult.confidenceScore,
           valuationId: `manual-${Date.now()}`
         };
       } else if (type === 'vin') {
-        // Mock VIN lookup
-        result = {
-          vin: value,
+        // Mock VIN decode then real valuation
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const mockDecoded = {
           make: 'Toyota',
           model: 'Camry',
           year: 2019,
+          fuelType: 'Gasoline',
+          transmission: 'Automatic',
+          bodyType: 'Sedan',
+          color: 'Silver'
+        };
+
+        const predictionResult = await getCarPricePrediction({
+          make: mockDecoded.make,
+          model: mockDecoded.model,
+          year: mockDecoded.year,
+          mileage: 45000,
+          condition: 'good',
+          zipCode: '90210',
+          fuelType: mockDecoded.fuelType,
+          transmission: mockDecoded.transmission,
+          color: mockDecoded.color,
+          bodyType: mockDecoded.bodyType,
+          vin: value
+        });
+
+        result = {
+          vin: value,
+          make: predictionResult.make,
+          model: predictionResult.model,
+          year: predictionResult.year,
+          mileage: predictionResult.mileage,
           trim: 'SE',
           engine: '2.5L I4',
-          transmission: 'Automatic',
+          transmission: predictionResult.transmission,
           drivetrain: 'FWD',
-          bodyType: 'Sedan',
-          fuelType: 'Gasoline',
-          exteriorColor: 'Silver',
+          bodyType: predictionResult.bodyType,
+          fuelType: predictionResult.fuelType,
+          exteriorColor: predictionResult.color,
           features: ['Bluetooth', 'Backup Camera', 'Alloy Wheels'],
+          estimatedValue: predictionResult.estimatedValue,
+          confidenceScore: predictionResult.confidenceScore,
           valuationId: `vin-${Date.now()}`
         };
       } else if (type === 'plate') {
-        // Mock plate lookup
-        result = {
-          vin: 'PLATE123456789ABCD',
+        // Mock plate decode then real valuation
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const mockDecoded = {
           make: 'Honda',
           model: 'Accord',
-          year: 2020,
-          trim: 'EX',
-          transmission: 'Automatic',
-          bodyType: 'Sedan',
+          year: 2018,
           fuelType: 'Gasoline',
-          exteriorColor: 'Blue',
+          transmission: 'CVT',
+          bodyType: 'Sedan',
+          color: 'Blue'
+        };
+
+        const predictionResult = await getCarPricePrediction({
+          make: mockDecoded.make,
+          model: mockDecoded.model,
+          year: mockDecoded.year,
+          mileage: 52000,
+          condition: 'good',
+          zipCode: '90210',
+          fuelType: mockDecoded.fuelType,
+          transmission: mockDecoded.transmission,
+          color: mockDecoded.color,
+          bodyType: mockDecoded.bodyType
+        });
+
+        result = {
+          vin: 'PLATE123456789ABCD',
+          make: predictionResult.make,
+          model: predictionResult.model,
+          year: predictionResult.year,
+          mileage: predictionResult.mileage,
+          trim: 'EX-L',
+          engine: '1.5L I4 Turbo',
+          transmission: predictionResult.transmission,
+          drivetrain: 'FWD',
+          bodyType: predictionResult.bodyType,
+          fuelType: predictionResult.fuelType,
+          exteriorColor: predictionResult.color,
+          features: ['Bluetooth', 'Navigation', 'Leather Seats'],
+          estimatedValue: predictionResult.estimatedValue,
+          confidenceScore: predictionResult.confidenceScore,
           valuationId: `plate-${Date.now()}`
         };
-      } else if (type === 'photo') {
-        // Mock photo lookup
-        result = {
-          vin: 'PHOTO123456789ABCD',
-          make: 'Ford',
-          model: 'Mustang',
-          year: 2018,
-          trim: 'GT',
-          transmission: 'Manual',
-          bodyType: 'Coupe',
-          fuelType: 'Gasoline',
-          exteriorColor: 'Red',
-          valuationId: `photo-${Date.now()}`
-        };
-      }
-      
-      if (!result) {
-        throw new Error('Vehicle information not found');
       }
       
       setVehicle(result);
+      setIsLoading(false);
       return result;
       
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to lookup vehicle';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      return null;
-    } finally {
+    } catch (error: any) {
+      console.error('Vehicle lookup error:', error);
+      setError(error.message || 'Failed to lookup vehicle');
       setIsLoading(false);
+      return null;
     }
   };
 
@@ -126,12 +181,12 @@ export function useVehicleLookup(): VehicleLookupResult {
   const lookupByPlate = async (plate: string, state: string): Promise<DecodedVehicleInfo | null> => {
     return lookupVehicle('plate', plate, state);
   };
-  
+
   return {
     isLoading,
     error,
     vehicle,
-    vehicleData: vehicle,
+    vehicleData: vehicle, // Alias for compatibility
     lookupVehicle,
     lookupByVin,
     lookupByPlate,
