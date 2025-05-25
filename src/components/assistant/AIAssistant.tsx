@@ -1,8 +1,9 @@
+
 // 🚫 LOCKED: This implementation of AIN Assistant is complete and production-ready.
 // Do not edit unless explicitly authorized. Last audited and approved on 2025-05-25.
 
 import React, { useEffect, useRef, useState } from 'react';
-import { useAINStore, ChatMessage } from '@/stores/useAINStore';
+import { useAINStore } from '@/stores/useAINStore';
 import { askAIN } from '@/services/ainService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,12 +43,12 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ className }) => {
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
-    const userMessage: ChatMessage = {
+    // Add user message - addMessage expects Omit<ChatMessage, 'id' | 'timestamp'>
+    addMessage({
       role: 'user',
       content: input,
-    };
+    });
 
-    addMessage(userMessage);
     setInput('');
     setLoading(true);
 
@@ -91,11 +92,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ className }) => {
     }
   };
 
-  const toggleMinimize = () => {
-    setMinimized(!isMinimized);
-  };
-
-  const renderMessageContent = (message: ChatMessage) => {
+  const renderMessageContent = (message: any) => {
     if (message.content.startsWith('Error:')) {
       return <div className="text-red-500">{message.content}</div>;
     }
@@ -188,10 +185,13 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ className }) => {
                 type="submit"
                 className="absolute right-1 top-1 rounded-md"
                 size="sm"
-                isLoading={isLoading}
                 disabled={isLoading}
               >
-                Send
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'Send'
+                )}
               </Button>
             </div>
           </form>
