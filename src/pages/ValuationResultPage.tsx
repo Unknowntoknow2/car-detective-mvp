@@ -12,7 +12,7 @@ import { toast } from '@/hooks/use-toast';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 
 export default function ValuationResultPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id, vin: vinParam } = useParams<{ id?: string; vin?: string }>();
   const navigate = useNavigate();
   const [valuation, setValuation] = useState<ValuationResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,23 +20,42 @@ export default function ValuationResultPage() {
   const [followUpComplete, setFollowUpComplete] = useState(false);
   const [hasAccident, setHasAccident] = useState<boolean | null>(null);
 
+  // Use VIN parameter if available, otherwise fall back to ID
+  const lookupKey = vinParam || id;
+  const isVinLookup = !!vinParam;
+
   useEffect(() => {
     async function loadValuation() {
-      if (!id) {
-        setError('No valuation ID provided');
+      if (!lookupKey) {
+        setError('No valuation identifier provided');
         setLoading(false);
         return;
       }
 
       try {
-        const { data, error } = await supabase
-          .from('valuations')
-          .select('*')
-          .eq('id', id)
-          .single();
+        let query = supabase.from('valuations').select('*');
+        
+        if (isVinLookup) {
+          // Search by VIN
+          query = query.eq('vin', lookupKey);
+        } else {
+          // Search by ID
+          query = query.eq('id', lookupKey);
+        }
+
+        const { data, error } = await query.maybeSingle();
 
         if (error) {
           throw error;
+        }
+
+        if (!data) {
+          setError(isVinLookup 
+            ? `No valuation found for VIN: ${lookupKey}` 
+            : `No valuation found with ID: ${lookupKey}`
+          );
+          setLoading(false);
+          return;
         }
 
         setValuation(data as ValuationResult);
@@ -50,21 +69,27 @@ export default function ValuationResultPage() {
     }
 
     loadValuation();
-  }, [id]);
+  }, [lookupKey, isVinLookup]);
 
   const handleAccidentResponse = async (hasBeenInAccident: boolean) => {
-    if (!id) return;
+    if (!lookupKey || !valuation) return;
     
     setHasAccident(hasBeenInAccident);
     
     try {
       const accidentCount = hasBeenInAccident ? 1 : 0;
-      const { error } = await supabase
-        .from('valuations')
-        .update({ 
-          accident_count: accidentCount
-        })
-        .eq('id', id);
+      
+      let updateQuery = supabase.from('valuations').update({ 
+        accident_count: accidentCount
+      });
+      
+      if (isVinLookup) {
+        updateQuery = updateQuery.eq('vin', lookupKey);
+      } else {
+        updateQuery = updateQuery.eq('id', lookupKey);
+      }
+      
+      const { error } = await updateQuery;
 
       if (error) {
         throw error;
@@ -119,9 +144,14 @@ export default function ValuationResultPage() {
           <AlertCircle className="h-12 w-12 text-destructive mb-4" />
           <h2 className="text-xl font-semibold mb-2">Error Loading Valuation</h2>
           <p className="text-muted-foreground mb-6">{error || 'Valuation not found'}</p>
-          <Button onClick={() => navigate('/')}>
-            Return to Home
-          </Button>
+          <div className="flex gap-4">
+            <Button onClick={() => navigate('/')}>
+              Return to Home
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/valuation')}>
+              New Valuation
+            </Button>
+          </div>
         </div>
       </MainLayout>
     );
@@ -142,7 +172,7 @@ export default function ValuationResultPage() {
         </Card>
 
         {!followUpComplete && (
-          <Card className="border border-blue-200 bg-blue-50">
+          <Card className="border border-blue-200 bg-blue-50 mb-6">
             <CardHeader>
               <CardTitle className="text-xl">Additional Information</CardTitle>
             </CardHeader>
@@ -169,7 +199,7 @@ export default function ValuationResultPage() {
         )}
 
         {hasAccident === true && (
-          <Card className="mt-6 border border-yellow-200 bg-yellow-50">
+          <Card className="mt-6 mb-6 border border-yellow-200 bg-yellow-50">
             <CardContent className="pt-6">
               <p className="font-medium">
                 Accident history typically reduces a vehicle's value by 10-30% depending on severity.
@@ -182,12 +212,34 @@ export default function ValuationResultPage() {
           <h2 className="text-2xl font-bold mb-4">Estimated Value</h2>
           <div className="bg-white p-6 rounded-lg border shadow-sm">
             <p className="text-4xl font-bold text-primary">
-              ${valuation.estimatedValue?.toLocaleString() || valuation.estimated_value?.toLocaleString()}
+              ${(valuation.estimatedValue || valuation.estimated_value || 0).toLocaleString()}
             </p>
             <p className="text-muted-foreground mt-2">
               Based on the vehicle's condition, year, make, model, and other factors.
             </p>
+            {valuation.confidence_score && (
+              <div className="mt-4">
+                <p className="text-sm text-muted-foreground">
+                  Confidence Score: {valuation.confidence_score}%
+                </p>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                  <div 
+                    className="bg-primary h-2 rounded-full" 
+                    style={{ width: `${valuation.confidence_score}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
           </div>
+        </div>
+
+        <div className="mt-8 flex gap-4">
+          <Button onClick={() => navigate('/')}>
+            Back to Home
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/valuation')}>
+            Get Another Valuation
+          </Button>
         </div>
       </div>
     </MainLayout>
