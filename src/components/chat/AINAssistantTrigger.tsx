@@ -1,14 +1,15 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { MessageCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AINAssistantDrawer } from './AINAssistantDrawer';
 import { useLocation } from 'react-router-dom';
+import { useAINStore } from '@/stores/useAINStore';
 
 export const AINAssistantTrigger: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { setOpen } = useAINStore();
   const location = useLocation();
 
   // Context-aware greeting based on current page
@@ -58,7 +59,7 @@ export const AINAssistantTrigger: React.FC = () => {
                 className="relative"
               >
                 <Button
-                  onClick={() => setIsOpen(true)}
+                  onClick={() => setOpen(true)}
                   size="icon"
                   className="h-14 w-14 rounded-full bg-gradient-to-r from-primary via-blue-600 to-primary 
                            hover:from-primary/90 hover:via-blue-700 hover:to-primary/90
@@ -91,8 +92,6 @@ export const AINAssistantTrigger: React.FC = () => {
       </TooltipProvider>
 
       <AINAssistantDrawer 
-        isOpen={isOpen} 
-        onClose={() => setIsOpen(false)}
         contextualGreeting={getContextualGreeting()}
       />
     </>
