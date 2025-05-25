@@ -18,10 +18,11 @@ export function useValuationData(valuationId: string): UseValuationDataReturn {
   const [isError, setIsError] = useState<boolean>(false);
 
   const fetchData = async () => {
-    if (!valuationId) {
+    if (!valuationId || valuationId === ':id') {
       setIsLoading(false);
       setIsError(true);
-      setError('No valuation ID provided');
+      setError('No valid valuation ID provided');
+      console.log('Invalid valuationId:', valuationId);
       return;
     }
 
@@ -30,6 +31,8 @@ export function useValuationData(valuationId: string): UseValuationDataReturn {
     setError(null);
 
     try {
+      console.log('Fetching valuation data for ID:', valuationId);
+      
       const { data: result, error: apiError } = await supabase
         .from('valuations')
         .select('*')
@@ -37,10 +40,13 @@ export function useValuationData(valuationId: string): UseValuationDataReturn {
         .single();
 
       if (apiError) {
+        console.error('Supabase API error:', apiError);
         throw apiError;
       }
 
       if (result) {
+        console.log('Valuation data fetched successfully:', result);
+        
         // Convert adjustments from string to array if needed
         if (result.adjustments && typeof result.adjustments === 'string') {
           try {

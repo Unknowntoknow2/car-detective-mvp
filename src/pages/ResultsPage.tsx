@@ -12,8 +12,14 @@ import { ValuationResponse } from '@/types/vehicle';
 export default function ResultsPage() {
   const [searchParams] = useSearchParams();
   const { id } = useParams<{ id: string }>();
-  const valuationId = searchParams.get('valuationId') || id;
+  
+  // Get valuationId from URL params or search params
+  const valuationId = id || searchParams.get('valuationId');
   const [error, setError] = useState<string | null>(null);
+  
+  console.log('ResultsPage - Route ID:', id);
+  console.log('ResultsPage - Search param valuationId:', searchParams.get('valuationId'));
+  console.log('ResultsPage - Final valuationId:', valuationId);
   
   // Fetch valuation data
   const { data, isLoading } = useValuationResult(valuationId || '');
@@ -27,7 +33,7 @@ export default function ResultsPage() {
   
   useEffect(() => {
     if (!valuationId) {
-      setError('No valuation ID provided.');
+      setError('No valuation ID provided in URL.');
     }
   }, [valuationId]);
 
