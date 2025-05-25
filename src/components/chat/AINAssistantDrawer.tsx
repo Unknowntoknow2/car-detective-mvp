@@ -3,22 +3,21 @@ import React from 'react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { AdvancedAIAssistant } from './AdvancedAIAssistant';
 import { motion } from 'framer-motion';
+import { useAINStore } from '@/stores/useAINStore';
 
 interface AINAssistantDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
   valuationId?: string;
   contextualGreeting?: string;
 }
 
 export const AINAssistantDrawer: React.FC<AINAssistantDrawerProps> = ({ 
-  isOpen, 
-  onClose,
   valuationId,
   contextualGreeting
 }) => {
+  const { isOpen, setOpen } = useAINStore();
+
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Sheet open={isOpen} onOpenChange={setOpen}>
       <SheetContent 
         side="right" 
         className="w-[90vw] sm:w-[480px] lg:w-[540px] p-0 border-l-2 border-primary/20 
@@ -32,9 +31,9 @@ export const AINAssistantDrawer: React.FC<AINAssistantDrawerProps> = ({
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
           <AdvancedAIAssistant 
-            onClose={onClose} 
+            onClose={() => setOpen(false)}
             valuationId={valuationId}
-            isPremium={true} // You can make this dynamic based on user status
+            isPremium={true}
             contextualGreeting={contextualGreeting}
           />
         </motion.div>
