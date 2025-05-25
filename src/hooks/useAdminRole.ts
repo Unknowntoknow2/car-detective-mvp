@@ -3,14 +3,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Define an interface for user roles
-interface UserRole {
-  id: string;
-  user_id: string;
-  role: string;
-  created_at: string;
-}
-
 export function useAdminRole() {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -27,13 +19,9 @@ export function useAdminRole() {
       try {
         setIsCheckingRole(true);
         
-        // Check if the user has an 'admin' role in the user_roles table
+        // Use the new security definer function to avoid recursion
         const { data, error } = await supabase
-          .from('user_roles')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('role', 'admin')
-          .maybeSingle() as { data: UserRole | null, error: Error | null };
+          .rpc('is_current_user_admin');
           
         if (error) {
           console.error('Error checking admin role:', error);
