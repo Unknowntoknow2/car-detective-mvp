@@ -1,35 +1,29 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response("OK", { headers: corsHeaders });
+  }
+
+  const { OPENAI_API_KEY } = Deno.env.toObject();
+  if (!OPENAI_API_KEY) {
+    return new Response(JSON.stringify({ error: "Missing OpenAI API key." }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 401,
+    });
   }
 
   try {
     const { message, vinContext, chatHistory } = await req.json();
-    
+
     if (!message || typeof message !== 'string') {
       console.error('Invalid message:', message);
       return new Response(
         JSON.stringify({ error: 'Message is required and must be a string' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Get OpenAI API key from environment variable
-    const apiKey = Deno.env.get("OPENAI_API_KEY");
-    if (!apiKey) {
-      console.error("Missing OpenAI API key");
-      return new Response(
-        JSON.stringify({ error: "AI service configuration error. Please contact support." }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -93,15 +87,14 @@ Always aim to provide valuable, accurate information that helps users make infor
 
     console.log('Sending request to OpenAI with', messages.length, 'messages');
 
-    // Make request to OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: "gpt-4o",
         messages,
         temperature: 0.7,
         max_tokens: 800,
@@ -133,8 +126,8 @@ Always aim to provide valuable, accurate information that helps users make infor
       }
     }
 
-    const responseData = await response.json();
-    const answer = responseData.choices[0]?.message?.content || 'Sorry, I couldn\'t generate a response.';
+    const data = await response.json();
+    const answer = data.choices[0]?.message?.content || 'Sorry, I couldn\'t generate a response.';
 
     console.log('AI response generated successfully, length:', answer.length);
 
