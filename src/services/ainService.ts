@@ -10,7 +10,7 @@ export interface AINResponse {
 export async function askAIN(
   question: string,
   vehicleContext?: VehicleContext,
-  chatHistory?: Array<{ role: string; content: string }>
+  chatHistory?: Array<{ role: 'user' | 'assistant'; content: string }>
 ): Promise<AINResponse> {
   try {
     console.log('🤖 Sending request to AIN:', { question, hasContext: !!vehicleContext });
