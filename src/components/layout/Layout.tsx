@@ -1,21 +1,21 @@
 
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Header from './Header';
-import Footer from './Footer';
+import { Navbar } from './Navbar';
+import { Footer } from './Footer';
+import { AINAssistantTrigger } from '@/components/chat/AINAssistantTrigger';
 
-interface LayoutProps {
-  children?: React.ReactNode;
-}
-
-const Layout: React.FC<LayoutProps> = ({ children }) => (
-  <div className="min-h-screen flex flex-col">
-    <Header />
-    <main className="flex-grow">
-      {children || <Outlet />}
-    </main>
-    <Footer />
-  </div>
-);
+const Layout: React.FC = () => {
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <main className="flex-grow">
+        <Outlet />
+      </main>
+      <Footer />
+      <AINAssistantTrigger />
+    </div>
+  );
+};
 
 export default Layout;
