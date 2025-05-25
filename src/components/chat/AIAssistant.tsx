@@ -3,8 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Send, Sparkles, MessageCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Send } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { askAI } from '@/api/askAI';
@@ -113,33 +112,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[85vh]">
-      {/* Header */}
-      <CardHeader className="flex-shrink-0 border-b">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 bg-primary rounded-full">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">AIN — Auto Intelligence Network™</CardTitle>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="secondary" className="text-xs">
-                  <MessageCircle className="h-3 w-3 mr-1" />
-                  GPT-4o Powered
-                </Badge>
-                {isPremium && (
-                  <Badge className="text-xs">Premium</Badge>
-                )}
-              </div>
-            </div>
-          </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardHeader>
-
+    <div className="flex flex-col h-full">
       {/* Messages */}
       <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
         <div className="space-y-4 py-4">
