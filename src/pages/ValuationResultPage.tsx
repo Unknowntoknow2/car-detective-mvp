@@ -177,16 +177,33 @@ export default function ValuationResultPage() {
                     confidenceScore: data.confidence_score,
                     valuationId: data.id
                   }}
-                  onViewReport={() => {
-                    // Handle view report action
-                    console.log('View report for:', data.id);
-                  }}
-                  isPremium={false}
-                  priceRange={data.price_range || {
-                    low: Math.round(data.estimated_value * 0.95),
-                    high: Math.round(data.estimated_value * 1.05)
-                  }}
                 />
+                
+                {/* Additional valuation details */}
+                <div className="mt-6 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Estimated Value:</span>
+                    <span className="text-2xl font-bold text-green-600">
+                      ${data.estimated_value.toLocaleString()}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Confidence Score:</span>
+                    <span className="text-lg font-semibold">
+                      {data.confidence_score}%
+                    </span>
+                  </div>
+                  
+                  {data.price_range && (
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Price Range:</span>
+                      <span className="text-lg">
+                        ${data.price_range.low.toLocaleString()} - ${data.price_range.high.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
