@@ -2,6 +2,7 @@
 import React from 'react';
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { AINAssistantTrigger } from "@/components/chat/AINAssistantTrigger";
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -11,6 +12,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         {children}
       </main>
       <Footer />
+      <AINAssistantTrigger />
     </div>
   );
 };
