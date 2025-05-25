@@ -55,8 +55,10 @@ const VinLookup: React.FC<VinLookupProps> = ({
         onResultsReady(result);
       }
       
-      // Navigate to the follow-up questions page
-      navigate(`/valuation-followup?vin=${vinToSubmit}`);
+      // Navigate to the VIN-specific valuation page
+      navigate(`/valuation/${vinToSubmit}`);
+      
+      toast.success('VIN lookup completed successfully');
     } catch (error: any) {
       console.error('VIN lookup error:', error);
       setError(error.message || 'Failed to lookup VIN. Please try again.');

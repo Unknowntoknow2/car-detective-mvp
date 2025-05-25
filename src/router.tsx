@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
@@ -140,14 +139,12 @@ const routes: RouteObject[] = [
         element: <ValuationResultPage />
       },
       {
+        path: 'valuation/:vin',
+        element: <ValuationResultPage />
+      },
+      {
         path: 'result',
         element: <Navigate to="/valuation" replace />
-      },
-      
-      // Fix redirect route to use proper pattern
-      {
-        path: 'valuation/:id',
-        element: <Navigate to="/valuation/result/:id" replace />
       },
       
       // Profile and account routes
