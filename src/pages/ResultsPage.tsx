@@ -13,15 +13,19 @@ export default function ResultsPage() {
   const [searchParams] = useSearchParams();
   const { id } = useParams<{ id: string }>();
   
-  // Get valuationId from URL params or search params
-  const valuationId = id || searchParams.get('valuationId');
+  // Get valuationId from URL params or search params, ensure it's clean
+  const rawValuationId = id || searchParams.get('valuationId');
+  const valuationId = rawValuationId && rawValuationId !== ':id' && rawValuationId !== '%3Aid' 
+    ? decodeURIComponent(rawValuationId) 
+    : null;
+  
   const [error, setError] = useState<string | null>(null);
   
   console.log('ResultsPage - Route ID:', id);
   console.log('ResultsPage - Search param valuationId:', searchParams.get('valuationId'));
-  console.log('ResultsPage - Final valuationId:', valuationId);
+  console.log('ResultsPage - Final cleaned valuationId:', valuationId);
   
-  // Fetch valuation data
+  // Fetch valuation data only if we have a valid ID
   const { data, isLoading } = useValuationResult(valuationId || '');
   
   // Check premium access
@@ -33,7 +37,9 @@ export default function ResultsPage() {
   
   useEffect(() => {
     if (!valuationId) {
-      setError('No valuation ID provided in URL.');
+      setError('No valid valuation ID provided in URL.');
+    } else {
+      setError(null);
     }
   }, [valuationId]);
 

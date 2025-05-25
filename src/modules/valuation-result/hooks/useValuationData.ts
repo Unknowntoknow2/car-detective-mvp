@@ -11,6 +11,12 @@ interface UseValuationDataReturn {
   refetch: () => void;
 }
 
+// Helper function to validate UUID format
+const isValidUUID = (id: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(id);
+};
+
 export function useValuationData(valuationId: string): UseValuationDataReturn {
   const [data, setData] = useState<ValuationResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -18,11 +24,21 @@ export function useValuationData(valuationId: string): UseValuationDataReturn {
   const [isError, setIsError] = useState<boolean>(false);
 
   const fetchData = async () => {
-    if (!valuationId || valuationId === ':id') {
+    // Check for invalid or placeholder IDs
+    if (!valuationId || valuationId === ':id' || valuationId === '%3Aid') {
       setIsLoading(false);
       setIsError(true);
       setError('No valid valuation ID provided');
-      console.log('Invalid valuationId:', valuationId);
+      console.log('Invalid valuationId (placeholder):', valuationId);
+      return;
+    }
+
+    // Validate UUID format
+    if (!isValidUUID(valuationId)) {
+      setIsLoading(false);
+      setIsError(true);
+      setError('Invalid UUID format for valuation ID');
+      console.log('Invalid UUID format:', valuationId);
       return;
     }
 
