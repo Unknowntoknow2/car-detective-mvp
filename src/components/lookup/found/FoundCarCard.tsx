@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CarIcon, FuelIcon, SettingsIcon } from "lucide-react";
@@ -56,3 +57,5 @@ const FoundCarCard: React.FC<FoundCarCardProps> = ({ vehicle }) => {
 };
 
 export default FoundCarCard;
+export { FoundCarCard };
+export type { FoundCarCardProps };
