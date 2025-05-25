@@ -5,29 +5,35 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 
+interface Message {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant';
+}
+
 export const AiAssistantPreview: React.FC = () => {
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       content: "Hi! I'm AIN, your Auto Intelligence Network assistant. Ask me anything about vehicle valuations!",
-      role: 'assistant' as const
+      role: 'assistant'
     }
   ]);
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
 
-    const userMessage = {
+    const userMessage: Message = {
       id: Date.now().toString(),
       content: message,
-      role: 'user' as const
+      role: 'user'
     };
 
-    const assistantResponse = {
+    const assistantResponse: Message = {
       id: (Date.now() + 1).toString(),
       content: "I'd be happy to help you with that! For a full conversation, click the AIN assistant button in the bottom right corner.",
-      role: 'assistant' as const
+      role: 'assistant'
     };
 
     setMessages(prev => [...prev, userMessage, assistantResponse]);
