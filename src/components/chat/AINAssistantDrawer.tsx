@@ -21,7 +21,12 @@ export const AINAssistantDrawer: React.FC<AINAssistantDrawerProps> = ({
       <SheetContent 
         side="right" 
         className="w-[90vw] sm:w-[480px] lg:w-[540px] p-0 border-l-2 border-primary/20 
-                   bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60"
+                   bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60
+                   shadow-2xl"
+        style={{
+          // Ensure the drawer doesn't block site interaction
+          pointerEvents: 'auto'
+        }}
       >
         <motion.div 
           className="h-full"

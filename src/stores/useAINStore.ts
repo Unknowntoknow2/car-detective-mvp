@@ -13,12 +13,15 @@ interface AINState {
   messages: ChatMessage[];
   isLoading: boolean;
   isOpen: boolean;
+  isMinimized: boolean;
   error: string | null;
   addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
   setLoading: (loading: boolean) => void;
   setOpen: (open: boolean) => void;
+  setMinimized: (minimized: boolean) => void;
   setError: (error: string | null) => void;
   clearMessages: () => void;
+  toggleOpen: () => void;
 }
 
 export const useAINStore = create<AINState>()(
@@ -27,6 +30,7 @@ export const useAINStore = create<AINState>()(
       messages: [],
       isLoading: false,
       isOpen: false,
+      isMinimized: false,
       error: null,
       addMessage: (message) => {
         const newMessage: ChatMessage = {
@@ -40,12 +44,17 @@ export const useAINStore = create<AINState>()(
       },
       setLoading: (loading) => set({ isLoading: loading }),
       setOpen: (open) => set({ isOpen: open }),
+      setMinimized: (minimized) => set({ isMinimized: minimized }),
       setError: (error) => set({ error }),
       clearMessages: () => set({ messages: [] }),
+      toggleOpen: () => set((state) => ({ isOpen: !state.isOpen })),
     }),
     {
       name: 'ain-assistant-storage',
-      partialize: (state) => ({ messages: state.messages }),
+      partialize: (state) => ({ 
+        messages: state.messages,
+        isMinimized: state.isMinimized 
+      }),
     }
   )
 );
