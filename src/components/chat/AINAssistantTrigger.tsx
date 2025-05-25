@@ -4,7 +4,7 @@ import { MessageCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { AINAssistantDrawer } from './AINAssistantDrawer';
+import { AINFloatingChat } from './AINFloatingChat';
 import { useLocation } from 'react-router-dom';
 import { useAINStore } from '@/stores/useAINStore';
 
@@ -32,7 +32,7 @@ export const AINAssistantTrigger: React.FC = () => {
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.div
-              className="fixed bottom-6 right-6 z-50"
+              className="fixed bottom-6 right-6 z-40"
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ 
@@ -160,7 +160,7 @@ export const AINAssistantTrigger: React.FC = () => {
         </Tooltip>
       </TooltipProvider>
 
-      <AINAssistantDrawer 
+      <AINFloatingChat 
         contextualGreeting={getContextualGreeting()}
       />
     </>
