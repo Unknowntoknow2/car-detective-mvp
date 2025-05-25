@@ -107,8 +107,9 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4 p-6 rounded-3xl shadow-2xl border bg-background">
-      <div ref={scrollRef} className="bg-muted rounded-2xl p-5 space-y-4 h-[500px] overflow-y-auto border border-muted-foreground">
+    <div className="flex flex-col h-full max-w-2xl mx-auto bg-background border rounded-3xl shadow-2xl">
+      {/* Chat Messages Area */}
+      <div ref={scrollRef} className="flex-1 bg-muted rounded-t-2xl p-5 space-y-4 h-[500px] overflow-y-auto border border-muted-foreground">
         {initial && messages.length <= 1 && (
           <div className="text-center text-muted-foreground text-sm">
             <div className="mb-3 font-semibold text-lg">👋 Hi there! I'm <strong>AIN</strong> — Ask me anything.</div>
@@ -171,8 +172,9 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         )}
       </div>
 
+      {/* Error Message */}
       {error && (
-        <div className="bg-red-100 text-red-700 rounded-md p-3 text-sm flex justify-between items-center shadow">
+        <div className="bg-red-100 text-red-700 rounded-md p-3 text-sm flex justify-between items-center shadow mx-5 mb-3">
           <span>{error}</span>
           <Button size="sm" variant="outline" onClick={handleRetry} className="ml-2">
             <RefreshCw size={14} className="mr-1" /> Retry
@@ -180,18 +182,29 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex gap-3 pt-2">
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask me anything..."
-          className="flex-1 shadow-inner rounded-full px-4 py-2"
-          disabled={isLoading}
-        />
-        <Button type="submit" disabled={isLoading || !input.trim()} className="rounded-full px-6">
-          Send
-        </Button>
-      </form>
+      {/* Input Area - Made more prominent */}
+      <div className="p-5 border-t bg-background rounded-b-2xl">
+        <form onSubmit={handleSubmit} className="flex gap-3">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask me anything about vehicle valuations..."
+            className="flex-1 h-12 px-4 rounded-full border-2 border-muted focus:border-primary"
+            disabled={isLoading}
+          />
+          <Button 
+            type="submit" 
+            disabled={isLoading || !input.trim()} 
+            className="h-12 px-6 rounded-full bg-primary hover:bg-primary/90"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              'Send'
+            )}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 };
