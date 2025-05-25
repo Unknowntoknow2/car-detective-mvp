@@ -14,15 +14,15 @@ export const AINAssistantTrigger: React.FC = () => {
   // Context-aware greeting based on current page
   const getContextualGreeting = () => {
     if (location.pathname.includes('/valuation-result')) {
-      return "I see you're looking at a valuation result. Want help understanding how it's calculated?";
+      return "I see you're looking at a valuation result. Want help understanding how it's calculated or exploring market insights?";
     }
     if (location.pathname.includes('/premium')) {
-      return "Hi! I'm here to help you understand premium features and benefits.";
+      return "Hi! I'm here to help you understand premium features and benefits. What would you like to know?";
     }
     if (location.pathname.includes('/dashboard')) {
       return "Welcome back! How can I help you with your vehicles today?";
     }
-    return "Hi, I'm AIN — ask me anything about your car!";
+    return "Hi, I'm AIN — your Auto Intelligence Network assistant. Ask me anything about vehicle valuations!";
   };
 
   return (
