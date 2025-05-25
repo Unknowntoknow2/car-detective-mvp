@@ -34,17 +34,25 @@ export const AiAssistantPreview: React.FC = () => {
 
   return (
     <>
-      <Card className="w-full max-w-2xl mx-auto border-primary/20 shadow-lg">
+      <Card className="w-full max-w-2xl mx-auto border-primary/20 shadow-lg bg-gradient-to-br from-background to-primary/5">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-10 h-10 bg-primary rounded-full">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
+              <motion.div 
+                animate={{ rotate: 360 }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-primary to-primary/80 rounded-full"
+              >
+                <Sparkles className="h-6 w-6 text-white" />
+              </motion.div>
               <div>
                 <h3 className="text-lg font-semibold">AIN — Auto Intelligence Network™</h3>
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                  <motion.div 
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="w-2 h-2 rounded-full bg-green-500" 
+                  />
                   AI-Powered Vehicle Assistant
                 </p>
               </div>
@@ -55,7 +63,7 @@ export const AiAssistantPreview: React.FC = () => {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* Sample Questions */}
             <div>
               <p className="text-sm font-medium mb-3">Try asking:</p>
@@ -63,13 +71,13 @@ export const AiAssistantPreview: React.FC = () => {
                 {sampleQuestions.map((question, index) => (
                   <motion.button
                     key={index}
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedQuestion(index)}
-                    className={`text-left p-3 rounded-lg border text-sm transition-colors ${
+                    className={`text-left p-3 rounded-lg border text-sm transition-all duration-200 ${
                       selectedQuestion === index
-                        ? 'border-primary bg-primary/5 text-primary'
-                        : 'border-border hover:border-primary/50'
+                        ? 'border-primary bg-primary/10 text-primary shadow-md'
+                        : 'border-border hover:border-primary/50 hover:shadow-sm'
                     }`}
                   >
                     {question}
@@ -79,42 +87,62 @@ export const AiAssistantPreview: React.FC = () => {
             </div>
 
             {/* Sample Response */}
-            <div className="bg-muted rounded-lg p-4">
+            <motion.div 
+              key={selectedQuestion}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-gradient-to-r from-muted to-muted/50 rounded-lg p-4"
+            >
               <div className="flex items-start space-x-3">
-                <div className="flex items-center justify-center w-6 h-6 bg-primary rounded-full flex-shrink-0 mt-0.5">
-                  <Sparkles className="h-3 w-3 text-white" />
+                <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full flex-shrink-0 mt-0.5">
+                  <Sparkles className="h-4 w-4 text-white" />
                 </div>
                 <div className="flex-1">
-                  <motion.p
-                    key={selectedQuestion}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="text-sm text-muted-foreground leading-relaxed"
-                  >
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {sampleResponses[selectedQuestion]}
-                  </motion.p>
+                  </p>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Features */}
             <div className="grid grid-cols-2 gap-4 mt-6">
-              <div className="text-center">
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="text-center p-3 rounded-lg bg-gradient-to-br from-primary/5 to-primary/10"
+              >
                 <div className="text-lg font-semibold text-primary">Real-time</div>
                 <div className="text-xs text-muted-foreground">Market Data</div>
-              </div>
-              <div className="text-center">
+              </motion.div>
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="text-center p-3 rounded-lg bg-gradient-to-br from-primary/5 to-primary/10"
+              >
                 <div className="text-lg font-semibold text-primary">CARFAX®</div>
                 <div className="text-xs text-muted-foreground">Integration</div>
-              </div>
+              </motion.div>
             </div>
 
             {/* CTA */}
-            <Button onClick={handleStartChat} className="w-full mt-4 group" size="lg">
-              Start Chatting with AIN
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button 
+                onClick={handleStartChat} 
+                className="w-full mt-4 group bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70" 
+                size="lg"
+              >
+                Start Chatting with AIN
+                <motion.div
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </motion.div>
+              </Button>
+            </motion.div>
           </div>
         </CardContent>
       </Card>

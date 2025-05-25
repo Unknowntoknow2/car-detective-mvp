@@ -1,5 +1,5 @@
 
-import { AskAIRequest, AskAIResponse, AssistantContext, ChatMessage } from '@/types/assistant';
+import { AskAIRequest, AskAIResponse } from '@/types/assistant';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -13,17 +13,14 @@ export const askAI = async (request: AskAIRequest): Promise<AskAIResponse> => {
     });
 
     if (!SUPABASE_URL) {
-      throw new Error('Supabase URL not configured');
+      throw new Error('AI service not configured');
     }
 
-    const url = `${SUPABASE_URL}/functions/v1/ask-ai`;
-    console.log('🌐 Making request to:', url);
-
-    const response = await fetch(url, {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/ask-ai`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY || ''}`,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
       },
       body: JSON.stringify(request),
     });
@@ -31,8 +28,8 @@ export const askAI = async (request: AskAIRequest): Promise<AskAIResponse> => {
     console.log('🤖 AI response status:', response.status);
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`AI service error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
@@ -41,20 +38,6 @@ export const askAI = async (request: AskAIRequest): Promise<AskAIResponse> => {
     return data;
   } catch (error) {
     console.error('❌ AI request failed:', error);
-    throw error;
-  }
-};
-
-// Test connection function
-export const testAIConnection = async (): Promise<boolean> => {
-  try {
-    const response = await askAI({
-      question: 'test',
-      userContext: { isPremium: false, hasDealerAccess: false }
-    });
-    return response.answer === 'Connection successful';
-  } catch (error) {
-    console.error('AI connection test failed:', error);
-    return false;
+    throw new Error('Unable to connect to AI assistant. Please try again.');
   }
 };
