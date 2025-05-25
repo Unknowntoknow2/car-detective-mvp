@@ -2,6 +2,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
+import { AINAssistantTrigger } from '@/components/chat/AINAssistantTrigger';
 
 const AuthLayout: React.FC = () => {
   return (
@@ -27,6 +28,8 @@ const AuthLayout: React.FC = () => {
           </p>
         </Container>
       </footer>
+      
+      <AINAssistantTrigger />
     </div>
   );
 };
