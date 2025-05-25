@@ -167,4 +167,4 @@ export const AIAssistantTrigger: React.FC = () => {
   );
 };
 
-export default AINAssistantTrigger;
+export default AIAssistantTrigger;
