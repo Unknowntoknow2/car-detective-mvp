@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from '@/components/ui/drawer';
+import React, { useState } from 'react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { X, MessageCircleQuestion, Sparkles } from 'lucide-react';
-import { AIAssistant } from './AIAssistant';
+import { Sparkles, MessageCircleQuestion } from 'lucide-react';
+import { AdvancedAIAssistant } from './AdvancedAIAssistant';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePremiumAccess } from '@/hooks/usePremiumAccess';
+import { motion } from 'framer-motion';
 
 interface AIAssistantDrawerProps {
   isOpen: boolean;
@@ -22,15 +23,20 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({
   const { hasPremiumAccess, isLoading } = usePremiumAccess(valuationId);
   
   return (
-    <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="h-[60vh] max-h-[600px] flex flex-col">
-        <AIAssistant 
-          onClose={onClose} 
-          valuationId={valuationId}
-          isPremium={hasPremiumAccess}
-        />
-      </DrawerContent>
-    </Drawer>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent 
+        side="right" 
+        className="w-[90vw] sm:w-[540px] p-0 border-l-2 border-primary/20"
+      >
+        <div className="h-full">
+          <AdvancedAIAssistant 
+            onClose={onClose} 
+            valuationId={valuationId}
+            isPremium={hasPremiumAccess}
+          />
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 
@@ -40,18 +46,38 @@ export const AIAssistantTrigger: React.FC<{ valuationId?: string }> = ({ valuati
   
   return (
     <>
-      <Button 
-        onClick={() => setIsOpen(true)} 
-        variant="default" 
-        size="icon" 
-        className="fixed bottom-4 right-4 rounded-full h-12 w-12 shadow-lg"
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="fixed bottom-6 right-6 z-50"
       >
-        {hasPremiumAccess ? (
-          <Sparkles className="h-5 w-5" />
-        ) : (
-          <MessageCircleQuestion className="h-5 w-5" />
-        )}
-      </Button>
+        <Button 
+          onClick={() => setIsOpen(true)} 
+          size="icon" 
+          className="h-14 w-14 rounded-full shadow-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 border-2 border-background"
+        >
+          <motion.div
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            {hasPremiumAccess ? (
+              <Sparkles className="h-6 w-6" />
+            ) : (
+              <MessageCircleQuestion className="h-6 w-6" />
+            )}
+          </motion.div>
+        </Button>
+        
+        {/* Pulse effect */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute inset-0 rounded-full bg-primary -z-10"
+        />
+      </motion.div>
+      
       <AIAssistantDrawer 
         isOpen={isOpen} 
         onClose={() => setIsOpen(false)}
