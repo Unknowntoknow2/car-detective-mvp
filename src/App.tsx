@@ -1,4 +1,5 @@
 
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,7 +21,6 @@ import ContactPage from "@/pages/ContactPage";
 import PrivacyPolicyPage from "@/pages/PrivacyPolicyPage";
 import TermsOfServicePage from "@/pages/TermsOfServicePage";
 import NotFoundPage from "@/pages/NotFoundPage";
-import LicensePlateLookupPage from "@/pages/LicensePlateLookupPage";
 
 const queryClient = new QueryClient();
 
@@ -47,7 +47,6 @@ function App() {
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/privacy" element={<PrivacyPolicyPage />} />
                 <Route path="/terms" element={<TermsOfServicePage />} />
-                <Route path="/plate-lookup" element={<LicensePlateLookupPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Layout>
@@ -59,3 +58,4 @@ function App() {
 }
 
 export default App;
+
