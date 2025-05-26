@@ -7,13 +7,17 @@ import { DealerInventoryItem } from '@/types/vehicle';
 
 interface AddEditVehicleFormProps {
   vehicle?: DealerInventoryItem;
-  onSubmit: (vehicle: Partial<DealerInventoryItem>) => void;
-  onCancel: () => void;
+  vehicleId?: string;
+  onSubmit?: (vehicle: Partial<DealerInventoryItem>) => void;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
 export const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
   vehicle,
+  vehicleId,
   onSubmit,
+  onSuccess,
   onCancel
 }) => {
   const [formData, setFormData] = useState({
@@ -28,7 +32,22 @@ export const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Call onSubmit if provided
+    if (onSubmit) {
+      onSubmit(formData);
+    }
+    
+    // Call onSuccess if provided (for modal closing)
+    if (onSuccess) {
+      onSuccess();
+    }
+  };
+
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    }
   };
 
   const handleInputChange = (field: string, value: string | number) => {
@@ -105,11 +124,13 @@ export const AddEditVehicleForm: React.FC<AddEditVehicleFormProps> = ({
 
       <div className="flex gap-2">
         <Button type="submit">
-          {vehicle ? 'Update Vehicle' : 'Add Vehicle'}
+          {vehicle || vehicleId ? 'Update Vehicle' : 'Add Vehicle'}
         </Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
+        )}
       </div>
     </form>
   );

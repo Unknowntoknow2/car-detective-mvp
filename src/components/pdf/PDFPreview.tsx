@@ -42,6 +42,8 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({
       // Convert vehicle info to report data format
       const reportData = convertVehicleInfoToReportData(vehicleInfo, {
         ...valuationData,
+        adjustments: [], // Add default empty adjustments array
+        confidenceScore: valuationData.confidenceScore || 0,
         isPremium: false
       });
       
