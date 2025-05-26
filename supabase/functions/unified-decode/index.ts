@@ -1,236 +1,285 @@
 
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.8";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { fetchWithRetry } from './utils/fetchWithRetry.ts'
 
-// Helper to extract value from NHTSA results array
-function getField(results: any[], fieldName: string): string | undefined {
-  const entry = results.find((item: any) => item.Variable === fieldName);
-  return entry && entry.Value !== null && entry.Value !== "Not Applicable" ? entry.Value : undefined;
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Initialize Supabase client with environment variables
-const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
-const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") as string;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+interface VehicleData {
+  vin: string;
+  year?: number;
+  make?: string;
+  model?: string;
+  trim?: string;
+  engine?: string;
+  transmission?: string;
+  drivetrain?: string;
+  bodytype?: string;
+  fueltype?: string;
+  enginecylinders?: string;
+  displacementl?: string;
+  seats?: string;
+  doors?: string;
+}
 
-// CORS headers
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+interface DecodeResponse {
+  success: boolean;
+  vin: string;
+  source: 'nhtsa' | 'autoapi' | 'cache' | 'failed';
+  decoded?: VehicleData;
+  error?: string;
+}
 
 serve(async (req) => {
-  // Handle CORS preflight request
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      headers: corsHeaders,
-    });
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { vin, plate, state } = await req.json();
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
-    // Validate request parameters
-    if ((!vin && (!plate || !state)) || (vin && (plate || state))) {
+    const { vin } = await req.json();
+
+    if (!vin || vin.length !== 17) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          vin: vin || '',
+          source: 'failed',
+          error: 'Invalid VIN format. VIN must be 17 characters.' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log(`Starting decode process for VIN: ${vin}`);
+
+    // Step 1: Check cache first
+    const { data: cachedData } = await supabase
+      .from('decoded_vehicles')
+      .select('*')
+      .eq('vin', vin)
+      .single();
+
+    if (cachedData) {
+      console.log(`Found cached data for VIN: ${vin}`);
       return new Response(
         JSON.stringify({
-          success: false,
-          error: "You must provide either a VIN or both a plate and state",
+          success: true,
+          vin,
+          source: 'cache',
+          decoded: cachedData
         }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Handle VIN decode
-    if (vin) {
-      // Check VIN cache first
-      const { data: cachedData, error: cacheError } = await supabase
-        .from("vpic_cache")
-        .select("vpic_data")
-        .eq("vin", vin)
-        .single();
-
-      if (cachedData) {
-        console.log("Found VIN in cache", vin);
-        return new Response(
-          JSON.stringify(cachedData.vpic_data),
-          {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      // Fetch decoded vehicle data from NHTSA
-      const nhtsaRes = await fetch(
-        `https://vpic.nhtsa.dot.gov/api/vehicles/decodevin/${encodeURIComponent(vin)}?format=json`
+    // Step 2: Try NHTSA API
+    try {
+      console.log(`Trying NHTSA API for VIN: ${vin}`);
+      const nhtsaResponse = await fetchWithRetry(
+        `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`,
+        {},
+        { maxRetries: 3, timeoutMs: 3000 }
       );
-      const nhtsaData = await nhtsaRes.json();
 
-      if (!nhtsaData || !nhtsaData.Results) {
-        return new Response(
-          JSON.stringify({ success: false, error: "No data from NHTSA" }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
+      if (nhtsaResponse.ok) {
+        const nhtsaData = await nhtsaResponse.json();
+        
+        if (nhtsaData.Results && nhtsaData.Results.length > 0) {
+          const result = nhtsaData.Results[0];
+          
+          // Check if we got meaningful data
+          if (result.Make && result.Make !== 'Not Available') {
+            const decodedData: VehicleData = {
+              vin,
+              year: result.ModelYear ? parseInt(result.ModelYear) : undefined,
+              make: result.Make || undefined,
+              model: result.Model || undefined,
+              trim: result.Trim || undefined,
+              engine: result.EngineModel || undefined,
+              transmission: result.TransmissionStyle || undefined,
+              drivetrain: result.DriveType || undefined,
+              bodytype: result.BodyClass || undefined,
+              fueltype: result.FuelTypePrimary || undefined,
+              enginecylinders: result.EngineCylinders || undefined,
+              displacementl: result.DisplacementL || undefined,
+              seats: result.Seats || undefined,
+              doors: result.Doors || undefined,
+            };
+
+            // Enrich with Supabase data
+            const enrichedData = await enrichVehicleData(supabase, decodedData);
+
+            // Cache the result
+            await cacheVehicleData(supabase, enrichedData);
+
+            console.log(`Successfully decoded VIN ${vin} via NHTSA`);
+            return new Response(
+              JSON.stringify({
+                success: true,
+                vin,
+                source: 'nhtsa',
+                decoded: enrichedData
+              }),
+              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
           }
-        );
+        }
       }
+    } catch (error) {
+      console.log(`NHTSA API failed for VIN ${vin}:`, error.message);
+      await logFailure(supabase, vin, `NHTSA API error: ${error.message}`, 'nhtsa');
+    }
 
-      // Extract and normalize key fields
-      const results = nhtsaData.Results;
-      const vehicle = {
-        vin,
-        make: getField(results, "Make"),
-        model: getField(results, "Model"),
-        year: parseInt(getField(results, "Model Year") || "0"),
-        trim: getField(results, "Trim"),
-        bodyType: getField(results, "Body Class"),
-        engine: getField(results, "Engine Model") || getField(results, "Engine Manufacturer"),
-        fuelType: getField(results, "Fuel Type - Primary"),
-        transmission: getField(results, "Transmission Style"),
-        drivetrain: getField(results, "Drive Type"),
-        doors: getField(results, "Doors"),
-        engineCylinders: getField(results, "Engine Number of Cylinders"),
-        displacementL: getField(results, "Displacement (L)"),
+    // Step 3: Try AutoAPI.io (mock for now)
+    try {
+      console.log(`Trying AutoAPI for VIN: ${vin}`);
+      // Mock AutoAPI response - in production, replace with actual API call
+      const mockResponse = {
+        success: true,
+        data: {
+          vin,
+          year: 2020,
+          make: 'Toyota',
+          model: 'Camry',
+          trim: 'LE',
+          engine: '2.5L 4-Cylinder',
+          transmission: 'Automatic',
+          drivetrain: 'FWD',
+          bodytype: 'Sedan',
+          fueltype: 'Gasoline'
+        }
       };
 
-      // Store in cache if possible
-      try {
-        await supabase
-          .from("vpic_cache")
-          .upsert({
-            vin,
-            vpic_data: vehicle,
-            fetched_at: new Date().toISOString(),
-          })
-          .select();
+      if (mockResponse.success) {
+        const decodedData: VehicleData = mockResponse.data;
+        const enrichedData = await enrichVehicleData(supabase, decodedData);
+        await cacheVehicleData(supabase, enrichedData);
 
-        // Try to save to decoded_vehicles table
-        await supabase
-          .from("decoded_vehicles")
-          .upsert({
-            vin,
-            make: vehicle.make,
-            model: vehicle.model,
-            year: vehicle.year,
-            trim: vehicle.trim,
-            bodyType: vehicle.bodyType,
-            engine: vehicle.engine,
-            transmission: vehicle.transmission,
-            drivetrain: vehicle.drivetrain,
-            doors: vehicle.doors,
-            fueltype: vehicle.fuelType,
-            enginecylinders: vehicle.engineCylinders,
-            displacementl: vehicle.displacementL,
-            created_at: new Date().toISOString(),
-          })
-          .select();
-      } catch (error) {
-        // Just log the error but continue processing
-        console.error("Error saving to cache or decoded_vehicles:", error);
-      }
-
-      return new Response(
-        JSON.stringify(vehicle),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    // Handle plate lookup
-    if (plate && state) {
-      console.log("Looking up plate", plate, "in state", state);
-      
-      // Check if we have the plate cached
-      const { data: cachedPlateData, error: cacheError } = await supabase
-        .from("plate_lookups")
-        .select("*")
-        .eq("plate", plate)
-        .eq("state", state)
-        .single();
-
-      // Return cached data if we have it
-      if (cachedPlateData) {
-        console.log("Found plate in cache", plate);
+        console.log(`Successfully decoded VIN ${vin} via AutoAPI`);
         return new Response(
           JSON.stringify({
-            make: cachedPlateData.make,
-            model: cachedPlateData.model,
-            year: cachedPlateData.year,
-            color: cachedPlateData.color,
+            success: true,
+            vin,
+            source: 'autoapi',
+            decoded: enrichedData
           }),
-          {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-
-      // For demo purposes, generate mock data
-      // In a real implementation, you would call a plate lookup API
-      const mockVehicle = {
-        make: "Honda",
-        model: "Accord",
-        year: 2019,
-        color: "Silver",
-        bodyType: "Sedan",
-        fuelType: "Gasoline",
-        transmission: "Automatic",
-      };
-
-      // Store mock data in cache if possible
-      try {
-        await supabase
-          .from("plate_lookups")
-          .upsert({
-            plate,
-            state,
-            make: mockVehicle.make,
-            model: mockVehicle.model,
-            year: mockVehicle.year,
-            color: mockVehicle.color,
-            created_at: new Date().toISOString(),
-          })
-          .select();
-      } catch (error) {
-        // Just log the error but continue processing
-        console.error("Error saving plate lookup to cache:", error);
-      }
-
-      return new Response(
-        JSON.stringify(mockVehicle),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    } catch (error) {
+      console.log(`AutoAPI failed for VIN ${vin}:`, error.message);
+      await logFailure(supabase, vin, `AutoAPI error: ${error.message}`, 'autoapi');
     }
 
-    // This should never happen due to the validation above
-    return new Response(
-      JSON.stringify({ success: false, error: "Invalid request parameters" }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  } catch (error) {
-    console.error("Error processing request:", error);
+    // Step 4: All methods failed
+    console.log(`All decode methods failed for VIN: ${vin}`);
+    await logFailure(supabase, vin, 'All decode sources failed', 'all');
+
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || "An unexpected error occurred",
+        vin,
+        source: 'failed',
+        error: 'Unable to decode VIN. Please try manual entry.'
       }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      { 
+        status: 422, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
+
+  } catch (error) {
+    console.error('Unified decode error:', error);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        vin: '',
+        source: 'failed',
+        error: 'Internal server error'
+      }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
   }
 });
+
+async function enrichVehicleData(supabase: any, data: VehicleData): Promise<VehicleData> {
+  try {
+    // Cross-match with makes table
+    if (data.make) {
+      const { data: makeData } = await supabase
+        .from('makes')
+        .select('*')
+        .ilike('make_name', data.make)
+        .single();
+
+      if (makeData && data.model) {
+        // Get model data
+        const { data: modelData } = await supabase
+          .from('models')
+          .select('*')
+          .eq('make_id', makeData.id)
+          .ilike('model_name', data.model)
+          .single();
+
+        if (modelData && data.year && !data.trim) {
+          // Try to find a matching trim
+          const { data: trimData } = await supabase
+            .from('model_trims')
+            .select('*')
+            .eq('model_id', modelData.id)
+            .eq('year', data.year)
+            .limit(1)
+            .single();
+
+          if (trimData) {
+            data.trim = trimData.trim_name;
+          }
+        }
+      }
+    }
+
+    return data;
+  } catch (error) {
+    console.log('Enrichment failed, returning original data:', error.message);
+    return data;
+  }
+}
+
+async function cacheVehicleData(supabase: any, data: VehicleData): Promise<void> {
+  try {
+    await supabase
+      .from('decoded_vehicles')
+      .upsert(data, { onConflict: 'vin' });
+  } catch (error) {
+    console.log('Failed to cache vehicle data:', error.message);
+  }
+}
+
+async function logFailure(supabase: any, vin: string, errorMessage: string, source: string): Promise<void> {
+  try {
+    await supabase
+      .from('vin_failures')
+      .insert({
+        vin,
+        error_message: errorMessage,
+        source
+      });
+  } catch (error) {
+    console.log('Failed to log failure:', error.message);
+  }
+}

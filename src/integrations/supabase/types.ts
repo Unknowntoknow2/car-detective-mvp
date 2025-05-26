@@ -2083,6 +2083,30 @@ export type Database = {
         }
         Relationships: []
       }
+      vin_failures: {
+        Row: {
+          created_at: string
+          error_message: string
+          id: string
+          source: string
+          vin: string
+        }
+        Insert: {
+          created_at?: string
+          error_message: string
+          id?: string
+          source: string
+          vin: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string
+          id?: string
+          source?: string
+          vin?: string
+        }
+        Relationships: []
+      }
       vin_lookup_requests: {
         Row: {
           id: string
