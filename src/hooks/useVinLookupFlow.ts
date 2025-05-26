@@ -62,21 +62,26 @@ export function useVinLookupFlow() {
       
       console.log('VIN Lookup Flow: Success', result);
       
+      // Generate a valid UUID for the valuation
+      const valuationId = crypto.randomUUID();
+      
+      const enhancedResult = {
+        ...result,
+        valuationId
+      };
+      
       // Store in localStorage for persistence
       localStorage.setItem('current_vin', vin);
-      localStorage.setItem('latest_valuation_id', result.valuationId || '');
+      localStorage.setItem('latest_valuation_id', valuationId);
       
       updateState({
         isLoading: false,
-        vehicle: result,
+        vehicle: enhancedResult,
         stage: 'results'
       });
 
-      // Navigate to VIN results page
-      navigate(`/valuation/vin/${vin}`);
-      
       toast.success('Vehicle found successfully');
-      return result;
+      return enhancedResult;
     } catch (error: any) {
       console.error('VIN Lookup Flow: Error', error);
       const errorMessage = error.message || 'Failed to lookup VIN';
@@ -89,7 +94,7 @@ export function useVinLookupFlow() {
       toast.error(errorMessage);
       return null;
     }
-  }, [updateState, navigate]);
+  }, [updateState]);
 
   const startFollowup = useCallback(() => {
     updateState({ stage: 'followup', followupProgress: 0 });
