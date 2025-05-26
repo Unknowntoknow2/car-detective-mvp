@@ -2,263 +2,228 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { fetchVehicleByVin, fetchVehicleByPlate } from '@/services/vehicleLookupService';
+import { getCarPricePrediction } from '@/services/carPricePredictionService';
+import { DecodedVehicleInfo } from '@/types/vehicle';
+
+const ANONYMOUS_USER_ID = '00000000-0000-0000-0000-000000000000';
 
 export function useValuation() {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const [valuationData, setValuationData] = useState<any>(null);
 
-  const ANONYMOUS_USER_ID = '00000000-0000-0000-0000-000000000000';
-
+  // Save valuation data to database
   const saveValuation = async (valuationData: any) => {
-    setIsLoading(true);
-    setError(null);
-
     try {
-      console.log('Saving valuation data:', valuationData);
+      console.log('Saving valuation:', valuationData);
       
-      const { data, error: saveError } = await supabase.functions.invoke('car-price-prediction', {
-        body: {
+      const userId = user?.id ?? ANONYMOUS_USER_ID;
+      
+      const { data, error } = await supabase
+        .from('valuations')
+        .insert({
+          user_id: userId,
+          vin: valuationData.vin || null,
           make: valuationData.make,
           model: valuationData.model,
           year: valuationData.year,
-          mileage: valuationData.mileage,
+          mileage: valuationData.mileage || 0,
           condition: valuationData.condition || 'good',
-          zipCode: valuationData.zipCode || '90210',
-          fuelType: valuationData.fuelType,
-          transmission: valuationData.transmission,
-          color: valuationData.color,
-          bodyType: valuationData.bodyType,
-          vin: valuationData.vin
-        }
-      });
+          zip_code: valuationData.zipCode || null,
+          estimated_value: valuationData.estimatedValue || 0,
+          confidence_score: valuationData.confidenceScore || 0,
+          fuel_type: valuationData.fuelType || null,
+          transmission: valuationData.transmission || null,
+          body_type: valuationData.bodyType || null,
+          color: valuationData.color || null,
+          trim: valuationData.trim || null,
+          base_price: valuationData.basePrice || valuationData.estimatedValue || 0,
+          adjustments: valuationData.adjustments ? JSON.stringify(valuationData.adjustments) : null,
+          price_range: valuationData.priceRange ? JSON.stringify(valuationData.priceRange) : null,
+          is_vin_lookup: Boolean(valuationData.vin),
+          is_premium: Boolean(valuationData.isPremium),
+          explanation: valuationData.explanation || null
+        })
+        .select()
+        .single();
 
-      if (saveError) {
-        console.error('Error saving valuation:', saveError);
-        
-        // Fallback: Store in localStorage if database fails
-        const fallbackData = {
-          id: `temp-${Date.now()}`,
-          user_id: user?.id ?? ANONYMOUS_USER_ID,
-          make: valuationData.make,
-          model: valuationData.model,
-          year: valuationData.year,
-          mileage: valuationData.mileage,
-          estimated_value: 15000, // Default fallback value
-          confidence_score: 85,
-          condition: valuationData.condition || 'good',
-          vin: valuationData.vin,
-          created_at: new Date().toISOString()
-        };
-        
-        localStorage.setItem('temp_valuation_data', JSON.stringify(fallbackData));
-        localStorage.setItem('latest_valuation_id', fallbackData.id);
-        
-        return fallbackData;
+      if (error) {
+        console.error('Error saving valuation:', error);
+        throw error;
       }
 
       console.log('Valuation saved successfully:', data);
-      if (data?.id) {
-        localStorage.setItem('latest_valuation_id', data.id);
+      return data;
+    } catch (error: any) {
+      console.error('Error in saveValuation:', error);
+      throw new Error(error.message || 'Failed to save valuation');
+    }
+  };
+
+  // Get valuation by ID
+  const getValuation = async (valuationId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('valuations')
+        .select('*')
+        .eq('id', valuationId)
+        .single();
+
+      if (error) {
+        throw error;
       }
 
       return data;
-    } catch (err: any) {
-      console.error('Error in saveValuation:', err);
-      
-      // Fallback: Store in localStorage if API call fails
-      const fallbackData = {
-        id: `temp-${Date.now()}`,
-        user_id: user?.id ?? ANONYMOUS_USER_ID,
-        make: valuationData.make,
-        model: valuationData.model,
-        year: valuationData.year,
-        mileage: valuationData.mileage,
-        estimated_value: 15000, // Default fallback value
-        confidence_score: 85,
-        condition: valuationData.condition || 'good',
-        vin: valuationData.vin,
-        created_at: new Date().toISOString()
+    } catch (error: any) {
+      console.error('Error getting valuation:', error);
+      throw new Error(error.message || 'Failed to get valuation');
+    }
+  };
+
+  // Save manual valuation with price prediction
+  const saveManualValuation = async (formData: any) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const userId = user?.id ?? ANONYMOUS_USER_ID;
+
+      // Get price prediction
+      const prediction = await getCarPricePrediction({
+        make: formData.make,
+        model: formData.model,
+        year: formData.year,
+        mileage: formData.mileage,
+        condition: formData.condition,
+        zipCode: formData.zipCode,
+        fuelType: formData.fuelType,
+        transmission: formData.transmission,
+        color: formData.color,
+        bodyType: formData.bodyType
+      });
+
+      const valuationData = {
+        user_id: userId,
+        make: prediction.make,
+        model: prediction.model,
+        year: prediction.year,
+        mileage: prediction.mileage,
+        condition: prediction.condition,
+        zip_code: formData.zipCode,
+        estimated_value: prediction.estimatedValue,
+        confidence_score: prediction.confidenceScore,
+        fuel_type: prediction.fuelType,
+        transmission: prediction.transmission,
+        body_type: prediction.bodyType,
+        color: prediction.color,
+        trim: formData.trim,
+        base_price: prediction.estimatedValue,
+        is_vin_lookup: false,
+        is_premium: false
       };
-      
-      localStorage.setItem('temp_valuation_data', JSON.stringify(fallbackData));
-      localStorage.setItem('latest_valuation_id', fallbackData.id);
-      
-      setError('Valuation saved locally. Database temporarily unavailable.');
-      return fallbackData;
+
+      const result = await saveValuation(valuationData);
+      setValuationData(result);
+      return result;
+    } catch (error: any) {
+      setError(error.message);
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getValuation = async (valuationId: string) => {
-    setIsLoading(true);
-    setError(null);
-
+  // Get user's valuations
+  const getUserValuations = async () => {
     try {
-      console.log('Fetching valuation:', valuationId);
+      const userId = user?.id ?? ANONYMOUS_USER_ID;
       
-      const { data, error: fetchError } = await supabase
+      const { data, error } = await supabase
         .from('valuations')
         .select('*')
-        .eq('id', valuationId)
-        .maybeSingle();
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-      if (fetchError) {
-        console.error('Error fetching valuation:', fetchError);
-        
-        // Fallback: Check localStorage
-        const tempData = localStorage.getItem('temp_valuation_data');
-        if (tempData) {
-          const parsedData = JSON.parse(tempData);
-          if (parsedData.id === valuationId) {
-            return parsedData;
-          }
-        }
-        
-        throw fetchError;
+      if (error) {
+        throw error;
       }
 
-      if (!data) {
-        // Fallback: Check localStorage
-        const tempData = localStorage.getItem('temp_valuation_data');
-        if (tempData) {
-          const parsedData = JSON.parse(tempData);
-          if (parsedData.id === valuationId) {
-            return parsedData;
-          }
-        }
-        
-        throw new Error('Valuation not found');
-      }
+      return data || [];
+    } catch (error: any) {
+      console.error('Error getting user valuations:', error);
+      throw new Error(error.message || 'Failed to get valuations');
+    }
+  };
 
-      return data;
-    } catch (err: any) {
-      console.error('Error in getValuation:', err);
-      setError(err.message || 'Failed to fetch valuation');
+  // Decode VIN
+  const decodeVin = async (vin: string): Promise<DecodedVehicleInfo | null> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const result = await fetchVehicleByVin(vin);
+      setValuationData(result);
+      return result;
+    } catch (error: any) {
+      setError(error.message);
       return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const saveManualValuation = async (formData: any) => {
-    setIsLoading(true);
-    setError(null);
-
+  // Decode license plate
+  const decodePlate = async (plate: string, state: string): Promise<DecodedVehicleInfo | null> => {
     try {
-      console.log('Saving manual valuation:', formData);
+      setIsLoading(true);
+      setError(null);
       
-      const valuationData = {
-        make: formData.make,
-        model: formData.model,
-        year: formData.year,
-        mileage: formData.mileage,
-        condition: formData.condition || 'good',
-        zip_code: formData.zipCode,
-        fuel_type: formData.fuelType,
-        transmission: formData.transmission,
-        accident: formData.hasAccident === 'yes',
-        accident_severity: formData.accidentSeverity,
-        selected_features: formData.features || [],
-        vin: formData.vin,
-        user_id: user?.id ?? ANONYMOUS_USER_ID,
-        created_at: new Date().toISOString()
-      };
-
-      const { data, error: saveError } = await supabase
-        .from('manual_entry_valuations')
-        .insert(valuationData)
-        .select()
-        .single();
-
-      if (saveError) {
-        console.error('Error saving manual valuation:', saveError);
-        
-        // Fallback: Store in localStorage
-        const fallbackData = {
-          ...valuationData,
-          id: `manual-${Date.now()}`,
-          valuation_id: `manual-${Date.now()}`
-        };
-        
-        localStorage.setItem('temp_manual_valuation', JSON.stringify(fallbackData));
-        
-        throw saveError;
-      }
-
-      console.log('Manual valuation saved:', data);
-      return data;
-    } catch (err: any) {
-      console.error('Error in saveManualValuation:', err);
-      setError(err.message || 'Failed to save manual valuation');
-      
-      // Return fallback data even on error
-      const fallbackData = {
-        id: `manual-${Date.now()}`,
-        user_id: user?.id ?? ANONYMOUS_USER_ID,
-        make: formData.make,
-        model: formData.model,
-        year: formData.year,
-        mileage: formData.mileage,
-        condition: formData.condition || 'good',
-        created_at: new Date().toISOString()
-      };
-      
-      return fallbackData;
+      const result = await fetchVehicleByPlate(plate, state);
+      setValuationData(result);
+      return result;
+    } catch (error: any) {
+      setError(error.message);
+      return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getUserValuations = async () => {
-    setIsLoading(true);
-    setError(null);
-
+  // Manual valuation
+  const manualValuation = async (formData: any): Promise<DecodedVehicleInfo | null> => {
     try {
-      const currentUserId = user?.id ?? ANONYMOUS_USER_ID;
-      console.log('Fetching valuations for user:', currentUserId);
+      setIsLoading(true);
+      setError(null);
       
-      const { data, error: fetchError } = await supabase
-        .from('valuations')
-        .select('*')
-        .eq('user_id', currentUserId)
-        .order('created_at', { ascending: false });
-
-      if (fetchError) {
-        console.error('Error fetching user valuations:', fetchError);
-        
-        // Fallback: Return empty array or localStorage data
-        const tempData = localStorage.getItem('temp_valuation_data');
-        if (tempData) {
-          try {
-            const parsedData = JSON.parse(tempData);
-            return [parsedData];
-          } catch (e) {
-            console.error('Error parsing temp data:', e);
-          }
-        }
-        
-        return [];
-      }
-
-      console.log('Found valuations:', data?.length || 0);
-      return data || [];
-    } catch (err: any) {
-      console.error('Error in getUserValuations:', err);
-      setError(err.message || 'Failed to fetch user valuations');
-      return [];
+      const result = await saveManualValuation(formData);
+      return result;
+    } catch (error: any) {
+      setError(error.message);
+      return null;
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Reset valuation state
+  const resetValuation = () => {
+    setValuationData(null);
+    setError(null);
   };
 
   return {
     isLoading,
     error,
+    valuationData,
     saveValuation,
     getValuation,
     saveManualValuation,
-    getUserValuations
+    getUserValuations,
+    decodeVin,
+    decodePlate,
+    manualValuation,
+    resetValuation
   };
 }
