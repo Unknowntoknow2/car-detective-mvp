@@ -75,8 +75,8 @@ export const VinFollowupFlow: React.FC = () => {
   };
 
   const handleComplete = () => {
-    // Handle completion logic here
     console.log('Follow-up completed with data:', formData);
+    // Here you would typically save the data or navigate to results
   };
 
   const renderCurrentStep = () => {
