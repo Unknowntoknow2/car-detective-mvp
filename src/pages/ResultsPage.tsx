@@ -26,7 +26,7 @@ export default function ResultsPage() {
   console.log('ResultsPage - Final cleaned valuationId:', valuationId);
   
   // Fetch valuation data only if we have a valid ID
-  const { data, isLoading } = useValuationResult(valuationId || '');
+  const { data, isLoading, error: fetchError } = useValuationResult(valuationId || '');
   
   // Check premium access
   const { hasPremiumAccess } = usePremiumAccess(valuationId || undefined);
@@ -37,11 +37,13 @@ export default function ResultsPage() {
   
   useEffect(() => {
     if (!valuationId) {
-      setError('No valid valuation ID provided in URL.');
+      setError('No valuation ID or VIN provided in URL.');
+    } else if (fetchError) {
+      setError(typeof fetchError === 'string' ? fetchError : fetchError.message || 'Failed to load valuation data');
     } else {
       setError(null);
     }
-  }, [valuationId]);
+  }, [valuationId, fetchError]);
 
   // Convert ValuationResult to ValuationResponse
   const convertToValuationResponse = (data: any): ValuationResponse => {

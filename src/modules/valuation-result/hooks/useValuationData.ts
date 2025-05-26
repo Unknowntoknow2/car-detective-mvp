@@ -17,6 +17,11 @@ const isValidUUID = (id: string): boolean => {
   return uuidRegex.test(id);
 };
 
+// Helper function to validate VIN format
+const isValidVIN = (vin: string): boolean => {
+  return /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin);
+};
+
 export function useValuationData(valuationId: string): UseValuationDataReturn {
   const [data, setData] = useState<ValuationResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -28,17 +33,8 @@ export function useValuationData(valuationId: string): UseValuationDataReturn {
     if (!valuationId || valuationId === ':id' || valuationId === '%3Aid') {
       setIsLoading(false);
       setIsError(true);
-      setError('No valid valuation ID provided');
+      setError('No valuation ID or VIN provided');
       console.log('Invalid valuationId (placeholder):', valuationId);
-      return;
-    }
-
-    // Validate UUID format
-    if (!isValidUUID(valuationId)) {
-      setIsLoading(false);
-      setIsError(true);
-      setError('Invalid UUID format for valuation ID');
-      console.log('Invalid UUID format:', valuationId);
       return;
     }
 
@@ -47,13 +43,38 @@ export function useValuationData(valuationId: string): UseValuationDataReturn {
     setError(null);
 
     try {
-      console.log('Fetching valuation data for ID:', valuationId);
+      console.log('Fetching valuation data for ID/VIN:', valuationId);
       
-      const { data: result, error: apiError } = await supabase
-        .from('valuations')
-        .select('*')
-        .eq('id', valuationId)
-        .single();
+      let result = null;
+      let apiError = null;
+
+      // First try to fetch by ID if it's a valid UUID
+      if (isValidUUID(valuationId)) {
+        console.log('Attempting fetch by UUID:', valuationId);
+        const response = await supabase
+          .from('valuations')
+          .select('*')
+          .eq('id', valuationId)
+          .single();
+        
+        result = response.data;
+        apiError = response.error;
+      }
+      
+      // If no result and it looks like a VIN, try fetching by VIN
+      if (!result && isValidVIN(valuationId)) {
+        console.log('Attempting fetch by VIN:', valuationId);
+        const response = await supabase
+          .from('valuations')
+          .select('*')
+          .eq('vin', valuationId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        
+        result = response.data;
+        apiError = response.error;
+      }
 
       if (apiError) {
         console.error('Supabase API error:', apiError);
