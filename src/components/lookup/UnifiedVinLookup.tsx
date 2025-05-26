@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,9 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
   className
 }) => {
   const navigate = useNavigate();
-  const [vin, setVin] = useState('');
+  const { vin: urlVin } = useParams();
+  
+  const [vin, setVin] = useState(urlVin || '');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lookupResult, setLookupResult] = useState<any>(null);
@@ -67,8 +69,8 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
           return;
         }
 
-        // Navigate to the valuation page with the VIN
-        console.log('UNIFIED VIN LOOKUP: Navigating to valuation page with VIN');
+        // Navigate to the valuation page with the VIN for follow-up questions
+        console.log('UNIFIED VIN LOOKUP: Navigating to valuation page with VIN for details');
         navigate(`/valuation/${vin}`, { replace: true });
       } else {
         console.log('UNIFIED VIN LOOKUP: NHTSA API failed:', result.error);
