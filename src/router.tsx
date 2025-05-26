@@ -121,7 +121,7 @@ const routes: RouteObject[] = [
         element: <Navigate to="/dashboard" replace />
       },
       
-      // Valuation routes - FIX: Add the missing VIN route
+      // Enhanced Valuation routes with proper VIN handling
       {
         path: 'valuation',
         element: <ValuationPage />
@@ -141,6 +141,10 @@ const routes: RouteObject[] = [
       {
         path: 'valuation/vin/:vin',
         element: <ValuationResultPage />
+      },
+      {
+        path: 'valuation/vin/:vin/followup',
+        element: <VinLookupPage />
       },
       {
         path: 'valuation/:id',

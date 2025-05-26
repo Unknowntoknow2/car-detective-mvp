@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import VinLookup from '@/components/lookup/VinLookup';
+import { UnifiedVinLookup } from '@/components/lookup/UnifiedVinLookup';
 import { PlateLookup } from '@/components/lookup/PlateLookup';
 import { ManualLookup } from '@/components/lookup/ManualLookup';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
@@ -46,7 +45,6 @@ export function LookupTabs({
   const handleManualSubmit = (data: ManualEntryFormData) => {
     console.log(`LOOKUP TABS MANUAL: Form submitted with data:`, data);
     
-    // Convert the form data to a JSON string
     const jsonData = JSON.stringify(data);
     console.log(`LOOKUP TABS MANUAL: Converted to JSON:`, jsonData);
     
@@ -66,9 +64,10 @@ export function LookupTabs({
       </TabsList>
       
       <TabsContent value="vin" className="space-y-4 mt-4">
-        <VinLookup 
-          onSubmit={handleVinSubmit} 
-          isLoading={isSubmitting && activeTab === 'vin'} 
+        <UnifiedVinLookup 
+          onSubmit={handleVinSubmit}
+          showHeader={false}
+          className="max-w-none"
         />
       </TabsContent>
       
