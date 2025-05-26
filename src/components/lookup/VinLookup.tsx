@@ -31,21 +31,30 @@ const VinLookup: React.FC<VinLookupProps> = ({
   };
 
   const handleSubmit = async (vinToSubmit: string) => {
+    console.log('VIN Lookup: Form submitted with VIN:', vinToSubmit);
+    
     // Using validateVIN which returns {isValid, error}
     const validation = validateVIN(vinToSubmit);
     if (!validation.isValid) {
       setError(validation.error || 'Invalid VIN format. Please check and try again.');
+      toast.error('Invalid VIN format');
       return;
     }
     
     setLoading(true);
+    setError(null);
     
     try {
+      console.log('Starting VIN lookup for:', vinToSubmit);
+      
       // Call the VIN lookup service
       const result = await fetchVehicleByVin(vinToSubmit);
       
+      console.log('VIN lookup successful:', result);
+      
       // Store VIN in localStorage for follow-up steps
       localStorage.setItem('current_vin', vinToSubmit);
+      localStorage.setItem('latest_valuation_id', result.valuationId || '');
       
       // Call the parent's onSubmit handler
       onSubmit(vinToSubmit);
@@ -61,8 +70,9 @@ const VinLookup: React.FC<VinLookupProps> = ({
       toast.success('VIN lookup completed successfully');
     } catch (error: any) {
       console.error('VIN lookup error:', error);
-      setError(error.message || 'Failed to lookup VIN. Please try again.');
-      toast.error(error.message || 'Failed to lookup VIN');
+      const errorMessage = error.message || 'Failed to lookup VIN. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

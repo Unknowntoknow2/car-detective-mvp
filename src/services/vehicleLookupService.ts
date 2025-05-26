@@ -4,28 +4,37 @@ import { DecodedVehicleInfo } from '@/types/vehicle';
 
 export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo> {
   try {
-    // First check if we already have a valuation for this VIN
-    const { data: existingValuation } = await supabase
-      .from('valuations')
-      .select('*')
-      .eq('vin', vin)
-      .maybeSingle();
+    console.log('fetchVehicleByVin called with VIN:', vin);
 
-    if (existingValuation) {
-      // Return existing valuation data
-      return {
-        vin: existingValuation.vin,
-        make: existingValuation.make,
-        model: existingValuation.model,
-        year: existingValuation.year,
-        bodyType: existingValuation.body_type || existingValuation.bodyType,
-        fuelType: existingValuation.fuel_type || existingValuation.fuelType,
-        transmission: existingValuation.transmission,
-        color: existingValuation.color,
-        estimatedValue: existingValuation.estimated_value || existingValuation.estimatedValue,
-        confidenceScore: existingValuation.confidence_score || existingValuation.confidenceScore,
-        valuationId: existingValuation.id
-      };
+    // First check if we already have a valuation for this VIN
+    try {
+      const { data: existingValuation } = await supabase
+        .from('valuations')
+        .select('*')
+        .eq('vin', vin)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existingValuation) {
+        console.log('Found existing valuation:', existingValuation.id);
+        // Return existing valuation data
+        return {
+          vin: existingValuation.vin,
+          make: existingValuation.make,
+          model: existingValuation.model,
+          year: existingValuation.year,
+          bodyType: existingValuation.body_type || existingValuation.bodyType,
+          fuelType: existingValuation.fuel_type || existingValuation.fuelType,
+          transmission: existingValuation.transmission,
+          color: existingValuation.color,
+          estimatedValue: existingValuation.estimated_value || existingValuation.estimatedValue,
+          confidenceScore: existingValuation.confidence_score || existingValuation.confidenceScore,
+          valuationId: existingValuation.id
+        };
+      }
+    } catch (dbError) {
+      console.log('Database lookup failed, proceeding with new valuation:', dbError);
     }
 
     // If no existing valuation, create a new one
@@ -39,6 +48,8 @@ export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo
       bodyType: 'Sedan',
       color: 'Silver'
     };
+
+    console.log('Creating new valuation for VIN:', vin);
 
     // Get real valuation from pricing API
     const prediction = await getCarPricePrediction({
@@ -55,32 +66,9 @@ export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo
       vin: vin
     });
 
-    // Store the new valuation in Supabase
-    const { data: newValuation, error } = await supabase
-      .from('valuations')
-      .insert({
-        vin: vin,
-        make: prediction.make,
-        model: prediction.model,
-        year: prediction.year,
-        mileage: prediction.mileage,
-        condition: prediction.condition,
-        estimated_value: prediction.estimatedValue,
-        confidence_score: prediction.confidenceScore,
-        body_type: prediction.bodyType,
-        fuel_type: prediction.fuelType,
-        transmission: prediction.transmission,
-        color: prediction.color,
-        user_id: (await supabase.auth.getUser()).data.user?.id || '00000000-0000-0000-0000-000000000000'
-      })
-      .select()
-      .single();
+    console.log('Got prediction from API:', prediction);
 
-    if (error) {
-      console.error('Error storing valuation:', error);
-      // Continue with the prediction data even if storage fails
-    }
-
+    // Return the result
     return {
       vin: vin,
       make: prediction.make,
@@ -96,7 +84,7 @@ export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo
       features: ['Bluetooth', 'Backup Camera', 'Alloy Wheels'],
       estimatedValue: prediction.estimatedValue,
       confidenceScore: prediction.confidenceScore,
-      valuationId: newValuation?.id || `vin-${Date.now()}`
+      valuationId: prediction.valuationId || `vin-${Date.now()}`
     };
 
   } catch (error) {

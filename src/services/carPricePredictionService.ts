@@ -29,6 +29,7 @@ export interface CarPricePredictionResponse {
   transmission?: string;
   bodyType?: string;
   color?: string;
+  valuationId?: string;
 }
 
 export async function getCarPricePrediction(
@@ -62,6 +63,8 @@ export async function getCarPricePrediction(
       throw new Error('No data returned from price prediction service');
     }
 
+    console.log('Car price prediction success:', data);
+
     return {
       estimatedValue: data.estimatedValue || 0,
       confidenceScore: data.confidenceScore || 0,
@@ -75,7 +78,8 @@ export async function getCarPricePrediction(
       fuelType: data.fuelType || request.fuelType,
       transmission: data.transmission || request.transmission,
       bodyType: data.bodyType || request.bodyType,
-      color: data.color || request.color
+      color: data.color || request.color,
+      valuationId: data.id || data.valuationId
     };
   } catch (error) {
     console.error('Error calling car price prediction:', error);
