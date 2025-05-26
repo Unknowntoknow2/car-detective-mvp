@@ -1,11 +1,12 @@
-
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { VINLookupForm } from './vin/VINLookupForm';
-import { VehicleFoundCard } from './shared/VehicleFoundCard';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, RefreshCcw, TrendingUp } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { validateVIN } from '@/utils/validation/vin-validation';
 import { useVinLookupFlow } from '@/hooks/useVinLookupFlow';
+import { toast } from 'sonner';
 
 interface UnifiedVinLookupProps {
   onSubmit?: (vin: string) => void;
@@ -15,135 +16,122 @@ interface UnifiedVinLookupProps {
 
 export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
   onSubmit,
-  showHeader = true,
-  className = ''
+  showHeader = false,
+  className
 }) => {
-  const { state, setVin, lookupVin, startFollowup, reset } = useVinLookupFlow();
+  const navigate = useNavigate();
+  const [vin, setVin] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const { state, lookupVin } = useVinLookupFlow();
 
-  const handleSubmit = async (vin: string) => {
-    if (onSubmit) {
-      onSubmit(vin);
-    } else {
-      await lookupVin(vin);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    console.log('UNIFIED VIN LOOKUP: Form submitted with VIN:', vin);
+    
+    if (!vin.trim()) {
+      setError('Please enter a VIN');
+      return;
+    }
+
+    const validation = validateVIN(vin);
+    if (!validation.isValid) {
+      setError(validation.error || 'Invalid VIN format');
+      toast.error('Invalid VIN format');
+      return;
+    }
+
+    setError(null);
+
+    try {
+      // If onSubmit is provided, use it (for embedded usage)
+      if (onSubmit) {
+        onSubmit(vin);
+        return;
+      }
+
+      // Otherwise, use the VIN lookup flow and navigate
+      console.log('UNIFIED VIN LOOKUP: Starting VIN lookup...');
+      const result = await lookupVin(vin);
+      
+      if (result) {
+        console.log('UNIFIED VIN LOOKUP: Success, navigating to valuation page');
+        // Navigate to the valuation page with the VIN
+        navigate(`/valuation/${vin}`);
+      } else {
+        console.log('UNIFIED VIN LOOKUP: No result returned');
+        toast.error('Failed to lookup VIN');
+      }
+    } catch (error) {
+      console.error('UNIFIED VIN LOOKUP: Error:', error);
+      setError('Failed to lookup VIN');
+      toast.error('Failed to lookup VIN');
     }
   };
 
-  const handleReset = () => {
-    reset();
-  };
-
-  const handleStartFollowup = () => {
-    startFollowup();
+  const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVin = e.target.value.toUpperCase();
+    setVin(newVin);
+    setError(null);
   };
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={className}>
       {showHeader && (
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">VIN Lookup & Valuation</h1>
-          <p className="text-gray-600 mt-2">
-            Enter your vehicle's VIN to get an instant valuation with optional enhancement
-          </p>
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Get Your Car's Value</h1>
+          <p className="text-xl text-gray-600">Enter your VIN for an instant, accurate valuation</p>
         </div>
       )}
 
-      {state.stage === 'input' ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Vehicle Identification Number</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <VINLookupForm
-              onSubmit={handleSubmit}
-              isLoading={state.isLoading}
-              value={state.vin}
-              onChange={setVin}
-              error={state.error}
-              submitButtonText="Lookup Vehicle"
-            />
-          </CardContent>
-        </Card>
-      ) : state.stage === 'results' && state.vehicle ? (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              onClick={handleReset}
-              className="flex items-center gap-2"
+      <Card>
+        <CardHeader>
+          <CardTitle>VIN Lookup</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Input
+                id="vin-input"
+                type="text"
+                placeholder="Enter VIN (17 characters)"
+                value={vin}
+                onChange={handleVinChange}
+                maxLength={17}
+                className={error ? 'border-red-500' : ''}
+                disabled={state.isLoading}
+              />
+              {error && (
+                <p className="text-sm text-red-500 mt-1">{error}</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                Find your VIN on your dashboard, driver's side door, or vehicle registration
+              </p>
+            </div>
+            
+            <Button 
+              type="submit" 
+              disabled={state.isLoading || vin.length < 17}
+              className="w-full"
             >
-              <ArrowLeft className="h-4 w-4" />
-              New Search
+              {state.isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Looking up VIN...
+                </>
+              ) : (
+                'Lookup Vehicle'
+              )}
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => lookupVin(state.vin)}
-              className="flex items-center gap-2"
-              disabled={state.isLoading}
-            >
-              <RefreshCcw className="h-4 w-4" />
-              Refresh
-            </Button>
-          </div>
+          </form>
 
-          <VehicleFoundCard 
-            vehicle={state.vehicle} 
-            showActions={true}
-            onContinue={handleStartFollowup}
-          />
-
-          {/* Enhanced Valuation Offer */}
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-blue-100 rounded-full">
-                    <TrendingUp className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-blue-900">
-                      Get Enhanced Valuation
-                    </h3>
-                    <p className="text-blue-700">
-                      Answer a few questions to improve accuracy by up to 25%
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  onClick={handleStartFollowup}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  Start Enhancement
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Progress indicator for followup */}
-          {state.followupProgress > 0 && (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Valuation Accuracy</span>
-                    <span>{state.followupProgress}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${state.followupProgress}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-gray-600 mt-2">
-                    Complete the enhancement process to reach 100% accuracy
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          {state.error && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-600">{state.error}</p>
+            </div>
           )}
-        </div>
-      ) : null}
+        </CardContent>
+      </Card>
     </div>
   );
 };
-
-export default UnifiedVinLookup;
