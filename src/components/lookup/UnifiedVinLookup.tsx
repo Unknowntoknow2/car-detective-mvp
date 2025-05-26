@@ -2,9 +2,9 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { VINLookupForm } from './vin/VINLookupForm';
-import { VehicleFoundCard } from '@/components/valuation/VehicleFoundCard';
+import { VehicleFoundCard } from './shared/VehicleFoundCard';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, RefreshCcw } from 'lucide-react';
+import { ArrowLeft, RefreshCcw, TrendingUp } from 'lucide-react';
 import { useVinLookupFlow } from '@/hooks/useVinLookupFlow';
 
 interface UnifiedVinLookupProps {
@@ -18,7 +18,7 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
   showHeader = true,
   className = ''
 }) => {
-  const { state, setVin, lookupVin, reset } = useVinLookupFlow();
+  const { state, setVin, lookupVin, startFollowup, reset } = useVinLookupFlow();
 
   const handleSubmit = async (vin: string) => {
     if (onSubmit) {
@@ -32,13 +32,17 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
     reset();
   };
 
+  const handleStartFollowup = () => {
+    startFollowup();
+  };
+
   return (
     <div className={`space-y-6 ${className}`}>
       {showHeader && (
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">VIN Lookup</h1>
+          <h1 className="text-3xl font-bold text-gray-900">VIN Lookup & Valuation</h1>
           <p className="text-gray-600 mt-2">
-            Enter your vehicle's VIN to get an instant valuation
+            Enter your vehicle's VIN to get an instant valuation with optional enhancement
           </p>
         </div>
       )}
@@ -60,7 +64,7 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
           </CardContent>
         </Card>
       ) : state.stage === 'results' && state.vehicle ? (
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
@@ -81,7 +85,38 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
             </Button>
           </div>
 
-          <VehicleFoundCard vehicle={state.vehicle} />
+          <VehicleFoundCard 
+            vehicle={state.vehicle} 
+            showActions={true}
+            onContinue={handleStartFollowup}
+          />
+
+          {/* Enhanced Valuation Offer */}
+          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-100 rounded-full">
+                    <TrendingUp className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-blue-900">
+                      Get Enhanced Valuation
+                    </h3>
+                    <p className="text-blue-700">
+                      Answer a few questions to improve accuracy by up to 25%
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleStartFollowup}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Start Enhancement
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Progress indicator for followup */}
           {state.followupProgress > 0 && (
@@ -98,6 +133,9 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
                       style={{ width: `${state.followupProgress}%` }}
                     />
                   </div>
+                  <p className="text-xs text-gray-600 mt-2">
+                    Complete the enhancement process to reach 100% accuracy
+                  </p>
                 </div>
               </CardContent>
             </Card>
