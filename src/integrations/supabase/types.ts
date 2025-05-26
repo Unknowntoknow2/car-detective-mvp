@@ -54,6 +54,42 @@ export type Database = {
         }
         Relationships: []
       }
+      car_finder_sessions: {
+        Row: {
+          created_at: string
+          decoded_vehicle_id: string | null
+          id: string
+          status: string
+          updated_at: string
+          user_id: string | null
+          valuation_id: string | null
+          valuation_response_id: string | null
+          vin: string
+        }
+        Insert: {
+          created_at?: string
+          decoded_vehicle_id?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          valuation_id?: string | null
+          valuation_response_id?: string | null
+          vin: string
+        }
+        Update: {
+          created_at?: string
+          decoded_vehicle_id?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          valuation_id?: string | null
+          valuation_response_id?: string | null
+          vin?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
@@ -1675,6 +1711,75 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      valuation_responses: {
+        Row: {
+          accident: string | null
+          accident_area: string | null
+          accident_severity: string | null
+          condition_level: string | null
+          created_at: string
+          dashboard_lights: string | null
+          frame_damage: string | null
+          id: string
+          maintenance_up_to_date: string | null
+          mileage: number | null
+          modified: string | null
+          number_of_owners: string | null
+          previous_use: string | null
+          service_history: string | null
+          tire_condition: string | null
+          title_status: string | null
+          updated_at: string
+          user_id: string | null
+          vin: string
+          zip_code: string | null
+        }
+        Insert: {
+          accident?: string | null
+          accident_area?: string | null
+          accident_severity?: string | null
+          condition_level?: string | null
+          created_at?: string
+          dashboard_lights?: string | null
+          frame_damage?: string | null
+          id?: string
+          maintenance_up_to_date?: string | null
+          mileage?: number | null
+          modified?: string | null
+          number_of_owners?: string | null
+          previous_use?: string | null
+          service_history?: string | null
+          tire_condition?: string | null
+          title_status?: string | null
+          updated_at?: string
+          user_id?: string | null
+          vin: string
+          zip_code?: string | null
+        }
+        Update: {
+          accident?: string | null
+          accident_area?: string | null
+          accident_severity?: string | null
+          condition_level?: string | null
+          created_at?: string
+          dashboard_lights?: string | null
+          frame_damage?: string | null
+          id?: string
+          maintenance_up_to_date?: string | null
+          mileage?: number | null
+          modified?: string | null
+          number_of_owners?: string | null
+          previous_use?: string | null
+          service_history?: string | null
+          tire_condition?: string | null
+          title_status?: string | null
+          updated_at?: string
+          user_id?: string | null
+          vin?: string
+          zip_code?: string | null
+        }
+        Relationships: []
       }
       valuation_stats: {
         Row: {

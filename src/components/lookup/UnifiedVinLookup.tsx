@@ -9,6 +9,7 @@ import { validateVIN } from '@/utils/validation/vin-validation';
 import { VehicleFoundCard } from '@/components/valuation/VehicleFoundCard';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface UnifiedVinLookupProps {
   onSubmit?: (vin: string) => void;
@@ -26,6 +27,7 @@ export function UnifiedVinLookup({
   const [error, setError] = useState<string | null>(null);
   const [vehicleData, setVehicleData] = useState<any>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, '');
@@ -46,7 +48,20 @@ export function UnifiedVinLookup({
     setError(null);
 
     try {
-      // Call the NHTSA vPIC edge function
+      // First check if vehicle already exists in decoded_vehicles
+      const { data: existingVehicle } = await supabase
+        .from('decoded_vehicles')
+        .select('*')
+        .eq('vin', vin)
+        .single();
+
+      if (existingVehicle) {
+        // Vehicle already exists, navigate to valuation page
+        navigate(`/valuation/${vin}`);
+        return;
+      }
+
+      // Call the NHTSA vPIC edge function to decode new VIN
       const { data: result, error: apiError } = await supabase.functions.invoke('fetch_vpic_data', {
         body: { vin }
       });
@@ -59,28 +74,47 @@ export function UnifiedVinLookup({
         throw new Error('No vehicle data found for this VIN');
       }
 
-      // Transform the NHTSA data to our expected format
-      const transformedData = {
+      // Save decoded vehicle data to database
+      const decodedVehicleData = {
         vin: result.data.vin,
-        year: result.data.modelYear,
+        year: result.data.modelYear ? parseInt(result.data.modelYear) : null,
         make: result.data.make,
         model: result.data.model,
         trim: result.data.trim || result.data.series,
-        engine: result.data.engineSize ? `${result.data.engineSize}L` : undefined,
+        engine: result.data.engineSize ? `${result.data.engineSize}L` : null,
         transmission: result.data.transmissionStyle,
-        bodyType: result.data.bodyClass,
-        fuelType: result.data.fuelType,
+        bodytype: result.data.bodyClass,
+        fueltype: result.data.fuelType,
         drivetrain: result.data.driveType,
-        estimatedValue: 25000, // Default estimated value
-        confidenceScore: result.data.confidenceScore || 85, // Provide default value
-        mileage: 50000, // Default mileage
-        condition: 'Good' // Default condition
+        doors: result.data.doors ? parseInt(result.data.doors) : null,
+        seats: result.data.seats ? parseInt(result.data.seats) : null,
+        displacementl: result.data.displacementL,
+        enginecylinders: result.data.engineCylinders
       };
 
-      setVehicleData(transformedData);
+      const { data: savedVehicle, error: saveError } = await supabase
+        .from('decoded_vehicles')
+        .insert(decodedVehicleData)
+        .select()
+        .single();
 
-      // Navigate to valuation page with VIN parameter
-      navigate(`/valuation?vin=${vin}`);
+      if (saveError) {
+        console.error('Error saving vehicle data:', saveError);
+        throw new Error('Failed to save vehicle data');
+      }
+
+      // Create car finder session if user is authenticated
+      if (user) {
+        await supabase.from('car_finder_sessions').insert({
+          vin,
+          user_id: user.id,
+          status: 'decoded',
+          decoded_vehicle_id: savedVehicle.id
+        });
+      }
+
+      // Navigate to the valuation page
+      navigate(`/valuation/${vin}`);
       
       if (onSubmit) {
         onSubmit(vin);
