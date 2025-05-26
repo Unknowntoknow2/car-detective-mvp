@@ -4,93 +4,70 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ArrowLeft, Download, Share2 } from 'lucide-react';
 import { VehicleFoundCard } from '@/components/valuation/VehicleFoundCard';
-import { ArrowLeft, Download, Share } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface ValuationData {
-  make: string;
-  model: string;
-  year: number;
-  mileage: number;
-  accidents: number;
-  condition: string;
-  estimatedValue: number;
-  confidenceScore: number;
-  valuationId: string;
-  vin?: string;
-  trim?: string;
-  engine?: string;
-  transmission?: string;
-  fuelType?: string;
-  bodyType?: string;
-  drivetrain?: string;
-}
 
 export default function ValuationResultPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [valuationData, setValuationData] = useState<ValuationData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [valuationData, setValuationData] = useState<any>(null);
 
   useEffect(() => {
-    // Simulate fetching valuation data
-    const fetchValuationData = async () => {
+    // Simulate loading valuation data
+    const loadValuation = async () => {
       try {
-        // In a real app, you would fetch from your API
-        // For now, we'll use mock data
-        const mockData: ValuationData = {
-          make: 'Toyota',
-          model: 'Camry',
-          year: 2020,
-          mileage: 35000,
-          accidents: 0,
-          condition: 'Good',
-          estimatedValue: 22500,
-          confidenceScore: 85,
-          valuationId: id || 'mock-valuation-id',
-          vin: '1HGCM82633A004352',
-          trim: 'LE',
-          engine: '2.5L 4-Cylinder',
-          transmission: 'CVT Automatic',
-          fuelType: 'Gasoline',
-          bodyType: 'Sedan',
-          drivetrain: 'FWD'
-        };
-
-        // Simulate API delay
+        // In production, this would fetch from API using the ID
         await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Mock valuation data
+        const mockData = {
+          id,
+          vehicle: {
+            year: 2020,
+            make: 'Toyota',
+            model: 'Camry',
+            trim: 'LE',
+            vin: 'SAMPLE17CHARVINNUM',
+            mileage: 45000,
+            condition: 'Good',
+            estimatedValue: 22500,
+            confidenceScore: 85
+          },
+          createdAt: new Date().toISOString()
+        };
         
         setValuationData(mockData);
       } catch (error) {
-        console.error('Error fetching valuation data:', error);
+        console.error('Error loading valuation:', error);
         toast.error('Failed to load valuation data');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchValuationData();
+    if (id) {
+      loadValuation();
+    }
   }, [id]);
 
-  const handleBack = () => {
+  const handleGoBack = () => {
     navigate('/');
   };
 
   const handleDownload = () => {
-    toast.success('PDF download started');
-    // Implement PDF download logic
+    toast.success('PDF download will be available soon');
   };
 
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
         title: 'Vehicle Valuation Report',
-        text: `Check out my ${valuationData?.year} ${valuationData?.make} ${valuationData?.model} valuation`,
-        url: window.location.href,
+        text: `Check out my vehicle valuation: ${valuationData?.vehicle?.year} ${valuationData?.vehicle?.make} ${valuationData?.vehicle?.model}`,
+        url: window.location.href
       });
     } else {
-      // Fallback to clipboard
       navigator.clipboard.writeText(window.location.href);
       toast.success('Link copied to clipboard');
     }
@@ -99,8 +76,9 @@ export default function ValuationResultPage() {
   if (isLoading) {
     return (
       <Container className="max-w-4xl py-10">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
         </div>
       </Container>
     );
@@ -110,15 +88,14 @@ export default function ValuationResultPage() {
     return (
       <Container className="max-w-4xl py-10">
         <Card>
-          <CardContent className="text-center py-10">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Valuation Not Found
-            </h2>
-            <p className="text-gray-600 mb-4">
-              The valuation you're looking for doesn't exist or has expired.
+          <CardContent className="text-center py-12">
+            <h2 className="text-xl font-semibold mb-4">Valuation Not Found</h2>
+            <p className="text-gray-600 mb-6">
+              The valuation report you're looking for could not be found.
             </p>
-            <Button onClick={handleBack}>
-              Return Home
+            <Button onClick={handleGoBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
             </Button>
           </CardContent>
         </Card>
@@ -133,7 +110,7 @@ export default function ValuationResultPage() {
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
-            onClick={handleBack}
+            onClick={handleGoBack}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -141,79 +118,73 @@ export default function ValuationResultPage() {
           </Button>
           
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleShare}
-              className="flex items-center gap-2"
-            >
-              <Share className="h-4 w-4" />
+            <Button variant="outline" onClick={handleShare}>
+              <Share2 className="h-4 w-4 mr-2" />
               Share
             </Button>
-            <Button
-              onClick={handleDownload}
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
+            <Button onClick={handleDownload}>
+              <Download className="h-4 w-4 mr-2" />
               Download PDF
             </Button>
           </div>
         </div>
 
-        {/* Vehicle Information */}
-        <VehicleFoundCard
-          vehicle={valuationData}
-          showActions={false}
-        />
-
         {/* Valuation Results */}
         <Card>
           <CardHeader>
-            <CardTitle>Valuation Results</CardTitle>
+            <CardTitle>Vehicle Valuation Report</CardTitle>
+            <p className="text-sm text-gray-500">
+              Generated on {new Date(valuationData.createdAt).toLocaleDateString()}
+            </p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Estimated Value
-                  </h3>
-                  <p className="text-3xl font-bold text-green-600">
-                    ${valuationData.estimatedValue.toLocaleString()}
-                  </p>
-                </div>
-                
-                <div>
-                  <h4 className="font-medium text-gray-700">Confidence Score</h4>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${valuationData.confidenceScore}%` }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium">
-                      {valuationData.confidenceScore}%
-                    </span>
+          <CardContent>
+            <VehicleFoundCard 
+              vehicle={valuationData.vehicle}
+              showActions={false}
+            />
+            
+            {/* Valuation Summary */}
+            <div className="mt-6 p-6 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-700">
+                    ${valuationData.vehicle.estimatedValue.toLocaleString()}
                   </div>
+                  <div className="text-sm text-green-600">Estimated Value</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-700">
+                    {valuationData.vehicle.confidenceScore}%
+                  </div>
+                  <div className="text-sm text-blue-600">Confidence Score</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-purple-700">
+                    {valuationData.vehicle.mileage.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-purple-600">Miles</div>
                 </div>
               </div>
+            </div>
+          </CardContent>
+        </Card>
 
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Mileage:</span>
-                  <span className="font-medium">
-                    {valuationData.mileage.toLocaleString()} miles
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Condition:</span>
-                  <span className="font-medium">{valuationData.condition}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Accidents:</span>
-                  <span className="font-medium">{valuationData.accidents}</span>
-                </div>
-              </div>
+        {/* Enhancement Offer */}
+        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <CardContent className="p-6">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                Want a More Accurate Valuation?
+              </h3>
+              <p className="text-blue-700 mb-4">
+                Get up to 25% more accuracy by providing additional vehicle details
+              </p>
+              <Button 
+                onClick={() => navigate(`/valuation/enhance/${id}`)}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Enhance This Valuation
+              </Button>
             </div>
           </CardContent>
         </Card>
