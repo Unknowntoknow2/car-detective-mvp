@@ -66,9 +66,8 @@ export function ServiceStatus({ className = '' }: ServiceStatusProps) {
             <button
               onClick={checkNhtsaStatus}
               className="flex items-center gap-1 text-orange-700 hover:text-orange-800 text-xs"
-              disabled={nhtsaStatus === 'checking'}
             >
-              <RefreshCw className={`h-3 w-3 ${nhtsaStatus === 'checking' ? 'animate-spin' : ''}`} />
+              <RefreshCw className="h-3 w-3" />
               Check Again
             </button>
           </div>
