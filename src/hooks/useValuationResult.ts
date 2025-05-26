@@ -35,7 +35,7 @@ export function useValuationResult(valuationId: string) {
           .from('valuations')
           .select('*')
           .eq('id', valuationId)
-          .single();
+          .maybeSingle();
         
         result = response.data;
         apiError = response.error;
@@ -50,7 +50,7 @@ export function useValuationResult(valuationId: string) {
           .eq('vin', valuationId)
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
         
         result = response.data;
         apiError = response.error;
@@ -67,30 +67,28 @@ export function useValuationResult(valuationId: string) {
 
       console.log('Valuation data fetched successfully:', result);
       
-      // Convert adjustments from string to array if needed
-      if (result.adjustments && typeof result.adjustments === 'string') {
-        try {
-          result.adjustments = JSON.parse(result.adjustments);
-        } catch (e) {
-          console.error('Failed to parse adjustments:', e);
-          result.adjustments = [];
-        }
-      }
+      // Transform database result to match ValuationResult interface
+      const transformedResult: ValuationResult = {
+        id: result.id,
+        vin: result.vin,
+        year: result.year,
+        make: result.make,
+        model: result.model,
+        bodyType: result.body_type,
+        fuelType: result.fuel_type,
+        transmission: result.transmission,
+        color: result.color,
+        mileage: result.mileage,
+        zipCode: result.state,
+        estimatedValue: result.estimated_value,
+        confidenceScore: result.confidence_score,
+        basePrice: result.base_price,
+        isPremium: result.premium_unlocked,
+        userId: result.user_id,
+        created_at: result.created_at
+      };
 
-      // Convert price range from string to array if needed
-      if (result.price_range && typeof result.price_range === 'string') {
-        try {
-          result.price_range = JSON.parse(result.price_range);
-        } catch (e) {
-          console.error('Failed to parse price range:', e);
-          result.price_range = {
-            low: Math.round(result.estimated_value * 0.95),
-            high: Math.round(result.estimated_value * 1.05)
-          };
-        }
-      }
-
-      return result as ValuationResult;
+      return transformedResult;
     },
     enabled: Boolean(valuationId) && valuationId !== ':id' && valuationId !== '%3Aid',
     staleTime: 1000 * 60 * 5, // 5 minutes
