@@ -25,7 +25,7 @@ export function AccidentHistoryStep({
       ? formData.hasAccident === 'yes'
       : !!formData.hasAccident;
       
-    const isValid = !hasAccidentBool || (hasAccidentBool && formData.accidentDescription?.trim() !== '');
+    const isValid = formData.hasAccident !== undefined;
     updateValidity(step, isValid);
   }, [formData.hasAccident, formData.accidentDescription, step, updateValidity]);
 
@@ -33,11 +33,11 @@ export function AccidentHistoryStep({
     setFormData(prev => ({
       ...prev,
       hasAccident: value,
-      accidentDescription: value === 'yes' ? prev.accidentDescription : ''
+      accidentDescription: value === 'no' ? '' : prev.accidentDescription
     }));
   };
 
-  const handleDetailsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormData(prev => ({
       ...prev,
       accidentDescription: e.target.value
@@ -54,14 +54,14 @@ export function AccidentHistoryStep({
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Accident History</h2>
         <p className="text-gray-600 mb-6">
-          Information about previous accidents helps provide a more accurate valuation.
+          Accident history significantly impacts vehicle value. Clean history vehicles typically retain 15-25% more value.
         </p>
       </div>
 
       <div className="space-y-6">
         <div>
           <Label className="text-gray-700 mb-3 block">
-            Has this vehicle ever been in an accident?
+            Has this vehicle been in any accidents?
           </Label>
           <RadioGroup
             value={hasAccidentStr}
@@ -69,35 +69,48 @@ export function AccidentHistoryStep({
             className="flex space-x-4 mt-2"
           >
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="no" id="acc-no" />
-              <Label htmlFor="acc-no">No</Label>
+              <RadioGroupItem value="no" id="accident-no" />
+              <Label htmlFor="accident-no">No accidents</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="yes" id="acc-yes" />
-              <Label htmlFor="acc-yes">Yes</Label>
+              <RadioGroupItem value="yes" id="accident-yes" />
+              <Label htmlFor="accident-yes">Yes, has accident history</Label>
             </div>
           </RadioGroup>
         </div>
 
         {hasAccidentStr === 'yes' && (
-          <div className="space-y-3 animate-in fade-in">
+          <div className="space-y-3">
             <div className="flex items-start space-x-2">
-              <AlertTriangle className="h-4 w-4 text-warning mt-1" />
-              <Label htmlFor="acc-details" className="text-gray-700">
-                Please describe the accident(s)
+              <AlertTriangle className="h-4 w-4 text-orange-600 mt-1" />
+              <Label htmlFor="accident-description" className="text-gray-700">
+                Accident details (required)
               </Label>
             </div>
             
             <Textarea
-              id="acc-details"
-              placeholder="When did it occur? What was the severity? What repairs were made?"
+              id="accident-description"
+              placeholder="Please describe the accident(s), including severity, damage, and repairs..."
               value={formData.accidentDescription || ''}
-              onChange={handleDetailsChange}
+              onChange={handleDescriptionChange}
               className="min-h-[100px]"
+              required
             />
             
             <p className="text-sm text-gray-500">
-              Providing accurate details about previous accidents helps us determine their impact on the vehicle's value.
+              Include information about when the accident occurred, what parts were damaged, and what repairs were made.
+            </p>
+          </div>
+        )}
+
+        {hasAccidentStr === 'no' && (
+          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+            <div className="flex items-center space-x-2">
+              <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+              <p className="text-green-800 font-medium">Clean accident history</p>
+            </div>
+            <p className="text-green-700 text-sm mt-1">
+              No accident history helps maintain higher resale value
             </p>
           </div>
         )}
