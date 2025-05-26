@@ -43,6 +43,10 @@ export interface FormData {
   valuation?: number;
   confidenceScore?: number;
   identifier?: string;
+  
+  // Maintenance history properties
+  hasRegularMaintenance?: boolean | 'yes' | 'no';
+  maintenanceNotes?: string;
 }
 
 export interface PremiumFeatureProps {
