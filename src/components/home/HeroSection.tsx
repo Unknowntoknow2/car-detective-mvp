@@ -9,6 +9,12 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ onFreeValuationClick }: HeroSectionProps) {
+  const handleValuationClick = () => {
+    if (onFreeValuationClick) {
+      onFreeValuationClick();
+    }
+  };
+
   return (
     <div className="relative bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-background">
       <div className="container px-4 py-16 sm:py-24">
@@ -22,12 +28,19 @@ export function HeroSection({ onFreeValuationClick }: HeroSectionProps) {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-              <Button size="lg" onClick={onFreeValuationClick} asChild>
-                <Link to="/valuation">
+              {onFreeValuationClick ? (
+                <Button size="lg" onClick={handleValuationClick}>
                   <Car className="mr-2 h-5 w-5" />
                   Get Free Valuation
-                </Link>
-              </Button>
+                </Button>
+              ) : (
+                <Button size="lg" asChild>
+                  <Link to="/valuation">
+                    <Car className="mr-2 h-5 w-5" />
+                    Get Free Valuation
+                  </Link>
+                </Button>
+              )}
               <Button size="lg" variant="outline" asChild>
                 <Link to="/premium">
                   Premium Features

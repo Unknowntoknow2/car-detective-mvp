@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle, CheckCircle, Search } from 'lucide-react';
-import { validateVIN } from '@/utils/validation/vin-validation';
+import { validateVIN, formatVinInput } from '@/utils/validation/vin-validation';
 import { decodeVin } from '@/services/vinService';
 import { toast } from 'sonner';
 
@@ -39,7 +39,7 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
     const validation = validateVIN(vin);
     if (!validation.isValid) {
       setError(validation.error || 'Invalid VIN format');
-      toast.error('Invalid VIN format');
+      toast.error(validation.error || 'Invalid VIN format');
       return;
     }
 
@@ -69,7 +69,7 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
 
         // Navigate to the valuation page with the VIN
         console.log('UNIFIED VIN LOOKUP: Navigating to valuation page with VIN');
-        navigate(`/valuation/${vin}`);
+        navigate(`/valuation/${vin}`, { replace: true });
       } else {
         console.log('UNIFIED VIN LOOKUP: NHTSA API failed:', result.error);
         const errorMessage = result.error || 'Vehicle not found in NHTSA database';
@@ -87,8 +87,8 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
   };
 
   const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVin = e.target.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, '');
-    setVin(newVin);
+    const formatted = formatVinInput(e.target.value);
+    setVin(formatted);
     setError(null);
     setLookupResult(null);
   };
@@ -119,7 +119,7 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
                 value={vin}
                 onChange={handleVinChange}
                 maxLength={17}
-                className={`font-mono ${error ? 'border-red-500' : lookupResult ? 'border-green-500' : ''}`}
+                className={`font-mono text-center tracking-wider ${error ? 'border-red-500' : lookupResult ? 'border-green-500' : ''}`}
                 disabled={isLoading}
               />
               {error && (
@@ -136,6 +136,9 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
               )}
               <p className="text-xs text-muted-foreground mt-1">
                 Find your VIN on your dashboard, driver's side door, or vehicle registration
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {vin.length}/17 characters • VIN format: letters and numbers only (no I, O, Q)
               </p>
             </div>
             
