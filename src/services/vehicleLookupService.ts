@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { getCarPricePrediction } from '@/services/carPricePredictionService';
 import { DecodedVehicleInfo } from '@/types/vehicle';
@@ -57,7 +58,6 @@ export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo
       model: mockDecoded.model,
       year: mockDecoded.year,
       mileage: 45000,
-      condition: 'good',
       zipCode: '90210',
       fuelType: mockDecoded.fuelType,
       transmission: mockDecoded.transmission,

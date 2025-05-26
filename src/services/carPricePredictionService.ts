@@ -6,7 +6,7 @@ export interface CarPricePredictionRequest {
   model: string;
   year: number;
   mileage: number;
-  condition: string;
+  condition?: string;
   zipCode: string;
   fuelType?: string;
   transmission?: string;
@@ -23,7 +23,7 @@ export interface CarPricePredictionResponse {
   model: string;
   year: number;
   mileage: number;
-  condition: string;
+  condition?: string;
   vin?: string;
   fuelType?: string;
   transmission?: string;
@@ -44,7 +44,7 @@ export async function getCarPricePrediction(
         model: request.model,
         year: request.year,
         mileage: request.mileage,
-        condition: request.condition,
+        condition: request.condition || 'good',
         zipCode: request.zipCode,
         fuelType: request.fuelType,
         transmission: request.transmission,

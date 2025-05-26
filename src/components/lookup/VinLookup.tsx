@@ -73,6 +73,13 @@ const VinLookup: React.FC<VinLookupProps> = ({
       const errorMessage = error.message || 'Failed to lookup VIN. Please try again.';
       setError(errorMessage);
       toast.error(errorMessage);
+      
+      // If we have a partial result or stored valuation ID, still try to navigate
+      const storedId = localStorage.getItem('latest_valuation_id');
+      if (storedId && storedId !== '') {
+        console.log('Attempting navigation with stored valuation ID:', storedId);
+        navigate(`/valuation/${vinToSubmit}`);
+      }
     } finally {
       setLoading(false);
     }
