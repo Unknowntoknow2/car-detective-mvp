@@ -24,7 +24,6 @@ serve(async (req) => {
       model: requestData.model,
       year: requestData.year,
       mileage: requestData.mileage,
-      condition: requestData.condition,
       vin: requestData.vin
     })
 
@@ -48,18 +47,8 @@ serve(async (req) => {
     const mileageDiff = requestData.mileage - expectedMileage
     const mileageMultiplier = 1 - (mileageDiff / 100000) * 0.2 // 20% reduction per 100k excess miles
     
-    // Condition multiplier
-    const conditionMultipliers = {
-      'excellent': 1.2,
-      'very good': 1.1,
-      'good': 1.0,
-      'fair': 0.8,
-      'poor': 0.6
-    }
-    const conditionMultiplier = conditionMultipliers[requestData.condition?.toLowerCase()] || 1.0
-
     // Calculate final value
-    const estimatedValue = Math.round(baseValue * ageMultiplier * mileageMultiplier * conditionMultiplier)
+    const estimatedValue = Math.round(baseValue * ageMultiplier * mileageMultiplier)
     
     const valuationResult = {
       estimatedValue,
@@ -69,7 +58,6 @@ serve(async (req) => {
       model: requestData.model,
       year: requestData.year,
       mileage: requestData.mileage,
-      condition: requestData.condition,
       vin: requestData.vin,
       fuelType: requestData.fuelType,
       transmission: requestData.transmission,
@@ -95,52 +83,65 @@ serve(async (req) => {
       }
     }
 
-    // Only store in database if we have a user_id or use anonymous fallback
+    // Use anonymous user if no authenticated user
     const finalUserId = userId || '00000000-0000-0000-0000-000000000000'
 
     try {
       // Store in database using service role to bypass RLS
+      const valuationData = {
+        make: requestData.make,
+        model: requestData.model,
+        year: requestData.year,
+        mileage: requestData.mileage,
+        estimated_value: estimatedValue,
+        confidence_score: 95,
+        vin: requestData.vin,
+        fuel_type: requestData.fuelType,
+        transmission: requestData.transmission,
+        body_type: requestData.bodyType,
+        color: requestData.color,
+        user_id: finalUserId,
+        state: requestData.zipCode?.substring(0, 2) || null,
+        base_price: Math.round(baseValue),
+        is_vin_lookup: true
+      }
+
+      console.log('Attempting to store valuation:', valuationData)
+
       const { data: storedValuation, error: storeError } = await supabaseClient
         .from('valuations')
-        .insert({
-          make: requestData.make,
-          model: requestData.model,
-          year: requestData.year,
-          mileage: requestData.mileage,
-          estimated_value: estimatedValue,
-          confidence_score: 95,
-          vin: requestData.vin,
-          fuel_type: requestData.fuelType,
-          transmission: requestData.transmission,
-          body_type: requestData.bodyType,
-          color: requestData.color,
-          user_id: finalUserId,
-          state: requestData.zipCode?.substring(0, 2) || null,
-          base_price: Math.round(baseValue),
-          is_vin_lookup: true,
-          condition: requestData.condition || 'good'
-        })
+        .insert(valuationData)
         .select()
         .single()
 
       if (storeError) {
         console.error('Error storing valuation:', storeError)
         // Continue without storing - just return the calculated result
+        return new Response(
+          JSON.stringify({
+            ...valuationResult,
+            id: `temp-${Date.now()}`,
+            valuationId: `temp-${Date.now()}`
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200,
+          },
+        )
       } else {
         console.log('Valuation stored successfully:', storedValuation?.id)
+        return new Response(
+          JSON.stringify({
+            ...valuationResult,
+            id: storedValuation?.id || `temp-${Date.now()}`,
+            valuationId: storedValuation?.id || `temp-${Date.now()}`
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200,
+          },
+        )
       }
-
-      return new Response(
-        JSON.stringify({
-          ...valuationResult,
-          id: storedValuation?.id || `temp-${Date.now()}`,
-          valuationId: storedValuation?.id || `temp-${Date.now()}`
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        },
-      )
 
     } catch (dbError) {
       console.error('Database error:', dbError)
