@@ -1,14 +1,14 @@
 
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, CheckCircle, Search, AlertTriangle } from 'lucide-react';
-import { validateVIN, formatVinInput } from '@/utils/validation/vin-validation';
-import { decodeVin } from '@/services/vinService';
-import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, Car, AlertCircle } from 'lucide-react';
+import { validateVIN } from '@/utils/validation/vin-validation';
+import { VehicleFoundCard } from '@/components/valuation/VehicleFoundCard';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UnifiedVinLookupProps {
   onSubmit?: (vin: string) => void;
@@ -16,153 +16,136 @@ interface UnifiedVinLookupProps {
   className?: string;
 }
 
-export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
-  onSubmit,
-  showHeader = false,
-  className
-}) => {
-  const navigate = useNavigate();
-  const { vin: urlVin } = useParams();
-  
-  const [vin, setVin] = useState(urlVin || '');
-  const [error, setError] = useState<string | null>(null);
+export function UnifiedVinLookup({ 
+  onSubmit, 
+  showHeader = true, 
+  className = "" 
+}: UnifiedVinLookupProps) {
+  const [vin, setVin] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [lookupResult, setLookupResult] = useState<any>(null);
-  const [apiWarning, setApiWarning] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [vehicleData, setVehicleData] = useState<any>(null);
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    console.log('UNIFIED VIN LOOKUP: Form submitted with VIN:', vin);
-    
-    if (!vin.trim()) {
-      setError('Please enter a VIN');
-      return;
+  const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, '');
+    if (value.length <= 17) {
+      setVin(value);
+      setError(null);
     }
+  };
 
+  const handleLookup = async () => {
     const validation = validateVIN(vin);
     if (!validation.isValid) {
       setError(validation.error || 'Invalid VIN format');
-      toast.error(validation.error || 'Invalid VIN format');
       return;
     }
 
-    setError(null);
-    setApiWarning(null);
     setIsLoading(true);
-    setLookupResult(null);
+    setError(null);
 
     try {
-      console.log('UNIFIED VIN LOOKUP: Calling NHTSA API for VIN decode...');
-      const result = await decodeVin(vin);
-      
-      if (result.success && result.data) {
-        console.log('UNIFIED VIN LOOKUP: VIN decode success:', result.data);
-        setLookupResult(result.data);
-        
-        // Store in localStorage for persistence
-        localStorage.setItem('current_vin', vin);
-        localStorage.setItem('current_vehicle_data', JSON.stringify(result.data));
-        
-        // Check if this was a fallback response (lower confidence score)
-        if (result.data.confidenceScore < 70) {
-          setApiWarning('NHTSA database temporarily unavailable. Vehicle details may be limited.');
-        }
-        
-        toast.success(`Vehicle found: ${result.data.year} ${result.data.make} ${result.data.model}`);
-        
-        // If onSubmit is provided, use it (for embedded usage)
-        if (onSubmit) {
-          onSubmit(vin);
-          return;
-        }
+      // Call the NHTSA vPIC edge function
+      const { data: result, error: apiError } = await supabase.functions.invoke('fetch_vpic_data', {
+        body: { vin }
+      });
 
-        // Navigate to the valuation page with the VIN for follow-up questions
-        console.log('UNIFIED VIN LOOKUP: Navigating to valuation page with VIN for details');
-        navigate(`/valuation/${vin}`, { replace: true });
-      } else {
-        console.log('UNIFIED VIN LOOKUP: VIN decode failed:', result.error);
-        const errorMessage = result.error || 'Vehicle not found in database';
-        setError(errorMessage);
-        toast.error(errorMessage);
+      if (apiError) {
+        throw new Error(apiError.message || 'Failed to decode VIN');
       }
-    } catch (error: any) {
-      console.error('UNIFIED VIN LOOKUP: Unexpected error:', error);
-      const errorMessage = error.message || 'Failed to connect to vehicle database';
-      setError(errorMessage);
-      toast.error(errorMessage);
+
+      if (!result?.data) {
+        throw new Error('No vehicle data found for this VIN');
+      }
+
+      // Transform the NHTSA data to our expected format
+      const transformedData = {
+        vin: result.data.vin,
+        year: result.data.modelYear,
+        make: result.data.make,
+        model: result.data.model,
+        trim: result.data.trim || result.data.series,
+        engine: result.data.engineSize ? `${result.data.engineSize}L` : undefined,
+        transmission: result.data.transmissionStyle,
+        bodyType: result.data.bodyClass,
+        fuelType: result.data.fuelType,
+        drivetrain: result.data.driveType,
+        estimatedValue: 25000, // Default estimated value
+        confidenceScore: result.data.confidenceScore || 85, // Provide default value
+        mileage: 50000, // Default mileage
+        condition: 'Good' // Default condition
+      };
+
+      setVehicleData(transformedData);
+
+      // Navigate to valuation page with VIN parameter
+      navigate(`/valuation?vin=${vin}`);
+      
+      if (onSubmit) {
+        onSubmit(vin);
+      }
+
+    } catch (err: any) {
+      console.error('VIN lookup error:', err);
+      setError(err.message || 'Failed to decode VIN: Edge Function returned a non-2xx status code');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatVinInput(e.target.value);
-    setVin(formatted);
-    setError(null);
-    setLookupResult(null);
-    setApiWarning(null);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleLookup();
   };
 
   return (
     <div className={className}>
       {showHeader && (
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Get Your Car's Value</h1>
-          <p className="text-xl text-gray-600">Enter your VIN for an instant, accurate valuation using NHTSA database</p>
+          <h1 className="text-3xl font-bold mb-4">VIN Lookup (NHTSA Database)</h1>
+          <p className="text-muted-foreground">
+            Enter your 17-character VIN to get detailed vehicle information
+          </p>
         </div>
       )}
 
-      <Card>
+      <Card className="max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Search className="h-5 w-5 mr-2" />
-            VIN Lookup (NHTSA Database)
+          <CardTitle className="flex items-center gap-2">
+            <Car className="h-5 w-5" />
+            Vehicle Identification Number (VIN)
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Input
-                id="vin-input"
                 type="text"
-                placeholder="Enter VIN (17 characters)"
+                placeholder="Enter 17-character VIN"
                 value={vin}
                 onChange={handleVinChange}
                 maxLength={17}
-                className={`font-mono text-center tracking-wider ${error ? 'border-red-500' : lookupResult ? 'border-green-500' : ''}`}
-                disabled={isLoading}
+                className={`font-mono text-center ${error ? 'border-red-500' : ''}`}
               />
-              
-              {apiWarning && (
-                <Alert className="mt-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription className="text-sm">
-                    {apiWarning}
-                  </AlertDescription>
-                </Alert>
-              )}
-              
-              {error && (
-                <div className="flex items-center mt-2 text-sm text-red-500">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {error}
-                </div>
-              )}
-              {lookupResult && (
-                <div className="flex items-center mt-2 text-sm text-green-600">
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  Found: {lookupResult.year} {lookupResult.make} {lookupResult.model}
-                </div>
-              )}
+              <div className="flex justify-between items-center mt-2 text-sm text-muted-foreground">
+                <span>Find your VIN on your dashboard, driver's side door, or vehicle registration</span>
+                <span className={vin.length === 17 ? 'text-green-600' : ''}>
+                  {vin.length}/17 characters
+                </span>
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Find your VIN on your dashboard, driver's side door, or vehicle registration
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {vin.length}/17 characters • VIN format: letters and numbers only (no I, O, Q)
+                VIN format: letters and numbers only (no I, O, Q)
               </p>
             </div>
-            
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
             <Button 
               type="submit" 
               disabled={isLoading || vin.length !== 17}
@@ -171,15 +154,21 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Querying NHTSA Database...
+                  Decoding VIN...
                 </>
               ) : (
-                'Lookup Vehicle'
+                'Decode VIN'
               )}
             </Button>
           </form>
         </CardContent>
       </Card>
+
+      {vehicleData && (
+        <div className="mt-8">
+          <VehicleFoundCard vehicle={vehicleData} />
+        </div>
+      )}
     </div>
   );
-};
+}
