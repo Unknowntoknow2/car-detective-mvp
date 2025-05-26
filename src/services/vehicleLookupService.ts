@@ -20,8 +20,11 @@ export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo
     bodyType: 'Sedan',
     fuelType: 'Gasoline',
     drivetrain: 'FWD',
+    exteriorColor: 'Silver',
     estimatedValue: 22500,
-    confidenceScore: 85
+    confidenceScore: 85,
+    mileage: 42000,
+    condition: 'Good'
   };
   
   return mockVehicle;
@@ -46,9 +49,30 @@ export async function fetchVehicleByPlate(plate: string, state: string): Promise
     bodyType: 'Sedan',
     fuelType: 'Gasoline',
     drivetrain: 'FWD',
+    exteriorColor: 'Blue',
     estimatedValue: 21000,
-    confidenceScore: 80
+    confidenceScore: 80,
+    mileage: 52000,
+    condition: 'Good'
   };
   
   return mockVehicle;
+}
+
+export async function fetchTrimOptions(make: string, model: string, year: number): Promise<string[]> {
+  console.log('Fetching trim options for:', make, model, year);
+  
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Mock trim options based on make/model
+  const trimOptions: Record<string, string[]> = {
+    'Toyota_Camry': ['L', 'LE', 'SE', 'XLE', 'XSE', 'TRD'],
+    'Honda_Accord': ['LX', 'Sport', 'EX', 'EX-L', 'Touring'],
+    'Ford_F-150': ['Regular Cab', 'SuperCab', 'SuperCrew', 'Raptor'],
+    'Chevrolet_Silverado': ['Work Truck', 'Custom', 'LT', 'RST', 'LTZ', 'High Country']
+  };
+  
+  const key = `${make}_${model}`;
+  return trimOptions[key] || ['Base', 'Premium', 'Luxury'];
 }

@@ -4,14 +4,20 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+interface AuthResult {
+  success: boolean;
+  error?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   userDetails: any;
+  userRole: string | null;
   isLoading: boolean;
   error: string | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, options?: any) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<AuthResult>;
+  signUp: (email: string, password: string, options?: any) => Promise<AuthResult>;
   signOut: () => Promise<void>;
 }
 
@@ -21,6 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [userDetails, setUserDetails] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,12 +50,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .maybeSingle();
               
               setUserDetails(profile);
+              setUserRole(profile?.role || 'individual');
             } catch (err) {
               console.error('Error fetching profile:', err);
+              setUserRole('individual');
             }
           }, 0);
         } else {
           setUserDetails(null);
+          setUserRole(null);
         }
         
         setIsLoading(false);
@@ -65,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<AuthResult> => {
     try {
       setError(null);
       const { error } = await supabase.auth.signInWithPassword({
@@ -73,16 +83,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
       
-      if (error) throw error;
+      if (error) {
+        toast.error(error.message);
+        return { success: false, error: error.message };
+      }
+      
       toast.success('Successfully signed in!');
+      return { success: true };
     } catch (err: any) {
       setError(err.message);
       toast.error(err.message);
-      throw err;
+      return { success: false, error: err.message };
     }
   };
 
-  const signUp = async (email: string, password: string, options?: any) => {
+  const signUp = async (email: string, password: string, options?: any): Promise<AuthResult> => {
     try {
       setError(null);
       const { error } = await supabase.auth.signUp({
@@ -91,12 +106,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         options,
       });
       
-      if (error) throw error;
+      if (error) {
+        toast.error(error.message);
+        return { success: false, error: error.message };
+      }
+      
       toast.success('Sign up successful! Please check your email.');
+      return { success: true };
     } catch (err: any) {
       setError(err.message);
       toast.error(err.message);
-      throw err;
+      return { success: false, error: err.message };
     }
   };
 
@@ -116,6 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user,
       session,
       userDetails,
+      userRole,
       isLoading,
       error,
       signIn,
