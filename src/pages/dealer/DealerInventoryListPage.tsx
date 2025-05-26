@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import DealerLayout from '@/layouts/DealerLayout';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import DealerInventoryList from '@/components/dealer/inventory/DealerInventoryList';
-import { DealerInventoryItem } from '@/types/vehicle.d';
+import { DealerInventoryItem } from '@/types/vehicle';
 import { toast } from 'sonner';
 
 const DealerInventoryListPage: React.FC = () => {
