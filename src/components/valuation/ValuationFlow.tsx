@@ -63,11 +63,8 @@ const ValuationFlow: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<ValuationStep>(ValuationStep.LOOKUP);
   const [vehicleInfo, setVehicleInfo] = useState<DecodedVehicleInfo | null>(null);
   
-  const handleVehicleDecoded = (data: DecodedVehicleInfo) => {
+  const handleVehicleFound = (data: DecodedVehicleInfo) => {
     setVehicleInfo(data);
-  };
-  
-  const handleContinueToDetails = () => {
     setCurrentStep(ValuationStep.DETAILS);
   };
   
@@ -111,8 +108,7 @@ const ValuationFlow: React.FC = () => {
       
       {currentStep === ValuationStep.LOOKUP && (
         <VehicleLookupForm 
-          onVehicleDecoded={handleVehicleDecoded}
-          onContinue={handleContinueToDetails}
+          onVehicleFound={handleVehicleFound}
         />
       )}
       
