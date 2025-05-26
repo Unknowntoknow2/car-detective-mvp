@@ -121,7 +121,7 @@ const routes: RouteObject[] = [
         element: <Navigate to="/dashboard" replace />
       },
       
-      // Valuation routes
+      // Valuation routes - FIX: Add the missing VIN route
       {
         path: 'valuation',
         element: <ValuationPage />
@@ -139,7 +139,11 @@ const routes: RouteObject[] = [
         element: <ValuationResultPage />
       },
       {
-        path: 'valuation/:vin',
+        path: 'valuation/vin/:vin',
+        element: <ValuationResultPage />
+      },
+      {
+        path: 'valuation/:id',
         element: <ValuationResultPage />
       },
       {
