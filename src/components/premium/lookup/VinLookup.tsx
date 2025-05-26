@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
 import { CarfaxErrorAlert } from './vin/CarfaxErrorAlert';
 import { DecodedVehicleInfo } from '@/types/vehicle';
+import { useNavigate } from 'react-router-dom';
 
 // Create a CarfaxData type
 interface CarfaxData {
@@ -34,6 +35,7 @@ export const VinLookup: React.FC<VinLookupProps> = ({
 }) => {
   const [vinNumber, setVinNumber] = useState(externalValue || '');
   const { isLoading: internalIsLoading, error, result, lookupVin } = useVinDecoder();
+  const navigate = useNavigate();
   
   const isLoading = externalIsLoading || internalIsLoading;
 
@@ -44,13 +46,15 @@ export const VinLookup: React.FC<VinLookupProps> = ({
     }
   }, [externalOnChange]);
 
-  const handleLookup = useCallback(() => {
+  const handleLookup = useCallback(async () => {
     if (externalOnLookup) {
       externalOnLookup();
     } else if (vinNumber) {
-      lookupVin(vinNumber);
+      await lookupVin(vinNumber);
+      // Navigate to the VIN results page after successful lookup
+      navigate(`/valuation/vin/${vinNumber}`);
     }
-  }, [vinNumber, lookupVin, externalOnLookup]);
+  }, [vinNumber, lookupVin, externalOnLookup, navigate]);
 
   const onReset = useCallback(() => {
     setVinNumber('');
