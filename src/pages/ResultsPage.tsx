@@ -39,7 +39,14 @@ export default function ResultsPage() {
     if (!valuationId) {
       setError('No valuation ID or VIN provided in URL.');
     } else if (fetchError) {
-      setError(typeof fetchError === 'string' ? fetchError : fetchError.message || 'Failed to load valuation data');
+      // Properly handle different error types
+      let errorMessage = 'Failed to load valuation data';
+      if (typeof fetchError === 'string') {
+        errorMessage = fetchError;
+      } else if (fetchError && typeof fetchError === 'object' && 'message' in fetchError) {
+        errorMessage = (fetchError as { message: string }).message;
+      }
+      setError(errorMessage);
     } else {
       setError(null);
     }
