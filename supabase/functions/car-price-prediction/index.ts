@@ -24,7 +24,8 @@ serve(async (req) => {
       model: requestData.model,
       year: requestData.year,
       mileage: requestData.mileage,
-      condition: requestData.condition
+      condition: requestData.condition,
+      vin: requestData.vin
     })
 
     // Calculate estimated value based on basic formula
@@ -78,45 +79,85 @@ serve(async (req) => {
 
     console.log('Valuation result:', valuationResult)
 
-    // Store in database using service role to bypass RLS
-    const { data: storedValuation, error: storeError } = await supabaseClient
-      .from('valuations')
-      .insert({
-        make: requestData.make,
-        model: requestData.model,
-        year: requestData.year,
-        mileage: requestData.mileage,
-        estimated_value: estimatedValue,
-        confidence_score: 95,
-        vin: requestData.vin,
-        fuel_type: requestData.fuelType,
-        transmission: requestData.transmission,
-        body_type: requestData.bodyType,
-        color: requestData.color,
-        user_id: '00000000-0000-0000-0000-000000000000', // Use default UUID for anonymous users
-        state: requestData.zipCode?.substring(0, 2) || null,
-        base_price: Math.round(baseValue),
-        is_vin_lookup: true
-      })
-      .select()
-      .single()
-
-    if (storeError) {
-      console.error('Error storing valuation:', storeError)
-      // Don't throw error, just log it and continue
+    // Get the authenticated user
+    const authHeader = req.headers.get('Authorization')
+    let userId = null
+    
+    if (authHeader) {
+      try {
+        const token = authHeader.replace('Bearer ', '')
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token)
+        if (!authError && user) {
+          userId = user.id
+        }
+      } catch (error) {
+        console.log('Auth error (continuing without user):', error)
+      }
     }
 
-    return new Response(
-      JSON.stringify({
-        ...valuationResult,
-        id: storedValuation?.id || `temp-${Date.now()}`,
-        valuationId: storedValuation?.id || `temp-${Date.now()}`
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      },
-    )
+    // Only store in database if we have a user_id or use anonymous fallback
+    const finalUserId = userId || '00000000-0000-0000-0000-000000000000'
+
+    try {
+      // Store in database using service role to bypass RLS
+      const { data: storedValuation, error: storeError } = await supabaseClient
+        .from('valuations')
+        .insert({
+          make: requestData.make,
+          model: requestData.model,
+          year: requestData.year,
+          mileage: requestData.mileage,
+          estimated_value: estimatedValue,
+          confidence_score: 95,
+          vin: requestData.vin,
+          fuel_type: requestData.fuelType,
+          transmission: requestData.transmission,
+          body_type: requestData.bodyType,
+          color: requestData.color,
+          user_id: finalUserId,
+          state: requestData.zipCode?.substring(0, 2) || null,
+          base_price: Math.round(baseValue),
+          is_vin_lookup: true,
+          condition: requestData.condition || 'good'
+        })
+        .select()
+        .single()
+
+      if (storeError) {
+        console.error('Error storing valuation:', storeError)
+        // Continue without storing - just return the calculated result
+      } else {
+        console.log('Valuation stored successfully:', storedValuation?.id)
+      }
+
+      return new Response(
+        JSON.stringify({
+          ...valuationResult,
+          id: storedValuation?.id || `temp-${Date.now()}`,
+          valuationId: storedValuation?.id || `temp-${Date.now()}`
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
+      )
+
+    } catch (dbError) {
+      console.error('Database error:', dbError)
+      // Return the calculation result even if storage fails
+      return new Response(
+        JSON.stringify({
+          ...valuationResult,
+          id: `temp-${Date.now()}`,
+          valuationId: `temp-${Date.now()}`
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
+      )
+    }
+
   } catch (error) {
     console.error('Error in car-price-prediction:', error)
     return new Response(
