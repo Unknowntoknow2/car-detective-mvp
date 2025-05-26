@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function ValuationResultPage() {
   const { id, vin } = useParams<{ id?: string; vin?: string }>();
   const navigate = useNavigate();
-  const [valuationId, setValuationId] = useState<string | null>(null);
+  const [valuationId, setValuationId] = useState<string | undefined>(undefined);
 
   // Determine the lookup strategy based on route parameters
   const lookupKey = vin || id;
