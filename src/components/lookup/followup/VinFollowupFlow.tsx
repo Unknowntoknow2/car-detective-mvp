@@ -1,217 +1,225 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Check, ChevronRight, ChevronLeft } from 'lucide-react';
-import { useVinLookupFlow, FollowupData } from '@/hooks/useVinLookupFlow';
-import { FollowupStep } from './FollowupStep';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { FollowupStepManager } from './FollowupStepManager';
+import { VehicleConditionStep } from './steps/VehicleConditionStep';
+import { MaintenanceHistoryStep } from './steps/MaintenanceHistoryStep';
+import { AccidentHistoryStep } from './steps/AccidentHistoryStep';
+import { useVinLookupFlow } from '@/hooks/useVinLookupFlow';
+import { supabase } from '@/integrations/supabase/client';
 
-const FOLLOWUP_STEPS = [
-  {
-    id: 'mileage',
-    title: 'Vehicle Mileage',
-    description: 'Current odometer reading',
-    category: 'basic',
-    weight: 15
-  },
-  {
-    id: 'condition',
-    title: 'Overall Condition',
-    description: 'General condition assessment',
-    category: 'basic',
-    weight: 12
-  },
-  {
-    id: 'accidents',
-    title: 'Accident History',
-    description: 'Number of reported accidents',
-    category: 'history',
-    weight: 10
-  },
-  {
-    id: 'title',
-    title: 'Title Status',
-    description: 'Clean, salvage, or rebuilt title',
-    category: 'history',
-    weight: 8
-  },
-  {
-    id: 'maintenance',
-    title: 'Maintenance Records',
-    description: 'Service history availability',
-    category: 'history',
-    weight: 6
-  },
-  {
-    id: 'location',
-    title: 'Vehicle Location',
-    description: 'Current ZIP code for regional pricing',
-    category: 'market',
-    weight: 5
-  },
-  {
-    id: 'photos',
-    title: 'Vehicle Photos',
-    description: 'Upload photos for AI condition analysis',
-    category: 'advanced',
-    weight: 8
-  }
-];
+interface FollowupStep {
+  id: string;
+  title: string;
+  description: string;
+  isCompleted: boolean;
+  isActive: boolean;
+  isOptional?: boolean;
+}
 
 export const VinFollowupFlow: React.FC = () => {
+  const navigate = useNavigate();
   const { state, updateFollowupProgress, submitFollowup } = useVinLookupFlow();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [followupData, setFollowupData] = useState<FollowupData>({});
-  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+  
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [followupData, setFollowupData] = useState<Record<string, any>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [steps, setSteps] = useState<FollowupStep[]>([
+    {
+      id: 'condition',
+      title: 'Vehicle Condition',
+      description: 'Rate exterior, interior, mechanical, and paint condition',
+      isCompleted: false,
+      isActive: true,
+      isOptional: false
+    },
+    {
+      id: 'maintenance',
+      title: 'Maintenance History',
+      description: 'Service records and maintenance frequency',
+      isCompleted: false,
+      isActive: false,
+      isOptional: true
+    },
+    {
+      id: 'accidents',
+      title: 'Accident History',
+      description: 'Any accidents, damage, or insurance claims',
+      isCompleted: false,
+      isActive: false,
+      isOptional: false
+    }
+  ]);
+
+  // Calculate progress based on completed steps
+  const calculateProgress = () => {
+    const totalSteps = steps.length;
+    const completedSteps = steps.filter(step => step.isCompleted).length;
+    const baseProgress = 60; // Starting progress from VIN lookup
+    const additionalProgress = (completedSteps / totalSteps) * 40; // Up to 40% more
+    return Math.min(100, baseProgress + additionalProgress);
+  };
+
+  const progress = calculateProgress();
+
+  // Update progress when steps change
+  useEffect(() => {
+    updateFollowupProgress(progress);
+  }, [progress, updateFollowupProgress]);
+
+  const updateStepStatus = (stepIndex: number, isCompleted: boolean) => {
+    setSteps(prev => prev.map((step, index) => {
+      if (index === stepIndex) {
+        return { ...step, isCompleted };
+      }
+      if (index === stepIndex + 1 && isCompleted) {
+        return { ...step, isActive: true };
+      }
+      return step;
+    }));
+  };
 
   const handleStepComplete = (stepId: string, data: any) => {
-    const newData = { ...followupData, [stepId]: data };
-    setFollowupData(newData);
+    setFollowupData(prev => ({ ...prev, [stepId]: data }));
+    updateStepStatus(currentStepIndex, true);
     
-    const newCompleted = new Set(completedSteps);
-    newCompleted.add(stepId);
-    setCompletedSteps(newCompleted);
-
-    // Calculate progress based on completed steps and their weights
-    const totalWeight = FOLLOWUP_STEPS.reduce((sum, step) => sum + step.weight, 0);
-    const completedWeight = FOLLOWUP_STEPS
-      .filter(step => newCompleted.has(step.id))
-      .reduce((sum, step) => sum + step.weight, 0);
-    
-    const progress = Math.round((completedWeight / totalWeight) * 100);
-    updateFollowupProgress(progress);
-  };
-
-  const handleNext = () => {
-    if (currentStep < FOLLOWUP_STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
+    if (currentStepIndex < steps.length - 1) {
+      setCurrentStepIndex(prev => prev + 1);
+      setSteps(prev => prev.map((step, index) => ({
+        ...step,
+        isActive: index === currentStepIndex + 1
+      })));
     } else {
-      // Complete the followup process
-      submitFollowup(followupData);
+      // All steps completed, submit the final valuation
+      handleFinalSubmit();
     }
   };
 
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+  const handleStepSkip = () => {
+    if (currentStepIndex < steps.length - 1) {
+      setCurrentStepIndex(prev => prev + 1);
+      setSteps(prev => prev.map((step, index) => ({
+        ...step,
+        isActive: index === currentStepIndex + 1
+      })));
+    } else {
+      handleFinalSubmit();
     }
   };
 
-  const currentStepData = FOLLOWUP_STEPS[currentStep];
-  const isStepCompleted = completedSteps.has(currentStepData.id);
-  const canProceed = isStepCompleted || currentStep === 0;
+  const handleFinalSubmit = async () => {
+    if (!state.vehicle) {
+      toast.error('Vehicle information not found');
+      return;
+    }
 
-  if (!state.vehicle) return null;
+    setIsSubmitting(true);
+    
+    try {
+      // Submit enhanced valuation with all followup data
+      const { data: enhancedValuation, error } = await supabase.functions.invoke('car-price-prediction', {
+        body: {
+          ...state.vehicle,
+          followupData,
+          isEnhanced: true,
+          confidenceBoost: Math.round((progress - 60) / 40 * 20) // Up to 20% confidence boost
+        }
+      });
+
+      if (error) throw error;
+
+      // Store the enhanced result
+      await submitFollowup(followupData);
+      
+      // Navigate to enhanced results
+      navigate(`/valuation/result/${enhancedValuation.id}?enhanced=true`);
+      
+      toast.success('Enhanced valuation completed!');
+    } catch (error) {
+      console.error('Enhanced valuation error:', error);
+      toast.error('Failed to complete enhanced valuation');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleStepClick = (stepIndex: number) => {
+    // Allow navigation to previous steps or current step
+    if (stepIndex <= currentStepIndex) {
+      setCurrentStepIndex(stepIndex);
+      setSteps(prev => prev.map((step, index) => ({
+        ...step,
+        isActive: index === stepIndex
+      })));
+    }
+  };
+
+  const renderCurrentStep = () => {
+    const currentStep = steps[currentStepIndex];
+    
+    switch (currentStep.id) {
+      case 'condition':
+        return (
+          <VehicleConditionStep
+            onComplete={(data) => handleStepComplete('condition', data)}
+            onSkip={handleStepSkip}
+            initialData={followupData.condition}
+          />
+        );
+      case 'maintenance':
+        return (
+          <MaintenanceHistoryStep
+            onComplete={(data) => handleStepComplete('maintenance', data)}
+            onSkip={handleStepSkip}
+            initialData={followupData.maintenance}
+          />
+        );
+      case 'accidents':
+        return (
+          <AccidentHistoryStep
+            onComplete={(data) => handleStepComplete('accidents', data)}
+            onSkip={handleStepSkip}
+            initialData={followupData.accidents}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  if (!state.vehicle) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-600">No vehicle information found. Please start with a VIN lookup.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Progress Header */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Enhance Your Valuation</span>
-            <span className="text-sm font-normal text-gray-500">
-              {state.followupProgress}% Complete
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Progress value={state.followupProgress} className="w-full" />
-          <p className="text-sm text-gray-600 mt-2">
-            Answer these questions to improve valuation accuracy from 75% to 100%
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Current Step */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                {isStepCompleted && (
-                  <Check className="h-5 w-5 text-green-600" />
-                )}
-                {currentStepData.title}
-              </CardTitle>
-              <p className="text-gray-600 mt-1">{currentStepData.description}</p>
-            </div>
-            <div className="text-sm text-gray-500">
-              Step {currentStep + 1} of {FOLLOWUP_STEPS.length}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <FollowupStep
-            step={currentStepData}
-            value={followupData[currentStepData.id]}
-            onComplete={(data) => handleStepComplete(currentStepData.id, data)}
-            vehicle={state.vehicle}
+    <div className="max-w-7xl mx-auto p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="lg:col-span-1">
+          <FollowupStepManager
+            steps={steps}
+            currentStepIndex={currentStepIndex}
+            progress={progress}
+            onStepClick={handleStepClick}
           />
-        </CardContent>
-      </Card>
-
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={handlePrevious}
-          disabled={currentStep === 0}
-        >
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Previous
-        </Button>
-
-        <Button
-          onClick={handleNext}
-          disabled={!canProceed && currentStep > 0}
-        >
-          {currentStep === FOLLOWUP_STEPS.length - 1 ? (
-            'Complete Valuation'
+        </div>
+        
+        <div className="lg:col-span-3">
+          {isSubmitting ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Generating enhanced valuation...</p>
+            </div>
           ) : (
-            <>
-              Next
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </>
+            renderCurrentStep()
           )}
-        </Button>
+        </div>
       </div>
-
-      {/* Step Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Progress Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-2">
-            {FOLLOWUP_STEPS.map((step, index) => (
-              <div
-                key={step.id}
-                className={`flex items-center justify-between p-2 rounded ${
-                  index === currentStep
-                    ? 'bg-blue-50 border border-blue-200'
-                    : completedSteps.has(step.id)
-                    ? 'bg-green-50'
-                    : 'bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  {completedSteps.has(step.id) ? (
-                    <Check className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
-                  )}
-                  <span className="text-sm font-medium">{step.title}</span>
-                </div>
-                <span className="text-xs text-gray-500">+{step.weight}%</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
-
-export default VinFollowupFlow;
