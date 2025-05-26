@@ -95,24 +95,43 @@ export function useValuationData(valuationId: string): UseValuationDataReturn {
         }
         
         // If we have a latest valuation ID, try to use that
-        if (!result && latestId && latestId.startsWith('temp-')) {
-          result = {
-            id: latestId,
-            vin: valuationId,
-            make: 'Toyota',
-            model: 'Camry',
-            year: 2020,
-            estimated_value: 15000,
-            confidence_score: 95,
-            mileage: 45000,
-            created_at: new Date().toISOString()
-          };
+        if (!result && latestId && (latestId.startsWith('temp-') || isValidUUID(latestId))) {
+          // Try to fetch the latest valuation ID from database
+          if (isValidUUID(latestId)) {
+            const response = await supabase
+              .from('valuations')
+              .select('*')
+              .eq('id', latestId)
+              .maybeSingle();
+            
+            if (response.data) {
+              result = response.data;
+              console.log('Found data using latest valuation ID:', result);
+            }
+          }
+          
+          // Fallback mock data for temp IDs
+          if (!result && latestId.startsWith('temp-')) {
+            result = {
+              id: latestId,
+              vin: valuationId,
+              make: 'Auto-detected',
+              model: 'Vehicle',
+              year: 2020,
+              estimated_value: 15000,
+              confidence_score: 95,
+              mileage: 45000,
+              created_at: new Date().toISOString(),
+              condition: 'Good'
+            };
+            console.log('Using fallback mock data for temp ID');
+          }
         }
       }
 
       if (apiError && !result) {
         console.error('Supabase API error:', apiError);
-        throw apiError;
+        throw new Error(apiError.message || 'Database query failed');
       }
 
       if (result) {
@@ -135,23 +154,24 @@ export function useValuationData(valuationId: string): UseValuationDataReturn {
           } catch (e) {
             console.error('Failed to parse price range:', e);
             result.price_range = [
-              Math.round(result.estimated_value * 0.9),
-              Math.round(result.estimated_value * 1.1)
+              Math.round((result.estimated_value || result.estimatedValue || 15000) * 0.9),
+              Math.round((result.estimated_value || result.estimatedValue || 15000) * 1.1)
             ];
           }
         }
 
         // Add default price range if missing
-        if (!result.price_range && result.estimated_value) {
+        if (!result.price_range && (result.estimated_value || result.estimatedValue)) {
+          const estimatedValue = result.estimated_value || result.estimatedValue || 15000;
           result.price_range = [
-            Math.round(result.estimated_value * 0.9),
-            Math.round(result.estimated_value * 1.1)
+            Math.round(estimatedValue * 0.9),
+            Math.round(estimatedValue * 1.1)
           ];
         }
 
         setData(result as ValuationResult);
       } else {
-        setError('Valuation not found');
+        setError('Valuation not found. The data may not be available or the link may have expired.');
         setIsError(true);
       }
     } catch (err: any) {

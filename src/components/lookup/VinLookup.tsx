@@ -25,7 +25,6 @@ const VinLookup: React.FC<VinLookupProps> = ({
   const handleVinChange = (newVin: string) => {
     setVin(newVin);
     if (error) {
-      // Clear error when user starts typing again
       setError(null);
     }
   };
@@ -33,7 +32,6 @@ const VinLookup: React.FC<VinLookupProps> = ({
   const handleSubmit = async (vinToSubmit: string) => {
     console.log('VIN Lookup: Form submitted with VIN:', vinToSubmit);
     
-    // Using validateVIN which returns {isValid, error}
     const validation = validateVIN(vinToSubmit);
     if (!validation.isValid) {
       setError(validation.error || 'Invalid VIN format. Please check and try again.');
@@ -64,8 +62,8 @@ const VinLookup: React.FC<VinLookupProps> = ({
         onResultsReady(result);
       }
       
-      // Navigate to the VIN-specific valuation page
-      navigate(`/valuation/${vinToSubmit}`);
+      // Navigate to the VIN-specific valuation page using the correct route
+      navigate(`/valuation/vin/${vinToSubmit}`);
       
       toast.success('VIN lookup completed successfully');
     } catch (error: any) {
@@ -78,7 +76,7 @@ const VinLookup: React.FC<VinLookupProps> = ({
       const storedId = localStorage.getItem('latest_valuation_id');
       if (storedId && storedId !== '') {
         console.log('Attempting navigation with stored valuation ID:', storedId);
-        navigate(`/valuation/${vinToSubmit}`);
+        navigate(`/valuation/vin/${vinToSubmit}`);
       }
     } finally {
       setLoading(false);

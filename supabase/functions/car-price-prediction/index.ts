@@ -83,9 +83,6 @@ serve(async (req) => {
       }
     }
 
-    // Use anonymous user if no authenticated user
-    const finalUserId = userId || '00000000-0000-0000-0000-000000000000'
-
     try {
       // Store in database using service role to bypass RLS
       const valuationData = {
@@ -100,7 +97,7 @@ serve(async (req) => {
         transmission: requestData.transmission,
         body_type: requestData.bodyType,
         color: requestData.color,
-        user_id: finalUserId,
+        user_id: userId, // This can now be null for anonymous users
         state: requestData.zipCode?.substring(0, 2) || null,
         base_price: Math.round(baseValue),
         is_vin_lookup: true
