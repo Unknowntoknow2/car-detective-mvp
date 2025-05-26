@@ -127,6 +127,10 @@ const routes: RouteObject[] = [
         element: <ValuationPage />
       },
       {
+        path: 'valuation/:vin',
+        element: <ValuationPage />
+      },
+      {
         path: 'valuation-followup',
         element: <ValuationFollowupPage />
       },
@@ -136,10 +140,6 @@ const routes: RouteObject[] = [
       },
       {
         path: 'valuation/result/:id',
-        element: <ValuationResultPage />
-      },
-      {
-        path: 'valuation/vin/:vin',
         element: <ValuationResultPage />
       },
       {

@@ -1,11 +1,12 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 import { validateVIN } from '@/utils/validation/vin-validation';
-import { useVinLookupFlow } from '@/hooks/useVinLookupFlow';
+import { decodeVin } from '@/services/vinService';
 import { toast } from 'sonner';
 
 interface UnifiedVinLookupProps {
@@ -22,7 +23,8 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
   const navigate = useNavigate();
   const [vin, setVin] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const { state, lookupVin } = useVinLookupFlow();
+  const [isLoading, setIsLoading] = useState(false);
+  const [lookupResult, setLookupResult] = useState<any>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,37 +44,51 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
     }
 
     setError(null);
+    setIsLoading(true);
 
     try {
-      // If onSubmit is provided, use it (for embedded usage)
-      if (onSubmit) {
-        onSubmit(vin);
-        return;
-      }
-
-      // Otherwise, use the VIN lookup flow and navigate
-      console.log('UNIFIED VIN LOOKUP: Starting VIN lookup...');
-      const result = await lookupVin(vin);
+      console.log('UNIFIED VIN LOOKUP: Starting VIN decode...');
+      const result = await decodeVin(vin);
       
-      if (result) {
-        console.log('UNIFIED VIN LOOKUP: Success, navigating to valuation page');
-        // Navigate to the valuation page with the VIN
+      if (result.success && result.data) {
+        console.log('UNIFIED VIN LOOKUP: VIN decode successful:', result.data);
+        setLookupResult(result.data);
+        
+        // Store in localStorage for persistence
+        localStorage.setItem('current_vin', vin);
+        localStorage.setItem('current_vehicle_data', JSON.stringify(result.data));
+        
+        toast.success(`Vehicle found: ${result.data.year} ${result.data.make} ${result.data.model}`);
+        
+        // If onSubmit is provided, use it (for embedded usage)
+        if (onSubmit) {
+          onSubmit(vin);
+          return;
+        }
+
+        // Navigate to the valuation page
+        console.log('UNIFIED VIN LOOKUP: Navigating to valuation page');
         navigate(`/valuation/${vin}`);
       } else {
-        console.log('UNIFIED VIN LOOKUP: No result returned');
-        toast.error('Failed to lookup VIN');
+        console.log('UNIFIED VIN LOOKUP: VIN decode failed:', result.error);
+        setError(result.error || 'Vehicle not found for this VIN');
+        toast.error(result.error || 'Vehicle not found for this VIN');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('UNIFIED VIN LOOKUP: Error:', error);
-      setError('Failed to lookup VIN');
-      toast.error('Failed to lookup VIN');
+      const errorMessage = error.message || 'Failed to lookup VIN';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVin = e.target.value.toUpperCase();
+    const newVin = e.target.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, '');
     setVin(newVin);
     setError(null);
+    setLookupResult(null);
   };
 
   return (
@@ -98,11 +114,20 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
                 value={vin}
                 onChange={handleVinChange}
                 maxLength={17}
-                className={error ? 'border-red-500' : ''}
-                disabled={state.isLoading}
+                className={`font-mono ${error ? 'border-red-500' : lookupResult ? 'border-green-500' : ''}`}
+                disabled={isLoading}
               />
               {error && (
-                <p className="text-sm text-red-500 mt-1">{error}</p>
+                <div className="flex items-center mt-2 text-sm text-red-500">
+                  <AlertCircle className="h-4 w-4 mr-1" />
+                  {error}
+                </div>
+              )}
+              {lookupResult && (
+                <div className="flex items-center mt-2 text-sm text-green-600">
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Found: {lookupResult.year} {lookupResult.make} {lookupResult.model}
+                </div>
               )}
               <p className="text-xs text-muted-foreground mt-1">
                 Find your VIN on your dashboard, driver's side door, or vehicle registration
@@ -111,10 +136,10 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
             
             <Button 
               type="submit" 
-              disabled={state.isLoading || vin.length < 17}
+              disabled={isLoading || vin.length !== 17}
               className="w-full"
             >
-              {state.isLoading ? (
+              {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Looking up VIN...
@@ -124,12 +149,6 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
               )}
             </Button>
           </form>
-
-          {state.error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-sm text-red-600">{state.error}</p>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
