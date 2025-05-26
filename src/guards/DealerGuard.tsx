@@ -25,14 +25,17 @@ const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
     );
   }
 
-  // If user is not authenticated, redirect to dealer login
+  // If user is not authenticated, redirect to dealer auth page
   if (!user) {
-    return <Navigate to="/login-dealer" replace />;
+    return <Navigate to="/auth/dealer" replace />;
   }
 
-  // If user is not a dealer, redirect to access denied
+  // If user is not a dealer, redirect to access denied or their appropriate dashboard
   if (userDetails?.role !== 'dealer') {
-    return <Navigate to="/access-denied" replace />;
+    if (userDetails?.role === 'admin') {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
   }
 
   // If user is a dealer, render the protected route

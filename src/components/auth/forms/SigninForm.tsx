@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -66,10 +67,16 @@ export const SigninForm: React.FC<SigninFormProps> = ({
         variant: "success",
       });
       
-      // Determine where to redirect the user
-      const from = location.state?.from?.pathname || 
-                  (userType === 'dealer' ? '/dealer/dashboard' : redirectPath);
+      // Determine redirect path based on user type
+      let targetPath = redirectPath;
+      if (userType === 'dealer') {
+        targetPath = '/dealer/dashboard';
+      }
       
+      // Use the from location if available, otherwise use the target path
+      const from = location.state?.from?.pathname || targetPath;
+      
+      console.log(`Redirecting ${userType} to:`, from);
       navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
