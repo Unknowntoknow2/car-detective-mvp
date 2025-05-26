@@ -1737,7 +1737,7 @@ export type Database = {
           seasonal_multiplier: number | null
           state: string | null
           transmission: string | null
-          user_id: string
+          user_id: string | null
           vin: string | null
           warranty_status: string | null
           year: number | null
@@ -1773,7 +1773,7 @@ export type Database = {
           seasonal_multiplier?: number | null
           state?: string | null
           transmission?: string | null
-          user_id: string
+          user_id?: string | null
           vin?: string | null
           warranty_status?: string | null
           year?: number | null
@@ -1809,7 +1809,7 @@ export type Database = {
           seasonal_multiplier?: number | null
           state?: string | null
           transmission?: string | null
-          user_id?: string
+          user_id?: string | null
           vin?: string | null
           warranty_status?: string | null
           year?: number | null

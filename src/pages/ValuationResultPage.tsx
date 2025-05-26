@@ -2,227 +2,194 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { MainLayout } from '@/components/layout';
-import { FoundCarCard } from '@/components/lookup/found/FoundCarCard';
-import { Button } from '@/components/ui/button';
+import { useValuationData } from '@/modules/valuation-result/hooks/useValuationData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { AlertTriangle, Download, DollarSign, TrendingUp, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { formatCurrency } from '@/utils/formatters';
+import { Link } from 'react-router-dom';
 
 const ValuationResultPage = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, vin } = useParams<{ id?: string; vin?: string }>();
   const [searchParams] = useSearchParams();
-  const vin = searchParams.get('vin');
-  
-  const [valuationData, setValuationData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [valuationId, setValuationId] = useState<string | undefined>();
 
+  // Determine the correct valuation identifier
   useEffect(() => {
-    const fetchValuationData = async () => {
-      if (!id && !vin) {
-        setError('No valuation ID or VIN provided');
-        setLoading(false);
-        return;
+    console.log('ValuationResultPage params:', { id, vin });
+    
+    if (vin) {
+      // VIN route: /valuation/vin/:vin
+      setValuationId(vin);
+      console.log('Using VIN from URL path:', vin);
+    } else if (id) {
+      // UUID route: /valuation/:id
+      setValuationId(id);
+      console.log('Using ID from URL path:', id);
+    } else {
+      // Fallback: check localStorage for latest valuation
+      const storedId = localStorage.getItem('latest_valuation_id');
+      if (storedId) {
+        setValuationId(storedId);
+        console.log('Using stored valuation ID:', storedId);
+      } else {
+        console.error('No valuation identifier found');
       }
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        let query = supabase.from('valuations').select('*');
-        
-        if (id) {
-          query = query.eq('id', id);
-        } else if (vin) {
-          query = query.eq('vin', vin);
-        }
-
-        const { data, error: fetchError } = await query.maybeSingle();
-
-        if (fetchError) {
-          console.error('Database error:', fetchError);
-          throw new Error(`Database error: ${fetchError.message}`);
-        }
-
-        if (!data) {
-          throw new Error('Valuation not found');
-        }
-
-        setValuationData(data);
-      } catch (err: any) {
-        console.error('Error loading valuation:', err);
-        setError(err.message || 'Failed to load valuation data');
-        toast.error('Error loading valuation data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchValuationData();
+    }
   }, [id, vin]);
 
-  if (loading) {
+  const { data, isLoading, error, isError, refetch } = useValuationData(valuationId || '');
+
+  // Loading state
+  if (isLoading || !valuationId) {
     return (
       <MainLayout>
         <div className="container mx-auto py-8">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading valuation results...</p>
-            </div>
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-gray-600">Loading valuation results...</p>
           </div>
         </div>
       </MainLayout>
     );
   }
 
-  if (error) {
+  // Error state
+  if (isError || !data) {
     return (
       <MainLayout>
         <div className="container mx-auto py-8">
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              {error}
-            </AlertDescription>
-          </Alert>
+          <div className="max-w-2xl mx-auto">
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="space-y-2">
+                <p>Could not load valuation results.</p>
+                <p className="text-sm text-muted-foreground">
+                  {error || 'The valuation data may not be available or the link may have expired.'}
+                </p>
+                <div className="flex gap-2 mt-4">
+                  <Button variant="outline" size="sm" onClick={() => refetch()}>
+                    Try Again
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/vin-lookup">
+                      <ArrowLeft className="h-4 w-4 mr-1" />
+                      New Lookup
+                    </Link>
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          </div>
         </div>
       </MainLayout>
     );
   }
 
-  if (!valuationData) {
-    return (
-      <MainLayout>
-        <div className="container mx-auto py-8">
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              No valuation data found for the specified ID or VIN.
-            </AlertDescription>
-          </Alert>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  // Transform the valuation data to match FoundCarCard expected format
-  const vehicleInfo = {
-    vin: valuationData.vin || 'Unknown',
-    make: valuationData.make || 'Unknown',
-    model: valuationData.model || 'Unknown',
-    year: valuationData.year || 0,
-    mileage: valuationData.mileage,
-    bodyType: valuationData.body_type,
-    fuelType: valuationData.fuel_type,
-    transmission: valuationData.transmission,
-    exteriorColor: valuationData.color,
-    estimatedValue: valuationData.estimated_value,
-    confidenceScore: valuationData.confidence_score,
-    valuationId: valuationData.id
-  };
-
-  const priceRange = {
-    low: Math.round((valuationData.estimated_value || 0) * 0.9),
-    high: Math.round((valuationData.estimated_value || 0) * 1.1)
-  };
-
+  // Success state - display valuation results
   return (
     <MainLayout>
-      <div className="container mx-auto py-8 space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-2">Valuation Results</h1>
-          <p className="text-muted-foreground">
-            Complete vehicle analysis for {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
-          </p>
-        </div>
+      <div className="container mx-auto py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-6">
+            <Button variant="outline" asChild>
+              <Link to="/vin-lookup">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Lookup
+              </Link>
+            </Button>
+          </div>
 
-        {/* Vehicle Information Card */}
-        <FoundCarCard vehicle={vehicleInfo} />
-
-        {/* Additional Valuation Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-green-600" />
-              Valuation Breakdown
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <p className="text-sm text-muted-foreground">Estimated Value</p>
-                <p className="text-2xl font-bold text-green-600">
-                  ${(valuationData.estimated_value || 0).toLocaleString()}
-                </p>
-              </div>
-              
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-muted-foreground">Price Range</p>
-                <p className="text-lg font-semibold text-blue-600">
-                  ${priceRange.low.toLocaleString()} - ${priceRange.high.toLocaleString()}
-                </p>
-              </div>
-              
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <p className="text-sm text-muted-foreground">Confidence Score</p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {valuationData.confidence_score || 'N/A'}%
-                </p>
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-2">
-              <h4 className="font-semibold flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Market Analysis
-              </h4>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Market Condition:</span>
-                  <Badge variant="secondary" className="ml-2">
-                    {valuationData.condition_score > 80 ? 'Excellent' : 
-                     valuationData.condition_score > 60 ? 'Good' : 'Fair'}
-                  </Badge>
+          <div className="grid gap-6">
+            {/* Main Valuation Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-center">
+                  Vehicle Valuation Results
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Estimated Value */}
+                <div className="text-center bg-gradient-to-br from-primary/10 to-primary/5 p-6 rounded-lg">
+                  <h3 className="text-lg font-medium text-primary mb-2">Estimated Value</h3>
+                  <div className="text-4xl font-bold text-primary">
+                    {formatCurrency(data.estimated_value || data.estimatedValue || 0)}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Confidence: {data.confidence_score || data.confidenceScore || 0}%
+                  </p>
                 </div>
-                <div>
-                  <span className="text-muted-foreground">Premium Status:</span>
-                  <Badge variant={valuationData.premium_unlocked ? 'default' : 'outline'} className="ml-2">
-                    {valuationData.premium_unlocked ? 'Premium' : 'Standard'}
-                  </Badge>
+
+                {/* Vehicle Information */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <h4 className="font-semibold">Vehicle Details</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Make:</span>
+                        <span>{data.make || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Model:</span>
+                        <span>{data.model || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Year:</span>
+                        <span>{data.year || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Mileage:</span>
+                        <span>{data.mileage ? `${data.mileage.toLocaleString()} miles` : 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="font-semibold">Additional Info</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Condition:</span>
+                        <span className="capitalize">{data.condition || 'Good'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">VIN:</span>
+                        <span className="font-mono text-xs">{data.vin || vin || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Created:</span>
+                        <span>{data.created_at ? new Date(data.created_at).toLocaleDateString() : 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            {valuationData.state && (
-              <div className="flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Location:</span>
-                <span>{valuationData.state}</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                {/* Price Range */}
+                {data.price_range && (
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold mb-2">Price Range</h4>
+                    <div className="flex justify-between items-center bg-gray-50 p-3 rounded">
+                      <span>Low: {formatCurrency(data.price_range[0] || 0)}</span>
+                      <span>High: {formatCurrency(data.price_range[1] || 0)}</span>
+                    </div>
+                  </div>
+                )}
 
-        {/* Action Buttons */}
-        <div className="flex justify-center gap-4">
-          <Button 
-            onClick={() => window.print()}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <Download className="h-4 w-4" />
-            Download Report
-          </Button>
-          <Button onClick={() => window.history.back()}>
-            Back to Search
-          </Button>
+                {/* Actions */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+                  <Button className="flex-1">
+                    Get Premium Report
+                  </Button>
+                  <Button variant="outline" className="flex-1">
+                    Download PDF
+                  </Button>
+                  <Button variant="outline" className="flex-1">
+                    Share Results
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </MainLayout>
