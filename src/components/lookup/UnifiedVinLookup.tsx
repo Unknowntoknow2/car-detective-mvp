@@ -4,10 +4,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, CheckCircle, Search } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle, Search, AlertTriangle } from 'lucide-react';
 import { validateVIN, formatVinInput } from '@/utils/validation/vin-validation';
 import { decodeVin } from '@/services/vinService';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface UnifiedVinLookupProps {
   onSubmit?: (vin: string) => void;
@@ -27,6 +28,7 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lookupResult, setLookupResult] = useState<any>(null);
+  const [apiWarning, setApiWarning] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +48,7 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
     }
 
     setError(null);
+    setApiWarning(null);
     setIsLoading(true);
     setLookupResult(null);
 
@@ -54,12 +57,17 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
       const result = await decodeVin(vin);
       
       if (result.success && result.data) {
-        console.log('UNIFIED VIN LOOKUP: NHTSA API success:', result.data);
+        console.log('UNIFIED VIN LOOKUP: VIN decode success:', result.data);
         setLookupResult(result.data);
         
         // Store in localStorage for persistence
         localStorage.setItem('current_vin', vin);
         localStorage.setItem('current_vehicle_data', JSON.stringify(result.data));
+        
+        // Check if this was a fallback response (lower confidence score)
+        if (result.data.confidenceScore < 70) {
+          setApiWarning('NHTSA database temporarily unavailable. Vehicle details may be limited.');
+        }
         
         toast.success(`Vehicle found: ${result.data.year} ${result.data.make} ${result.data.model}`);
         
@@ -73,8 +81,8 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
         console.log('UNIFIED VIN LOOKUP: Navigating to valuation page with VIN for details');
         navigate(`/valuation/${vin}`, { replace: true });
       } else {
-        console.log('UNIFIED VIN LOOKUP: NHTSA API failed:', result.error);
-        const errorMessage = result.error || 'Vehicle not found in NHTSA database';
+        console.log('UNIFIED VIN LOOKUP: VIN decode failed:', result.error);
+        const errorMessage = result.error || 'Vehicle not found in database';
         setError(errorMessage);
         toast.error(errorMessage);
       }
@@ -93,6 +101,7 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
     setVin(formatted);
     setError(null);
     setLookupResult(null);
+    setApiWarning(null);
   };
 
   return (
@@ -124,6 +133,16 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
                 className={`font-mono text-center tracking-wider ${error ? 'border-red-500' : lookupResult ? 'border-green-500' : ''}`}
                 disabled={isLoading}
               />
+              
+              {apiWarning && (
+                <Alert className="mt-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    {apiWarning}
+                  </AlertDescription>
+                </Alert>
+              )}
+              
               {error && (
                 <div className="flex items-center mt-2 text-sm text-red-500">
                   <AlertCircle className="h-4 w-4 mr-1" />
