@@ -8,6 +8,7 @@ import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
 import { Container } from '@/components/ui/container';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
+import { ServiceStatus } from '@/components/common/ServiceStatus';
 
 export default function ValuationPage() {
   const { vin } = useParams();
@@ -64,6 +65,7 @@ export default function ValuationPage() {
   if (error || !vehicle) {
     return (
       <Container className="max-w-4xl py-10">
+        <ServiceStatus className="mb-6" />
         <Alert variant="destructive">
           <AlertDescription>
             {error || 'Vehicle not found. Please try again or contact support.'}
@@ -76,6 +78,7 @@ export default function ValuationPage() {
   return (
     <Container className="max-w-4xl py-10">
       <div className="space-y-8">
+        <ServiceStatus />
         <CarFinderQaherHeader />
         <VehicleFoundCard vehicle={vehicle} />
         <FollowUpForm vin={vin!} />
