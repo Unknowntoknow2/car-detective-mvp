@@ -7,6 +7,13 @@ import { DecodedVehicleInfo } from '@/types/vehicle';
 
 const ANONYMOUS_USER_ID = '00000000-0000-0000-0000-000000000000';
 
+// Define the response type for plate lookup
+interface PlateDecodingResponse {
+  success: boolean;
+  data?: DecodedVehicleInfo;
+  error?: string;
+}
+
 export function useValuation() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -129,7 +136,7 @@ export function useValuation() {
     }
   };
 
-  const decodePlate = async (plate: string, state: string) => {
+  const decodePlate = async (plate: string, state: string): Promise<PlateDecodingResponse> => {
     setIsLoading(true);
     setError(null);
     
