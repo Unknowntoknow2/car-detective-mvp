@@ -1,3 +1,4 @@
+
 import { DecodedVehicleInfo } from '@/types/vehicle';
 
 export function generateValuationPDF(vehicle: DecodedVehicleInfo) {
@@ -24,67 +25,138 @@ export function generateValuationPDF(vehicle: DecodedVehicleInfo) {
   
   console.log('Generating PDF for vehicle:', vehicleData);
   
-  // PDF generation implementation
-  // This would typically use a library like jsPDF, pdfmake, or react-pdf
-  
-  // Example implementation (placeholder):
-  // 1. Create PDF document
-  // const doc = new jsPDF();
-  
-  // 2. Add header with logo
-  // doc.setFontSize(20);
-  // doc.text('Vehicle Valuation Report', 105, 20, { align: 'center' });
-  
-  // 3. Add vehicle information
-  // doc.setFontSize(14);
-  // doc.text(`${vehicleData.year} ${vehicleData.make} ${vehicleData.model} ${vehicleData.trim}`, 20, 40);
-  
-  // 4. Add valuation section
-  // doc.setFontSize(16);
-  // doc.text('Estimated Value', 20, 60);
-  // doc.setFontSize(20);
-  // doc.text(`$${vehicleData.estimatedValue.toLocaleString()}`, 20, 70);
-  
-  // 5. Add confidence score
-  // doc.setFontSize(12);
-  // doc.text(`Confidence Score: ${vehicleData.confidenceScore}%`, 20, 80);
-  
-  // 6. Add vehicle details table
-  // const tableData = [
-  //   ['VIN', vehicleData.vin],
-  //   ['Mileage', `${vehicleData.mileage.toLocaleString()} miles`],
-  //   ['Condition', vehicleData.condition],
-  //   ['Engine', vehicleData.engine],
-  //   ['Transmission', vehicleData.transmission],
-  //   ['Body Type', vehicleData.bodyType],
-  //   ['Fuel Type', vehicleData.fuelType],
-  //   ['Drivetrain', vehicleData.drivetrain],
-  //   ['Exterior Color', vehicleData.exteriorColor],
-  //   ['Interior Color', vehicleData.interiorColor]
-  // ];
-  // doc.autoTable({
-  //   startY: 90,
-  //   head: [['Attribute', 'Value']],
-  //   body: tableData
-  // });
-  
-  // 7. Add features list if available
-  // if (vehicleData.features.length > 0) {
-  //   const finalY = (doc as any).lastAutoTable.finalY || 150;
-  //   doc.text('Features', 20, finalY + 10);
-  //   doc.setFontSize(10);
-  //   const featuresText = vehicleData.features.join(', ');
-  //   doc.text(featuresText, 20, finalY + 20);
-  // }
-  
-  // 8. Add footer with date and disclaimer
-  // const today = new Date().toLocaleDateString();
-  // doc.setFontSize(8);
-  // doc.text(`Report generated on ${today}. This valuation is an estimate based on available data.`, 105, 280, { align: 'center' });
-  
-  // 9. Save the PDF
-  // doc.save(`${vehicleData.make}_${vehicleData.model}_valuation.pdf`);
-  
   // Return a promise that resolves with the PDF data URL
   return Promise.resolve(`data:application/pdf;base64,${btoa('PDF content would be here')}`);
+}
+
+export interface ValuationReportInput {
+  mileage: number;
+  estimatedValue: number;
+  confidenceScore: number;
+  condition: string;
+  zipCode: string;
+  adjustments: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
+  isPremium?: boolean;
+}
+
+export interface ReportData {
+  make: string;
+  model: string;
+  year: number;
+  vin?: string;
+  mileage: number;
+  condition: string;
+  estimatedValue: number;
+  confidenceScore: number;
+  zipCode: string;
+  adjustments: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
+  generatedAt: string;
+  transmission?: string;
+  trim?: string;
+  color?: string;
+  fuelType?: string;
+  bodyStyle?: string;
+  photoUrl?: string;
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected: string[];
+    summary?: string;
+  } | null;
+  isPremium?: boolean;
+  priceRange?: [number, number];
+}
+
+/**
+ * Convert vehicle info to report data
+ */
+export function convertVehicleInfoToReportData(
+  vehicleInfo: DecodedVehicleInfo, 
+  valuationData: ValuationReportInput
+): ReportData {
+  // Make sure adjustments have a description
+  const formattedAdjustments = valuationData.adjustments.map(adj => ({
+    factor: adj.factor,
+    impact: adj.impact,
+    description: adj.description || `Adjustment for ${adj.factor}`
+  }));
+  
+  const reportData: ReportData = {
+    // Vehicle information
+    make: vehicleInfo.make,
+    model: vehicleInfo.model,
+    year: vehicleInfo.year || new Date().getFullYear(),
+    vin: vehicleInfo.vin,
+    mileage: valuationData.mileage,
+    condition: valuationData.condition || 'Good',
+    
+    // Valuation information
+    estimatedValue: valuationData.estimatedValue,
+    confidenceScore: valuationData.confidenceScore,
+    
+    // Location information
+    zipCode: valuationData.zipCode,
+    
+    // Condition information
+    aiCondition: {
+      condition: valuationData.condition,
+      confidenceScore: valuationData.confidenceScore,
+      issuesDetected: [],
+      summary: `Vehicle is in ${valuationData.condition} condition.`
+    },
+    
+    // Additional information
+    adjustments: formattedAdjustments,
+    isPremium: valuationData.isPremium,
+    generatedAt: new Date().toISOString()
+  };
+  
+  return reportData;
+}
+
+/**
+ * Download a PDF for the valuation report
+ */
+export async function downloadPdf(
+  data: ReportData,
+  options: { isPremium?: boolean } = {}
+): Promise<void> {
+  try {
+    console.log('Downloading PDF for vehicle:', data);
+    
+    // Create a blob from mock PDF data
+    const mockPdfContent = `PDF Report for ${data.year} ${data.make} ${data.model}`;
+    const blob = new Blob([mockPdfContent], { type: 'application/pdf' });
+    
+    // Create a URL for the blob
+    const url = URL.createObjectURL(blob);
+    
+    // Create a link element and trigger the download
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Create a sanitized filename
+    const sanitizedMake = data.make?.replace(/[^a-z0-9]/gi, '') || 'Vehicle';
+    const sanitizedModel = data.model?.replace(/[^a-z0-9]/gi, '') || 'Report';
+    const filename = `CarDetective_Valuation_${sanitizedMake}_${sanitizedModel}_${Date.now()}.pdf`;
+    
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    
+    // Clean up
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error downloading valuation PDF:', error);
+    throw error;
+  }
 }

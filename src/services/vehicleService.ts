@@ -1,6 +1,9 @@
 
 import { DecodedVehicleInfo } from '@/types/vehicle';
 
+// Export the type so other modules can import it
+export { DecodedVehicleInfo } from '@/types/vehicle';
+
 // Implement decodeLicensePlate function
 export const decodeLicensePlate = async (
   plate: string,
