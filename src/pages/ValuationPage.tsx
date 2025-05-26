@@ -1,213 +1,234 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Container } from '@/components/ui/container';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Car, DollarSign, MapPin } from 'lucide-react';
-import { DecodedVehicleInfo } from '@/types/vehicle';
+import { Loader2, ArrowLeft, Car, Database } from 'lucide-react';
 import { decodeVin } from '@/services/vinService';
+import { DecodedVehicleInfo } from '@/types/vehicle';
+import { toast } from 'sonner';
 
 export default function ValuationPage() {
   const { vin } = useParams<{ vin: string }>();
   const navigate = useNavigate();
-  const [vehicle, setVehicle] = useState<DecodedVehicleInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [vehicleData, setVehicleData] = useState<DecodedVehicleInfo | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadVehicleData = async () => {
-      if (!vin) {
-        setError('No VIN provided');
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        // First try to get from localStorage
-        const storedData = localStorage.getItem('current_vehicle_data');
-        const storedVin = localStorage.getItem('current_vin');
-        
-        if (storedData && storedVin === vin) {
-          console.log('Loading vehicle data from localStorage');
-          setVehicle(JSON.parse(storedData));
-          setIsLoading(false);
-          return;
+    console.log('ValuationPage: Mounted with VIN:', vin);
+    
+    if (vin) {
+      loadVehicleData(vin);
+    } else {
+      // Check localStorage for existing data
+      const storedVin = localStorage.getItem('current_vin');
+      const storedData = localStorage.getItem('current_vehicle_data');
+      
+      if (storedVin && storedData) {
+        try {
+          const parsedData = JSON.parse(storedData);
+          setVehicleData(parsedData);
+          console.log('ValuationPage: Loaded from localStorage:', parsedData);
+        } catch (e) {
+          console.error('ValuationPage: Failed to parse stored data');
+          navigate('/');
         }
-
-        // If not in localStorage, fetch from service
-        console.log('Fetching vehicle data for VIN:', vin);
-        const result = await decodeVin(vin);
-        
-        if (result.success && result.data) {
-          setVehicle(result.data);
-          // Store for future use
-          localStorage.setItem('current_vin', vin);
-          localStorage.setItem('current_vehicle_data', JSON.stringify(result.data));
-        } else {
-          setError(result.error || 'Vehicle not found');
-        }
-      } catch (err: any) {
-        console.error('Error loading vehicle data:', err);
-        setError(err.message || 'Failed to load vehicle data');
-      } finally {
-        setIsLoading(false);
+      } else {
+        navigate('/');
       }
-    };
+    }
+  }, [vin, navigate]);
 
-    loadVehicleData();
-  }, [vin]);
+  const loadVehicleData = async (vinNumber: string) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      console.log('ValuationPage: Loading vehicle data for VIN:', vinNumber);
+      const result = await decodeVin(vinNumber);
+      
+      if (result.success && result.data) {
+        setVehicleData(result.data);
+        // Update localStorage
+        localStorage.setItem('current_vin', vinNumber);
+        localStorage.setItem('current_vehicle_data', JSON.stringify(result.data));
+        console.log('ValuationPage: Successfully loaded vehicle data:', result.data);
+      } else {
+        setError(result.error || 'Failed to load vehicle data');
+        toast.error(result.error || 'Failed to load vehicle data');
+      }
+    } catch (error: any) {
+      console.error('ValuationPage: Error loading vehicle data:', error);
+      setError('Failed to connect to vehicle database');
+      toast.error('Failed to connect to vehicle database');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading vehicle information...</p>
+      <Container className="max-w-4xl py-10">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-lg">Loading vehicle data from NHTSA database...</p>
+            <p className="text-sm text-muted-foreground">VIN: {vin}</p>
+          </div>
         </div>
-      </div>
+      </Container>
     );
   }
 
-  if (error || !vehicle) {
+  if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="p-6 text-center">
-            <div className="text-red-500 mb-4">
-              <Car className="h-12 w-12 mx-auto mb-2" />
-              <p className="font-semibold">Vehicle Not Found</p>
-            </div>
-            <p className="text-gray-600 mb-4">{error || 'Unable to find vehicle information for this VIN'}</p>
-            <div className="space-y-2">
-              <Button onClick={() => navigate('/')} className="w-full">
+      <Container className="max-w-4xl py-10">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-red-600">Error Loading Vehicle Data</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-red-600 mb-4">{error}</p>
+            <div className="flex gap-2">
+              <Button onClick={() => navigate('/')} variant="outline">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Try Another VIN
+                Back to Home
               </Button>
-              <Button variant="outline" onClick={() => window.history.back()} className="w-full">
-                Go Back
-              </Button>
+              {vin && (
+                <Button onClick={() => loadVehicleData(vin)}>
+                  Try Again
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
-      </div>
+      </Container>
+    );
+  }
+
+  if (!vehicleData) {
+    return (
+      <Container className="max-w-4xl py-10">
+        <Card>
+          <CardHeader>
+            <CardTitle>No Vehicle Data</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">No vehicle data available.</p>
+            <Button onClick={() => navigate('/')} variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Button>
+          </CardContent>
+        </Card>
+      </Container>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center mb-6">
-          <Button variant="ghost" onClick={() => navigate('/')} className="mr-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Search
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Vehicle Valuation</h1>
-            <p className="text-gray-600">VIN: {vin}</p>
-          </div>
+    <Container className="max-w-4xl py-10">
+      <div className="mb-6">
+        <Button onClick={() => navigate('/')} variant="outline" className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Home
+        </Button>
+        
+        <div className="flex items-center mb-2">
+          <Car className="h-6 w-6 mr-2" />
+          <h1 className="text-3xl font-bold">
+            {vehicleData.year} {vehicleData.make} {vehicleData.model}
+          </h1>
         </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Car className="h-5 w-5 mr-2" />
-                Vehicle Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Year:</span>
-                  <span className="font-semibold">{vehicle.year}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Make:</span>
-                  <span className="font-semibold">{vehicle.make}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Model:</span>
-                  <span className="font-semibold">{vehicle.model}</span>
-                </div>
-                {vehicle.trim && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Trim:</span>
-                    <span className="font-semibold">{vehicle.trim}</span>
-                  </div>
-                )}
-                {vehicle.engine && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Engine:</span>
-                    <span className="font-semibold">{vehicle.engine}</span>
-                  </div>
-                )}
-                {vehicle.transmission && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Transmission:</span>
-                    <span className="font-semibold">{vehicle.transmission}</span>
-                  </div>
-                )}
-                {vehicle.mileage && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Mileage:</span>
-                    <span className="font-semibold">{vehicle.mileage.toLocaleString()} miles</span>
-                  </div>
-                )}
-                {vehicle.condition && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Condition:</span>
-                    <span className="font-semibold capitalize">{vehicle.condition}</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <DollarSign className="h-5 w-5 mr-2" />
-                Estimated Value
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-green-600 mb-2">
-                  ${vehicle.estimatedValue?.toLocaleString() || 'N/A'}
-                </div>
-                {vehicle.confidenceScore && (
-                  <div className="text-sm text-gray-600 mb-4">
-                    Confidence Score: {vehicle.confidenceScore}%
-                  </div>
-                )}
-                <div className="space-y-2">
-                  <Button className="w-full">
-                    Get Detailed Report
-                  </Button>
-                  <Button variant="outline" className="w-full">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Find Local Dealers
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        
+        <div className="flex items-center text-sm text-muted-foreground">
+          <Database className="h-4 w-4 mr-1" />
+          Data from NHTSA vPIC Database
         </div>
+      </div>
 
-        <Card className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-          <CardContent className="p-6 text-center">
-            <h3 className="text-xl font-semibold text-blue-900 mb-2">
-              Want a More Accurate Valuation?
-            </h3>
-            <p className="text-blue-700 mb-4">
-              Get enhanced accuracy by providing additional details about your vehicle's condition, maintenance history, and more.
-            </p>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              Start Enhanced Valuation
-            </Button>
+      <div className="grid gap-6">
+        {/* Vehicle Information Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Vehicle Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">VIN</label>
+                <p className="font-mono text-sm">{vehicleData.vin}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Year</label>
+                <p>{vehicleData.year}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Make</label>
+                <p>{vehicleData.make}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Model</label>
+                <p>{vehicleData.model}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Trim</label>
+                <p>{vehicleData.trim || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Body Type</label>
+                <p>{vehicleData.bodyType || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Engine</label>
+                <p>{vehicleData.engine || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Transmission</label>
+                <p>{vehicleData.transmission || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Fuel Type</label>
+                <p>{vehicleData.fuelType || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Drivetrain</label>
+                <p>{vehicleData.drivetrain || 'Not specified'}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Valuation Information Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Estimated Valuation</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Estimated Value</label>
+                <p className="text-2xl font-bold text-green-600">
+                  ${vehicleData.estimatedValue?.toLocaleString() || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Confidence Score</label>
+                <p className="text-lg">{vehicleData.confidenceScore || 'N/A'}%</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Estimated Mileage</label>
+                <p>{vehicleData.mileage?.toLocaleString() || 'N/A'} miles</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Condition</label>
+                <p>{vehicleData.condition || 'Good'}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </Container>
   );
 }

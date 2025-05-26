@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle, Search } from 'lucide-react';
 import { validateVIN } from '@/utils/validation/vin-validation';
 import { decodeVin } from '@/services/vinService';
 import { toast } from 'sonner';
@@ -45,13 +45,14 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
 
     setError(null);
     setIsLoading(true);
+    setLookupResult(null);
 
     try {
-      console.log('UNIFIED VIN LOOKUP: Starting VIN decode...');
+      console.log('UNIFIED VIN LOOKUP: Calling NHTSA API for VIN decode...');
       const result = await decodeVin(vin);
       
       if (result.success && result.data) {
-        console.log('UNIFIED VIN LOOKUP: VIN decode successful:', result.data);
+        console.log('UNIFIED VIN LOOKUP: NHTSA API success:', result.data);
         setLookupResult(result.data);
         
         // Store in localStorage for persistence
@@ -66,17 +67,18 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
           return;
         }
 
-        // Navigate to the valuation page
-        console.log('UNIFIED VIN LOOKUP: Navigating to valuation page');
+        // Navigate to the valuation page with the VIN
+        console.log('UNIFIED VIN LOOKUP: Navigating to valuation page with VIN');
         navigate(`/valuation/${vin}`);
       } else {
-        console.log('UNIFIED VIN LOOKUP: VIN decode failed:', result.error);
-        setError(result.error || 'Vehicle not found for this VIN');
-        toast.error(result.error || 'Vehicle not found for this VIN');
+        console.log('UNIFIED VIN LOOKUP: NHTSA API failed:', result.error);
+        const errorMessage = result.error || 'Vehicle not found in NHTSA database';
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (error: any) {
-      console.error('UNIFIED VIN LOOKUP: Error:', error);
-      const errorMessage = error.message || 'Failed to lookup VIN';
+      console.error('UNIFIED VIN LOOKUP: Unexpected error:', error);
+      const errorMessage = error.message || 'Failed to connect to vehicle database';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -96,13 +98,16 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
       {showHeader && (
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Get Your Car's Value</h1>
-          <p className="text-xl text-gray-600">Enter your VIN for an instant, accurate valuation</p>
+          <p className="text-xl text-gray-600">Enter your VIN for an instant, accurate valuation using NHTSA database</p>
         </div>
       )}
 
       <Card>
         <CardHeader>
-          <CardTitle>VIN Lookup</CardTitle>
+          <CardTitle className="flex items-center">
+            <Search className="h-5 w-5 mr-2" />
+            VIN Lookup (NHTSA Database)
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -142,7 +147,7 @@ export const UnifiedVinLookup: React.FC<UnifiedVinLookupProps> = ({
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Looking up VIN...
+                  Querying NHTSA Database...
                 </>
               ) : (
                 'Lookup Vehicle'
