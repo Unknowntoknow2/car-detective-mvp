@@ -1,18 +1,5 @@
 
-import { DecodedVINResponse } from '@/types/api';
-
-// Export the DecodedVehicleInfo interface
-export interface DecodedVehicleInfo {
-  make: string;
-  model: string;
-  year: number;
-  trim?: string;
-  bodyType?: string;
-  engine?: string;
-  fuelType?: string;
-  transmission?: string;
-  doors?: number; // Add doors property
-}
+import { DecodedVehicleInfo } from '@/types/vehicle';
 
 // Implement decodeLicensePlate function
 export const decodeLicensePlate = async (
@@ -33,7 +20,10 @@ export const decodeLicensePlate = async (
       engine: "2.5L 4-Cylinder",
       fuelType: "Gasoline",
       transmission: "Automatic",
-      doors: 4
+      doors: 4,
+      exteriorColor: "Silver",
+      mileage: 45000,
+      condition: "Good"
     };
   } catch (error) {
     console.error("Error decoding license plate:", error);
