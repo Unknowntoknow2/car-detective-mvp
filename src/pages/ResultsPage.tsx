@@ -19,8 +19,6 @@ export default function ResultsPage() {
     ? decodeURIComponent(rawValuationId) 
     : null;
   
-  const [error, setError] = useState<string | null>(null);
-  
   console.log('ResultsPage - Route ID:', id);
   console.log('ResultsPage - Search param valuationId:', searchParams.get('valuationId'));
   console.log('ResultsPage - Final cleaned valuationId:', valuationId);
@@ -35,23 +33,6 @@ export default function ResultsPage() {
     window.location.href = `/premium?valuationId=${valuationId}`;
   };
   
-  useEffect(() => {
-    if (!valuationId) {
-      setError('No valuation ID or VIN provided in URL.');
-    } else if (fetchError) {
-      // Properly handle different error types
-      let errorMessage = 'Failed to load valuation data';
-      if (typeof fetchError === 'string') {
-        errorMessage = fetchError;
-      } else if (fetchError && typeof fetchError === 'object' && 'message' in fetchError) {
-        errorMessage = (fetchError as { message: string }).message;
-      }
-      setError(errorMessage);
-    } else {
-      setError(null);
-    }
-  }, [valuationId, fetchError]);
-
   // Convert ValuationResult to ValuationResponse
   const convertToValuationResponse = (data: any): ValuationResponse => {
     return {
@@ -99,35 +80,71 @@ export default function ResultsPage() {
     );
   }
   
-  return (
-    <MainLayout>
-      <main className="py-8">
-        {error ? (
+  if (!valuationId) {
+    return (
+      <MainLayout>
+        <main className="py-8">
+          <div className="container mx-auto px-4">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Missing Information</AlertTitle>
+              <AlertDescription>
+                No valuation ID or VIN was provided in the URL. Please check the link and try again.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </main>
+      </MainLayout>
+    );
+  }
+  
+  if (fetchError) {
+    return (
+      <MainLayout>
+        <main className="py-8">
           <div className="container mx-auto px-4">
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>
+                {fetchError instanceof Error ? fetchError.message : 'Failed to load valuation data'}
+              </AlertDescription>
             </Alert>
           </div>
-        ) : data ? (
-          <div className="container mx-auto px-4">
-            <ValuationResultPremium
-              valuationId={valuationId || undefined}
-              data={convertToValuationResponse(data)}
-              isPremium={hasPremiumAccess}
-              onUpgrade={handleUpgrade}
-            />
-          </div>
-        ) : (
+        </main>
+      </MainLayout>
+    );
+  }
+  
+  if (!data) {
+    return (
+      <MainLayout>
+        <main className="py-8">
           <div className="container mx-auto px-4">
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>No Data Found</AlertTitle>
-              <AlertDescription>The valuation data could not be found.</AlertDescription>
+              <AlertDescription>
+                The valuation data could not be found for ID/VIN: {valuationId}
+              </AlertDescription>
             </Alert>
           </div>
-        )}
+        </main>
+      </MainLayout>
+    );
+  }
+  
+  return (
+    <MainLayout>
+      <main className="py-8">
+        <div className="container mx-auto px-4">
+          <ValuationResultPremium
+            valuationId={valuationId}
+            data={convertToValuationResponse(data)}
+            isPremium={hasPremiumAccess}
+            onUpgrade={handleUpgrade}
+          />
+        </div>
       </main>
     </MainLayout>
   );

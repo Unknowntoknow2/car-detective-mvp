@@ -1,102 +1,105 @@
 
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { ValuationResult } from '@/types/valuation';
 
-interface PriceRange {
-  low: number;
-  high: number;
-}
-
-export interface UseValuationResultReturn {
-  data: ValuationResult | null;
-  isLoading: boolean;
-  error: string | null;
-  priceRange: PriceRange;
-  isError: boolean;
-  refetch: () => void;
-}
-
-export const useValuationResult = (valuationId: string): UseValuationResultReturn => {
-  const [data, setData] = useState<ValuationResult | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Mock data
-      const mockData: ValuationResult = {
-        id: valuationId,
-        make: 'Toyota',
-        model: 'Camry',
-        year: 2019,
-        mileage: 45000,
-        condition: 'Good',
-        estimatedValue: 18500,
-        confidenceScore: 90,
-        valuationId: `vin-${Date.now()}`,
-        vin: '1234567890',
-        fuelType: 'Gasoline',
-        transmission: 'Automatic',
-        bodyType: 'Sedan',
-        trim: 'LE',
-        color: 'Silver',
-        isPremium: false,
-        price_range: {
-          low: 17575,
-          high: 19425
-        },
-        userId: '',
-        aiCondition: {
-          condition: 'Good',
-          confidenceScore: 90,
-          issuesDetected: []
-        }
-      };
-
-      setData(mockData);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch valuation result');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (valuationId) {
-      fetchData();
-    }
-  }, [valuationId]);
-
-  // Add refetch function
-  const refetch = () => {
-    if (valuationId) {
-      fetchData();
-    }
-  };
-
-  // Update the code to handle both array and object price range formats correctly:
-  const priceRange = data?.priceRange || data?.price_range;
-  const formattedPriceRange = {
-    low: Array.isArray(priceRange) 
-      ? priceRange[0] 
-      : (priceRange?.low || Math.round((data?.estimatedValue || 0) * 0.95)),
-    high: Array.isArray(priceRange) 
-      ? priceRange[1] 
-      : (priceRange?.high || Math.round((data?.estimatedValue || 0) * 1.05))
-  };
-
-  return {
-    data,
-    isLoading,
-    error,
-    priceRange: formattedPriceRange,
-    isError: !!error,
-    refetch
-  };
+// Helper function to validate UUID format
+const isValidUUID = (id: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(id);
 };
+
+// Helper function to validate VIN format
+const isValidVIN = (vin: string): boolean => {
+  return /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin);
+};
+
+export function useValuationResult(valuationId: string) {
+  return useQuery({
+    queryKey: ['valuation-result', valuationId],
+    queryFn: async (): Promise<ValuationResult | null> => {
+      // Check for invalid or placeholder IDs
+      if (!valuationId || valuationId === ':id' || valuationId === '%3Aid') {
+        throw new Error('No valuation ID or VIN provided');
+      }
+
+      console.log('Fetching valuation data for ID/VIN:', valuationId);
+      
+      let result = null;
+      let apiError = null;
+
+      // First try to fetch by ID if it's a valid UUID
+      if (isValidUUID(valuationId)) {
+        console.log('Attempting fetch by UUID:', valuationId);
+        const response = await supabase
+          .from('valuations')
+          .select('*')
+          .eq('id', valuationId)
+          .single();
+        
+        result = response.data;
+        apiError = response.error;
+      }
+      
+      // If no result and it looks like a VIN, try fetching by VIN
+      if (!result && isValidVIN(valuationId)) {
+        console.log('Attempting fetch by VIN:', valuationId);
+        const response = await supabase
+          .from('valuations')
+          .select('*')
+          .eq('vin', valuationId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        
+        result = response.data;
+        apiError = response.error;
+      }
+
+      if (apiError) {
+        console.error('Supabase API error:', apiError);
+        throw new Error(apiError.message || 'Failed to fetch valuation data');
+      }
+
+      if (!result) {
+        throw new Error('Valuation not found');
+      }
+
+      console.log('Valuation data fetched successfully:', result);
+      
+      // Convert adjustments from string to array if needed
+      if (result.adjustments && typeof result.adjustments === 'string') {
+        try {
+          result.adjustments = JSON.parse(result.adjustments);
+        } catch (e) {
+          console.error('Failed to parse adjustments:', e);
+          result.adjustments = [];
+        }
+      }
+
+      // Convert price range from string to array if needed
+      if (result.price_range && typeof result.price_range === 'string') {
+        try {
+          result.price_range = JSON.parse(result.price_range);
+        } catch (e) {
+          console.error('Failed to parse price range:', e);
+          result.price_range = {
+            low: Math.round(result.estimated_value * 0.95),
+            high: Math.round(result.estimated_value * 1.05)
+          };
+        }
+      }
+
+      return result as ValuationResult;
+    },
+    enabled: Boolean(valuationId) && valuationId !== ':id' && valuationId !== '%3Aid',
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: (failureCount, error) => {
+      // Don't retry if it's a "not found" error
+      if (error?.message?.includes('not found') || error?.message?.includes('No valuation ID')) {
+        return false;
+      }
+      return failureCount < 2;
+    }
+  });
+}
