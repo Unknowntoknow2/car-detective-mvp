@@ -1,6 +1,9 @@
 
 import { ConditionLevel } from '@/components/lookup/types/manualEntry';
 
+// Re-export ConditionLevel so it can be imported from this module
+export { ConditionLevel } from '@/components/lookup/types/manualEntry';
+
 export interface FormData {
   make?: string;
   model?: string;
