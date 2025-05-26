@@ -1,171 +1,130 @@
 
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.8";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// CORS headers
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-// Initialize Supabase client with environment variables
-const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
-const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") as string;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 serve(async (req) => {
-  // Handle CORS preflight request
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      headers: corsHeaders,
-    });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Parse the request body
-    const {
-      make,
-      model,
-      year,
-      mileage,
-      condition,
-      zipCode,
-      fuelType,
-      transmission,
-      color,
-      bodyType,
-      vin
-    } = await req.json();
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
 
-    console.log("Received request for valuation:", { make, model, year, mileage, condition });
+    const requestData = await req.json()
+    console.log('Received request for valuation:', {
+      make: requestData.make,
+      model: requestData.model,
+      year: requestData.year,
+      mileage: requestData.mileage,
+      condition: requestData.condition
+    })
 
-    // Validate required fields
-    if (!make || !model || !year) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Make, model, and year are required for valuation",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    // Calculate estimated value based on basic formula
+    let baseValue = 15000 // Base value
+    const currentYear = new Date().getFullYear()
+    const age = currentYear - requestData.year
+    
+    // Age depreciation: 10% per year for first 5 years, 5% after
+    let ageMultiplier = 1
+    if (age <= 5) {
+      ageMultiplier = 1 - (age * 0.1)
+    } else {
+      ageMultiplier = 0.5 - ((age - 5) * 0.05)
     }
+    ageMultiplier = Math.max(ageMultiplier, 0.1) // Minimum 10% of original value
 
-    // For demo purposes, we'll use a simple algorithm to calculate the value
-    // In a real application, this would be a more complex model
-    let baseValue = 0;
-    
-    // Base price by make/model/year
-    switch (make.toLowerCase()) {
-      case 'toyota':
-        baseValue = 15000;
-        if (model.toLowerCase() === 'camry') baseValue = 20000;
-        if (model.toLowerCase() === 'corolla') baseValue = 17000;
-        break;
-      case 'honda':
-        baseValue = 14000;
-        if (model.toLowerCase() === 'accord') baseValue = 19000;
-        if (model.toLowerCase() === 'civic') baseValue = 16000;
-        break;
-      case 'ford':
-        baseValue = 12000;
-        if (model.toLowerCase() === 'f-150') baseValue = 25000;
-        break;
-      default:
-        baseValue = 10000;
-        break;
-    }
-    
-    // Year adjustment
-    const currentYear = new Date().getFullYear();
-    const age = currentYear - year;
-    const yearAdjustment = age * 500; // $500 per year of age
-    
     // Mileage adjustment
-    const mileageAdjustment = mileage ? (mileage / 10000) * 500 : 0; // $500 per 10k miles
+    const avgMileagePerYear = 12000
+    const expectedMileage = age * avgMileagePerYear
+    const mileageDiff = requestData.mileage - expectedMileage
+    const mileageMultiplier = 1 - (mileageDiff / 100000) * 0.2 // 20% reduction per 100k excess miles
     
-    // Condition adjustment
-    let conditionMultiplier = 1.0;
-    if (condition) {
-      switch (condition.toLowerCase()) {
-        case 'excellent':
-          conditionMultiplier = 1.1;
-          break;
-        case 'very_good':
-          conditionMultiplier = 1.05;
-          break;
-        case 'good':
-          conditionMultiplier = 1.0;
-          break;
-        case 'fair':
-          conditionMultiplier = 0.9;
-          break;
-        case 'poor':
-          conditionMultiplier = 0.8;
-          break;
-        default:
-          conditionMultiplier = 1.0;
-      }
+    // Condition multiplier
+    const conditionMultipliers = {
+      'excellent': 1.2,
+      'very good': 1.1,
+      'good': 1.0,
+      'fair': 0.8,
+      'poor': 0.6
     }
-    
-    // Calculate the final value
-    let estimatedValue = (baseValue - yearAdjustment - mileageAdjustment) * conditionMultiplier;
-    
-    // Ensure the value is positive
-    estimatedValue = Math.max(estimatedValue, 500);
-    
-    // Calculate confidence and condition scores
-    const confidenceScore = Math.min(95, 70 + (vin ? 15 : 0) + (mileage ? 5 : 0) + (condition ? 5 : 0));
-    const conditionScore = condition ? 
-      {
-        'excellent': 95,
-        'very_good': 85,
-        'good': 75,
-        'fair': 60,
-        'poor': 40
-      }[condition.toLowerCase()] || 75 : 75;
-    
-    // Prepare the response
-    const valuationResult = {
-      estimatedValue: Math.round(estimatedValue),
-      confidenceScore,
-      conditionScore,
-      make,
-      model,
-      year,
-      mileage,
-      condition,
-      vin,
-      fuelType,
-      transmission,
-      bodyType,
-      color
-    };
+    const conditionMultiplier = conditionMultipliers[requestData.condition?.toLowerCase()] || 1.0
 
-    console.log("Valuation result:", valuationResult);
+    // Calculate final value
+    const estimatedValue = Math.round(baseValue * ageMultiplier * mileageMultiplier * conditionMultiplier)
     
-    // Return the valuation result
-    return new Response(
-      JSON.stringify(valuationResult),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  } catch (error) {
-    console.error("Error processing valuation request:", error);
-    
+    const valuationResult = {
+      estimatedValue,
+      confidenceScore: 95,
+      conditionScore: 75,
+      make: requestData.make,
+      model: requestData.model,
+      year: requestData.year,
+      mileage: requestData.mileage,
+      condition: requestData.condition,
+      vin: requestData.vin,
+      fuelType: requestData.fuelType,
+      transmission: requestData.transmission,
+      bodyType: requestData.bodyType,
+      color: requestData.color
+    }
+
+    console.log('Valuation result:', valuationResult)
+
+    // Store in database - using correct column names from schema
+    const { data: storedValuation, error: storeError } = await supabaseClient
+      .from('valuations')
+      .insert({
+        make: requestData.make,
+        model: requestData.model,
+        year: requestData.year,
+        mileage: requestData.mileage,
+        estimated_value: estimatedValue,
+        confidence_score: 95,
+        vin: requestData.vin,
+        fuel_type: requestData.fuelType,
+        transmission: requestData.transmission,
+        body_type: requestData.bodyType,
+        color: requestData.color,
+        user_id: requestData.userId || null,
+        state: requestData.zipCode?.substring(0, 2) || null,
+        base_price: Math.round(baseValue),
+        is_vin_lookup: true
+      })
+      .select()
+      .single()
+
+    if (storeError) {
+      console.error('Error storing valuation:', storeError)
+      throw storeError
+    }
+
     return new Response(
       JSON.stringify({
-        success: false,
-        error: error.message || "An unexpected error occurred",
+        ...valuationResult,
+        id: storedValuation.id,
+        valuationId: storedValuation.id
       }),
       {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      },
+    )
+  } catch (error) {
+    console.error('Error in car-price-prediction:', error)
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+      },
+    )
   }
-});
+})
