@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle, CheckCircle2, RotateCcw } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2, RotateCcw, Edit } from 'lucide-react';
 import { validateVIN } from '@/utils/validation/vin-validation';
 import { decodeVin, retryDecode } from '@/services/vehicleDecodeService';
 import { VehicleDecodeResponse } from '@/types/vehicle-decode';
@@ -21,6 +21,7 @@ export function EnhancedVinLookup({ onVehicleFound, showManualFallback = true }:
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<VehicleDecodeResponse | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [hasAttemptedDecode, setHasAttemptedDecode] = useState(false);
   
   const navigate = useNavigate();
 
@@ -29,6 +30,7 @@ export function EnhancedVinLookup({ onVehicleFound, showManualFallback = true }:
     setVin(newVin);
     setError(null);
     setResult(null);
+    setHasAttemptedDecode(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,6 +51,7 @@ export function EnhancedVinLookup({ onVehicleFound, showManualFallback = true }:
 
     setIsLoading(true);
     setError(null);
+    setHasAttemptedDecode(true);
     
     try {
       const response = isRetry 
@@ -58,7 +61,9 @@ export function EnhancedVinLookup({ onVehicleFound, showManualFallback = true }:
       setResult(response);
       
       if (response.success && response.decoded) {
-        toast.success(`Vehicle decoded successfully via ${response.source.toUpperCase()}`);
+        const sourceDisplay = response.source.toUpperCase();
+        const cacheMsg = response.source === 'cache' ? ' (from cache)' : '';
+        toast.success(`Vehicle decoded successfully via ${sourceDisplay}${cacheMsg}`);
         
         if (onVehicleFound) {
           onVehicleFound(response.decoded);
@@ -67,19 +72,35 @@ export function EnhancedVinLookup({ onVehicleFound, showManualFallback = true }:
           navigate(`/valuation/${vin}`);
         }
       } else {
-        setError(response.error || 'Unable to decode VIN');
+        // Handle decode failure
+        const errorMsg = response.error || 'Unable to decode VIN';
+        setError(errorMsg);
         setRetryCount(prev => prev + 1);
         
-        if (response.error?.includes('timeout') || response.error?.includes('temporarily')) {
-          toast.error('Decode timeout - try again or use manual entry');
+        // Auto-retry once for transient errors
+        if (!isRetry && (
+          errorMsg.includes('timeout') || 
+          errorMsg.includes('temporarily') ||
+          errorMsg.includes('network')
+        )) {
+          console.log('🔄 Auto-retrying due to transient error');
+          setTimeout(() => {
+            handleRetry();
+          }, 2000);
+          return;
+        }
+        
+        if (errorMsg.includes('timeout') || errorMsg.includes('temporarily')) {
+          toast.error('Decode timeout - please try again or use manual entry');
         } else {
-          toast.error(response.error || 'Decode failed');
+          toast.error(errorMsg);
         }
       }
     } catch (error) {
       console.error('Decode error:', error);
       setError('An unexpected error occurred. Please try again.');
       toast.error('Decode failed - please try again');
+      setRetryCount(prev => prev + 1);
     } finally {
       setIsLoading(false);
     }
@@ -91,8 +112,11 @@ export function EnhancedVinLookup({ onVehicleFound, showManualFallback = true }:
   };
 
   const isValidVin = vin.length === 17 && validateVIN(vin).isValid;
-  const showRetryButton = result && !result.success && !isLoading;
-  const showManualFallbackButton = showManualFallback && error && retryCount >= 1;
+  const showRetryButton = hasAttemptedDecode && result && !result.success && !isLoading && retryCount < 3;
+  const showManualFallbackButton = showManualFallback && (
+    (hasAttemptedDecode && error && retryCount >= 1) || 
+    (result && !result.success && retryCount >= 2)
+  );
 
   return (
     <div className="space-y-6">
@@ -118,7 +142,14 @@ export function EnhancedVinLookup({ onVehicleFound, showManualFallback = true }:
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>
+                {error}
+                {retryCount > 0 && (
+                  <div className="mt-1 text-sm">
+                    Attempts: {retryCount}/3
+                  </div>
+                )}
+              </AlertDescription>
             </Alert>
           )}
 
@@ -160,9 +191,10 @@ export function EnhancedVinLookup({ onVehicleFound, showManualFallback = true }:
               variant="outline"
               onClick={handleRetry}
               className="w-full"
+              disabled={isLoading}
             >
               <RotateCcw className="mr-2 h-4 w-4" />
-              Retry Decode
+              Retry Decode ({3 - retryCount} attempts left)
             </Button>
           )}
 
@@ -177,6 +209,7 @@ export function EnhancedVinLookup({ onVehicleFound, showManualFallback = true }:
                 onClick={handleManualEntry}
                 className="w-full"
               >
+                <Edit className="mr-2 h-4 w-4" />
                 Use Manual Entry
               </Button>
             </div>

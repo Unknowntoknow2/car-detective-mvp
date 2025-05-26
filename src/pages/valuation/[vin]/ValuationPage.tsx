@@ -8,7 +8,7 @@ import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
 import { Container } from '@/components/ui/container';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertTriangle, RotateCcw } from 'lucide-react';
+import { Loader2, AlertTriangle, RotateCcw, Edit, ArrowLeft } from 'lucide-react';
 import { ServiceStatus } from '@/components/common/ServiceStatus';
 import { decodeVin, retryDecode } from '@/services/vehicleDecodeService';
 import { VehicleDecodeResponse } from '@/types/vehicle-decode';
@@ -25,6 +25,7 @@ export default function ValuationPage() {
   const [error, setError] = useState<string | null>(null);
   const [decodeResponse, setDecodeResponse] = useState<VehicleDecodeResponse | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [hasAutoRetried, setHasAutoRetried] = useState(false);
 
   useEffect(() => {
     if (!vin) {
@@ -44,11 +45,12 @@ export default function ValuationPage() {
     
     try {
       // First try to get from decoded_vehicles table
+      console.log('🔍 Checking for existing vehicle data in database');
       const { data: existingData, error: dbError } = await supabase
         .from('decoded_vehicles')
         .select('*')
         .eq('vin', vin)
-        .single();
+        .maybeSingle();
       
       if (existingData) {
         console.log('✅ Found existing vehicle data');
@@ -64,8 +66,24 @@ export default function ValuationPage() {
       
       if (response.success && response.decoded) {
         setVehicle(response.decoded);
-        toast.success(`Vehicle decoded via ${response.source.toUpperCase()}`);
+        const sourceDisplay = response.source.toUpperCase();
+        const cacheMsg = response.source === 'cache' ? ' (cached)' : '';
+        toast.success(`Vehicle decoded via ${sourceDisplay}${cacheMsg}`);
       } else {
+        // Auto-retry once for transient errors
+        if (!hasAutoRetried && response.error && (
+          response.error.includes('timeout') || 
+          response.error.includes('temporarily') ||
+          response.error.includes('network')
+        )) {
+          console.log('🔄 Auto-retrying due to transient error');
+          setHasAutoRetried(true);
+          setTimeout(() => {
+            handleRetryDecode();
+          }, 2000);
+          return;
+        }
+        
         setError(response.error || 'Unable to decode VIN');
         console.error('❌ Decode failed:', response.error);
       }
@@ -108,12 +126,18 @@ export default function ValuationPage() {
     navigate('/valuation', { state: { prefillVin: vin } });
   };
 
+  const handleGoBack = () => {
+    navigate('/valuation');
+  };
+
   if (loading) {
     return (
       <Container className="max-w-4xl py-10">
         <div className="flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Loading vehicle data...</span>
+          <span className="ml-2">
+            {hasAutoRetried ? 'Retrying vehicle decode...' : 'Loading vehicle data...'}
+          </span>
         </div>
       </Container>
     );
@@ -121,7 +145,7 @@ export default function ValuationPage() {
 
   if (error || !vehicle) {
     const isDecodeError = decodeResponse && !decodeResponse.success;
-    const canRetry = isDecodeError && retryCount < 2;
+    const canRetry = isDecodeError && retryCount < 3;
     const shouldShowManualEntry = retryCount >= 1 || (decodeResponse && decodeResponse.source === 'failed');
 
     return (
@@ -134,9 +158,12 @@ export default function ValuationPage() {
             <div className="space-y-2">
               <p>{error || 'Vehicle not found. We couldn\'t decode this VIN.'}</p>
               {isDecodeError && (
-                <p className="text-sm">
-                  Source attempted: {decodeResponse.source.toUpperCase()}
-                </p>
+                <div className="text-sm space-y-1">
+                  <p>Source attempted: {decodeResponse.source.toUpperCase()}</p>
+                  {retryCount > 0 && (
+                    <p>Retry attempts: {retryCount}/3</p>
+                  )}
+                </div>
               )}
             </div>
           </AlertDescription>
@@ -148,9 +175,10 @@ export default function ValuationPage() {
               onClick={handleRetryDecode}
               variant="outline"
               className="w-full"
+              disabled={loading}
             >
               <RotateCcw className="mr-2 h-4 w-4" />
-              Retry VIN Decode
+              Retry VIN Decode ({3 - retryCount} attempts left)
             </Button>
           )}
 
@@ -163,6 +191,7 @@ export default function ValuationPage() {
                 onClick={handleManualEntry}
                 className="w-full"
               >
+                <Edit className="mr-2 h-4 w-4" />
                 Continue with Manual Entry
               </Button>
             </div>
@@ -170,9 +199,10 @@ export default function ValuationPage() {
 
           <Button 
             variant="outline"
-            onClick={() => navigate('/valuation')}
+            onClick={handleGoBack}
             className="w-full"
           >
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Start New Search
           </Button>
         </div>
@@ -190,6 +220,7 @@ export default function ValuationPage() {
           <Alert className="border-green-200 bg-green-50">
             <AlertDescription className="text-green-800">
               ✅ Vehicle successfully decoded via {decodeResponse.source.toUpperCase()}
+              {decodeResponse.source === 'cache' && ' (from cache)'}
             </AlertDescription>
           </Alert>
         )}
