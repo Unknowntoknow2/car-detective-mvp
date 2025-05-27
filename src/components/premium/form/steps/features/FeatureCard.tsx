@@ -1,7 +1,7 @@
 
-import { Card } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus } from 'lucide-react';
 import { FeatureOption } from '@/types/premium-valuation';
 
 interface FeatureCardProps {
@@ -10,30 +10,32 @@ interface FeatureCardProps {
   onToggle: (featureId: string) => void;
 }
 
-export function FeatureCard({ feature, isSelected, onToggle }: FeatureCardProps) {
+export const FeatureCard: React.FC<FeatureCardProps> = ({
+  feature,
+  isSelected,
+  onToggle
+}) => {
   return (
-    <Card
-      className={`p-4 cursor-pointer transition-all ${
-        isSelected ? 'border-primary bg-primary/5' : 'hover:border-gray-300 hover:bg-gray-50'
-      }`}
-      onClick={() => onToggle(feature.id)}
-    >
-      <div className="flex items-center space-x-3">
-        <div className="flex-shrink-0">
+    <Card className={`cursor-pointer transition-colors ${isSelected ? 'border-primary' : ''}`}>
+      <CardContent className="p-4">
+        <div className="flex items-start space-x-3">
           <Checkbox
             checked={isSelected}
             onCheckedChange={() => onToggle(feature.id)}
-            className="pointer-events-none"
           />
+          <div className="flex-1">
+            <h4 className="font-medium">{feature.name}</h4>
+            {feature.description && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {feature.description}
+              </p>
+            )}
+            <p className="text-sm font-medium text-green-600 mt-2">
+              +${feature.valueImpact}
+            </p>
+          </div>
         </div>
-        <div className="flex-grow">
-          <p className="font-medium text-gray-900">{feature.name}</p>
-          <p className="text-sm text-green-600">+${feature.value.toLocaleString()}</p>
-        </div>
-        {isSelected && (
-          <Plus className="h-4 w-4 text-primary transform rotate-45" />
-        )}
-      </div>
+      </CardContent>
     </Card>
   );
-}
+};

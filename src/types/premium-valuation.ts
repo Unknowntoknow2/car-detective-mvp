@@ -5,6 +5,7 @@ export interface FormData {
   make: string;
   model: string;
   year: number;
+  identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
   
   // Vehicle details
   mileage: number;
@@ -12,17 +13,39 @@ export interface FormData {
   transmission: string;
   trim?: string;
   exteriorColor?: string;
+  interiorColor?: string;
   colorMultiplier?: number;
   zipCode: string;
+  bodyStyle?: string;
+  bodyType?: string;
   
   // Condition and history
   condition?: string;
   conditionLabel?: string;
+  conditionScore?: number;
   hasAccident?: boolean | string;
   accidentDescription?: string;
+  
+  // Premium features
+  features?: string[];
+  drivingProfile?: 'light' | 'average' | 'heavy';
+  hasRegularMaintenance?: boolean | string;
+  maintenanceNotes?: string;
+  photos?: File[];
+  photoUrls?: string[];
+  saleDate?: string;
   
   // Valuation results
   valuationId?: string;
   valuation?: number;
   confidenceScore?: number;
+}
+
+export interface FeatureOption {
+  id: string;
+  name: string;
+  category: string;
+  valueImpact: number;
+  description?: string;
+  isSelected?: boolean;
 }

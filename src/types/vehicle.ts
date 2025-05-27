@@ -13,6 +13,7 @@ export interface DecodedVehicleInfo {
   fuelType?: string;
   exteriorColor?: string;
   interiorColor?: string;
+  color?: string;
   features?: string[];
   photos?: string[];
   estimatedValue?: number;
@@ -45,4 +46,19 @@ export interface VehicleFeature {
   name: string;
   category: string;
   valueImpact: number;
+}
+
+export interface DealerInventoryItem {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  price: number;
+  mileage?: number;
+  vin: string;
+  status: 'available' | 'sold' | 'pending';
+  condition?: string;
+  photos?: string[];
+  created_at?: string;
+  updated_at?: string;
 }

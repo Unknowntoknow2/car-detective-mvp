@@ -13,16 +13,25 @@ export interface ValuationResult {
   condition?: string;
   created_at: string;
   adjustments?: Array<{
-    label: string;
-    value: number;
+    label?: string;
+    factor: string;
+    value?: number;
+    impact: number;
+    description?: string;
   }>;
-  price_range?: [number, number];
+  price_range?: [number, number] | { low: number; high: number; min: number; max: number };
   priceRange?: [number, number];
+  features?: string[];
+  pdfUrl?: string;
+  gptExplanation?: string;
+  explanation?: string;
 }
 
 export interface ValuationAdjustment {
-  label: string;
-  value: number;
+  label?: string;
+  factor: string;
+  value?: number;
+  impact: number;
   description?: string;
 }
 
