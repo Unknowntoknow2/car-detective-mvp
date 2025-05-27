@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout';
-import { ValuationResult } from '@/components/valuation/ValuationResult';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, Car, ArrowRight } from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { ValuationResponse } from '@/types/valuation';
+import { ValuationResult } from '@/components/valuation/ValuationResult';
 
 // Define the adjustment type locally since it's simple
 interface ValuationAdjustment {
@@ -16,118 +17,70 @@ interface ValuationAdjustment {
   description: string;
 }
 
-interface ValuationPageProps {
-  // No props needed
-}
-
-export default function ValuationPage() {
+const ValuationPage = () => {
   const { vin } = useParams<{ vin: string }>();
-  const { user } = useAuth();
   const navigate = useNavigate();
-  
-  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [hasValuation, setHasValuation] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<ValuationResponse | null>(null);
-  const [isPremium, setIsPremium] = useState(false);
-
-  // Check if valuation has premium access
-  const checkPremiumAccess = async (valuationId: string) => {
-    if (!user) return false;
-    
-    try {
-      const { data: premiumData, error } = await supabase
-        .from('premium_valuations')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('valuation_id', valuationId)
-        .single();
-      
-      return !error && premiumData;
-    } catch {
-      return false;
-    }
-  };
 
   useEffect(() => {
-    const fetchValuation = async () => {
+    const checkValuation = async () => {
       if (!vin) {
         setError('No VIN provided');
-        setIsLoading(false);
+        setLoading(false);
         return;
       }
 
       try {
-        setIsLoading(true);
-        setError(null);
-
-        // Query the valuations table
-        const { data: valuationData, error: valuationError } = await supabase
+        console.log('Checking for valuation with VIN:', vin);
+        
+        // Check if a valuation exists for this VIN
+        const { data, error: supabaseError } = await supabase
           .from('valuations')
-          .select('*')
+          .select('id')
           .eq('vin', vin)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
+          .maybeSingle();
 
-        if (valuationError) {
-          throw new Error(`Failed to fetch valuation: ${valuationError.message}`);
+        if (supabaseError) {
+          console.error('Error checking valuation:', supabaseError);
+          setError('Failed to check valuation status');
+        } else if (data) {
+          console.log('Valuation found for VIN:', vin);
+          setHasValuation(true);
+        } else {
+          console.log('No valuation found for VIN:', vin);
+          setHasValuation(false);
         }
-
-        if (!valuationData) {
-          throw new Error('No valuation found for this VIN');
-        }
-
-        // Check premium access
-        const hasPremium = await checkPremiumAccess(valuationData.id);
-        setIsPremium(hasPremium);
-
-        // Transform the data to match our interface
-        const transformedData: ValuationResponse = {
-          success: true,
-          data: {
-            id: valuationData.id,
-            vin: valuationData.vin,
-            year: valuationData.year,
-            make: valuationData.make,
-            model: valuationData.model,
-            bodyType: valuationData.body_type,
-            fuelType: valuationData.fuel_type,
-            transmission: valuationData.transmission,
-            color: valuationData.color,
-            mileage: valuationData.mileage,
-            zipCode: valuationData.state,
-            estimatedValue: valuationData.estimated_value,
-            confidenceScore: valuationData.confidence_score,
-            basePrice: valuationData.base_price,
-            created_at: valuationData.created_at,
-            isPremium: hasPremium
-          }
-        };
-
-        setData(transformedData);
       } catch (err) {
-        console.error('Error fetching valuation:', err);
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        console.error('Error in checkValuation:', err);
+        setError('An unexpected error occurred');
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchValuation();
-  }, [vin, user]);
+    checkValuation();
+  }, [vin]);
 
-  const handleUpgrade = () => {
-    navigate('/premium');
+  const handleStartValuation = () => {
+    // Navigate to VIN lookup page with the VIN pre-filled
+    navigate(`/vin-lookup?vin=${vin}`);
   };
 
-  if (isLoading) {
+  const handleGoHome = () => {
+    navigate('/');
+  };
+
+  if (loading) {
     return (
       <MainLayout>
         <div className="container mx-auto py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading valuation results...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Checking valuation status...</p>
             </div>
           </div>
         </div>
@@ -139,68 +92,65 @@ export default function ValuationPage() {
     return (
       <MainLayout>
         <div className="container mx-auto py-8">
-          <Card className="p-6">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
-              <p className="text-gray-600 mb-4">{error}</p>
-              <Button onClick={() => navigate('/')} variant="outline">
-                Return Home
-              </Button>
-            </div>
-          </Card>
+          <Alert variant="destructive" className="max-w-md mx-auto">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+          <div className="text-center mt-6">
+            <Button onClick={handleGoHome}>Return Home</Button>
+          </div>
         </div>
       </MainLayout>
     );
   }
 
-  if (!data?.data) {
+  if (!hasValuation) {
     return (
       <MainLayout>
         <div className="container mx-auto py-8">
-          <Card className="p-6">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-600 mb-4">No Data</h1>
-              <p className="text-gray-600 mb-4">No valuation data found for this VIN.</p>
-              <Button onClick={() => navigate('/')} variant="outline">
-                Return Home
-              </Button>
-            </div>
-          </Card>
+          <div className="max-w-2xl mx-auto">
+            <Card className="text-center">
+              <CardHeader>
+                <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center">
+                  <Car className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">No Valuation Found</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground">
+                  We don't have a valuation for VIN: <span className="font-mono font-medium">{vin}</span>
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  To see the valuation results, you'll need to complete a valuation for this vehicle first.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+                  <Button onClick={handleStartValuation} className="flex items-center gap-2">
+                    Start Valuation
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" onClick={handleGoHome}>
+                    Return Home
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </MainLayout>
     );
   }
 
+  // If we have a valuation, show the ValuationResult component
   return (
     <MainLayout>
       <div className="container mx-auto py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">
-            {data.data.year} {data.data.make} {data.data.model}
-          </h1>
-          <p className="text-gray-600">VIN: {vin}</p>
-        </div>
-
-        <div className="grid gap-6">
-          <Card className="p-6">
-            <ValuationResult vin={vin!} />
-          </Card>
-
-          {!isPremium && (
-            <Card className="p-6 border-amber-200 bg-amber-50">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Unlock Premium Features</h3>
-                <p className="text-gray-600 mb-4">
-                  Get detailed market analysis, CARFAX report, and more insights.
-                </p>
-                <Button onClick={handleUpgrade} className="bg-amber-600 hover:bg-amber-700">
-                  Upgrade to Premium
-                </Button>
-              </div>
-            </Card>
-          )}
-        </div>
+        <h1 className="text-2xl font-bold mb-6">Valuation Results</h1>
+        <Card className="p-6">
+          <ValuationResult vin={vin!} />
+        </Card>
       </div>
     </MainLayout>
   );
-}
+};
+
+export default ValuationPage;
