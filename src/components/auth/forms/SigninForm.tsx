@@ -57,22 +57,13 @@ export const SigninForm: React.FC<SigninFormProps> = ({
       
       toast.success('Signed in successfully!');
       
-      // Use proper redirect logic
-      let targetPath = '/dashboard';
-      
-      if (userType === 'dealer') {
-        targetPath = '/dealer/dashboard';
-      } else if (redirectPath) {
-        targetPath = redirectPath;
-      }
-      
-      // Check if there's a saved redirect from location state
+      // Simple redirect logic - always go to home page and let the app handle routing
       const from = location.state?.from?.pathname;
-      if (from && from !== '/auth' && from !== '/login' && from !== '/signin') {
-        targetPath = from;
+      if (from && from !== '/auth' && from !== '/login' && form !== '/signin') {
+        navigate(from, { replace: true });
+      } else {
+        navigate('/', { replace: true });
       }
-      
-      navigate(targetPath, { replace: true });
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
       toast.error('Sign in failed', {
