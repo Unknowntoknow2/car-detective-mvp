@@ -63,9 +63,9 @@ export const ValuationResultStep: React.FC<ValuationResultStepProps> = ({
 
   // Mock adjustments for display
   const mockAdjustments = [
-    { factor: 'Condition', impact: 1000 },
-    { factor: 'Mileage', impact: -500 },
-    { factor: 'Features', impact: 800 }
+    { factor: 'Condition', impact: 1000, description: 'Good condition adjustment' },
+    { factor: 'Mileage', impact: -500, description: 'High mileage adjustment' },
+    { factor: 'Features', impact: 800, description: 'Feature value adjustment' }
   ];
 
   return (
