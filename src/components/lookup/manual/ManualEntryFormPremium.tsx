@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ManualEntryFormFree } from '@/components/lookup/ManualEntryFormFree';
+import { PremiumManualEntryForm } from './PremiumManualEntryForm';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
 interface ManualEntryFormPremiumProps {
@@ -13,7 +13,7 @@ interface ManualEntryFormPremiumProps {
 }
 
 /**
- * Premium version of the ManualEntryForm component with enhanced features
+ * Premium version wrapper - kept for backward compatibility
  */
 export function ManualEntryFormPremium({
   onSubmit,
@@ -23,19 +23,13 @@ export function ManualEntryFormPremium({
   onCancel
 }: ManualEntryFormPremiumProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Premium Vehicle Entry</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ManualEntryFormFree
-          onSubmit={onSubmit}
-          isLoading={isLoading}
-          submitButtonText={submitButtonText}
-          isPremium={true}
-        />
-      </CardContent>
-    </Card>
+    <PremiumManualEntryForm
+      onSubmit={onSubmit}
+      isLoading={isLoading}
+      submitButtonText={submitButtonText}
+      initialData={initialData}
+      onCancel={onCancel}
+    />
   );
 }
 
