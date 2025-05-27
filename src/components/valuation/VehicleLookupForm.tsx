@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EnhancedVinLookup } from '../lookup/vin/EnhancedVinLookup';
 import { VinLookupErrorHandler } from '../lookup/VinLookupErrorHandler';
 import { useVinLookupFlow } from '@/hooks/useVinLookupFlow';
 import { useNavigate } from 'react-router-dom';
+import { UnifiedVinLookup } from '../lookup/UnifiedVinLookup';
 
 interface VehicleLookupFormProps {
   onVehicleFound?: (vehicle: any) => void;
@@ -41,9 +41,9 @@ export function VehicleLookupForm({ onVehicleFound, showHeader = true }: Vehicle
         </CardHeader>
       )}
       <CardContent className="space-y-4">
-        <EnhancedVinLookup 
+        <UnifiedVinLookup 
           onVehicleFound={handleVehicleFound}
-          showManualFallback={false}
+          showHeader={false}
         />
         
         {state.stage === 'error' && state.error && (

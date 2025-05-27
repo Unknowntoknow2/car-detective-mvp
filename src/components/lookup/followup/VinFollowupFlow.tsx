@@ -2,257 +2,304 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { useVinLookupFlow } from '@/hooks/useVinLookupFlow';
-import { useFollowUpAnswers } from '@/components/valuation/enhanced-followup/hooks/useFollowUpAnswers';
+import { useFollowUpAnswers } from '@/hooks/useFollowUpAnswers';
+import { MileageInput } from '@/components/valuation/enhanced-followup/MileageInput';
 import { ConditionSelector } from '@/components/valuation/enhanced-followup/ConditionSelector';
-import { AccidentSection } from '@/components/valuation/enhanced-followup/AccidentSection';
-import { ModificationsSection } from '@/components/valuation/enhanced-followup/ModificationsSection';
+import { AccidentHistorySection } from '@/components/valuation/enhanced-followup/AccidentHistorySection';
+import { MaintenanceHistorySection } from '@/components/valuation/enhanced-followup/MaintenanceHistorySection';
 import { DashboardLightsSection } from '@/components/valuation/enhanced-followup/DashboardLightsSection';
-import { AccidentDetails, ModificationDetails } from '@/types/follow-up-answers';
+import { TitleStatusSelector } from '@/components/valuation/enhanced-followup/TitleStatusSelector';
+import { PreviousUseSelector } from '@/components/valuation/enhanced-followup/PreviousUseSelector';
+import { ZipCodeInput } from '@/components/common/ZipCodeInput';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
-export function VinFollowupFlow() {
-  const { state, submitFollowup } = useVinLookupFlow();
-  const { answers, updateAnswers, saveAnswers, saving } = useFollowUpAnswers(
-    state.vin, 
-    state.vehicle?.valuationId
-  );
+interface VinFollowupFlowProps {
+  initialVin?: string;
+}
+
+export function VinFollowupFlow({ initialVin }: VinFollowupFlowProps) {
+  const { state } = useVinLookupFlow();
+  const navigate = useNavigate();
+  const vin = initialVin || state.vin;
   
-  const [localMileage, setLocalMileage] = useState<string>('');
-  const [localZipCode, setLocalZipCode] = useState<string>('');
+  const {
+    answers,
+    isLoading,
+    updateAnswer,
+    submitAnswers,
+    isComplete
+  } = useFollowUpAnswers(vin);
 
-  // Calculate completion percentage
-  const completionPercentage = answers.completion_percentage ?? 0;
+  const [currentStep, setCurrentStep] = useState(0);
+  const completionPercentage = answers?.completion_percentage ?? 0;
 
   useEffect(() => {
-    if (answers.mileage) {
-      setLocalMileage(answers.mileage.toString());
+    if (completionPercentage > 0) {
+      const step = Math.floor((completionPercentage / 100) * steps.length);
+      setCurrentStep(Math.min(step, steps.length - 1));
     }
-    if (answers.zip_code) {
-      setLocalZipCode(answers.zip_code);
+  }, [completionPercentage]);
+
+  const steps = [
+    {
+      id: 'mileage',
+      title: 'Vehicle Mileage',
+      component: (
+        <MileageInput
+          value={answers?.mileage}
+          onChange={(value) => updateAnswer('mileage', value)}
+        />
+      )
+    },
+    {
+      id: 'zip_code',
+      title: 'Vehicle Location',
+      component: (
+        <ZipCodeInput
+          value={answers?.zip_code || ''}
+          onChange={(value) => updateAnswer('zip_code', value)}
+          placeholder="Enter ZIP code where vehicle is located"
+        />
+      )
+    },
+    {
+      id: 'condition',
+      title: 'Overall Condition',
+      component: (
+        <ConditionSelector
+          value={answers?.condition}
+          onChange={(value) => updateAnswer('condition', value)}
+        />
+      )
+    },
+    {
+      id: 'accidents',
+      title: 'Accident History',
+      component: (
+        <AccidentHistorySection
+          value={answers?.accidents}
+          onChange={(value) => updateAnswer('accidents', value)}
+        />
+      )
+    },
+    {
+      id: 'maintenance',
+      title: 'Maintenance History',
+      component: (
+        <MaintenanceHistorySection
+          value={{
+            serviceHistory: answers?.service_history,
+            maintenanceStatus: answers?.maintenance_status,
+            lastServiceDate: answers?.last_service_date
+          }}
+          onChange={(value) => {
+            updateAnswer('service_history', value.serviceHistory);
+            updateAnswer('maintenance_status', value.maintenanceStatus);
+            updateAnswer('last_service_date', value.lastServiceDate);
+          }}
+        />
+      )
+    },
+    {
+      id: 'dashboard_lights',
+      title: 'Dashboard Warning Lights',
+      component: (
+        <DashboardLightsSection
+          value={answers?.dashboard_lights}
+          onChange={(value) => updateAnswer('dashboard_lights', value)}
+        />
+      )
+    },
+    {
+      id: 'title_status',
+      title: 'Title Status',
+      component: (
+        <TitleStatusSelector
+          value={answers?.title_status}
+          onChange={(value) => updateAnswer('title_status', value)}
+        />
+      )
+    },
+    {
+      id: 'previous_use',
+      title: 'Previous Use',
+      component: (
+        <PreviousUseSelector
+          value={answers?.previous_use}
+          onChange={(value) => updateAnswer('previous_use', value)}
+        />
+      )
     }
-  }, [answers.mileage, answers.zip_code]);
+  ];
 
-  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setLocalMileage(value);
-    
-    const numericValue = parseInt(value);
-    if (!isNaN(numericValue) && numericValue > 0) {
-      updateAnswers({ mileage: numericValue });
+  const handleSubmit = async () => {
+    try {
+      // Convert accidents object to count for submitFollowup
+      const accidentCount = answers?.accidents?.hadAccident ? 
+        (answers.accidents.count || 1) : 0;
+
+      const result = await submitAnswers({
+        vin,
+        mileage: answers?.mileage || 0,
+        zip_code: answers?.zip_code || '',
+        condition: answers?.condition || 'good',
+        accidents: accidentCount, // Convert to number
+        service_history: answers?.service_history,
+        maintenance_status: answers?.maintenance_status,
+        last_service_date: answers?.last_service_date,
+        dashboard_lights: answers?.dashboard_lights,
+        title_status: answers?.title_status,
+        previous_use: answers?.previous_use,
+        frame_damage: answers?.accidents?.frameDamage || false,
+        previous_owners: answers?.previous_owners || 1,
+        modifications: answers?.modifications,
+        tire_condition: answers?.tire_condition
+      });
+
+      if (result) {
+        toast.success('Vehicle assessment completed successfully!');
+        navigate(`/valuation/${vin}?completed=true`);
+      }
+    } catch (error) {
+      console.error('Submit error:', error);
+      toast.error('Failed to complete assessment. Please try again.');
     }
   };
 
-  const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setLocalZipCode(value);
-    
-    if (value.length === 5) {
-      updateAnswers({ zip_code: value });
+  const nextStep = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
     }
   };
 
-  const handleConditionChange = (condition: 'excellent' | 'good' | 'fair' | 'poor') => {
-    updateAnswers({ condition });
-  };
-
-  const handleAccidentsChange = (accidents: AccidentDetails) => {
-    updateAnswers({ accidents });
-  };
-
-  const handleModificationsChange = (modifications: ModificationDetails) => {
-    updateAnswers({ modifications });
-  };
-
-  const handleDashboardLightsChange = (dashboard_lights: string[]) => {
-    updateAnswers({ dashboard_lights });
-  };
-
-  const handleComplete = async () => {
-    const followupData = {
-      mileage: answers.mileage || 0,
-      condition: answers.condition || 'good',
-      zip_code: answers.zip_code || '',
-      service_history: answers.service_history || '',
-      completion_percentage: completionPercentage,
-      is_complete: true,
-      ...answers
-    };
-
-    const result = await submitFollowup(followupData);
-    if (result) {
-      toast.success('Vehicle assessment completed!');
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
-  if (!state.vehicle) {
+  const canProceed = () => {
+    const step = steps[currentStep];
+    switch (step.id) {
+      case 'mileage':
+        return answers?.mileage && answers.mileage > 0;
+      case 'zip_code':
+        return answers?.zip_code && answers.zip_code.length >= 5;
+      case 'condition':
+        return !!answers?.condition;
+      default:
+        return true;
+    }
+  };
+
+  if (!vin) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <p className="text-center text-muted-foreground">
-            No vehicle data available for followup assessment.
-          </p>
+        <CardContent className="p-6 text-center">
+          <p className="text-muted-foreground">No VIN provided for follow-up assessment.</p>
+          <Button 
+            onClick={() => navigate('/vin-lookup')} 
+            className="mt-4"
+          >
+            Start VIN Lookup
+          </Button>
         </CardContent>
       </Card>
     );
   }
 
+  if (isComplete) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-2">Assessment Complete!</h2>
+          <p className="text-muted-foreground mb-6">
+            Your vehicle assessment has been completed and saved.
+          </p>
+          <Button onClick={() => navigate(`/valuation/${vin}`)}>
+            View Valuation Results
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const currentStepData = steps[currentStep];
+  const progress = ((currentStep + 1) / steps.length) * 100;
+
   return (
-    <div className="space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* Progress Header */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            Vehicle Assessment
-            <span className="text-sm font-normal text-muted-foreground">
-              {Math.round(completionPercentage)}% Complete
+          <div className="flex items-center justify-between mb-4">
+            <CardTitle>Vehicle Assessment</CardTitle>
+            <span className="text-sm text-muted-foreground">
+              Step {currentStep + 1} of {steps.length}
             </span>
-          </CardTitle>
-          <Progress value={completionPercentage} className="w-full" />
-        </CardHeader>
-      </Card>
-
-      {/* Vehicle Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Vehicle Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <p className="text-muted-foreground">Year</p>
-              <p className="font-medium">{state.vehicle.year}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Make</p>
-              <p className="font-medium">{state.vehicle.make}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Model</p>
-              <p className="font-medium">{state.vehicle.model}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">VIN</p>
-              <p className="font-medium font-mono text-xs">{state.vin}</p>
-            </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Basic Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Basic Information</CardTitle>
+          <Progress value={progress} className="w-full" />
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="mileage">Current Mileage</Label>
-              <Input
-                id="mileage"
-                type="number"
-                placeholder="Enter current mileage"
-                value={localMileage}
-                onChange={handleMileageChange}
-                min="0"
-              />
-            </div>
-            <div>
-              <Label htmlFor="zipcode">ZIP Code</Label>
-              <Input
-                id="zipcode"
-                type="text"
-                placeholder="Enter ZIP code"
-                value={localZipCode}
-                onChange={handleZipCodeChange}
-                maxLength={5}
-              />
-            </div>
-          </div>
-        </CardContent>
       </Card>
 
-      {/* Condition Assessment */}
+      {/* Current Step */}
       <Card>
         <CardHeader>
-          <CardTitle>Vehicle Condition</CardTitle>
+          <CardTitle>{currentStepData.title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <ConditionSelector
-            value={answers.condition}
-            onChange={handleConditionChange}
-          />
+          {currentStepData.component}
         </CardContent>
       </Card>
 
-      {/* Accident History */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Accident History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AccidentSection
-            value={answers.accidents}
-            onChange={handleAccidentsChange}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Modifications */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Vehicle Modifications</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ModificationsSection
-            value={answers.modifications}
-            onChange={handleModificationsChange}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Dashboard Lights */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Dashboard Warning Lights</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DashboardLightsSection
-            value={answers.dashboard_lights}
-            onChange={handleDashboardLightsChange}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Completion Actions */}
+      {/* Navigation */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button
-              onClick={handleComplete}
-              disabled={state.isLoading || completionPercentage < 50}
-              className="flex-1"
-            >
-              {state.isLoading ? 'Processing...' : 'Complete Assessment'}
-            </Button>
+          <div className="flex justify-between">
             <Button
               variant="outline"
-              onClick={() => saveAnswers()}
-              disabled={saving}
-              className="flex-1"
+              onClick={prevStep}
+              disabled={currentStep === 0}
             >
-              {saving ? 'Saving...' : 'Save Progress'}
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Previous
             </Button>
+
+            {currentStep === steps.length - 1 ? (
+              <Button 
+                onClick={handleSubmit}
+                disabled={isLoading || !canProceed()}
+              >
+                {isLoading ? 'Submitting...' : 'Complete Assessment'}
+                <CheckCircle className="h-4 w-4 ml-2" />
+              </Button>
+            ) : (
+              <Button
+                onClick={nextStep}
+                disabled={!canProceed()}
+              >
+                Next
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            )}
           </div>
-          
-          {completionPercentage < 50 && (
-            <p className="text-sm text-muted-foreground mt-2 text-center">
-              Complete at least 50% of the assessment to proceed
-            </p>
-          )}
+        </CardContent>
+      </Card>
+
+      {/* Debug Info */}
+      <Card className="bg-muted/50">
+        <CardContent className="p-4">
+          <div className="text-xs space-y-1">
+            <div>VIN: {vin}</div>
+            <div>Current Step: {currentStep + 1}/{steps.length}</div>
+            <div>Completion: {completionPercentage}%</div>
+            <div>Can Proceed: {canProceed() ? 'Yes' : 'No'}</div>
+          </div>
         </CardContent>
       </Card>
     </div>
