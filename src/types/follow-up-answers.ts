@@ -48,30 +48,30 @@ export const DASHBOARD_LIGHTS = [
 ] as const;
 
 export const SERVICE_HISTORY_OPTIONS = [
-  { value: 'complete', label: 'Complete Service History', description: 'All maintenance records available' },
-  { value: 'partial', label: 'Partial Service History', description: 'Some maintenance records available' },
-  { value: 'unknown', label: 'Unknown Service History', description: 'No service records available' }
+  { value: 'complete', label: 'Complete Service History', description: 'All maintenance records available', impact: 'Positive impact on value' },
+  { value: 'partial', label: 'Partial Service History', description: 'Some maintenance records available', impact: 'Neutral impact' },
+  { value: 'unknown', label: 'Unknown Service History', description: 'No service records available', impact: 'May reduce value' }
 ] as const;
 
 export const TITLE_STATUS_OPTIONS = [
-  { value: 'clean', label: 'Clean Title', description: 'No issues with ownership' },
-  { value: 'salvage', label: 'Salvage Title', description: 'Previously declared total loss' },
-  { value: 'flood', label: 'Flood Damage', description: 'Water damage reported' },
-  { value: 'lemon', label: 'Lemon Title', description: 'Manufacturer buyback' }
+  { value: 'clean', label: 'Clean Title', description: 'No issues with ownership', impact: 'No impact on value' },
+  { value: 'salvage', label: 'Salvage Title', description: 'Previously declared total loss', impact: 'Significantly reduces value' },
+  { value: 'flood', label: 'Flood Damage', description: 'Water damage reported', impact: 'Major reduction in value' },
+  { value: 'lemon', label: 'Lemon Title', description: 'Manufacturer buyback', impact: 'Reduces value' }
 ] as const;
 
 export const TIRE_CONDITION_OPTIONS = [
-  { value: 'excellent', label: 'Excellent', description: 'New or nearly new tires' },
-  { value: 'good', label: 'Good', description: 'Tires in good condition with plenty of tread' },
-  { value: 'fair', label: 'Fair', description: 'Tires show wear but still safe' },
-  { value: 'poor', label: 'Poor', description: 'Tires need replacement soon' }
+  { value: 'excellent', label: 'Excellent', description: 'New or nearly new tires', impact: 'Positive impact on value' },
+  { value: 'good', label: 'Good', description: 'Tires in good condition with plenty of tread', impact: 'No impact on value' },
+  { value: 'fair', label: 'Fair', description: 'Tires show wear but still safe', impact: 'Minor reduction' },
+  { value: 'poor', label: 'Poor', description: 'Tires need replacement soon', impact: 'Reduces value' }
 ] as const;
 
 export const PREVIOUS_USE_OPTIONS = [
-  { value: 'personal', label: 'Personal Use', description: 'Used for personal transportation' },
-  { value: 'commercial', label: 'Commercial Use', description: 'Used for business purposes' },
-  { value: 'rental', label: 'Rental Vehicle', description: 'Previously used as a rental car' },
-  { value: 'lease', label: 'Lease Return', description: 'Previously leased vehicle' }
+  { value: 'personal', label: 'Personal Use', description: 'Used for personal transportation', impact: 'Best for value' },
+  { value: 'commercial', label: 'Commercial Use', description: 'Used for business purposes', impact: 'May reduce value' },
+  { value: 'rental', label: 'Rental Vehicle', description: 'Previously used as a rental car', impact: 'Reduces value' },
+  { value: 'lease', label: 'Lease Return', description: 'Previously leased vehicle', impact: 'Minor impact' }
 ] as const;
 
 export const MODIFICATION_TYPES = [

@@ -1,36 +1,21 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { 
-  ChevronDown, 
-  ChevronUp, 
-  Car, 
-  Calendar, 
-  MapPin, 
-  Star,
-  CheckCircle,
-  Clock,
-  AlertCircle
-} from 'lucide-react';
-import { toast } from 'sonner';
-
-// Import our enhanced components
+import { Slider } from '@/components/ui/slider';
+import { CheckCircle, AlertCircle, Car, Wrench, Shield, Users, History, Gauge } from 'lucide-react';
 import { ConditionSelector } from './ConditionSelector';
-import { AccidentSection } from './AccidentSection';
 import { DashboardLightsSection } from './DashboardLightsSection';
 import { ModificationsSection } from './ModificationsSection';
-import { useFollowUpAnswers } from './hooks/useFollowUpAnswers';
-
-// Import types and constants
-import { 
-  FollowUpAnswers,
+import { AccidentHistorySection } from './AccidentHistorySection';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
+import {
   SERVICE_HISTORY_OPTIONS,
   TITLE_STATUS_OPTIONS,
   TIRE_CONDITION_OPTIONS,
@@ -38,532 +23,379 @@ import {
 } from '@/types/follow-up-answers';
 
 interface EnhancedFollowUpFormProps {
+  answers: FollowUpAnswers;
+  onUpdate: (updates: Partial<FollowUpAnswers>) => void;
+  onSubmit: () => void;
+  isLoading?: boolean;
   vin: string;
-  onComplete?: () => void;
 }
 
-interface SectionState {
-  vehicleInfo: boolean;
-  condition: boolean;
-  history: boolean;
-  maintenance: boolean;
-  modifications: boolean;
-}
+export function EnhancedFollowUpForm({
+  answers,
+  onUpdate,
+  onSubmit,
+  isLoading = false,
+  vin
+}: EnhancedFollowUpFormProps) {
+  const completionPercentage = answers.completionPercentage || 0;
 
-export function EnhancedFollowUpForm({ vin, onComplete }: EnhancedFollowUpFormProps) {
-  const { answers, loading, saving, updateAnswers, saveAnswers } = useFollowUpAnswers(vin);
-  
-  const [openSections, setOpenSections] = useState<SectionState>({
-    vehicleInfo: true,
-    condition: false,
-    history: false,
-    maintenance: false,
-    modifications: false
-  });
-
-  const toggleSection = (section: keyof SectionState) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit();
   };
-
-  const handleComplete = async () => {
-    const success = await saveAnswers();
-    if (success && onComplete) {
-      onComplete();
-    }
-  };
-
-  // Safe access to completion_percentage with default value
-  const completionPercentage = answers.completion_percentage ?? 0;
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
-      {/* Header with Progress */}
+      {/* Progress Header */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl">Vehicle Assessment</CardTitle>
-              <p className="text-muted-foreground">
-                Complete these questions for the most accurate valuation
+              <CardTitle className="text-lg">Vehicle Assessment Progress</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Complete the assessment to get your accurate valuation
               </p>
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-primary">{completionPercentage}%</div>
-              <div className="text-sm text-muted-foreground">Complete</div>
+              <div className="text-xs text-muted-foreground">Complete</div>
             </div>
           </div>
-          <Progress value={completionPercentage} className="mt-4" />
+          <Progress value={completionPercentage} className="w-full" />
         </CardHeader>
       </Card>
 
-      {/* Vehicle Information Section */}
-      <Card>
-        <Collapsible 
-          open={openSections.vehicleInfo} 
-          onOpenChange={() => toggleSection('vehicleInfo')}
-        >
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Car className="h-5 w-5 text-blue-500" />
-                  <CardTitle className="text-lg">Vehicle Information</CardTitle>
-                  <Badge variant="outline">Required</Badge>
-                </div>
-                {openSections.vehicleInfo ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="space-y-6">
-              {/* Mileage */}
-              <div className="space-y-2">
-                <Label htmlFor="mileage" className="text-base font-medium">
-                  Current Mileage <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="mileage"
-                  type="number"
-                  placeholder="e.g., 45,000"
-                  value={answers.mileage || ''}
-                  onChange={(e) => updateAnswers({ mileage: parseInt(e.target.value) || undefined })}
-                  className="text-lg"
-                />
-                <p className="text-sm text-muted-foreground">
-                  💡 Lower mileage typically increases resale value
-                </p>
-              </div>
-
-              <Separator />
-
-              {/* ZIP Code */}
-              <div className="space-y-2">
-                <Label htmlFor="zipCode" className="text-base font-medium">
-                  ZIP Code <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="zipCode"
-                  type="text"
-                  placeholder="e.g., 95814"
-                  maxLength={5}
-                  value={answers.zip_code || ''}
-                  onChange={(e) => updateAnswers({ zip_code: e.target.value })}
-                  className="text-lg"
-                />
-                <p className="text-sm text-muted-foreground">
-                  🌍 We use ZIP code to adjust for local market demand
-                </p>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
-
-      {/* Vehicle Condition Section */}
-      <Card>
-        <Collapsible 
-          open={openSections.condition} 
-          onOpenChange={() => toggleSection('condition')}
-        >
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-amber-500" />
-                  <CardTitle className="text-lg">Vehicle Condition</CardTitle>
-                  <Badge variant="outline">High Impact</Badge>
-                </div>
-                {openSections.condition ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="space-y-6">
-              <ConditionSelector
-                value={answers.condition}
-                onChange={(condition) => updateAnswers({ condition })}
-              />
-
-              <Separator />
-
-              {/* Tire Condition */}
-              <div className="space-y-3">
-                <Label className="text-base font-medium">Tire Condition</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {TIRE_CONDITION_OPTIONS.map((option) => (
-                    <Card
-                      key={option.value}
-                      className={`cursor-pointer transition-all hover:shadow-md ${
-                        answers.tire_condition === option.value
-                          ? 'ring-2 ring-primary bg-primary/5'
-                          : 'hover:bg-muted/50'
-                      }`}
-                      onClick={() => updateAnswers({ tire_condition: option.value })}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <h4 className="font-medium">{option.label}</h4>
-                          <div className={`w-4 h-4 rounded-full border-2 ${
-                            answers.tire_condition === option.value
-                              ? 'bg-primary border-primary'
-                              : 'border-muted-foreground'
-                          }`}>
-                            {answers.tire_condition === option.value && (
-                              <div className="w-2 h-2 bg-white rounded-full m-0.5" />
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-xs font-medium text-primary">{option.impact}</div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              <DashboardLightsSection
-                value={answers.dashboard_lights}
-                onChange={(lights) => updateAnswers({ dashboard_lights: lights })}
-              />
-            </CardContent>
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
-
-      {/* Vehicle History Section */}
-      <Card>
-        <Collapsible 
-          open={openSections.history} 
-          onOpenChange={() => toggleSection('history')}
-        >
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-green-500" />
-                  <CardTitle className="text-lg">Vehicle History</CardTitle>
-                  <Badge variant="outline">Important</Badge>
-                </div>
-                {openSections.history ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="space-y-6">
-              <AccidentSection
-                value={answers.accidents}
-                onChange={(accidents) => updateAnswers({ accidents })}
-              />
-
-              <Separator />
-
-              {/* Title Status */}
-              <div className="space-y-3">
-                <Label className="text-base font-medium">Title Status</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {TITLE_STATUS_OPTIONS.map((option) => (
-                    <Card
-                      key={option.value}
-                      className={`cursor-pointer transition-all hover:shadow-md ${
-                        answers.title_status === option.value
-                          ? 'ring-2 ring-primary bg-primary/5'
-                          : 'hover:bg-muted/50'
-                      }`}
-                      onClick={() => updateAnswers({ title_status: option.value })}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <h4 className="font-medium">{option.label}</h4>
-                          <div className={`w-4 h-4 rounded-full border-2 ${
-                            answers.title_status === option.value
-                              ? 'bg-primary border-primary'
-                              : 'border-muted-foreground'
-                          }`}>
-                            {answers.title_status === option.value && (
-                              <div className="w-2 h-2 bg-white rounded-full m-0.5" />
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-xs font-medium text-primary">{option.impact}</div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Previous Use */}
-              <div className="space-y-3">
-                <Label className="text-base font-medium">Previous Use</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {PREVIOUS_USE_OPTIONS.map((option) => (
-                    <Card
-                      key={option.value}
-                      className={`cursor-pointer transition-all hover:shadow-md ${
-                        answers.previous_use === option.value
-                          ? 'ring-2 ring-primary bg-primary/5'
-                          : 'hover:bg-muted/50'
-                      }`}
-                      onClick={() => updateAnswers({ previous_use: option.value })}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <h4 className="font-medium">{option.label}</h4>
-                          <div className={`w-4 h-4 rounded-full border-2 ${
-                            answers.previous_use === option.value
-                              ? 'bg-primary border-primary'
-                              : 'border-muted-foreground'
-                          }`}>
-                            {answers.previous_use === option.value && (
-                              <div className="w-2 h-2 bg-white rounded-full m-0.5" />
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-xs font-medium text-primary">{option.impact}</div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Previous Owners */}
-              <div className="space-y-2">
-                <Label htmlFor="previousOwners" className="text-base font-medium">
-                  Number of Previous Owners
-                </Label>
-                <Input
-                  id="previousOwners"
-                  type="number"
-                  min="0"
-                  max="10"
-                  placeholder="e.g., 1"
-                  value={answers.previous_owners || ''}
-                  onChange={(e) => updateAnswers({ previous_owners: parseInt(e.target.value) || undefined })}
-                  className="text-lg"
-                />
-                <p className="text-sm text-muted-foreground">
-                  👥 Fewer owners generally means higher resale value
-                </p>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
-
-      {/* Maintenance Section */}
-      <Card>
-        <Collapsible 
-          open={openSections.maintenance} 
-          onOpenChange={() => toggleSection('maintenance')}
-        >
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-purple-500" />
-                  <CardTitle className="text-lg">Service & Maintenance</CardTitle>
-                  <Badge variant="outline">Value Builder</Badge>
-                </div>
-                {openSections.maintenance ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="space-y-6">
-              {/* Service History */}
-              <div className="space-y-3">
-                <Label className="text-base font-medium">Service History</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {SERVICE_HISTORY_OPTIONS.map((option) => (
-                    <Card
-                      key={option.value}
-                      className={`cursor-pointer transition-all hover:shadow-md ${
-                        answers.service_history === option.value
-                          ? 'ring-2 ring-primary bg-primary/5'
-                          : 'hover:bg-muted/50'
-                      }`}
-                      onClick={() => updateAnswers({ service_history: option.value })}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <h4 className="font-medium">{option.label}</h4>
-                          <div className={`w-4 h-4 rounded-full border-2 ${
-                            answers.service_history === option.value
-                              ? 'bg-primary border-primary'
-                              : 'border-muted-foreground'
-                          }`}>
-                            {answers.service_history === option.value && (
-                              <div className="w-2 h-2 bg-white rounded-full m-0.5" />
-                            )}
-                          </div>
-                        </div>
-                        <div className="text-xs font-medium text-primary">{option.impact}</div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Maintenance Status */}
-              <div className="space-y-2">
-                <Label htmlFor="maintenanceStatus" className="text-base font-medium">
-                  Current Maintenance Status
-                </Label>
-                <Input
-                  id="maintenanceStatus"
-                  type="text"
-                  placeholder="e.g., All maintenance current, oil changed 2 months ago"
-                  value={answers.maintenance_status || ''}
-                  onChange={(e) => updateAnswers({ maintenance_status: e.target.value })}
-                  className="text-lg"
-                />
-                <p className="text-sm text-muted-foreground">
-                  🔧 Current maintenance builds buyer confidence
-                </p>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
-
-      {/* Modifications Section */}
-      <Card>
-        <Collapsible 
-          open={openSections.modifications} 
-          onOpenChange={() => toggleSection('modifications')}
-        >
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-orange-500" />
-                  <CardTitle className="text-lg">Modifications & Damage</CardTitle>
-                  <Badge variant="outline">Impact Variable</Badge>
-                </div>
-                {openSections.modifications ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="space-y-6">
-              <ModificationsSection
-                value={answers.modifications}
-                onChange={(modifications) => updateAnswers({ modifications })}
-              />
-
-              <Separator />
-
-              {/* Frame Damage */}
-              <div className="space-y-3">
-                <Label className="text-base font-medium">Frame Damage</Label>
-                <div className="flex gap-4">
-                  <Card
-                    className={`cursor-pointer transition-all hover:shadow-md flex-1 ${
-                      answers.frame_damage === false
-                        ? 'ring-2 ring-primary bg-primary/5'
-                        : 'hover:bg-muted/50'
-                    }`}
-                    onClick={() => updateAnswers({ frame_damage: false })}
-                  >
-                    <CardContent className="p-4 text-center">
-                      <div className="text-green-600 text-lg mb-1">✅</div>
-                      <div className="font-medium">No Frame Damage</div>
-                    </CardContent>
-                  </Card>
-                  <Card
-                    className={`cursor-pointer transition-all hover:shadow-md flex-1 ${
-                      answers.frame_damage === true
-                        ? 'ring-2 ring-primary bg-primary/5'
-                        : 'hover:bg-muted/50'
-                    }`}
-                    onClick={() => updateAnswers({ frame_damage: true })}
-                  >
-                    <CardContent className="p-4 text-center">
-                      <div className="text-red-600 text-lg mb-1">⚠️</div>
-                      <div className="font-medium">Has Frame Damage</div>
-                    </CardContent>
-                  </Card>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  🏗️ Frame damage significantly reduces resale value
-                </p>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Collapsible>
-      </Card>
-
-      {/* Action Buttons */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
             <div className="flex items-center gap-2">
-              {saving && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>}
-              <span className="text-sm text-muted-foreground">
-                {saving ? 'Saving...' : 'Auto-saved'}
-              </span>
+              <Car className="h-5 w-5 text-blue-500" />
+              <CardTitle className="text-lg">Basic Information</CardTitle>
             </div>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => saveAnswers()}>
-                Save Progress
-              </Button>
-              <Button 
-                onClick={handleComplete}
-                disabled={completionPercentage < 80}
-                className="relative"
-              >
-                {completionPercentage >= 80 ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Complete Assessment
-                  </>
-                ) : (
-                  <>
-                    Complete Assessment ({completionPercentage}%)
-                  </>
-                )}
-              </Button>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Mileage Input */}
+            <div className="space-y-2">
+              <Label htmlFor="mileage" className="text-base font-medium">
+                Current Mileage
+              </Label>
+              <Input
+                id="mileage"
+                type="number"
+                placeholder="Enter mileage"
+                value={answers.mileage || ''}
+                onChange={(e) => onUpdate({ mileage: parseInt(e.target.value) || undefined })}
+                className="text-lg"
+              />
+              <p className="text-xs text-muted-foreground">
+                Enter the current odometer reading
+              </p>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+
+            {/* Zip Code Input */}
+            <div className="space-y-2">
+              <Label htmlFor="zipCode" className="text-base font-medium">
+                Zip Code
+              </Label>
+              <Input
+                id="zipCode"
+                type="text"
+                placeholder="Enter zip code"
+                value={answers.zipCode || ''}
+                onChange={(e) => onUpdate({ zipCode: e.target.value })}
+                className="text-lg"
+                maxLength={5}
+              />
+              <p className="text-xs text-muted-foreground">
+                Location affects market value
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Condition Assessment */}
+        <ConditionSelector
+          value={answers.condition}
+          onChange={(condition) => onUpdate({ condition })}
+        />
+
+        {/* Accident History */}
+        <AccidentHistorySection
+          value={answers.accidents}
+          onChange={(accidents) => onUpdate({ accidents })}
+        />
+
+        {/* Tire Condition */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Gauge className="h-5 w-5 text-orange-500" />
+              <CardTitle className="text-lg">Tire Condition</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Label className="text-base font-medium mb-4 block">Current tire condition</Label>
+            <RadioGroup
+              value={answers.tireCondition || ''}
+              onValueChange={(value) => onUpdate({ tireCondition: value })}
+              className="grid grid-cols-1 md:grid-cols-2 gap-3"
+            >
+              {TIRE_CONDITION_OPTIONS.map((option) => (
+                <div key={option.value} className="flex items-center space-x-2">
+                  <RadioGroupItem value={option.value} id={`tire-${option.value}`} />
+                  <div className="flex-1">
+                    <Label htmlFor={`tire-${option.value}`} className="font-medium cursor-pointer">
+                      {option.label}
+                    </Label>
+                    <p className="text-sm text-muted-foreground">{option.description}</p>
+                    <Badge variant="outline" className="text-xs mt-1">
+                      {option.impact}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
+        {/* Dashboard Warning Lights */}
+        <DashboardLightsSection
+          value={answers.dashboardLights}
+          onChange={(dashboardLights) => onUpdate({ dashboardLights })}
+        />
+
+        {/* Title Status */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-green-500" />
+              <CardTitle className="text-lg">Title Status</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Label className="text-base font-medium mb-4 block">Vehicle title status</Label>
+            <RadioGroup
+              value={answers.titleStatus || ''}
+              onValueChange={(value) => onUpdate({ titleStatus: value })}
+              className="grid grid-cols-1 md:grid-cols-2 gap-3"
+            >
+              {TITLE_STATUS_OPTIONS.map((option) => (
+                <div key={option.value} className="flex items-center space-x-2">
+                  <RadioGroupItem value={option.value} id={`title-${option.value}`} />
+                  <div className="flex-1">
+                    <Label htmlFor={`title-${option.value}`} className="font-medium cursor-pointer">
+                      {option.label}
+                    </Label>
+                    <p className="text-sm text-muted-foreground">{option.description}</p>
+                    <Badge variant="outline" className="text-xs mt-1">
+                      {option.impact}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
+        {/* Previous Use */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-purple-500" />
+              <CardTitle className="text-lg">Previous Use</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Label className="text-base font-medium mb-4 block">How was this vehicle primarily used?</Label>
+            <RadioGroup
+              value={answers.previousUse || ''}
+              onValueChange={(value) => onUpdate({ previousUse: value })}
+              className="grid grid-cols-1 md:grid-cols-2 gap-3"
+            >
+              {PREVIOUS_USE_OPTIONS.map((option) => (
+                <div key={option.value} className="flex items-center space-x-2">
+                  <RadioGroupItem value={option.value} id={`use-${option.value}`} />
+                  <div className="flex-1">
+                    <Label htmlFor={`use-${option.value}`} className="font-medium cursor-pointer">
+                      {option.label}
+                    </Label>
+                    <p className="text-sm text-muted-foreground">{option.description}</p>
+                    <Badge variant="outline" className="text-xs mt-1">
+                      {option.impact}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
+        {/* Previous Owners */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-indigo-500" />
+              <CardTitle className="text-lg">Ownership History</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Label htmlFor="previousOwners" className="text-base font-medium">
+              Number of Previous Owners
+            </Label>
+            <Select
+              value={answers.previousOwners?.toString() || ''}
+              onValueChange={(value) => onUpdate({ previousOwners: parseInt(value) })}
+            >
+              <SelectTrigger className="w-full mt-2">
+                <SelectValue placeholder="Select number of owners" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 Owner</SelectItem>
+                <SelectItem value="2">2 Owners</SelectItem>
+                <SelectItem value="3">3 Owners</SelectItem>
+                <SelectItem value="4">4 Owners</SelectItem>
+                <SelectItem value="5">5+ Owners</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-2">
+              Fewer owners typically means better value
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Service History */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <History className="h-5 w-5 text-teal-500" />
+              <CardTitle className="text-lg">Service History</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Label className="text-base font-medium mb-4 block">Service record availability</Label>
+            <RadioGroup
+              value={answers.serviceHistory || ''}
+              onValueChange={(value) => onUpdate({ serviceHistory: value })}
+              className="grid grid-cols-1 gap-3"
+            >
+              {SERVICE_HISTORY_OPTIONS.map((option) => (
+                <div key={option.value} className="flex items-center space-x-2">
+                  <RadioGroupItem value={option.value} id={`service-${option.value}`} />
+                  <div className="flex-1">
+                    <Label htmlFor={`service-${option.value}`} className="font-medium cursor-pointer">
+                      {option.label}
+                    </Label>
+                    <p className="text-sm text-muted-foreground">{option.description}</p>
+                    <Badge variant="outline" className="text-xs mt-1">
+                      {option.impact}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
+        {/* Maintenance Status */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Wrench className="h-5 w-5 text-amber-500" />
+              <CardTitle className="text-lg">Maintenance Status</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Label className="text-base font-medium mb-4 block">
+              Is the vehicle up to date on maintenance?
+            </Label>
+            <RadioGroup
+              value={answers.maintenanceStatus || ''}
+              onValueChange={(value) => onUpdate({ maintenanceStatus: value })}
+              className="flex gap-6"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="up-to-date" id="maintenance-current" />
+                <Label htmlFor="maintenance-current">Up to date</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="behind" id="maintenance-behind" />
+                <Label htmlFor="maintenance-behind">Behind on maintenance</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="unknown" id="maintenance-unknown" />
+                <Label htmlFor="maintenance-unknown">Unknown</Label>
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
+        {/* Modifications */}
+        <ModificationsSection
+          value={answers.modifications}
+          onChange={(modifications) => onUpdate({ modifications })}
+        />
+
+        {/* Frame Damage */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              <CardTitle className="text-lg">Frame Damage</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Label className="text-base font-medium mb-4 block">
+              Has this vehicle ever had frame damage?
+            </Label>
+            <RadioGroup
+              value={answers.frameDamage === true ? 'yes' : answers.frameDamage === false ? 'no' : ''}
+              onValueChange={(value) => onUpdate({ frameDamage: value === 'yes' })}
+              className="flex gap-6"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="no" id="frame-no" />
+                <Label htmlFor="frame-no">No frame damage</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="yes" id="frame-yes" />
+                <Label htmlFor="frame-yes">Has frame damage</Label>
+              </div>
+            </RadioGroup>
+            <p className="text-xs text-muted-foreground mt-2">
+              Frame damage significantly affects vehicle value
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Submit Button */}
+        <div className="flex justify-center pt-6">
+          <Button
+            type="submit"
+            size="lg"
+            className="px-8"
+            disabled={isLoading || completionPercentage < 70}
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Processing...
+              </div>
+            ) : (
+              <>
+                <CheckCircle className="h-5 w-5 mr-2" />
+                Complete Assessment
+              </>
+            )}
+          </Button>
+        </div>
+
+        {completionPercentage < 70 && (
+          <p className="text-center text-sm text-muted-foreground">
+            Complete at least 70% of the assessment to proceed
+          </p>
+        )}
+      </form>
     </div>
   );
 }
