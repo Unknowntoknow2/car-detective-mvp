@@ -29,7 +29,7 @@ export const ValuationResultStep: React.FC<ValuationResultStepProps> = ({
   }
 
   // Handle price range safely
-  const getPriceRange = () => {
+  const getPriceRange = (): { min: number; max: number } | null => {
     if (valuation.price_range) {
       if (typeof valuation.price_range === 'object') {
         if ('low' in valuation.price_range && 'high' in valuation.price_range) {
