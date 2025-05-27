@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
@@ -121,7 +122,7 @@ const routes: RouteObject[] = [
         element: <Navigate to="/dashboard" replace />
       },
       
-      // Enhanced Valuation routes with proper VIN handling
+      // CONSOLIDATED Valuation routes - this is the main fix
       {
         path: 'valuation',
         element: <ValuationPage />
@@ -131,24 +132,26 @@ const routes: RouteObject[] = [
         element: <ValuationPage />
       },
       {
-        path: 'valuation-followup',
-        element: <ValuationFollowupPage />
-      },
-      {
         path: 'premium',
         element: <PremiumPage />
       },
+      
+      // Redirect old routes to new consolidated routes
+      {
+        path: 'valuation-followup',
+        element: <Navigate to="/vin-lookup" replace />
+      },
       {
         path: 'valuation/result/:id',
-        element: <ValuationResultPage />
+        element: <Navigate to="/valuation" replace />
       },
       {
         path: 'valuation/vin/:vin/followup',
-        element: <VinLookupPage />
+        element: <Navigate to="/vin-lookup" replace />
       },
       {
         path: 'valuation/:id',
-        element: <ValuationResultPage />
+        element: <ValuationPage />
       },
       {
         path: 'result',

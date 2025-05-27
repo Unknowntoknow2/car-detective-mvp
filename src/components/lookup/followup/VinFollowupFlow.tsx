@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FollowupStepManager } from './FollowupStepManager';
 import { MaintenanceHistoryStep } from '@/components/premium/form/steps/MaintenanceHistoryStep';
@@ -7,22 +8,29 @@ import { AccidentHistoryStep } from '@/components/premium/form/steps/AccidentHis
 import { Button } from '@/components/ui/button';
 import { FormData, ConditionLevel } from '@/types/premium-valuation';
 import { useVinLookupFlow } from '@/hooks/useVinLookupFlow';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useFollowUpAnswers } from '@/components/valuation/enhanced-followup/hooks/useFollowUpAnswers';
+import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const VinFollowupFlow: React.FC = () => {
   const { state } = useVinLookupFlow();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  const currentVin = state.vin || searchParams.get('vin') || '';
+  const { answers, saving, updateAnswers, saveAnswers } = useFollowUpAnswers(currentVin);
   
   // Initialize formData with proper default values
   const [formData, setFormData] = useState<FormData>({
-    mileage: 0,
-    condition: ConditionLevel.Good,
-    zipCode: '',
+    mileage: answers.mileage || 0,
+    condition: (answers.condition as ConditionLevel) || ConditionLevel.Good,
+    zipCode: answers.zip_code || '',
     fuelType: '',
     transmission: '',
     conditionScore: 0,
-    hasRegularMaintenance: undefined,
+    hasRegularMaintenance: answers.service_history ? answers.service_history !== 'unknown' : undefined,
     maintenanceNotes: '',
-    hasAccident: undefined,
+    hasAccident: answers.accidents?.hadAccident,
     accidentDescription: ''
   });
 
@@ -74,9 +82,42 @@ export const VinFollowupFlow: React.FC = () => {
     return Math.round((completedSteps / followupSteps.length) * 100);
   };
 
-  const handleComplete = () => {
-    console.log('Follow-up completed with data:', formData);
-    // Here you would typically save the data or navigate to results
+  const handleComplete = async () => {
+    console.log('Completing follow-up with data:', formData);
+    
+    try {
+      // Update follow-up answers with completion
+      const updatedAnswers = {
+        ...answers,
+        mileage: formData.mileage,
+        condition: formData.condition,
+        zip_code: formData.zipCode,
+        service_history: formData.hasRegularMaintenance ? 'regular' : 'irregular',
+        completion_percentage: 100,
+        is_complete: true
+      };
+
+      updateAnswers(updatedAnswers);
+      
+      // Save the answers
+      const saved = await saveAnswers(updatedAnswers);
+      
+      if (saved) {
+        toast.success('Valuation completed! Redirecting to results...');
+        
+        // Navigate back to valuation page to show results
+        setTimeout(() => {
+          if (currentVin) {
+            navigate(`/valuation/${currentVin}`);
+          } else {
+            navigate('/valuation');
+          }
+        }, 1500);
+      }
+    } catch (error) {
+      console.error('Error completing follow-up:', error);
+      toast.error('Failed to complete valuation. Please try again.');
+    }
   };
 
   const renderCurrentStep = () => {
@@ -106,6 +147,7 @@ export const VinFollowupFlow: React.FC = () => {
 
   const isCurrentStepValid = stepValidities[currentStepIndex] || false;
   const isLastStep = currentStepIndex === followupSteps.length - 1;
+  const allStepsComplete = Object.values(stepValidities).every(Boolean);
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -133,14 +175,18 @@ export const VinFollowupFlow: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Vehicle Info Display */}
-              {state.vehicle && (
+              {(state.vehicle || currentVin) && (
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <h3 className="font-semibold text-blue-900">
-                    {state.vehicle.year} {state.vehicle.make} {state.vehicle.model}
-                  </h3>
-                  {state.vehicle.vin && (
-                    <p className="text-sm text-blue-700">VIN: {state.vehicle.vin}</p>
+                  {state.vehicle ? (
+                    <h3 className="font-semibold text-blue-900">
+                      {state.vehicle.year} {state.vehicle.make} {state.vehicle.model}
+                    </h3>
+                  ) : (
+                    <h3 className="font-semibold text-blue-900">
+                      Vehicle Valuation
+                    </h3>
                   )}
+                  <p className="text-sm text-blue-700">VIN: {currentVin}</p>
                 </div>
               )}
 
@@ -164,10 +210,17 @@ export const VinFollowupFlow: React.FC = () => {
                 {isLastStep ? (
                   <Button
                     onClick={handleComplete}
-                    disabled={!isCurrentStepValid}
+                    disabled={!allStepsComplete || saving}
                     className="flex items-center gap-2"
                   >
-                    Complete Valuation
+                    {saving ? (
+                      'Completing...'
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4" />
+                        Complete Valuation
+                      </>
+                    )}
                   </Button>
                 ) : (
                   <Button
