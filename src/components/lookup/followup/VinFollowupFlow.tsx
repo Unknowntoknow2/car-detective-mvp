@@ -1,340 +1,320 @@
 
-import React, { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Container } from '@/components/ui/container';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
-import { useFollowUpAnswers } from '@/components/valuation/enhanced-followup/hooks/useFollowUpAnswers';
-import { ConditionSelector } from '@/components/valuation/enhanced-followup/ConditionSelector';
-import { AccidentSection } from '@/components/valuation/enhanced-followup/AccidentSection';
-import { ModificationsSection } from '@/components/valuation/enhanced-followup/ModificationsSection';
-import { DashboardLightsSection } from '@/components/valuation/enhanced-followup/DashboardLightsSection';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Stepper } from '@/components/ui/stepper';
+import { useFollowUpAnswers } from '@/components/valuation/enhanced-followup/hooks/useFollowUpAnswers';
+import { AccidentSection } from '@/components/valuation/enhanced-followup/AccidentSection';
+import { ModificationsSection } from '@/components/valuation/enhanced-followup/ModificationsSection';
+import { DashboardLightsSection } from '@/components/valuation/enhanced-followup/DashboardLightsSection';
 import { toast } from 'sonner';
-import { CONDITION_OPTIONS, SERVICE_HISTORY_OPTIONS, TITLE_STATUS_OPTIONS, TIRE_CONDITION_OPTIONS, PREVIOUS_USE_OPTIONS } from '@/types/follow-up-answers';
+import { useNavigate } from 'react-router-dom';
 
 export function VinFollowupFlow() {
-  const { vin } = useParams<{ vin: string }>();
   const navigate = useNavigate();
   
-  if (!vin) {
-    navigate('/vin-lookup');
-    return null;
-  }
+  // Get VIN from localStorage or URL
+  const [vin] = useState(() => {
+    return localStorage.getItem('current_vin') || '';
+  });
 
   const { answers, loading, saving, updateAnswers, saveAnswers } = useFollowUpAnswers(vin);
+  const [currentStep, setCurrentStep] = useState(0);
 
-  // Auto-save when answers change
-  useEffect(() => {
-    if (!loading && answers.completion_percentage > 0) {
-      const timeoutId = setTimeout(() => {
-        saveAnswers();
-      }, 1000);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [answers, loading, saveAnswers]);
+  // Handle the case where completion_percentage might be undefined
+  const completionPercentage = answers.completion_percentage ?? 0;
+  const isComplete = completionPercentage >= 80;
 
-  const handleComplete = async () => {
-    if (answers.completion_percentage < 80) {
-      toast.error('Please complete more questions before finishing');
-      return;
-    }
+  const steps = [
+    'Basic Info',
+    'Condition Details', 
+    'History & Accidents',
+    'Final Details'
+  ];
 
-    const success = await saveAnswers({
-      ...answers,
-      is_complete: true,
-      completion_percentage: 100
-    });
-
-    if (success) {
-      toast.success('Follow-up complete! Generating your valuation...');
+  // Handle the case where completion_percentage might be undefined
+  if (completionPercentage >= 100) {
+    // Navigate to results when complete
+    setTimeout(() => {
       navigate(`/valuation/${vin}`);
-    }
+    }, 1000);
+  }
+
+  const handleBasicInfoSubmit = () => {
+    const basicData = {
+      mileage: parseInt((document.getElementById('mileage') as HTMLInputElement)?.value || '0'),
+      condition: (document.getElementById('condition') as HTMLSelectElement)?.value as 'excellent' | 'good' | 'fair' | 'poor',
+      zip_code: (document.getElementById('zip_code') as HTMLInputElement)?.value || '',
+      service_history: (document.getElementById('service_history') as HTMLSelectElement)?.value || '',
+      completion_percentage: 25,
+      is_complete: false
+    };
+
+    updateAnswers(basicData);
+    setCurrentStep(1);
   };
 
-  const handleBack = () => {
-    navigate(`/vin-lookup?vin=${vin}`);
+  const handleConditionSubmit = () => {
+    const conditionData = {
+      title_status: (document.getElementById('title_status') as HTMLSelectElement)?.value || '',
+      previous_owners: parseInt((document.getElementById('previous_owners') as HTMLInputElement)?.value || '1'),
+      previous_use: (document.getElementById('previous_use') as HTMLSelectElement)?.value || '',
+      tire_condition: (document.getElementById('tire_condition') as HTMLSelectElement)?.value || '',
+      completion_percentage: 50,
+      is_complete: false
+    };
+
+    updateAnswers(conditionData);
+    setCurrentStep(2);
+  };
+
+  const handleHistorySubmit = () => {
+    updateAnswers({
+      completion_percentage: 75,
+      is_complete: false
+    });
+    setCurrentStep(3);
+  };
+
+  const handleFinalSubmit = async () => {
+    const finalData = {
+      completion_percentage: 100,
+      is_complete: true
+    };
+
+    updateAnswers(finalData);
+    await saveAnswers();
+    
+    toast.success('Follow-up completed! Proceeding to valuation results.');
+    
+    // Navigate to valuation results
+    setTimeout(() => {
+      navigate(`/valuation/${vin}`);
+    }, 1500);
   };
 
   if (loading) {
     return (
-      <Container className="max-w-4xl py-8">
-        <div className="text-center">Loading follow-up questions...</div>
-      </Container>
+      <Card className="max-w-4xl mx-auto">
+        <CardContent className="p-8 text-center">
+          <div className="animate-pulse">Loading follow-up questions...</div>
+        </CardContent>
+      </Card>
     );
   }
 
-  const completionPercentage = answers.completion_percentage || 0;
-
   return (
-    <Container className="max-w-4xl py-8">
-      {/* Header */}
-      <Card className="mb-6">
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Progress Header */}
+      <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={handleBack}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </Button>
-              <div>
-                <CardTitle>Additional Vehicle Information</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  VIN: {vin}
-                </p>
-              </div>
+          <CardTitle>Vehicle Assessment Progress</CardTitle>
+          <div className="space-y-4">
+            <Progress value={completionPercentage} className="w-full" />
+            <div className="text-sm text-muted-foreground text-center">
+              {completionPercentage}% Complete
             </div>
-            <div className="text-right">
-              <div className="text-sm font-medium">
-                {completionPercentage}% Complete
-              </div>
-              <Progress value={completionPercentage} className="w-32 mt-1" />
-            </div>
+            <Stepper steps={steps} currentStep={currentStep} />
           </div>
         </CardHeader>
       </Card>
 
-      {/* Follow-up Questions */}
-      <div className="space-y-6">
-        {/* Basic Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="mileage">Current Mileage</Label>
-                <Input
-                  id="mileage"
-                  type="number"
-                  placeholder="Enter mileage"
-                  value={answers.mileage || ''}
-                  onChange={(e) => updateAnswers({ mileage: parseInt(e.target.value) || undefined })}
-                />
+      {/* Step Content */}
+      <Card>
+        <CardContent className="p-6">
+          {currentStep === 0 && (
+            <div className="space-y-6">
+              <h3 className="text-xl font-semibold">Basic Vehicle Information</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="mileage">Current Mileage</Label>
+                  <Input
+                    id="mileage"
+                    type="number"
+                    placeholder="Enter mileage"
+                    defaultValue={answers.mileage?.toString() || ''}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="zip_code">Zip Code</Label>
+                  <Input
+                    id="zip_code"
+                    placeholder="Enter zip code"
+                    defaultValue={answers.zip_code || ''}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="condition">Overall Condition</Label>
+                  <Select defaultValue={answers.condition || ''}>
+                    <SelectTrigger id="condition">
+                      <SelectValue placeholder="Select condition" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="excellent">Excellent</SelectItem>
+                      <SelectItem value="good">Good</SelectItem>
+                      <SelectItem value="fair">Fair</SelectItem>
+                      <SelectItem value="poor">Poor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="service_history">Service History</Label>
+                  <Select defaultValue={answers.service_history || ''}>
+                    <SelectTrigger id="service_history">
+                      <SelectValue placeholder="Select service history" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dealer">Dealer-maintained</SelectItem>
+                      <SelectItem value="independent">Independent mechanic</SelectItem>
+                      <SelectItem value="owner">Owner-maintained</SelectItem>
+                      <SelectItem value="unknown">No known history</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="zip_code">ZIP Code</Label>
-                <Input
-                  id="zip_code"
-                  placeholder="Enter ZIP code"
-                  value={answers.zip_code || ''}
-                  onChange={(e) => updateAnswers({ zip_code: e.target.value })}
-                />
+              
+              <Button onClick={handleBasicInfoSubmit} className="w-full">
+                Continue to Condition Details
+              </Button>
+            </div>
+          )}
+
+          {currentStep === 1 && (
+            <div className="space-y-6">
+              <h3 className="text-xl font-semibold">Condition & Ownership Details</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="title_status">Title Status</Label>
+                  <Select defaultValue={answers.title_status || ''}>
+                    <SelectTrigger id="title_status">
+                      <SelectValue placeholder="Select title status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="clean">Clean</SelectItem>
+                      <SelectItem value="salvage">Salvage</SelectItem>
+                      <SelectItem value="rebuilt">Rebuilt</SelectItem>
+                      <SelectItem value="branded">Branded</SelectItem>
+                      <SelectItem value="lemon">Lemon Law</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="previous_owners">Number of Previous Owners</Label>
+                  <Input
+                    id="previous_owners"
+                    type="number"
+                    placeholder="Enter number"
+                    defaultValue={answers.previous_owners?.toString() || '1'}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="previous_use">Previous Use</Label>
+                  <Select defaultValue={answers.previous_use || ''}>
+                    <SelectTrigger id="previous_use">
+                      <SelectValue placeholder="Select previous use" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="personal">Personal</SelectItem>
+                      <SelectItem value="commercial">Commercial / Fleet</SelectItem>
+                      <SelectItem value="rental">Rental / Ride-share</SelectItem>
+                      <SelectItem value="emergency">Police or Emergency</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="tire_condition">Tire Condition</Label>
+                  <Select defaultValue={answers.tire_condition || ''}>
+                    <SelectTrigger id="tire_condition">
+                      <SelectValue placeholder="Select tire condition" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="excellent">Excellent (8/32"+ tread)</SelectItem>
+                      <SelectItem value="good">Good (6–7/32")</SelectItem>
+                      <SelectItem value="worn">Worn (3–5/32")</SelectItem>
+                      <SelectItem value="replacement">Needs Replacement (<3/32")</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              
+              <Button onClick={handleConditionSubmit} className="w-full">
+                Continue to History & Accidents
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          )}
 
-        {/* Vehicle Condition */}
-        <ConditionSelector
-          value={answers.condition as 'excellent' | 'good' | 'fair' | 'poor' | undefined}
-          onChange={(condition) => updateAnswers({ condition })}
-        />
-
-        {/* Accident History */}
-        <AccidentSection
-          value={answers.accidents}
-          onChange={(accidents) => updateAnswers({ accidents })}
-        />
-
-        {/* Service History */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Service & Maintenance</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>Service History Type</Label>
-              <Select
-                value={answers.service_history || ''}
-                onValueChange={(service_history) => updateAnswers({ service_history })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select service history type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SERVICE_HISTORY_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label>Maintenance Status</Label>
-              <RadioGroup
-                value={answers.maintenance_status || ''}
-                onValueChange={(maintenance_status) => updateAnswers({ maintenance_status })}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="up_to_date" id="maintenance-current" />
-                  <Label htmlFor="maintenance-current">Up to date</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="needs_service" id="maintenance-needs" />
-                  <Label htmlFor="maintenance-needs">Needs service</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="unknown" id="maintenance-unknown" />
-                  <Label htmlFor="maintenance-unknown">Unknown</Label>
-                </div>
-              </RadioGroup>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Modifications */}
-        <ModificationsSection
-          value={answers.modifications}
-          onChange={(modifications) => updateAnswers({ modifications })}
-        />
-
-        {/* Dashboard Warning Lights */}
-        <DashboardLightsSection
-          value={answers.dashboard_lights}
-          onChange={(dashboard_lights) => updateAnswers({ dashboard_lights })}
-        />
-
-        {/* Title & Ownership */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Title & Ownership</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>Title Status</Label>
-              <Select
-                value={answers.title_status || ''}
-                onValueChange={(title_status) => updateAnswers({ title_status })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select title status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TITLE_STATUS_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="previous_owners">Number of Previous Owners</Label>
-              <Input
-                id="previous_owners"
-                type="number"
-                min="0"
-                max="10"
-                value={answers.previous_owners || ''}
-                onChange={(e) => updateAnswers({ previous_owners: parseInt(e.target.value) || undefined })}
+          {currentStep === 2 && (
+            <div className="space-y-6">
+              <h3 className="text-xl font-semibold">Accident History & Modifications</h3>
+              
+              <AccidentSection
+                value={answers.accidents}
+                onChange={(accidents) => updateAnswers({ accidents })}
               />
+              
+              <ModificationsSection
+                value={answers.modifications}
+                onChange={(modifications) => updateAnswers({ modifications })}
+              />
+              
+              <DashboardLightsSection
+                value={answers.dashboard_lights}
+                onChange={(dashboard_lights) => updateAnswers({ dashboard_lights })}
+              />
+              
+              <Button onClick={handleHistorySubmit} className="w-full">
+                Continue to Final Details
+              </Button>
             </div>
+          )}
 
-            <div>
-              <Label>Previous Use</Label>
-              <Select
-                value={answers.previous_use || ''}
-                onValueChange={(previous_use) => updateAnswers({ previous_use })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select previous use" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PREVIOUS_USE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Physical Condition */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Physical Condition</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>Tire Condition</Label>
-              <Select
-                value={answers.tire_condition || ''}
-                onValueChange={(tire_condition) => updateAnswers({ tire_condition })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select tire condition" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIRE_CONDITION_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Frame Damage</Label>
-              <RadioGroup
-                value={answers.frame_damage ? 'yes' : 'no'}
-                onValueChange={(value) => updateAnswers({ frame_damage: value === 'yes' })}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="no" id="frame-no" />
-                  <Label htmlFor="frame-no">No frame damage</Label>
+          {currentStep === 3 && (
+            <div className="space-y-6">
+              <h3 className="text-xl font-semibold">Final Review</h3>
+              
+              <div className="space-y-4">
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <h4 className="font-semibold text-green-800">Assessment Nearly Complete</h4>
+                  <p className="text-green-700">
+                    You've provided detailed information about your vehicle. 
+                    Click below to complete the assessment and view your valuation results.
+                  </p>
                 </div>
+                
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="yes" id="frame-yes" />
-                  <Label htmlFor="frame-yes">Has frame damage</Label>
+                  <input
+                    type="checkbox"
+                    id="frame_damage"
+                    checked={answers.frame_damage || false}
+                    onChange={(e) => updateAnswers({ frame_damage: e.target.checked })}
+                  />
+                  <Label htmlFor="frame_damage">Vehicle has frame damage</Label>
                 </div>
-              </RadioGroup>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Action Buttons */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-muted-foreground">
-                {saving && 'Saving...'}
-                {completionPercentage >= 80 && (
-                  <span className="text-green-600 flex items-center gap-1">
-                    <CheckCircle className="h-4 w-4" />
-                    Ready to complete
-                  </span>
-                )}
               </div>
               
               <Button 
-                onClick={handleComplete}
-                disabled={completionPercentage < 80 || saving}
-                size="lg"
+                onClick={handleFinalSubmit} 
+                className="w-full"
+                disabled={saving}
               >
-                {completionPercentage >= 80 ? 'Complete Valuation' : `Complete ${completionPercentage}% to finish`}
+                {saving ? 'Completing Assessment...' : 'Complete Assessment & View Results'}
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </Container>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
