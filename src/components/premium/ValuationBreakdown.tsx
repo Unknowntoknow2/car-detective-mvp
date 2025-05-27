@@ -9,18 +9,20 @@ interface ValuationBreakdownProps {
 }
 
 export function ValuationBreakdown({ valuation }: ValuationBreakdownProps) {
+  const estimatedValue = valuation.estimatedValue || valuation.estimated_value || 0;
+  
   // Define some common adjustment factors based on valuation data
   const adjustmentFactors = [
     {
       name: 'Base Value',
       percentage: 100,
-      value: valuation.estimated_value ? valuation.estimated_value * 0.8 : 0,
+      value: estimatedValue * 0.8,
       description: 'Starting point based on make, model, and year'
     },
     {
       name: 'Mileage',
       percentage: valuation.mileage && valuation.mileage > 50000 ? -10 : 5,
-      value: valuation.estimated_value ? (valuation.estimated_value * (valuation.mileage && valuation.mileage > 50000 ? -0.1 : 0.05)) : 0,
+      value: estimatedValue * (valuation.mileage && valuation.mileage > 50000 ? -0.1 : 0.05),
       description: `${valuation.mileage?.toLocaleString() || 'Unknown'} miles`
     },
     {
@@ -28,16 +30,15 @@ export function ValuationBreakdown({ valuation }: ValuationBreakdownProps) {
       percentage: valuation.condition === 'Excellent' ? 15 : 
                  valuation.condition === 'Good' ? 5 : 
                  valuation.condition === 'Fair' ? -5 : -15,
-      value: valuation.estimated_value ? 
-            (valuation.estimated_value * (valuation.condition === 'Excellent' ? 0.15 : 
-                                        valuation.condition === 'Good' ? 0.05 : 
-                                        valuation.condition === 'Fair' ? -0.05 : -0.15)) : 0,
+      value: estimatedValue * (valuation.condition === 'Excellent' ? 0.15 : 
+                              valuation.condition === 'Good' ? 0.05 : 
+                              valuation.condition === 'Fair' ? -0.05 : -0.15),
       description: valuation.condition || 'Unknown'
     },
     {
       name: 'Market Demand',
       percentage: 7,
-      value: valuation.estimated_value ? valuation.estimated_value * 0.07 : 0,
+      value: estimatedValue * 0.07,
       description: 'Current market conditions'
     }
   ];
@@ -81,7 +82,7 @@ export function ValuationBreakdown({ valuation }: ValuationBreakdownProps) {
             <div className="flex justify-between font-medium">
               <span>Final Valuation</span>
               <span className="text-primary">
-                {formatCurrency(valuation.estimated_value || 0)}
+                {formatCurrency(estimatedValue)}
               </span>
             </div>
           </div>
