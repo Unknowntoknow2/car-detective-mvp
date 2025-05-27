@@ -87,3 +87,16 @@ export const fetchVehicleByPlate = async (plate: string, state: string): Promise
     throw new Error(`Failed to lookup plate ${plate} in ${state}`);
   }
 };
+
+export const fetchTrimOptions = async (make: string, model: string, year: number): Promise<string[]> => {
+  console.log('🔍 Fetching trim options for:', make, model, year);
+  
+  try {
+    // Mock trim options for demo
+    const mockTrims = ['Base', 'SE', 'XLE', 'Limited'];
+    return mockTrims;
+  } catch (error) {
+    console.error('❌ Trim lookup error:', error);
+    return [];
+  }
+};

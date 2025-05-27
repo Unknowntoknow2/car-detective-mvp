@@ -7,6 +7,8 @@ export interface VehicleContext {
   condition?: string;
   vin?: string;
   features?: string[];
+  zipCode?: string;
+  accidentHistory?: boolean;
 }
 
 export interface AssistantContext {
@@ -14,4 +16,23 @@ export interface AssistantContext {
   valuation?: any;
   user?: any;
   session?: any;
+}
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp?: Date;
+}
+
+export interface AskAIRequest {
+  message: string;
+  context?: AssistantContext;
+  history?: ChatMessage[];
+}
+
+export interface AskAIResponse {
+  response: string;
+  context?: AssistantContext;
+  success: boolean;
+  error?: string;
 }

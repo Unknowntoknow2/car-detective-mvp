@@ -1,66 +1,79 @@
+
 import { ValuationResult } from '@/types/valuation';
 
-export const buildValuationReport = (result: ValuationResult | null, includeCarfax: boolean = false, templateType: 'basic' | 'premium' = 'basic') => {
-  if (!result) {
-    return {
-      id: 'N/A',
-      make: 'N/A',
-      model: 'N/A',
-      year: 0,
-      mileage: 0,
-      condition: 'N/A',
-      price: 0,
-      zipCode: 'N/A',
-      vin: 'N/A',
-      fuelType: 'N/A',
-      transmission: 'N/A',
-      color: 'N/A',
-      bodyType: 'N/A',
-      confidenceScore: 0,
-      isPremium: false,
-      priceRange: [0, 0] as [number, number],
-      adjustments: [],
-      generatedAt: new Date().toISOString(),
-      explanation: 'N/A',
-      userId: 'N/A',
+interface ReportData {
+  vehicle: {
+    year: number;
+    make: string;
+    model: string;
+    vin?: string;
+    mileage?: number;
+    condition?: string;
+    fuelType?: string;
+    transmission?: string;
+    bodyType?: string;
+    color?: string;
+    trim?: string;
+  };
+  valuation: {
+    estimatedValue: number;
+    confidenceScore?: number;
+    priceRange?: { min: number; max: number };
+    adjustments?: Array<{
+      factor: string;
+      impact: number;
+      description?: string;
+    }>;
+  };
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected: string[];
+  };
+}
+
+export const buildValuationReport = (data: ValuationResult): ReportData => {
+  // Handle price range - check if it's an object or array
+  let priceRange: { min: number; max: number } | undefined;
+  
+  if (data.price_range) {
+    if (typeof data.price_range === 'object' && 'low' in data.price_range && 'high' in data.price_range) {
+      priceRange = {
+        min: data.price_range.min || data.price_range.low,
+        max: data.price_range.max || data.price_range.high
+      };
+    }
+  } else if (data.priceRange && Array.isArray(data.priceRange) && data.priceRange.length >= 2) {
+    priceRange = {
+      min: data.priceRange[0],
+      max: data.priceRange[1]
     };
   }
 
-  // Handle different price range formats
-  let formattedPriceRange: [number, number] = [0, 0];
-  if (Array.isArray(result.priceRange)) {
-    if (result.priceRange.length >= 2) {
-      formattedPriceRange = [result.priceRange[0], result.priceRange[1]];
-    } else if (result.priceRange.length === 1) {
-      formattedPriceRange = [result.priceRange[0], result.priceRange[0]];
-    }
-  } else if (result.priceRange && typeof result.priceRange === 'object' && 'min' in result.priceRange && 'max' in result.priceRange) {
-    formattedPriceRange = [result.priceRange.min, result.priceRange.max];
-  }
-
   return {
-    id: result.id || 'N/A',
-    make: result.make || 'N/A',
-    model: result.model || 'N/A',
-    year: result.year || 0,
-    mileage: result.mileage || 0,
-    condition: result.condition || 'N/A',
-    price: result.estimatedValue || result.estimated_value || 0,
-    zipCode: result.zipCode || 'N/A',
-    vin: result.vin || 'N/A',
-    fuelType: result.fuelType || result.fuel_type || 'N/A',
-    transmission: result.transmission || 'N/A',
-    color: result.color || 'N/A',
-    bodyType: result.bodyType || result.body_type || 'N/A',
-    confidenceScore: result.confidenceScore || result.confidence_score || 0,
-    isPremium: result.isPremium || result.premium_unlocked || false,
-    priceRange: formattedPriceRange,
-    adjustments: result.adjustments || [],
-    generatedAt: new Date().toISOString(),
-    explanation: result.explanation || result.gptExplanation || 'N/A',
-    userId: result.userId || 'N/A',
-    trim: result.trim || 'N/A',
+    vehicle: {
+      year: data.year,
+      make: data.make,
+      model: data.model,
+      vin: data.vin,
+      mileage: data.mileage,
+      condition: data.condition,
+      fuelType: data.fuelType,
+      transmission: data.transmission,
+      bodyType: data.bodyType,
+      color: data.color,
+      trim: data.trim
+    },
+    valuation: {
+      estimatedValue: data.estimatedValue || data.estimated_value || 0,
+      confidenceScore: data.confidenceScore || data.confidence_score,
+      priceRange,
+      adjustments: data.adjustments
+    },
+    aiCondition: data.aiCondition ? {
+      condition: data.condition || 'Unknown',
+      confidenceScore: data.confidenceScore || data.confidence_score || 0,
+      issuesDetected: []
+    } : undefined
   };
 };
-
-export default buildValuationReport;

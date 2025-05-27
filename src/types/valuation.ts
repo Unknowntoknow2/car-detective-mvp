@@ -19,7 +19,7 @@ export interface ValuationResult {
     impact: number;
     description?: string;
   }>;
-  price_range?: [number, number] | { low: number; high: number; min: number; max: number };
+  price_range?: { low: number; high: number; min: number; max: number };
   priceRange?: [number, number];
   features?: string[];
   pdfUrl?: string;
@@ -39,6 +39,8 @@ export interface ValuationResult {
   photo_url?: string;
   photoScore?: number;
   userId?: string;
+  trim?: string;
+  aiCondition?: any;
 }
 
 export interface ValuationAdjustment {

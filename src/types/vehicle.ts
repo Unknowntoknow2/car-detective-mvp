@@ -23,6 +23,7 @@ export interface DecodedVehicleInfo {
   primaryPhoto?: string;
   seats?: number;
   condition?: string;
+  zipCode?: string;
 }
 
 export interface VehicleSearchResult {
