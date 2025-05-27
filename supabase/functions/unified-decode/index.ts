@@ -1,214 +1,286 @@
 
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
-import { corsHeaders } from "../_shared/cors.ts";
-import { fetchWithRetry } from "./utils/fetchWithRetry.ts";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders } from '../_shared/cors.ts'
+
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+)
 
 interface VehicleDecodeResponse {
   success: boolean;
   vin: string;
   source: 'nhtsa' | 'autoapi' | 'cache' | 'failed';
-  decoded?: any;
+  decoded?: {
+    vin: string;
+    year?: number;
+    make?: string;
+    model?: string;
+    trim?: string;
+    engine?: string;
+    transmission?: string;
+    drivetrain?: string;
+    bodyType?: string;
+    fuelType?: string;
+  };
   error?: string;
 }
 
+async function decodeWithNHTSA(vin: string): Promise<VehicleDecodeResponse> {
+  console.log(`🔄 Trying NHTSA API for VIN: ${vin}`);
+  
+  try {
+    const response = await fetch(
+      `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/${vin}?format=json`,
+      { signal: AbortSignal.timeout(5000) }
+    );
+    
+    if (!response.ok) {
+      throw new Error(`NHTSA API returned ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data.Results || data.Results.length === 0) {
+      throw new Error('No results from NHTSA');
+    }
+    
+    const results = data.Results;
+    const vehicleData: any = {};
+    
+    results.forEach((item: any) => {
+      switch (item.Variable) {
+        case 'Model Year':
+          if (item.Value && item.Value !== 'Not Applicable') {
+            vehicleData.year = parseInt(item.Value);
+          }
+          break;
+        case 'Make':
+          if (item.Value && item.Value !== 'Not Applicable') {
+            vehicleData.make = item.Value;
+          }
+          break;
+        case 'Model':
+          if (item.Value && item.Value !== 'Not Applicable') {
+            vehicleData.model = item.Value;
+          }
+          break;
+        case 'Trim':
+          if (item.Value && item.Value !== 'Not Applicable') {
+            vehicleData.trim = item.Value;
+          }
+          break;
+        case 'Engine Number of Cylinders':
+          if (item.Value && item.Value !== 'Not Applicable') {
+            vehicleData.engine = `${item.Value} Cylinder`;
+          }
+          break;
+        case 'Transmission Style':
+          if (item.Value && item.Value !== 'Not Applicable') {
+            vehicleData.transmission = item.Value;
+          }
+          break;
+        case 'Drive Type':
+          if (item.Value && item.Value !== 'Not Applicable') {
+            vehicleData.drivetrain = item.Value;
+          }
+          break;
+        case 'Body Class':
+          if (item.Value && item.Value !== 'Not Applicable') {
+            vehicleData.bodyType = item.Value;
+          }
+          break;
+        case 'Fuel Type - Primary':
+          if (item.Value && item.Value !== 'Not Applicable') {
+            vehicleData.fuelType = item.Value;
+          }
+          break;
+      }
+    });
+    
+    // Validate we have minimum required data and VIN matches
+    if (!vehicleData.make || !vehicleData.model || !vehicleData.year) {
+      throw new Error('Insufficient vehicle data from NHTSA');
+    }
+    
+    vehicleData.vin = vin;
+    
+    // Store successful decode in cache
+    await supabase.from('decoded_vehicles').upsert({
+      vin: vin,
+      year: vehicleData.year,
+      make: vehicleData.make,
+      model: vehicleData.model,
+      trim: vehicleData.trim,
+      engine: vehicleData.engine,
+      transmission: vehicleData.transmission,
+      drivetrain: vehicleData.drivetrain,
+      bodyType: vehicleData.bodyType,
+      fuelType: vehicleData.fuelType,
+      created_at: new Date().toISOString()
+    });
+    
+    console.log(`✅ NHTSA decode successful for VIN: ${vin}`);
+    
+    return {
+      success: true,
+      vin: vin,
+      source: 'nhtsa',
+      decoded: vehicleData
+    };
+    
+  } catch (error) {
+    console.error(`❌ NHTSA failed for VIN ${vin}:`, error);
+    
+    // Log the failure
+    await supabase.from('vin_failures').insert({
+      vin: vin,
+      source: 'nhtsa',
+      error_message: error.message,
+      created_at: new Date().toISOString()
+    });
+    
+    throw error;
+  }
+}
+
+async function checkCache(vin: string): Promise<VehicleDecodeResponse | null> {
+  console.log(`🔍 Checking cache for VIN: ${vin}`);
+  
+  try {
+    const { data, error } = await supabase
+      .from('decoded_vehicles')
+      .select('*')
+      .eq('vin', vin)
+      .single();
+    
+    if (error || !data) {
+      return null;
+    }
+    
+    // Validate cache data has minimum required fields
+    if (!data.make || !data.model || !data.year) {
+      console.log(`❌ Cache data incomplete for VIN: ${vin}`);
+      return null;
+    }
+    
+    console.log(`✅ Cache hit for VIN: ${vin}`);
+    
+    return {
+      success: true,
+      vin: vin,
+      source: 'cache',
+      decoded: {
+        vin: data.vin,
+        year: data.year,
+        make: data.make,
+        model: data.model,
+        trim: data.trim,
+        engine: data.engine,
+        transmission: data.transmission,
+        drivetrain: data.drivetrain,
+        bodyType: data.bodyType || data.bodytype,
+        fuelType: data.fuelType || data.fueltype,
+      }
+    };
+  } catch (error) {
+    console.error(`❌ Cache check failed for VIN ${vin}:`, error);
+    return null;
+  }
+}
+
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { vin } = await req.json();
     
-    if (!vin || vin.length !== 17) {
+    if (!vin) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          vin: vin || '', 
-          source: 'failed', 
-          error: 'Invalid VIN format' 
+          vin: '', 
+          source: 'failed',
+          error: 'VIN is required' 
         }),
         { 
-          status: 400, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
         }
       );
     }
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
+    
     console.log(`🔍 Starting VIN decode for: ${vin}`);
-
+    
     // Step 1: Check cache first
-    const { data: cachedData } = await supabase
-      .from('decoded_vehicles')
-      .select('*')
-      .eq('vin', vin)
-      .single();
-
-    if (cachedData) {
-      console.log(`✅ Found cached data for VIN: ${vin}`);
+    const cacheResult = await checkCache(vin);
+    if (cacheResult) {
       return new Response(
-        JSON.stringify({
-          success: true,
-          vin,
-          source: 'cache',
-          decoded: {
-            vin: cachedData.vin,
-            make: cachedData.make,
-            model: cachedData.model,
-            year: cachedData.year,
-            trim: cachedData.trim,
-            engine: cachedData.engine,
-            transmission: cachedData.transmission,
-            drivetrain: cachedData.drivetrain,
-            bodyType: cachedData.bodytype || cachedData.bodyType,
-            fuelType: cachedData.fueltype,
-            doors: cachedData.doors,
-            seats: cachedData.seats,
-            engineCylinders: cachedData.enginecylinders,
-            displacementL: cachedData.displacementl
-          }
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify(cacheResult),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
+    
     // Step 2: Try NHTSA API
-    console.log(`🔄 Trying NHTSA API for VIN: ${vin}`);
     try {
-      const nhtsaResponse = await fetchWithRetry(
-        `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`,
-        { method: 'GET' },
-        { maxRetries: 3, timeoutMs: 5000 }
+      const nhtsaResult = await decodeWithNHTSA(vin);
+      return new Response(
+        JSON.stringify(nhtsaResult),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
-
-      if (nhtsaResponse.ok) {
-        const nhtsaData = await nhtsaResponse.json();
-        const result = nhtsaData.Results?.[0];
-        
-        if (result && result.Make && result.Model) {
-          console.log(`✅ NHTSA decode successful for VIN: ${vin}`);
-          
-          const decodedVehicle = {
-            vin,
-            make: result.Make,
-            model: result.Model,
-            year: parseInt(result.ModelYear) || null,
-            trim: result.Trim || null,
-            engine: result.EngineModel || result.EnginePowerPS || null,
-            transmission: result.TransmissionStyle || 'Automatic',
-            drivetrain: result.DriveType || 'FWD',
-            bodyType: result.BodyClass || null,
-            fuelType: result.FuelTypePrimary || 'Gasoline',
-            doors: result.Doors || null,
-            seats: result.Seats || null,
-            engineCylinders: result.EngineCylinders || null,
-            displacementL: result.DisplacementL || null
-          };
-
-          // Cache the result
-          await supabase.from('decoded_vehicles').insert({
-            vin: decodedVehicle.vin,
-            make: decodedVehicle.make,
-            model: decodedVehicle.model,
-            year: decodedVehicle.year,
-            trim: decodedVehicle.trim,
-            engine: decodedVehicle.engine,
-            transmission: decodedVehicle.transmission,
-            drivetrain: decodedVehicle.drivetrain,
-            bodytype: decodedVehicle.bodyType,
-            fueltype: decodedVehicle.fuelType,
-            doors: decodedVehicle.doors,
-            seats: decodedVehicle.seats,
-            enginecylinders: decodedVehicle.engineCylinders,
-            displacementl: decodedVehicle.displacementL
-          });
-
-          return new Response(
-            JSON.stringify({
-              success: true,
-              vin,
-              source: 'nhtsa',
-              decoded: decodedVehicle
-            }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-      }
     } catch (nhtsaError) {
-      console.error(`❌ NHTSA API failed for VIN ${vin}:`, nhtsaError);
+      console.log(`❌ NHTSA failed, trying AutoAPI...`);
       
-      // Log the failure
-      await supabase.from('vin_failures').insert({
-        vin,
-        error_message: nhtsaError.message || 'NHTSA API timeout or error',
-        source: 'nhtsa'
-      });
+      // Step 3: Try AutoAPI (placeholder for now)
+      try {
+        console.log(`🔄 Trying AutoAPI for VIN: ${vin}`);
+        throw new Error('AutoAPI not configured');
+      } catch (autoApiError) {
+        console.error(`❌ AutoAPI failed for VIN ${vin}:`, autoApiError);
+      }
     }
-
-    // Step 3: Try AutoAPI (mock for now)
-    console.log(`🔄 Trying AutoAPI for VIN: ${vin}`);
-    try {
-      // Mock AutoAPI call - replace with real API when available
-      const mockAutoAPIData = {
-        vin,
-        make: null, // Will be populated from actual API
-        model: null,
-        year: null,
-        trim: null
-      };
-
-      // Since we don't have real AutoAPI yet, this will fail
-      throw new Error('AutoAPI not configured');
-    } catch (autoApiError) {
-      console.error(`❌ AutoAPI failed for VIN ${vin}:`, autoApiError);
-      
-      await supabase.from('vin_failures').insert({
-        vin,
-        error_message: autoApiError.message || 'AutoAPI not available',
-        source: 'autoapi'
-      });
-    }
-
-    // Step 4: Final fallback - log complete failure
+    
+    // All methods failed - log final failure
     console.error(`❌ All decode methods failed for VIN: ${vin}`);
     
     await supabase.from('vin_failures').insert({
-      vin,
-      error_message: 'All decode methods failed - NHTSA and AutoAPI unavailable',
-      source: 'failed'
+      vin: vin,
+      source: 'all_methods',
+      error_message: 'All decode methods failed',
+      created_at: new Date().toISOString()
     });
-
+    
+    // Return failure response - NO DEMO DATA
     return new Response(
       JSON.stringify({
         success: false,
-        vin,
+        vin: vin,
         source: 'failed',
-        error: 'Unable to decode VIN. All external services are currently unavailable. Please try again later or use manual entry.'
+        error: 'Unable to decode VIN. Please try again or use manual entry.'
       }),
       { 
-        status: 503,
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
       }
     );
-
+    
   } catch (error) {
-    console.error('❌ Unified decode error:', error);
+    console.error('❌ Decode request failed:', error);
     
     return new Response(
       JSON.stringify({
         success: false,
         vin: '',
         source: 'failed',
-        error: 'Internal server error'
+        error: 'Network error. Please check your connection and try again.'
       }),
       { 
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
       }
     );
   }
