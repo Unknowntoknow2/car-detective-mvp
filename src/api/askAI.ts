@@ -7,8 +7,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 export const askAI = async (request: AskAIRequest): Promise<AskAIResponse> => {
   try {
     console.log('🤖 Sending AI request:', { 
-      question: request.question.substring(0, 50) + '...', 
-      hasContext: !!request.userContext
+      message: request.message.substring(0, 50) + '...', 
+      hasContext: !!request.context
     });
 
     const response = await fetch(`${SUPABASE_URL}/functions/v1/ask-ai`, {
@@ -44,7 +44,7 @@ export const askAIN = async (messages: ChatMessage[]) => {
     const question = lastMessage?.content || '';
     
     const response = await askAI({
-      question,
+      message: question,
       chatHistory: messages.slice(0, -1),
       userContext: {
         isPremium: false,
@@ -72,7 +72,7 @@ RESPONSE STYLE:
 Your goal: help individuals sell smarter and help dealers make profitable decisions with speed and trust.`
     });
 
-    return { reply: response.answer };
+    return { reply: response.answer || response.response };
   } catch (error: any) {
     console.error('AIN API error:', error.message);
     throw error;
