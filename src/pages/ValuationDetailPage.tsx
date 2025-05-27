@@ -14,12 +14,22 @@ const ValuationDetailPage = () => {
     make: 'Toyota',
     model: 'Camry',
     year: 2020,
-    mileage: 35000,
-    accidents: 0,
     condition: 'Good',
     estimatedValue: 22500,
     confidenceScore: 85,
-    valuationId: id || 'mock-valuation-id' // Added the required valuationId
+    basePrice: 20000,
+    adjustments: [
+      {
+        factor: 'Low Mileage',
+        impact: 1500,
+        description: 'Vehicle has below average mileage for its age'
+      },
+      {
+        factor: 'Good Condition',
+        impact: 1000,
+        description: 'Vehicle is in excellent condition'
+      }
+    ]
   };
 
   return (
@@ -27,11 +37,7 @@ const ValuationDetailPage = () => {
       <div className="container mx-auto py-8">
         <h1 className="text-2xl font-bold mb-6">Valuation Details</h1>
         <Card className="p-6">
-          <ValuationResult 
-            valuationId={id} 
-            data={valuationData}
-            isPremium={false}
-          />
+          <ValuationResult data={valuationData} />
         </Card>
       </div>
     </MainLayout>

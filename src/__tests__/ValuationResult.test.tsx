@@ -2,7 +2,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ValuationResult from '@/components/valuation/ValuationResult';
+import { ValuationResult } from '@/components/valuation/ValuationResult';
 import { generateValuationExplanation } from '@/utils/generateValuationExplanation';
 
 // Import directly from @testing-library/dom
@@ -32,15 +32,12 @@ describe('ValuationResult component', () => {
       make: 'Toyota',
       model: 'Camry',
       year: 2018,
-      mileage: 50000,
       condition: 'Good',
-      zipCode: '90210',
       estimatedValue: 15000,
       confidenceScore: 85,
-      valuationId: 'test-valuation-id' // Add missing valuationId property
-    },
-    valuationId: 'test-valuation-id',
-    isPremium: false
+      basePrice: 13500,
+      adjustments: []
+    }
   };
 
   beforeEach(() => {
@@ -74,15 +71,5 @@ describe('ValuationResult component', () => {
     
     // Should still show the estimated value even if explanation fails
     expect(screen.getByText('$15,000')).toBeInTheDocument();
-  });
-
-  test('shows premium features when isPremium is true', async () => {
-    render(<ValuationResult {...defaultProps} isPremium={true} />);
-    
-    // Should show estimated value
-    expect(screen.getByText('$15,000')).toBeInTheDocument();
-    
-    // Should not show the "Upgrade to Premium" button
-    expect(screen.queryByText('Upgrade to Premium')).not.toBeInTheDocument();
   });
 });

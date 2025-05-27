@@ -1,239 +1,300 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Container } from '@/components/ui/container';
-import { EnhancedFollowUpForm } from '@/components/valuation/enhanced-followup/EnhancedFollowUpForm';
-import { EnhancedVehicleCard } from '@/components/valuation/enhanced-followup/EnhancedVehicleCard';
-import { ValuationResult } from '@/components/valuation/ValuationResult';
-import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
-import { fetchVehicleByVin } from '@/services/vehicleLookupService';
-import { useValuationResult } from '@/hooks/useValuationResult';
-import { toast } from 'sonner';
-import { DecodedVehicleInfo } from '@/types/vehicle';
-import { Loader2 } from 'lucide-react';
 
-export function ValuationPage() {
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
+import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
+import { EnhancedVehicleCard } from '@/components/valuation/enhanced-followup/EnhancedVehicleCard';
+import { EnhancedFollowUpForm } from '@/components/valuation/enhanced-followup/EnhancedFollowUpForm';
+import { ValuationResult } from '@/components/valuation/ValuationResult';
+import { useUser } from '@/hooks/useUser';
+import { useValuationResult } from '@/hooks/useValuationResult';
+import { lookupVin } from '@/services/vehicleService';
+import { supabase } from '@/integrations/supabase/client';
+import { DecodedVehicleInfo } from '@/types/vehicle';
+import { ValuationResult as ValuationResultType } from '@/types/valuation';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
+
+export default function ValuationPage() {
   const { vin } = useParams<{ vin: string }>();
   const navigate = useNavigate();
+  const { user } = useUser();
   const [vehicleInfo, setVehicleInfo] = useState<DecodedVehicleInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentStep, setCurrentStep] = useState<'lookup' | 'followup' | 'results'>('lookup');
-  const [error, setError] = useState<string | null>(null);
+  const [isLoadingVehicle, setIsLoadingVehicle] = useState(true);
+  const [vehicleError, setVehicleError] = useState<string | null>(null);
+  const [followUpCompleted, setFollowUpCompleted] = useState(false);
+  const [valuationGenerated, setValuationGenerated] = useState(false);
+  const [currentValuationId, setCurrentValuationId] = useState<string | null>(null);
 
-  // Get valuation result data
-  const { data: valuationData } = useValuationResult(vin || '');
+  // Fetch existing valuation result if available
+  const { data: existingValuation, isLoading: isLoadingValuation } = useValuationResult(vin || '');
 
+  // Load vehicle data on mount
   useEffect(() => {
     const loadVehicleData = async () => {
       if (!vin) {
-        setError('Invalid VIN provided');
-        setIsLoading(false);
-        return;
-      }
-
-      // Basic VIN validation
-      if (vin.length !== 17) {
-        setError('Invalid VIN format. VIN must be 17 characters.');
-        setIsLoading(false);
+        setVehicleError('No VIN provided');
+        setIsLoadingVehicle(false);
         return;
       }
 
       try {
-        setIsLoading(true);
-        console.log(`🔍 Loading vehicle data for VIN: ${vin}`);
-        const vehicle = await fetchVehicleByVin(vin);
-        
-        if (!vehicle.make || !vehicle.model || !vehicle.year) {
-          throw new Error('Incomplete vehicle data received');
-        }
-        
-        setVehicleInfo(vehicle);
-        setCurrentStep('followup');
-        console.log('✅ Vehicle data loaded:', vehicle);
+        console.log('🔍 Loading vehicle data for VIN:', vin);
+        const result = await lookupVin(vin);
+        setVehicleInfo(result);
+        console.log('✅ Vehicle data loaded:', result);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load vehicle data';
-        console.error('❌ Vehicle lookup error:', errorMessage);
-        setError(errorMessage);
+        console.error('❌ Failed to load vehicle data:', errorMessage);
+        setVehicleError(errorMessage);
         toast.error(errorMessage);
       } finally {
-        setIsLoading(false);
+        setIsLoadingVehicle(false);
       }
     };
 
     loadVehicleData();
   }, [vin]);
 
-  const handleFollowUpComplete = () => {
-    setCurrentStep('results');
-    toast.success('Assessment completed! Displaying valuation results...');
-  };
+  // Check if follow-up answers exist
+  useEffect(() => {
+    const checkFollowUpStatus = async () => {
+      if (!vin) return;
 
-  const createValuationData = (
-    vehicleInfo: DecodedVehicleInfo,
-    followUpData: any,
-    calculatedValue: number,
-    confidence: number
-  ) => {
-    const valuationId = vehicleInfo.vin || `temp_${Date.now()}`;
-    
-    return {
-      // Required ValuationResponse fields
-      success: true,
-      data: {
-        id: valuationId,
-        valuationId: valuationId, // Ensure this is always a string
-        make: vehicleInfo.make || 'Unknown',
-        model: vehicleInfo.model || 'Unknown',
-        year: vehicleInfo.year || new Date().getFullYear(),
-        mileage: followUpData?.mileage || 0,
-        condition: followUpData?.condition || 'good',
-        estimatedValue: calculatedValue,
-        confidenceScore: confidence,
-        basePrice: Math.round(calculatedValue * 0.9),
-        adjustments: [
-          {
-            factor: 'Condition',
-            impact: followUpData?.condition === 'excellent' ? 2000 : 
-                   followUpData?.condition === 'poor' ? -3000 : 0,
-            description: `Vehicle condition: ${followUpData?.condition || 'good'}`
-          },
-          {
-            factor: 'Mileage',
-            impact: followUpData?.mileage > 100000 ? -1500 : 
-                   followUpData?.mileage < 30000 ? 1000 : 0,
-            description: `Mileage impact: ${followUpData?.mileage || 0} miles`
-          }
-        ],
-        vin: vehicleInfo.vin,
-        trim: vehicleInfo.trim,
-        bodyType: vehicleInfo.bodyType,
-        fuelType: vehicleInfo.fuelType,
-        transmission: vehicleInfo.transmission,
-        color: vehicleInfo.color,
-        zipCode: followUpData?.zipCode,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        userId: user?.id,
-        manual_entry: false,
-        isPremium: false
+      try {
+        const { data, error } = await supabase
+          .from('follow_up_answers')
+          .select('*')
+          .eq('vin', vin.toUpperCase())
+          .maybeSingle();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error checking follow-up status:', error);
+          return;
+        }
+
+        if (data) {
+          setFollowUpCompleted(true);
+          console.log('✅ Follow-up answers found:', data);
+        }
+      } catch (error) {
+        console.error('Error checking follow-up status:', error);
       }
     };
+
+    checkFollowUpStatus();
+  }, [vin]);
+
+  // Check if valuation already exists
+  useEffect(() => {
+    if (existingValuation) {
+      setValuationGenerated(true);
+      setCurrentValuationId(existingValuation.id);
+      console.log('✅ Existing valuation found:', existingValuation);
+    }
+  }, [existingValuation]);
+
+  const handleFollowUpComplete = async () => {
+    if (!vin || !user?.id) {
+      toast.error('Missing required information');
+      return;
+    }
+
+    try {
+      setFollowUpCompleted(true);
+      toast.success('Assessment completed! Generating valuation...');
+
+      // Generate valuation based on follow-up answers
+      const { data: followUpData } = await supabase
+        .from('follow_up_answers')
+        .select('*')
+        .eq('vin', vin.toUpperCase())
+        .single();
+
+      if (!followUpData) {
+        throw new Error('Follow-up answers not found');
+      }
+
+      // Create valuation record
+      const { data: valuation, error: valuationError } = await supabase
+        .from('valuations')
+        .insert({
+          vin: vin.toUpperCase(),
+          user_id: user.id,
+          year: vehicleInfo?.year || new Date().getFullYear(),
+          make: vehicleInfo?.make || 'Unknown',
+          model: vehicleInfo?.model || 'Unknown',
+          estimated_value: calculateEstimatedValue(followUpData.answers),
+          confidence_score: 85,
+          base_price: calculateBasePrice(vehicleInfo),
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (valuationError) {
+        throw valuationError;
+      }
+
+      setCurrentValuationId(valuation.id);
+      setValuationGenerated(true);
+      toast.success('Valuation generated successfully!');
+
+    } catch (error) {
+      console.error('❌ Failed to generate valuation:', error);
+      toast.error('Failed to generate valuation. Please try again.');
+    }
   };
 
-  if (isLoading) {
+  const calculateEstimatedValue = (answers: any): number => {
+    // Base calculation logic based on follow-up answers
+    let baseValue = 15000; // Default base value
+    
+    if (vehicleInfo?.year) {
+      // Adjust for year
+      const currentYear = new Date().getFullYear();
+      const age = currentYear - vehicleInfo.year;
+      baseValue = Math.max(5000, baseValue - (age * 1000));
+    }
+
+    // Adjust based on condition
+    if (answers.condition) {
+      const conditionMultipliers = {
+        'excellent': 1.2,
+        'good': 1.0,
+        'fair': 0.8,
+        'poor': 0.6
+      };
+      baseValue *= conditionMultipliers[answers.condition] || 1.0;
+    }
+
+    // Adjust based on mileage
+    if (answers.mileage) {
+      const mileage = parseInt(answers.mileage);
+      if (mileage < 50000) baseValue *= 1.1;
+      else if (mileage > 100000) baseValue *= 0.9;
+    }
+
+    return Math.round(baseValue);
+  };
+
+  const calculateBasePrice = (vehicle: DecodedVehicleInfo | null): number => {
+    if (!vehicle?.year) return 12000;
+    
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - vehicle.year;
+    return Math.max(8000, 15000 - (age * 1200));
+  };
+
+  // Loading state
+  if (isLoadingVehicle || isLoadingValuation) {
     return (
-      <Container className="max-w-6xl py-10">
-        <CarFinderQaherHeader />
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-            <p className="text-muted-foreground">Loading vehicle information...</p>
-            <div className="inline-flex items-center px-3 py-1 bg-primary/10 text-primary rounded-full">
-              <span className="text-sm font-mono">VIN: {vin}</span>
+      <div className="flex min-h-screen flex-col bg-slate-50">
+        <Navbar />
+        <main className="flex-1 container max-w-6xl py-10">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center space-y-4">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+              <p className="text-muted-foreground">Loading vehicle information...</p>
             </div>
           </div>
-        </div>
-      </Container>
+        </main>
+        <Footer />
+      </div>
     );
   }
 
-  if (error || !vehicleInfo) {
+  // Error state
+  if (vehicleError || !vehicleInfo) {
     return (
-      <Container className="max-w-6xl py-10">
-        <CarFinderQaherHeader />
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold text-red-600">Vehicle Lookup Failed</h1>
-          <p className="text-muted-foreground">{error || 'Vehicle information not found'}</p>
-          <div className="inline-flex items-center px-3 py-1 bg-red-50 text-red-600 rounded-full">
-            <span className="text-sm font-mono">VIN: {vin}</span>
+      <div className="flex min-h-screen flex-col bg-slate-50">
+        <Navbar />
+        <main className="flex-1 container max-w-6xl py-10">
+          <div className="text-center space-y-4">
+            <Alert className="border-red-200 bg-red-50">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-700">
+                {vehicleError || 'Vehicle information not found'}
+              </AlertDescription>
+            </Alert>
+            <button
+              onClick={() => navigate('/vin-lookup')}
+              className="bg-primary text-primary-foreground px-6 py-2 rounded-md hover:bg-primary/90"
+            >
+              Try Another VIN Lookup
+            </button>
           </div>
-          <button
-            onClick={() => navigate('/')}
-            className="bg-primary text-primary-foreground px-6 py-2 rounded-md hover:bg-primary/90"
-          >
-            Try Another VIN Lookup
-          </button>
-        </div>
-      </Container>
+        </main>
+        <Footer />
+      </div>
     );
   }
+
+  // Prepare valuation data for display
+  const valuationData = existingValuation ? {
+    make: existingValuation.make,
+    model: existingValuation.model,
+    year: existingValuation.year,
+    condition: 'Good', // Default condition
+    estimatedValue: existingValuation.estimatedValue || 0,
+    confidenceScore: existingValuation.confidenceScore || 85,
+    basePrice: existingValuation.basePrice || calculateBasePrice(vehicleInfo),
+    adjustments: existingValuation.adjustments || [
+      {
+        factor: 'Vehicle Age',
+        impact: -2000,
+        description: 'Depreciation based on vehicle age'
+      },
+      {
+        factor: 'Market Demand',
+        impact: 1500,
+        description: 'High demand for this make and model'
+      }
+    ]
+  } : null;
 
   return (
-    <Container className="max-w-6xl py-10">
-      <div className="space-y-8">
-        <CarFinderQaherHeader />
-
-        <div className="space-y-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold">Vehicle Valuation Assessment</h1>
-            <p className="text-muted-foreground">
-              Complete your vehicle assessment for an accurate market valuation
-            </p>
-            <div className="inline-flex items-center px-3 py-1 bg-primary/10 text-primary rounded-full">
-              <span className="text-sm font-mono">VIN: {vin}</span>
-            </div>
-          </div>
-
-          {/* Enhanced Vehicle Information Display */}
-          <EnhancedVehicleCard vehicle={vehicleInfo} />
-
-          {currentStep === 'followup' && (
-            <EnhancedFollowUpForm
-              vin={vehicleInfo.vin || vin || ''}
-              onComplete={handleFollowUpComplete}
-            />
-          )}
-
-          {currentStep === 'results' && valuationData && (
-            <div className="space-y-6">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-                <h2 className="text-xl font-semibold text-green-800 mb-2">
-                  Valuation Complete!
-                </h2>
-                <p className="text-green-700">
-                  Your comprehensive vehicle assessment has been processed using real market data.
-                </p>
+    <div className="flex min-h-screen flex-col bg-slate-50">
+      <Navbar />
+      <main className="flex-1 container max-w-6xl py-10">
+        <div className="space-y-8">
+          <CarFinderQaherHeader />
+          
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <h1 className="text-3xl font-bold">Vehicle Assessment & Valuation</h1>
+              <p className="text-muted-foreground">
+                Complete your vehicle assessment for an accurate valuation
+              </p>
+              <div className="inline-flex items-center px-3 py-1 bg-primary/10 text-primary rounded-full">
+                <span className="text-sm">VIN: {vin}</span>
               </div>
-              
-              <ValuationResult 
-                valuationId={valuationData.id}
-                data={{
-                  ...valuationData,
-                  make: vehicleInfo.make || '',
-                  model: vehicleInfo.model || '',
-                  year: vehicleInfo.year || new Date().getFullYear(),
-                  mileage: valuationData.mileage || 0,
-                  condition: valuationData.condition || 'Good',
-                  estimatedValue: valuationData.estimatedValue || 0,
-                  confidenceScore: valuationData.confidenceScore || 75
-                }}
-                isPremium={false}
+            </div>
+
+            <EnhancedVehicleCard vehicle={vehicleInfo} />
+
+            {!followUpCompleted && !valuationGenerated && (
+              <EnhancedFollowUpForm
+                vin={vin || ''}
+                onComplete={handleFollowUpComplete}
               />
-            </div>
-          )}
+            )}
 
-          {currentStep === 'results' && !valuationData && (
-            <div className="text-center space-y-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                <h2 className="text-xl font-semibold text-blue-800 mb-2">
-                  Generating Your Valuation
-                </h2>
-                <p className="text-blue-700">
-                  Processing your vehicle assessment data to provide the most accurate valuation...
-                </p>
-                <div className="mt-4">
-                  <div className="animate-pulse flex space-x-1 justify-center">
-                    <div className="h-2 w-2 bg-blue-400 rounded-full"></div>
-                    <div className="h-2 w-2 bg-blue-400 rounded-full"></div>
-                    <div className="h-2 w-2 bg-blue-400 rounded-full"></div>
-                  </div>
+            {(followUpCompleted || valuationGenerated) && valuationData && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold text-green-600">✅ Valuation Complete</h2>
+                  <p className="text-muted-foreground">Your vehicle has been professionally assessed</p>
                 </div>
+                <ValuationResult data={valuationData} />
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
-    </Container>
+      </main>
+      <Footer />
+    </div>
   );
 }
-
-export default ValuationPage;
