@@ -6,6 +6,7 @@ export interface FormData {
   model: string;
   year: number;
   identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
+  identifier?: string;
   
   // Vehicle details
   mileage: number;
@@ -18,6 +19,7 @@ export interface FormData {
   zipCode: string;
   bodyStyle?: string;
   bodyType?: string;
+  color?: string;
   
   // Condition and history
   condition?: string;
@@ -48,4 +50,5 @@ export interface FeatureOption {
   valueImpact: number;
   description?: string;
   isSelected?: boolean;
+  value?: number;
 }

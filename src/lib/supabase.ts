@@ -1,4 +1,9 @@
 
-// Re-export from the centralized supabase client file
-import { supabase, getSupabaseClient } from '@/lib/supabaseClient';
-export { supabase, getSupabaseClient };
+import { createClient } from '@supabase/supabase-js';
+
+export const supabase = createClient(
+  process.env.REACT_APP_SUPABASE_URL || '',
+  process.env.REACT_APP_SUPABASE_ANON_KEY || ''
+);
+
+export const getSupabaseClient = () => supabase;

@@ -19,6 +19,10 @@ export interface DecodedVehicleInfo {
   estimatedValue?: number;
   confidenceScore?: number;
   valuationId?: string;
+  // Additional properties for compatibility
+  primaryPhoto?: string;
+  seats?: number;
+  condition?: string;
 }
 
 export interface VehicleSearchResult {
@@ -61,4 +65,32 @@ export interface DealerInventoryItem {
   photos?: string[];
   created_at?: string;
   updated_at?: string;
+}
+
+export interface ValuationResponse {
+  make: string;
+  model: string;
+  year: number;
+  mileage?: number;
+  condition: string;
+  estimatedValue: number;
+  confidenceScore?: number;
+  valuationId: string;
+  zipCode?: string;
+  fuelType?: string;
+  transmission?: string;
+  bodyStyle?: string;
+  color?: string;
+  accidents?: number;
+  trim?: string;
+  vin?: string;
+  isPremium?: boolean;
+  price_range?: {
+    low: number;
+    high: number;
+  };
+  adjustments?: any[];
+  aiCondition?: any;
+  userId?: string;
+  [key: string]: any;
 }
