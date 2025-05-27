@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
 import { DecodedVehicleInfo } from '@/types/vehicle';
-import { getCarPricePrediction } from '@/services/carPricePredictionService';
+import { fetchVehicleByVin, fetchVehicleByPlate } from '@/services/vehicleLookupService';
+import { toast } from 'sonner';
 
 interface UseVinLookupResult {
   isLoading: boolean;
@@ -24,60 +25,27 @@ export const useVinLookup = (): UseVinLookupResult => {
   };
   
   const lookupByVin = async (vin: string): Promise<DecodedVehicleInfo | null> => {
+    console.log('🔍 Real VIN lookup started for:', vin);
     setIsLoading(true);
     setError(null);
+    setVehicle(null);
     
     try {
-      // Mock decoded data - in production this would come from VIN decoder API
-      const decoded = {
-        make: 'Toyota',
-        model: 'Camry',
-        year: 2020,
-        fuelType: 'Gasoline',
-        transmission: 'Automatic',
-        bodyType: 'Sedan',
-        color: 'Silver'
-      };
-
-      // Get real valuation from API
-      const prediction = await getCarPricePrediction({
-        make: decoded.make,
-        model: decoded.model,
-        year: decoded.year,
-        mileage: 42000,
-        condition: 'good',
-        zipCode: '90210',
-        fuelType: decoded.fuelType,
-        transmission: decoded.transmission,
-        color: decoded.color,
-        bodyType: decoded.bodyType,
-        vin: vin
-      });
-
-      const result: DecodedVehicleInfo = {
-        vin,
-        make: prediction.make,
-        model: prediction.model,
-        year: prediction.year,
-        trim: 'LE',
-        engine: '2.5L I4',
-        transmission: prediction.transmission,
-        drivetrain: 'FWD',
-        bodyType: prediction.bodyType,
-        exteriorColor: prediction.color,
-        color: prediction.color,
-        fuelType: prediction.fuelType,
-        features: ['bluetooth', 'backup_camera', 'alloy_wheels'],
-        estimatedValue: prediction.estimatedValue,
-        confidenceScore: prediction.confidenceScore,
-        valuationId: `vin-${Date.now()}`
-      };
+      const result = await fetchVehicleByVin(vin);
       
+      if (!result.make || !result.model || !result.year) {
+        throw new Error('Incomplete vehicle data received from VIN decode');
+      }
+      
+      console.log('✅ Real VIN lookup successful:', result);
       setVehicle(result);
+      toast.success(`Vehicle found: ${result.year} ${result.make} ${result.model}`);
       return result;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to lookup VIN';
+      const errorMessage = err instanceof Error ? err.message : 'VIN lookup failed';
+      console.error('❌ VIN lookup error:', errorMessage);
       setError(errorMessage);
+      toast.error(errorMessage);
       return null;
     } finally {
       setIsLoading(false);
@@ -85,59 +53,27 @@ export const useVinLookup = (): UseVinLookupResult => {
   };
   
   const lookupByPlate = async (plate: string, state: string): Promise<DecodedVehicleInfo | null> => {
+    console.log('🔍 Real plate lookup started for:', plate, state);
     setIsLoading(true);
     setError(null);
+    setVehicle(null);
     
     try {
-      // Mock decoded data - in production this would come from plate lookup API
-      const decoded = {
-        make: 'Honda',
-        model: 'Accord',
-        year: 2019,
-        fuelType: 'Gasoline',
-        transmission: 'CVT',
-        bodyType: 'Sedan',
-        color: 'Blue'
-      };
-
-      // Get real valuation from API
-      const prediction = await getCarPricePrediction({
-        make: decoded.make,
-        model: decoded.model,
-        year: decoded.year,
-        mileage: 52000,
-        condition: 'good',
-        zipCode: '90210',
-        fuelType: decoded.fuelType,
-        transmission: decoded.transmission,
-        color: decoded.color,
-        bodyType: decoded.bodyType
-      });
-
-      const result: DecodedVehicleInfo = {
-        vin: `PLATE-${plate}-${state}`,
-        make: prediction.make,
-        model: prediction.model,
-        year: prediction.year,
-        trim: 'EX',
-        engine: '1.5L Turbo',
-        transmission: prediction.transmission,
-        drivetrain: 'FWD',
-        bodyType: prediction.bodyType,
-        exteriorColor: prediction.color,
-        color: prediction.color,
-        fuelType: prediction.fuelType,
-        features: ['sunroof', 'lane_assist', 'heated_seats'],
-        estimatedValue: prediction.estimatedValue,
-        confidenceScore: prediction.confidenceScore,
-        valuationId: `plate-${Date.now()}`
-      };
+      const result = await fetchVehicleByPlate(plate, state);
       
+      if (!result.make || !result.model || !result.year) {
+        throw new Error('Incomplete vehicle data received from plate lookup');
+      }
+      
+      console.log('✅ Real plate lookup successful:', result);
       setVehicle(result);
+      toast.success(`Vehicle found: ${result.year} ${result.make} ${result.model}`);
       return result;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to lookup license plate';
+      const errorMessage = err instanceof Error ? err.message : 'License plate lookup failed';
+      console.error('❌ Plate lookup error:', errorMessage);
       setError(errorMessage);
+      toast.error(errorMessage);
       return null;
     } finally {
       setIsLoading(false);
@@ -146,24 +82,36 @@ export const useVinLookup = (): UseVinLookupResult => {
   
   const lookupVehicle = (type: string, id: string, additionalData?: any, manualData?: any) => {
     if (manualData) {
-      // Create a vehicle object from manual data
+      // Only allow manual entry if user explicitly provides complete data
+      const requiredFields = ['make', 'model', 'year'];
+      const missingFields = requiredFields.filter(field => !manualData[field]);
+      
+      if (missingFields.length > 0) {
+        const errorMsg = `Manual entry requires: ${missingFields.join(', ')}`;
+        setError(errorMsg);
+        toast.error(errorMsg);
+        return;
+      }
+      
       const manualVehicle: DecodedVehicleInfo = {
-        make: manualData.make || '',
-        model: manualData.model || '',
-        year: Number(manualData.year) || new Date().getFullYear(),
-        vin: manualData.vin || '',
-        trim: manualData.trim || '',
-        engine: manualData.engine || '',
-        transmission: manualData.transmission || '',
-        drivetrain: manualData.drivetrain || '',
-        bodyType: manualData.bodyType || '',
-        exteriorColor: manualData.color || '',
-        color: manualData.color || '',
-        fuelType: manualData.fuelType || '',
-        features: manualData.features || []
+        make: manualData.make,
+        model: manualData.model,
+        year: Number(manualData.year),
+        vin: manualData.vin || undefined,
+        trim: manualData.trim || undefined,
+        engine: manualData.engine || undefined,
+        transmission: manualData.transmission || undefined,
+        drivetrain: manualData.drivetrain || undefined,
+        bodyType: manualData.bodyType || undefined,
+        exteriorColor: manualData.color || undefined,
+        fuelType: manualData.fuelType || undefined,
+        // Only real photos allowed
+        photos: []
       };
       
+      console.log('✅ Manual vehicle entry accepted:', manualVehicle);
       setVehicle(manualVehicle);
+      toast.success('Manual vehicle data accepted');
     }
   };
   
