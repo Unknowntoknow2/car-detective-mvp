@@ -38,7 +38,7 @@ export function drawVehicleDetailsSection(
     { label: 'Condition:', value: vehicle.condition || 'N/A' },
     { label: 'Transmission:', value: vehicle.transmission || 'N/A' },
     { label: 'Body Type:', value: vehicle.bodyType || 'N/A' },
-    { label: 'Color:', value: vehicle.color || 'N/A' },
+    { label: 'Color:', value: vehicle.color || vehicle.exteriorColor || 'N/A' },
   ];
   
   for (const detail of vehicleDetails) {

@@ -21,7 +21,7 @@ export interface FollowupData {
   accidents?: number;
   titleStatus?: string;
   location?: string;
-  photos?: File[];
+  photos?: string[]; // Changed to only accept string arrays
   [key: string]: any;
 }
 
@@ -111,11 +111,11 @@ export function useVinLookupFlow() {
 
     try {
       // Enhanced valuation with followup data
-      const enhancedResult = {
+      const enhancedResult: DecodedVehicleInfo = {
         ...state.vehicle,
         ...followupData,
         confidenceScore: calculateConfidenceScore(followupData),
-        isComplete: true
+        photos: followupData.photos || state.vehicle.photos // Ensure photos are strings
       };
 
       updateState({

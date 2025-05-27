@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useDealerInventory } from './hooks/useDealerInventory';
-import { DealerVehicle } from '@/types/dealerVehicle'; // Updated import
+import { DealerVehicle } from '@/types/dealerVehicle';
 import { DealerInventoryTable } from './DealerInventoryTable';
 import { Button } from '@/components/ui/button';
 

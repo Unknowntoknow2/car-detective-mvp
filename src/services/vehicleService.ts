@@ -23,7 +23,7 @@ export const decodeLicensePlate = async (
       engine: "2.5L 4-Cylinder",
       fuelType: "Gasoline",
       transmission: "Automatic",
-      doors: 4,
+      doors: "4",
       exteriorColor: "Silver",
       mileage: 45000,
       condition: "Good"
