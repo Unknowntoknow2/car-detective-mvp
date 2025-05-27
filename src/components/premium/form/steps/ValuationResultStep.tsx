@@ -28,20 +28,22 @@ export const ValuationResultStep: React.FC<ValuationResultStepProps> = ({
     );
   }
 
-  // Handle price range safely
+  // Handle price range safely with explicit typing
   const getPriceRange = (): { min: number; max: number } | null => {
     if (valuation.price_range) {
       if (typeof valuation.price_range === 'object') {
         if ('low' in valuation.price_range && 'high' in valuation.price_range) {
+          const range = valuation.price_range as { low: number; high: number; min?: number; max?: number };
           return {
-            min: valuation.price_range.low,
-            max: valuation.price_range.high
+            min: range.min ?? range.low,
+            max: range.max ?? range.high
           };
         }
         if ('min' in valuation.price_range && 'max' in valuation.price_range) {
+          const range = valuation.price_range as { min: number; max: number };
           return {
-            min: valuation.price_range.min,
-            max: valuation.price_range.max
+            min: range.min,
+            max: range.max
           };
         }
       }
