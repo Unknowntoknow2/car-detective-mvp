@@ -18,6 +18,12 @@ export default function ValuationPage() {
     severity: undefined,
   });
 
+  console.log('📄 ValuationPage state:', {
+    vinFromUrl: vin,
+    hasVehicle: !!vehicle,
+    vehicleData: vehicle
+  });
+
   useEffect(() => {
     if (vin) {
       // Store VIN in localStorage for other components to access
@@ -27,7 +33,7 @@ export default function ValuationPage() {
   }, [vin]);
 
   const handleVehicleFound = (foundVehicle: any) => {
-    console.log('ValuationPage: Vehicle found:', foundVehicle);
+    console.log('✅ ValuationPage: Vehicle found and setting state:', foundVehicle);
     setVehicle(foundVehicle);
   };
 

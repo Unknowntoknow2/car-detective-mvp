@@ -14,6 +14,10 @@ interface UnifiedVinLookupProps {
   onSubmit?: (vin: string) => void;
   onVehicleFound?: (vehicle: any) => void;
   initialVin?: string;
+  // External state props - if provided, use these instead of internal hook
+  externalState?: any;
+  externalSetVin?: (vin: string) => void;
+  externalLookupVin?: (vin: string) => Promise<any>;
 }
 
 export function UnifiedVinLookup({ 
@@ -21,9 +25,19 @@ export function UnifiedVinLookup({
   className,
   onSubmit,
   onVehicleFound,
-  initialVin
+  initialVin,
+  externalState,
+  externalSetVin,
+  externalLookupVin
 }: UnifiedVinLookupProps) {
-  const { state, setVin, lookupVin } = useVinLookupFlow();
+  // Use external state if provided, otherwise use internal hook
+  const internalHook = useVinLookupFlow();
+  const { state, setVin, lookupVin } = externalState ? {
+    state: externalState,
+    setVin: externalSetVin!,
+    lookupVin: externalLookupVin!
+  } : internalHook;
+
   const [localVin, setLocalVin] = useState(initialVin || '');
   const [error, setError] = useState<string | null>(null);
 
@@ -32,8 +46,8 @@ export function UnifiedVinLookup({
     stateVin: state.vin,
     isLoading: state.isLoading,
     stateStage: state.stage,
-    localVinLength: localVin.length,
-    buttonShouldBeDisabled: state.isLoading || localVin.length < 17
+    vehicle: state.vehicle,
+    usingExternalState: !!externalState
   });
 
   // Set initial VIN if provided
@@ -45,7 +59,7 @@ export function UnifiedVinLookup({
     }
   }, [initialVin, localVin, setVin]);
 
-  // Handle vehicle found
+  // Handle vehicle found - trigger callback when vehicle is found
   useEffect(() => {
     if (state.vehicle && onVehicleFound) {
       console.log('✅ Vehicle found, calling onVehicleFound:', state.vehicle);
@@ -77,9 +91,8 @@ export function UnifiedVinLookup({
       try {
         const result = await lookupVin(localVin);
         console.log('🔍 Lookup result:', result);
-        if (result && onVehicleFound) {
-          onVehicleFound(result);
-        }
+        
+        // The useEffect above will handle calling onVehicleFound when state.vehicle updates
       } catch (error) {
         console.error('❌ Lookup error:', error);
         toast.error('VIN lookup failed. Please try again.');

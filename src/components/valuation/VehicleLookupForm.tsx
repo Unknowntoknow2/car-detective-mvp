@@ -12,11 +12,18 @@ interface VehicleLookupFormProps {
 }
 
 export function VehicleLookupForm({ onVehicleFound, showHeader = true }: VehicleLookupFormProps) {
-  const { state, lookupVin, retryLookup } = useVinLookupFlow();
+  const { state, setVin, lookupVin, retryLookup } = useVinLookupFlow();
   const navigate = useNavigate();
 
+  console.log('🔍 VehicleLookupForm state:', {
+    stage: state.stage,
+    isLoading: state.isLoading,
+    hasVehicle: !!state.vehicle,
+    error: state.error
+  });
+
   const handleVehicleFound = (vehicle: any) => {
-    console.log('✅ Real vehicle found:', vehicle);
+    console.log('✅ VehicleLookupForm: Vehicle found:', vehicle);
     
     if (onVehicleFound) {
       onVehicleFound(vehicle);
@@ -44,6 +51,9 @@ export function VehicleLookupForm({ onVehicleFound, showHeader = true }: Vehicle
         <UnifiedVinLookup 
           onVehicleFound={handleVehicleFound}
           showHeader={false}
+          externalState={state}
+          externalSetVin={setVin}
+          externalLookupVin={lookupVin}
         />
         
         {state.stage === 'error' && state.error && (
