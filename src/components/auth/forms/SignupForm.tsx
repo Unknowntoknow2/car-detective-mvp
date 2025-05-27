@@ -30,7 +30,7 @@ export const SignupForm = ({
   isLoading: externalIsLoading = false, 
   setIsLoading: externalSetIsLoading, 
   role = 'individual', 
-  redirectPath = '/dashboard', 
+  redirectPath, 
   showDealershipField = false,
   userType
 }: SignupFormProps) => {
@@ -80,7 +80,14 @@ export const SignupForm = ({
         description: 'Welcome to Car Detective!'
       });
       
-      navigate(redirectPath);
+      // Use appropriate redirect path based on user type
+      let targetPath = redirectPath || '/';
+      
+      if (userType === 'dealer') {
+        targetPath = '/dealer/dashboard';
+      }
+      
+      navigate(targetPath);
     } catch (err: any) {
       setFormError('An unexpected error occurred');
       toast.error('Sign up failed', {

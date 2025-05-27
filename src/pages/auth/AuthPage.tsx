@@ -17,7 +17,8 @@ export default function AuthPage() {
   
   React.useEffect(() => {
     if (user) {
-      const from = location.state?.from?.pathname || '/dashboard';
+      // Redirect to home page instead of dashboard to avoid 404
+      const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     }
   }, [user, navigate, location]);
@@ -92,7 +93,7 @@ export default function AuthPage() {
               <TabsContent value="signin" className="mt-4">
                 <SigninForm 
                   userType={userType}
-                  redirectPath={userType === 'dealer' ? '/dealer/dashboard' : '/dashboard'} 
+                  redirectPath="/"
                 />
               </TabsContent>
               
@@ -100,7 +101,7 @@ export default function AuthPage() {
                 <SignupForm 
                   userType={userType}
                   showDealershipField={userType === 'dealer'}
-                  redirectPath={userType === 'dealer' ? '/dealer/dashboard' : '/dashboard'} 
+                  redirectPath="/"
                 />
               </TabsContent>
             </Tabs>

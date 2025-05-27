@@ -21,7 +21,7 @@ export interface SigninFormProps {
 export const SigninForm: React.FC<SigninFormProps> = ({ 
   isLoading: externalIsLoading, 
   setIsLoading: externalSetIsLoading,
-  redirectPath = '/dashboard',
+  redirectPath,
   role,
   alternateLoginPath,
   alternateLoginText,
@@ -57,14 +57,20 @@ export const SigninForm: React.FC<SigninFormProps> = ({
       
       toast.success('Signed in successfully!');
       
-      let targetPath = redirectPath;
+      // Use the home page as default redirect if no specific path is provided
+      let targetPath = redirectPath || '/';
+      
       if (userType === 'dealer') {
         targetPath = '/dealer/dashboard';
       }
       
-      const from = location.state?.from?.pathname || targetPath;
+      // Check if there's a saved redirect path from location state
+      const from = location.state?.from?.pathname;
+      if (from && from !== '/auth') {
+        targetPath = from;
+      }
       
-      navigate(from, { replace: true });
+      navigate(targetPath, { replace: true });
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
       toast.error('Sign in failed', {
