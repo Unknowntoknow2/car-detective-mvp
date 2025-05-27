@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useVinLookupFlow } from '@/hooks/useVinLookupFlow';
-import { VehicleFoundCard } from '@/components/lookup/found/FoundCarCard';
+import VehicleFoundCard from '@/components/lookup/found/FoundCarCard';
 import { MileageInput } from '@/components/valuation/enhanced-followup/MileageInput';
 import { ConditionSelector } from '@/components/valuation/enhanced-followup/ConditionSelector';
 import { PreviousUseSelector } from '@/components/valuation/enhanced-followup/PreviousUseSelector';
@@ -44,7 +44,7 @@ export function VinFollowupFlow() {
       mileage,
       condition,
       previousUse,
-      accidents,
+      accidents: accidents.hadAccident ? (accidents.count || 1) : 0,
     };
 
     await submitFollowup(followupData);
@@ -59,6 +59,7 @@ export function VinFollowupFlow() {
       <div className="space-y-6">
         <VehicleFoundCard 
           vehicle={state.vehicle}
+          showActions={true}
           onContinue={() => startFollowup()}
         />
       </div>
