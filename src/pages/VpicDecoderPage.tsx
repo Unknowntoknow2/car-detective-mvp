@@ -3,35 +3,31 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { useVinInput } from '@/hooks/useVinInput';
-import { useVinLookup } from '@/hooks/useVinLookup';
+import { validateVIN } from '@/utils/validation/vin-validation';
 
 export default function VpicDecoderPage() {
+  const [vin, setVin] = useState('');
   const [decodedData, setDecodedData] = useState<any>(null);
   const [isDecoding, setIsDecoding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
-  const {
-    vin,
-    setVin,
-    isValid,
-    error,
-    handleVinChange,
-    isSubmitting,
-    setIsSubmitting,
-    validateVin,
-    handleInputChange,
-    validationError,
-    touched
-  } = useVinInput();
-  
+  const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVin = e.target.value.toUpperCase();
+    setVin(newVin);
+    setError(null);
+  };
+
   const handleDecode = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!vin || !isValid) {
+    const validation = validateVIN(vin);
+    if (!validation.isValid) {
+      setError(validation.error || 'Invalid VIN format');
       return;
     }
     
     setIsDecoding(true);
+    setError(null);
     
     try {
       // Implementation would call a VIN decoding service
@@ -54,10 +50,13 @@ export default function VpicDecoderPage() {
       });
     } catch (error) {
       console.error('Failed to decode VIN:', error);
+      setError('Failed to decode VIN. Please try again.');
     } finally {
       setIsDecoding(false);
     }
   };
+
+  const isValid = vin.length === 17 && validateVIN(vin).isValid;
 
   return (
     <div className="container mx-auto py-12">
@@ -77,13 +76,13 @@ export default function VpicDecoderPage() {
               <div>
                 <Input
                   placeholder="Enter 17-digit VIN"
-                  value={vin || ''}
-                  onChange={handleInputChange}
+                  value={vin}
+                  onChange={handleVinChange}
                   className="font-mono"
                   maxLength={17}
                 />
-                {validationError && touched && (
-                  <p className="text-sm text-destructive mt-1">{validationError}</p>
+                {error && (
+                  <p className="text-sm text-destructive mt-1">{error}</p>
                 )}
               </div>
               
