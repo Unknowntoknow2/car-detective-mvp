@@ -21,7 +21,9 @@ export default function ValuationPage() {
   console.log('📄 ValuationPage state:', {
     vinFromUrl: vin,
     hasVehicle: !!vehicle,
-    vehicleData: vehicle
+    vehicleData: vehicle,
+    showingLookupForm: !vehicle,
+    showingFoundCard: !!vehicle
   });
 
   useEffect(() => {
@@ -34,14 +36,18 @@ export default function ValuationPage() {
 
   const handleVehicleFound = (foundVehicle: any) => {
     console.log('✅ ValuationPage: Vehicle found and setting state:', foundVehicle);
+    console.log('🔄 About to update vehicle state, current vehicle:', vehicle);
     setVehicle(foundVehicle);
+    console.log('✅ Vehicle state updated, should now show VehicleFoundCard');
   };
 
   const handleAccidentChange = (accidentData: any) => {
+    console.log('🔄 Accident data changed:', accidentData);
     setAccidents(accidentData);
   };
 
   const handleContinueToFollowup = () => {
+    console.log('🚀 Continue to followup clicked');
     if (vin) {
       navigate(`/vin-lookup?vin=${vin}`);
     } else {
@@ -59,19 +65,30 @@ export default function ValuationPage() {
           </p>
         </div>
 
-        {!vehicle ? (
-          <VehicleLookupForm 
-            onVehicleFound={handleVehicleFound} 
-            showHeader={true}
-          />
-        ) : (
-          <div className="space-y-6">
-            <VehicleFoundCard vehicle={vehicle} />
-            
-            <AccidentHistoryInput
-              accidents={accidents}
-              onAccidentChange={handleAccidentChange}
+        {!vehicle && (
+          <div>
+            <h2 className="text-2xl font-semibold mb-4">Step 1: Find Your Vehicle</h2>
+            <VehicleLookupForm 
+              onVehicleFound={handleVehicleFound} 
+              showHeader={true}
             />
+          </div>
+        )}
+
+        {vehicle && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-semibold mb-4">Step 2: Vehicle Details & History</h2>
+              <VehicleFoundCard vehicle={vehicle} />
+            </div>
+            
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Step 3: Accident History</h3>
+              <AccidentHistoryInput
+                accidents={accidents}
+                onAccidentChange={handleAccidentChange}
+              />
+            </div>
             
             <Card>
               <CardContent className="pt-6">
