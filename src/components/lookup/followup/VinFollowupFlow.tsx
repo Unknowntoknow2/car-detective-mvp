@@ -57,11 +57,25 @@ export function VinFollowupFlow() {
   if (state.stage === 'results' && state.vehicle) {
     return (
       <div className="space-y-6">
-        <VehicleFoundCard 
-          vehicle={state.vehicle}
-          showActions={true}
-          onContinue={() => startFollowup()}
-        />
+        <VehicleFoundCard vehicle={state.vehicle} />
+        
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <h3 className="text-lg font-semibold">Vehicle Successfully Identified</h3>
+              <p className="text-muted-foreground">
+                Continue to provide additional details for a more accurate valuation.
+              </p>
+              <Button 
+                onClick={() => startFollowup()}
+                size="lg"
+                className="w-full"
+              >
+                Continue to Enhanced Valuation
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
