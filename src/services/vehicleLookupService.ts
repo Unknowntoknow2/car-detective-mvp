@@ -1,4 +1,3 @@
-
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -7,9 +6,12 @@ export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo
   
   try {
     // Call the unified decode edge function for real VIN data
+    console.log('🚀 Calling unified-decode edge function...');
     const { data, error } = await supabase.functions.invoke('unified-decode', {
       body: { vin: vin.toUpperCase() }
     });
+
+    console.log('📡 Edge function response:', { data, error });
 
     if (error) {
       console.error('❌ VIN decode service error:', error);

@@ -27,9 +27,19 @@ export function UnifiedVinLookup({
   const [localVin, setLocalVin] = useState(initialVin || '');
   const [error, setError] = useState<string | null>(null);
 
+  console.log('🔍 UnifiedVinLookup render:', {
+    localVin,
+    stateVin: state.vin,
+    isLoading: state.isLoading,
+    stateStage: state.stage,
+    localVinLength: localVin.length,
+    buttonShouldBeDisabled: state.isLoading || localVin.length < 17
+  });
+
   // Set initial VIN if provided
   useEffect(() => {
     if (initialVin && initialVin !== localVin) {
+      console.log('🔄 Setting initial VIN:', initialVin);
       setLocalVin(initialVin);
       setVin(initialVin);
     }
@@ -38,38 +48,62 @@ export function UnifiedVinLookup({
   // Handle vehicle found
   useEffect(() => {
     if (state.vehicle && onVehicleFound) {
+      console.log('✅ Vehicle found, calling onVehicleFound:', state.vehicle);
       onVehicleFound(state.vehicle);
     }
   }, [state.vehicle, onVehicleFound]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🚀 Form submitted with VIN:', localVin);
     
     const validation = validateVIN(localVin);
     if (!validation.isValid) {
-      setError(validation.error || 'Invalid VIN format');
-      toast.error('Invalid VIN format');
+      const errorMsg = validation.error || 'Invalid VIN format';
+      console.log('❌ VIN validation failed:', errorMsg);
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     setError(null);
+    console.log('✅ VIN validation passed, proceeding with lookup');
     
     if (onSubmit) {
+      console.log('🔄 Calling onSubmit callback');
       onSubmit(localVin);
     } else {
-      const result = await lookupVin(localVin);
-      if (result && onVehicleFound) {
-        onVehicleFound(result);
+      console.log('🔄 Calling lookupVin directly');
+      try {
+        const result = await lookupVin(localVin);
+        console.log('🔍 Lookup result:', result);
+        if (result && onVehicleFound) {
+          onVehicleFound(result);
+        }
+      } catch (error) {
+        console.error('❌ Lookup error:', error);
+        toast.error('VIN lookup failed. Please try again.');
       }
     }
   };
 
   const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVin = e.target.value.toUpperCase();
+    console.log('📝 VIN input changed:', newVin);
     setLocalVin(newVin);
     setVin(newVin);
     setError(null);
   };
+
+  const isFormValid = localVin.length === 17;
+  const isSubmitDisabled = state.isLoading || !isFormValid;
+
+  console.log('🎯 Button state:', {
+    isFormValid,
+    isSubmitDisabled,
+    localVinLength: localVin.length,
+    isLoading: state.isLoading
+  });
 
   return (
     <div className={cn('w-full max-w-2xl mx-auto', className)}>
@@ -103,11 +137,16 @@ export function UnifiedVinLookup({
               {state.error && (
                 <p className="text-sm text-red-500 mt-1 text-center">{state.error}</p>
               )}
+              
+              {/* Debug info */}
+              <div className="text-xs text-gray-500 mt-2 text-center">
+                Debug: VIN length: {localVin.length}, Valid: {isFormValid ? 'Yes' : 'No'}, Loading: {state.isLoading ? 'Yes' : 'No'}
+              </div>
             </div>
             
             <Button 
               type="submit" 
-              disabled={state.isLoading || localVin.length < 17}
+              disabled={isSubmitDisabled}
               className="w-full"
               size="lg"
             >
