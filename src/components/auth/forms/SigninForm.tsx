@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -57,9 +56,8 @@ export const SigninForm: React.FC<SigninFormProps> = ({
       
       toast.success('Signed in successfully!');
       
-      // Simple redirect logic - always go to home page and let the app handle routing
       const from = location.state?.from?.pathname;
-      if (from && from !== '/auth' && from !== '/login' && form !== '/signin') {
+      if (from && from !== '/auth' && from !== '/login' && from !== '/signin') {
         navigate(from, { replace: true });
       } else {
         navigate('/', { replace: true });
