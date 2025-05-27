@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { EnhancedVinLookup } from './EnhancedVinLookup';
-import { EnhancedPlateLookup } from './EnhancedPlateLookup';
+import { UnifiedVinLookup } from '@/components/lookup/UnifiedVinLookup';
+import { UnifiedPlateLookup } from '@/components/lookup/UnifiedPlateLookup';
 import { PremiumManualLookup } from './PremiumManualLookup';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
@@ -12,27 +12,24 @@ interface LookupTabsProps {
   formProps?: {
     onSubmit?: (data: any) => void;
     onVinLookup?: (vin: string) => void;
-    onPlateLookup?: (data: { plate: string; state: string; zipCode: string }) => void;
+    onPlateLookup?: (data: { plate: string; state: string; zipCode?: string }) => void;
     isLoading?: boolean;
     submitButtonText?: string;
   };
 }
 
 export function LookupTabs({ lookup, onLookupChange, formProps }: LookupTabsProps) {
-  // Define handlers for each type of lookup
-  const handlePlateSubmit = (data: { plate: string; state: string; zipCode: string }) => {
-    console.log('Plate lookup submitted:', data);
-    // Pass to formProps.onPlateLookup if available
+  const handlePlateSubmit = (plate: string, state: string) => {
+    console.log('Premium plate lookup submitted:', plate, state);
     if (formProps?.onPlateLookup) {
-      formProps.onPlateLookup(data);
+      formProps.onPlateLookup({ plate, state });
     } else if (formProps?.onSubmit) {
-      formProps.onSubmit(data);
+      formProps.onSubmit({ plate, state });
     }
   };
 
   const handleVinSubmit = (vin: string) => {
-    console.log('VIN lookup submitted:', vin);
-    // Pass to formProps.onVinLookup if available
+    console.log('Premium VIN lookup submitted:', vin);
     if (formProps?.onVinLookup) {
       formProps.onVinLookup(vin);
     } else if (formProps?.onSubmit) {
@@ -41,8 +38,7 @@ export function LookupTabs({ lookup, onLookupChange, formProps }: LookupTabsProp
   };
 
   const handleManualSubmit = (data: ManualEntryFormData) => {
-    console.log('Manual lookup submitted:', data);
-    // Pass to formProps.onSubmit if available
+    console.log('Premium manual lookup submitted:', data);
     if (formProps?.onSubmit) {
       formProps.onSubmit(data);
     }
@@ -57,16 +53,16 @@ export function LookupTabs({ lookup, onLookupChange, formProps }: LookupTabsProp
       </TabsList>
       
       <TabsContent value="vin" className="space-y-4">
-        <EnhancedVinLookup 
-          onSubmit={handleVinSubmit} 
-          isLoading={formProps?.isLoading}
+        <UnifiedVinLookup 
+          onSubmit={handleVinSubmit}
+          showHeader={false}
         />
       </TabsContent>
       
       <TabsContent value="plate" className="space-y-4">
-        <EnhancedPlateLookup 
+        <UnifiedPlateLookup 
           onSubmit={handlePlateSubmit}
-          isLoading={formProps?.isLoading}
+          showHeader={false}
         />
       </TabsContent>
       
