@@ -687,6 +687,89 @@ export type Database = {
         }
         Relationships: []
       }
+      follow_up_answers: {
+        Row: {
+          accidents: Json | null
+          completion_percentage: number | null
+          condition: string | null
+          created_at: string
+          dashboard_lights: string[] | null
+          frame_damage: boolean | null
+          id: string
+          is_complete: boolean | null
+          last_service_date: string | null
+          maintenance_status: string | null
+          mileage: number | null
+          modifications: Json | null
+          previous_owners: number | null
+          previous_use: string | null
+          service_history: string | null
+          tire_condition: string | null
+          title_status: string | null
+          updated_at: string
+          user_id: string | null
+          valuation_id: string | null
+          vin: string
+          zip_code: string | null
+        }
+        Insert: {
+          accidents?: Json | null
+          completion_percentage?: number | null
+          condition?: string | null
+          created_at?: string
+          dashboard_lights?: string[] | null
+          frame_damage?: boolean | null
+          id?: string
+          is_complete?: boolean | null
+          last_service_date?: string | null
+          maintenance_status?: string | null
+          mileage?: number | null
+          modifications?: Json | null
+          previous_owners?: number | null
+          previous_use?: string | null
+          service_history?: string | null
+          tire_condition?: string | null
+          title_status?: string | null
+          updated_at?: string
+          user_id?: string | null
+          valuation_id?: string | null
+          vin: string
+          zip_code?: string | null
+        }
+        Update: {
+          accidents?: Json | null
+          completion_percentage?: number | null
+          condition?: string | null
+          created_at?: string
+          dashboard_lights?: string[] | null
+          frame_damage?: boolean | null
+          id?: string
+          is_complete?: boolean | null
+          last_service_date?: string | null
+          maintenance_status?: string | null
+          mileage?: number | null
+          modifications?: Json | null
+          previous_owners?: number | null
+          previous_use?: string | null
+          service_history?: string | null
+          tire_condition?: string | null
+          title_status?: string | null
+          updated_at?: string
+          user_id?: string | null
+          valuation_id?: string | null
+          vin?: string
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_up_answers_valuation_id_fkey"
+            columns: ["valuation_id"]
+            isOneToOne: false
+            referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fuel_type_adjustment: {
         Row: {
           description: string | null
