@@ -1,9 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
 import { VehicleLookupForm } from '@/components/valuation/VehicleLookupForm';
 import { EnhancedFollowUpForm } from '@/components/valuation/enhanced-followup/EnhancedFollowUpForm';
+import { EnhancedVehicleCard } from '@/components/valuation/enhanced-followup/EnhancedVehicleCard';
 import { toast } from 'sonner';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 
@@ -69,7 +69,7 @@ export default function ValuationPage() {
   };
 
   return (
-    <Container className="max-w-4xl py-10">
+    <Container className="max-w-6xl py-10">
       <div className="space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">Vehicle Valuation</h1>
@@ -92,38 +92,10 @@ export default function ValuationPage() {
 
         {currentStep === 'followup' && vehicleInfo && (
           <div className="space-y-6">
-            {/* Vehicle Information Display */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-green-800 mb-4">
-                Vehicle Identified
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-green-700">Year:</span>
-                  <span className="ml-2">{vehicleInfo.year}</span>
-                </div>
-                <div>
-                  <span className="font-medium text-green-700">Make:</span>
-                  <span className="ml-2">{vehicleInfo.make}</span>
-                </div>
-                <div>
-                  <span className="font-medium text-green-700">Model:</span>
-                  <span className="ml-2">{vehicleInfo.model}</span>
-                </div>
-                {vehicleInfo.trim && (
-                  <div>
-                    <span className="font-medium text-green-700">Trim:</span>
-                    <span className="ml-2">{vehicleInfo.trim}</span>
-                  </div>
-                )}
-                <div className="md:col-span-2">
-                  <span className="font-medium text-green-700">VIN:</span>
-                  <span className="ml-2 font-mono">{vehicleInfo.vin}</span>
-                </div>
-              </div>
-            </div>
+            {/* Enhanced Vehicle Information Display */}
+            <EnhancedVehicleCard vehicle={vehicleInfo} />
 
-            {/* Enhanced Follow-up Form */}
+            {/* Enhanced Follow-up Form - keeping it exactly as it is */}
             <EnhancedFollowUpForm
               vin={vehicleInfo.vin || vin || ''}
               onComplete={handleFollowUpComplete}
