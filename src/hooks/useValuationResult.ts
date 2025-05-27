@@ -74,18 +74,17 @@ export function useValuationResult(valuationId: string) {
         year: result.year,
         make: result.make,
         model: result.model,
-        bodyType: result.body_type,
         fuelType: result.fuel_type,
         transmission: result.transmission,
         color: result.color,
         mileage: result.mileage,
-        zipCode: result.state,
         estimatedValue: result.estimated_value,
         confidenceScore: result.confidence_score,
         basePrice: result.base_price,
         isPremium: result.premium_unlocked,
         userId: result.user_id,
-        created_at: result.created_at
+        created_at: result.created_at,
+        zipCode: result.state
       };
 
       return transformedResult;

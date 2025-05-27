@@ -25,6 +25,20 @@ export interface ValuationResult {
   pdfUrl?: string;
   gptExplanation?: string;
   explanation?: string;
+  // Additional properties for compatibility
+  bodyType?: string;
+  fuelType?: string;
+  transmission?: string;
+  color?: string;
+  zipCode?: string;
+  basePrice?: number;
+  base_price?: number;
+  isPremium?: boolean;
+  premium_unlocked?: boolean;
+  bestPhotoUrl?: string;
+  photo_url?: string;
+  photoScore?: number;
+  userId?: string;
 }
 
 export interface ValuationAdjustment {

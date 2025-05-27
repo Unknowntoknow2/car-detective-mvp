@@ -46,7 +46,7 @@ describe('buildValuationReport', () => {
       bodyType: 'Sedan',
       confidenceScore: 85,
       isPremium: true,
-      priceRange: [14000, 16000],
+      priceRange: [14000, 16000] as [number, number],
       adjustments: [{ factor: 'Mileage', impact: -500, description: 'High mileage' }],
       explanation: 'Vehicle is in good condition.',
       userId: 'user123',
