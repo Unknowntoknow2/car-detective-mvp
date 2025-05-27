@@ -80,16 +80,8 @@ export const SignupForm = ({
         description: 'Welcome to Car Detective!'
       });
       
-      // Use proper redirect logic
-      let targetPath = '/dashboard';
-      
-      if (userType === 'dealer') {
-        targetPath = '/dealer/dashboard';
-      } else if (redirectPath) {
-        targetPath = redirectPath;
-      }
-      
-      navigate(targetPath, { replace: true });
+      // Simple redirect - always go to home page and let the app handle routing
+      navigate('/', { replace: true });
     } catch (err: any) {
       setFormError('An unexpected error occurred');
       toast.error('Sign up failed', {
