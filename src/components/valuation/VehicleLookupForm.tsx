@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EnhancedVinLookup } from '../lookup/vin/EnhancedVinLookup';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Edit } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,6 +20,8 @@ export function VehicleLookupForm({ onVehicleFound, showHeader = true }: Vehicle
 
   const handleVehicleFound = (vehicle: any) => {
     setDecodeError(null);
+    setLastVin('');
+    
     if (onVehicleFound) {
       onVehicleFound(vehicle);
     }
@@ -36,16 +38,11 @@ export function VehicleLookupForm({ onVehicleFound, showHeader = true }: Vehicle
     setIsRetrying(true);
     setDecodeError(null);
     
-    try {
-      // Trigger retry through the enhanced VIN lookup component
-      // This will be handled by the component's internal retry logic
-      setTimeout(() => {
-        setIsRetrying(false);
-      }, 2000);
-    } catch (error) {
+    // Small delay to show loading state
+    setTimeout(() => {
       setIsRetrying(false);
-      setDecodeError('Retry failed. Please try again or use manual entry.');
-    }
+      // The retry will be handled by the EnhancedVinLookup component
+    }, 1000);
   };
 
   const handleManualEntry = () => {
@@ -73,9 +70,14 @@ export function VehicleLookupForm({ onVehicleFound, showHeader = true }: Vehicle
             <AlertTriangle className="h-4 w-4 text-orange-600" />
             <AlertDescription className="space-y-3">
               <p className="text-orange-800">
-                We couldn't decode this VIN automatically. External vehicle data services are temporarily unavailable.
+                We couldn't decode this VIN automatically. This may be due to:
               </p>
-              <div className="flex flex-col gap-2">
+              <ul className="text-sm text-orange-700 list-disc list-inside space-y-1">
+                <li>External vehicle data services are temporarily unavailable</li>
+                <li>VIN not found in our databases</li>
+                <li>Network connectivity issues</li>
+              </ul>
+              <div className="flex flex-col gap-2 pt-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -101,6 +103,7 @@ export function VehicleLookupForm({ onVehicleFound, showHeader = true }: Vehicle
                   onClick={handleManualEntry}
                   className="w-full"
                 >
+                  <Edit className="h-3 w-3 mr-2" />
                   Use Manual Entry Instead
                 </Button>
               </div>

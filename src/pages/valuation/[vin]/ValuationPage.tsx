@@ -1,232 +1,125 @@
-
-import { useParams, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { VehicleFoundCard } from '@/components/valuation/VehicleFoundCard';
-import { FollowUpForm } from '@/components/followup/FollowUpForm';
-import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Loader2, AlertTriangle, RotateCcw, Edit, ArrowLeft } from 'lucide-react';
-import { ServiceStatus } from '@/components/common/ServiceStatus';
-import { decodeVin, retryDecode } from '@/services/vehicleDecodeService';
-import { VehicleDecodeResponse } from '@/types/vehicle-decode';
+import { VehicleLookupForm } from '@/components/valuation/VehicleLookupForm';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { DecodedVehicleInfo } from '@/types/vehicle';
 
 export default function ValuationPage() {
-  const { vin } = useParams();
-  const location = useLocation();
+  const { vin } = useParams<{ vin: string }>();
   const navigate = useNavigate();
-  
-  const [vehicle, setVehicle] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [decodeResponse, setDecodeResponse] = useState<VehicleDecodeResponse | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const [hasAutoRetried, setHasAutoRetried] = useState(false);
+  const [vehicleInfo, setVehicleInfo] = useState<DecodedVehicleInfo | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!vin) {
-      setError('No VIN provided');
-      setLoading(false);
-      return;
-    }
-
-    fetchVehicleData();
-  }, [vin]);
-
-  const fetchVehicleData = async () => {
-    if (!vin) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // First try to get from decoded_vehicles table
-      console.log('🔍 Checking for existing vehicle data in database');
-      const { data: existingData, error: dbError } = await supabase
-        .from('decoded_vehicles')
-        .select('*')
-        .eq('vin', vin)
-        .maybeSingle();
+    // If VIN is provided in URL, validate it and attempt decode
+    if (vin) {
+      console.log(`🔍 ValuationPage loaded with VIN: ${vin}`);
       
-      if (existingData) {
-        console.log('✅ Found existing vehicle data');
-        setVehicle(existingData);
-        setLoading(false);
+      // Basic VIN validation
+      if (vin.length !== 17) {
+        toast.error('Invalid VIN format. VIN must be 17 characters.');
+        navigate('/valuation');
         return;
       }
-
-      // If not found, try to decode
-      console.log('🔍 Vehicle not found in DB, attempting decode');
-      const response = await decodeVin(vin);
-      setDecodeResponse(response);
       
-      if (response.success && response.decoded) {
-        setVehicle(response.decoded);
-        const sourceDisplay = response.source.toUpperCase();
-        const cacheMsg = response.source === 'cache' ? ' (cached)' : '';
-        toast.success(`Vehicle decoded via ${sourceDisplay}${cacheMsg}`);
-      } else {
-        // Auto-retry once for transient errors
-        if (!hasAutoRetried && response.error && (
-          response.error.includes('timeout') || 
-          response.error.includes('temporarily') ||
-          response.error.includes('network')
-        )) {
-          console.log('🔄 Auto-retrying due to transient error');
-          setHasAutoRetried(true);
-          setTimeout(() => {
-            handleRetryDecode();
-          }, 2000);
-          return;
-        }
-        
-        setError(response.error || 'Unable to decode VIN');
-        console.error('❌ Decode failed:', response.error);
-      }
-    } catch (err) {
-      console.error('❌ Unexpected error:', err);
-      setError('An unexpected error occurred while loading vehicle data');
-    } finally {
-      setLoading(false);
+      // The VehicleLookupForm will handle the actual decode attempt
+      setIsLoading(true);
     }
-  };
+  }, [vin, navigate]);
 
-  const handleRetryDecode = async () => {
-    if (!vin) return;
+  const handleVehicleFound = (vehicle: DecodedVehicleInfo) => {
+    console.log('✅ Vehicle found:', vehicle);
     
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await retryDecode(vin, retryCount);
-      setDecodeResponse(response);
-      setRetryCount(prev => prev + 1);
-      
-      if (response.success && response.decoded) {
-        setVehicle(response.decoded);
-        toast.success('Vehicle decoded successfully!');
-      } else {
-        setError(response.error || 'Unable to decode VIN');
-        toast.error('Decode failed - consider manual entry');
-      }
-    } catch (error) {
-      console.error('Retry failed:', error);
-      setError('Retry failed. Please try manual entry.');
-      toast.error('Retry failed');
-    } finally {
-      setLoading(false);
+    // Validate that this is real vehicle data, not demo data
+    if (!vehicle.vin || !vehicle.make || !vehicle.model || !vehicle.year) {
+      console.error('❌ Invalid vehicle data received:', vehicle);
+      toast.error('Invalid vehicle data. Please try again or use manual entry.');
+      return;
     }
+    
+    // If we have a VIN in the URL, ensure it matches
+    if (vin && vehicle.vin !== vin) {
+      console.error(`❌ VIN mismatch: URL has ${vin}, decoded has ${vehicle.vin}`);
+      toast.error('VIN mismatch detected. Please try again.');
+      return;
+    }
+    
+    setVehicleInfo(vehicle);
+    setIsLoading(false);
+    
+    // Show success message with vehicle details
+    toast.success(`Vehicle identified: ${vehicle.year} ${vehicle.make} ${vehicle.model}`);
   };
 
-  const handleManualEntry = () => {
-    navigate('/valuation', { state: { prefillVin: vin } });
+  const handleVehicleError = (error: string) => {
+    console.error('❌ Vehicle lookup error:', error);
+    setIsLoading(false);
+    toast.error(error);
   };
-
-  const handleGoBack = () => {
-    navigate('/valuation');
-  };
-
-  if (loading) {
-    return (
-      <Container className="max-w-4xl py-10">
-        <div className="flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <span className="ml-2">
-            {hasAutoRetried ? 'Retrying vehicle decode...' : 'Loading vehicle data...'}
-          </span>
-        </div>
-      </Container>
-    );
-  }
-
-  if (error || !vehicle) {
-    const isDecodeError = decodeResponse && !decodeResponse.success;
-    const canRetry = isDecodeError && retryCount < 3;
-    const shouldShowManualEntry = retryCount >= 1 || (decodeResponse && decodeResponse.source === 'failed');
-
-    return (
-      <Container className="max-w-4xl py-10">
-        <ServiceStatus className="mb-6" />
-        
-        <Alert variant="destructive" className="mb-6">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <div className="space-y-2">
-              <p>{error || 'Vehicle not found. We couldn\'t decode this VIN.'}</p>
-              {isDecodeError && (
-                <div className="text-sm space-y-1">
-                  <p>Source attempted: {decodeResponse.source.toUpperCase()}</p>
-                  {retryCount > 0 && (
-                    <p>Retry attempts: {retryCount}/3</p>
-                  )}
-                </div>
-              )}
-            </div>
-          </AlertDescription>
-        </Alert>
-
-        <div className="space-y-4">
-          {canRetry && (
-            <Button 
-              onClick={handleRetryDecode}
-              variant="outline"
-              className="w-full"
-              disabled={loading}
-            >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Retry VIN Decode ({3 - retryCount} attempts left)
-            </Button>
-          )}
-
-          {shouldShowManualEntry && (
-            <div className="text-center space-y-4">
-              <div className="text-muted-foreground">
-                Having trouble with VIN decode? Try manual entry instead.
-              </div>
-              <Button 
-                onClick={handleManualEntry}
-                className="w-full"
-              >
-                <Edit className="mr-2 h-4 w-4" />
-                Continue with Manual Entry
-              </Button>
-            </div>
-          )}
-
-          <Button 
-            variant="outline"
-            onClick={handleGoBack}
-            className="w-full"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Start New Search
-          </Button>
-        </div>
-      </Container>
-    );
-  }
 
   return (
     <Container className="max-w-4xl py-10">
-      <div className="space-y-8">
-        <ServiceStatus />
-        <CarFinderQaherHeader />
-        
-        {decodeResponse && decodeResponse.success && (
-          <Alert className="border-green-200 bg-green-50">
-            <AlertDescription className="text-green-800">
-              ✅ Vehicle successfully decoded via {decodeResponse.source.toUpperCase()}
-              {decodeResponse.source === 'cache' && ' (from cache)'}
-            </AlertDescription>
-          </Alert>
+      <div className="space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold">Vehicle Valuation</h1>
+          <p className="text-muted-foreground">
+            Enter your VIN to get an accurate vehicle valuation
+          </p>
+          {vin && (
+            <p className="text-sm text-blue-600 font-mono">
+              VIN: {vin}
+            </p>
+          )}
+        </div>
+
+        {!vehicleInfo ? (
+          <VehicleLookupForm 
+            onVehicleFound={handleVehicleFound}
+            showHeader={!vin}
+          />
+        ) : (
+          <div className="space-y-6">
+            {/* Vehicle Information Display */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+              <h2 className="text-xl font-semibold text-green-800 mb-4">
+                Vehicle Identified
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="font-medium text-green-700">Year:</span>
+                  <span className="ml-2">{vehicleInfo.year}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-green-700">Make:</span>
+                  <span className="ml-2">{vehicleInfo.make}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-green-700">Model:</span>
+                  <span className="ml-2">{vehicleInfo.model}</span>
+                </div>
+                {vehicleInfo.trim && (
+                  <div>
+                    <span className="font-medium text-green-700">Trim:</span>
+                    <span className="ml-2">{vehicleInfo.trim}</span>
+                  </div>
+                )}
+                <div className="md:col-span-2">
+                  <span className="font-medium text-green-700">VIN:</span>
+                  <span className="ml-2 font-mono">{vehicleInfo.vin}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Continue to valuation form or next steps */}
+            <div className="text-center">
+              <p className="text-muted-foreground mb-4">
+                Vehicle successfully identified. Continue with valuation details.
+              </p>
+              {/* Future: Add valuation form component here */}
+            </div>
+          </div>
         )}
-        
-        <VehicleFoundCard vehicle={vehicle} />
-        <FollowUpForm vin={vin!} />
       </div>
     </Container>
   );
