@@ -5,7 +5,7 @@ import { X, Minimize2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAINStore } from '@/stores/useAINStore';
-import { AIAssistant } from './AIAssistant';
+import AIAssistant from './AIAssistant';
 
 interface AINFloatingChatProps {
   contextualGreeting?: string;
