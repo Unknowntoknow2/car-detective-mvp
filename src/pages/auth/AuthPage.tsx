@@ -17,7 +17,7 @@ export default function AuthPage() {
   
   React.useEffect(() => {
     if (user) {
-      const from = location.state?.from?.pathname || '/';
+      const from = location.state?.from?.pathname || '/dashboard';
       navigate(from, { replace: true });
     }
   }, [user, navigate, location]);
@@ -92,7 +92,7 @@ export default function AuthPage() {
               <TabsContent value="signin" className="mt-4">
                 <SigninForm 
                   userType={userType}
-                  redirectPath="/"
+                  redirectPath={userType === 'dealer' ? '/dealer/dashboard' : '/dashboard'}
                 />
               </TabsContent>
               
@@ -100,7 +100,7 @@ export default function AuthPage() {
                 <SignupForm 
                   userType={userType}
                   showDealershipField={userType === 'dealer'}
-                  redirectPath="/"
+                  redirectPath={userType === 'dealer' ? '/dealer/dashboard' : '/dashboard'}
                 />
               </TabsContent>
             </Tabs>
