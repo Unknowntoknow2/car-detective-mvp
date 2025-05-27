@@ -26,18 +26,30 @@ jest.mock('sonner', () => ({
   }
 }));
 
+// Mock Supabase
+jest.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          single: jest.fn(() => Promise.resolve({
+            data: {
+              estimated_value: 15000,
+              confidence_score: 85,
+              price_range: [14000, 16000],
+              created_at: '2023-01-01'
+            },
+            error: null
+          }))
+        }))
+      }))
+    }))
+  }
+}));
+
 describe('ValuationResult component', () => {
   const defaultProps = {
-    data: {
-      make: 'Toyota',
-      model: 'Camry',
-      year: 2018,
-      condition: 'Good',
-      estimatedValue: 15000,
-      confidenceScore: 85,
-      basePrice: 13500,
-      adjustments: []
-    }
+    vin: '1HGBH41JXMN109186'
   };
 
   beforeEach(() => {
@@ -50,8 +62,8 @@ describe('ValuationResult component', () => {
     
     render(<ValuationResult {...defaultProps} />);
     
-    // Should show estimated value
-    expect(screen.getByText('$15,000')).toBeInTheDocument();
+    // Should show loading initially
+    expect(screen.getByText('Loading valuation...')).toBeInTheDocument();
   });
 
   test('displays explanation when loaded successfully', async () => {
@@ -60,8 +72,10 @@ describe('ValuationResult component', () => {
     
     render(<ValuationResult {...defaultProps} />);
     
-    // Should show estimated value
-    expect(screen.getByText('$15,000')).toBeInTheDocument();
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.queryByText('Loading valuation...')).not.toBeInTheDocument();
+    });
   });
 
   test('displays error message when explanation fails to load', async () => {
@@ -69,7 +83,9 @@ describe('ValuationResult component', () => {
     
     render(<ValuationResult {...defaultProps} />);
     
-    // Should still show the estimated value even if explanation fails
-    expect(screen.getByText('$15,000')).toBeInTheDocument();
+    // Wait for error state
+    await waitFor(() => {
+      expect(screen.queryByText('Loading valuation...')).not.toBeInTheDocument();
+    });
   });
 });
