@@ -125,7 +125,7 @@ export default function ValuationPage() {
 
             {/* Enhanced Follow-up Form */}
             <EnhancedFollowUpForm
-              vin={vehicleInfo.vin}
+              vin={vehicleInfo.vin || vin || ''}
               onComplete={handleFollowUpComplete}
             />
           </div>
