@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UnifiedVinLookup } from '@/components/lookup/UnifiedVinLookup';
 import { PlateLookup } from '@/components/lookup/PlateLookup';
-import { ManualLookup } from '@/components/lookup/ManualLookup';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
 interface LookupTabsProps {
@@ -52,10 +51,9 @@ export function LookupTabs({
 
   return (
     <Tabs defaultValue={defaultTab} onValueChange={handleTabChange} className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="vin">VIN</TabsTrigger>
         <TabsTrigger value="plate">License Plate</TabsTrigger>
-        <TabsTrigger value="manual">Manual Entry</TabsTrigger>
       </TabsList>
       
       <TabsContent value="vin" className="space-y-4 mt-4">
@@ -69,13 +67,6 @@ export function LookupTabs({
         <PlateLookup 
           onSubmit={handlePlateSubmit} 
           isLoading={isSubmitting && activeTab === 'plate'} 
-        />
-      </TabsContent>
-      
-      <TabsContent value="manual" className="space-y-4 mt-4">
-        <ManualLookup 
-          onSubmit={handleManualSubmit} 
-          isLoading={isSubmitting && activeTab === 'manual'} 
         />
       </TabsContent>
     </Tabs>

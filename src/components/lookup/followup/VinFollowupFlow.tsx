@@ -3,99 +3,47 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
+import { useVinLookupFlow } from '@/hooks/useVinLookupFlow';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useFollowUpAnswers } from '@/components/valuation/enhanced-followup/hooks/useFollowUpAnswers';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { MileageInput } from '@/components/valuation/enhanced-followup/MileageInput';
+import { ConditionSelector } from '@/components/valuation/enhanced-followup/ConditionSelector';
 import { AccidentSection } from '@/components/valuation/enhanced-followup/AccidentSection';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Textarea } from '@/components/ui/textarea';
+import { ModificationsSection } from '@/components/valuation/enhanced-followup/ModificationsSection';
+import { DashboardLightsSection } from '@/components/valuation/enhanced-followup/DashboardLightsSection';
+import { TitleStatusSelector } from '@/components/title-ownership/TitleStatusSelector';
+import { PreviousUseSelector } from '@/components/valuation/enhanced-followup/PreviousUseSelector';
 
-interface VinFollowupFlowProps {
-  vin?: string;
-}
-
-export function VinFollowupFlow({ vin }: VinFollowupFlowProps) {
+export function VinFollowupFlow() {
+  const { state } = useVinLookupFlow();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  
-  // Get VIN from localStorage if not provided
-  const currentVin = vin || localStorage.getItem('current_vin') || '';
-  
-  const { answers, loading, saving, updateAnswers, saveAnswers } = useFollowUpAnswers(currentVin);
+  const { answers, updateAnswers, saving } = useFollowUpAnswers(state.vin || '');
 
   const steps = [
-    { id: 'mileage', title: 'Vehicle Mileage', component: 'MileageStep' },
-    { id: 'condition', title: 'Vehicle Condition', component: 'ConditionStep' },
-    { id: 'accidents', title: 'Accident History', component: 'AccidentStep' },
-    { id: 'maintenance', title: 'Maintenance History', component: 'MaintenanceStep' },
-    { id: 'title', title: 'Title Status', component: 'TitleStep' },
-    { id: 'usage', title: 'Previous Usage', component: 'UsageStep' },
-    { id: 'review', title: 'Review & Submit', component: 'ReviewStep' }
+    { title: 'Mileage', key: 'mileage' },
+    { title: 'Condition', key: 'condition' },
+    { title: 'Accidents', key: 'accidents' },
+    { title: 'Modifications', key: 'modifications' },
+    { title: 'Dashboard Lights', key: 'dashboard_lights' },
+    { title: 'Title Status', key: 'title_status' },
+    { title: 'Previous Use', key: 'previous_use' }
   ];
 
-  const progress = ((completedSteps.size / steps.length) * 100);
+  const progress = ((currentStep + 1) / steps.length) * 100;
 
   useEffect(() => {
-    // Mark steps as completed based on answers
-    const completed = new Set<number>();
-    if (answers.mileage) completed.add(0);
-    if (answers.condition) completed.add(1);
-    if (answers.accidents?.hadAccident !== undefined) completed.add(2);
-    if (answers.service_history) completed.add(3);
-    if (answers.title_status) completed.add(4);
-    if (answers.previous_use) completed.add(5);
-    
-    setCompletedSteps(completed);
-  }, [answers]);
-
-  const handleMileageChange = (value: string) => {
-    const mileage = parseInt(value) || 0;
-    updateAnswers({ mileage });
-    if (mileage > 0) {
-      setCompletedSteps(prev => new Set([...prev, 0]));
+    if (!state.vin) {
+      navigate('/vin-lookup');
     }
-  };
-
-  const handleConditionChange = (value: string) => {
-    updateAnswers({ condition: value });
-    if (value) {
-      setCompletedSteps(prev => new Set([...prev, 1]));
-    }
-  };
-
-  const handleAccidentChange = (value: any) => {
-    updateAnswers({ accidents: value });
-    setCompletedSteps(prev => new Set([...prev, 2]));
-  };
-
-  const handleMaintenanceChange = (value: string) => {
-    updateAnswers({ service_history: value });
-    if (value) {
-      setCompletedSteps(prev => new Set([...prev, 3]));
-    }
-  };
-
-  const handleTitleChange = (value: string) => {
-    updateAnswers({ title_status: value });
-    if (value) {
-      setCompletedSteps(prev => new Set([...prev, 4]));
-    }
-  };
-
-  const handleUsageChange = (value: string) => {
-    updateAnswers({ previous_use: value });
-    if (value) {
-      setCompletedSteps(prev => new Set([...prev, 5]));
-    }
-  };
+  }, [state.vin, navigate]);
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
+    } else {
+      handleComplete();
     }
   };
 
@@ -105,196 +53,132 @@ export function VinFollowupFlow({ vin }: VinFollowupFlowProps) {
     }
   };
 
-  const handleSubmit = async () => {
-    const success = await saveAnswers();
-    if (success) {
-      // Navigate to valuation results
-      navigate(`/valuation-result?vin=${currentVin}`);
-    }
+  const handleComplete = () => {
+    toast.success('Follow-up questions completed!');
+    navigate(`/valuation-result?vin=${state.vin}`);
+  };
+
+  const handleMileageChange = (value: number) => {
+    updateAnswers({ mileage: value });
+  };
+
+  const handleConditionChange = (value: 'excellent' | 'good' | 'fair' | 'poor') => {
+    updateAnswers({ condition: value });
+  };
+
+  const handleAccidentChange = (value: any) => {
+    updateAnswers({ accidents: value });
+  };
+
+  const handleModificationsChange = (value: any) => {
+    updateAnswers({ modifications: value });
+  };
+
+  const handleDashboardLightsChange = (value: string[]) => {
+    updateAnswers({ dashboard_lights: value });
+  };
+
+  const handleTitleStatusChange = (value: string) => {
+    updateAnswers({ title_status: value });
+  };
+
+  const handlePreviousUseChange = (value: string) => {
+    updateAnswers({ previous_use: value });
   };
 
   const renderStepContent = () => {
-    switch (currentStep) {
-      case 0: // Mileage
+    const step = steps[currentStep];
+    
+    switch (step.key) {
+      case 'mileage':
         return (
-          <div className="space-y-4">
-            <Label htmlFor="mileage">Current Mileage</Label>
-            <Input
-              id="mileage"
-              type="number"
-              placeholder="Enter current mileage"
-              value={answers.mileage || ''}
-              onChange={(e) => handleMileageChange(e.target.value)}
-            />
-          </div>
+          <MileageInput
+            value={answers.mileage}
+            onChange={handleMileageChange}
+          />
         );
-
-      case 1: // Condition
+      case 'condition':
         return (
-          <div className="space-y-4">
-            <Label>Overall Vehicle Condition</Label>
-            <RadioGroup
-              value={answers.condition || ''}
-              onValueChange={handleConditionChange}
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="excellent" id="excellent" />
-                <Label htmlFor="excellent">Excellent</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="good" id="good" />
-                <Label htmlFor="good">Good</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="fair" id="fair" />
-                <Label htmlFor="fair">Fair</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="poor" id="poor" />
-                <Label htmlFor="poor">Poor</Label>
-              </div>
-            </RadioGroup>
-          </div>
+          <ConditionSelector
+            value={answers.condition}
+            onChange={handleConditionChange}
+          />
         );
-
-      case 2: // Accidents
+      case 'accidents':
         return (
           <AccidentSection
             value={answers.accidents}
             onChange={handleAccidentChange}
           />
         );
-
-      case 3: // Maintenance
+      case 'modifications':
         return (
-          <div className="space-y-4">
-            <Label htmlFor="maintenance">Service History</Label>
-            <Textarea
-              id="maintenance"
-              placeholder="Describe the vehicle's maintenance history..."
-              value={answers.service_history || ''}
-              onChange={(e) => handleMaintenanceChange(e.target.value)}
-            />
-          </div>
+          <ModificationsSection
+            value={answers.modifications}
+            onChange={handleModificationsChange}
+          />
         );
-
-      case 4: // Title
+      case 'dashboard_lights':
         return (
-          <div className="space-y-4">
-            <Label>Title Status</Label>
-            <Select
-              value={answers.title_status || ''}
-              onValueChange={handleTitleChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select title status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="clean">Clean Title</SelectItem>
-                <SelectItem value="salvage">Salvage Title</SelectItem>
-                <SelectItem value="rebuilt">Rebuilt Title</SelectItem>
-                <SelectItem value="flood">Flood Title</SelectItem>
-                <SelectItem value="lemon">Lemon Title</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <DashboardLightsSection
+            value={answers.dashboard_lights}
+            onChange={handleDashboardLightsChange}
+          />
         );
-
-      case 5: // Usage
+      case 'title_status':
         return (
-          <div className="space-y-4">
-            <Label>Previous Use</Label>
-            <Select
-              value={answers.previous_use || ''}
-              onValueChange={handleUsageChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select previous use" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="personal">Personal Use</SelectItem>
-                <SelectItem value="commercial">Commercial Use</SelectItem>
-                <SelectItem value="rental">Rental Vehicle</SelectItem>
-                <SelectItem value="fleet">Fleet Vehicle</SelectItem>
-                <SelectItem value="taxi">Taxi/Rideshare</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <TitleStatusSelector
+            value={answers.title_status}
+            onChange={handleTitleStatusChange}
+          />
         );
-
-      case 6: // Review
+      case 'previous_use':
         return (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Review Your Answers</h3>
-            <div className="space-y-2">
-              <p><strong>Mileage:</strong> {answers.mileage || 'Not provided'}</p>
-              <p><strong>Condition:</strong> {answers.condition || 'Not provided'}</p>
-              <p><strong>Accidents:</strong> {answers.accidents?.hadAccident ? 'Yes' : 'No'}</p>
-              <p><strong>Service History:</strong> {answers.service_history ? 'Provided' : 'Not provided'}</p>
-              <p><strong>Title Status:</strong> {answers.title_status || 'Not provided'}</p>
-              <p><strong>Previous Use:</strong> {answers.previous_use || 'Not provided'}</p>
-            </div>
-          </div>
+          <PreviousUseSelector
+            value={answers.previous_use}
+            onChange={handlePreviousUseChange}
+          />
         );
-
       default:
         return null;
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
+  if (!state.vin) {
+    return null;
   }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Progress Header */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Vehicle Assessment</span>
-            <span className="text-sm text-muted-foreground">
-              Step {currentStep + 1} of {steps.length}
-            </span>
-          </CardTitle>
-          <Progress value={progress} className="w-full" />
-        </CardHeader>
-      </Card>
-
-      {/* Main Content */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            {completedSteps.has(currentStep) && (
-              <CheckCircle className="h-5 w-5 text-green-500" />
-            )}
-            {steps[currentStep].title}
-          </CardTitle>
+          <CardTitle>Enhanced Vehicle Assessment</CardTitle>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Step {currentStep + 1} of {steps.length}</span>
+              <span>{Math.round(progress)}% Complete</span>
+            </div>
+            <Progress value={progress} className="w-full" />
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {renderStepContent()}
-
-          {/* Navigation */}
+          
           <div className="flex justify-between">
             <Button
               variant="outline"
               onClick={handlePrevious}
               disabled={currentStep === 0}
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
               Previous
             </Button>
-
-            {currentStep === steps.length - 1 ? (
-              <Button onClick={handleSubmit} disabled={saving}>
-                {saving ? 'Submitting...' : 'Complete Assessment'}
-              </Button>
-            ) : (
-              <Button onClick={handleNext}>
-                Next
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            )}
+            
+            <Button
+              onClick={handleNext}
+              disabled={saving}
+            >
+              {currentStep === steps.length - 1 ? 'Complete Assessment' : 'Next'}
+            </Button>
           </div>
         </CardContent>
       </Card>
