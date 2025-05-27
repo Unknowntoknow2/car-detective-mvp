@@ -15,36 +15,19 @@ export function VehicleLookupForm({ onVehicleFound, showHeader = true }: Vehicle
   const { state, setVin, lookupVin, retryLookup } = useVinLookupFlow();
   const navigate = useNavigate();
 
-  console.log('🔍 VehicleLookupForm state:', {
-    stage: state.stage,
-    isLoading: state.isLoading,
-    hasVehicle: !!state.vehicle,
-    error: state.error,
-    hasOnVehicleFoundCallback: !!onVehicleFound
-  });
-
-  // Watch for vehicle found in state and trigger callback
   useEffect(() => {
     if (state.vehicle && onVehicleFound) {
-      console.log('🎯 VehicleLookupForm: Vehicle found in state, triggering onVehicleFound:', state.vehicle);
       onVehicleFound(state.vehicle);
     }
   }, [state.vehicle, onVehicleFound]);
 
   const handleVehicleFound = (vehicle: any) => {
-    console.log('✅ VehicleLookupForm: Vehicle found callback triggered:', vehicle);
-    console.log('🔄 onVehicleFound callback exists:', !!onVehicleFound);
-    
     if (onVehicleFound) {
-      console.log('🚀 Calling parent onVehicleFound callback');
       onVehicleFound(vehicle);
-    } else {
-      console.log('⚠️ No onVehicleFound callback provided');
     }
   };
 
   const handleManualEntry = () => {
-    // Navigate to manual entry with current VIN if available
     const params = state.vin ? `?vin=${state.vin}` : '';
     navigate(`/valuation${params}`);
   };
