@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import VinLookup from '@/components/lookup/VinLookup';
+import { UnifiedVinLookup } from '@/components/lookup/UnifiedVinLookup';
 import { PlateLookup } from '@/components/lookup/PlateLookup';
 import { ManualLookup } from '@/components/lookup/ManualLookup';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
@@ -59,9 +59,9 @@ export function LookupTabs({
       </TabsList>
       
       <TabsContent value="vin" className="space-y-4 mt-4">
-        <VinLookup 
+        <UnifiedVinLookup 
           onSubmit={handleVinSubmit} 
-          isLoading={isSubmitting && activeTab === 'vin'} 
+          showHeader={false}
         />
       </TabsContent>
       
