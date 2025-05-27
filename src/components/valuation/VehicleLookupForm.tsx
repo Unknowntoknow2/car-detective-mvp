@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { VinLookupErrorHandler } from '../lookup/VinLookupErrorHandler';
 import { useVinLookupFlow } from '@/hooks/useVinLookupFlow';
@@ -22,6 +22,14 @@ export function VehicleLookupForm({ onVehicleFound, showHeader = true }: Vehicle
     error: state.error,
     hasOnVehicleFoundCallback: !!onVehicleFound
   });
+
+  // Watch for vehicle found in state and trigger callback
+  useEffect(() => {
+    if (state.vehicle && onVehicleFound) {
+      console.log('🎯 VehicleLookupForm: Vehicle found in state, triggering onVehicleFound:', state.vehicle);
+      onVehicleFound(state.vehicle);
+    }
+  }, [state.vehicle, onVehicleFound]);
 
   const handleVehicleFound = (vehicle: any) => {
     console.log('✅ VehicleLookupForm: Vehicle found callback triggered:', vehicle);
