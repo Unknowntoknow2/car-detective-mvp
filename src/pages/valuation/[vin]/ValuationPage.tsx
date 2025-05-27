@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout';
@@ -7,7 +8,13 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ValuationResponse } from '@/types/valuation';
-import { ValuationAdjustment } from '@/types/adjustments';
+
+// Define the adjustment type locally since it's simple
+interface ValuationAdjustment {
+  factor: string;
+  impact: number;
+  description: string;
+}
 
 interface ValuationPageProps {
   // No props needed
