@@ -80,7 +80,6 @@ export const SignupForm = ({
         description: 'Welcome to Car Detective!'
       });
       
-      // Use appropriate redirect path based on user type
       let targetPath = redirectPath || '/';
       
       if (userType === 'dealer') {

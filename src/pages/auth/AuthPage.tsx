@@ -17,7 +17,6 @@ export default function AuthPage() {
   
   React.useEffect(() => {
     if (user) {
-      // Redirect to home page instead of dashboard to avoid 404
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     }

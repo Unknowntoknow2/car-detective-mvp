@@ -57,14 +57,12 @@ export const SigninForm: React.FC<SigninFormProps> = ({
       
       toast.success('Signed in successfully!');
       
-      // Use the home page as default redirect if no specific path is provided
       let targetPath = redirectPath || '/';
       
       if (userType === 'dealer') {
         targetPath = '/dealer/dashboard';
       }
       
-      // Check if there's a saved redirect path from location state
       const from = location.state?.from?.pathname;
       if (from && from !== '/auth') {
         targetPath = from;

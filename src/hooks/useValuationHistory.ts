@@ -1,11 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Valuation } from '@/types/valuation-history';
-import { ValuationResult } from '@/types/valuation';
 
-// Normalize valuation data from different sources
 const normalizeValuation = (valuation: any): Valuation => {
-  // Convert property names to match Valuation type
   return {
     id: valuation.id,
     userId: valuation.user_id,
@@ -20,7 +18,6 @@ const normalizeValuation = (valuation: any): Valuation => {
     updatedAt: new Date(valuation.updated_at || valuation.updatedAt || valuation.created_at || valuation.createdAt),
     confidenceScore: valuation.confidence_score || valuation.confidenceScore,
     vin: valuation.vin,
-    // Keep database properties for compatibility
     created_at: valuation.created_at,
     updated_at: valuation.updated_at,
     user_id: valuation.user_id,
@@ -70,7 +67,6 @@ export function useValuationHistory() {
       setValuations(normalizedValuations);
       return normalizedValuations;
     } catch (err: any) {
-      console.error('Error fetching valuation history:', err);
       setError(err.message || 'Failed to fetch valuation history');
       return [];
     } finally {
@@ -78,7 +74,6 @@ export function useValuationHistory() {
     }
   };
 
-  // Add isEmpty helper method to fix errors in MyValuationsContent.tsx
   const isEmpty = () => valuations.length === 0;
 
   return {
@@ -90,9 +85,7 @@ export function useValuationHistory() {
   };
 }
 
-// Export a test helper function for useValuationHistory.test.ts
 export const testDeduplication = (items: any[]) => {
-  // Implementation details here (mock for testing)
   return items.filter((value, index, self) => 
     index === self.findIndex((t) => t.id === value.id)
   );
