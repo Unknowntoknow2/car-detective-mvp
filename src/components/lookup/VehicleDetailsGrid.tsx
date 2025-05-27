@@ -1,7 +1,7 @@
-
 import React from 'react';
 import type { DecodedVehicleInfo } from '@/types/vehicle';
 import { Badge } from '@/components/ui/badge';
+import { Info } from 'lucide-react';
 
 interface VehicleDetailsGridProps {
   vehicleInfo: DecodedVehicleInfo;
