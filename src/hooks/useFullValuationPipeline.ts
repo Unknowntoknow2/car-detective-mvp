@@ -103,7 +103,7 @@ export function useFullValuationPipeline(): FullValuationPipelineReturn {
       actions.setStepCompleted('vehicle-condition', true);
       
       // Auto advance to result step when valuation is complete
-      const resultStepIndex = state.steps.findIndex(step => step.id === 'result');
+      const resultStepIndex = state.steps.findIndex((step: any) => step.id === 'result');
       if (resultStepIndex !== -1) {
         actions.goToStep(resultStepIndex);
       }
