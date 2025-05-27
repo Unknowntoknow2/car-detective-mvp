@@ -19,14 +19,19 @@ export function VehicleLookupForm({ onVehicleFound, showHeader = true }: Vehicle
     stage: state.stage,
     isLoading: state.isLoading,
     hasVehicle: !!state.vehicle,
-    error: state.error
+    error: state.error,
+    hasOnVehicleFoundCallback: !!onVehicleFound
   });
 
   const handleVehicleFound = (vehicle: any) => {
-    console.log('✅ VehicleLookupForm: Vehicle found:', vehicle);
+    console.log('✅ VehicleLookupForm: Vehicle found callback triggered:', vehicle);
+    console.log('🔄 onVehicleFound callback exists:', !!onVehicleFound);
     
     if (onVehicleFound) {
+      console.log('🚀 Calling parent onVehicleFound callback');
       onVehicleFound(vehicle);
+    } else {
+      console.log('⚠️ No onVehicleFound callback provided');
     }
   };
 
