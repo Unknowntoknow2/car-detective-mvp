@@ -40,14 +40,14 @@ export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo
       bodyType: data.decoded.bodyType,
       fuelType: data.decoded.fuelType,
       drivetrain: data.decoded.drivetrain,
-      exteriorColor: data.decoded.exteriorColor,
+      exteriorColor: data.decoded.exteriorColor || data.decoded.color, // Try both fields
       interiorColor: data.decoded.interiorColor,
       doors: data.decoded.doors,
       seats: data.decoded.seats,
       displacement: data.decoded.displacement,
       // Only include photos if they're real user uploads or manufacturer data
-      photos: data.decoded.photos || [],
-      primaryPhoto: data.decoded.primaryPhoto
+      photos: [], // Always empty unless real photos are uploaded
+      primaryPhoto: undefined // No fake photos
     };
 
     return vehicleData;
@@ -87,8 +87,8 @@ export async function fetchVehicleByPlate(plate: string, state: string): Promise
       plate,
       state,
       ...data.vehicle,
-      photos: data.vehicle?.photos || [],
-      primaryPhoto: data.vehicle?.primaryPhoto
+      photos: [], // No fake photos
+      primaryPhoto: undefined
     };
   } catch (error) {
     console.error('❌ Failed to fetch plate data:', error);
