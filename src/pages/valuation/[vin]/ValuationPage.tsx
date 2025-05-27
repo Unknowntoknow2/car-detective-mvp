@@ -1,300 +1,335 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
-import { EnhancedVehicleCard } from '@/components/valuation/enhanced-followup/EnhancedVehicleCard';
-import { EnhancedFollowUpForm } from '@/components/valuation/enhanced-followup/EnhancedFollowUpForm';
 import { ValuationResult } from '@/components/valuation/ValuationResult';
-import { useUser } from '@/hooks/useUser';
-import { useValuationResult } from '@/hooks/useValuationResult';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Car, Calendar, Gauge, Wrench } from 'lucide-react';
 import { lookupVin } from '@/services/vehicleService';
-import { supabase } from '@/integrations/supabase/client';
-import { DecodedVehicleInfo } from '@/types/vehicle';
-import { ValuationResult as ValuationResultType } from '@/types/valuation';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { toast } from 'sonner';
+import { DecodedVehicleInfo, ValuationResponse } from '@/types/vehicle';
+import { formatCurrency } from '@/utils/formatters';
+import { useUser } from '@/hooks/useUser';
 
-export default function ValuationPage() {
-  const { vin } = useParams<{ vin: string }>();
-  const navigate = useNavigate();
-  const { user } = useUser();
-  const [vehicleInfo, setVehicleInfo] = useState<DecodedVehicleInfo | null>(null);
-  const [isLoadingVehicle, setIsLoadingVehicle] = useState(true);
-  const [vehicleError, setVehicleError] = useState<string | null>(null);
-  const [followUpCompleted, setFollowUpCompleted] = useState(false);
-  const [valuationGenerated, setValuationGenerated] = useState(false);
-  const [currentValuationId, setCurrentValuationId] = useState<string | null>(null);
+interface EnhancedVehicleCardProps {
+  vehicle: DecodedVehicleInfo;
+  onViewValuation: () => void;
+}
 
-  // Fetch existing valuation result if available
-  const { data: existingValuation, isLoading: isLoadingValuation } = useValuationResult(vin || '');
-
-  // Load vehicle data on mount
-  useEffect(() => {
-    const loadVehicleData = async () => {
-      if (!vin) {
-        setVehicleError('No VIN provided');
-        setIsLoadingVehicle(false);
-        return;
-      }
-
-      try {
-        console.log('🔍 Loading vehicle data for VIN:', vin);
-        const result = await lookupVin(vin);
-        setVehicleInfo(result);
-        console.log('✅ Vehicle data loaded:', result);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load vehicle data';
-        console.error('❌ Failed to load vehicle data:', errorMessage);
-        setVehicleError(errorMessage);
-        toast.error(errorMessage);
-      } finally {
-        setIsLoadingVehicle(false);
-      }
-    };
-
-    loadVehicleData();
-  }, [vin]);
-
-  // Check if follow-up answers exist
-  useEffect(() => {
-    const checkFollowUpStatus = async () => {
-      if (!vin) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('follow_up_answers')
-          .select('*')
-          .eq('vin', vin.toUpperCase())
-          .maybeSingle();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error checking follow-up status:', error);
-          return;
-        }
-
-        if (data) {
-          setFollowUpCompleted(true);
-          console.log('✅ Follow-up answers found:', data);
-        }
-      } catch (error) {
-        console.error('Error checking follow-up status:', error);
-      }
-    };
-
-    checkFollowUpStatus();
-  }, [vin]);
-
-  // Check if valuation already exists
-  useEffect(() => {
-    if (existingValuation) {
-      setValuationGenerated(true);
-      setCurrentValuationId(existingValuation.id);
-      console.log('✅ Existing valuation found:', existingValuation);
-    }
-  }, [existingValuation]);
-
-  const handleFollowUpComplete = async () => {
-    if (!vin || !user?.id) {
-      toast.error('Missing required information');
-      return;
-    }
-
-    try {
-      setFollowUpCompleted(true);
-      toast.success('Assessment completed! Generating valuation...');
-
-      // Generate valuation based on follow-up answers
-      const { data: followUpData } = await supabase
-        .from('follow_up_answers')
-        .select('*')
-        .eq('vin', vin.toUpperCase())
-        .single();
-
-      if (!followUpData) {
-        throw new Error('Follow-up answers not found');
-      }
-
-      // Create valuation record
-      const { data: valuation, error: valuationError } = await supabase
-        .from('valuations')
-        .insert({
-          vin: vin.toUpperCase(),
-          user_id: user.id,
-          year: vehicleInfo?.year || new Date().getFullYear(),
-          make: vehicleInfo?.make || 'Unknown',
-          model: vehicleInfo?.model || 'Unknown',
-          estimated_value: calculateEstimatedValue(followUpData.answers),
-          confidence_score: 85,
-          base_price: calculateBasePrice(vehicleInfo),
-          created_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (valuationError) {
-        throw valuationError;
-      }
-
-      setCurrentValuationId(valuation.id);
-      setValuationGenerated(true);
-      toast.success('Valuation generated successfully!');
-
-    } catch (error) {
-      console.error('❌ Failed to generate valuation:', error);
-      toast.error('Failed to generate valuation. Please try again.');
-    }
-  };
-
-  const calculateEstimatedValue = (answers: any): number => {
-    // Base calculation logic based on follow-up answers
-    let baseValue = 15000; // Default base value
-    
-    if (vehicleInfo?.year) {
-      // Adjust for year
-      const currentYear = new Date().getFullYear();
-      const age = currentYear - vehicleInfo.year;
-      baseValue = Math.max(5000, baseValue - (age * 1000));
-    }
-
-    // Adjust based on condition
-    if (answers.condition) {
-      const conditionMultipliers = {
-        'excellent': 1.2,
-        'good': 1.0,
-        'fair': 0.8,
-        'poor': 0.6
-      };
-      baseValue *= conditionMultipliers[answers.condition] || 1.0;
-    }
-
-    // Adjust based on mileage
-    if (answers.mileage) {
-      const mileage = parseInt(answers.mileage);
-      if (mileage < 50000) baseValue *= 1.1;
-      else if (mileage > 100000) baseValue *= 0.9;
-    }
-
-    return Math.round(baseValue);
-  };
-
-  const calculateBasePrice = (vehicle: DecodedVehicleInfo | null): number => {
-    if (!vehicle?.year) return 12000;
-    
-    const currentYear = new Date().getFullYear();
-    const age = currentYear - vehicle.year;
-    return Math.max(8000, 15000 - (age * 1200));
-  };
-
-  // Loading state
-  if (isLoadingVehicle || isLoadingValuation) {
-    return (
-      <div className="flex min-h-screen flex-col bg-slate-50">
-        <Navbar />
-        <main className="flex-1 container max-w-6xl py-10">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-              <p className="text-muted-foreground">Loading vehicle information...</p>
+const EnhancedVehicleCard: React.FC<EnhancedVehicleCardProps> = ({ 
+  vehicle, 
+  onViewValuation 
+}) => {
+  return (
+    <Card className="w-full max-w-4xl mx-auto shadow-lg border-2 border-gray-200 hover:border-blue-300 transition-colors">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Car className="h-8 w-8 text-blue-600" />
+            <div>
+              <CardTitle className="text-2xl font-bold text-gray-800">
+                {vehicle.year} {vehicle.make} {vehicle.model}
+              </CardTitle>
+              {vehicle.trim && (
+                <p className="text-lg text-gray-600 mt-1">{vehicle.trim}</p>
+              )}
             </div>
           </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+          <Badge variant="secondary" className="text-sm px-3 py-1">
+            VIN: {vehicle.vin?.slice(-6) || 'Unknown'}
+          </Badge>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          {vehicle.year && (
+            <div className="flex items-center space-x-3">
+              <Calendar className="h-5 w-5 text-gray-500" />
+              <div>
+                <p className="text-sm text-gray-500">Year</p>
+                <p className="font-semibold">{vehicle.year}</p>
+              </div>
+            </div>
+          )}
+          
+          {vehicle.mileage && (
+            <div className="flex items-center space-x-3">
+              <Gauge className="h-5 w-5 text-gray-500" />
+              <div>
+                <p className="text-sm text-gray-500">Mileage</p>
+                <p className="font-semibold">{vehicle.mileage.toLocaleString()} miles</p>
+              </div>
+            </div>
+          )}
+          
+          {vehicle.transmission && (
+            <div className="flex items-center space-x-3">
+              <Wrench className="h-5 w-5 text-gray-500" />
+              <div>
+                <p className="text-sm text-gray-500">Transmission</p>
+                <p className="font-semibold">{vehicle.transmission}</p>
+              </div>
+            </div>
+          )}
+        </div>
 
-  // Error state
-  if (vehicleError || !vehicleInfo) {
-    return (
-      <div className="flex min-h-screen flex-col bg-slate-50">
-        <Navbar />
-        <main className="flex-1 container max-w-6xl py-10">
-          <div className="text-center space-y-4">
-            <Alert className="border-red-200 bg-red-50">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-700">
-                {vehicleError || 'Vehicle information not found'}
-              </AlertDescription>
-            </Alert>
-            <button
-              onClick={() => navigate('/vin-lookup')}
-              className="bg-primary text-primary-foreground px-6 py-2 rounded-md hover:bg-primary/90"
-            >
-              Try Another VIN Lookup
-            </button>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {vehicle.bodyType && (
+            <div>
+              <p className="text-sm text-gray-500">Body Type</p>
+              <p className="font-medium">{vehicle.bodyType}</p>
+            </div>
+          )}
+          
+          {vehicle.fuelType && (
+            <div>
+              <p className="text-sm text-gray-500">Fuel Type</p>
+              <p className="font-medium">{vehicle.fuelType}</p>
+            </div>
+          )}
+          
+          {vehicle.drivetrain && (
+            <div>
+              <p className="text-sm text-gray-500">Drivetrain</p>
+              <p className="font-medium">{vehicle.drivetrain}</p>
+            </div>
+          )}
+          
+          {vehicle.exteriorColor && (
+            <div>
+              <p className="text-sm text-gray-500">Color</p>
+              <p className="font-medium">{vehicle.exteriorColor}</p>
+            </div>
+          )}
+        </div>
 
-  // Prepare valuation data for display
-  const valuationData = existingValuation ? {
-    make: existingValuation.make,
-    model: existingValuation.model,
-    year: existingValuation.year,
-    condition: 'Good', // Default condition
-    estimatedValue: existingValuation.estimatedValue || 0,
-    confidenceScore: existingValuation.confidenceScore || 85,
-    basePrice: existingValuation.basePrice || calculateBasePrice(vehicleInfo),
-    adjustments: existingValuation.adjustments || [
+        <div className="flex justify-center">
+          <Button 
+            onClick={onViewValuation}
+            size="lg"
+            className="px-8 py-3 text-lg font-semibold bg-blue-600 hover:bg-blue-700"
+          >
+            Get Market Valuation
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const ValuationPage: React.FC = () => {
+  const { vin } = useParams<{ vin: string }>();
+  const [vehicle, setVehicle] = useState<DecodedVehicleInfo | null>(null);
+  const [showValuation, setShowValuation] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useUser();
+
+  useEffect(() => {
+    if (vin) {
+      handleVinLookup(vin);
+    }
+  }, [vin]);
+
+  const handleVinLookup = async (vinValue: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const vehicleData = await lookupVin(vinValue);
+      setVehicle(vehicleData);
+    } catch (err) {
+      console.error('VIN lookup failed:', err);
+      setError(err instanceof Error ? err.message : 'Failed to decode VIN');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateValuationData = (vehicleData: DecodedVehicleInfo): ValuationResponse & { isPremium?: boolean } => {
+    if (!vehicleData) {
+      throw new Error('Vehicle data is required');
+    }
+
+    // Define condition multipliers with proper typing
+    const conditionMultipliers: Record<string, number> = {
+      excellent: 1.1,
+      good: 1.0,
+      fair: 0.9,
+      poor: 0.75
+    };
+
+    // Ensure condition is a valid key
+    const condition = vehicleData.condition?.toLowerCase() || 'good';
+    const validCondition = condition in conditionMultipliers ? condition : 'good';
+    
+    // Base pricing logic
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - (vehicleData.year || currentYear);
+    const baseValue = Math.max(5000, 25000 - (age * 1500));
+    
+    // Apply condition multiplier
+    const conditionMultiplier = conditionMultipliers[validCondition];
+    const estimatedValue = Math.round(baseValue * conditionMultiplier);
+    
+    // Calculate adjustments
+    const adjustments = [
       {
-        factor: 'Vehicle Age',
-        impact: -2000,
+        factor: `Vehicle Age (${age} years)`,
+        impact: -(age * 1500),
         description: 'Depreciation based on vehicle age'
       },
       {
-        factor: 'Market Demand',
-        impact: 1500,
-        description: 'High demand for this make and model'
+        factor: `${validCondition.charAt(0).toUpperCase() + validCondition.slice(1)} Condition`,
+        impact: Math.round(baseValue * (conditionMultiplier - 1)),
+        description: `Adjustment for ${validCondition} condition rating`
       }
-    ]
-  } : null;
+    ];
+
+    // Add mileage adjustment if available
+    if (vehicleData.mileage) {
+      const avgMileagePerYear = 12000;
+      const expectedMileage = age * avgMileagePerYear;
+      const mileageDiff = vehicleData.mileage - expectedMileage;
+      const mileageAdjustment = Math.round(mileageDiff * -0.1);
+      
+      if (Math.abs(mileageAdjustment) > 100) {
+        adjustments.push({
+          factor: mileageDiff > 0 ? 'High Mileage' : 'Low Mileage',
+          impact: mileageAdjustment,
+          description: `${Math.abs(mileageDiff).toLocaleString()} miles ${mileageDiff > 0 ? 'above' : 'below'} average`
+        });
+      }
+    }
+
+    return {
+      make: vehicleData.make || '',
+      model: vehicleData.model || '',
+      year: vehicleData.year || currentYear,
+      condition: validCondition,
+      estimatedValue,
+      confidenceScore: 85,
+      valuationId: `val_${Date.now()}`,
+      basePrice: baseValue,
+      adjustments,
+      vin: vehicleData.vin,
+      mileage: vehicleData.mileage,
+      fuelType: vehicleData.fuelType,
+      transmission: vehicleData.transmission,
+      bodyType: vehicleData.bodyType,
+      color: vehicleData.exteriorColor,
+      trim: vehicleData.trim,
+      userId: user?.id,
+      isPremium: false
+    };
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold text-gray-700 mb-2">Decoding VIN...</h2>
+              <p className="text-gray-500">Please wait while we retrieve vehicle information</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center min-h-[60vh] flex items-center justify-center">
+            <Card className="max-w-md mx-auto">
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold text-red-600 mb-2">Error</h2>
+                <p className="text-gray-600 mb-4">{error}</p>
+                <Button 
+                  onClick={() => vin && handleVinLookup(vin)}
+                  variant="outline"
+                >
+                  Try Again
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!vehicle) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center min-h-[60vh] flex items-center justify-center">
+            <Card className="max-w-md mx-auto">
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold text-gray-700 mb-2">No Vehicle Found</h2>
+                <p className="text-gray-600">Unable to find vehicle information for this VIN.</p>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="flex-1 container max-w-6xl py-10">
-        <div className="space-y-8">
-          <CarFinderQaherHeader />
-          
-          <div className="space-y-6">
-            <div className="text-center space-y-2">
-              <h1 className="text-3xl font-bold">Vehicle Assessment & Valuation</h1>
-              <p className="text-muted-foreground">
-                Complete your vehicle assessment for an accurate valuation
+      <main className="container mx-auto px-4 py-8">
+        {!showValuation ? (
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Vehicle Information
+              </h1>
+              <p className="text-lg text-gray-600">
+                VIN: <span className="font-mono">{vin}</span>
               </p>
-              <div className="inline-flex items-center px-3 py-1 bg-primary/10 text-primary rounded-full">
-                <span className="text-sm">VIN: {vin}</span>
-              </div>
             </div>
-
-            <EnhancedVehicleCard vehicle={vehicleInfo} />
-
-            {!followUpCompleted && !valuationGenerated && (
-              <EnhancedFollowUpForm
-                vin={vin || ''}
-                onComplete={handleFollowUpComplete}
-              />
-            )}
-
-            {(followUpCompleted || valuationGenerated) && valuationData && (
-              <div className="space-y-6">
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold text-green-600">✅ Valuation Complete</h2>
-                  <p className="text-muted-foreground">Your vehicle has been professionally assessed</p>
-                </div>
-                <ValuationResult data={valuationData} />
-              </div>
-            )}
+            
+            <EnhancedVehicleCard 
+              vehicle={vehicle}
+              onViewValuation={() => setShowValuation(true)}
+            />
           </div>
-        </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-bold text-gray-900">
+                Market Valuation Results
+              </h1>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowValuation(false)}
+              >
+                Back to Vehicle Details
+              </Button>
+            </div>
+            
+            <ValuationResult data={generateValuationData(vehicle)} />
+          </div>
+        )}
       </main>
       <Footer />
     </div>
   );
-}
+};
+
+export default ValuationPage;

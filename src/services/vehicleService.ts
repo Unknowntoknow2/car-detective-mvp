@@ -47,3 +47,41 @@ export const decodeLicensePlate = async (
     throw error;
   }
 };
+
+// Add the missing lookupVin function
+export const lookupVin = async (vin: string): Promise<DecodedVehicleInfo> => {
+  console.log(`🔍 VIN lookup: ${vin}`);
+  
+  try {
+    const { data, error } = await supabase.functions.invoke('fetch-vehicle-history', {
+      body: { 
+        vin: vin.toUpperCase(),
+        type: 'vin_decode'
+      }
+    });
+
+    if (error) {
+      console.error('❌ VIN decode error:', error);
+      throw new Error(`VIN lookup failed: ${error.message}`);
+    }
+
+    if (!data || !data.success) {
+      const errorMsg = data?.error || 'VIN not found';
+      console.error('❌ VIN not found:', errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    if (!data.vehicle) {
+      throw new Error('No vehicle data found for this VIN');
+    }
+
+    console.log('✅ VIN data retrieved');
+    return {
+      vin,
+      ...data.vehicle
+    };
+  } catch (error) {
+    console.error("❌ VIN lookup failed:", error);
+    throw error;
+  }
+};
