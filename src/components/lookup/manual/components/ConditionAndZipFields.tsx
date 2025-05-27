@@ -3,21 +3,23 @@ import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-
-interface ConditionOption {
-  value: string;
-  label: string;
-}
+import { ConditionLevel } from '@/components/lookup/types/manualEntry';
 
 interface ConditionAndZipFieldsProps {
   form: any;
-  conditionOptions: ConditionOption[];
 }
 
 export const ConditionAndZipFields: React.FC<ConditionAndZipFieldsProps> = ({ 
-  form, 
-  conditionOptions 
+  form
 }) => {
+  const conditionOptions = [
+    { value: ConditionLevel.Excellent, label: 'Excellent' },
+    { value: ConditionLevel.VeryGood, label: 'Very Good' },
+    { value: ConditionLevel.Good, label: 'Good' },
+    { value: ConditionLevel.Fair, label: 'Fair' },
+    { value: ConditionLevel.Poor, label: 'Poor' }
+  ];
+
   return (
     <div>
       <h3 className="text-lg font-medium mb-4">Condition & Location</h3>

@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { ManualEntryFormFree } from './ManualEntryFormFree';
+import { ManualEntryForm } from './ManualEntryForm';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 import { ConditionLevel, ManualEntryFormData } from './types/manualEntry';
@@ -88,7 +87,7 @@ export function ManualLookup({
   };
 
   return (
-    <ManualEntryFormFree
+    <ManualEntryForm
       onSubmit={handleSubmit}
       isLoading={isLoading}
       submitButtonText={submitButtonText}

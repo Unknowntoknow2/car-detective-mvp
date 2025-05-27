@@ -6,9 +6,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
-import { Badge } from '@/components/ui/badge';
-import { Crown } from 'lucide-react';
-import { ManualEntryFormData, ManualEntryFormProps, ConditionLevel } from '../types/manualEntry';
+import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
 import { VehicleBasicInfoFields } from './components/VehicleBasicInfoFields';
 import { VehicleDetailsFields } from './components/VehicleDetailsFields';
 import { ConditionAndZipFields } from './components/ConditionAndZipFields';
@@ -37,7 +35,10 @@ const premiumManualEntrySchema = z.object({
   }).optional(),
 });
 
-interface PremiumManualEntryFormProps extends ManualEntryFormProps {
+interface PremiumManualEntryFormProps {
+  onSubmit: (data: ManualEntryFormData) => void;
+  isLoading?: boolean;
+  submitButtonText?: string;
   initialData?: Partial<ManualEntryFormData>;
   onCancel?: () => void;
 }
@@ -53,7 +54,7 @@ export const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({
   onCancel
 }) => {
   const [step, setStep] = useState(1);
-  const totalSteps = 4; // Premium has additional steps
+  const totalSteps = 3;
 
   const form = useForm<ManualEntryFormData>({
     resolver: zodResolver(premiumManualEntrySchema),
@@ -76,7 +77,7 @@ export const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({
         severity: undefined,
         repaired: false,
         date: '',
-        description: ''
+        description: '',
       },
     },
   });
@@ -119,18 +120,6 @@ export const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({
             <ConditionAndZipFields form={form} />
           </div>
         );
-      case 4:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Premium Features</h3>
-              <p className="text-muted-foreground mb-4">
-                Additional details for enhanced valuation accuracy
-              </p>
-              {/* Premium-specific fields would go here */}
-            </div>
-          </div>
-        );
       default:
         return null;
     }
@@ -139,20 +128,18 @@ export const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Crown className="h-5 w-5 text-yellow-500" />
-            Premium Vehicle Information
-          </CardTitle>
-          <Badge variant="secondary">Premium</Badge>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Premium
+          </span>
+          Vehicle Information
+        </CardTitle>
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>Step {step} of {totalSteps}</span>
           <span>
             {step === 1 && 'Basic Information'}
             {step === 2 && 'Vehicle Details'}
             {step === 3 && 'Condition & Location'}
-            {step === 4 && 'Premium Features'}
           </span>
         </div>
       </CardHeader>
@@ -197,7 +184,7 @@ export const PremiumManualEntryForm: React.FC<PremiumManualEntryFormProps> = ({
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="ml-auto"
+                  className="ml-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 >
                   {isLoading ? 'Processing...' : submitButtonText}
                 </Button>
