@@ -1,3 +1,4 @@
+
 import { testDeduplication } from '../useValuationHistory';
 import type { Valuation } from '@/types/valuation-history';
 
@@ -10,7 +11,8 @@ describe('useValuationHistory', () => {
         // Regular valuation
         {
           id: commonId,
-          created_at: '2023-05-01T12:00:00Z',
+          createdAt: new Date('2023-05-01T12:00:00Z'),
+          updatedAt: new Date('2023-05-01T12:00:00Z'),
           make: 'Toyota',
           model: 'Camry',
           year: 2020,
@@ -20,7 +22,8 @@ describe('useValuationHistory', () => {
         // Premium version of the same valuation
         {
           id: commonId,
-          created_at: '2023-05-02T12:00:00Z',
+          createdAt: new Date('2023-05-02T12:00:00Z'),
+          updatedAt: new Date('2023-05-02T12:00:00Z'),
           make: 'Toyota',
           model: 'Camry',
           year: 2020,
@@ -30,7 +33,8 @@ describe('useValuationHistory', () => {
         // Different valuation
         {
           id: 'test-456',
-          created_at: '2023-05-03T12:00:00Z',
+          createdAt: new Date('2023-05-03T12:00:00Z'),
+          updatedAt: new Date('2023-05-03T12:00:00Z'),
           make: 'Honda',
           model: 'Accord',
           year: 2021,
@@ -66,17 +70,21 @@ describe('useValuationHistory', () => {
       const valuations: Valuation[] = [
         {
           id: commonId,
-          created_at: '2023-05-01T12:00:00Z',
+          createdAt: new Date('2023-05-01T12:00:00Z'),
+          updatedAt: new Date('2023-05-01T12:00:00Z'),
           make: 'Older',
           model: 'Entry',
+          year: 2020,
           is_premium: false,
           premium_unlocked: false,
         },
         {
           id: commonId,
-          created_at: '2023-05-10T12:00:00Z',
+          createdAt: new Date('2023-05-10T12:00:00Z'),
+          updatedAt: new Date('2023-05-10T12:00:00Z'),
           make: 'Newer',
           model: 'Entry',
+          year: 2020,
           is_premium: false,
           premium_unlocked: false,
         }
@@ -95,11 +103,12 @@ describe('useValuationHistory', () => {
         {
           id: 'reg-123',
           vin,
-          created_at: '2023-05-01T10:00:00Z',
+          createdAt: new Date('2023-05-01T10:00:00Z'),
+          updatedAt: new Date('2023-05-01T10:00:00Z'),
           make: 'Honda',
           model: 'Accord',
           year: 2020,
-          estimated_value: 18000,
+          estimatedValue: 18000,
           is_premium: false,
           premium_unlocked: false,
         },
@@ -107,11 +116,12 @@ describe('useValuationHistory', () => {
         {
           id: 'saved-123',
           vin,
-          created_at: '2023-05-02T12:00:00Z',
+          createdAt: new Date('2023-05-02T12:00:00Z'),
+          updatedAt: new Date('2023-05-02T12:00:00Z'),
           make: 'Honda',
           model: 'Accord',
           year: 2020,
-          estimated_value: 18500,
+          estimatedValue: 18500,
           is_premium: false,
           premium_unlocked: false,
         },
@@ -119,11 +129,12 @@ describe('useValuationHistory', () => {
         {
           id: 'premium-123',
           vin,
-          created_at: '2023-05-03T14:00:00Z',
+          createdAt: new Date('2023-05-03T14:00:00Z'),
+          updatedAt: new Date('2023-05-03T14:00:00Z'),
           make: 'Honda',
           model: 'Accord',
           year: 2020,
-          estimated_value: 19000,
+          estimatedValue: 19000,
           is_premium: true,
           premium_unlocked: true,
         }

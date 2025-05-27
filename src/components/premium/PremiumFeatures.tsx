@@ -15,28 +15,28 @@ export function PremiumFeatures({ valuation }: PremiumFeaturesProps) {
   const features = [
     {
       name: 'CARFAX Report',
-      available: valuation.premium_unlocked || valuation.is_premium,
+      available: valuation.premium_unlocked || valuation.is_premium || false,
       description: 'Full vehicle history and records'
     },
     {
       name: 'Market Analysis',
-      available: valuation.premium_unlocked || valuation.is_premium,
+      available: valuation.premium_unlocked || valuation.is_premium || false,
       description: 'Local market data and price comparisons'
     },
     {
       name: 'Confidence Score',
       available: true,
-      value: valuation.confidence_score || 75,
+      value: valuation.confidenceScore || valuation.confidence_score || 75,
       description: 'Accuracy of the valuation based on available data'
     },
     {
       name: 'Feature Adjustments',
-      available: valuation.premium_unlocked || valuation.is_premium,
+      available: valuation.premium_unlocked || valuation.is_premium || false,
       description: 'Individual value of each feature and option'
     },
     {
       name: 'Similar Listings',
-      available: valuation.premium_unlocked || valuation.is_premium,
+      available: valuation.premium_unlocked || valuation.is_premium || false,
       description: 'Comparable vehicles currently on the market'
     }
   ];

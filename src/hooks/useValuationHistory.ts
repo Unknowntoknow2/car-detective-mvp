@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Valuation } from '@/types/valuation-history';
@@ -9,26 +8,30 @@ const normalizeValuation = (valuation: any): Valuation => {
   // Convert property names to match Valuation type
   return {
     id: valuation.id,
-    user_id: valuation.user_id,
+    userId: valuation.user_id,
     year: valuation.year,
     make: valuation.make,
     model: valuation.model,
     mileage: valuation.mileage,
     condition: valuation.condition,
     zipCode: valuation.zipCode || valuation.zip_code,
-    estimated_value: valuation.estimated_value || valuation.estimatedValue,
-    created_at: valuation.created_at || valuation.createdAt,
+    estimatedValue: valuation.estimated_value || valuation.estimatedValue,
+    createdAt: new Date(valuation.created_at || valuation.createdAt),
+    updatedAt: new Date(valuation.updated_at || valuation.updatedAt || valuation.created_at || valuation.createdAt),
+    confidenceScore: valuation.confidence_score || valuation.confidenceScore,
+    vin: valuation.vin,
+    // Keep database properties for compatibility
+    created_at: valuation.created_at,
     updated_at: valuation.updated_at,
-    confidence_score: valuation.confidence_score || valuation.confidenceScore,
-    status: valuation.status,
-    error_message: valuation.error_message,
+    user_id: valuation.user_id,
+    estimated_value: valuation.estimated_value,
+    confidence_score: valuation.confidence_score,
+    accident_count: valuation.accident_count || valuation.accidentCount,
     is_premium: valuation.is_premium,
     premium_unlocked: valuation.premium_unlocked,
-    accident_count: valuation.accident_count || valuation.accidentCount,
-    vin: valuation.vin,
+    valuation: valuation.valuation,
     plate: valuation.plate,
-    state: valuation.state,
-    valuation: valuation.valuation
+    state: valuation.state
   };
 };
 

@@ -18,6 +18,19 @@ export interface Valuation {
   features?: string[];
   accidents?: boolean;
   accidentCount?: number;
+  
+  // Database snake_case properties for compatibility
+  created_at?: string;
+  updated_at?: string;
+  user_id?: string;
+  estimated_value?: number;
+  confidence_score?: number;
+  accident_count?: number;
+  is_premium?: boolean;
+  premium_unlocked?: boolean;
+  valuation?: number;
+  plate?: string;
+  state?: string;
 }
 
 export interface ValuationHistory {
