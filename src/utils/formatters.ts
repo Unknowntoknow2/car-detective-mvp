@@ -1,30 +1,17 @@
 
-// Re-export all formatters from the formatters directory
-// This file exists for backward compatibility with existing imports
-
-import { 
-  formatCurrency
-} from './formatters/formatCurrency';
-
-import { 
-  formatDate, 
-  formatNumber, 
-  formatRelativeTime,
-  manualEntryToJson
-} from './formatters/index';
-
-export {
-  formatCurrency,
-  formatDate,
-  formatNumber,
-  formatRelativeTime,
-  manualEntryToJson
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
 };
 
-// Add deprecation warning in development
-if (process.env.NODE_ENV === 'development') {
-  console.warn(
-    'Warning: Importing from @/utils/formatters.ts is deprecated. ' +
-    'Please import from @/utils/formatters/index.ts or specific formatter files instead.'
-  );
-}
+export const formatNumber = (num: number): string => {
+  return new Intl.NumberFormat('en-US').format(num);
+};
+
+export const formatPercentage = (value: number): string => {
+  return `${Math.round(value)}%`;
+};
