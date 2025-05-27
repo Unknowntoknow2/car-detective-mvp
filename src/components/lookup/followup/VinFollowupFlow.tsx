@@ -129,14 +129,14 @@ export function VinFollowupFlow() {
       case 'title_status':
         return (
           <TitleStatusSelector
-            value={answers.title_status}
+            value={answers.title_status || ''}
             onChange={handleTitleStatusChange}
           />
         );
       case 'previous_use':
         return (
           <PreviousUseSelector
-            value={answers.previous_use}
+            value={answers.previous_use || ''}
             onChange={handlePreviousUseChange}
           />
         );
