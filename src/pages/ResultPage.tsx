@@ -8,36 +8,16 @@ import { Card } from '@/components/ui/card';
 const ResultPage = () => {
   const { id } = useParams<{ id: string }>();
 
-  // In a real app, you would fetch the valuation data based on the ID
-  // For now, we'll just mock some data
-  const valuationData = {
-    make: 'Toyota',
-    model: 'Camry',
-    year: 2020,
-    condition: 'Good',
-    estimatedValue: 22500,
-    confidenceScore: 85,
-    basePrice: 20000,
-    adjustments: [
-      {
-        factor: 'Low Mileage',
-        impact: 1500,
-        description: 'Vehicle has below average mileage for its age'
-      },
-      {
-        factor: 'Good Condition',
-        impact: 1000,
-        description: 'Vehicle is in excellent condition'
-      }
-    ]
-  };
+  // For this page, we'll use a mock VIN since we don't have the actual VIN from the URL
+  // In a real implementation, you might store the VIN in localStorage or pass it via state
+  const mockVin = '1HGBH41JXMN109186';
 
   return (
     <MainLayout>
       <div className="container mx-auto py-8">
         <h1 className="text-2xl font-bold mb-6">Your Valuation Result</h1>
         <Card className="p-6">
-          <ValuationResult data={valuationData} />
+          <ValuationResult vin={mockVin} />
         </Card>
       </div>
     </MainLayout>
