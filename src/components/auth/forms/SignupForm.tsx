@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Loader2, Mail, KeyRound, User, Building } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 // Define form schema with role
 const formSchema = z.object({
@@ -28,8 +28,8 @@ export interface SignupFormProps {
 }
 
 export const SignupForm = ({ 
-  isLoading = false, 
-  setIsLoading = () => {}, 
+  isLoading: externalIsLoading = false, 
+  setIsLoading: externalSetIsLoading, 
   role = 'individual', 
   redirectPath = '/dashboard', 
   showDealershipField = false,
@@ -37,7 +37,12 @@ export const SignupForm = ({
 }: SignupFormProps) => {
   const { signUp } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
+  const [internalIsLoading, setInternalIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Use external or internal loading state
+  const isLoading = externalIsLoading || internalIsLoading;
+  const setIsLoading = externalSetIsLoading || setInternalIsLoading;
 
   // Initialize form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -58,31 +63,27 @@ export const SignupForm = ({
       const { email, password, dealershipName } = values;
       
       // Call the signUp function with email, password, and metadata for the user role
-      const metadata = {
-        role: userType || role,
-        ...(dealershipName ? { dealershipName } : {})
+      const options = {
+        data: {
+          role: userType || role,
+          ...(dealershipName ? { dealership_name: dealershipName } : {})
+        }
       };
       
-      const result = await signUp(email, password, metadata);
+      const result = await signUp(email, password, options);
       
       if (!result.success) {
         const errorMessage = result.error || 'Error creating account';
         setFormError(errorMessage);
-        setIsLoading(false);
-        
-        toast({
-          title: "Sign up failed",
-          description: errorMessage,
-          variant: "destructive",
+        toast.error('Sign up failed', {
+          description: errorMessage
         });
         return;
       }
       
       // If sign-up was successful
-      toast({
-        title: "Account created successfully",
-        description: "Welcome to Car Detective!",
-        variant: "success",
+      toast.success('Account created successfully!', {
+        description: 'Welcome to Car Detective!'
       });
       
       // Redirect to the specified path
@@ -90,11 +91,10 @@ export const SignupForm = ({
     } catch (err: any) {
       console.error('Sign up error:', err);
       setFormError('An unexpected error occurred');
-      toast({
-        title: "Sign up failed",
-        description: "Please try again",
-        variant: "destructive",
+      toast.error('Sign up failed', {
+        description: 'Please try again'
       });
+    } finally {
       setIsLoading(false);
     }
   };
