@@ -1,239 +1,327 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MainLayout } from '@/components/layout';
-import { ValuationResult } from '@/components/valuation/ValuationResult';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { toast } from 'sonner';
+import { Loader2, Car, AlertCircle, CheckCircle } from 'lucide-react';
 import { lookupVin } from '@/services/vehicleService';
-import { supabase } from '@/integrations/supabase/client';
-import { useUser } from '@supabase/auth-helpers-react';
+import { useAuth } from '@/hooks/useAuth';
+import { ValuationResult } from '@/components/valuation/ValuationResult';
+import { toast } from 'sonner';
 
-const ValuationPage = () => {
+interface VehicleData {
+  year: number;
+  make: string;
+  model: string;
+  trim?: string;
+  engine?: string;
+  transmission?: string;
+  fuelType?: string;
+  drivetrain?: string;
+}
+
+interface ValuationResponse {
+  estimatedValue: number;
+  confidenceScore: number;
+  make: string;
+  model: string;
+  year: number;
+  condition: string;
+}
+
+interface ValuationAdjustment {
+  factor: string;
+  impact: number;
+  description?: string;
+}
+
+type ConditionType = 'excellent' | 'good' | 'fair' | 'poor';
+
+const ValuationPage: React.FC = () => {
   const { vin } = useParams<{ vin: string }>();
   const navigate = useNavigate();
-  const user = useUser();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [valuationData, setValuationData] = useState<any>(null);
+  const { user } = useAuth();
+  
+  const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
+  const [mileage, setMileage] = useState<string>('');
+  const [condition, setCondition] = useState<ConditionType>('good');
+  const [zipCode, setZipCode] = useState<string>('');
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [isValuating, setIsValuating] = useState(false);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+  const [valuationResult, setValuationResult] = useState<ValuationResponse | null>(null);
+  const [showValuation, setShowValuation] = useState(false);
 
-  const fetchVinData = async () => {
-    if (!vin) {
-      setError('No VIN provided');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // First try to look up the VIN
-      const vehicleData = await lookupVin(vin);
-      
-      if (!vehicleData) {
-        throw new Error('Vehicle not found for this VIN');
-      }
-
-      // Create a valuation based on the vehicle data
-      const estimatedValue = calculateEstimatedValue(vehicleData);
-      
-      // Store the valuation in the database
-      const { data: valuation, error: valuationError } = await supabase
-        .from('valuations')
-        .insert({
-          vin: vin,
-          make: vehicleData.make || 'Unknown',
-          model: vehicleData.model || 'Unknown',
-          year: vehicleData.year || new Date().getFullYear(),
-          mileage: vehicleData.mileage || 0,
-          condition: 'good',
-          estimated_value: estimatedValue,
-          confidence_score: 85,
-          base_price: Math.round(estimatedValue * 0.9),
-          is_vin_lookup: true,
-          user_id: user?.id || null
-        })
-        .select()
-        .single();
-
-      if (valuationError) {
-        console.error('Error saving valuation:', valuationError);
-        throw new Error('Failed to save valuation');
-      }
-
-      // Create the response data with all required properties
-      const responseData = {
-        make: vehicleData.make || 'Unknown',
-        model: vehicleData.model || 'Unknown',
-        year: vehicleData.year || new Date().getFullYear(),
-        mileage: vehicleData.mileage || 0,
-        condition: 'good',
-        estimatedValue: estimatedValue,
-        confidenceScore: 85,
-        basePrice: Math.round(estimatedValue * 0.9), // Add basePrice
-        adjustments: [ // Add adjustments array
-          {
-            factor: 'VIN Decoded Data',
-            impact: Math.round(estimatedValue * 0.1),
-            description: 'Based on VIN decoded information'
-          }
-        ],
-        valuationId: valuation.id,
-        vin: vin,
-        trim: vehicleData.trim,
-        bodyType: vehicleData.bodyType,
-        fuelType: vehicleData.fuelType,
-        transmission: vehicleData.transmission,
-        drivetrain: vehicleData.drivetrain,
-        exteriorColor: vehicleData.exteriorColor,
-        interiorColor: vehicleData.interiorColor,
-        doors: vehicleData.doors,
-        seats: vehicleData.seats,
-        displacement: vehicleData.displacement,
-        isPremium: false
-      };
-
-      setValuationData(responseData);
-      toast.success('VIN lookup completed successfully!');
-
-    } catch (error) {
-      console.error('VIN lookup error:', error);
-      setError(error instanceof Error ? error.message : 'Failed to lookup VIN');
-      toast.error('Failed to lookup VIN');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const calculateEstimatedValue = (vehicleData: any): number => {
-    // Base calculation using year, make, model
-    let baseValue = 20000; // Default base value
-    
-    // Adjust based on year (newer cars worth more)
-    const currentYear = new Date().getFullYear();
-    const age = currentYear - (vehicleData.year || currentYear);
-    const yearMultiplier = Math.max(0.5, 1 - (age * 0.05)); // Depreciate 5% per year
-    
-    // Adjust based on mileage
-    const mileage = vehicleData.mileage || 50000;
-    const mileageMultiplier = Math.max(0.6, 1 - (mileage / 200000) * 0.4); // Up to 40% reduction for high mileage
-    
-    // Basic condition multipliers
-    const conditionMultipliers: { [key: string]: number } = {
-      excellent: 1.2,
-      good: 1.0,
-      fair: 0.8,
-      poor: 0.6
-    };
-    
-    const condition = 'good'; // Default condition
-    const conditionMultiplier = conditionMultipliers[condition] || 1.0;
-    
-    // Calculate final value
-    const estimatedValue = Math.round(baseValue * yearMultiplier * mileageMultiplier * conditionMultiplier);
-    
-    return Math.max(5000, estimatedValue); // Minimum value of $5,000
-  };
-
+  // Perform VIN lookup on component mount
   useEffect(() => {
-    if (vin) {
-      fetchVinData();
+    if (vin && vin.length === 17) {
+      performVinLookup();
+    } else {
+      setLookupError('Invalid VIN provided');
     }
   }, [vin]);
 
-  const handleRetry = () => {
-    fetchVinData();
+  const performVinLookup = async () => {
+    if (!vin) return;
+    
+    setIsLookingUp(true);
+    setLookupError(null);
+    
+    try {
+      const result = await lookupVin(vin);
+      setVehicleData({
+        year: result.year || 0,
+        make: result.make || '',
+        model: result.model || '',
+        trim: result.trim,
+        engine: result.engine,
+        transmission: result.transmission,
+        fuelType: result.fuelType,
+        drivetrain: result.drivetrain
+      });
+      toast.success('Vehicle information retrieved successfully');
+    } catch (error) {
+      console.error('VIN lookup failed:', error);
+      setLookupError(error instanceof Error ? error.message : 'Failed to lookup VIN');
+      toast.error('Failed to lookup VIN information');
+    } finally {
+      setIsLookingUp(false);
+    }
   };
 
-  const handleGoHome = () => {
-    navigate('/');
+  const calculateValuation = async () => {
+    if (!vehicleData || !mileage || !zipCode) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsValuating(true);
+    
+    try {
+      // Mock valuation calculation
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+      
+      const baseValue = getBaseValue(vehicleData.year, vehicleData.make, vehicleData.model);
+      const mileageAdjustment = getMileageAdjustment(parseInt(mileage), vehicleData.year);
+      const conditionMultipliers: Record<ConditionType, number> = {
+        excellent: 1.15,
+        good: 1.0,
+        fair: 0.85,
+        poor: 0.7
+      };
+      
+      const conditionMultiplier = conditionMultipliers[condition];
+      const estimatedValue = Math.round((baseValue + mileageAdjustment) * conditionMultiplier);
+      
+      const result: ValuationResponse = {
+        estimatedValue,
+        confidenceScore: 85,
+        make: vehicleData.make,
+        model: vehicleData.model,
+        year: vehicleData.year,
+        condition
+      };
+      
+      setValuationResult(result);
+      setShowValuation(true);
+      toast.success('Valuation completed successfully');
+    } catch (error) {
+      console.error('Valuation failed:', error);
+      toast.error('Failed to calculate valuation');
+    } finally {
+      setIsValuating(false);
+    }
   };
 
-  if (!vin) {
-    return (
-      <MainLayout>
-        <div className="container mx-auto py-8">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              No VIN provided in the URL
-            </AlertDescription>
-          </Alert>
-        </div>
-      </MainLayout>
-    );
-  }
+  const getBaseValue = (year: number, make: string, model: string): number => {
+    // Mock base value calculation
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - year;
+    const baseValue = Math.max(5000, 35000 - (age * 2500));
+    
+    // Adjust for make/model popularity
+    const popularMakes = ['toyota', 'honda', 'nissan'];
+    const luxuryMakes = ['bmw', 'mercedes', 'audi', 'lexus'];
+    
+    if (luxuryMakes.includes(make.toLowerCase())) {
+      return baseValue * 1.4;
+    } else if (popularMakes.includes(make.toLowerCase())) {
+      return baseValue * 1.1;
+    }
+    
+    return baseValue;
+  };
 
-  if (isLoading) {
-    return (
-      <MainLayout>
-        <div className="container mx-auto py-8">
-          <div className="flex flex-col items-center justify-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin" />
-            <p className="text-lg">Looking up VIN: {vin}</p>
-            <p className="text-muted-foreground">This may take a few moments...</p>
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
+  const getMileageAdjustment = (mileage: number, year: number): number => {
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - year;
+    const expectedMileage = age * 12000; // 12k miles per year average
+    const mileageDifference = expectedMileage - mileage;
+    
+    // $0.10 per mile difference
+    return mileageDifference * 0.10;
+  };
 
-  if (error) {
-    return (
-      <MainLayout>
-        <div className="container mx-auto py-8">
-          <Card className="p-6">
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {error}
-              </AlertDescription>
-            </Alert>
-            <div className="flex space-x-4">
-              <Button onClick={handleRetry} variant="outline">
-                Try Again
-              </Button>
-              <Button onClick={handleGoHome}>
-                Go Home
-              </Button>
-            </div>
-          </Card>
-        </div>
-      </MainLayout>
-    );
-  }
+  if (showValuation && valuationResult) {
+    const valuationData = {
+      ...valuationResult,
+      basePrice: Math.round(valuationResult.estimatedValue * 0.9),
+      adjustments: [
+        {
+          factor: 'Mileage Adjustment',
+          impact: getMileageAdjustment(parseInt(mileage), vehicleData?.year || 0),
+          description: 'Based on vehicle mileage compared to average'
+        },
+        {
+          factor: 'Condition Assessment',
+          impact: Math.round(valuationResult.estimatedValue * 0.1),
+          description: `Vehicle rated as ${condition} condition`
+        }
+      ] as ValuationAdjustment[]
+    };
 
-  if (!valuationData) {
     return (
-      <MainLayout>
-        <div className="container mx-auto py-8">
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              No valuation data available
-            </AlertDescription>
-          </Alert>
+      <div className="container mx-auto py-8 px-4">
+        <ValuationResult data={valuationData} />
+        <div className="mt-6 text-center">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowValuation(false)}
+            className="mr-4"
+          >
+            Edit Details
+          </Button>
+          <Button onClick={() => navigate('/valuation')}>
+            New Valuation
+          </Button>
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
   return (
-    <MainLayout>
-      <div className="container mx-auto py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">VIN Valuation Result</h1>
-          <p className="text-muted-foreground">VIN: {vin}</p>
-        </div>
-        
-        <Card className="p-6">
-          <ValuationResult data={valuationData} />
-        </Card>
+    <div className="container mx-auto py-8 px-4 max-w-2xl">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Vehicle Valuation</h1>
+        <p className="text-muted-foreground">
+          VIN: {vin}
+        </p>
       </div>
-    </MainLayout>
+
+      {/* VIN Lookup Status */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Car className="h-5 w-5" />
+            Vehicle Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLookingUp && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Looking up vehicle information...
+            </div>
+          )}
+          
+          {lookupError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{lookupError}</AlertDescription>
+            </Alert>
+          )}
+          
+          {vehicleData && !isLookingUp && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-green-600 mb-4">
+                <CheckCircle className="h-4 w-4" />
+                Vehicle information found
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Year</Label>
+                  <p className="font-semibold">{vehicleData.year}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Make</Label>
+                  <p className="font-semibold">{vehicleData.make}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Model</Label>
+                  <p className="font-semibold">{vehicleData.model}</p>
+                </div>
+                {vehicleData.trim && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Trim</Label>
+                    <p className="font-semibold">{vehicleData.trim}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Valuation Form */}
+      {vehicleData && !lookupError && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="mileage">Current Mileage *</Label>
+              <Input
+                id="mileage"
+                type="number"
+                placeholder="Enter mileage"
+                value={mileage}
+                onChange={(e) => setMileage(e.target.value)}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="condition">Vehicle Condition *</Label>
+              <select
+                id="condition"
+                className="w-full px-3 py-2 border border-input bg-background rounded-md"
+                value={condition}
+                onChange={(e) => setCondition(e.target.value as ConditionType)}
+              >
+                <option value="excellent">Excellent</option>
+                <option value="good">Good</option>
+                <option value="fair">Fair</option>
+                <option value="poor">Poor</option>
+              </select>
+            </div>
+            
+            <div>
+              <Label htmlFor="zipCode">ZIP Code *</Label>
+              <Input
+                id="zipCode"
+                type="text"
+                placeholder="Enter ZIP code"
+                value={zipCode}
+                onChange={(e) => setZipCode(e.target.value)}
+                maxLength={5}
+              />
+            </div>
+            
+            <Button 
+              onClick={calculateValuation}
+              disabled={isValuating || !mileage || !zipCode}
+              className="w-full"
+            >
+              {isValuating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isValuating ? 'Calculating...' : 'Get Valuation'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 
