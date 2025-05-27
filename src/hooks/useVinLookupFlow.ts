@@ -11,8 +11,9 @@ export interface VinLookupFlowState {
   isLoading: boolean;
   error: string | null;
   vehicle: DecodedVehicleInfo | null;
-  stage: 'input' | 'results' | 'followup' | 'complete';
+  stage: 'input' | 'results' | 'followup' | 'complete' | 'error';
   followupProgress: number;
+  errorType?: 'invalid_vin' | 'api_error' | 'not_found' | 'network_error';
 }
 
 export interface FollowupData {
@@ -21,7 +22,7 @@ export interface FollowupData {
   accidents?: number;
   titleStatus?: string;
   location?: string;
-  photos?: string[]; // Changed to only accept string arrays
+  photos?: string[];
   [key: string]: any;
 }
 
@@ -41,26 +42,35 @@ export function useVinLookupFlow() {
   }, []);
 
   const setVin = useCallback((vin: string) => {
-    updateState({ vin, error: null });
+    updateState({ vin, error: null, stage: 'input' });
   }, [updateState]);
 
   const lookupVin = useCallback(async (vin: string) => {
-    console.log('VIN Lookup Flow: Starting lookup for', vin);
+    console.log('🔍 Real VIN Lookup Flow starting for:', vin);
     
-    // Validate VIN
+    // Validate VIN format
     const validation = validateVIN(vin);
     if (!validation.isValid) {
-      updateState({ error: validation.error || 'Invalid VIN format' });
-      toast.error('Invalid VIN format');
+      const errorMsg = validation.error || 'Invalid VIN format';
+      updateState({ 
+        error: errorMsg, 
+        stage: 'error',
+        errorType: 'invalid_vin'
+      });
+      toast.error(errorMsg);
       return null;
     }
 
-    updateState({ isLoading: true, error: null });
+    updateState({ isLoading: true, error: null, stage: 'input' });
 
     try {
       const result = await fetchVehicleByVin(vin);
       
-      console.log('VIN Lookup Flow: Success', result);
+      if (!result) {
+        throw new Error('No vehicle data found for this VIN');
+      }
+
+      console.log('✅ Real VIN Lookup Flow success:', result);
       
       // Generate a valid UUID for the valuation
       const valuationId = crypto.randomUUID();
@@ -70,7 +80,7 @@ export function useVinLookupFlow() {
         valuationId
       };
       
-      // Store in localStorage for persistence
+      // Store real data in localStorage
       localStorage.setItem('current_vin', vin);
       localStorage.setItem('latest_valuation_id', valuationId);
       
@@ -80,15 +90,27 @@ export function useVinLookupFlow() {
         stage: 'results'
       });
 
-      toast.success('Vehicle found successfully');
+      toast.success(`Real vehicle data found: ${result.year} ${result.make} ${result.model}`);
       return enhancedResult;
     } catch (error: any) {
-      console.error('VIN Lookup Flow: Error', error);
-      const errorMessage = error.message || 'Failed to lookup VIN';
+      console.error('❌ Real VIN Lookup Flow error:', error);
+      
+      let errorType: VinLookupFlowState['errorType'] = 'api_error';
+      let errorMessage = error.message || 'VIN lookup failed';
+      
+      if (errorMessage.includes('not found') || errorMessage.includes('No vehicle data')) {
+        errorType = 'not_found';
+        errorMessage = 'This VIN was not found in our database. You can enter vehicle details manually.';
+      } else if (errorMessage.includes('network') || errorMessage.includes('Service unavailable')) {
+        errorType = 'network_error';
+        errorMessage = 'Network error. Please check your connection and try again.';
+      }
       
       updateState({
         isLoading: false,
-        error: errorMessage
+        error: errorMessage,
+        stage: 'error',
+        errorType
       });
       
       toast.error(errorMessage);
@@ -97,25 +119,34 @@ export function useVinLookupFlow() {
   }, [updateState]);
 
   const startFollowup = useCallback(() => {
+    if (!state.vehicle) {
+      toast.error('No vehicle data available for followup');
+      return;
+    }
     updateState({ stage: 'followup', followupProgress: 0 });
-  }, [updateState]);
+  }, [updateState, state.vehicle]);
 
   const updateFollowupProgress = useCallback((progress: number) => {
     updateState({ followupProgress: Math.min(100, Math.max(0, progress)) });
   }, [updateState]);
 
   const submitFollowup = useCallback(async (followupData: FollowupData) => {
-    if (!state.vehicle) return null;
+    if (!state.vehicle) {
+      toast.error('No vehicle data available');
+      return null;
+    }
 
     updateState({ isLoading: true });
 
     try {
-      // Enhanced valuation with followup data
+      // Enhanced real vehicle data with user-provided followup
       const enhancedResult: DecodedVehicleInfo = {
         ...state.vehicle,
-        ...followupData,
-        confidenceScore: calculateConfidenceScore(followupData),
-        photos: followupData.photos || state.vehicle.photos // Ensure photos are strings
+        mileage: followupData.mileage,
+        condition: followupData.condition,
+        // Only include real photos (user uploads)
+        photos: followupData.photos?.filter(photo => typeof photo === 'string') || [],
+        confidenceScore: calculateConfidenceScore(followupData)
       };
 
       updateState({
@@ -125,18 +156,26 @@ export function useVinLookupFlow() {
         followupProgress: 100
       });
 
-      toast.success('Valuation completed with enhanced accuracy');
+      toast.success('Vehicle assessment completed with real data');
       return enhancedResult;
     } catch (error: any) {
       updateState({
         isLoading: false,
-        error: error.message || 'Failed to complete followup'
+        error: error.message || 'Failed to complete followup',
+        stage: 'error',
+        errorType: 'api_error'
       });
       
-      toast.error('Failed to complete followup');
+      toast.error('Failed to complete vehicle assessment');
       return null;
     }
   }, [state.vehicle, updateState]);
+
+  const retryLookup = useCallback(() => {
+    if (state.vin) {
+      lookupVin(state.vin);
+    }
+  }, [state.vin, lookupVin]);
 
   const reset = useCallback(() => {
     setState({
@@ -156,20 +195,20 @@ export function useVinLookupFlow() {
     startFollowup,
     updateFollowupProgress,
     submitFollowup,
+    retryLookup,
     reset
   };
 }
 
 function calculateConfidenceScore(followupData: FollowupData): number {
-  let score = 75; // Base score
+  let score = 60; // Lower base score for real data assessment
   
-  // Add points for each piece of data provided
-  if (followupData.mileage) score += 5;
-  if (followupData.condition) score += 8;
-  if (followupData.accidents !== undefined) score += 4;
-  if (followupData.titleStatus) score += 3;
+  // Add points for each verified piece of data
+  if (followupData.mileage && followupData.mileage > 0) score += 10;
+  if (followupData.condition) score += 15;
+  if (followupData.accidents !== undefined) score += 8;
+  if (followupData.titleStatus) score += 5;
   if (followupData.location) score += 2;
-  if (followupData.photos && followupData.photos.length > 0) score += 3;
   
-  return Math.min(100, score);
+  return Math.min(95, score); // Cap at 95% for real data
 }

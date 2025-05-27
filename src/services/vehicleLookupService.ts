@@ -1,97 +1,128 @@
+
 import { DecodedVehicleInfo } from '@/types/vehicle';
+import { supabase } from '@/integrations/supabase/client';
 
 export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo> {
-  // Mock implementation for now - replace with actual API call
-  console.log('Fetching vehicle data for VIN:', vin);
+  console.log('🔍 Fetching real vehicle data for VIN:', vin);
   
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Enhanced mock vehicle data with more realistic information and photos
-  const mockVehicle: DecodedVehicleInfo = {
-    vin,
-    year: 2021,
-    make: 'Toyota',
-    model: 'Corolla',
-    trim: 'LE',
-    engine: '2.0L 4-Cylinder DOHC',
-    transmission: 'CVT Automatic',
-    bodyType: 'Sedan',
-    fuelType: 'Gasoline',
-    drivetrain: 'FWD',
-    exteriorColor: 'Celestite Gray Metallic',
-    interiorColor: 'Black Fabric',
-    doors: '4',
-    seats: '5',
-    displacement: '2.0L',
-    estimatedValue: 18500,
-    confidenceScore: 85,
-    mileage: 35000,
-    condition: 'Good',
-    // Add sample vehicle photos
-    photos: [
-      'https://images.unsplash.com/photo-1549924231-f129b911e442?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&h=600&fit=crop'
-    ],
-    primaryPhoto: 'https://images.unsplash.com/photo-1549924231-f129b911e442?w=800&h=600&fit=crop'
-  };
-  
-  return mockVehicle;
+  try {
+    // Call the unified decode edge function for real VIN data
+    const { data, error } = await supabase.functions.invoke('unified-decode', {
+      body: { vin: vin.toUpperCase() }
+    });
+
+    if (error) {
+      console.error('❌ VIN decode service error:', error);
+      throw new Error(`VIN lookup failed: ${error.message || 'Service unavailable'}`);
+    }
+
+    if (!data || !data.success) {
+      const errorMsg = data?.error || 'VIN not found in database';
+      console.error('❌ VIN decode failed:', errorMsg);
+      throw new Error(`Unable to decode VIN: ${errorMsg}`);
+    }
+
+    if (!data.decoded) {
+      throw new Error('No vehicle data found for this VIN');
+    }
+
+    console.log('✅ Real vehicle data retrieved:', data.decoded);
+    
+    // Return only real data - no mock additions
+    const vehicleData: DecodedVehicleInfo = {
+      vin: data.decoded.vin || vin,
+      year: data.decoded.year,
+      make: data.decoded.make,
+      model: data.decoded.model,
+      trim: data.decoded.trim,
+      engine: data.decoded.engine,
+      transmission: data.decoded.transmission,
+      bodyType: data.decoded.bodyType,
+      fuelType: data.decoded.fuelType,
+      drivetrain: data.decoded.drivetrain,
+      exteriorColor: data.decoded.exteriorColor,
+      interiorColor: data.decoded.interiorColor,
+      doors: data.decoded.doors,
+      seats: data.decoded.seats,
+      displacement: data.decoded.displacement,
+      // Only include photos if they're real user uploads or manufacturer data
+      photos: data.decoded.photos || [],
+      primaryPhoto: data.decoded.primaryPhoto
+    };
+
+    return vehicleData;
+  } catch (error) {
+    console.error('❌ Failed to fetch vehicle data:', error);
+    throw error;
+  }
 }
 
 export async function fetchVehicleByPlate(plate: string, state: string): Promise<DecodedVehicleInfo> {
-  console.log('Fetching vehicle data for plate:', plate, 'state:', state);
+  console.log('🔍 Fetching real vehicle data for plate:', plate, 'state:', state);
   
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1200));
-  
-  // Enhanced mock vehicle data
-  const mockVehicle: DecodedVehicleInfo = {
-    plate,
-    state,
-    year: 2020,
-    make: 'Honda',
-    model: 'Accord',
-    trim: 'Sport',
-    engine: '1.5L Turbo 4-Cylinder',
-    transmission: 'CVT',
-    bodyType: 'Sedan',
-    fuelType: 'Gasoline',
-    drivetrain: 'FWD',
-    exteriorColor: 'Still Night Pearl',
-    interiorColor: 'Black Leather',
-    doors: '4',
-    seats: '5',
-    displacement: '1.5L',
-    estimatedValue: 21000,
-    confidenceScore: 80,
-    mileage: 52000,
-    condition: 'Good',
-    photos: [
-      'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=600&fit=crop'
-    ],
-    primaryPhoto: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop'
-  };
-  
-  return mockVehicle;
+  try {
+    // Call edge function for real plate lookup
+    const { data, error } = await supabase.functions.invoke('fetch-vehicle-history', {
+      body: { 
+        plate: plate.toUpperCase(), 
+        state: state.toUpperCase(),
+        type: 'plate_lookup'
+      }
+    });
+
+    if (error) {
+      console.error('❌ Plate lookup service error:', error);
+      throw new Error(`License plate lookup failed: ${error.message || 'Service unavailable'}`);
+    }
+
+    if (!data || !data.success) {
+      const errorMsg = data?.error || 'License plate not found in database';
+      console.error('❌ Plate lookup failed:', errorMsg);
+      throw new Error(`Unable to lookup license plate: ${errorMsg}`);
+    }
+
+    console.log('✅ Real plate data retrieved:', data.vehicle);
+    
+    return {
+      plate,
+      state,
+      ...data.vehicle,
+      photos: data.vehicle?.photos || [],
+      primaryPhoto: data.vehicle?.primaryPhoto
+    };
+  } catch (error) {
+    console.error('❌ Failed to fetch plate data:', error);
+    throw error;
+  }
 }
 
 export async function fetchTrimOptions(make: string, model: string, year: number): Promise<string[]> {
-  console.log('Fetching trim options for:', make, model, year);
+  console.log('🔍 Fetching real trim options for:', make, model, year);
   
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  // Mock trim options based on make/model
-  const trimOptions: Record<string, string[]> = {
-    'Toyota_Camry': ['L', 'LE', 'SE', 'XLE', 'XSE', 'TRD'],
-    'Honda_Accord': ['LX', 'Sport', 'EX', 'EX-L', 'Touring'],
-    'Ford_F-150': ['Regular Cab', 'SuperCab', 'SuperCrew', 'Raptor'],
-    'Chevrolet_Silverado': ['Work Truck', 'Custom', 'LT', 'RST', 'LTZ', 'High Country']
-  };
-  
-  const key = `${make}_${model}`;
-  return trimOptions[key] || ['Base', 'Premium', 'Luxury'];
+  try {
+    const { data, error } = await supabase.functions.invoke('fetch_vpic_data', {
+      body: { 
+        make, 
+        model, 
+        year,
+        dataType: 'trims'
+      }
+    });
+
+    if (error) {
+      console.error('❌ Trim lookup service error:', error);
+      throw new Error(`Trim lookup failed: ${error.message || 'Service unavailable'}`);
+    }
+
+    if (!data || !data.success) {
+      console.warn('⚠️ No trim data available for this vehicle');
+      return [];
+    }
+
+    return data.trims || [];
+  } catch (error) {
+    console.error('❌ Failed to fetch trim options:', error);
+    // Return empty array instead of mock data
+    return [];
+  }
 }
