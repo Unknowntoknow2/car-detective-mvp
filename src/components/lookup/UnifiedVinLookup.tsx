@@ -47,7 +47,8 @@ export function UnifiedVinLookup({
     isLoading: state.isLoading,
     stateStage: state.stage,
     vehicle: state.vehicle,
-    usingExternalState: !!externalState
+    usingExternalState: !!externalState,
+    hasOnVehicleFoundCallback: !!onVehicleFound
   });
 
   // Set initial VIN if provided
@@ -62,14 +63,14 @@ export function UnifiedVinLookup({
   // Handle vehicle found - trigger callback when vehicle is found
   useEffect(() => {
     if (state.vehicle && onVehicleFound) {
-      console.log('✅ Vehicle found, calling onVehicleFound:', state.vehicle);
+      console.log('🎯 UnifiedVinLookup: Vehicle found, triggering onVehicleFound callback:', state.vehicle);
       onVehicleFound(state.vehicle);
     }
   }, [state.vehicle, onVehicleFound]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('🚀 Form submitted with VIN:', localVin);
+    console.log('🚀 UnifiedVinLookup: Form submitted with VIN:', localVin);
     
     const validation = validateVIN(localVin);
     if (!validation.isValid) {
@@ -90,7 +91,7 @@ export function UnifiedVinLookup({
       console.log('🔄 Calling lookupVin directly');
       try {
         const result = await lookupVin(localVin);
-        console.log('🔍 Lookup result:', result);
+        console.log('🔍 Lookup result in UnifiedVinLookup:', result);
         
         // The useEffect above will handle calling onVehicleFound when state.vehicle updates
       } catch (error) {
