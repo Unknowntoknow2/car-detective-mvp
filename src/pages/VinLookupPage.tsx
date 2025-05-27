@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 export default function VinLookupPage() {
-  const { state, setVin, lookupVin, startFollowup } = useVinLookupFlow();
+  const { state, setVin, lookupVin } = useVinLookupFlow();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [hasAttemptedAutoLookup, setHasAttemptedAutoLookup] = useState(false);
@@ -43,11 +43,6 @@ export default function VinLookupPage() {
     }
   };
 
-  const handleVehicleFound = (vehicle: any) => {
-    console.log('✅ Vehicle found, starting followup flow');
-    startFollowup();
-  };
-
   return (
     <Container className="max-w-6xl py-10">
       {/* Navigation Header */}
@@ -74,13 +69,12 @@ export default function VinLookupPage() {
         </Card>
       )}
 
-      {/* Main Content - Show followup when vehicle is found OR in followup stage */}
-      {(state.stage === 'followup' || (state.vehicle && state.stage === 'results')) ? (
+      {/* Main Content - Simple stage-based rendering */}
+      {state.stage === 'results' || state.stage === 'followup' ? (
         <VinFollowupFlow />
       ) : (
         <UnifiedVinLookup 
           showHeader={true} 
-          onVehicleFound={handleVehicleFound}
           initialVin={urlVin || undefined}
         />
       )}
