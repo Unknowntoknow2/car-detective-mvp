@@ -71,10 +71,7 @@ export const AINFloatingChat: React.FC<AINFloatingChatProps> = ({
               exit={{ height: 0, opacity: 0 }}
               className="flex-1 flex flex-col overflow-hidden"
             >
-              <AIAssistant
-                onClose={() => setOpen(false)}
-                isPremium={false}
-              />
+              <AIAssistant className="flex-1" />
             </motion.div>
           )}
 
