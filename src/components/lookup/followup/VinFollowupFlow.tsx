@@ -55,7 +55,7 @@ export function VinFollowupFlow() {
 
   const handleComplete = () => {
     toast.success('Follow-up questions completed!');
-    navigate(`/valuation-result?vin=${state.vin}`);
+    navigate(`/valuation-result?vin=${state.vin || ''}`);
   };
 
   const handleMileageChange = (value: number) => {
