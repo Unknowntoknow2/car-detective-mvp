@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -41,10 +40,16 @@ export function useVinLookupFlow() {
   });
 
   const updateState = useCallback((updates: Partial<VinLookupFlowState>) => {
-    setState(prev => ({ ...prev, ...updates }));
+    console.log('🔄 Updating state:', updates);
+    setState(prev => {
+      const newState = { ...prev, ...updates };
+      console.log('📊 New state:', newState);
+      return newState;
+    });
   }, []);
 
   const setVin = useCallback((vin: string) => {
+    console.log('📝 Setting VIN in hook:', vin);
     updateState({ vin, error: null, stage: 'input' });
   }, [updateState]);
 
@@ -55,6 +60,7 @@ export function useVinLookupFlow() {
     const validation = validateVIN(vin);
     if (!validation.isValid) {
       const errorMsg = validation.error || 'Invalid VIN format';
+      console.log('❌ VIN validation failed:', errorMsg);
       updateState({ 
         error: errorMsg, 
         stage: 'error',
@@ -67,6 +73,7 @@ export function useVinLookupFlow() {
     updateState({ isLoading: true, error: null, stage: 'input' });
 
     try {
+      console.log('🚀 Calling fetchVehicleByVin service...');
       const result = await fetchVehicleByVin(vin);
       
       if (!result) {
