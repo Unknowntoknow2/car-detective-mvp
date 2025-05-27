@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
@@ -12,7 +11,7 @@ import { toast } from 'sonner';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { Loader2 } from 'lucide-react';
 
-export default function ValuationPage() {
+export function ValuationPage() {
   const { vin } = useParams<{ vin: string }>();
   const navigate = useNavigate();
   const [vehicleInfo, setVehicleInfo] = useState<DecodedVehicleInfo | null>(null);
@@ -66,6 +65,58 @@ export default function ValuationPage() {
   const handleFollowUpComplete = () => {
     setCurrentStep('results');
     toast.success('Assessment completed! Displaying valuation results...');
+  };
+
+  const createValuationData = (
+    vehicleInfo: DecodedVehicleInfo,
+    followUpData: any,
+    calculatedValue: number,
+    confidence: number
+  ) => {
+    const valuationId = vehicleInfo.vin || `temp_${Date.now()}`;
+    
+    return {
+      // Required ValuationResponse fields
+      success: true,
+      data: {
+        id: valuationId,
+        valuationId: valuationId, // Ensure this is always a string
+        make: vehicleInfo.make || 'Unknown',
+        model: vehicleInfo.model || 'Unknown',
+        year: vehicleInfo.year || new Date().getFullYear(),
+        mileage: followUpData?.mileage || 0,
+        condition: followUpData?.condition || 'good',
+        estimatedValue: calculatedValue,
+        confidenceScore: confidence,
+        basePrice: Math.round(calculatedValue * 0.9),
+        adjustments: [
+          {
+            factor: 'Condition',
+            impact: followUpData?.condition === 'excellent' ? 2000 : 
+                   followUpData?.condition === 'poor' ? -3000 : 0,
+            description: `Vehicle condition: ${followUpData?.condition || 'good'}`
+          },
+          {
+            factor: 'Mileage',
+            impact: followUpData?.mileage > 100000 ? -1500 : 
+                   followUpData?.mileage < 30000 ? 1000 : 0,
+            description: `Mileage impact: ${followUpData?.mileage || 0} miles`
+          }
+        ],
+        vin: vehicleInfo.vin,
+        trim: vehicleInfo.trim,
+        bodyType: vehicleInfo.bodyType,
+        fuelType: vehicleInfo.fuelType,
+        transmission: vehicleInfo.transmission,
+        color: vehicleInfo.color,
+        zipCode: followUpData?.zipCode,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        userId: user?.id,
+        manual_entry: false,
+        isPremium: false
+      }
+    };
   };
 
   if (isLoading) {
@@ -184,3 +235,5 @@ export default function ValuationPage() {
     </Container>
   );
 }
+
+export default ValuationPage;
