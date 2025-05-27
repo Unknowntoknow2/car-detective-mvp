@@ -1,242 +1,228 @@
 
-import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FollowupStepManager } from './FollowupStepManager';
-import { MaintenanceHistoryStep } from '@/components/premium/form/steps/MaintenanceHistoryStep';
-import { AccidentHistoryStep } from '@/components/premium/form/steps/AccidentHistoryStep';
 import { Button } from '@/components/ui/button';
-import { FormData, ConditionLevel } from '@/types/premium-valuation';
+import { Progress } from '@/components/ui/progress';
 import { useVinLookupFlow } from '@/hooks/useVinLookupFlow';
 import { useFollowUpAnswers } from '@/components/valuation/enhanced-followup/hooks/useFollowUpAnswers';
-import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import { ConditionSelector } from '@/components/valuation/enhanced-followup/ConditionSelector';
+import { AccidentSection } from '@/components/valuation/enhanced-followup/AccidentSection';
+import { ModificationsSection } from '@/components/valuation/enhanced-followup/ModificationsSection';
+import { DashboardLightsSection } from '@/components/valuation/enhanced-followup/DashboardLightsSection';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { ConditionLevel } from '@/components/lookup/types/manualEntry';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
 
-export const VinFollowupFlow: React.FC = () => {
+export function VinFollowupFlow() {
   const { state } = useVinLookupFlow();
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  
-  const currentVin = state.vin || searchParams.get('vin') || '';
-  const { answers, saving, updateAnswers, saveAnswers } = useFollowUpAnswers(currentVin);
-  
-  // Initialize formData with proper default values
-  const [formData, setFormData] = useState<FormData>({
-    mileage: answers.mileage || 0,
-    condition: (answers.condition as ConditionLevel) || ConditionLevel.Good,
-    zipCode: answers.zip_code || '',
-    fuelType: '',
-    transmission: '',
-    conditionScore: 0,
-    hasRegularMaintenance: answers.service_history ? answers.service_history !== 'unknown' : undefined,
-    maintenanceNotes: '',
-    hasAccident: answers.accidents?.hadAccident,
-    accidentDescription: ''
-  });
+  const { answers, updateAnswers, saveAnswers, saving } = useFollowUpAnswers(state.vin, state.vehicle?.valuationId);
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 4;
 
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [stepValidities, setStepValidities] = useState<Record<number, boolean>>({});
-
-  const followupSteps = [
-    {
-      id: 'maintenance',
-      title: 'Maintenance History',
-      description: 'Vehicle service and maintenance records',
-      isCompleted: stepValidities[0] || false,
-      isActive: currentStepIndex === 0,
-    },
-    {
-      id: 'accidents',
-      title: 'Accident History',
-      description: 'Any accidents or damage history',
-      isCompleted: stepValidities[1] || false,
-      isActive: currentStepIndex === 1,
-    }
-  ];
-
-  const updateValidity = (step: number, isValid: boolean) => {
-    setStepValidities(prev => ({
-      ...prev,
-      [step]: isValid
-    }));
-  };
-
-  const handleNext = () => {
-    if (currentStepIndex < followupSteps.length - 1) {
-      setCurrentStepIndex(currentStepIndex + 1);
+  // Convert ConditionLevel enum to string literal type
+  const convertConditionToString = (condition: ConditionLevel): 'excellent' | 'good' | 'fair' | 'poor' => {
+    switch (condition) {
+      case ConditionLevel.Excellent:
+        return 'excellent';
+      case ConditionLevel.VeryGood:
+      case ConditionLevel.Good:
+        return 'good';
+      case ConditionLevel.Fair:
+        return 'fair';
+      case ConditionLevel.Poor:
+        return 'poor';
+      default:
+        return 'good';
     }
   };
 
-  const handlePrevious = () => {
-    if (currentStepIndex > 0) {
-      setCurrentStepIndex(currentStepIndex - 1);
+  // Convert string literal to ConditionLevel enum
+  const convertStringToConditionLevel = (condition?: 'excellent' | 'good' | 'fair' | 'poor'): ConditionLevel => {
+    switch (condition) {
+      case 'excellent':
+        return ConditionLevel.Excellent;
+      case 'good':
+        return ConditionLevel.Good;
+      case 'fair':
+        return ConditionLevel.Fair;
+      case 'poor':
+        return ConditionLevel.Poor;
+      default:
+        return ConditionLevel.Good;
     }
   };
 
-  const handleStepClick = (stepIndex: number) => {
-    setCurrentStepIndex(stepIndex);
+  const handleConditionChange = (condition: 'excellent' | 'good' | 'fair' | 'poor') => {
+    updateAnswers({ condition });
   };
 
-  const calculateProgress = () => {
-    const completedSteps = Object.values(stepValidities).filter(Boolean).length;
-    return Math.round((completedSteps / followupSteps.length) * 100);
+  const handleMileageChange = (mileage: number) => {
+    updateAnswers({ mileage });
+  };
+
+  const handleZipCodeChange = (zip_code: string) => {
+    updateAnswers({ zip_code });
+  };
+
+  const handleServiceHistoryChange = (service_history: string) => {
+    updateAnswers({ service_history });
   };
 
   const handleComplete = async () => {
-    console.log('Completing follow-up with data:', formData);
-    
     try {
-      // Update follow-up answers with completion
-      const updatedAnswers = {
+      // Ensure all required fields are filled
+      const completedAnswers: FollowUpAnswers = {
         ...answers,
-        mileage: formData.mileage,
-        condition: formData.condition,
-        zip_code: formData.zipCode,
-        service_history: formData.hasRegularMaintenance ? 'regular' : 'irregular',
+        mileage: answers.mileage || 50000,
+        condition: answers.condition || 'good',
+        zip_code: answers.zip_code || '90210',
+        service_history: answers.service_history || 'unknown',
         completion_percentage: 100,
         is_complete: true
       };
 
-      updateAnswers(updatedAnswers);
+      updateAnswers(completedAnswers);
+      const success = await saveAnswers(completedAnswers);
       
-      // Save the answers
-      const saved = await saveAnswers(updatedAnswers);
-      
-      if (saved) {
-        toast.success('Valuation completed! Redirecting to results...');
-        
-        // Navigate back to valuation page to show results
-        setTimeout(() => {
-          if (currentVin) {
-            navigate(`/valuation/${currentVin}`);
-          } else {
-            navigate('/valuation');
-          }
-        }, 1500);
+      if (success) {
+        toast.success('Follow-up completed! Generating valuation...');
+        // Navigate to results or trigger result generation
       }
     } catch (error) {
       console.error('Error completing follow-up:', error);
-      toast.error('Failed to complete valuation. Please try again.');
+      toast.error('Failed to complete follow-up');
     }
   };
 
-  const renderCurrentStep = () => {
-    switch (currentStepIndex) {
-      case 0:
-        return (
-          <MaintenanceHistoryStep
-            step={0}
-            formData={formData}
-            setFormData={setFormData}
-            updateValidity={updateValidity}
-          />
-        );
-      case 1:
-        return (
-          <AccidentHistoryStep
-            step={1}
-            formData={formData}
-            setFormData={setFormData}
-            updateValidity={updateValidity}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  const isCurrentStepValid = stepValidities[currentStepIndex] || false;
-  const isLastStep = currentStepIndex === followupSteps.length - 1;
-  const allStepsComplete = Object.values(stepValidities).every(Boolean);
+  const progress = (currentStep / totalSteps) * 100;
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Progress Sidebar */}
-        <div className="lg:col-span-1">
-          <FollowupStepManager
-            steps={followupSteps}
-            currentStepIndex={currentStepIndex}
-            progress={calculateProgress()}
-            onStepClick={handleStepClick}
-          />
-        </div>
-
-        {/* Main Content */}
-        <div className="lg:col-span-3">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                Enhanced Valuation - Step {currentStepIndex + 1} of {followupSteps.length}
-              </CardTitle>
-              <p className="text-gray-600">
-                {followupSteps[currentStepIndex]?.description}
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Vehicle Info Display */}
-              {(state.vehicle || currentVin) && (
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  {state.vehicle ? (
-                    <h3 className="font-semibold text-blue-900">
-                      {state.vehicle.year} {state.vehicle.make} {state.vehicle.model}
-                    </h3>
-                  ) : (
-                    <h3 className="font-semibold text-blue-900">
-                      Vehicle Valuation
-                    </h3>
-                  )}
-                  <p className="text-sm text-blue-700">VIN: {currentVin}</p>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Vehicle Assessment</CardTitle>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Step {currentStep} of {totalSteps}</span>
+              <span>{Math.round(progress)}% complete</span>
+            </div>
+            <Progress value={progress} className="w-full" />
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {currentStep === 1 && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold">Basic Information</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="mileage">Current Mileage</Label>
+                  <Input
+                    id="mileage"
+                    type="number"
+                    value={answers.mileage || ''}
+                    onChange={(e) => handleMileageChange(parseInt(e.target.value) || 0)}
+                    placeholder="Enter current mileage"
+                  />
                 </div>
-              )}
 
-              {/* Current Step Content */}
-              <div className="min-h-[400px]">
-                {renderCurrentStep()}
+                <div>
+                  <Label htmlFor="zip_code">ZIP Code</Label>
+                  <Input
+                    id="zip_code"
+                    value={answers.zip_code || ''}
+                    onChange={(e) => handleZipCodeChange(e.target.value)}
+                    placeholder="Enter ZIP code"
+                  />
+                </div>
               </div>
+            </div>
+          )}
 
-              {/* Navigation */}
-              <div className="flex justify-between pt-6 border-t">
-                <Button
-                  variant="outline"
-                  onClick={handlePrevious}
-                  disabled={currentStepIndex === 0}
-                  className="flex items-center gap-2"
+          {currentStep === 2 && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold">Vehicle Condition</h3>
+              <ConditionSelector
+                value={answers.condition}
+                onChange={handleConditionChange}
+              />
+            </div>
+          )}
+
+          {currentStep === 3 && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold">History & Maintenance</h3>
+              
+              <div>
+                <Label htmlFor="service_history">Service History</Label>
+                <Select
+                  value={answers.service_history || ''}
+                  onValueChange={handleServiceHistoryChange}
                 >
-                  <ArrowLeft className="h-4 w-4" />
-                  Previous
-                </Button>
-
-                {isLastStep ? (
-                  <Button
-                    onClick={handleComplete}
-                    disabled={!allStepsComplete || saving}
-                    className="flex items-center gap-2"
-                  >
-                    {saving ? (
-                      'Completing...'
-                    ) : (
-                      <>
-                        <CheckCircle className="h-4 w-4" />
-                        Complete Valuation
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleNext}
-                    disabled={!isCurrentStepValid}
-                    className="flex items-center gap-2"
-                  >
-                    Next
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                )}
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select service history" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dealer">Dealer-maintained</SelectItem>
+                    <SelectItem value="independent">Independent mechanic</SelectItem>
+                    <SelectItem value="owner">Owner-maintained</SelectItem>
+                    <SelectItem value="unknown">Unknown</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+
+              <AccidentSection
+                accidents={answers.accidents}
+                onChange={(accidents) => updateAnswers({ accidents })}
+              />
+            </div>
+          )}
+
+          {currentStep === 4 && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold">Additional Details</h3>
+              
+              <ModificationsSection
+                modifications={answers.modifications}
+                onChange={(modifications) => updateAnswers({ modifications })}
+              />
+
+              <DashboardLightsSection
+                dashboardLights={answers.dashboard_lights}
+                onChange={(dashboard_lights) => updateAnswers({ dashboard_lights })}
+              />
+            </div>
+          )}
+
+          <div className="flex justify-between pt-6">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
+              disabled={currentStep === 1}
+            >
+              Previous
+            </Button>
+
+            {currentStep < totalSteps ? (
+              <Button
+                onClick={() => setCurrentStep(Math.min(totalSteps, currentStep + 1))}
+              >
+                Next
+              </Button>
+            ) : (
+              <Button
+                onClick={handleComplete}
+                disabled={saving}
+              >
+                {saving ? 'Completing...' : 'Complete Assessment'}
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-};
+}
