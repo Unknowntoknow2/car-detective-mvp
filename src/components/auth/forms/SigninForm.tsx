@@ -35,7 +35,6 @@ export const SigninForm: React.FC<SigninFormProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Use external or internal loading state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
   const setIsLoading = externalSetIsLoading || setInternalIsLoading;
 
@@ -56,19 +55,15 @@ export const SigninForm: React.FC<SigninFormProps> = ({
         return;
       }
       
-      // Show success toast
       toast.success('Signed in successfully!');
       
-      // Determine redirect path based on user type
       let targetPath = redirectPath;
       if (userType === 'dealer') {
         targetPath = '/dealer/dashboard';
       }
       
-      // Use the from location if available, otherwise use the target path
       const from = location.state?.from?.pathname || targetPath;
       
-      console.log(`Redirecting ${userType} to:`, from);
       navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');

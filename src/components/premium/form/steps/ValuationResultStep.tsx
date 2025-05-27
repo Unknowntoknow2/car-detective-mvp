@@ -28,24 +28,22 @@ export const ValuationResultStep: React.FC<ValuationResultStepProps> = ({
     );
   }
 
-  // Handle price range safely with explicit typing
+  // Handle price range safely with proper typing
   const getPriceRange = (): { min: number; max: number } | null => {
-    if (valuation.price_range) {
-      if (typeof valuation.price_range === 'object') {
-        if ('low' in valuation.price_range && 'high' in valuation.price_range) {
-          const range = valuation.price_range as { low: number; high: number; min?: number; max?: number };
-          return {
-            min: range.min ?? range.low,
-            max: range.max ?? range.high
-          };
-        }
-        if ('min' in valuation.price_range && 'max' in valuation.price_range) {
-          const range = valuation.price_range as { min: number; max: number };
-          return {
-            min: range.min,
-            max: range.max
-          };
-        }
+    if (valuation.price_range && typeof valuation.price_range === 'object') {
+      if ('low' in valuation.price_range && 'high' in valuation.price_range) {
+        const range = valuation.price_range as { low: number; high: number; min?: number; max?: number };
+        return {
+          min: range.min ?? range.low,
+          max: range.max ?? range.high
+        };
+      }
+      if ('min' in valuation.price_range && 'max' in valuation.price_range) {
+        const range = valuation.price_range as { min: number; max: number };
+        return {
+          min: range.min,
+          max: range.max
+        };
       }
     }
     
@@ -63,7 +61,6 @@ export const ValuationResultStep: React.FC<ValuationResultStepProps> = ({
   const estimatedValue = valuation.estimatedValue || valuation.estimated_value || 0;
   const confidenceScore = valuation.confidenceScore || valuation.confidence_score || 0;
 
-  // Mock adjustments for display
   const mockAdjustments = [
     { factor: 'Condition', impact: 1000, description: 'Good condition adjustment' },
     { factor: 'Mileage', impact: -500, description: 'High mileage adjustment' },

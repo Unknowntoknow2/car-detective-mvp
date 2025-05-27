@@ -18,36 +18,21 @@ export default function ValuationPage() {
     severity: undefined,
   });
 
-  console.log('📄 ValuationPage state:', {
-    vinFromUrl: vin,
-    hasVehicle: !!vehicle,
-    vehicleData: vehicle,
-    showingLookupForm: !vehicle,
-    showingFoundCard: !!vehicle
-  });
-
   useEffect(() => {
     if (vin) {
-      // Store VIN in localStorage for other components to access
       localStorage.setItem('current_vin', vin);
-      console.log('ValuationPage: VIN from URL:', vin);
     }
   }, [vin]);
 
   const handleVehicleFound = (foundVehicle: any) => {
-    console.log('✅ ValuationPage: Vehicle found and setting state:', foundVehicle);
-    console.log('🔄 About to update vehicle state, current vehicle:', vehicle);
     setVehicle(foundVehicle);
-    console.log('✅ Vehicle state updated, should now show VehicleFoundCard');
   };
 
   const handleAccidentChange = (accidentData: any) => {
-    console.log('🔄 Accident data changed:', accidentData);
     setAccidents(accidentData);
   };
 
   const handleContinueToFollowup = () => {
-    console.log('🚀 Continue to followup clicked');
     if (vin) {
       navigate(`/vin-lookup?vin=${vin}`);
     } else {

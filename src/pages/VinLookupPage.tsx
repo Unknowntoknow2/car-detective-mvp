@@ -16,19 +16,13 @@ export default function VinLookupPage() {
   const navigate = useNavigate();
   const [hasAttemptedAutoLookup, setHasAttemptedAutoLookup] = useState(false);
 
-  // Get VIN from URL params
   const urlVin = searchParams.get('vin');
 
   useEffect(() => {
-    console.log('✅ VinLookupPage mounted - Stage:', state.stage);
-    
-    // Auto-populate and lookup VIN if provided in URL
     if (urlVin && !hasAttemptedAutoLookup && state.stage === 'input') {
-      console.log('🔄 Auto-populating VIN from URL:', urlVin);
       setVin(urlVin);
       setHasAttemptedAutoLookup(true);
       
-      // Small delay to ensure state is updated
       setTimeout(() => {
         lookupVin(urlVin);
       }, 100);
@@ -45,7 +39,6 @@ export default function VinLookupPage() {
 
   return (
     <Container className="max-w-6xl py-10">
-      {/* Navigation Header */}
       {urlVin && (
         <Card className="mb-6">
           <CardHeader>
@@ -69,7 +62,6 @@ export default function VinLookupPage() {
         </Card>
       )}
 
-      {/* Main Content - Simple stage-based rendering */}
       {state.stage === 'results' || state.stage === 'complete' ? (
         <VinFollowupFlow />
       ) : (
@@ -79,7 +71,6 @@ export default function VinLookupPage() {
         />
       )}
       
-      {/* Debug info only visible in development mode */}
       {SHOW_ALL_COMPONENTS && (
         <div className="fixed bottom-4 right-4 bg-yellow-100 text-black p-3 rounded-lg text-xs z-50 opacity-80">
           <div className="space-y-1">

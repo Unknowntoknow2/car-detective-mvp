@@ -15,7 +15,6 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // If user is already authenticated, redirect to dashboard
   React.useEffect(() => {
     if (user) {
       const from = location.state?.from?.pathname || '/dashboard';

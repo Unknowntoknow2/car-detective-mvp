@@ -11,7 +11,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-// Define form schema with role
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
@@ -40,11 +39,9 @@ export const SignupForm = ({
   const [internalIsLoading, setInternalIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Use external or internal loading state
   const isLoading = externalIsLoading || internalIsLoading;
   const setIsLoading = externalSetIsLoading || setInternalIsLoading;
 
-  // Initialize form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -54,7 +51,6 @@ export const SignupForm = ({
     },
   });
 
-  // Form submission handler
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setFormError(null);
     setIsLoading(true);
@@ -62,7 +58,6 @@ export const SignupForm = ({
     try {
       const { email, password, dealershipName } = values;
       
-      // Call the signUp function with email, password, and metadata for the user role
       const options = {
         data: {
           role: userType || role,
@@ -81,15 +76,12 @@ export const SignupForm = ({
         return;
       }
       
-      // If sign-up was successful
       toast.success('Account created successfully!', {
         description: 'Welcome to Car Detective!'
       });
       
-      // Redirect to the specified path
       navigate(redirectPath);
     } catch (err: any) {
-      console.error('Sign up error:', err);
       setFormError('An unexpected error occurred');
       toast.error('Sign up failed', {
         description: 'Please try again'
@@ -99,7 +91,6 @@ export const SignupForm = ({
     }
   };
 
-  // Use showDealershipField or check if userType is 'dealer'
   const shouldShowDealershipField = showDealershipField || userType === 'dealer';
 
   return (
