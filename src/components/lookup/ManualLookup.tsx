@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ManualEntryForm } from './ManualEntryForm';
 import { supabase } from '@/lib/supabaseClient';
@@ -63,11 +64,10 @@ export function ManualLookup({
           });
         }
       } else {
-        // If no user, just show a toast
+        // If no user, just show a toast with default variant instead of warning
         toast({
           title: "Not Logged In",
           description: "Your data is not being saved. Sign in to save your entries.",
-          variant: "warning",
         });
       }
       
