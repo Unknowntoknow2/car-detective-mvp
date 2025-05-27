@@ -6,13 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UnifiedVinLookup } from '@/components/lookup/UnifiedVinLookup';
 
 const VinDecoderForm: React.FC = () => {
-  const [vin, setVin] = useState('');
   const [zipCode, setZipCode] = useState('');
   const [result, setResult] = useState<any>(null);
-
-  const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVin(e.target.value);
-  };
 
   const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setZipCode(e.target.value);
