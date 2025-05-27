@@ -21,8 +21,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ className }) => {
     error, 
     addMessage, 
     setLoading, 
-    setOpen, 
-    setMinimized, 
     setError, 
     clearMessages, 
     toggleOpen 
@@ -40,7 +38,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ className }) => {
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
-    // Add user message - addMessage expects Omit<ChatMessage, 'id' | 'timestamp'>
     addMessage({
       role: 'user',
       content: input,
@@ -109,7 +106,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ className }) => {
       isMinimized ? 'h-12' : '',
       className
     )}>
-      {/* Header */}
       <div 
         className="flex items-center justify-between p-3 bg-secondary cursor-pointer"
         onClick={toggleOpen}
@@ -134,7 +130,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ className }) => {
         )}
       </div>
 
-      {/* Chat Content */}
       {isOpen && !isMinimized && (
         <div className="flex flex-col h-[calc(600px-48px)] bg-background">
           <div 
@@ -170,7 +165,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ className }) => {
             )}
           </div>
 
-          {/* Input Area */}
           <form onSubmit={(e) => {
               e.preventDefault();
               handleSendMessage();
