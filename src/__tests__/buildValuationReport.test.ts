@@ -1,3 +1,4 @@
+
 import { buildValuationReport } from '@/utils/pdf/buildValuationReport';
 
 describe('buildValuationReport', () => {
@@ -49,6 +50,7 @@ describe('buildValuationReport', () => {
       adjustments: [{ factor: 'Mileage', impact: -500, description: 'High mileage' }],
       explanation: 'Vehicle is in good condition.',
       userId: 'user123',
+      created_at: '2023-01-01T00:00:00Z'
     };
 
     const result = buildValuationReport(valuationData);
@@ -86,6 +88,7 @@ describe('buildValuationReport', () => {
       mileage: 40000,
       condition: 'Excellent',
       estimatedValue: 18000,
+      created_at: '2023-01-01T00:00:00Z'
     };
 
     const result = buildValuationReport(valuationData as any);
