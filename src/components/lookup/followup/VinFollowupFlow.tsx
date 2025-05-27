@@ -1,39 +1,41 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useVinLookupFlow } from '@/hooks/useVinLookupFlow';
-import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
 import { useFollowUpAnswers } from '@/components/valuation/enhanced-followup/hooks/useFollowUpAnswers';
 import { MileageInput } from '@/components/valuation/enhanced-followup/MileageInput';
 import { ConditionSelector } from '@/components/valuation/enhanced-followup/ConditionSelector';
-import { AccidentSection } from '@/components/valuation/enhanced-followup/AccidentSection';
+import { ServiceHistorySelector } from '@/components/valuation/enhanced-followup/ServiceHistorySelector';
+import { MaintenanceStatusSelector } from '@/components/valuation/enhanced-followup/MaintenanceStatusSelector';
+import { AccidentHistorySection } from '@/components/valuation/enhanced-followup/AccidentHistorySection';
 import { ModificationsSection } from '@/components/valuation/enhanced-followup/ModificationsSection';
+import { TireConditionSelector } from '@/components/valuation/enhanced-followup/TireConditionSelector';
 import { DashboardLightsSection } from '@/components/valuation/enhanced-followup/DashboardLightsSection';
 import { TitleStatusSelector } from '@/components/title-ownership/TitleStatusSelector';
 import { PreviousUseSelector } from '@/components/valuation/enhanced-followup/PreviousUseSelector';
 import { VehicleFoundCard } from '@/components/valuation/VehicleFoundCard';
 
 export function VinFollowupFlow() {
-  const { state } = useVinLookupFlow();
+  const { state, startFollowup } = useVinLookupFlow();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
-  const [showFollowup, setShowFollowup] = useState(false);
   const { answers, updateAnswers, saving } = useFollowUpAnswers(state.vin || '');
 
   const steps = [
     { title: 'Mileage', key: 'mileage' },
     { title: 'Condition', key: 'condition' },
-    { title: 'Accidents', key: 'accidents' },
-    { title: 'Modifications', key: 'modifications' },
-    { title: 'Dashboard Lights', key: 'dashboard_lights' },
-    { title: 'Title Status', key: 'title_status' },
-    { title: 'Previous Use', key: 'previous_use' }
+    { title: 'Accident History', key: 'accidents' },
+    { title: 'Service History', key: 'serviceHistory' },
+    { title: 'Maintenance Status', key: 'maintenanceStatus' },
+    { title: 'Title Status', key: 'titleStatus' },
+    { title: 'Previous Use', key: 'previousUse' },
+    { title: 'Tire Condition', key: 'tireCondition' },
+    { title: 'Dashboard Lights', key: 'dashboardLights' },
+    { title: 'Modifications', key: 'modifications' }
   ];
-
-  const progress = ((currentStep + 1) / steps.length) * 100;
 
   useEffect(() => {
     if (!state.vin) {
@@ -41,23 +43,17 @@ export function VinFollowupFlow() {
     }
   }, [state.vin, navigate]);
 
-  // Auto-show followup when vehicle is found
-  useEffect(() => {
-    if (state.vehicle && state.stage === 'results') {
-      console.log('Vehicle found, showing followup questions');
-      setShowFollowup(true);
-    }
-  }, [state.vehicle, state.stage]);
-
   const handleStartFollowup = () => {
-    setShowFollowup(true);
+    console.log('Starting followup flow...');
+    startFollowup();
   };
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      handleComplete();
+      console.log('Assessment completed');
+      navigate('/valuation-result');
     }
   };
 
@@ -67,39 +63,7 @@ export function VinFollowupFlow() {
     }
   };
 
-  const handleComplete = () => {
-    toast.success('Follow-up questions completed!');
-    const vinParam = state.vin ? `?vin=${state.vin}` : '';
-    navigate(`/valuation-result${vinParam}`);
-  };
-
-  const handleMileageChange = (value: number) => {
-    updateAnswers({ mileage: value });
-  };
-
-  const handleConditionChange = (value: 'excellent' | 'good' | 'fair' | 'poor') => {
-    updateAnswers({ condition: value });
-  };
-
-  const handleAccidentChange = (value: any) => {
-    updateAnswers({ accidents: value });
-  };
-
-  const handleModificationsChange = (value: any) => {
-    updateAnswers({ modifications: value });
-  };
-
-  const handleDashboardLightsChange = (value: string[]) => {
-    updateAnswers({ dashboard_lights: value });
-  };
-
-  const handleTitleStatusChange = (value: string) => {
-    updateAnswers({ title_status: value });
-  };
-
-  const handlePreviousUseChange = (value: string) => {
-    updateAnswers({ previous_use: value });
-  };
+  const progress = ((currentStep + 1) / steps.length) * 100;
 
   const renderStepContent = () => {
     const step = steps[currentStep];
@@ -109,73 +73,104 @@ export function VinFollowupFlow() {
         return (
           <MileageInput
             value={answers.mileage}
-            onChange={handleMileageChange}
+            onChange={(mileage) => updateAnswers({ mileage })}
           />
         );
+      
       case 'condition':
         return (
           <ConditionSelector
             value={answers.condition}
-            onChange={handleConditionChange}
+            onChange={(condition) => updateAnswers({ condition })}
           />
         );
+      
       case 'accidents':
         return (
-          <AccidentSection
+          <AccidentHistorySection
             value={answers.accidents}
-            onChange={handleAccidentChange}
+            onChange={(accidents) => updateAnswers({ accidents })}
           />
         );
+      
+      case 'serviceHistory':
+        return (
+          <ServiceHistorySelector
+            value={answers.service_history}
+            onChange={(service_history) => updateAnswers({ service_history })}
+          />
+        );
+      
+      case 'maintenanceStatus':
+        return (
+          <MaintenanceStatusSelector
+            value={answers.maintenance_status}
+            onChange={(maintenance_status) => updateAnswers({ maintenance_status })}
+          />
+        );
+      
+      case 'titleStatus':
+        return (
+          <TitleStatusSelector
+            value={answers.title_status}
+            onChange={(title_status) => updateAnswers({ title_status })}
+          />
+        );
+      
+      case 'previousUse':
+        return (
+          <PreviousUseSelector
+            value={answers.previous_use}
+            onChange={(previous_use) => updateAnswers({ previous_use })}
+          />
+        );
+      
+      case 'tireCondition':
+        return (
+          <TireConditionSelector
+            value={answers.tire_condition}
+            onChange={(tire_condition) => updateAnswers({ tire_condition })}
+          />
+        );
+      
+      case 'dashboardLights':
+        return (
+          <DashboardLightsSection
+            value={answers.dashboard_lights}
+            onChange={(dashboard_lights) => updateAnswers({ dashboard_lights })}
+          />
+        );
+      
       case 'modifications':
         return (
           <ModificationsSection
             value={answers.modifications}
-            onChange={handleModificationsChange}
+            onChange={(modifications) => updateAnswers({ modifications })}
           />
         );
-      case 'dashboard_lights':
-        return (
-          <DashboardLightsSection
-            value={answers.dashboard_lights}
-            onChange={handleDashboardLightsChange}
-          />
-        );
-      case 'title_status':
-        return (
-          <TitleStatusSelector
-            value={answers.title_status || ''}
-            onChange={handleTitleStatusChange}
-          />
-        );
-      case 'previous_use':
-        return (
-          <PreviousUseSelector
-            value={answers.previous_use || ''}
-            onChange={handlePreviousUseChange}
-          />
-        );
+      
       default:
-        return null;
+        return <div>Unknown step</div>;
     }
   };
 
-  if (!state.vin) {
-    return null;
-  }
-
-  return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Show vehicle found card when vehicle is available */}
-      {state.vehicle && (
+  // Show vehicle found card if we have a vehicle but haven't started followup yet
+  if (state.vehicle && state.stage === 'results') {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
         <VehicleFoundCard 
           vehicle={state.vehicle}
-          showActions={!showFollowup}
+          showActions={true}
           onContinue={handleStartFollowup}
         />
-      )}
+      </div>
+    );
+  }
 
-      {/* Show followup questions when ready */}
-      {showFollowup && (
+  // Show followup questions when in followup stage
+  if (state.stage === 'followup') {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Enhanced Vehicle Assessment</CardTitle>
@@ -208,7 +203,10 @@ export function VinFollowupFlow() {
             </div>
           </CardContent>
         </Card>
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
+
+  // Default fallback
+  return null;
 }
