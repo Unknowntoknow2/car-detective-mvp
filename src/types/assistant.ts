@@ -22,12 +22,17 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp?: Date;
+  id?: string;
 }
 
 export interface AskAIRequest {
   message: string;
   context?: AssistantContext;
   history?: ChatMessage[];
+  question?: string;
+  userContext?: any;
+  chatHistory?: ChatMessage[];
+  systemPrompt?: string;
 }
 
 export interface AskAIResponse {
@@ -35,4 +40,5 @@ export interface AskAIResponse {
   context?: AssistantContext;
   success: boolean;
   error?: string;
+  answer?: string;
 }
