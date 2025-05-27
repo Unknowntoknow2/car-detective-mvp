@@ -74,8 +74,8 @@ export default function VinLookupPage() {
         </Card>
       )}
 
-      {/* Main Content */}
-      {state.stage === 'followup' ? (
+      {/* Main Content - Show followup when vehicle is found OR in followup stage */}
+      {(state.stage === 'followup' || (state.vehicle && state.stage === 'results')) ? (
         <VinFollowupFlow />
       ) : (
         <UnifiedVinLookup 
