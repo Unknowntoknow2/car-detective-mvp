@@ -91,8 +91,8 @@ export function convertVehicleInfoToReportData(
   
   const reportData: ReportData = {
     // Vehicle information
-    make: vehicleInfo.make,
-    model: vehicleInfo.model,
+    make: vehicleInfo.make || 'Unknown',
+    model: vehicleInfo.model || 'Unknown',
     year: vehicleInfo.year || new Date().getFullYear(),
     vin: vehicleInfo.vin,
     mileage: valuationData.mileage,

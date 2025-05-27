@@ -65,6 +65,7 @@ export const useVinLookup = (): UseVinLookupResult => {
         drivetrain: 'FWD',
         bodyType: prediction.bodyType,
         exteriorColor: prediction.color,
+        color: prediction.color,
         fuelType: prediction.fuelType,
         features: ['bluetooth', 'backup_camera', 'alloy_wheels'],
         estimatedValue: prediction.estimatedValue,
@@ -124,6 +125,7 @@ export const useVinLookup = (): UseVinLookupResult => {
         drivetrain: 'FWD',
         bodyType: prediction.bodyType,
         exteriorColor: prediction.color,
+        color: prediction.color,
         fuelType: prediction.fuelType,
         features: ['sunroof', 'lane_assist', 'heated_seats'],
         estimatedValue: prediction.estimatedValue,
@@ -156,6 +158,7 @@ export const useVinLookup = (): UseVinLookupResult => {
         drivetrain: manualData.drivetrain || '',
         bodyType: manualData.bodyType || '',
         exteriorColor: manualData.color || '',
+        color: manualData.color || '',
         fuelType: manualData.fuelType || '',
         features: manualData.features || []
       };
