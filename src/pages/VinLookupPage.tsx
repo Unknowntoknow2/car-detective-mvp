@@ -70,7 +70,7 @@ export default function VinLookupPage() {
       )}
 
       {/* Main Content - Simple stage-based rendering */}
-      {state.stage === 'results' || state.stage === 'followup' ? (
+      {state.stage === 'results' || state.stage === 'complete' ? (
         <VinFollowupFlow />
       ) : (
         <UnifiedVinLookup 
