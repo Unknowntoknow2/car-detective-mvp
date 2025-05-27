@@ -14,11 +14,13 @@ import { ModificationsSection } from '@/components/valuation/enhanced-followup/M
 import { DashboardLightsSection } from '@/components/valuation/enhanced-followup/DashboardLightsSection';
 import { TitleStatusSelector } from '@/components/title-ownership/TitleStatusSelector';
 import { PreviousUseSelector } from '@/components/valuation/enhanced-followup/PreviousUseSelector';
+import { VehicleFoundCard } from '@/components/valuation/VehicleFoundCard';
 
 export function VinFollowupFlow() {
   const { state } = useVinLookupFlow();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
+  const [showFollowup, setShowFollowup] = useState(false);
   const { answers, updateAnswers, saving } = useFollowUpAnswers(state.vin || '');
 
   const steps = [
@@ -38,6 +40,18 @@ export function VinFollowupFlow() {
       navigate('/vin-lookup');
     }
   }, [state.vin, navigate]);
+
+  // Auto-show followup when vehicle is found
+  useEffect(() => {
+    if (state.vehicle && state.stage === 'results') {
+      console.log('Vehicle found, showing followup questions');
+      setShowFollowup(true);
+    }
+  }, [state.vehicle, state.stage]);
+
+  const handleStartFollowup = () => {
+    setShowFollowup(true);
+  };
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -151,38 +165,50 @@ export function VinFollowupFlow() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Enhanced Vehicle Assessment</CardTitle>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Step {currentStep + 1} of {steps.length}</span>
-              <span>{Math.round(progress)}% Complete</span>
+      {/* Show vehicle found card when vehicle is available */}
+      {state.vehicle && (
+        <VehicleFoundCard 
+          vehicle={state.vehicle}
+          showActions={!showFollowup}
+          onContinue={handleStartFollowup}
+        />
+      )}
+
+      {/* Show followup questions when ready */}
+      {showFollowup && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Enhanced Vehicle Assessment</CardTitle>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Step {currentStep + 1} of {steps.length}</span>
+                <span>{Math.round(progress)}% Complete</span>
+              </div>
+              <Progress value={progress} className="w-full" />
             </div>
-            <Progress value={progress} className="w-full" />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {renderStepContent()}
-          
-          <div className="flex justify-between">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 0}
-            >
-              Previous
-            </Button>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {renderStepContent()}
             
-            <Button
-              onClick={handleNext}
-              disabled={saving}
-            >
-              {currentStep === steps.length - 1 ? 'Complete Assessment' : 'Next'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex justify-between">
+              <Button
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentStep === 0}
+              >
+                Previous
+              </Button>
+              
+              <Button
+                onClick={handleNext}
+                disabled={saving}
+              >
+                {currentStep === steps.length - 1 ? 'Complete Assessment' : 'Next'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
