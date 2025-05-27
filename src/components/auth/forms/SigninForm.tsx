@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, KeyRound } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export interface SigninFormProps {
   isLoading?: boolean;
@@ -50,22 +50,14 @@ export const SigninForm: React.FC<SigninFormProps> = ({
       if (!result.success) {
         const errorMessage = result.error || 'Authentication failed';
         setError(errorMessage);
-        setIsLoading(false);
-        
-        toast({
-          title: "Sign in failed",
-          description: errorMessage,
-          variant: "destructive",
+        toast.error('Sign in failed', {
+          description: errorMessage
         });
         return;
       }
       
       // Show success toast
-      toast({
-        title: "Signed in successfully",
-        description: "Welcome back!",
-        variant: "success",
-      });
+      toast.success('Signed in successfully!');
       
       // Determine redirect path based on user type
       let targetPath = redirectPath;
@@ -80,13 +72,11 @@ export const SigninForm: React.FC<SigninFormProps> = ({
       navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
-      setIsLoading(false);
-      
-      toast({
-        title: "Sign in failed",
-        description: err.message || 'An unexpected error occurred',
-        variant: "destructive",
+      toast.error('Sign in failed', {
+        description: err.message || 'An unexpected error occurred'
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
