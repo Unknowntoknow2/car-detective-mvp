@@ -9,6 +9,10 @@ import { MileageInput } from '@/components/valuation/enhanced-followup/MileageIn
 import { ConditionSelector } from '@/components/valuation/enhanced-followup/ConditionSelector';
 import { PreviousUseSelector } from '@/components/valuation/enhanced-followup/PreviousUseSelector';
 import { AccidentSection } from '@/components/valuation/enhanced-followup/AccidentSection';
+import { ServiceHistorySelector } from '@/components/valuation/enhanced-followup/ServiceHistorySelector';
+import { MaintenanceStatusSelector } from '@/components/valuation/enhanced-followup/MaintenanceStatusSelector';
+import { AccidentHistorySection } from '@/components/valuation/enhanced-followup/AccidentHistorySection';
+import { TireConditionSelector } from '@/components/valuation/enhanced-followup/TireConditionSelector';
 import { AccidentDetails } from '@/types/follow-up-answers';
 
 export function VinFollowupFlow() {
@@ -19,16 +23,22 @@ export function VinFollowupFlow() {
   const [condition, setCondition] = useState<'excellent' | 'good' | 'fair' | 'poor'>();
   const [previousUse, setPreviousUse] = useState<string>();
   const [accidents, setAccidents] = useState<AccidentDetails>({ hadAccident: false });
+  const [serviceHistory, setServiceHistory] = useState<string>();
+  const [maintenanceStatus, setMaintenanceStatus] = useState<string>();
+  const [tireCondition, setTireCondition] = useState<string>();
 
   // Calculate progress based on completed fields
   const calculateProgress = () => {
     let completed = 0;
-    const total = 4;
+    const total = 7;
     
     if (mileage && mileage > 0) completed++;
     if (condition) completed++;
     if (previousUse) completed++;
     if (accidents.hadAccident !== undefined) completed++;
+    if (serviceHistory) completed++;
+    if (maintenanceStatus) completed++;
+    if (tireCondition) completed++;
     
     const progress = (completed / total) * 100;
     updateFollowupProgress(progress);
@@ -45,6 +55,9 @@ export function VinFollowupFlow() {
       condition,
       previousUse,
       accidents: accidents.hadAccident ? (accidents.count || 1) : 0,
+      serviceHistory,
+      maintenanceStatus,
+      tireCondition,
     };
 
     await submitFollowup(followupData);
@@ -155,6 +168,12 @@ export function VinFollowupFlow() {
         </Card>
 
         <AccidentSection value={accidents} onChange={setAccidents} />
+
+        <ServiceHistorySelector value={serviceHistory} onChange={setServiceHistory} />
+
+        <MaintenanceStatusSelector value={maintenanceStatus} onChange={setMaintenanceStatus} />
+
+        <TireConditionSelector value={tireCondition} onChange={setTireCondition} />
       </div>
 
       {/* Submit Section */}
