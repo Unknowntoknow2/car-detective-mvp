@@ -1,15 +1,16 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import DealerLayout from '@/layouts/DealerLayout';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import DealerInventoryList from '@/components/dealer/inventory/DealerInventoryList';
-import { DealerInventoryItem } from '@/types/vehicle';
+import { DealerVehicle } from '@/types/dealerVehicle';
 import { toast } from 'sonner';
 
 const DealerInventoryListPage: React.FC = () => {
   const navigate = useNavigate();
-  const [inventory, setInventory] = React.useState<DealerInventoryItem[]>([
+  const [inventory, setInventory] = React.useState<DealerVehicle[]>([
     {
       id: '1',
       make: 'Toyota',
