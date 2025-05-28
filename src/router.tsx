@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
@@ -15,11 +16,9 @@ import ProfilePage from './pages/ProfilePage';
 import AccountPage from './pages/AccountPage';
 import ServiceHistoryPage from './pages/ServiceHistoryPage';
 import Layout from './components/layout/Layout';
-import UnifiedAuthPage from './pages/auth/UnifiedAuthPage';
+import AuthPage from './pages/auth/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
-import IndividualAuthPage from './pages/auth/IndividualAuthPage';
-import DealerAuthPage from './pages/auth/DealerAuthPage';
 import PlatformDiagnosticsPage from './pages/PlatformDiagnosticsPage';
 
 // Export routes configuration
@@ -41,18 +40,10 @@ const routes: RouteObject[] = [
         element: <VinLookupPage />
       },
       
-      // Core auth routes - keep only the canonical ones
+      // Main auth route - this is the working one
       {
         path: 'auth',
-        element: <UnifiedAuthPage />
-      },
-      {
-        path: 'auth/individual',
-        element: <IndividualAuthPage />
-      },
-      {
-        path: 'auth/dealer',
-        element: <DealerAuthPage />
+        element: <AuthPage />
       },
       {
         path: 'auth/callback',
@@ -65,7 +56,7 @@ const routes: RouteObject[] = [
         element: <PlatformDiagnosticsPage />
       },
       
-      // Redirect legacy auth routes to the canonical paths
+      // Redirect ALL legacy auth routes to the main auth page
       {
         path: 'login',
         element: <Navigate to="/auth" replace />
@@ -92,23 +83,31 @@ const routes: RouteObject[] = [
       },
       {
         path: 'dealer-signup',
-        element: <Navigate to="/auth/dealer" replace />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'signin/individual',
-        element: <Navigate to="/auth/individual" replace />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'signin/dealer',
-        element: <Navigate to="/auth/dealer" replace />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'signup/individual',
-        element: <Navigate to="/auth/individual" replace />
+        element: <Navigate to="/auth" replace />
       },
       {
         path: 'signup/dealer',
-        element: <Navigate to="/auth/dealer" replace />
+        element: <Navigate to="/auth" replace />
+      },
+      {
+        path: 'auth/individual',
+        element: <Navigate to="/auth" replace />
+      },
+      {
+        path: 'auth/dealer',
+        element: <Navigate to="/auth" replace />
       },
       
       // Dashboard routes

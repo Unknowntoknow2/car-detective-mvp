@@ -5,8 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { SigninForm } from '@/components/auth/forms/SigninForm';
 import { SignupForm } from '@/components/auth/forms/SignupForm';
-import { Building, User } from 'lucide-react';
+import { Building, User, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
@@ -24,64 +26,42 @@ export default function AuthPage() {
   }, [user, navigate, location]);
   
   return (
-    <div className="container mx-auto py-12 px-4">
-      <div className="max-w-md mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold">Welcome to Car Detective</h1>
-          <p className="text-muted-foreground mt-2">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
+          <Link to="/" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Link>
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            Welcome to Car Detective
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
             {activeTab === 'signin' ? 'Sign in to your account' : 'Create a new account'}
           </p>
         </div>
-        
+
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>
-                {userType === 'individual' ? 'Individual' : 'Dealer'} {activeTab === 'signin' ? 'Sign In' : 'Registration'}
-              </CardTitle>
-              <div 
-                className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                  userType === 'individual' ? 'bg-primary/10' : 'bg-blue-100'
-                }`}
-              >
-                {userType === 'individual' ? (
-                  <User className="h-5 w-5 text-primary" />
-                ) : (
-                  <Building className="h-5 w-5 text-blue-600" />
-                )}
-              </div>
-            </div>
-            <CardDescription>
-              {userType === 'individual' 
-                ? 'Access your personal account and valuations' 
-                : 'Dealer tools and business features'}
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="space-y-4">
-            <div className="flex space-x-2 mb-4">
-              <button
-                className={`flex-1 py-2 rounded-md ${
-                  userType === 'individual' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted text-muted-foreground'
-                }`}
+            <div className="flex space-x-1 mb-4">
+              <Button
+                variant={userType === 'individual' ? 'default' : 'outline'}
+                size="sm"
                 onClick={() => setUserType('individual')}
+                className="flex-1"
               >
-                <User className="h-4 w-4 inline mr-2" />
+                <User className="h-4 w-4 mr-2" />
                 Individual
-              </button>
-              <button
-                className={`flex-1 py-2 rounded-md ${
-                  userType === 'dealer' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-muted text-muted-foreground'
-                }`}
+              </Button>
+              <Button
+                variant={userType === 'dealer' ? 'default' : 'outline'}
+                size="sm"
                 onClick={() => setUserType('dealer')}
+                className="flex-1"
               >
-                <Building className="h-4 w-4 inline mr-2" />
+                <Building className="h-4 w-4 mr-2" />
                 Dealer
-              </button>
+              </Button>
             </div>
             
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'signin' | 'signup')}>
@@ -90,21 +70,63 @@ export default function AuthPage() {
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="signin" className="mt-4">
+              <TabsContent value="signin">
+                <CardTitle>Sign In</CardTitle>
+                <CardDescription>
+                  Enter your credentials to access your account
+                </CardDescription>
+              </TabsContent>
+              
+              <TabsContent value="signup">
+                <CardTitle>Create Account</CardTitle>
+                <CardDescription>
+                  Sign up for a new {userType} account
+                </CardDescription>
+              </TabsContent>
+            </Tabs>
+          </CardHeader>
+          
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'signin' | 'signup')}>
+              <TabsContent value="signin">
                 <SigninForm 
                   userType={userType}
-                  redirectPath={userType === 'dealer' ? '/dealer/dashboard' : '/dashboard'} 
+                  redirectPath={userType === 'dealer' ? '/dealer/dashboard' : '/dashboard'}
                 />
               </TabsContent>
               
-              <TabsContent value="signup" className="mt-4">
+              <TabsContent value="signup">
                 <SignupForm 
                   userType={userType}
                   showDealershipField={userType === 'dealer'}
-                  redirectPath={userType === 'dealer' ? '/dealer/dashboard' : '/dashboard'} 
+                  redirectPath={userType === 'dealer' ? '/dealer/dashboard' : '/dashboard'}
                 />
               </TabsContent>
             </Tabs>
+            
+            <div className="mt-6 text-center text-sm text-gray-500">
+              {activeTab === 'signin' ? (
+                <p>
+                  Don't have an account?{' '}
+                  <button
+                    onClick={() => setActiveTab('signup')}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Sign up
+                  </button>
+                </p>
+              ) : (
+                <p>
+                  Already have an account?{' '}
+                  <button
+                    onClick={() => setActiveTab('signin')}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Sign in
+                  </button>
+                </p>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
