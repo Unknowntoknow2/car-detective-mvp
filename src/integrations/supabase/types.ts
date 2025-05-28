@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      auction_enrichment_by_vin: {
+        Row: {
+          created_at: string | null
+          data: Json
+          id: string
+          source: string
+          updated_at: string | null
+          vin: string
+        }
+        Insert: {
+          created_at?: string | null
+          data: Json
+          id?: string
+          source: string
+          updated_at?: string | null
+          vin: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json
+          id?: string
+          source?: string
+          updated_at?: string | null
+          vin?: string
+        }
+        Relationships: []
+      }
       auction_results_by_vin: {
         Row: {
           auction_source: string

@@ -1,201 +1,193 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Car, Calendar, MapPin, DollarSign, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { RefreshCw, Clock, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
 import { EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
 
 interface EnrichedDataCardProps {
   data: EnrichedVehicleData;
+  userRole?: string;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
+  lastUpdated?: string;
 }
 
-export function EnrichedDataCard({ data }: EnrichedDataCardProps) {
-  const { sources } = data || {};
-  const { statVin, facebook, craigslist, ebay } = sources || {};
+export const EnrichedDataCard: React.FC<EnrichedDataCardProps> = ({ 
+  data, 
+  userRole = 'individual',
+  onRefresh,
+  isRefreshing = false,
+  lastUpdated
+}) => {
+  const isDealerOrAdmin = ['dealer', 'admin'].includes(userRole);
+  const statVinData = data.sources.statVin;
 
-  if (!statVin && !facebook && !craigslist && !ebay) {
+  if (!statVinData) {
     return (
-      <Card className="mt-6">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Car className="h-5 w-5" />
-            📊 Market Data & History
+            <AlertTriangle className="h-5 w-5 text-yellow-500" />
+            No Market Intelligence Available
           </CardTitle>
+          <CardDescription>
+            Unable to fetch enrichment data for this vehicle
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No market data or auction history found for this vehicle.
-          </p>
-        </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="space-y-6 mt-6">
-      {/* STAT.vin Auction History */}
-      {statVin && (
-        <Card className="bg-white shadow-sm">
-          <CardHeader>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
             <CardTitle className="flex items-center gap-2">
-              <Car className="h-5 w-5" />
-              📊 Auction History (STAT.vin)
+              <TrendingUp className="h-5 w-5 text-green-600" />
+              Market Intelligence Report
             </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Key Information Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {statVin.salePrice && (
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-green-600" />
-                  <div>
-                    <p className="text-sm font-medium">Sale Price</p>
-                    <p className="text-sm text-muted-foreground">${statVin.salePrice}</p>
-                  </div>
-                </div>
-              )}
-              
-              {statVin.auctionDate && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-blue-600" />
-                  <div>
-                    <p className="text-sm font-medium">Auction Date</p>
-                    <p className="text-sm text-muted-foreground">{statVin.auctionDate}</p>
-                  </div>
-                </div>
-              )}
-              
-              {statVin.location && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-purple-600" />
-                  <div>
-                    <p className="text-sm font-medium">Location</p>
-                    <p className="text-sm text-muted-foreground">{statVin.location}</p>
-                  </div>
-                </div>
-              )}
-              
-              {statVin.damage && (
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-orange-600" />
-                  <div>
-                    <p className="text-sm font-medium">Damage</p>
-                    <p className="text-sm text-muted-foreground">{statVin.damage}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Status Badges */}
-            <div className="flex flex-wrap gap-2">
-              {statVin.status && (
-                <Badge variant="outline">{statVin.status}</Badge>
-              )}
-              {statVin.condition && (
-                <Badge variant="outline">{statVin.condition}</Badge>
-              )}
-              {statVin.titleType && (
-                <Badge variant="outline">{statVin.titleType}</Badge>
-              )}
-              {statVin.runAndDrive !== undefined && (
-                <Badge variant={statVin.runAndDrive ? "default" : "destructive"}>
-                  {statVin.runAndDrive ? "Runs & Drives" : "Does Not Run"}
-                </Badge>
-              )}
-            </div>
-
-            {/* Vehicle Details */}
-            {(statVin.make || statVin.model || statVin.year || statVin.mileage) && (
-              <div className="border-t pt-4">
-                <h4 className="text-sm font-medium mb-2">Vehicle Details</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                  {statVin.make && <span><strong>Make:</strong> {statVin.make}</span>}
-                  {statVin.model && <span><strong>Model:</strong> {statVin.model}</span>}
-                  {statVin.year && <span><strong>Year:</strong> {statVin.year}</span>}
-                  {statVin.mileage && <span><strong>Mileage:</strong> {statVin.mileage}</span>}
-                  {statVin.bodyType && <span><strong>Body:</strong> {statVin.bodyType}</span>}
-                  {statVin.engine && <span><strong>Engine:</strong> {statVin.engine}</span>}
-                  {statVin.transmission && <span><strong>Transmission:</strong> {statVin.transmission}</span>}
-                  {statVin.fuelType && <span><strong>Fuel:</strong> {statVin.fuelType}</span>}
-                </div>
+            <CardDescription>
+              Comprehensive auction and damage history for VIN: {data.vin}
+            </CardDescription>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {lastUpdated && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                {new Date(lastUpdated).toLocaleDateString()}
               </div>
             )}
-
-            {/* Auction Images */}
-            {statVin.images && statVin.images.length > 0 && (
-              <div className="border-t pt-4">
-                <h4 className="text-sm font-medium mb-3">Auction Photos</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                  {statVin.images.slice(0, 8).map((url, i) => (
-                    <div key={i} className="relative">
-                      <img 
-                        src={url} 
-                        alt={`Auction photo ${i + 1}`} 
-                        className="rounded-md border aspect-square object-cover w-full"
-                        loading="lazy"
-                      />
-                    </div>
-                  ))}
-                  {statVin.images.length > 8 && (
-                    <div className="rounded-md border aspect-square bg-muted flex items-center justify-center">
-                      <span className="text-sm text-muted-foreground">
-                        +{statVin.images.length - 8} more
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* External Link */}
-            <div className="border-t pt-4">
-              <a
-                href={`https://stat.vin/vin-decoder/${statVin.vin}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
+            
+            {isDealerOrAdmin && onRefresh && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onRefresh}
+                disabled={isRefreshing}
+                className="flex items-center gap-1"
               >
-                View full report on STAT.vin
-                <ExternalLink className="h-4 w-4" />
-              </a>
+                <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="space-y-6">
+        {/* Auction History */}
+        {statVinData.statVinData?.auctionHistory && (
+          <div>
+            <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Auction History
+            </h3>
+            <div className="space-y-3">
+              {statVinData.statVinData.auctionHistory.map((auction, index) => (
+                <div key={index} className="bg-gray-50 rounded-lg p-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <div className="text-sm font-medium text-gray-600">Sale Date</div>
+                      <div className="font-semibold">{auction.date}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-600">Price</div>
+                      <div className="font-semibold text-green-600">
+                        ${auction.price.toLocaleString()}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-600">Location</div>
+                      <div className="font-semibold">{auction.location}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-600">Condition</div>
+                      <Badge variant="secondary">{auction.condition}</Badge>
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <div className="text-sm font-medium text-gray-600">Mileage</div>
+                    <div className="font-semibold">{auction.mileage.toLocaleString()} miles</div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
 
-      {/* Future: Facebook Marketplace, Craigslist, eBay sections will go here */}
-      {facebook && facebook.length > 0 && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardHeader>
-            <CardTitle className="text-blue-800">📘 Facebook Marketplace</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-blue-600">Found {facebook.length} listings</p>
-          </CardContent>
-        </Card>
-      )}
+        {/* Damage History */}
+        {statVinData.statVinData?.damageHistory && (
+          <div>
+            <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Damage History
+            </h3>
+            <div className="space-y-3">
+              {statVinData.statVinData.damageHistory.map((damage, index) => (
+                <div key={index} className="bg-red-50 rounded-lg p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <div className="text-sm font-medium text-gray-600">Type</div>
+                      <Badge variant="destructive">{damage.type}</Badge>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-600">Location</div>
+                      <div className="font-semibold">{damage.location}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-600">Severity</div>
+                      <div className="font-semibold">{damage.severity}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-      {craigslist && craigslist.length > 0 && (
-        <Card className="bg-orange-50 border-orange-200">
-          <CardHeader>
-            <CardTitle className="text-orange-800">📋 Craigslist</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-orange-600">Found {craigslist.length} listings</p>
-          </CardContent>
-        </Card>
-      )}
+        {/* Title History */}
+        {statVinData.statVinData?.titleHistory && (
+          <div>
+            <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Title History
+            </h3>
+            <div className="space-y-3">
+              {statVinData.statVinData.titleHistory.map((title, index) => (
+                <div key={index} className="bg-green-50 rounded-lg p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <div className="text-sm font-medium text-gray-600">State</div>
+                      <div className="font-semibold">{title.state}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-600">Type</div>
+                      <Badge variant="secondary">{title.type}</Badge>
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-600">Date</div>
+                      <div className="font-semibold">{title.date}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-      {ebay && ebay.length > 0 && (
-        <Card className="bg-yellow-50 border-yellow-200">
-          <CardHeader>
-            <CardTitle className="text-yellow-800">🛒 eBay Motors</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-yellow-600">Found {ebay.length} listings</p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+        {userRole === 'admin' && (
+          <div className="border-t pt-4">
+            <h4 className="font-medium text-sm text-gray-600 mb-2">Debug Info (Admin Only)</h4>
+            <div className="text-xs bg-gray-100 p-3 rounded">
+              <pre>{JSON.stringify(data, null, 2)}</pre>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
-}
+};
