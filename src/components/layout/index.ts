@@ -1,5 +1,5 @@
 
-export { default as Layout } from './Layout';
+// Export layout components
 export { default as MainLayout } from './MainLayout';
 export { default as Header } from './Header';
 export { default as Footer } from './Footer';
