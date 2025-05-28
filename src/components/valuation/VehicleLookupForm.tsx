@@ -27,11 +27,6 @@ export function VehicleLookupForm({ onVehicleFound, showHeader = true }: Vehicle
     }
   };
 
-  const handleDecodeError = (vin: string, error: string) => {
-    setLastVin(vin);
-    setDecodeError(error);
-  };
-
   const handleRetry = async () => {
     if (!lastVin) return;
     
@@ -61,7 +56,6 @@ export function VehicleLookupForm({ onVehicleFound, showHeader = true }: Vehicle
       <CardContent className="space-y-4">
         <EnhancedVinLookup 
           onVehicleFound={handleVehicleFound}
-          onError={handleDecodeError}
           showManualFallback={true}
         />
         
