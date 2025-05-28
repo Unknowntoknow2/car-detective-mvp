@@ -1,94 +1,56 @@
 
-export interface DecodedVehicleInfo {
-  vin?: string;
-  plate?: string;
-  state?: string;
-  year?: number;
-  make?: string;
-  model?: string;
-  trim?: string;
-  engine?: string;
-  transmission?: string;
-  bodyType?: string;
-  fuelType?: string;
-  drivetrain?: string;
-  exteriorColor?: string;
-  interiorColor?: string;
-  doors?: string;
-  seats?: string;
-  displacement?: string;
-  estimatedValue?: number;
-  confidenceScore?: number;
-  mileage?: number;
-  condition?: string;
-  valuationId?: string;
-  
-  // Enhanced photo support
-  photos?: string[];
-  primaryPhoto?: string;
-  
-  // Additional properties that were missing
-  features?: string[];
-  color?: string;
-  zipCode?: string;
-}
+// Consolidated vehicle types for the entire application
 
-export interface DealerInventoryItem {
+export interface VehicleMake {
   id: string;
-  make: string;
-  model: string;
-  year: number;
-  price: number;
-  mileage?: number;
-  vin: string;
-  status: 'available' | 'pending' | 'sold';
-  photos?: string[];
-  createdAt: string;
-  condition?: string;
-  transmission?: string;
-  fuelType?: string;
-  bodyType?: string;
-  color?: string;
-  trim?: string;
-  dealer_id?: string;
-  zip_code?: string;
-  updated_at?: string;
+  make_name: string;
+  logo_url?: string | null;
+  country_of_origin?: string | null;
+  nhtsa_make_id?: number | null;
+  popular?: boolean;
 }
 
-export interface ValuationResponse {
-  make: string;
-  model: string;
-  year: number;
-  mileage?: number;
-  condition: string;
-  estimatedValue: number;
-  confidenceScore?: number;
-  valuationId: string;
-  zipCode?: string;
-  fuelType?: string;
+export interface VehicleModel {
+  id: string;
+  make_id: string;
+  model_name: string;
+  nhtsa_model_id?: string | null;
+  popular?: boolean;
+}
+
+export interface VehicleTrim {
+  id: string;
+  model_id: string;
+  trim_name: string;
+  year?: number;
+  fuel_type?: string;
   transmission?: string;
-  bodyType?: string;
-  bodyStyle?: string;
-  color?: string;
-  accidents?: number;
-  trim?: string;
-  vin?: string;
-  isPremium?: boolean;
-  price_range?: {
-    low: number;
-    high: number;
-  };
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
-  aiCondition?: {
-    condition: string;
-    confidenceScore: number;
-    issuesDetected: string[];
-    summary?: string;
-  };
-  userId?: string;
-  [key: string]: any;
+  engine_type?: string;
+  msrp?: number;
+  description?: string;
+  image_url?: string;
+}
+
+// Form data structure for vehicle selection
+export interface VehicleSelectionData {
+  makeId: string;
+  makeName: string;
+  modelId: string;
+  modelName: string;
+  trimId?: string;
+  trimName?: string;
+  year: number;
+}
+
+// Validation interfaces
+export interface VehicleValidationResult {
+  isValid: boolean;
+  errors: Record<string, string>;
+}
+
+// API response interfaces
+export interface VehicleApiResponse<T> {
+  data: T[];
+  error: string | null;
+  isLoading: boolean;
 }
