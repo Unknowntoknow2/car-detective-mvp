@@ -1060,21 +1060,21 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          make_id: string | null
+          make_id: string
           model_name: string
           nhtsa_model_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
-          make_id?: string | null
+          make_id: string
           model_name: string
           nhtsa_model_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
-          make_id?: string | null
+          make_id?: string
           model_name?: string
           nhtsa_model_id?: string | null
         }
@@ -1087,6 +1087,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      models_backup: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          make_id: string | null
+          model_name: string | null
+          nhtsa_model_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          make_id?: string | null
+          model_name?: string | null
+          nhtsa_model_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          make_id?: string | null
+          model_name?: string | null
+          nhtsa_model_id?: string | null
+        }
+        Relationships: []
       }
       orders: {
         Row: {

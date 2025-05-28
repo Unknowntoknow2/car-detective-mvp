@@ -43,6 +43,7 @@ export function useMakeModels() {
         const { data, error } = await supabase
           .from('makes')
           .select('id, make_name')
+          .neq('make_name', 'Unknown Make') // Filter out the cleanup record
           .order('make_name');
           
         if (error) {
@@ -87,6 +88,7 @@ export function useMakeModels() {
         .from('models')
         .select('id, make_id, model_name')
         .eq('make_id', makeId)
+        .not('make_id', 'is', null) // Ensure make_id is not null
         .order('model_name');
         
       if (error) {
@@ -96,6 +98,11 @@ export function useMakeModels() {
       
       const modelsList = data || [];
       console.log('Fetched models:', modelsList.length, modelsList.slice(0, 5));
+      
+      if (modelsList.length === 0) {
+        console.warn('No models found for make ID:', makeId);
+      }
+      
       setModels(modelsList);
       setTrims([]); // Clear trims when models change
       return modelsList;

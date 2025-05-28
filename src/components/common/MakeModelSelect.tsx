@@ -2,6 +2,8 @@
 import React, { useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { VehicleMake, VehicleModel } from '@/hooks/useMakeModels';
 
 interface MakeModelSelectProps {
@@ -13,6 +15,8 @@ interface MakeModelSelectProps {
   setSelectedModelId: (id: string) => void;
   isDisabled?: boolean;
   isLoading?: boolean;
+  isLoadingModels?: boolean;
+  error?: string | null;
 }
 
 const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
@@ -24,12 +28,15 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   setSelectedModelId,
   isDisabled = false,
   isLoading = false,
+  isLoadingModels = false,
+  error = null
 }) => {
   console.log('MakeModelSelect render:', { 
     selectedMakeId, 
     selectedModelId,
     makesCount: makes.length,
-    modelsCount: models.length 
+    modelsCount: models.length,
+    isLoadingModels
   });
   
   // Filter models based on selected make
@@ -47,16 +54,14 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
     }
   }, [selectedMakeId, filteredModels, selectedModelId, setSelectedModelId]);
 
-  const handleMakeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newMakeId = e.target.value;
+  const handleMakeChange = (newMakeId: string) => {
     console.log('Make changed to:', newMakeId);
     setSelectedMakeId(newMakeId);
     // Always reset model selection when make changes
     setSelectedModelId('');
   };
 
-  const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newModelId = e.target.value;
+  const handleModelChange = (newModelId: string) => {
     console.log('Model changed to:', newModelId);
     setSelectedModelId(newModelId);
   };
@@ -76,46 +81,80 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
     );
   }
 
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
     <div className="flex space-x-4">
       {/* Make Dropdown */}
       <div className="flex-1">
         <label htmlFor="make" className="block text-sm font-medium text-gray-700 mb-1">Make</label>
-        <select
-          id="make"
+        <Select
           value={selectedMakeId}
-          onChange={handleMakeChange}
+          onValueChange={handleMakeChange}
           disabled={isDisabled}
-          className="bg-white w-full border-2 border-slate-200 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
         >
-          <option value="">Select a make</option>
-          {makes.map(make => (
-            <option key={make.id} value={make.id}>
-              {make.make_name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a make" />
+          </SelectTrigger>
+          <SelectContent>
+            {makes.map(make => (
+              <SelectItem key={make.id} value={make.id}>
+                {make.make_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       
       {/* Model Dropdown */}
       <div className="flex-1">
         <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-1">Model</label>
-        <select
-          id="model"
+        <Select
           value={selectedModelId}
-          onChange={handleModelChange}
-          disabled={isDisabled || !selectedMakeId}
-          className="bg-white w-full border-2 border-slate-200 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+          onValueChange={handleModelChange}
+          disabled={isDisabled || !selectedMakeId || isLoadingModels}
         >
-          <option value="">
-            {!selectedMakeId ? "Select Make First" : "Select Model"}
-          </option>
-          {filteredModels.map(model => (
-            <option key={model.id} value={model.id}>
-              {model.model_name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue 
+              placeholder={
+                !selectedMakeId 
+                  ? "Select Make First" 
+                  : isLoadingModels
+                    ? "Loading..."
+                    : filteredModels.length === 0
+                      ? "No models available"
+                      : "Select Model"
+              } 
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {filteredModels.map(model => (
+              <SelectItem key={model.id} value={model.id}>
+                {model.model_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        
+        {isLoadingModels && (
+          <div className="flex items-center mt-1 text-sm text-muted-foreground">
+            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+            Loading models...
+          </div>
+        )}
+        
+        {selectedMakeId && !isLoadingModels && filteredModels.length === 0 && (
+          <div className="mt-1 text-sm text-orange-600">
+            No models found for selected make
+          </div>
+        )}
       </div>
     </div>
   );
