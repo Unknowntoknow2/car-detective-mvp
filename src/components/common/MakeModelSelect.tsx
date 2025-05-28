@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, Info } from 'lucide-react';
 import { VehicleMake, VehicleModel } from '@/hooks/useMakeModels';
 
 interface MakeModelSelectProps {
@@ -91,71 +91,86 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   }
 
   return (
-    <div className="flex space-x-4">
-      {/* Make Dropdown */}
-      <div className="flex-1">
-        <label htmlFor="make" className="block text-sm font-medium text-gray-700 mb-1">Make</label>
-        <Select
-          value={selectedMakeId}
-          onValueChange={handleMakeChange}
-          disabled={isDisabled}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select a make" />
-          </SelectTrigger>
-          <SelectContent>
-            {makes.map(make => (
-              <SelectItem key={make.id} value={make.id}>
-                {make.make_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="space-y-4">
+      <div className="flex space-x-4">
+        {/* Make Dropdown */}
+        <div className="flex-1">
+          <label htmlFor="make" className="block text-sm font-medium text-gray-700 mb-1">Make</label>
+          <Select
+            value={selectedMakeId}
+            onValueChange={handleMakeChange}
+            disabled={isDisabled}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a make" />
+            </SelectTrigger>
+            <SelectContent>
+              {makes.map(make => (
+                <SelectItem key={make.id} value={make.id}>
+                  {make.make_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {/* Model Dropdown */}
+        <div className="flex-1">
+          <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-1">Model</label>
+          <Select
+            value={selectedModelId}
+            onValueChange={handleModelChange}
+            disabled={isDisabled || !selectedMakeId || isLoadingModels}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue 
+                placeholder={
+                  !selectedMakeId 
+                    ? "Select Make First" 
+                    : isLoadingModels
+                      ? "Loading..."
+                      : filteredModels.length === 0
+                        ? "No models available"
+                        : "Select Model"
+                } 
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredModels.map(model => (
+                <SelectItem key={model.id} value={model.id}>
+                  {model.model_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          {isLoadingModels && (
+            <div className="flex items-center mt-1 text-sm text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+              Loading models...
+            </div>
+          )}
+        </div>
       </div>
       
-      {/* Model Dropdown */}
-      <div className="flex-1">
-        <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-1">Model</label>
-        <Select
-          value={selectedModelId}
-          onValueChange={handleModelChange}
-          disabled={isDisabled || !selectedMakeId || isLoadingModels}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue 
-              placeholder={
-                !selectedMakeId 
-                  ? "Select Make First" 
-                  : isLoadingModels
-                    ? "Loading..."
-                    : filteredModels.length === 0
-                      ? "No models available"
-                      : "Select Model"
-              } 
-            />
-          </SelectTrigger>
-          <SelectContent>
-            {filteredModels.map(model => (
-              <SelectItem key={model.id} value={model.id}>
-                {model.model_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        
-        {isLoadingModels && (
-          <div className="flex items-center mt-1 text-sm text-muted-foreground">
-            <Loader2 className="h-3 w-3 animate-spin mr-1" />
-            Loading models...
-          </div>
-        )}
-        
-        {selectedMakeId && !isLoadingModels && filteredModels.length === 0 && (
-          <div className="mt-1 text-sm text-orange-600">
-            No models found for selected make
-          </div>
-        )}
-      </div>
+      {/* Improved messaging for no models scenario */}
+      {selectedMakeId && !isLoadingModels && filteredModels.length === 0 && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            <div className="space-y-2">
+              <p className="font-medium">No models available for this make</p>
+              <p className="text-sm">
+                This make may not have model data in our system yet. You can:
+              </p>
+              <ul className="text-sm list-disc list-inside space-y-1 ml-2">
+                <li>Try selecting a different make</li>
+                <li>Contact support if you believe this is an error</li>
+              </ul>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 };

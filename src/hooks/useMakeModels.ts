@@ -40,24 +40,50 @@ export function useMakeModels() {
         setError(null);
         
         console.log('Fetching makes from database...');
-        const { data, error } = await supabase
+        
+        // First, get all makes
+        const { data: allMakes, error: makesError } = await supabase
           .from('makes')
           .select('id, make_name')
-          .neq('make_name', 'Unknown Make') // Filter out the cleanup record
+          .neq('make_name', 'Unknown Make')
           .order('make_name');
           
-        if (error) {
-          console.error('Supabase error fetching makes:', error);
-          throw error;
+        if (makesError) {
+          console.error('Supabase error fetching makes:', makesError);
+          throw makesError;
         }
         
-        const typedData: VehicleMake[] = data ? data.map(make => ({
+        // Check which makes have models
+        const { data: makesWithModels, error: modelsCountError } = await supabase
+          .from('models')
+          .select('make_id')
+          .not('make_id', 'is', null);
+          
+        if (modelsCountError) {
+          console.error('Error checking makes with models:', modelsCountError);
+          // Continue with all makes if this fails
+        }
+        
+        const makeIdsWithModels = new Set(makesWithModels?.map(m => m.make_id) || []);
+        
+        // Filter makes to only include those with models, or show all if debugging
+        const filteredMakes = allMakes?.filter(make => {
+          const hasModels = makeIdsWithModels.has(make.id);
+          if (!hasModels) {
+            console.warn(`Make "${make.make_name}" (${make.id}) has no models`);
+          }
+          return hasModels; // Only include makes that have models
+        }) || [];
+        
+        console.log(`Total makes: ${allMakes?.length || 0}, Makes with models: ${filteredMakes.length}`);
+        
+        const typedData: VehicleMake[] = filteredMakes.map(make => ({
           id: make.id,
           make_name: make.make_name,
           logo_url: null
-        })) : [];
+        }));
         
-        console.log('Fetched makes:', typedData.length, typedData.slice(0, 5));
+        console.log('Fetched makes with models:', typedData.length, typedData.slice(0, 5));
         setMakes(typedData);
       } catch (err: any) {
         console.error('Error fetching makes:', err);
@@ -88,7 +114,7 @@ export function useMakeModels() {
         .from('models')
         .select('id, make_id, model_name')
         .eq('make_id', makeId)
-        .not('make_id', 'is', null) // Ensure make_id is not null
+        .not('make_id', 'is', null)
         .order('model_name');
         
       if (error) {
@@ -101,6 +127,16 @@ export function useMakeModels() {
       
       if (modelsList.length === 0) {
         console.warn('No models found for make ID:', makeId);
+        // Check if the make exists
+        const { data: makeData } = await supabase
+          .from('makes')
+          .select('make_name')
+          .eq('id', makeId)
+          .single();
+        
+        if (makeData) {
+          console.warn(`Make "${makeData.make_name}" exists but has no models`);
+        }
       }
       
       setModels(modelsList);
@@ -155,12 +191,10 @@ export function useMakeModels() {
     }
   }, []);
 
-  // Helper function to find make by ID
   const findMakeById = useCallback((makeId: string) => {
     return makes.find(make => make.id === makeId);
   }, [makes]);
 
-  // Helper function to find model by ID
   const findModelById = useCallback((modelId: string) => {
     return models.find(model => model.id === modelId);
   }, [models]);
