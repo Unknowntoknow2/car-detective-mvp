@@ -27,7 +27,7 @@ export default function VinLookupPage() {
       </div>
       
       {!showFollowUp ? (
-        <VinDecoderForm onSubmit={handleVinSubmit} />
+        <VinDecoderForm />
       ) : (
         <VINFollowUpWrapper vin={vin || ''} />
       )}
