@@ -7,13 +7,23 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
 export interface ManualEntryFormProps {
-  onVehicleFound: (data: any) => void;
+  onSubmit?: (data: ManualEntryFormData) => void;
+  onVehicleFound?: (data: any) => void;
+  isLoading?: boolean;
+  submitButtonText?: string;
+  isPremium?: boolean;
 }
 
-export function ManualEntryForm({ onVehicleFound }: ManualEntryFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
+export function ManualEntryForm({ 
+  onSubmit, 
+  onVehicleFound, 
+  isLoading = false, 
+  submitButtonText = 'Continue with Manual Entry',
+  isPremium = false 
+}: ManualEntryFormProps) {
   const [formData, setFormData] = useState({
     year: '',
     make: '',
@@ -24,8 +34,7 @@ export function ManualEntryForm({ onVehicleFound }: ManualEntryFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
+    
     try {
       // Simulate manual entry processing
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -38,12 +47,17 @@ export function ManualEntryForm({ onVehicleFound }: ManualEntryFormProps) {
       };
 
       toast.success('Vehicle information entered successfully!');
-      onVehicleFound(vehicleData);
+      
+      // Call the appropriate handler
+      if (onSubmit) {
+        onSubmit(vehicleData as ManualEntryFormData);
+      }
+      if (onVehicleFound) {
+        onVehicleFound(vehicleData);
+      }
     } catch (error) {
       console.error('Manual entry error:', error);
       toast.error('Failed to process vehicle information');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -120,7 +134,7 @@ export function ManualEntryForm({ onVehicleFound }: ManualEntryFormProps) {
                 Processing...
               </>
             ) : (
-              'Continue with Manual Entry'
+              submitButtonText
             )}
           </Button>
         </form>
@@ -128,3 +142,6 @@ export function ManualEntryForm({ onVehicleFound }: ManualEntryFormProps) {
     </Card>
   );
 }
+
+// Default export for compatibility
+export default ManualEntryForm;
