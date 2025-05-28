@@ -77,6 +77,7 @@ export function useMakeModels() {
 
     try {
       setError(null);
+      setIsLoading(true);
       
       console.log('Fetching models for make ID:', makeId);
       const { data, error } = await supabase
@@ -99,6 +100,8 @@ export function useMakeModels() {
       setError('Failed to load vehicle models: ' + err.message);
       setModels([]);
       return [];
+    } finally {
+      setIsLoading(false);
     }
   };
 
