@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
 import { VehicleLookupForm } from '@/components/valuation/VehicleLookupForm';
-import { EnhancedFollowUpForm } from '@/components/valuation/enhanced-followup/EnhancedFollowUpForm';
+import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
 import { EnhancedVehicleCard } from '@/components/valuation/enhanced-followup/EnhancedVehicleCard';
 import { toast } from 'sonner';
 import { DecodedVehicleInfo } from '@/types/vehicle';
@@ -95,8 +96,8 @@ export default function ValuationPage() {
             {/* Enhanced Vehicle Information Display */}
             <EnhancedVehicleCard vehicle={vehicleInfo} />
 
-            {/* Enhanced Follow-up Form - keeping it exactly as it is */}
-            <EnhancedFollowUpForm
+            {/* Unified Follow-up Form */}
+            <UnifiedFollowUpForm
               vin={vehicleInfo.vin || vin || ''}
               onComplete={handleFollowUpComplete}
             />
