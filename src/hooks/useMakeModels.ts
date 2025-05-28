@@ -101,22 +101,35 @@ export function useMakeModels() {
 
   // Function to fetch trims for a specific model
   const getTrimsByModelId = async (modelId: string) => {
+    if (!modelId) {
+      console.log('No modelId provided, clearing trims');
+      setTrims([]);
+      return [];
+    }
+
     try {
       setError(null);
       
+      console.log('Fetching trims for model ID:', modelId);
       const { data, error } = await supabase
         .from('model_trims')
         .select('id, model_id, trim_name, year, fuel_type, transmission')
         .eq('model_id', modelId)
         .order('trim_name');
         
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error fetching trims:', error);
+        throw error;
+      }
       
-      setTrims(data || []);
-      return data || [];
+      const trimsList = data || [];
+      console.log('Fetched trims:', trimsList.length, trimsList);
+      setTrims(trimsList);
+      return trimsList;
     } catch (err: any) {
       console.error('Error fetching trims:', err);
       setError('Failed to load vehicle trims');
+      setTrims([]);
       return [];
     }
   };
