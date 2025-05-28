@@ -25,9 +25,9 @@ const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
     );
   }
 
-  // If user is not authenticated, redirect to dealer auth page
+  // If user is not authenticated, redirect to unified auth page
   if (!user) {
-    return <Navigate to="/auth/dealer" replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   // If user is not a dealer, redirect to access denied or their appropriate dashboard

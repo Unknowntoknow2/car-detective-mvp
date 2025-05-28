@@ -16,8 +16,8 @@ export const withAuth = (
 
     useEffect(() => {
       if (!isLoading && !user) {
-        // User not logged in, redirect to auth page
-        navigate('/auth/signin', { replace: true });
+        // User not logged in, redirect to unified auth page
+        navigate('/auth', { replace: true });
       } else if (
         !isLoading && 
         user && 
