@@ -1,6 +1,7 @@
 
 export enum ConditionLevel {
   Excellent = 'excellent',
+  VeryGood = 'very_good',
   Good = 'good',
   Fair = 'fair',
   Poor = 'poor'
@@ -26,6 +27,8 @@ export interface ManualEntryFormData {
   trim?: string;
   vin?: string;
   selectedFeatures?: string[];
+  bodyStyle?: string;
+  color?: string;
   
   // Title & Ownership
   titleStatus?: 'clean' | 'salvage' | 'rebuilt' | 'branded' | 'lemon';
@@ -45,6 +48,10 @@ export interface ManualEntryFormData {
   dashboardLights?: string[];
   hasModifications?: boolean;
   modificationTypes?: string[];
+  
+  // File upload properties
+  fileType?: string;
+  fileName?: string;
 }
 
 export interface ManualEntryFormProps {
