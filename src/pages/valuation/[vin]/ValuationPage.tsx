@@ -9,6 +9,10 @@ import { type VehicleValuationResult } from '@/valuation/types';
 import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
 import { ValuationResultCard } from '@/components/results/ValuationResultCard';
 import { type FollowUpAnswers } from '@/types/follow-up-answers';
+import { decodeVin } from '@/services/vinService';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 export default function ValuationPage() {
   const { vin } = useParams<{ vin: string }>();
@@ -16,9 +20,11 @@ export default function ValuationPage() {
   const [enrichedData, setEnrichedData] = useState<EnrichedVehicleData | null>(null);
   const [valuation, setValuation] = useState<VehicleValuationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [vehicleInfo, setVehicleInfo] = useState<any>(null);
+  const [showFollowUp, setShowFollowUp] = useState(false);
 
   useEffect(() => {
-    // If VIN is provided in URL, validate it
+    // If VIN is provided in URL, validate and decode it
     if (vin) {
       console.log(`🔍 ValuationPage loaded with VIN: ${vin}`);
       
@@ -28,8 +34,38 @@ export default function ValuationPage() {
         navigate('/valuation');
         return;
       }
+      
+      // Decode the VIN to get vehicle info
+      decodeVehicleInfo();
     }
   }, [vin, navigate]);
+
+  const decodeVehicleInfo = async () => {
+    if (!vin) return;
+    
+    setIsLoading(true);
+    try {
+      console.log('🔄 Decoding VIN for vehicle info:', vin);
+      const result = await decodeVin(vin);
+      
+      if (result.success && result.data) {
+        console.log('✅ Vehicle info decoded:', result.data);
+        setVehicleInfo(result.data);
+        setShowFollowUp(true);
+        toast.success('Vehicle found! Please provide additional details.');
+      } else {
+        console.error('❌ Failed to decode VIN:', result.error);
+        toast.error('Failed to decode VIN. Please try again.');
+        navigate('/valuation');
+      }
+    } catch (error) {
+      console.error('❌ VIN decode error:', error);
+      toast.error('Failed to decode VIN. Please try again.');
+      navigate('/valuation');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleFollowUpSubmit = async (followUpAnswers: FollowUpAnswers) => {
     if (!vin) {
@@ -97,9 +133,20 @@ export default function ValuationPage() {
     }
   };
 
+  const handleBackToLookup = () => {
+    navigate('/valuation');
+  };
+
   return (
     <Container className="max-w-4xl py-10">
       <div className="space-y-8">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={handleBackToLookup} className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Lookup
+          </Button>
+        </div>
+
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">Vehicle Valuation Engine</h1>
           <p className="text-muted-foreground">
@@ -112,15 +159,49 @@ export default function ValuationPage() {
           )}
         </div>
 
-        <UnifiedFollowUpForm 
-          vin={vin} 
-          onSubmit={handleFollowUpSubmit}
-        />
+        {/* Show vehicle info card if available */}
+        {vehicleInfo && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Vehicle Found</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Year</p>
+                  <p className="font-semibold">{vehicleInfo.year}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Make</p>
+                  <p className="font-semibold">{vehicleInfo.make}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Model</p>
+                  <p className="font-semibold">{vehicleInfo.model}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Trim</p>
+                  <p className="font-semibold">{vehicleInfo.trim || 'Base'}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Show follow-up form if vehicle is found */}
+        {showFollowUp && (
+          <UnifiedFollowUpForm 
+            vin={vin} 
+            onSubmit={handleFollowUpSubmit}
+          />
+        )}
 
         {isLoading && (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mr-3"></div>
-            <span className="text-muted-foreground">Calculating vehicle valuation...</span>
+            <span className="text-muted-foreground">
+              {showFollowUp ? 'Calculating vehicle valuation...' : 'Decoding VIN...'}
+            </span>
           </div>
         )}
 
