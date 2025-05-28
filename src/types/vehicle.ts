@@ -54,3 +54,49 @@ export interface VehicleApiResponse<T> {
   error: string | null;
   isLoading: boolean;
 }
+
+// Restored DecodedVehicleInfo interface that many components depend on
+export interface DecodedVehicleInfo {
+  vin?: string;
+  year?: number;
+  make?: string;
+  model?: string;
+  trim?: string;
+  engine?: string;
+  transmission?: string;
+  drivetrain?: string;
+  bodyType?: string;
+  fuelType?: string;
+  engineCylinders?: string;
+  displacementL?: string;
+  seats?: string;
+  doors?: string;
+  estimatedValue?: number;
+  confidenceScore?: number;
+  mileage?: number;
+  condition?: string;
+  exteriorColor?: string;
+  color?: string;
+  plate?: string;
+  state?: string;
+  valuationId?: string;
+  photos?: string[];
+  primaryPhoto?: string;
+  interiorColor?: string;
+  displacement?: string;
+}
+
+// Restored ValuationResponse interface
+export interface ValuationResponse {
+  success: boolean;
+  data?: any;
+  error?: string;
+  estimatedValue?: number;
+  confidenceScore?: number;
+  adjustments?: Array<{
+    factor: string;
+    impact: number;
+    description: string;
+  }>;
+  priceRange?: [number, number];
+}

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrimSelector } from '@/components/lookup/form-parts/TrimSelector';
 import ConditionSelectorBar, { ConditionLevel } from '@/components/common/ConditionSelectorBar';
 
 const detailsFormSchema = z.object({
@@ -49,7 +49,7 @@ export const ValuationDetailsForm: React.FC<ValuationDetailsFormProps> = ({
       mileage: parseInt(values.mileage, 10),
       condition: values.condition,
       zipCode: values.zipCode,
-      trim: selectedTrim, // Use the trim from our selector
+      trim: selectedTrim,
       drivingBehavior: values.drivingBehavior,
     });
   };
@@ -102,13 +102,28 @@ export const ValuationDetailsForm: React.FC<ValuationDetailsFormProps> = ({
               )}
             />
 
-            {/* Our new Trim Selector component */}
-            <TrimSelector
-              make={vehicleInfo.make}
-              model={vehicleInfo.model}
-              year={vehicleInfo.year}
-              value={selectedTrim}
-              onChange={handleTrimChange}
+            <FormField
+              control={form.control}
+              name="trim"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Trim Level (Optional)</FormLabel>
+                  <Select onValueChange={handleTrimChange} defaultValue={selectedTrim}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select trim level" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Standard">Standard</SelectItem>
+                      <SelectItem value="Base">Base</SelectItem>
+                      <SelectItem value="Premium">Premium</SelectItem>
+                      <SelectItem value="Luxury">Luxury</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
 
             <FormField
