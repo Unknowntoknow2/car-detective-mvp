@@ -1,4 +1,3 @@
-
 import { getStatVinData } from './sources/statvin';
 import { getFacebookListings } from './sources/facebook';
 import { getCraigslistListings } from './sources/craigslist';
@@ -6,6 +5,9 @@ import { getEbayListings } from './sources/ebay';
 import { fetchMarketplaceListings, MarketplaceSearchParams } from './sources/fetchMarketplaceListings';
 import { EnrichedVehicleData } from './types';
 import { supabase } from '@/integrations/supabase/client';
+
+// Re-export the type for convenience
+export type { EnrichedVehicleData } from './types';
 
 export async function getEnrichedVehicleData(
   vin: string,

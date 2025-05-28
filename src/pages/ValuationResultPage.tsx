@@ -8,7 +8,7 @@ import { DealerOffersList } from '@/components/dealer/DealerOffersList';
 import PredictionResult from '@/components/valuation/PredictionResult';
 import { EnrichedDataCard } from '@/components/enriched/EnrichedDataCard';
 import { PremiumEnrichmentGate } from '@/components/enriched/PremiumEnrichmentGate';
-import { getEnrichedVehicleData, EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
+import { getEnrichedVehicleData, type EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
 import PDFDownloadButton from '@/components/common/PDFDownloadButton';
 
 export default function ValuationResultPage() {
@@ -133,7 +133,7 @@ export default function ValuationResultPage() {
         enrichedData && enrichedData.sources.statVin ? (
           <EnrichedDataCard 
             data={enrichedData} 
-            userRole={userRole || 'individual'}
+            userRole={(userRole as "individual" | "dealer" | "admin") || 'individual'}
             onRefresh={refreshEnrichedData}
             isRefreshing={isLoadingEnriched}
             lastUpdated={enrichedData.lastUpdated}
