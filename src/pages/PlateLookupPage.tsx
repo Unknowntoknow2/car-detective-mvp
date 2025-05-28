@@ -17,6 +17,11 @@ export default function PlateLookupPage() {
     setShowFollowUp(true);
   };
 
+  const handleManualEntryClick = () => {
+    // Navigate to manual entry or show manual entry form
+    console.log("Manual entry clicked");
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
       <AnnouncementBar />
@@ -40,7 +45,7 @@ export default function PlateLookupPage() {
           />
 
           {!showFollowUp ? (
-            <PlateDecoderForm onSubmit={handlePlateSubmit} />
+            <PlateDecoderForm onManualEntryClick={handleManualEntryClick} />
           ) : (
             <div className="mt-8">
               <h2 className="text-xl font-semibold mb-4">Complete Your Valuation</h2>
