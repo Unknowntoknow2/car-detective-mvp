@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 import { ValuationResponse } from '@/types/vehicle';
@@ -27,6 +28,7 @@ export function useValuationSubmit() {
       
       // Mock response
       const mockValuationData: ValuationResponse = {
+        success: true, // Added required success property
         make: formData.make || 'Generic Make',
         model: formData.model || 'Generic Model',
         year: formData.year || 2020,
