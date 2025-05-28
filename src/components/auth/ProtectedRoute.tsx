@@ -2,41 +2,46 @@
 import { ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: ReactNode;
+  requireRole?: 'admin' | 'dealer' | 'individual';
 }
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, isLoading } = useAuth();
+export default function ProtectedRoute({ children, requireRole }: ProtectedRouteProps) {
+  const { user, userDetails, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     if (!isLoading && !user) {
-      // Save the attempted URL for redirection after login
-      navigate('/auth', { state: { from: location.pathname } });
+      navigate('/auth', { state: { from: location.pathname }, replace: true });
     }
-  }, [user, isLoading, navigate, location]);
+    
+    if (!isLoading && user && requireRole && userDetails?.role !== requireRole) {
+      navigate('/auth', { replace: true });
+    }
+  }, [user, userDetails, isLoading, navigate, location, requireRole]);
 
-  // Show loading state while checking authentication
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <h2 className="text-xl font-semibold mt-4">Loading</h2>
-          <p className="text-muted-foreground">Please wait...</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
   }
 
-  // If authenticated, render the protected content
-  if (user) {
-    return <>{children}</>;
+  if (!user) {
+    return null;
   }
 
-  // This should not be visible as we redirect in the useEffect
-  return null;
+  if (requireRole && userDetails?.role !== requireRole) {
+    return null;
+  }
+
+  return <>{children}</>;
 }
