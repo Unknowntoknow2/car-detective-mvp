@@ -1,12 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ManualEntryFormData, ConditionLevel } from '../types/manualEntry';
+import { ConditionSelectorSegmented } from '../ConditionSelectorSegmented';
+import { ManualEntryFormData } from '../types/manualEntry';
 import { useMakeModels } from '@/hooks/useMakeModels';
-import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle } from 'lucide-react';
 
 interface BasicVehicleFormProps {
   formData: ManualEntryFormData;
@@ -21,243 +20,239 @@ export function BasicVehicleForm({
   errors,
   isPremium = false
 }: BasicVehicleFormProps) {
-  const { makes, models, isLoading, error, getModelsByMakeId } = useMakeModels();
-  const [availableModels, setAvailableModels] = useState<any[]>([]);
-  const [loadingModels, setLoadingModels] = useState(false);
-  
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
+  const { makes, getModelsByMakeId, isLoading, error } = useMakeModels();
+  const [models, setModels] = useState<Array<{ id: string; model_name: string }>>([]);
+  const [selectedMakeId, setSelectedMakeId] = useState<string>('');
 
-  // Find the selected make object to get its ID for model filtering
-  const selectedMake = makes.find(make => make.make_name === formData.make);
-  const selectedMakeId = selectedMake?.id;
-
-  // Load models when make changes
+  // Find the make ID when formData.make changes
   useEffect(() => {
-    const loadModels = async () => {
-      if (selectedMakeId) {
-        setLoadingModels(true);
-        try {
-          const modelsList = await getModelsByMakeId(selectedMakeId);
-          setAvailableModels(modelsList);
-          
-          // Reset model if current selection is not in the new list
-          if (formData.model && !modelsList.some(m => m.model_name === formData.model)) {
-            updateFormData({ model: '' });
-          }
-        } catch (error) {
-          console.error('Error loading models:', error);
-          setAvailableModels([]);
-        } finally {
-          setLoadingModels(false);
-        }
-      } else {
-        setAvailableModels([]);
-        if (formData.model) {
-          updateFormData({ model: '' });
-        }
+    if (formData.make && makes.length > 0) {
+      const foundMake = makes.find(make => make.make_name === formData.make);
+      if (foundMake && foundMake.id !== selectedMakeId) {
+        setSelectedMakeId(foundMake.id);
       }
-    };
+    } else if (!formData.make) {
+      setSelectedMakeId('');
+    }
+  }, [formData.make, makes, selectedMakeId]);
 
-    loadModels();
-  }, [selectedMakeId, getModelsByMakeId, formData.model, updateFormData]);
+  // Load models when selectedMakeId changes
+  const loadModels = useCallback(async (makeId: string) => {
+    if (!makeId) {
+      setModels([]);
+      return;
+    }
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label>Make *</Label>
-            <Skeleton className="h-10 w-full" />
-          </div>
-          <div>
-            <Label>Model *</Label>
-            <Skeleton className="h-10 w-full" />
-          </div>
-        </div>
-      </div>
-    );
+    try {
+      const modelsList = await getModelsByMakeId(makeId);
+      setModels(modelsList);
+    } catch (error) {
+      console.error('Error loading models:', error);
+      setModels([]);
+    }
+  }, [getModelsByMakeId]);
+
+  useEffect(() => {
+    if (selectedMakeId) {
+      loadModels(selectedMakeId);
+    } else {
+      setModels([]);
+    }
+  }, [selectedMakeId, loadModels]);
+
+  const handleMakeChange = (makeId: string) => {
+    const selectedMake = makes.find(make => make.id === makeId);
+    if (selectedMake) {
+      setSelectedMakeId(makeId);
+      updateFormData({ 
+        make: selectedMake.make_name,
+        model: '' // Reset model when make changes
+      });
+    }
+  };
+
+  const handleModelChange = (modelName: string) => {
+    updateFormData({ model: modelName });
+  };
+
+  const handleYearChange = (year: string) => {
+    updateFormData({ year: parseInt(year) });
+  };
+
+  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    updateFormData({ mileage: parseInt(value) || 0 });
+  };
+
+  const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+    updateFormData({ zipCode: value });
+  };
+
+  // Generate years
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1989 }, (_, i) => currentYear - i);
+
+  if (isLoading && makes.length === 0) {
+    return <div>Loading vehicle data...</div>;
   }
 
   if (error) {
-    return (
-      <div className="p-4 border border-red-200 bg-red-50 rounded-md text-red-800 flex items-start gap-2">
-        <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-        <div>
-          <p className="font-medium">Failed to load vehicle data</p>
-          <p className="text-sm mt-1">{error}</p>
-        </div>
-      </div>
-    );
+    return <div className="text-red-500">Error loading vehicle data: {error}</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="make">Make *</Label>
           <Select
-            value={formData.make}
-            onValueChange={(value) => updateFormData({ make: value })}
+            value={selectedMakeId}
+            onValueChange={handleMakeChange}
           >
-            <SelectTrigger className={errors.make ? 'border-red-500' : ''}>
+            <SelectTrigger className={errors.make ? 'border-red-300' : ''}>
               <SelectValue placeholder="Select make" />
             </SelectTrigger>
             <SelectContent>
               {makes.map(make => (
-                <SelectItem key={make.id} value={make.make_name}>
+                <SelectItem key={make.id} value={make.id}>
                   {make.make_name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {errors.make && <p className="text-red-500 text-sm mt-1">{errors.make}</p>}
+          {errors.make && <p className="text-sm text-red-500">{errors.make}</p>}
         </div>
 
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="model">Model *</Label>
           <Select
             value={formData.model}
-            onValueChange={(value) => updateFormData({ model: value })}
-            disabled={!selectedMakeId || loadingModels}
+            onValueChange={handleModelChange}
+            disabled={!selectedMakeId || models.length === 0}
           >
-            <SelectTrigger className={errors.model ? 'border-red-500' : ''}>
-              <SelectValue placeholder={
-                !selectedMakeId 
-                  ? "Select make first" 
-                  : loadingModels 
-                    ? "Loading models..." 
-                    : "Select model"
-              } />
+            <SelectTrigger className={errors.model ? 'border-red-300' : ''}>
+              <SelectValue placeholder={!selectedMakeId ? "Select make first" : "Select model"} />
             </SelectTrigger>
             <SelectContent>
-              {availableModels.map(model => (
+              {models.map(model => (
                 <SelectItem key={model.id} value={model.model_name}>
                   {model.model_name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {errors.model && <p className="text-red-500 text-sm mt-1">{errors.model}</p>}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="year">Year *</Label>
-          <Select 
-            value={formData.year.toString()} 
-            onValueChange={(value) => updateFormData({ year: parseInt(value) })}
-          >
-            <SelectTrigger className={errors.year ? 'border-red-500' : ''}>
-              <SelectValue placeholder="Select year" />
-            </SelectTrigger>
-            <SelectContent>
-              {years.map(year => (
-                <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.year && <p className="text-red-500 text-sm mt-1">{errors.year}</p>}
-        </div>
-
-        <div>
-          <Label htmlFor="mileage">Mileage</Label>
-          <Input
-            id="mileage"
-            type="number"
-            value={formData.mileage || ''}
-            onChange={(e) => updateFormData({ mileage: parseInt(e.target.value) || 0 })}
-            placeholder="e.g., 45000"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="condition">Condition</Label>
-          <Select 
-            value={formData.condition} 
-            onValueChange={(value) => updateFormData({ condition: value as ConditionLevel })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select condition" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ConditionLevel.Excellent}>Excellent</SelectItem>
-              <SelectItem value={ConditionLevel.VeryGood}>Very Good</SelectItem>
-              <SelectItem value={ConditionLevel.Good}>Good</SelectItem>
-              <SelectItem value={ConditionLevel.Fair}>Fair</SelectItem>
-              <SelectItem value={ConditionLevel.Poor}>Poor</SelectItem>
-            </SelectContent>
-          </Select>
+          {errors.model && <p className="text-sm text-red-500">{errors.model}</p>}
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
+        <div className="space-y-2">
+          <Label htmlFor="year">Year *</Label>
+          <Select
+            value={formData.year.toString()}
+            onValueChange={handleYearChange}
+          >
+            <SelectTrigger className={errors.year ? 'border-red-300' : ''}>
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map(year => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.year && <p className="text-sm text-red-500">{errors.year}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="mileage">Mileage</Label>
+          <Input
+            id="mileage"
+            type="text"
+            value={formData.mileage || ''}
+            onChange={handleMileageChange}
+            placeholder="Enter mileage"
+            className={errors.mileage ? 'border-red-300' : ''}
+          />
+          {errors.mileage && <p className="text-sm text-red-500">{errors.mileage}</p>}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
           <Label htmlFor="zipCode">ZIP Code *</Label>
           <Input
             id="zipCode"
+            type="text"
             value={formData.zipCode}
-            onChange={(e) => updateFormData({ zipCode: e.target.value })}
-            placeholder="e.g., 90210"
+            onChange={handleZipCodeChange}
+            placeholder="Enter ZIP code"
             maxLength={5}
-            className={errors.zipCode ? 'border-red-500' : ''}
+            className={errors.zipCode ? 'border-red-300' : ''}
           />
-          {errors.zipCode && <p className="text-red-500 text-sm mt-1">{errors.zipCode}</p>}
+          {errors.zipCode && <p className="text-sm text-red-500">{errors.zipCode}</p>}
         </div>
 
         {isPremium && (
-          <div>
-            <Label htmlFor="trim">Trim (Optional)</Label>
+          <div className="space-y-2">
+            <Label htmlFor="vin">VIN (Optional)</Label>
             <Input
-              id="trim"
-              value={formData.trim || ''}
-              onChange={(e) => updateFormData({ trim: e.target.value })}
-              placeholder="e.g., XLE, Sport"
+              id="vin"
+              type="text"
+              value={formData.vin || ''}
+              onChange={(e) => updateFormData({ vin: e.target.value.toUpperCase() })}
+              placeholder="Enter VIN"
+              maxLength={17}
             />
           </div>
         )}
       </div>
 
-      {isPremium && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="fuelType">Fuel Type</Label>
-            <Select 
-              value={formData.fuelType || 'gasoline'} 
-              onValueChange={(value) => updateFormData({ fuelType: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select fuel type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="gasoline">Gasoline</SelectItem>
-                <SelectItem value="diesel">Diesel</SelectItem>
-                <SelectItem value="hybrid">Hybrid</SelectItem>
-                <SelectItem value="electric">Electric</SelectItem>
-                <SelectItem value="plugin-hybrid">Plug-in Hybrid</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      <ConditionSelectorSegmented
+        value={formData.condition}
+        onChange={(condition) => updateFormData({ condition })}
+      />
 
-          <div>
-            <Label htmlFor="transmission">Transmission</Label>
-            <Select 
-              value={formData.transmission || 'automatic'} 
-              onValueChange={(value) => updateFormData({ transmission: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select transmission" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="automatic">Automatic</SelectItem>
-                <SelectItem value="manual">Manual</SelectItem>
-                <SelectItem value="cvt">CVT</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="fuelType">Fuel Type</Label>
+          <Select
+            value={formData.fuelType}
+            onValueChange={(value) => updateFormData({ fuelType: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select fuel type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="gasoline">Gasoline</SelectItem>
+              <SelectItem value="diesel">Diesel</SelectItem>
+              <SelectItem value="hybrid">Hybrid</SelectItem>
+              <SelectItem value="electric">Electric</SelectItem>
+              <SelectItem value="flex">Flex Fuel</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      )}
+
+        <div className="space-y-2">
+          <Label htmlFor="transmission">Transmission</Label>
+          <Select
+            value={formData.transmission}
+            onValueChange={(value) => updateFormData({ transmission: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select transmission" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="automatic">Automatic</SelectItem>
+              <SelectItem value="manual">Manual</SelectItem>
+              <SelectItem value="cvt">CVT</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
     </div>
   );
 }
