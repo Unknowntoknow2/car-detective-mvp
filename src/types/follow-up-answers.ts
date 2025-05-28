@@ -86,6 +86,14 @@ export const SERVICE_HISTORY_OPTIONS = [
   { value: 'unknown', label: 'No known history', impact: '-5% to -10% value' }
 ] as const;
 
+export const MAINTENANCE_STATUS_OPTIONS = [
+  'Up to date',
+  'Overdue',
+  'Unknown',
+] as const;
+
+export type MaintenanceStatusOption = (typeof MAINTENANCE_STATUS_OPTIONS)[number];
+
 export const TITLE_STATUS_OPTIONS = [
   { value: 'clean', label: 'Clean', impact: 'Full market value' },
   { value: 'salvage', label: 'Salvage', impact: '-40% to -60% value' },
