@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +38,7 @@ import {
 
 interface UnifiedFollowUpFormProps {
   vin: string;
+  entryMethod?: 'vin' | 'plate' | 'manual';
   onComplete?: () => void;
 }
 
@@ -50,7 +50,7 @@ interface SectionState {
   modifications: boolean;
 }
 
-export function UnifiedFollowUpForm({ vin, onComplete }: UnifiedFollowUpFormProps) {
+export function UnifiedFollowUpForm({ vin, entryMethod = 'vin', onComplete }: UnifiedFollowUpFormProps) {
   const { answers, loading, saving, updateAnswers, saveAnswers } = useFollowUpAnswers(vin);
   
   const [openSections, setOpenSections] = useState<SectionState>({
