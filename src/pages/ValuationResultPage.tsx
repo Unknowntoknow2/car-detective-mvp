@@ -7,16 +7,26 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Car, TrendingUp, Download, Share, ArrowLeft } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
+import { getEnrichedVehicleData, EnrichedVehicleData } from '@/scraping/getEnrichedVehicleData';
+import { EnrichedDataCard } from '@/components/enriched/EnrichedDataCard';
 
 export default function ValuationResultPage() {
   const navigate = useNavigate();
   const [valuationData, setValuationData] = useState<any>(null);
+  const [enrichedData, setEnrichedData] = useState<EnrichedVehicleData | null>(null);
+  const [isLoadingEnriched, setIsLoadingEnriched] = useState(false);
 
   useEffect(() => {
     const data = localStorage.getItem('latest_valuation');
     if (data) {
       try {
-        setValuationData(JSON.parse(data));
+        const parsedData = JSON.parse(data);
+        setValuationData(parsedData);
+        
+        // Load enriched data if VIN is available
+        if (parsedData.vin) {
+          loadEnrichedData(parsedData.vin);
+        }
       } catch (error) {
         console.error('Error parsing valuation data:', error);
         navigate('/valuation');
@@ -25,6 +35,18 @@ export default function ValuationResultPage() {
       navigate('/valuation');
     }
   }, [navigate]);
+
+  const loadEnrichedData = async (vin: string) => {
+    setIsLoadingEnriched(true);
+    try {
+      const enriched = await getEnrichedVehicleData(vin);
+      setEnrichedData(enriched);
+    } catch (error) {
+      console.error('Error loading enriched data:', error);
+    } finally {
+      setIsLoadingEnriched(false);
+    }
+  };
 
   if (!valuationData) {
     return null;
@@ -108,6 +130,19 @@ export default function ValuationResultPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Enriched Data Card */}
+        {enrichedData && <EnrichedDataCard data={enrichedData} />}
+        {isLoadingEnriched && (
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                <span className="ml-2 text-sm text-muted-foreground">Loading auction history...</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4">
