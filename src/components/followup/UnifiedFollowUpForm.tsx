@@ -5,22 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, MapPin, Wrench, FileText } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, Clock, MapPin, Wrench, Shield, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { ConditionSelector } from '@/components/valuation/enhanced-followup/ConditionSelector';
+import { AccidentSection } from '@/components/valuation/enhanced-followup/AccidentSection';
+import { DashboardLightsSection } from '@/components/valuation/enhanced-followup/DashboardLightsSection';
+import { useFollowUpAnswers } from '@/components/valuation/enhanced-followup/hooks/useFollowUpAnswers';
+import { FollowUpAnswers, AccidentDetails, ModificationDetails, CONDITION_OPTIONS } from '@/types/follow-up-answers';
+import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
-import { useFollowUpAnswers } from '../valuation/enhanced-followup/hooks/useFollowUpAnswers';
-import { ConditionSelector } from '../valuation/enhanced-followup/ConditionSelector';
-import { AccidentSection } from '../valuation/enhanced-followup/AccidentSection';
-import { DashboardLightsSection } from '../valuation/enhanced-followup/DashboardLightsSection';
-import { ModificationsSection } from '../valuation/enhanced-followup/ModificationsSection';
-
-import { CONDITION_OPTIONS, SERVICE_HISTORY_OPTIONS, TITLE_STATUS_OPTIONS, 
-         TIRE_CONDITION_OPTIONS, PREVIOUS_USE_OPTIONS } from '@/types/follow-up-answers';
-import type { ManualEntryFormData } from '../lookup/types/manualEntry';
-
-export interface UnifiedFollowUpFormProps {
+interface UnifiedFollowUpFormProps {
   vin?: string;
   plateNumber?: string;
   initialData?: ManualEntryFormData;
@@ -33,86 +29,82 @@ export const UnifiedFollowUpForm: React.FC<UnifiedFollowUpFormProps> = ({
   plateNumber,
   initialData,
   entryMethod,
-  onComplete
+  onComplete,
 }) => {
-  const vinToUse = vin || (initialData?.vin ? String(initialData.vin) : '');
-  
-  const { answers, loading, saving, updateAnswers, saveAnswers } = useFollowUpAnswers(
-    vinToUse,
-    undefined // valuation_id can be passed here if available
-  );
+  const [answers, setAnswers] = useState<Partial<FollowUpAnswers>>({});
+  const [completionPercentage, setCompletionPercentage] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize form with data from different entry methods
+  // Initialize form data based on entry method
   useEffect(() => {
-    if (initialData && entryMethod === 'manual') {
-      const updates: any = {};
-      
-      if (initialData.mileage) {
-        updates.mileage = typeof initialData.mileage === 'number' ? initialData.mileage : parseInt(String(initialData.mileage));
-      }
-      if (initialData.zip_code) {
-        updates.zip_code = String(initialData.zip_code);
-      }
-      if (initialData.condition) {
-        updates.condition = String(initialData.condition);
-      }
-      
-      updateAnswers(updates);
-    }
-  }, [initialData, entryMethod, updateAnswers]);
-
-  const handleInputChange = (field: string, value: any) => {
-    updateAnswers({ [field]: value });
-  };
-
-  const handleComplete = async () => {
-    const success = await saveAnswers();
-    if (success && onComplete) {
-      onComplete();
-    }
-  };
-
-  const getProgressPercentage = () => {
-    const requiredFields = [
-      'mileage', 'zip_code', 'condition', 'accidents', 'service_history',
-      'title_status', 'tire_condition', 'dashboard_lights'
-    ];
+    const baseAnswers: Partial<FollowUpAnswers> = {};
     
-    const completedFields = requiredFields.filter(field => {
-      const value = answers[field as keyof typeof answers];
-      return value !== null && value !== undefined && value !== '';
-    });
+    if (entryMethod === 'vin' && vin) {
+      baseAnswers.vin = vin;
+    } else if (entryMethod === 'manual' && initialData) {
+      baseAnswers.vin = initialData.vin || '';
+      baseAnswers.mileage = initialData.mileage;
+      baseAnswers.zip_code = String(initialData.zipCode || '');
+      baseAnswers.condition = initialData.condition as 'excellent' | 'good' | 'fair' | 'poor';
+    }
     
-    return Math.round((completedFields.length / requiredFields.length) * 100);
+    setAnswers(baseAnswers);
+  }, [vin, plateNumber, initialData, entryMethod]);
+
+  // Calculate completion percentage
+  useEffect(() => {
+    const totalFields = 8; // Adjust based on required fields
+    const completedFields = Object.keys(answers).filter(key => {
+      const value = answers[key as keyof FollowUpAnswers];
+      return value !== undefined && value !== null && value !== '';
+    }).length;
+    
+    setCompletionPercentage(Math.round((completedFields / totalFields) * 100));
+  }, [answers]);
+
+  const updateAnswer = (key: keyof FollowUpAnswers, value: any) => {
+    setAnswers(prev => ({ ...prev, [key]: value }));
   };
 
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Loading follow-up questions...</div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast.success('Assessment completed successfully!');
+      console.log('Submitted answers:', answers);
+      
+      if (onComplete) {
+        onComplete();
+      }
+    } catch (error) {
+      console.error('Error submitting answers:', error);
+      toast.error('Failed to submit assessment. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* Progress Header */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-primary" />
+              <CheckCircle className="h-5 w-5 text-green-500" />
               Vehicle Assessment
             </CardTitle>
-            <Badge variant="outline">{getProgressPercentage()}% Complete</Badge>
+            <Badge variant="outline">
+              {completionPercentage}% Complete
+            </Badge>
           </div>
-          <Progress value={getProgressPercentage()} className="mt-2" />
+          <Progress value={completionPercentage} className="w-full" />
         </CardHeader>
       </Card>
 
-      {/* Follow-up Questions */}
+      {/* Follow-up Sections */}
       <Accordion type="multiple">
         {/* Basic Information */}
         <AccordionItem value="basic-info">
@@ -120,28 +112,32 @@ export const UnifiedFollowUpForm: React.FC<UnifiedFollowUpFormProps> = ({
             <MapPin className="h-4 w-4" />
             Basic Information
           </AccordionTrigger>
-          <AccordionContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="mileage">Current Mileage</Label>
-                <Input
-                  id="mileage"
-                  type="number"
-                  value={answers.mileage || ''}
-                  onChange={(e) => handleInputChange('mileage', parseInt(e.target.value) || null)}
-                  placeholder="e.g., 45000"
-                />
-              </div>
-              <div>
-                <Label htmlFor="zip_code">Zip Code</Label>
-                <Input
-                  id="zip_code"
-                  value={answers.zip_code || ''}
-                  onChange={(e) => handleInputChange('zip_code', e.target.value)}
-                  placeholder="e.g., 90210"
-                />
-              </div>
-            </div>
+          <AccordionContent>
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="mileage">Current Mileage</Label>
+                    <Input
+                      id="mileage"
+                      type="number"
+                      value={answers.mileage || ''}
+                      onChange={(e) => updateAnswer('mileage', parseInt(e.target.value) || 0)}
+                      placeholder="Enter current mileage"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="zip_code">ZIP Code</Label>
+                    <Input
+                      id="zip_code"
+                      value={answers.zip_code || ''}
+                      onChange={(e) => updateAnswer('zip_code', e.target.value)}
+                      placeholder="Enter ZIP code"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </AccordionContent>
         </AccordionItem>
 
@@ -151,110 +147,93 @@ export const UnifiedFollowUpForm: React.FC<UnifiedFollowUpFormProps> = ({
             <Wrench className="h-4 w-4" />
             Vehicle Condition
           </AccordionTrigger>
-          <AccordionContent className="space-y-4">
-            <div>
-              <Label>Overall Condition</Label>
-              <ConditionSelector
-                value={answers.condition}
-                onChange={(value) => handleInputChange('condition', value)}
-              />
-            </div>
+          <AccordionContent>
+            <ConditionSelector
+              value={answers.condition}
+              onChange={(value) => updateAnswer('condition', value)}
+            />
           </AccordionContent>
         </AccordionItem>
 
         {/* Accident History */}
         <AccordionItem value="accidents">
-          <AccordionTrigger>Accident History</AccordionTrigger>
+          <AccordionTrigger className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Accident History
+          </AccordionTrigger>
           <AccordionContent>
             <AccidentSection
-              accidents={answers.accidents}
-              onChange={(value) => handleInputChange('accidents', value)}
+              value={answers.accidents}
+              onChange={(value) => updateAnswer('accidents', value)}
             />
           </AccordionContent>
         </AccordionItem>
 
-        {/* Service & Maintenance */}
+        {/* Service History */}
         <AccordionItem value="service">
           <AccordionTrigger className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Service & Maintenance
+            <Clock className="h-4 w-4" />
+            Service History
           </AccordionTrigger>
-          <AccordionContent className="space-y-4">
-            <div>
-              <Label>Service History</Label>
-              <select
-                className="w-full p-2 border rounded-md"
-                value={answers.service_history || ''}
-                onChange={(e) => handleInputChange('service_history', e.target.value)}
-              >
-                <option value="">Select service history</option>
-                {SERVICE_HISTORY_OPTIONS.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* Title & Ownership */}
-        <AccordionItem value="title">
-          <AccordionTrigger>Title & Ownership</AccordionTrigger>
-          <AccordionContent className="space-y-4">
-            <div>
-              <Label>Title Status</Label>
-              <select
-                className="w-full p-2 border rounded-md"
-                value={answers.title_status || ''}
-                onChange={(e) => handleInputChange('title_status', e.target.value)}
-              >
-                <option value="">Select title status</option>
-                {TITLE_STATUS_OPTIONS.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <AccordionContent>
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <div>
+                  <Label htmlFor="service_history">Service History</Label>
+                  <Input
+                    id="service_history"
+                    value={answers.service_history || ''}
+                    onChange={(e) => updateAnswer('service_history', e.target.value)}
+                    placeholder="Describe service history"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="last_service_date">Last Service Date</Label>
+                  <Input
+                    id="last_service_date"
+                    type="date"
+                    value={answers.last_service_date || ''}
+                    onChange={(e) => updateAnswer('last_service_date', e.target.value)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </AccordionContent>
         </AccordionItem>
 
         {/* Dashboard Lights */}
         <AccordionItem value="dashboard">
-          <AccordionTrigger>Dashboard Warning Lights</AccordionTrigger>
+          <AccordionTrigger className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Dashboard Warning Lights
+          </AccordionTrigger>
           <AccordionContent>
             <DashboardLightsSection
-              dashboardLights={answers.dashboard_lights || []}
-              onChange={(lights) => handleInputChange('dashboard_lights', lights)}
-            />
-          </AccordionContent>
-        </AccordionItem>
-
-        {/* Modifications */}
-        <AccordionItem value="modifications">
-          <AccordionTrigger>Vehicle Modifications</AccordionTrigger>
-          <AccordionContent>
-            <ModificationsSection
-              modifications={answers.modifications}
-              onChange={(value) => handleInputChange('modifications', value)}
+              value={answers.dashboard_lights || []}
+              onChange={(lights) => updateAnswer('dashboard_lights', lights)}
             />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
 
-      {/* Action Buttons */}
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={() => saveAnswers()}>
-          {saving ? 'Saving...' : 'Save Progress'}
-        </Button>
-        <Button 
-          onClick={handleComplete}
-          disabled={getProgressPercentage() < 50}
-        >
-          Complete Assessment
-        </Button>
-      </div>
+      {/* Submit Button */}
+      <Card>
+        <CardContent className="pt-6">
+          <Button 
+            onClick={handleSubmit}
+            disabled={isSubmitting || completionPercentage < 60}
+            className="w-full"
+            size="lg"
+          >
+            {isSubmitting ? 'Processing...' : 'Complete Assessment'}
+          </Button>
+          {completionPercentage < 60 && (
+            <p className="text-sm text-muted-foreground mt-2 text-center">
+              Please complete at least 60% of the assessment to continue
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
