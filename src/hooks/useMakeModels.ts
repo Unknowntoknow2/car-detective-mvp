@@ -41,7 +41,6 @@ export function useMakeModels() {
         
         console.log('Fetching makes from database...');
         
-        // First, get all makes
         const { data: allMakes, error: makesError } = await supabase
           .from('makes')
           .select('id, make_name')
@@ -53,37 +52,13 @@ export function useMakeModels() {
           throw makesError;
         }
         
-        // Check which makes have models
-        const { data: makesWithModels, error: modelsCountError } = await supabase
-          .from('models')
-          .select('make_id')
-          .not('make_id', 'is', null);
-          
-        if (modelsCountError) {
-          console.error('Error checking makes with models:', modelsCountError);
-          // Continue with all makes if this fails
-        }
-        
-        const makeIdsWithModels = new Set(makesWithModels?.map(m => m.make_id) || []);
-        
-        // Filter makes to only include those with models, or show all if debugging
-        const filteredMakes = allMakes?.filter(make => {
-          const hasModels = makeIdsWithModels.has(make.id);
-          if (!hasModels) {
-            console.warn(`Make "${make.make_name}" (${make.id}) has no models`);
-          }
-          return hasModels; // Only include makes that have models
-        }) || [];
-        
-        console.log(`Total makes: ${allMakes?.length || 0}, Makes with models: ${filteredMakes.length}`);
-        
-        const typedData: VehicleMake[] = filteredMakes.map(make => ({
+        const typedData: VehicleMake[] = (allMakes || []).map(make => ({
           id: make.id,
           make_name: make.make_name,
           logo_url: null
         }));
         
-        console.log('Fetched makes with models:', typedData.length, typedData.slice(0, 5));
+        console.log('Fetched makes:', typedData.length, typedData.slice(0, 5));
         setMakes(typedData);
       } catch (err: any) {
         console.error('Error fetching makes:', err);
@@ -127,7 +102,6 @@ export function useMakeModels() {
       
       if (modelsList.length === 0) {
         console.warn('No models found for make ID:', makeId);
-        // Check if the make exists
         const { data: makeData } = await supabase
           .from('makes')
           .select('make_name')
