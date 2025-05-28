@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import DealerDashboardPage from './DealerDashboardPage';
-import DealerInventoryPage from './DealerInventoryPage';
 import { useAuth } from '@/hooks/useAuth';
 
 const DealerDashboardRoutes = () => {
@@ -24,13 +23,11 @@ const DealerDashboardRoutes = () => {
     return <Navigate to="/auth" replace />;
   }
 
+  // Since this component is rendered within the main router structure,
+  // we just return the dashboard content directly
   return (
     <div className="container mx-auto py-8 px-4">
-      <Routes>
-        <Route path="/" element={<DealerDashboardPage />} />
-        <Route path="/inventory" element={<DealerInventoryPage />} />
-        <Route path="*" element={<Navigate to="/dealer" replace />} />
-      </Routes>
+      <DealerDashboardPage />
     </div>
   );
 };
