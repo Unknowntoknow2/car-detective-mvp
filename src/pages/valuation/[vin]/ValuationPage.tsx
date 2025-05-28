@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
 import { VehicleLookupForm } from '@/components/valuation/VehicleLookupForm';
-import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
+import { VINFollowUpWrapper } from '@/components/followup/VINFollowUpWrapper';
 import { EnhancedVehicleCard } from '@/components/valuation/enhanced-followup/EnhancedVehicleCard';
 import { toast } from 'sonner';
 import { DecodedVehicleInfo } from '@/types/vehicle';
@@ -96,8 +96,8 @@ export default function ValuationPage() {
             {/* Enhanced Vehicle Information Display */}
             <EnhancedVehicleCard vehicle={vehicleInfo} />
 
-            {/* Unified Follow-up Form */}
-            <UnifiedFollowUpForm
+            {/* VIN Follow-up Form */}
+            <VINFollowUpWrapper
               vin={vehicleInfo.vin || vin || ''}
               onComplete={handleFollowUpComplete}
             />
