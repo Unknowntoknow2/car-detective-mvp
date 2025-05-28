@@ -1,6 +1,4 @@
 
-// src/components/lookup/form-parts/ConditionSelectorSegmented.tsx
-
 import React from "react";
 import { ConditionLevel } from "@/components/lookup/types/manualEntry";
 import { cn } from "@/lib/utils";

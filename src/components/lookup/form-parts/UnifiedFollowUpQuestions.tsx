@@ -46,7 +46,7 @@ export function UnifiedFollowUpQuestions({
     updateFormData({
       accidentDetails: {
         ...formData.accidentDetails,
-        hasAccident: value || false
+        hasAccident: value !== null ? value : false
       }
     });
   };
@@ -54,6 +54,7 @@ export function UnifiedFollowUpQuestions({
   const setAccidentSeverity = (value: 'minor' | 'moderate' | 'severe') => {
     updateFormData({
       accidentDetails: {
+        hasAccident: formData.accidentDetails?.hasAccident || false,
         ...formData.accidentDetails,
         severity: value
       }
@@ -63,6 +64,7 @@ export function UnifiedFollowUpQuestions({
   const setAccidentRepaired = (value: boolean) => {
     updateFormData({
       accidentDetails: {
+        hasAccident: formData.accidentDetails?.hasAccident || false,
         ...formData.accidentDetails,
         repaired: value
       }
@@ -72,6 +74,7 @@ export function UnifiedFollowUpQuestions({
   const setAccidentDescription = (value: string) => {
     updateFormData({
       accidentDetails: {
+        hasAccident: formData.accidentDetails?.hasAccident || false,
         ...formData.accidentDetails,
         description: value
       }
@@ -116,7 +119,7 @@ export function UnifiedFollowUpQuestions({
       />
 
       <AccidentHistorySection
-        hasAccident={formData.accidentDetails?.hasAccident || null}
+        hasAccident={formData.accidentDetails?.hasAccident !== undefined ? formData.accidentDetails.hasAccident : null}
         setHasAccident={setHasAccident}
         accidentSeverity={formData.accidentDetails?.severity || 'minor'}
         setAccidentSeverity={setAccidentSeverity}
