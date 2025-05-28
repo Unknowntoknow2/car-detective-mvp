@@ -1,7 +1,7 @@
 
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { ReportData, ReportOptions } from '../types';
-import { EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
+import { type EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
 
 export async function generatePremiumReport(
   data: ReportData, 
@@ -121,7 +121,7 @@ export async function generatePremiumReport(
       
       yPosition -= 20;
       
-      statVin.damageHistory.slice(0, 3).forEach(damage => {
+      statVin.damageHistory.slice(0, 3).forEach((damage: { date: string; severity: string; description: string }) => {
         const damageText = `${damage.date}: ${damage.severity} damage - ${damage.description}`;
         page.drawText(damageText, { x: 90, y: yPosition, size: 10, font });
         yPosition -= 16;
@@ -141,7 +141,7 @@ export async function generatePremiumReport(
       yPosition -= 20;
       
       const latestTitle = statVin.titleHistory[0];
-      page.drawText(`Current Title: ${latestTitle.titleType} (${latestTitle.state})`, {
+      page.drawText(`Current Title: ${latestTitle.status} (${latestTitle.state})`, {
         x: 90,
         y: yPosition,
         size: 10,

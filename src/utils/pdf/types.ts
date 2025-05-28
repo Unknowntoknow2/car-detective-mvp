@@ -1,5 +1,4 @@
-
-import { EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
+import { type EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
 import { PDFPage, PDFFont, Color } from 'pdf-lib';
 
 export interface ReportData {
