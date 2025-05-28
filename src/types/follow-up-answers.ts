@@ -5,6 +5,7 @@ export interface AccidentDetails {
   severity?: 'minor' | 'moderate' | 'major';
   repaired?: boolean;
   frameDamage?: boolean;
+  description?: string;
 }
 
 export interface ModificationDetails {

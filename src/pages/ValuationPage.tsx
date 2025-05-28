@@ -7,6 +7,7 @@ import { FoundCarCard } from '@/components/lookup/found/FoundCarCard';
 import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
 import { decodeVin } from '@/services/vinService';
 import { DecodedVehicleInfo } from '@/types/vehicle';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
 import { toast } from 'sonner';
 
@@ -45,7 +46,7 @@ export default function ValuationPage() {
     }
   };
 
-  const handleFollowUpComplete = (formData: any) => {
+  const handleFollowUpComplete = (formData: FollowUpAnswers) => {
     console.log('✅ ValuationPage: Follow-up completed:', formData);
     toast.success('Valuation completed successfully!');
     // Handle final valuation here
