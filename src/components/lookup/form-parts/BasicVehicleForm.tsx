@@ -31,21 +31,8 @@ export function BasicVehicleForm({
     findModelById,
   } = useMakeModels();
 
-  // Load models when make changes
-  useEffect(() => {
-    if (formData.make) {
-      getModelsByMakeId(formData.make);
-    }
-  }, [formData.make, getModelsByMakeId]);
-
-  // Load trims when model changes
-  useEffect(() => {
-    if (formData.model) {
-      getTrimsByModelId(formData.model);
-    }
-  }, [formData.model, getTrimsByModelId]);
-
   const handleMakeChange = (makeId: string) => {
+    console.log('BasicVehicleForm: Make changed to:', makeId);
     const selectedMake = findMakeById(makeId);
     const updates = {
       make: makeId,
@@ -56,6 +43,11 @@ export function BasicVehicleForm({
       trimName: ''
     };
     updateFormData(updates);
+    
+    // Load models for the selected make
+    if (makeId) {
+      getModelsByMakeId(makeId);
+    }
   };
 
   const handleModelChange = (modelId: string) => {
@@ -78,6 +70,20 @@ export function BasicVehicleForm({
     updateFormData(updates);
   };
 
+  // Load models when component mounts if make is already selected
+  useEffect(() => {
+    if (formData.make) {
+      getModelsByMakeId(formData.make);
+    }
+  }, [formData.make, getModelsByMakeId]);
+
+  // Load trims when model changes
+  useEffect(() => {
+    if (formData.model) {
+      getTrimsByModelId(formData.model);
+    }
+  }, [formData.model, getTrimsByModelId]);
+
   return (
     <div className="space-y-4">
       <MakeModelSelect
@@ -90,6 +96,7 @@ export function BasicVehicleForm({
         isLoading={isLoading}
         isLoadingModels={isLoadingModels}
         error={error}
+        onMakeChange={handleMakeChange}
       />
       
       {isPremium && trims.length > 0 && (
