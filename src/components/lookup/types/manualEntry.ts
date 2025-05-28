@@ -1,38 +1,50 @@
-// 🔐 LOCKED: Shared Manual Entry Types for Free + Premium + VIN flows
 
 export enum ConditionLevel {
-  Poor = "poor",
-  Fair = "fair",
-  Good = "good",
-  VeryGood = "very_good",
-  Excellent = "excellent"
+  Excellent = 'excellent',
+  Good = 'good',
+  Fair = 'fair',
+  Poor = 'poor'
 }
 
 export interface AccidentDetails {
   hasAccident: boolean;
   severity?: 'minor' | 'moderate' | 'severe';
   repaired?: boolean;
-  date?: string;
   description?: string;
 }
 
 export interface ManualEntryFormData {
+  // Basic vehicle info
   make: string;
   model: string;
   year: number;
   mileage: number;
   condition: ConditionLevel;
   zipCode: string;
-  fuelType: string;
-  transmission: string;
+  fuelType?: string;
+  transmission?: string;
   trim?: string;
-  color?: string;
-  bodyStyle?: string;
   vin?: string;
-  fileType?: string;
-  fileName?: string;
   selectedFeatures?: string[];
+  
+  // Title & Ownership
+  titleStatus?: 'clean' | 'salvage' | 'rebuilt' | 'branded' | 'lemon';
+  previousOwners?: number;
+  previousUse?: 'personal' | 'commercial' | 'rental' | 'emergency';
+  
+  // Service History
+  serviceHistory?: 'dealer' | 'independent' | 'owner' | 'unknown';
+  hasRegularMaintenance?: boolean | null;
+  maintenanceNotes?: string;
+  
+  // Accident History
   accidentDetails?: AccidentDetails;
+  
+  // Additional Details
+  tireCondition?: 'excellent' | 'good' | 'worn' | 'replacement';
+  dashboardLights?: string[];
+  hasModifications?: boolean;
+  modificationTypes?: string[];
 }
 
 export interface ManualEntryFormProps {
