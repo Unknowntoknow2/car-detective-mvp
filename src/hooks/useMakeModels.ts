@@ -67,7 +67,53 @@ export function useMakeModels() {
     fetchMakes();
   }, []);
 
-  // Function to fetch models for a specific make
+  // Function to fetch models for a specific make - accepts make name and finds the ID
+  const getModelsByMake = async (makeName: string) => {
+    if (!makeName) {
+      console.log('No make name provided, clearing models');
+      setModels([]);
+      return [];
+    }
+
+    try {
+      setError(null);
+      setIsLoading(true);
+      
+      // First find the make ID from the make name
+      const selectedMake = makes.find(make => make.make_name === makeName);
+      if (!selectedMake) {
+        console.log('Make not found:', makeName);
+        setModels([]);
+        return [];
+      }
+      
+      console.log('Fetching models for make:', makeName, 'with ID:', selectedMake.id);
+      const { data, error } = await supabase
+        .from('models')
+        .select('id, make_id, model_name')
+        .eq('make_id', selectedMake.id)
+        .order('model_name');
+        
+      if (error) {
+        console.error('Supabase error fetching models:', error);
+        throw error;
+      }
+      
+      const modelsList = data || [];
+      console.log('Fetched models:', modelsList.length, modelsList.slice(0, 5));
+      setModels(modelsList);
+      return modelsList;
+    } catch (err: any) {
+      console.error('Error fetching models:', err);
+      setError('Failed to load vehicle models: ' + err.message);
+      setModels([]);
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Legacy function for backward compatibility - now uses make ID directly
   const getModelsByMakeId = async (makeId: string) => {
     if (!makeId) {
       console.log('No makeId provided, clearing models');
@@ -147,6 +193,7 @@ export function useMakeModels() {
     isLoading,
     error,
     getModelsByMakeId,
+    getModelsByMake, // New function that works with make names
     getTrimsByModelId,
   };
 }
