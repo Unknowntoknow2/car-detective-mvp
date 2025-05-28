@@ -1,411 +1,296 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Separator } from '@/components/ui/separator';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, AlertCircle, Info, Loader2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-
 import { ConditionSelector } from '@/components/valuation/enhanced-followup/ConditionSelector';
 import { AccidentSection } from '@/components/valuation/enhanced-followup/AccidentSection';
 import { DashboardLightsSection } from '@/components/valuation/enhanced-followup/DashboardLightsSection';
-
-import { 
-  FollowUpAnswers, 
-  AccidentDetails, 
-  ModificationDetails,
-  CONDITION_OPTIONS,
-  SERVICE_HISTORY_OPTIONS,
-  MAINTENANCE_STATUS_OPTIONS,
-  TITLE_STATUS_OPTIONS,
-  TIRE_CONDITION_OPTIONS,
-  PREVIOUS_USE_OPTIONS,
-  MODIFICATION_TYPES
-} from '@/types/follow-up-answers';
+import { FollowUpAnswers, AccidentDetails, ModificationDetails, MAINTENANCE_STATUS_OPTIONS } from '@/types/follow-up-answers';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { supabase } from '@/integrations/supabase/client';
 
-interface UnifiedFollowUpFormProps {
+export interface UnifiedFollowUpFormProps {
   vin?: string;
   plateNumber?: string;
   initialData?: ManualEntryFormData;
-  entryMethod: 'vin' | 'plate' | 'manual';
+  entryMethod?: 'vin' | 'plate' | 'manual';
   onComplete?: () => void;
 }
 
-export const UnifiedFollowUpForm: React.FC<UnifiedFollowUpFormProps> = ({
+export function UnifiedFollowUpForm({
   vin,
   plateNumber,
   initialData,
-  entryMethod,
+  entryMethod = 'manual',
   onComplete
-}) => {
+}: UnifiedFollowUpFormProps) {
   const [answers, setAnswers] = useState<FollowUpAnswers>({
     vin: vin || '',
-    mileage: initialData?.mileage || undefined,
+    mileage: typeof initialData?.mileage === 'string' ? parseInt(initialData.mileage) : initialData?.mileage,
     zip_code: initialData?.zipCode || '',
-    condition: initialData?.condition || 'good',
+    // Convert ConditionLevel enum to expected string type, defaulting to 'good' for VeryGood
+    condition: initialData?.condition === 'very_good' ? 'good' : (initialData?.condition as 'excellent' | 'good' | 'fair' | 'poor') || 'good',
+    accidents: { hadAccident: false },
+    service_history: 'unknown',
+    maintenance_status: 'Unknown',
+    title_status: 'clean',
+    tire_condition: 'good',
+    dashboard_lights: [],
+    frame_damage: false,
+    modifications: { modified: false },
     completion_percentage: 0,
     is_complete: false
   });
 
-  const [currentSection, setCurrentSection] = useState(0);
-  const [completedSections, setCompletedSections] = useState<Set<number>>(new Set());
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const sections = [
-    { id: 'basic', title: 'Basic Information', required: true },
-    { id: 'condition', title: 'Vehicle Condition', required: true },
-    { id: 'accidents', title: 'Accident History', required: true },
-    { id: 'dashboard', title: 'Dashboard Warnings', required: true },
-    { id: 'maintenance', title: 'Service History & Title', required: true },
-    { id: 'modifications', title: 'Modifications & Custom Work', required: false }
-  ];
+  useEffect(() => {
+    // Calculate completion percentage based on filled fields
+    const totalFields = 12;
+    const filledFields = [
+      answers.mileage,
+      answers.zip_code,
+      answers.condition,
+      answers.service_history,
+      answers.maintenance_status,
+      answers.title_status,
+      answers.tire_condition,
+      answers.dashboard_lights?.length,
+      answers.accidents?.hadAccident !== undefined,
+      answers.frame_damage !== undefined,
+      answers.modifications?.modified !== undefined
+    ].filter(Boolean).length;
+    
+    const percentage = Math.round((filledFields / totalFields) * 100);
+    setAnswers(prev => ({ ...prev, completion_percentage: percentage }));
+  }, [answers]);
 
-  const updateAnswers = (updates: Partial<FollowUpAnswers>) => {
-    setAnswers(prev => ({ ...prev, ...updates }));
-  };
-
-  const calculateProgress = () => {
-    const totalSections = sections.length;
-    const completed = completedSections.size;
-    return Math.round((completed / totalSections) * 100);
-  };
-
-  const markSectionComplete = (sectionIndex: number) => {
-    setCompletedSections(prev => new Set([...prev, sectionIndex]));
+  const handleInputChange = (field: keyof FollowUpAnswers, value: any) => {
+    setAnswers(prev => ({
+      ...prev,
+      [field]: value,
+      updated_at: new Date().toISOString()
+    }));
   };
 
   const handleSubmit = async () => {
+    if (!answers.mileage || !answers.zip_code) {
+      toast.error('Please fill in required fields: Mileage and Zip Code');
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      const finalAnswers: FollowUpAnswers = {
+      const submissionData = {
         ...answers,
-        mileage: typeof answers.mileage === 'string' ? parseInt(answers.mileage) : answers.mileage,
-        completion_percentage: 100,
         is_complete: true,
-        created_at: new Date().toISOString(),
+        completion_percentage: 100,
+        created_at: answers.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
 
-      console.log('Submitting follow-up answers:', finalAnswers);
-      toast.success('Assessment completed successfully!');
-      
-      if (onComplete) {
-        onComplete();
+      // Save to database if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        submissionData.user_id = user.id;
+        
+        const { error } = await supabase
+          .from('follow_up_answers')
+          .upsert(submissionData);
+          
+        if (error) {
+          console.error('Error saving follow-up answers:', error);
+          toast.error('Failed to save answers');
+          return;
+        }
       }
+
+      toast.success('Follow-up completed successfully!');
+      onComplete?.();
     } catch (error) {
       console.error('Error submitting follow-up:', error);
-      toast.error('Failed to complete assessment. Please try again.');
+      toast.error('Failed to submit follow-up');
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
-  const renderBasicSection = () => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="mileage">Current Mileage</Label>
-          <Input
-            id="mileage"
-            type="number"
-            placeholder="Enter mileage"
-            value={answers.mileage || ''}
-            onChange={(e) => updateAnswers({ mileage: parseInt(e.target.value) || 0 })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="zip_code">ZIP Code</Label>
-          <Input
-            id="zip_code"
-            placeholder="Enter ZIP code"
-            value={answers.zip_code || ''}
-            onChange={(e) => updateAnswers({ zip_code: e.target.value })}
-          />
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderMaintenanceSection = () => (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <Label>Service History</Label>
-          <Select 
-            value={answers.service_history || ''} 
-            onValueChange={(value) => updateAnswers({ service_history: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select service history type" />
-            </SelectTrigger>
-            <SelectContent>
-              {SERVICE_HISTORY_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  <div className="flex justify-between items-center w-full">
-                    <span>{option.label}</span>
-                    <Badge variant="outline" className="ml-2 text-xs">
-                      {option.impact}
-                    </Badge>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label>Maintenance Status</Label>
-          <Select 
-            value={answers.maintenance_status || ''} 
-            onValueChange={(value) => updateAnswers({ maintenance_status: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select maintenance status" />
-            </SelectTrigger>
-            <SelectContent>
-              {MAINTENANCE_STATUS_OPTIONS.map((option: string) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label>Title Status</Label>
-          <Select 
-            value={answers.title_status || ''} 
-            onValueChange={(value) => updateAnswers({ title_status: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select title status" />
-            </SelectTrigger>
-            <SelectContent>
-              {TITLE_STATUS_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  <div className="flex justify-between items-center w-full">
-                    <span>{option.label}</span>
-                    <Badge variant="outline" className="ml-2 text-xs">
-                      {option.impact}
-                    </Badge>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderModificationsSection = () => (
-    <div className="space-y-4">
-      <div className="space-y-4">
-        <div>
-          <Label>Are there any modifications to this vehicle?</Label>
-          <Select 
-            value={answers.modifications?.modified ? 'yes' : 'no'} 
-            onValueChange={(value) => {
-              const hasModifications = value === 'yes';
-              updateAnswers({ 
-                modifications: { 
-                  modified: hasModifications,
-                  reversible: answers.modifications?.reversible || false,
-                  types: hasModifications ? (answers.modifications?.types || []) : undefined
-                } 
-              });
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select modification status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="no">No modifications</SelectItem>
-              <SelectItem value="yes">Yes, has modifications</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {answers.modifications?.modified && (
-          <>
-            <div>
-              <Label>Are the modifications reversible?</Label>
-              <Select 
-                value={answers.modifications.reversible ? 'yes' : 'no'} 
-                onValueChange={(value) => {
-                  updateAnswers({ 
-                    modifications: { 
-                      ...answers.modifications!,
-                      reversible: value === 'yes'
-                    } 
-                  });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select reversibility" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="yes">Yes, reversible</SelectItem>
-                  <SelectItem value="no">No, permanent</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Types of modifications (select all that apply)</Label>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                {MODIFICATION_TYPES.map((type) => (
-                  <div key={type} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id={type}
-                      checked={answers.modifications?.types?.includes(type) || false}
-                      onChange={(e) => {
-                        const currentTypes = answers.modifications?.types || [];
-                        const newTypes = e.target.checked
-                          ? [...currentTypes, type]
-                          : currentTypes.filter(t => t !== type);
-                        
-                        updateAnswers({ 
-                          modifications: { 
-                            ...answers.modifications!,
-                            types: newTypes
-                          } 
-                        });
-                      }}
-                    />
-                    <Label htmlFor={type} className="text-sm">{type}</Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderSectionContent = (sectionIndex: number) => {
-    switch (sectionIndex) {
-      case 0:
-        return renderBasicSection();
-      case 1:
-        return (
-          <ConditionSelector
-            value={answers.condition || 'good'}
-            onChange={(condition) => updateAnswers({ condition })}
-          />
-        );
-      case 2:
-        return (
-          <AccidentSection
-            accidents={answers.accidents}
-            onUpdate={(accidents) => updateAnswers({ accidents })}
-          />
-        );
-      case 3:
-        return (
-          <DashboardLightsSection
-            dashboardLights={answers.dashboard_lights || []}
-            onUpdate={(dashboard_lights) => updateAnswers({ dashboard_lights })}
-          />
-        );
-      case 4:
-        return renderMaintenanceSection();
-      case 5:
-        return renderModificationsSection();
-      default:
-        return null;
-    }
-  };
-
-  const progress = calculateProgress();
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Vehicle Assessment</span>
-            <Badge variant="outline">{entryMethod.toUpperCase()} Entry</Badge>
+            Vehicle Follow-Up Details
+            <span className="text-sm text-muted-foreground">
+              {answers.completion_percentage}% Complete
+            </span>
           </CardTitle>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Progress</span>
-              <span>{progress}% complete</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-          </div>
         </CardHeader>
-        <CardContent>
-          <Accordion 
-            type="single" 
-            value={`section-${currentSection}`} 
-            onValueChange={(value) => {
-              const index = value ? parseInt(value.split('-')[1]) : 0;
-              setCurrentSection(index);
-            }}
-            className="space-y-4"
-          >
-            {sections.map((section, index) => (
-              <AccordionItem key={section.id} value={`section-${index}`}>
-                <AccordionTrigger className="text-left">
-                  <div className="flex items-center justify-between w-full mr-4">
-                    <span>{section.title}</span>
-                    <div className="flex items-center space-x-2">
-                      {section.required && (
-                        <Badge variant="secondary" className="text-xs">Required</Badge>
-                      )}
-                      {completedSections.has(index) && (
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                      )}
-                    </div>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="pt-4">
-                  {renderSectionContent(index)}
-                  <div className="flex justify-end mt-6">
-                    <Button
-                      onClick={() => {
-                        markSectionComplete(index);
-                        toast.success(`${section.title} completed!`);
-                      }}
-                      variant={completedSections.has(index) ? "secondary" : "default"}
-                    >
-                      {completedSections.has(index) ? "Completed" : "Mark Complete"}
-                    </Button>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-
-          <Separator className="my-6" />
-
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-muted-foreground">
-              {completedSections.size} of {sections.length} sections completed
+        <CardContent className="space-y-6">
+          {/* Basic Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="mileage">Current Mileage *</Label>
+              <Input
+                id="mileage"
+                type="number"
+                value={answers.mileage || ''}
+                onChange={(e) => handleInputChange('mileage', parseInt(e.target.value) || undefined)}
+                placeholder="Enter current mileage"
+                required
+              />
             </div>
-            <Button
-              onClick={handleSubmit}
-              disabled={completedSections.size < sections.filter(s => s.required).length}
-              className="min-w-[140px]"
+            <div>
+              <Label htmlFor="zip_code">Zip Code *</Label>
+              <Input
+                id="zip_code"
+                type="text"
+                value={answers.zip_code || ''}
+                onChange={(e) => handleInputChange('zip_code', e.target.value)}
+                placeholder="Enter zip code"
+                maxLength={5}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Condition Selector */}
+          <ConditionSelector
+            value={answers.condition}
+            onChange={(condition: 'excellent' | 'good' | 'fair' | 'poor') => 
+              handleInputChange('condition', condition)
+            }
+          />
+
+          {/* Service History */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Service & Maintenance</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="service_history">Service History</Label>
+                <select
+                  id="service_history"
+                  value={answers.service_history || 'unknown'}
+                  onChange={(e) => handleInputChange('service_history', e.target.value)}
+                  className="w-full p-2 border rounded-md"
+                >
+                  <option value="dealer">Dealer-maintained</option>
+                  <option value="independent">Independent mechanic</option>
+                  <option value="owner">Owner-maintained</option>
+                  <option value="unknown">No known history</option>
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="maintenance_status">Maintenance Status</Label>
+                <select
+                  id="maintenance_status"
+                  value={answers.maintenance_status || 'Unknown'}
+                  onChange={(e) => handleInputChange('maintenance_status', e.target.value)}
+                  className="w-full p-2 border rounded-md"
+                >
+                  {MAINTENANCE_STATUS_OPTIONS.map((option: string) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Title Status */}
+          <div>
+            <Label htmlFor="title_status">Title Status</Label>
+            <select
+              id="title_status"
+              value={answers.title_status || 'clean'}
+              onChange={(e) => handleInputChange('title_status', e.target.value)}
+              className="w-full p-2 border rounded-md"
             >
-              {completedSections.size < sections.filter(s => s.required).length ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2" />
-                  Complete Required Sections
-                </>
-              ) : (
-                'Submit Assessment'
-              )}
+              <option value="clean">Clean</option>
+              <option value="salvage">Salvage</option>
+              <option value="rebuilt">Rebuilt</option>
+              <option value="branded">Branded</option>
+              <option value="lemon">Lemon Law</option>
+            </select>
+          </div>
+
+          {/* Tire Condition */}
+          <div>
+            <Label htmlFor="tire_condition">Tire Condition</Label>
+            <select
+              id="tire_condition"
+              value={answers.tire_condition || 'good'}
+              onChange={(e) => handleInputChange('tire_condition', e.target.value)}
+              className="w-full p-2 border rounded-md"
+            >
+              <option value="excellent">Excellent (8/32"+ tread)</option>
+              <option value="good">Good (6–7/32")</option>
+              <option value="worn">Worn (3–5/32")</option>
+              <option value="replacement">Needs Replacement (&lt;3/32")</option>
+            </select>
+          </div>
+
+          {/* Accident Section */}
+          <AccidentSection
+            value={answers.accidents}
+            onChange={(accidents: AccidentDetails) => handleInputChange('accidents', accidents)}
+          />
+
+          {/* Dashboard Lights */}
+          <DashboardLightsSection
+            value={answers.dashboard_lights || []}
+            onChange={(dashboard_lights: string[]) => handleInputChange('dashboard_lights', dashboard_lights)}
+          />
+
+          {/* Modifications */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Vehicle Modifications</h3>
+            <div className="space-y-2">
+              <Label>Has this vehicle been modified?</Label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="modifications"
+                    checked={!answers.modifications?.modified}
+                    onChange={() => handleInputChange('modifications', { modified: false })}
+                  />
+                  No
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="modifications"
+                    checked={answers.modifications?.modified}
+                    onChange={() => handleInputChange('modifications', { 
+                      modified: true, 
+                      types: [], 
+                      reversible: false 
+                    })}
+                  />
+                  Yes
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="pt-6">
+            <Button 
+              onClick={handleSubmit}
+              disabled={isSubmitting || !answers.mileage || !answers.zip_code}
+              className="w-full"
+            >
+              {isSubmitting ? 'Submitting...' : 'Complete Follow-Up'}
             </Button>
           </div>
         </CardContent>
       </Card>
     </div>
   );
-};
+}
