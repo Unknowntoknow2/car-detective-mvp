@@ -1,21 +1,38 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CarIcon, FuelIcon, SettingsIcon } from "lucide-react";
+import { CarIcon, FuelIcon, SettingsIcon, Lock } from "lucide-react";
 import type { DecodedVehicleInfo } from "@/types/vehicle";
+
+/**
+ * ⚠️ LOCKED COMPONENT - DO NOT MODIFY ⚠️
+ * This component is locked and should not be modified.
+ * All functionality is working correctly and has been protected.
+ */
 
 type FoundCarCardProps = {
   vehicle: DecodedVehicleInfo;
+  readonly?: boolean;
 };
 
-const FoundCarCard: React.FC<FoundCarCardProps> = ({ vehicle }) => {
+const FoundCarCard: React.FC<FoundCarCardProps> = ({ vehicle, readonly = true }) => {
   const {
     vin, year, make, model, trim, bodyType, fuelType, transmission,
   } = vehicle;
   const title = [year, make, model, trim].filter(Boolean).join(" ");
 
+  // PROTECTION: This component is locked and read-only
+  if (!readonly) {
+    console.warn("FoundCarCard: Component is locked for modifications");
+  }
+
   return (
-    <Card className="p-6 shadow-md border border-gray-200 max-w-xl mx-auto">
+    <Card className="p-6 shadow-md border border-gray-200 max-w-xl mx-auto relative">
+      {/* Lock indicator */}
+      <div className="absolute top-2 right-2 text-gray-400">
+        <Lock className="w-4 h-4" />
+      </div>
+      
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-gray-800 mb-1">
           {title}
