@@ -1,179 +1,110 @@
 
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Container } from '@/components/ui/container';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Car, TrendingUp, Download, Share, ArrowLeft } from 'lucide-react';
-import { formatCurrency } from '@/utils/formatters';
-import { getEnrichedVehicleData, EnrichedVehicleData } from '@/scraping/getEnrichedVehicleData';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { useValuationResult } from '@/hooks/useValuationResult';
+import ValuationResultPremium from '@/components/valuation/result/ValuationResultPremium';
+import { AIChatBubble } from '@/components/chat/AIChatBubble';
+import { DealerOffersList } from '@/components/dealer/DealerOffersList';
+import PredictionResult from '@/components/valuation/PredictionResult';
 import { EnrichedDataCard } from '@/components/enriched/EnrichedDataCard';
+import { getEnrichedVehicleData, EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
 
 export default function ValuationResultPage() {
-  const navigate = useNavigate();
-  const [valuationData, setValuationData] = useState<any>(null);
+  const { valuationId } = useParams<{ valuationId: string }>();
+  const { data: valuationResult, isLoading, error } = useValuationResult(valuationId);
   const [enrichedData, setEnrichedData] = useState<EnrichedVehicleData | null>(null);
   const [isLoadingEnriched, setIsLoadingEnriched] = useState(false);
 
   useEffect(() => {
-    const data = localStorage.getItem('latest_valuation');
-    if (data) {
-      try {
-        const parsedData = JSON.parse(data);
-        setValuationData(parsedData);
-        
-        // Load enriched data if VIN is available
-        if (parsedData.vin) {
-          loadEnrichedData(parsedData.vin);
+    async function loadEnrichedData() {
+      if (valuationResult?.vin) {
+        setIsLoadingEnriched(true);
+        try {
+          const enriched = await getEnrichedVehicleData(
+            valuationResult.vin,
+            valuationResult.make,
+            valuationResult.model,
+            valuationResult.year
+          );
+          setEnrichedData(enriched);
+        } catch (error) {
+          console.error('Failed to load enriched data:', error);
+        } finally {
+          setIsLoadingEnriched(false);
         }
-      } catch (error) {
-        console.error('Error parsing valuation data:', error);
-        navigate('/valuation');
       }
-    } else {
-      navigate('/valuation');
     }
-  }, [navigate]);
 
-  const loadEnrichedData = async (vin: string) => {
-    setIsLoadingEnriched(true);
-    try {
-      const enriched = await getEnrichedVehicleData(vin);
-      setEnrichedData(enriched);
-    } catch (error) {
-      console.error('Error loading enriched data:', error);
-    } finally {
-      setIsLoadingEnriched(false);
-    }
-  };
+    loadEnrichedData();
+  }, [valuationResult?.vin, valuationResult?.make, valuationResult?.model, valuationResult?.year]);
 
-  if (!valuationData) {
-    return null;
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-4 space-y-6">
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+          <p className="text-muted-foreground">Loading valuation data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-4 space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <h2 className="text-xl font-bold text-red-700 mb-2">
+            Error Loading Valuation
+          </h2>
+          <p className="text-red-600">
+            {error || "Could not load the valuation details. Please try again or contact support."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!valuationResult) {
+    return (
+      <div className="container mx-auto p-4 space-y-6">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+          <h2 className="text-xl font-bold text-yellow-700 mb-2">
+            No Valuation Found
+          </h2>
+          <p className="text-yellow-600">
+            The requested valuation could not be found. It may have been deleted or the link is invalid.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <Container className="max-w-4xl py-10">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={() => navigate('/valuation')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Start New Valuation
-          </Button>
-          <div className="text-sm text-muted-foreground">
-            Generated on {new Date(valuationData.timestamp).toLocaleDateString()}
-          </div>
+    <div className="container mx-auto p-4 space-y-6">
+      {/* Main Valuation Result */}
+      <PredictionResult valuationId={valuationId} />
+      
+      {/* Enriched Data Section */}
+      {enrichedData && (
+        <EnrichedDataCard data={enrichedData} />
+      )}
+      
+      {isLoadingEnriched && (
+        <div className="flex items-center justify-center py-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mr-2"></div>
+          <span className="text-sm text-muted-foreground">Loading market data...</span>
         </div>
+      )}
 
-        {/* Vehicle Summary */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Car className="h-5 w-5 mr-2" />
-              {valuationData.year} {valuationData.make} {valuationData.model}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Mileage</p>
-                <p className="font-semibold">{valuationData.mileage?.toLocaleString()} miles</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Condition</p>
-                <Badge variant="outline" className="capitalize">{valuationData.condition}</Badge>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Location</p>
-                <p className="font-semibold">{valuationData.zipCode}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Confidence</p>
-                <p className="font-semibold">{valuationData.confidenceScore}%</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* AI Chat Bubble */}
+      {valuationResult && (
+        <AIChatBubble valuation={valuationResult} />
+      )}
 
-        {/* Valuation Result */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <TrendingUp className="h-5 w-5 mr-2" />
-              Estimated Market Value
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">
-                {formatCurrency(valuationData.estimatedValue)}
-              </div>
-              <p className="text-muted-foreground mb-4">
-                Based on current market conditions and vehicle specifics
-              </p>
-              
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-sm text-muted-foreground">Trade-in Value</p>
-                  <p className="font-semibold">{formatCurrency(Math.round(valuationData.estimatedValue * 0.85))}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Private Sale</p>
-                  <p className="font-semibold">{formatCurrency(valuationData.estimatedValue)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Retail Value</p>
-                  <p className="font-semibold">{formatCurrency(Math.round(valuationData.estimatedValue * 1.15))}</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Enriched Data Card */}
-        {enrichedData && <EnrichedDataCard data={enrichedData} />}
-        {isLoadingEnriched && (
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                <span className="ml-2 text-sm text-muted-foreground">Loading auction history...</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Button className="flex-1">
-            <Download className="h-4 w-4 mr-2" />
-            Download Report
-          </Button>
-          <Button variant="outline" className="flex-1">
-            <Share className="h-4 w-4 mr-2" />
-            Share Results
-          </Button>
-          <Button variant="outline" onClick={() => navigate('/premium')}>
-            Get Premium Report
-          </Button>
-        </div>
-
-        {/* Market Analysis */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Market Analysis</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              This {valuationData.year} {valuationData.make} {valuationData.model} shows strong market performance 
-              in the {valuationData.zipCode} area. Current inventory levels suggest stable pricing with 
-              moderate demand. The {valuationData.condition} condition rating aligns well with market expectations 
-              for vehicles with {valuationData.mileage?.toLocaleString()} miles.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </Container>
+      {/* Dealer Offers */}
+      {valuationId && (
+        <DealerOffersList reportId={valuationId} />
+      )}
+    </div>
   );
 }
