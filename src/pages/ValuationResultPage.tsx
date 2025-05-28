@@ -121,7 +121,7 @@ export default function ValuationResultPage() {
         enrichedData && enrichedData.sources.statVin ? (
           <EnrichedDataCard 
             data={enrichedData} 
-            userRole={userRole}
+            userRole={userRole || 'individual'}
             onRefresh={refreshEnrichedData}
             isRefreshing={isLoadingEnriched}
             lastUpdated={enrichedData.lastUpdated}

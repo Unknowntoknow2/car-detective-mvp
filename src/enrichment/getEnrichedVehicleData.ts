@@ -122,6 +122,3 @@ function createEmptyEnrichedData(vin: string): EnrichedVehicleData {
     }
   };
 }
-
-// Export types for external use
-export type { EnrichedVehicleData, StatVinData };
