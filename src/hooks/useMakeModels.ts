@@ -86,16 +86,21 @@ export function useMakeModels() {
       
       console.log('Fetching models for make ID:', makeId);
       
-      // First, let's check if the make exists
-      const { data: makeCheck } = await supabase
+      // Verify the make exists first
+      const { data: makeExists, error: makeError } = await supabase
         .from('makes')
-        .select('make_name')
+        .select('id, make_name')
         .eq('id', makeId)
         .single();
       
-      console.log('Make check result:', makeCheck);
+      if (makeError) {
+        console.error('Error verifying make exists:', makeError);
+        throw new Error(`Make with ID ${makeId} not found`);
+      }
       
-      // Now fetch models with explicit filtering
+      console.log('Found make:', makeExists);
+      
+      // Fetch models for this make
       const { data: modelsData, error: modelsError } = await supabase
         .from('models')
         .select('id, make_id, model_name')
@@ -107,26 +112,27 @@ export function useMakeModels() {
         throw modelsError;
       }
       
-      console.log('Raw models query result:', modelsData);
-      
       const modelsList = modelsData || [];
-      console.log('Processed models list:', modelsList);
+      console.log(`Found ${modelsList.length} models for make "${makeExists.make_name}":`, modelsList.slice(0, 3));
       
-      // If no models found, let's also check the total count in the models table
+      // If no models found, let's do some additional debugging
       if (modelsList.length === 0) {
+        console.warn(`No models found for make "${makeExists.make_name}" (ID: ${makeId})`);
+        
+        // Check total models in database
         const { count } = await supabase
           .from('models')
           .select('*', { count: 'exact', head: true });
         
         console.log('Total models in database:', count);
         
-        // Check if there are any models with this make_id (case-insensitive check)
-        const { data: debugModels } = await supabase
+        // Check if there are models with different make_ids
+        const { data: sampleModels } = await supabase
           .from('models')
           .select('id, make_id, model_name')
           .limit(5);
         
-        console.log('Sample models for debugging:', debugModels);
+        console.log('Sample models from database:', sampleModels);
       }
       
       setModels(modelsList);
