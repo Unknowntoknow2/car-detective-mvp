@@ -15,11 +15,13 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   
+  // If user is already authenticated, redirect to dashboard
   React.useEffect(() => {
     if (user) {
-      navigate('/', { replace: true });
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, location]);
   
   return (
     <div className="container mx-auto py-12 px-4">
@@ -89,13 +91,17 @@ export default function AuthPage() {
               </TabsList>
               
               <TabsContent value="signin" className="mt-4">
-                <SigninForm userType={userType} />
+                <SigninForm 
+                  userType={userType}
+                  redirectPath={userType === 'dealer' ? '/dealer/dashboard' : '/dashboard'} 
+                />
               </TabsContent>
               
               <TabsContent value="signup" className="mt-4">
                 <SignupForm 
                   userType={userType}
                   showDealershipField={userType === 'dealer'}
+                  redirectPath={userType === 'dealer' ? '/dealer/dashboard' : '/dashboard'} 
                 />
               </TabsContent>
             </Tabs>

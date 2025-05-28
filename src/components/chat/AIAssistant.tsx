@@ -1,200 +1,210 @@
 
-import React, { useEffect, useRef, useState } from 'react';
-import { useAINStore } from '@/stores/useAINStore';
-import { askAI } from '@/api/askAI';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, RefreshCw, Bot, User, MessageSquare } from 'lucide-react';
+import { Loader2, RefreshCw, Bot, User } from 'lucide-react';
+import { askAI } from '@/api/askAI';
+import { useAINStore } from '@/stores/useAINStore';
 import ReactMarkdown from 'react-markdown';
-import { cn } from '@/lib/utils';
 
 interface AIAssistantProps {
-  className?: string;
+  onClose?: () => void;
+  isPremium?: boolean;
 }
 
-const AIAssistant: React.FC<AIAssistantProps> = ({ className }) => {
-  const { 
-    messages, 
-    isLoading, 
-    isOpen, 
-    isMinimized, 
-    error, 
-    addMessage, 
-    setLoading, 
-    setError, 
-    clearMessages, 
-    toggleOpen 
+export const AIAssistant: React.FC<AIAssistantProps> = ({
+  onClose,
+  isPremium = false
+}) => {
+  const {
+    messages,
+    isLoading,
+    error,
+    addMessage,
+    setLoading,
+    setError
   } = useAINStore();
   
   const [input, setInput] = useState('');
-  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [initial, setInitial] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, isLoading]);
 
-  const handleSendMessage = async () => {
-    if (!input.trim()) return;
+  // Add initial greeting if no messages
+  useEffect(() => {
+    if (messages.length === 0) {
+      addMessage({
+        role: 'assistant',
+        content: "Hi! I'm AIN, your Auto Intelligence Network assistant. Ask me anything about vehicle valuations, market trends, or car pricing!"
+      });
+      setInitial(false);
+    }
+  }, [messages.length, addMessage]);
 
-    addMessage({
-      role: 'user',
-      content: input,
-    });
+  const defaultSuggestions = [
+    'Try asking about a VIN value',
+    'Ask: "What\'s the best price for a 2017 Civic?"',
+    'Type: "Help me value my car"'
+  ];
 
-    setInput('');
+  const sendMessage = async (retryMessage?: string) => {
+    const messageContent = retryMessage || input.trim();
+    if (!messageContent) return;
+
+    // Add user message if not retrying
+    if (!retryMessage) {
+      addMessage({
+        role: 'user',
+        content: messageContent
+      });
+    }
+
+    if (!retryMessage) setInput('');
     setLoading(true);
+    setError(null);
+    setInitial(false);
 
     try {
       const response = await askAI({
-        message: input,
+        question: messageContent,
         userContext: {
-          isPremium: false,
+          isPremium,
           hasDealerAccess: false
         },
-        chatHistory: messages,
+        chatHistory: messages.slice(0, -1) // Exclude the current message
       });
 
-      if (response.error) {
-        setError(response.error);
-        addMessage({
-          role: 'assistant',
-          content: `Error: ${response.error}`,
-        });
-      } else if (response.answer || response.response) {
-        setError(null);
-        addMessage({
-          role: 'assistant',
-          content: response.answer || response.response || 'No response received.',
-        });
-      } else {
-        setError('No response from AIN.');
-        addMessage({
-          role: 'assistant',
-          content: 'No response received. Please try again.',
-        });
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to send message.');
       addMessage({
         role: 'assistant',
-        content: `Error: ${err.message || 'Failed to send message.'}`,
+        content: response.answer
       });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to get response from AIN. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      handleSendMessage();
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await sendMessage();
   };
 
-  const renderMessageContent = (message: any) => {
-    if (message.content.startsWith('Error:')) {
-      return <div className="text-red-500">{message.content}</div>;
+  const handleRetry = async () => {
+    const lastUserMessage = messages
+      .filter(m => m.role === 'user')
+      .pop();
+    
+    if (lastUserMessage) {
+      await sendMessage(lastUserMessage.content);
     }
-    return <ReactMarkdown className="markdown">{message.content}</ReactMarkdown>;
   };
 
   return (
-    <div className={cn("fixed z-50 bottom-6 right-6 rounded-md shadow-lg overflow-hidden transition-all duration-300 ease-in-out", 
-      isOpen ? 'w-96 h-[600px]' : 'w-12 h-12',
-      isMinimized ? 'h-12' : '',
-      className
-    )}>
-      <div 
-        className="flex items-center justify-between p-3 bg-secondary cursor-pointer"
-        onClick={toggleOpen}
-      >
-        <div className="flex items-center gap-2">
-          <Bot className="w-5 h-5 text-primary" />
-          <span className="text-sm font-medium">AIN Assistant</span>
-        </div>
-        {isOpen ? (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={(e) => {
-              e.stopPropagation();
-              clearMessages();
-            }}
+    <div className="flex flex-col h-full max-w-2xl mx-auto bg-background border rounded-3xl shadow-2xl">
+      {/* Chat Messages Area */}
+      <div ref={scrollRef} className="flex-1 bg-muted rounded-t-2xl p-5 space-y-4 h-[500px] overflow-y-auto border border-muted-foreground">
+        {initial && messages.length <= 1 && (
+          <div className="text-center text-muted-foreground text-sm">
+            <div className="mb-3 font-semibold text-lg">👋 Hi there! I'm <strong>AIN</strong> — Ask me anything.</div>
+            <ul className="list-disc list-inside text-sm text-muted-foreground">
+              {defaultSuggestions.map((tip, idx) => (
+                <li key={idx}>{tip}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex items-end gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <RefreshCw className="w-4 h-4" />
-          </Button>
-        ) : (
-          <MessageSquare className="w-5 h-5 text-primary" />
+            {message.role === 'assistant' && (
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                <Bot className="h-4 w-4 text-white" />
+              </div>
+            )}
+            
+            <div
+              className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-md ${
+                message.role === 'user'
+                  ? 'bg-primary text-white'
+                  : 'bg-white text-gray-900 border border-gray-200'
+              }`}
+            >
+              <div className="whitespace-pre-wrap">
+                {message.role === 'assistant' ? (
+                  <ReactMarkdown className="prose prose-sm dark:prose-invert">
+                    {message.content}
+                  </ReactMarkdown>
+                ) : (
+                  message.content
+                )}
+              </div>
+              <div className="text-xs opacity-70 mt-1">
+                {new Date(message.timestamp).toLocaleTimeString([], { 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                })}
+              </div>
+            </div>
+
+            {message.role === 'user' && (
+              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                <User className="h-4 w-4 text-muted-foreground" />
+              </div>
+            )}
+          </div>
+        ))}
+
+        {isLoading && (
+          <div className="flex items-center text-muted-foreground text-sm gap-2">
+            <Loader2 className="animate-spin w-4 h-4" />
+            <span>AIN is thinking...</span>
+          </div>
         )}
       </div>
 
-      {isOpen && !isMinimized && (
-        <div className="flex flex-col h-[calc(600px-48px)] bg-background">
-          <div 
-            ref={chatContainerRef}
-            className="flex-grow overflow-y-auto p-4 space-y-2"
-          >
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex flex-col text-sm ${message.role === 'user' ? 'items-end' : 'items-start'}`}
-              >
-                <div
-                  className={cn(
-                    "px-3 py-2 rounded-md inline-block",
-                    message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                  )}
-                >
-                  {renderMessageContent(message)}
-                </div>
-                <span className="text-xs text-muted-foreground mt-1">
-                  {message.role === 'user' ? 'You' : 'AIN'} - {message.timestamp.toLocaleTimeString()}
-                </span>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex items-start">
-                <Bot className="w-4 h-4 mr-2 text-muted-foreground animate-pulse" />
-                <span className="text-sm text-muted-foreground">AIN is thinking...</span>
-              </div>
-            )}
-            {error && (
-              <div className="text-red-500 text-sm">Error: {error}</div>
-            )}
-          </div>
-
-          <form onSubmit={(e) => {
-              e.preventDefault();
-              handleSendMessage();
-            }} className="p-4 border-t border-muted">
-            <div className="relative">
-              <Input
-                type="text"
-                placeholder="Type your message..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                disabled={isLoading}
-                className="pr-10"
-              />
-              <Button
-                type="submit"
-                className="absolute right-1 top-1 rounded-md"
-                size="sm"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  'Send'
-                )}
-              </Button>
-            </div>
-          </form>
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-100 text-red-700 rounded-md p-3 text-sm flex justify-between items-center shadow mx-5 mb-3">
+          <span>{error}</span>
+          <Button size="sm" variant="outline" onClick={handleRetry} className="ml-2">
+            <RefreshCw size={14} className="mr-1" /> Retry
+          </Button>
         </div>
       )}
+
+      {/* Input Area - Made more prominent */}
+      <div className="p-5 border-t bg-background rounded-b-2xl">
+        <form onSubmit={handleSubmit} className="flex gap-3">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask me anything about vehicle valuations..."
+            className="flex-1 h-12 px-4 rounded-full border-2 border-muted focus:border-primary"
+            disabled={isLoading}
+          />
+          <Button 
+            type="submit" 
+            disabled={isLoading || !input.trim()} 
+            className="h-12 px-6 rounded-full bg-primary hover:bg-primary/90"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              'Send'
+            )}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 };

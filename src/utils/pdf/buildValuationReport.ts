@@ -1,63 +1,7 @@
-
 import { ValuationResult } from '@/types/valuation';
 
-interface ReportData {
-  id: string;
-  make: string;
-  model: string;
-  year: number;
-  mileage: number;
-  condition: string;
-  price: number;
-  zipCode: string;
-  vin: string;
-  fuelType: string;
-  transmission: string;
-  color: string;
-  bodyType: string;
-  confidenceScore: number;
-  isPremium: boolean;
-  priceRange: [number, number];
-  adjustments: Array<{
-    factor: string;
-    impact: number;
-    description: string;
-  }>;
-  generatedAt: string;
-  explanation: string;
-  userId: string;
-  vehicle: {
-    year: number;
-    make: string;
-    model: string;
-    vin?: string;
-    mileage?: number;
-    condition?: string;
-    fuelType?: string;
-    transmission?: string;
-    bodyType?: string;
-    color?: string;
-    trim?: string;
-  };
-  valuation: {
-    estimatedValue: number;
-    confidenceScore?: number;
-    priceRange?: { min: number; max: number };
-    adjustments?: Array<{
-      factor: string;
-      impact: number;
-      description?: string;
-    }>;
-  };
-  aiCondition?: {
-    condition: string;
-    confidenceScore: number;
-    issuesDetected: string[];
-  };
-}
-
-export const buildValuationReport = (data: ValuationResult | null): ReportData => {
-  if (!data) {
+export const buildValuationReport = (result: ValuationResult | null, includeCarfax: boolean = false, templateType: 'basic' | 'premium' = 'basic') => {
+  if (!result) {
     return {
       id: 'N/A',
       make: 'N/A',
@@ -74,103 +18,49 @@ export const buildValuationReport = (data: ValuationResult | null): ReportData =
       bodyType: 'N/A',
       confidenceScore: 0,
       isPremium: false,
-      priceRange: [0, 0],
+      priceRange: [0, 0] as [number, number],
       adjustments: [],
       generatedAt: new Date().toISOString(),
       explanation: 'N/A',
       userId: 'N/A',
-      vehicle: {
-        year: 0,
-        make: 'N/A',
-        model: 'N/A',
-        vin: 'N/A',
-        mileage: 0,
-        condition: 'N/A',
-        fuelType: 'N/A',
-        transmission: 'N/A',
-        bodyType: 'N/A',
-        color: 'N/A',
-        trim: 'N/A'
-      },
-      valuation: {
-        estimatedValue: 0,
-        confidenceScore: 0,
-        priceRange: { min: 0, max: 0 },
-        adjustments: []
-      }
     };
   }
 
-  // Handle price range - check if it's an object or array
-  let priceRange: { min: number; max: number } | undefined;
-  let priceRangeArray: [number, number] = [0, 0];
-  
-  if (data.price_range) {
-    if (typeof data.price_range === 'object' && 'low' in data.price_range && 'high' in data.price_range) {
-      priceRange = {
-        min: data.price_range.min || data.price_range.low,
-        max: data.price_range.max || data.price_range.high
-      };
-      priceRangeArray = [priceRange.min, priceRange.max];
+  // Handle different price range formats
+  let formattedPriceRange: [number, number] = [0, 0];
+  if (Array.isArray(result.priceRange)) {
+    if (result.priceRange.length >= 2) {
+      formattedPriceRange = [result.priceRange[0], result.priceRange[1]];
+    } else if (result.priceRange.length === 1) {
+      formattedPriceRange = [result.priceRange[0], result.priceRange[0]];
     }
-  } else if (data.priceRange && Array.isArray(data.priceRange) && data.priceRange.length >= 2) {
-    priceRange = {
-      min: data.priceRange[0],
-      max: data.priceRange[1]
-    };
-    priceRangeArray = [data.priceRange[0], data.priceRange[1]];
+  } else if (result.priceRange && typeof result.priceRange === 'object' && 'min' in result.priceRange && 'max' in result.priceRange) {
+    formattedPriceRange = [result.priceRange.min, result.priceRange.max];
   }
-
-  const adjustments = (data.adjustments || []).map(adj => ({
-    factor: adj.factor || '',
-    impact: adj.impact || 0,
-    description: adj.description || ''
-  }));
 
   return {
-    id: data.id || 'N/A',
-    make: data.make || 'N/A',
-    model: data.model || 'N/A',
-    year: data.year || 0,
-    mileage: data.mileage || 0,
-    condition: data.condition || 'N/A',
-    price: data.estimatedValue || data.estimated_value || 0,
-    zipCode: data.zipCode || 'N/A',
-    vin: data.vin || 'N/A',
-    fuelType: data.fuelType || 'N/A',
-    transmission: data.transmission || 'N/A',
-    color: data.color || 'N/A',
-    bodyType: data.bodyType || 'N/A',
-    confidenceScore: data.confidenceScore || data.confidence_score || 0,
-    isPremium: data.isPremium || data.premium_unlocked || false,
-    priceRange: priceRangeArray,
-    adjustments,
+    id: result.id || 'N/A',
+    make: result.make || 'N/A',
+    model: result.model || 'N/A',
+    year: result.year || 0,
+    mileage: result.mileage || 0,
+    condition: result.condition || 'N/A',
+    price: result.estimatedValue || result.estimated_value || 0,
+    zipCode: result.zipCode || 'N/A',
+    vin: result.vin || 'N/A',
+    fuelType: result.fuelType || result.fuel_type || 'N/A',
+    transmission: result.transmission || 'N/A',
+    color: result.color || 'N/A',
+    bodyType: result.bodyType || result.body_type || 'N/A',
+    confidenceScore: result.confidenceScore || result.confidence_score || 0,
+    isPremium: result.isPremium || result.premium_unlocked || false,
+    priceRange: formattedPriceRange,
+    adjustments: result.adjustments || [],
     generatedAt: new Date().toISOString(),
-    explanation: data.explanation || data.gptExplanation || 'N/A',
-    userId: data.userId || 'N/A',
-    vehicle: {
-      year: data.year,
-      make: data.make,
-      model: data.model,
-      vin: data.vin,
-      mileage: data.mileage,
-      condition: data.condition,
-      fuelType: data.fuelType,
-      transmission: data.transmission,
-      bodyType: data.bodyType,
-      color: data.color,
-      trim: data.trim
-    },
-    valuation: {
-      estimatedValue: data.estimatedValue || data.estimated_value || 0,
-      confidenceScore: data.confidenceScore || data.confidence_score,
-      priceRange,
-      adjustments: data.adjustments
-    },
-    aiCondition: data.aiCondition ? {
-      condition: data.condition || 'Unknown',
-      confidenceScore: data.confidenceScore || data.confidence_score || 0,
-      issuesDetected: []
-    } : undefined
+    explanation: result.explanation || result.gptExplanation || 'N/A',
+    userId: result.userId || 'N/A',
+    trim: result.trim || 'N/A',
   };
 };
+
+export default buildValuationReport;

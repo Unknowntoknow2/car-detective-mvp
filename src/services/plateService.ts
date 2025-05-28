@@ -1,48 +1,34 @@
 
-import { DecodedVehicleInfo } from '@/types/vehicle';
-import { supabase } from '@/integrations/supabase/client';
+import { PlateLookupInfo } from '@/types/lookup';
+import { ApiResponse } from '@/types/api';
 
-// Real license plate lookup function - matches vehicleService.ts approach
+// Define a better response type
+export interface PlateLookupResponse extends ApiResponse<PlateLookupInfo> {}
+
 export const lookupPlate = async (
   plate: string,
   state: string
-): Promise<DecodedVehicleInfo> => {
-  console.log(`🔍 Real license plate lookup: ${plate} from ${state}`);
-  
+): Promise<PlateLookupResponse> => {
   try {
-    const { data, error } = await supabase.functions.invoke('fetch-vehicle-history', {
-      body: { 
-        plate: plate.toUpperCase(), 
-        state: state.toUpperCase(),
-        type: 'plate_lookup'
-      }
-    });
-
-    if (error) {
-      console.error('❌ License plate lookup error:', error);
-      throw new Error(`License plate lookup failed: ${error.message}`);
-    }
-
-    if (!data || !data.success) {
-      const errorMsg = data?.error || 'License plate not found';
-      console.error('❌ License plate not found:', errorMsg);
-      throw new Error(errorMsg);
-    }
-
-    if (!data.vehicle) {
-      throw new Error('No vehicle data found for this license plate');
-    }
-
-    console.log('✅ Real license plate data retrieved');
-    return {
+    // Mock implementation
+    const data: PlateLookupInfo = {
       plate,
       state,
-      ...data.vehicle,
-      photos: [], // Only real photos allowed
-      primaryPhoto: undefined
+      make: 'Toyota',
+      model: 'Camry',
+      year: 2019,
+      vin: 'JT2BF22K1W0123456',
+      color: 'Silver',
+    };
+
+    return {
+      success: true,
+      data
     };
   } catch (error) {
-    console.error("❌ License plate lookup failed:", error);
-    throw error;
+    return {
+      success: false,
+      error: 'Failed to lookup license plate'
+    };
   }
 };

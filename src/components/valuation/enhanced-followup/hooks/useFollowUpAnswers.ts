@@ -6,10 +6,13 @@ import { toast } from 'sonner';
 
 export function useFollowUpAnswers(vin: string, valuationId?: string) {
   const [answers, setAnswers] = useState<FollowUpAnswers>({
+    vin,
+    valuation_id: valuationId,
     accidents: { hadAccident: false },
     modifications: { modified: false },
-    dashboardLights: [],
-    completionPercentage: 0
+    dashboard_lights: [],
+    completion_percentage: 0,
+    is_complete: false
   });
   
   const [loading, setLoading] = useState(false);
@@ -38,7 +41,7 @@ export function useFollowUpAnswers(vin: string, valuationId?: string) {
             ...data,
             accidents: data.accidents || { hadAccident: false },
             modifications: data.modifications || { modified: false },
-            dashboardLights: data.dashboard_lights || []
+            dashboard_lights: data.dashboard_lights || []
           });
         }
       } catch (error) {
@@ -68,27 +71,27 @@ export function useFollowUpAnswers(vin: string, valuationId?: string) {
       let completedFields = 0;
       
       if (answersToSave.mileage) completedFields++;
-      if (answersToSave.zipCode) completedFields++;
+      if (answersToSave.zip_code) completedFields++;
       if (answersToSave.condition) completedFields++;
       if (answersToSave.accidents?.hadAccident !== undefined) completedFields++;
-      if (answersToSave.serviceHistory) completedFields++;
-      if (answersToSave.maintenanceStatus) completedFields++;
-      if (answersToSave.titleStatus) completedFields++;
-      if (answersToSave.previousOwners) completedFields++;
-      if (answersToSave.previousUse) completedFields++;
-      if (answersToSave.tireCondition) completedFields++;
-      if (answersToSave.dashboardLights?.length) completedFields++;
-      if (answersToSave.frameDamage !== undefined) completedFields++;
+      if (answersToSave.service_history) completedFields++;
+      if (answersToSave.maintenance_status) completedFields++;
+      if (answersToSave.title_status) completedFields++;
+      if (answersToSave.previous_owners) completedFields++;
+      if (answersToSave.previous_use) completedFields++;
+      if (answersToSave.tire_condition) completedFields++;
+      if (answersToSave.dashboard_lights?.length) completedFields++;
+      if (answersToSave.frame_damage !== undefined) completedFields++;
       if (answersToSave.modifications?.modified !== undefined) completedFields++;
 
-      const completionPercentage = Math.round((completedFields / totalFields) * 100);
-      const isComplete = completionPercentage >= 80;
+      const completion_percentage = Math.round((completedFields / totalFields) * 100);
+      const is_complete = completion_percentage >= 80;
 
       const dataToSave = {
         ...answersToSave,
         user_id: user.id,
-        completion_percentage: completionPercentage,
-        is_complete: isComplete
+        completion_percentage,
+        is_complete
       };
 
       const { error } = await supabase

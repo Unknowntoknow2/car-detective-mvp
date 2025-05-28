@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PremiumManualEntryForm } from '@/components/lookup/manual/PremiumManualEntryForm';
+import { ManualLookup } from '@/components/premium/lookup/ManualLookup';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
 interface PremiumManualLookupProps {
@@ -21,10 +21,10 @@ export function PremiumManualLookup({ onSubmit, isLoading = false }: PremiumManu
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Premium Manual Vehicle Entry</CardTitle>
+        <CardTitle>Manual Vehicle Entry</CardTitle>
       </CardHeader>
       <CardContent>
-        <PremiumManualEntryForm
+        <ManualLookup
           onSubmit={handleSubmit}
           isLoading={isLoading}
           submitButtonText="Get Premium Valuation"

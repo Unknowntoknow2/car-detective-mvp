@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { PremiumManualEntryForm } from "@/components/lookup/manual/PremiumManualEntryForm";
+import { ManualEntryForm } from "@/components/lookup/ManualEntryForm";
 import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
 
 interface ManualEntryTabProps {
@@ -16,10 +16,11 @@ export function ManualEntryTab({
   return (
     <Card>
       <CardContent className="p-6">
-        <PremiumManualEntryForm
+        <ManualEntryForm
           onSubmit={onSubmit}
           isLoading={isLoading}
           submitButtonText="Continue"
+          isPremium={true}
         />
       </CardContent>
     </Card>

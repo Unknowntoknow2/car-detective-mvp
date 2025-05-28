@@ -1,10 +1,12 @@
 
-export interface CarPricePredictionData {
+import { supabase } from '@/integrations/supabase/client';
+
+export interface CarPricePredictionRequest {
   make: string;
   model: string;
   year: number;
   mileage: number;
-  condition: string;
+  condition?: string;
   zipCode: string;
   fuelType?: string;
   transmission?: string;
@@ -13,52 +15,74 @@ export interface CarPricePredictionData {
   vin?: string;
 }
 
-export interface CarPricePredictionResult {
+export interface CarPricePredictionResponse {
+  estimatedValue: number;
+  confidenceScore: number;
+  conditionScore: number;
   make: string;
   model: string;
   year: number;
   mileage: number;
-  fuelType: string;
-  transmission: string;
-  bodyType: string;
-  color: string;
-  estimatedValue: number;
-  confidenceScore: number;
-  priceRange: [number, number];
-  valuationFactors: Array<{
-    factor: string;
-    impact: number;
-  }>;
+  condition?: string;
+  vin?: string;
+  fuelType?: string;
+  transmission?: string;
+  bodyType?: string;
+  color?: string;
+  valuationId?: string;
 }
 
-export async function getCarPricePrediction(data: CarPricePredictionData): Promise<CarPricePredictionResult> {
-  // Mock implementation - replace with actual API call
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  const baseValue = 20000;
-  const yearFactor = (data.year - 2010) * 500;
-  const mileageFactor = -(data.mileage / 10000) * 1000;
-  const conditionFactor = data.condition === 'excellent' ? 2000 : 
-                         data.condition === 'good' ? 0 : -2000;
-  
-  const estimatedValue = Math.max(5000, baseValue + yearFactor + mileageFactor + conditionFactor);
-  
-  return {
-    make: data.make,
-    model: data.model,
-    year: data.year,
-    mileage: data.mileage,
-    fuelType: data.fuelType || 'Gasoline',
-    transmission: data.transmission || 'Automatic',
-    bodyType: data.bodyType || 'Sedan',
-    color: data.color || 'Unknown',
-    estimatedValue,
-    confidenceScore: 85,
-    priceRange: [estimatedValue * 0.9, estimatedValue * 1.1],
-    valuationFactors: [
-      { factor: 'Year', impact: yearFactor },
-      { factor: 'Mileage', impact: mileageFactor },
-      { factor: 'Condition', impact: conditionFactor }
-    ]
-  };
+export async function getCarPricePrediction(
+  request: CarPricePredictionRequest
+): Promise<CarPricePredictionResponse> {
+  try {
+    console.log('Calling car-price-prediction with:', request);
+    
+    const { data, error } = await supabase.functions.invoke('car-price-prediction', {
+      body: {
+        make: request.make,
+        model: request.model,
+        year: request.year,
+        mileage: request.mileage,
+        condition: request.condition || 'good',
+        zipCode: request.zipCode,
+        fuelType: request.fuelType,
+        transmission: request.transmission,
+        color: request.color,
+        bodyType: request.bodyType,
+        vin: request.vin
+      }
+    });
+
+    if (error) {
+      console.error('Car price prediction error:', error);
+      throw new Error(error.message || 'Failed to get price prediction');
+    }
+
+    if (!data) {
+      throw new Error('No data returned from price prediction service');
+    }
+
+    console.log('Car price prediction success:', data);
+
+    return {
+      estimatedValue: data.estimatedValue || 0,
+      confidenceScore: data.confidenceScore || 0,
+      conditionScore: data.conditionScore || 0,
+      make: data.make || request.make,
+      model: data.model || request.model,
+      year: data.year || request.year,
+      mileage: data.mileage || request.mileage,
+      condition: data.condition || request.condition,
+      vin: data.vin || request.vin,
+      fuelType: data.fuelType || request.fuelType,
+      transmission: data.transmission || request.transmission,
+      bodyType: data.bodyType || request.bodyType,
+      color: data.color || request.color,
+      valuationId: data.id || data.valuationId
+    };
+  } catch (error) {
+    console.error('Error calling car price prediction:', error);
+    throw error;
+  }
 }

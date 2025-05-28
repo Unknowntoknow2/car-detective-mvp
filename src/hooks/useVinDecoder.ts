@@ -11,24 +11,29 @@ export function useVinDecoder() {
   const [valuationId, setValuationId] = useState<string | null>(null);
 
   const lookupVin = async (vin: string) => {
+    // Reset state
     setError(null);
     setIsLoading(true);
     setResult(null);
 
     try {
+      // Validate VIN format first
       const validation = validateVIN(vin);
       if (!validation.isValid) {
         throw new Error(validation.error || 'Invalid VIN format');
       }
 
+      // Call the VIN decoder service
       const response = await decodeVin(vin);
       
       if (!response.success) {
         throw new Error(response.error || 'Failed to decode VIN');
       }
 
+      // Generate a temporary valuation ID if not provided by the API
       const tempValuationId = `vin-lookup-${Date.now()}`;
       
+      // Set the result and valuationId
       if (response.data) {
         const responseData = {
           ...response.data,

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { PremiumManualEntryForm } from '@/components/lookup/manual/PremiumManualEntryForm';
+import { ManualLookup as StandardManualLookup } from '@/components/lookup/ManualLookup';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
 interface PremiumManualLookupProps {
@@ -21,11 +21,13 @@ export function ManualLookup({
   initialData,
   onCancel
 }: PremiumManualLookupProps) {
+  // We're reusing the standard ManualLookup but with premium flag set to true
   return (
-    <PremiumManualEntryForm
+    <StandardManualLookup
       onSubmit={onSubmit}
       isLoading={isLoading}
       submitButtonText={submitButtonText}
+      isPremium={true}
       initialData={initialData}
       onCancel={onCancel}
     />

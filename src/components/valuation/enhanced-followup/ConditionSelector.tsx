@@ -29,7 +29,7 @@ export function ConditionSelector({ value, onChange }: ConditionSelectorProps) {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {CONDITION_OPTIONS.map((option: typeof CONDITION_OPTIONS[number]) => (
+        {CONDITION_OPTIONS.map((option) => (
           <Card 
             key={option.value}
             className={`cursor-pointer transition-all hover:shadow-md ${

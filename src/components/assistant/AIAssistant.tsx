@@ -4,7 +4,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useAINStore } from '@/stores/useAINStore';
-import { askAI } from '@/api/askAI';
+import { askAIN } from '@/services/ainService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, RefreshCw, Bot, User, MessageSquare } from 'lucide-react';
@@ -53,14 +53,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ className }) => {
     setLoading(true);
 
     try {
-      const response = await askAI({
-        message: input,
-        userContext: {
-          isPremium: false,
-          hasDealerAccess: false
-        },
-        chatHistory: messages,
-      });
+      const response = await askAIN(input);
 
       if (response.error) {
         setError(response.error);
@@ -68,11 +61,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ className }) => {
           role: 'assistant',
           content: `Error: ${response.error}`,
         });
-      } else if (response.answer || response.response) {
+      } else if (response.answer) {
         setError(null);
         addMessage({
           role: 'assistant',
-          content: response.answer || response.response || 'No response received.',
+          content: response.answer,
         });
       } else {
         setError('No response from AIN.');

@@ -30,7 +30,7 @@ export function ModificationsSection({
     if (checked) {
       onChange({ ...value, types: [...types, type] });
     } else {
-      onChange({ ...value, types: types.filter((t: string) => t !== type) });
+      onChange({ ...value, types: types.filter(t => t !== type) });
     }
   };
 
@@ -76,7 +76,7 @@ export function ModificationsSection({
             <div>
               <Label className="text-base font-medium mb-3 block">What types of modifications?</Label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {MODIFICATION_TYPES.map((type: string) => (
+                {MODIFICATION_TYPES.map((type) => (
                   <div key={type} className="flex items-center space-x-2">
                     <Checkbox
                       id={type}

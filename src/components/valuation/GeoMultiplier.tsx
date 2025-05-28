@@ -1,8 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import { useOsmGeocode } from '@/hooks/useOsmGeocode';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, MapPin } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { getMarketMultiplier, getMarketMultiplierDescription } from '@/utils/valuation/marketData';
 
 interface GeoMultiplierProps {
@@ -23,7 +23,7 @@ export const GeoMultiplier: React.FC<GeoMultiplierProps> = ({ zip }) => {
         const multiplier = await getMarketMultiplier(zip);
         setMarketMultiplier(multiplier);
       } catch (error) {
-        // Silent fail for market multiplier
+        console.error('Exception in fetchMarketMultiplier:', error);
       } finally {
         setIsLoadingMultiplier(false);
       }
@@ -33,6 +33,7 @@ export const GeoMultiplier: React.FC<GeoMultiplierProps> = ({ zip }) => {
   }, [zip]);
   
   const getLocationImpact = (): { percentage: number; description: string } => {
+    // If we have a specific market multiplier from the database, use it
     if (marketMultiplier !== null) {
       return { 
         percentage: marketMultiplier, 
@@ -40,12 +41,15 @@ export const GeoMultiplier: React.FC<GeoMultiplierProps> = ({ zip }) => {
       };
     }
     
+    // Otherwise, fallback to geocode-based logic
     if (!geocodeData?.data || geocodeData.data.length === 0) {
       return { percentage: 0, description: 'Location data unavailable' };
     }
     
+    // Get the first result
     const location = geocodeData.data[0];
     
+    // Check if it's a high-density area based on the location type and class
     const isUrban = location.type === 'city' || 
                    location.type === 'town' || 
                    location.display_name.toLowerCase().includes('new york') ||

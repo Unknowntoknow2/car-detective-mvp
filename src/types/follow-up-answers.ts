@@ -14,75 +14,116 @@ export interface ModificationDetails {
 }
 
 export interface FollowUpAnswers {
+  id?: string;
+  vin: string;
+  valuation_id?: string;
+  user_id?: string;
+  
+  // Basic vehicle info
   mileage?: number;
-  condition?: string;
-  zipCode?: string;
+  zip_code?: string;
+  condition?: 'excellent' | 'good' | 'fair' | 'poor';
+  
+  // Accident history
   accidents?: AccidentDetails;
-  maintenanceStatus?: string;
-  tireCondition?: string;
-  serviceHistory?: string;
-  titleStatus?: string;
-  previousUse?: string;
+  
+  // Service and maintenance
+  service_history?: string;
+  maintenance_status?: string;
+  last_service_date?: string;
+  
+  // Title and ownership
+  title_status?: string;
+  previous_owners?: number;
+  previous_use?: string;
+  
+  // Physical condition
+  tire_condition?: string;
+  dashboard_lights?: string[];
+  frame_damage?: boolean;
+  
+  // Modifications
   modifications?: ModificationDetails;
-  dashboardLights?: string[];
-  frameDamage?: boolean;
-  previousOwners?: number;
-  completionPercentage?: number;
+  
+  // Metadata
+  completion_percentage?: number;
+  is_complete?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export const CONDITION_OPTIONS = [
-  { value: 'excellent', label: 'Excellent', description: 'Like new condition, no visible wear', impact: 'Highest value' },
-  { value: 'good', label: 'Good', description: 'Normal wear for age, well maintained', impact: 'Good value' },
-  { value: 'fair', label: 'Fair', description: 'Shows consistent use, minor issues', impact: 'Reduced value' },
-  { value: 'poor', label: 'Poor', description: 'Significant issues, needs repairs', impact: 'Lowest value' }
-] as const;
-
-export const DASHBOARD_LIGHTS = [
-  { value: 'none', label: 'None', icon: '✅', impact: 'No impact on value' },
-  { value: 'check-engine', label: 'Check Engine', icon: '🔧', impact: 'May reduce value significantly' },
-  { value: 'abs', label: 'ABS Warning', icon: '🛑', impact: 'Safety concern, affects value' },
-  { value: 'airbag', label: 'Airbag Warning', icon: '🚨', impact: 'Major safety issue' },
-  { value: 'oil-pressure', label: 'Oil Pressure', icon: '🛢️', impact: 'Engine concern' },
-  { value: 'battery', label: 'Battery', icon: '🔋', impact: 'Electrical system issue' },
-  { value: 'tire-pressure', label: 'Tire Pressure', icon: '🚗', impact: 'Minor impact' }
+  {
+    value: 'excellent',
+    label: 'Excellent',
+    description: 'No cosmetic/mechanical issues. Fully serviced.',
+    impact: '+15% to +20% value'
+  },
+  {
+    value: 'good',
+    label: 'Good',
+    description: 'Minor wear, no major damage.',
+    impact: 'Market value baseline'
+  },
+  {
+    value: 'fair',
+    label: 'Fair',
+    description: 'Visible damage or mechanical issues.',
+    impact: '-10% to -20% value'
+  },
+  {
+    value: 'poor',
+    label: 'Poor',
+    description: 'Needs repair or has structural concerns.',
+    impact: '-25% to -40% value'
+  }
 ] as const;
 
 export const SERVICE_HISTORY_OPTIONS = [
-  { value: 'complete', label: 'Complete Service History', description: 'All maintenance records available', impact: 'Positive impact on value' },
-  { value: 'partial', label: 'Partial Service History', description: 'Some maintenance records available', impact: 'Neutral impact' },
-  { value: 'unknown', label: 'Unknown Service History', description: 'No service records available', impact: 'May reduce value' }
+  { value: 'dealer', label: 'Dealer-maintained', impact: '+5% to +10% value' },
+  { value: 'independent', label: 'Independent mechanic', impact: '+2% to +5% value' },
+  { value: 'owner', label: 'Owner-maintained', impact: 'Neutral impact' },
+  { value: 'unknown', label: 'No known history', impact: '-5% to -10% value' }
 ] as const;
 
 export const TITLE_STATUS_OPTIONS = [
-  { value: 'clean', label: 'Clean Title', description: 'No issues with ownership', impact: 'No impact on value' },
-  { value: 'salvage', label: 'Salvage Title', description: 'Previously declared total loss', impact: 'Significantly reduces value' },
-  { value: 'flood', label: 'Flood Damage', description: 'Water damage reported', impact: 'Major reduction in value' },
-  { value: 'lemon', label: 'Lemon Title', description: 'Manufacturer buyback', impact: 'Reduces value' }
+  { value: 'clean', label: 'Clean', impact: 'Full market value' },
+  { value: 'salvage', label: 'Salvage', impact: '-40% to -60% value' },
+  { value: 'rebuilt', label: 'Rebuilt', impact: '-20% to -40% value' },
+  { value: 'branded', label: 'Branded', impact: '-15% to -30% value' },
+  { value: 'lemon', label: 'Lemon Law', impact: '-30% to -50% value' }
 ] as const;
 
 export const TIRE_CONDITION_OPTIONS = [
-  { value: 'excellent', label: 'Excellent', description: 'New or nearly new tires', impact: 'Positive impact on value' },
-  { value: 'good', label: 'Good', description: 'Tires in good condition with plenty of tread', impact: 'No impact on value' },
-  { value: 'fair', label: 'Fair', description: 'Tires show wear but still safe', impact: 'Minor reduction' },
-  { value: 'poor', label: 'Poor', description: 'Tires need replacement soon', impact: 'Reduces value' }
+  { value: 'excellent', label: 'Excellent (8/32"+ tread)', impact: '+2% to +3% value' },
+  { value: 'good', label: 'Good (6–7/32")', impact: 'Neutral impact' },
+  { value: 'worn', label: 'Worn (3–5/32")', impact: '-1% to -2% value' },
+  { value: 'replacement', label: 'Needs Replacement (<3/32")', impact: '-3% to -5% value' }
 ] as const;
 
 export const PREVIOUS_USE_OPTIONS = [
-  { value: 'personal', label: 'Personal Use', description: 'Used for personal transportation', impact: 'Best for value' },
-  { value: 'commercial', label: 'Commercial Use', description: 'Used for business purposes', impact: 'May reduce value' },
-  { value: 'rental', label: 'Rental Vehicle', description: 'Previously used as a rental car', impact: 'Reduces value' },
-  { value: 'lease', label: 'Lease Return', description: 'Previously leased vehicle', impact: 'Minor impact' }
+  { value: 'personal', label: 'Personal', impact: 'Full market value' },
+  { value: 'commercial', label: 'Commercial / Fleet', impact: '-5% to -15% value' },
+  { value: 'rental', label: 'Rental / Ride-share', impact: '-10% to -20% value' },
+  { value: 'emergency', label: 'Police or Emergency', impact: '-15% to -25% value' }
+] as const;
+
+export const DASHBOARD_LIGHTS = [
+  { value: 'check_engine', label: 'Check Engine', icon: '⚠️', impact: '-5% to -15% value' },
+  { value: 'abs', label: 'ABS', icon: '🛑', impact: '-3% to -8% value' },
+  { value: 'tire_pressure', label: 'Tire Pressure', icon: '🛞', impact: '-1% to -3% value' },
+  { value: 'oil', label: 'Oil', icon: '🛢️', impact: '-2% to -5% value' },
+  { value: 'none', label: 'None', icon: '✅', impact: 'No impact' }
 ] as const;
 
 export const MODIFICATION_TYPES = [
-  'Performance',
+  'Lift Kit',
+  'Performance Tune',
+  'Wrap/Paint',
+  'Exhaust System',
+  'Wheels/Tires',
   'Suspension',
-  'Exhaust',
-  'Intake',
-  'Wheels',
-  'Interior',
-  'Exterior',
-  'Audio',
-  'Lighting',
+  'Audio System',
+  'Interior Modifications',
   'Other'
 ] as const;
