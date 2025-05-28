@@ -12,7 +12,7 @@ import { getEnrichedVehicleData, EnrichedVehicleData } from '@/enrichment/getEnr
 
 export default function ValuationResultPage() {
   const { valuationId } = useParams<{ valuationId: string }>();
-  const { data: valuationResult, isLoading, error } = useValuationResult(valuationId);
+  const { data: valuationResult, isLoading, error } = useValuationResult(valuationId || '');
   const { userRole, hasPermiumAccess, isLoading: roleLoading } = useUserRole();
   const [enrichedData, setEnrichedData] = useState<EnrichedVehicleData | null>(null);
   const [isLoadingEnriched, setIsLoadingEnriched] = useState(false);

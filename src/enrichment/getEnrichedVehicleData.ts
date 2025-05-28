@@ -1,27 +1,110 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+export interface AuctionSaleRecord {
+  date: string;
+  auction: string;
+  lotNumber: string;
+  price: number;
+  status: 'Sold' | 'Not Sold';
+  location?: string;
+  mileage?: number;
+}
+
+export interface OwnershipRecord {
+  ownerNumber: number;
+  yearPurchased: number;
+  ownerType: 'Personal' | 'Personal lease' | 'Commercial' | 'Rental' | 'Fleet';
+  estimatedOwnershipLength: string;
+  estimatedMilesPerYear?: number;
+  lastReportedOdometer?: number;
+}
+
+export interface DamageRecord {
+  date: string;
+  owner: number;
+  mileage?: number;
+  damageLocation: string[];
+  severity: 'minor' | 'moderate' | 'severe';
+  description: string;
+  repairStatus?: 'repaired' | 'unrepaired' | 'unknown';
+}
+
+export interface TitleRecord {
+  date: string;
+  state: string;
+  titleType: 'Clean' | 'Salvage' | 'Reconstructed' | 'Lemon' | 'Flood' | 'Total Loss';
+  titleNumber?: string;
+  issuedTo?: string;
+  vehicleColor?: string;
+  loanLienReported?: boolean;
+}
+
+export interface ServiceRecord {
+  date: string;
+  mileage?: number;
+  serviceProvider: string;
+  location: string;
+  serviceType: string[];
+  description: string;
+}
+
+export interface DetailedHistoryEvent {
+  date: string;
+  mileage?: number;
+  source: string;
+  eventType: 'Service' | 'Sale' | 'Registration' | 'Damage' | 'Recall' | 'Warranty' | 'Other';
+  description: string;
+  location?: string;
+  owner?: number;
+}
+
 export interface StatVinData {
   vin: string;
-  statVinData?: {
-    auctionHistory: Array<{
-      date: string;
-      price: number;
-      location: string;
-      condition: string;
-      mileage: number;
-    }>;
-    damageHistory: Array<{
-      type: string;
-      location: string;
-      severity: string;
-    }>;
-    titleHistory: Array<{
-      state: string;
-      type: string;
-      date: string;
-    }>;
+  vehicleDetails: {
+    year: number;
+    make: string;
+    model: string;
+    trim?: string;
+    engine?: string;
+    fuelType?: string;
+    drivetrain?: string;
+    bodyType?: string;
+    country?: string;
   };
+  photos: Array<{
+    url: string;
+    date?: string;
+    auction?: string;
+  }>;
+  auctionSalesHistory: AuctionSaleRecord[];
+  ownershipHistory: OwnershipRecord[];
+  damageHistory: DamageRecord[];
+  titleHistory: TitleRecord[];
+  serviceHistory: ServiceRecord[];
+  detailedHistory: DetailedHistoryEvent[];
+  salesHistory: Array<{
+    date: string;
+    seller: string;
+    sellerLocation?: string;
+    odometer?: number;
+  }>;
+  summaries: {
+    totalRecords: number;
+    photoCount: number;
+    auctionSalesCount: number;
+    ownerCount: number;
+    damageRecordsCount: number;
+    titleRecordsCount: number;
+    serviceRecordsCount: number;
+    hasStructuralDamage: boolean;
+    hasSalvageTitle: boolean;
+    hasAirbagDeployment: boolean;
+    hasOdometerIssues: boolean;
+    hasOpenRecalls: boolean;
+  };
+  reportDate: string;
+  lastUpdated?: string;
 }
 
 export interface EnrichedVehicleData {
