@@ -1,8 +1,5 @@
 
-// Export dealer components
-export * from './hooks';
-export * from './vehicle-upload';
-export * from './inventory';
-export * from './modals';
-export { default as DealerSubscription } from './DealerSubscription';
-export { default as DealerDashboardContent } from './DealerDashboardContent';
+// Export dealer-related components
+export { DealerDashboardContent } from './DealerDashboardContent';
+export { DealerSignupForm } from './DealerSignupForm';
+// Removed vehicle-upload export as the module doesn't exist

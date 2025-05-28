@@ -3,8 +3,6 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useVinDecoderForm } from '@/components/lookup/vin/useVinDecoderForm';
-import VinDecoderResults from '@/components/lookup/vin/VinDecoderResults';
-import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
 
 const VinDecoderForm: React.FC = () => {
   const {
@@ -18,16 +16,7 @@ const VinDecoderForm: React.FC = () => {
     carfaxData,
     isLoadingCarfax,
     carfaxError,
-    stage,
-    pipelineVehicle,
-    requiredInputs,
-    valuationResult,
-    valuationError,
-    pipelineLoading,
     handleSubmit,
-    handleDetailsSubmit,
-    submitValuation,
-    valuationId,
   } = useVinDecoderForm();
 
   const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,11 +25,6 @@ const VinDecoderForm: React.FC = () => {
 
   const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setZipCode(e.target.value);
-  };
-
-  const handleDownloadPdf = () => {
-    console.log('Downloading PDF...');
-    // Implement PDF download logic
   };
 
   return (
@@ -89,20 +73,30 @@ const VinDecoderForm: React.FC = () => {
         </Button>
       </form>
 
-      {(result || pipelineVehicle || valuationResult) && (
-        <VinDecoderResults
-          stage={stage}
-          result={result}
-          pipelineVehicle={pipelineVehicle}
-          requiredInputs={requiredInputs}
-          valuationResult={valuationResult}
-          valuationError={valuationError}
-          pipelineLoading={pipelineLoading}
-          submitValuation={handleDetailsSubmit}
-          vin={vin}
-          carfaxData={carfaxData}
-          onDownloadPdf={handleDownloadPdf}
-        />
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-600">{error}</p>
+        </div>
+      )}
+
+      {result && (
+        <div className="p-4 bg-green-50 border border-green-200 rounded-md">
+          <h3 className="font-semibold text-green-800 mb-2">VIN Lookup Result</h3>
+          <pre className="text-sm text-green-700">{JSON.stringify(result, null, 2)}</pre>
+        </div>
+      )}
+
+      {carfaxData && (
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+          <h3 className="font-semibold text-blue-800 mb-2">Vehicle History Report</h3>
+          <pre className="text-sm text-blue-700">{JSON.stringify(carfaxData, null, 2)}</pre>
+        </div>
+      )}
+
+      {carfaxError && (
+        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+          <p className="text-yellow-600">{carfaxError}</p>
+        </div>
       )}
     </div>
   );

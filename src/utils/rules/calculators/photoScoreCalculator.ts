@@ -1,6 +1,18 @@
 
 import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
-import { getPhotoScoreAdjustmentDescription } from '../../pdf/sections/sectionHelper';
+
+// Simple helper function for photo score descriptions
+function getPhotoScoreAdjustmentDescription(score: number, percentAdjustment: number, adjustment: number): string {
+  if (score >= 0.9) {
+    return `Photo analysis indicates excellent condition (+3% adjustment: +$${Math.abs(adjustment).toLocaleString()})`;
+  } else if (score >= 0.7) {
+    return 'Photo analysis confirms good condition (no adjustment needed)';
+  } else if (score >= 0.5) {
+    return `Photo analysis shows fair condition (-5% adjustment: -$${Math.abs(adjustment).toLocaleString()})`;
+  } else {
+    return `Photo analysis indicates poor condition (-10% adjustment: -$${Math.abs(adjustment).toLocaleString()})`;
+  }
+}
 
 export class PhotoScoreCalculator implements AdjustmentCalculator {
   public calculate(input: RulesEngineInput): AdjustmentBreakdown {
