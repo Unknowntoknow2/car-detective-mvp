@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useValuationResult } from '@/hooks/useValuationResult';
@@ -17,7 +16,7 @@ export default function ValuationResultPage() {
 
   useEffect(() => {
     async function loadEnrichedData() {
-      if (valuationResult?.vin) {
+      if (valuationResult?.vin && valuationResult.make && valuationResult.model && valuationResult.year) {
         setIsLoadingEnriched(true);
         try {
           const enriched = await getEnrichedVehicleData(
