@@ -1,13 +1,19 @@
 
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { Container } from '@/components/ui/container';
 import { VINFollowUpWrapper } from '@/components/followup/VINFollowUpWrapper';
+import { VinDecoderForm } from '@/components/lookup/VinDecoderForm';
 import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
 
 export default function VinLookupPage() {
-  useEffect(() => {
-    console.log('✅ VinLookupPage mounted - Using VINFollowUpWrapper');
-  }, []);
+  const [vin, setVin] = useState<string | null>(null);
+  const [showFollowUp, setShowFollowUp] = useState(false);
+
+  const handleVinSubmit = (vinValue: string) => {
+    console.log("VIN submitted:", vinValue);
+    setVin(vinValue);
+    setShowFollowUp(true);
+  };
 
   return (
     <Container className="max-w-6xl py-10">
@@ -20,7 +26,11 @@ export default function VinLookupPage() {
         </p>
       </div>
       
-      <VINFollowUpWrapper />
+      {!showFollowUp ? (
+        <VinDecoderForm onSubmit={handleVinSubmit} />
+      ) : (
+        <VINFollowUpWrapper vin={vin || ''} />
+      )}
       
       {/* Debug info only visible in development mode */}
       {SHOW_ALL_COMPONENTS && (
@@ -28,6 +38,7 @@ export default function VinLookupPage() {
           <div className="space-y-1">
             <div>Debug Mode: ON</div>
             <div>Component: VINFollowUpWrapper</div>
+            <div>VIN: {vin || 'None'}</div>
           </div>
         </div>
       )}
