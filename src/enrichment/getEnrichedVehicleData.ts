@@ -1,299 +1,415 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { fetchStatVinData } from './sources/fetchStatVinData';
 import { fetchMarketplaceListings, MarketplaceData } from './sources/fetchMarketplaceListings';
-
-export interface AuctionSaleRecord {
-  date: string;
-  auction: string;
-  lotNumber: string;
-  price: number;
-  status: 'Sold' | 'Not Sold';
-  location?: string;
-  mileage?: number;
-}
-
-export interface OwnershipRecord {
-  ownerNumber: number;
-  yearPurchased: number;
-  ownerType: 'Personal' | 'Personal lease' | 'Commercial' | 'Rental' | 'Fleet';
-  estimatedOwnershipLength: string;
-  estimatedMilesPerYear?: number;
-  lastReportedOdometer?: number;
-}
-
-export interface DamageRecord {
-  date: string;
-  owner: number;
-  mileage?: number;
-  damageLocation: string[];
-  severity: 'minor' | 'moderate' | 'severe';
-  description: string;
-  repairStatus?: 'repaired' | 'unrepaired' | 'unknown';
-}
-
-export interface TitleRecord {
-  date: string;
-  state: string;
-  titleType: 'Clean' | 'Salvage' | 'Reconstructed' | 'Lemon' | 'Flood' | 'Total Loss';
-  titleNumber?: string;
-  issuedTo?: string;
-  vehicleColor?: string;
-  loanLienReported?: boolean;
-}
-
-export interface ServiceRecord {
-  date: string;
-  mileage?: number;
-  serviceProvider: string;
-  location: string;
-  serviceType: string[];
-  description: string;
-}
-
-export interface DetailedHistoryEvent {
-  date: string;
-  mileage?: number;
-  source: string;
-  eventType: 'Service' | 'Sale' | 'Registration' | 'Damage' | 'Recall' | 'Warranty' | 'Other';
-  description: string;
-  location?: string;
-  owner?: number;
-}
-
-export interface StatVinData {
-  vin: string;
-  vehicleDetails: {
-    year: number;
-    make: string;
-    model: string;
-    trim?: string;
-    engine?: string;
-    fuelType?: string;
-    drivetrain?: string;
-    bodyType?: string;
-    country?: string;
-  };
-  photos: Array<{
-    url: string;
-    date?: string;
-    auction?: string;
-  }>;
-  auctionSalesHistory: AuctionSaleRecord[];
-  ownershipHistory: OwnershipRecord[];
-  damageHistory: DamageRecord[];
-  titleHistory: TitleRecord[];
-  serviceHistory: ServiceRecord[];
-  detailedHistory: DetailedHistoryEvent[];
-  salesHistory: Array<{
-    date: string;
-    seller: string;
-    sellerLocation?: string;
-    odometer?: number;
-  }>;
-  summaries: {
-    totalRecords: number;
-    photoCount: number;
-    auctionSalesCount: number;
-    ownerCount: number;
-    damageRecordsCount: number;
-    titleRecordsCount: number;
-    serviceRecordsCount: number;
-    hasStructuralDamage: boolean;
-    hasSalvageTitle: boolean;
-    hasAirbagDeployment: boolean;
-    hasOdometerIssues: boolean;
-    hasOpenRecalls: boolean;
-  };
-  reportDate: string;
-  lastUpdated?: string;
-}
+import { StatVinData } from './types';
 
 export interface EnrichedVehicleData {
   vin: string;
-  sources: {
-    statVin: StatVinData | null;
-    marketplaces: MarketplaceData | null;
-    facebook: null;
-    craigslist: null;
-    ebay: null;
-    carsdotcom: null;
-    offerup: null;
+  vehicleDetails: {
+    make?: string;
+    model?: string;
+    year?: string;
+    trim?: string;
+    bodyType?: string;
+    engine?: string;
+    transmission?: string;
+    fuelType?: string;
+    drivetrain?: string;
+    exteriorColor?: string;
+    interiorColor?: string;
+    mileage?: string;
   };
-  marketAnalysis?: {
+  auctionHistory: {
+    totalSales: number;
+    averagePrice?: number;
+    priceRange?: [number, number];
+    mostRecentSale?: {
+      date: string;
+      price: string;
+      location: string;
+      condition?: string;
+      damage?: string;
+    };
+    salesByYear: Array<{
+      year: string;
+      count: number;
+      averagePrice: number;
+    }>;
+  };
+  marketData: MarketplaceData;
+  statVinData: StatVinData | null;
+  conditionAnalysis: {
+    detectedDamage: string[];
+    titleStatus?: string;
+    accidentHistory: boolean;
+    conditionScore: number; // 1-10 scale
+    confidenceLevel: 'high' | 'medium' | 'low';
+  };
+  marketPosition: {
+    isUndervalued: boolean;
+    marketPriceRange: [number, number];
+    competitorCount: number;
     averageMarketPrice: number;
-    auctionDiscount: number;
-    dealerMargin: number;
-    priceConfidence: number;
+    pricePercentile: number; // Where this vehicle sits in market pricing
   };
-  lastUpdated?: string;
-  cached?: boolean;
+  dealerOpportunity: {
+    estimatedAcquisitionCost: number;
+    estimatedRetailValue: number;
+    potentialMargin: number;
+    flipOpportunityScore: number; // 1-100
+    timeToSell: string; // "fast", "medium", "slow"
+  };
+  photos: string[];
+  auctionSalesHistory: Array<{
+    date: string;
+    price: string;
+    location: string;
+    seller: string;
+    condition?: string;
+    damage?: string;
+    mileage?: string;
+  }>;
+  ownershipHistory: {
+    estimatedOwners: number;
+    titleTransfers: number;
+    lastTransferDate?: string;
+  };
+  riskFactors: string[];
+  confidenceScore: number;
+  generatedAt: string;
 }
 
 export async function getEnrichedVehicleData(
   vin: string, 
-  make?: string, 
-  model?: string, 
-  year?: number
+  userHasPremium: boolean = false
 ): Promise<EnrichedVehicleData> {
-  console.log(`🔍 Starting enhanced enriched data fetch for VIN: ${vin}`);
-  
   try {
-    // Check user access level first
-    const { data: { user } } = await supabase.auth.getUser();
+    console.log(`🔍 Enriching data for VIN: ${vin} (Premium: ${userHasPremium})`);
     
-    if (!user) {
-      console.log('❌ User not authenticated');
-      return createEmptyEnrichedData(vin);
-    }
-
-    // Get user profile to check role
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, is_premium_dealer')
-      .eq('id', user.id)
-      .single();
-
-    const hasAccess = profile && (
-      ['premium', 'dealer', 'admin'].includes(profile.role) || 
-      profile.is_premium_dealer
-    );
-
-    if (!hasAccess) {
-      console.log('❌ User does not have premium access');
-      return createEmptyEnrichedData(vin);
-    }
-
-    console.log('✅ User has premium access, fetching comprehensive enrichment data');
-
     // Check cache first
     const { data: cached } = await supabase
       .from('auction_enrichment_by_vin')
       .select('*')
-      .eq('vin', vin)
-      .eq('source', 'comprehensive')
-      .single();
+      .eq('vin', vin.toUpperCase())
+      .gte('updated_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // 24h cache
+      .maybeSingle();
 
-    // Use cache if it's less than 24 hours old
-    if (cached && cached.updated_at) {
-      const cacheAge = Date.now() - new Date(cached.updated_at).getTime();
-      const maxCacheAge = 24 * 60 * 60 * 1000; // 24 hours
-      
-      if (cacheAge < maxCacheAge) {
-        console.log('✅ Using cached comprehensive enrichment data');
-        return {
-          ...cached.data,
-          cached: true,
-          lastUpdated: cached.updated_at,
-        };
-      }
+    if (cached && cached.data) {
+      console.log('✅ Using cached enrichment data');
+      return cached.data as EnrichedVehicleData;
     }
 
-    // Fetch fresh data from all sources
-    console.log('🔄 Fetching fresh data from all sources...');
-    
+    // Premium users get full enrichment, free users get limited data
+    if (!userHasPremium) {
+      console.log('ℹ️ Limited enrichment for free user');
+      return createLimitedEnrichmentData(vin);
+    }
+
+    console.log('🚀 Fetching fresh enrichment data for premium user');
+
+    // Fetch data from all sources in parallel
     const [statVinData, marketplaceData] = await Promise.allSettled([
       fetchStatVinData(vin),
-      make && model && year 
-        ? fetchMarketplaceListings({ make, model, year, zipCode: '90210' }) // Default ZIP for nationwide search
-        : Promise.resolve(null),
+      fetchMarketplaceListings({
+        vin,
+        make: '', // Will be populated from VIN decode
+        model: '',
+        year: 0,
+        zipCode: '90210' // Default for now
+      })
     ]);
 
     const statVin = statVinData.status === 'fulfilled' ? statVinData.value : null;
-    const marketplaces = marketplaceData.status === 'fulfilled' ? marketplaceData.value : null;
-
-    // Calculate market analysis
-    const marketAnalysis = calculateMarketAnalysis(statVin, marketplaces);
-
-    const enrichedData: EnrichedVehicleData = {
-      vin,
-      sources: {
-        statVin,
-        marketplaces,
-        facebook: null,
-        craigslist: null,
-        ebay: null,
-        carsdotcom: null,
-        offerup: null,
-      },
-      marketAnalysis,
-      lastUpdated: new Date().toISOString(),
-      cached: false,
+    const marketplace = marketplaceData.status === 'fulfilled' ? marketplaceData.value : {
+      allListings: [],
+      bySource: { facebook: [], craigslist: [], carscom: [] },
+      priceAnalysis: { averagePrice: 0, medianPrice: 0, priceRange: [0, 0], listingCount: 0 },
+      errors: []
     };
 
-    // Cache the comprehensive data
+    // Build enriched data
+    const enrichedData = buildEnrichedData(vin, statVin, marketplace);
+
+    // Cache the results
     await supabase
       .from('auction_enrichment_by_vin')
-      .upsert({
-        vin,
-        source: 'comprehensive',
+      .upsert([{
+        vin: vin.toUpperCase(),
+        source: 'unified_enrichment',
         data: enrichedData,
-        updated_at: new Date().toISOString(),
-      });
+        updated_at: new Date().toISOString()
+      }]);
 
-    console.log('✅ Comprehensive enriched data compilation complete');
+    console.log('✅ Enrichment completed and cached');
     return enrichedData;
-    
+
   } catch (error) {
-    console.error('❌ Error fetching comprehensive enriched vehicle data:', error);
-    return createEmptyEnrichedData(vin);
+    console.error('❌ Enrichment failed:', error);
+    // Return basic structure on error
+    return createLimitedEnrichmentData(vin);
   }
 }
 
-function calculateMarketAnalysis(
-  statVin: StatVinData | null, 
-  marketplaces: MarketplaceData | null
-) {
-  if (!marketplaces || marketplaces.allListings.length === 0) {
-    return undefined;
-  }
-
-  const averageMarketPrice = marketplaces.priceAnalysis.averagePrice;
-  
-  // Calculate auction discount if we have STAT.vin data
-  let auctionDiscount = 0;
-  if (statVin?.salePrice) {
-    const auctionPrice = parseFloat(statVin.salePrice.replace(/,/g, ''));
-    if (auctionPrice > 0) {
-      auctionDiscount = ((averageMarketPrice - auctionPrice) / averageMarketPrice) * 100;
-    }
-  }
-
-  // Estimate dealer margin (typically 15-25% markup from auction)
-  const dealerMargin = auctionDiscount > 0 ? auctionDiscount * 0.7 : 20; // Default 20% if no auction data
-
-  // Calculate price confidence based on number of listings and data sources
-  const listingCount = marketplaces.allListings.length;
-  const sourceCount = [
-    marketplaces.bySource.facebook.length > 0,
-    marketplaces.bySource.craigslist.length > 0,
-    marketplaces.bySource.carscom.length > 0,
-    statVin !== null,
-  ].filter(Boolean).length;
-
-  const priceConfidence = Math.min(
-    (listingCount * 10) + (sourceCount * 20), 
-    100
-  );
-
-  return {
-    averageMarketPrice,
-    auctionDiscount: Math.round(auctionDiscount),
-    dealerMargin: Math.round(dealerMargin),
-    priceConfidence,
-  };
-}
-
-function createEmptyEnrichedData(vin: string): EnrichedVehicleData {
+function createLimitedEnrichmentData(vin: string): EnrichedVehicleData {
   return {
     vin,
-    sources: {
-      statVin: null,
-      marketplaces: null,
-      facebook: null,
-      craigslist: null,
-      ebay: null,
-      carsdotcom: null,
-      offerup: null,
-    }
+    vehicleDetails: {},
+    auctionHistory: {
+      totalSales: 0,
+      salesByYear: []
+    },
+    marketData: {
+      allListings: [],
+      bySource: { facebook: [], craigslist: [], carscom: [] },
+      priceAnalysis: { averagePrice: 0, medianPrice: 0, priceRange: [0, 0], listingCount: 0 },
+      errors: ['Premium access required for full market data']
+    },
+    statVinData: null,
+    conditionAnalysis: {
+      detectedDamage: [],
+      accidentHistory: false,
+      conditionScore: 5,
+      confidenceLevel: 'low'
+    },
+    marketPosition: {
+      isUndervalued: false,
+      marketPriceRange: [0, 0],
+      competitorCount: 0,
+      averageMarketPrice: 0,
+      pricePercentile: 50
+    },
+    dealerOpportunity: {
+      estimatedAcquisitionCost: 0,
+      estimatedRetailValue: 0,
+      potentialMargin: 0,
+      flipOpportunityScore: 0,
+      timeToSell: 'unknown'
+    },
+    photos: [],
+    auctionSalesHistory: [],
+    ownershipHistory: {
+      estimatedOwners: 1,
+      titleTransfers: 1
+    },
+    riskFactors: ['Limited data available'],
+    confidenceScore: 0.3,
+    generatedAt: new Date().toISOString()
   };
+}
+
+function buildEnrichedData(
+  vin: string, 
+  statVin: StatVinData | null, 
+  marketplace: MarketplaceData
+): EnrichedVehicleData {
+  // Analyze auction history from STAT.vin
+  const auctionHistory = analyzeAuctionHistory(statVin);
+  
+  // Build vehicle details from available data
+  const vehicleDetails = {
+    make: statVin?.make,
+    model: statVin?.model,
+    year: statVin?.year,
+    bodyType: statVin?.bodyType,
+    engine: statVin?.engine,
+    transmission: statVin?.transmission,
+    fuelType: statVin?.fuelType,
+    drivetrain: statVin?.drivetrain,
+    exteriorColor: statVin?.exteriorColor,
+    interiorColor: statVin?.interiorColor,
+    mileage: statVin?.mileage
+  };
+
+  // Analyze condition from STAT.vin damage data
+  const conditionAnalysis = analyzeCondition(statVin);
+  
+  // Calculate market position
+  const marketPosition = calculateMarketPosition(marketplace, statVin);
+  
+  // Calculate dealer opportunity
+  const dealerOpportunity = calculateDealerOpportunity(statVin, marketplace);
+
+  return {
+    vin,
+    vehicleDetails,
+    auctionHistory,
+    marketData: marketplace,
+    statVinData: statVin,
+    conditionAnalysis,
+    marketPosition,
+    dealerOpportunity,
+    photos: statVin?.images || [],
+    auctionSalesHistory: statVin ? [{
+      date: statVin.auctionDate || '',
+      price: statVin.salePrice || '0',
+      location: statVin.location || '',
+      seller: statVin.seller || '',
+      condition: statVin.condition,
+      damage: statVin.primaryDamage || statVin.damage,
+      mileage: statVin.mileage
+    }] : [],
+    ownershipHistory: {
+      estimatedOwners: 2, // Default estimate
+      titleTransfers: 1
+    },
+    riskFactors: calculateRiskFactors(statVin),
+    confidenceScore: calculateConfidenceScore(statVin, marketplace),
+    generatedAt: new Date().toISOString()
+  };
+}
+
+function analyzeAuctionHistory(statVin: StatVinData | null) {
+  if (!statVin || !statVin.salePrice) {
+    return {
+      totalSales: 0,
+      salesByYear: []
+    };
+  }
+
+  const price = parseFloat(statVin.salePrice.replace(/[^0-9.]/g, '')) || 0;
+  const year = statVin.auctionDate ? new Date(statVin.auctionDate).getFullYear().toString() : new Date().getFullYear().toString();
+
+  return {
+    totalSales: 1,
+    averagePrice: price,
+    priceRange: [price, price] as [number, number],
+    mostRecentSale: {
+      date: statVin.auctionDate || '',
+      price: statVin.salePrice,
+      location: statVin.location || '',
+      condition: statVin.condition,
+      damage: statVin.primaryDamage || statVin.damage
+    },
+    salesByYear: [{
+      year,
+      count: 1,
+      averagePrice: price
+    }]
+  };
+}
+
+function analyzeCondition(statVin: StatVinData | null) {
+  const detectedDamage: string[] = [];
+  let conditionScore = 8; // Start with good condition
+  let accidentHistory = false;
+
+  if (statVin) {
+    if (statVin.primaryDamage || statVin.damage) {
+      detectedDamage.push(statVin.primaryDamage || statVin.damage || '');
+      conditionScore -= 3;
+      accidentHistory = true;
+    }
+    
+    if (statVin.secondaryDamage) {
+      detectedDamage.push(statVin.secondaryDamage);
+      conditionScore -= 1;
+    }
+
+    if (statVin.titleType?.toLowerCase().includes('salvage') || 
+        statVin.status?.toLowerCase().includes('salvage')) {
+      conditionScore -= 4;
+      accidentHistory = true;
+    }
+
+    if (!statVin.runAndDrive) {
+      conditionScore -= 2;
+    }
+  }
+
+  return {
+    detectedDamage,
+    titleStatus: statVin?.titleType || statVin?.status,
+    accidentHistory,
+    conditionScore: Math.max(1, Math.min(10, conditionScore)),
+    confidenceLevel: statVin ? 'high' : 'low' as 'high' | 'medium' | 'low'
+  };
+}
+
+function calculateMarketPosition(marketplace: MarketplaceData, statVin: StatVinData | null) {
+  const { priceAnalysis } = marketplace;
+  const auctionPrice = statVin?.salePrice ? parseFloat(statVin.salePrice.replace(/[^0-9.]/g, '')) : 0;
+
+  return {
+    isUndervalued: auctionPrice > 0 && auctionPrice < priceAnalysis.averagePrice * 0.8,
+    marketPriceRange: priceAnalysis.priceRange,
+    competitorCount: priceAnalysis.listingCount,
+    averageMarketPrice: priceAnalysis.averagePrice,
+    pricePercentile: auctionPrice > 0 ? calculatePercentile(auctionPrice, priceAnalysis) : 50
+  };
+}
+
+function calculatePercentile(price: number, analysis: { averagePrice: number; medianPrice: number; priceRange: [number, number] }): number {
+  if (analysis.priceRange[1] === analysis.priceRange[0]) return 50;
+  
+  const position = (price - analysis.priceRange[0]) / (analysis.priceRange[1] - analysis.priceRange[0]);
+  return Math.round(position * 100);
+}
+
+function calculateDealerOpportunity(statVin: StatVinData | null, marketplace: MarketplaceData) {
+  const auctionPrice = statVin?.salePrice ? parseFloat(statVin.salePrice.replace(/[^0-9.]/g, '')) : 0;
+  const marketAverage = marketplace.priceAnalysis.averagePrice;
+  
+  const acquisitionCost = auctionPrice + (auctionPrice * 0.1); // Add 10% for fees
+  const retailValue = marketAverage;
+  const margin = retailValue - acquisitionCost;
+  
+  return {
+    estimatedAcquisitionCost: acquisitionCost,
+    estimatedRetailValue: retailValue,
+    potentialMargin: margin,
+    flipOpportunityScore: margin > 0 ? Math.min(100, Math.round((margin / acquisitionCost) * 100)) : 0,
+    timeToSell: margin > acquisitionCost * 0.3 ? 'fast' : margin > acquisitionCost * 0.15 ? 'medium' : 'slow'
+  };
+}
+
+function calculateRiskFactors(statVin: StatVinData | null): string[] {
+  const risks: string[] = [];
+  
+  if (!statVin) {
+    risks.push('Limited auction history data');
+    return risks;
+  }
+
+  if (statVin.primaryDamage || statVin.damage) {
+    risks.push(`Previous damage: ${statVin.primaryDamage || statVin.damage}`);
+  }
+
+  if (statVin.titleType?.toLowerCase().includes('salvage')) {
+    risks.push('Salvage title history');
+  }
+
+  if (!statVin.runAndDrive) {
+    risks.push('Vehicle may not be operational');
+  }
+
+  if (statVin.estimatedRepairCost) {
+    const repairCost = parseFloat(statVin.estimatedRepairCost.replace(/[^0-9.]/g, ''));
+    if (repairCost > 5000) {
+      risks.push('High estimated repair costs');
+    }
+  }
+
+  return risks;
+}
+
+function calculateConfidenceScore(statVin: StatVinData | null, marketplace: MarketplaceData): number {
+  let score = 0.5; // Base score
+
+  // STAT.vin data adds confidence
+  if (statVin) {
+    score += 0.3;
+    if (statVin.salePrice) score += 0.1;
+    if (statVin.auctionDate) score += 0.05;
+    if (statVin.images && statVin.images.length > 0) score += 0.05;
+  }
+
+  // Marketplace data adds confidence
+  if (marketplace.priceAnalysis.listingCount > 0) {
+    score += 0.1;
+    if (marketplace.priceAnalysis.listingCount >= 5) score += 0.1;
+    if (marketplace.priceAnalysis.listingCount >= 10) score += 0.1;
+  }
+
+  return Math.min(1.0, score);
 }
