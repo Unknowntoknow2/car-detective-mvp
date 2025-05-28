@@ -1,9 +1,9 @@
 
-import React, { useEffect, useState } from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import React, { useEffect } from 'react';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ManualEntryFormData } from '../types/manualEntry';
+import { ManualEntryFormData, ConditionLevel } from '../types/manualEntry';
 import { useMakeModels } from '@/hooks/useMakeModels';
 
 interface BasicVehicleFormProps {
@@ -19,57 +19,51 @@ export function BasicVehicleForm({
   errors,
   isPremium = false
 }: BasicVehicleFormProps) {
-  const { makes, models, isLoading, error, getModelsByMakeId } = useMakeModels();
-  const [selectedMakeId, setSelectedMakeId] = useState<string>('');
-  
-  // Generate year options from 1980 to current year + 1
-  const currentYear = new Date().getFullYear();
-  const yearOptions = Array.from({ length: currentYear - 1979 }, (_, i) => currentYear + 1 - i);
+  const { makes, models, isLoading, error, getModelsByMake } = useMakeModels();
 
-  // Handle make selection
-  const handleMakeChange = async (makeName: string) => {
-    console.log('Make selected:', makeName);
-    
-    // Find the make ID from the make name
-    const selectedMake = makes.find(make => make.make_name === makeName);
-    if (selectedMake) {
-      console.log('Found make ID:', selectedMake.id);
-      setSelectedMakeId(selectedMake.id);
-      
-      // Update form data
-      updateFormData({ 
-        make: makeName,
-        model: '' // Reset model when make changes
-      });
-      
-      // Fetch models for this make
-      await getModelsByMakeId(selectedMake.id);
+  // Fetch models when make changes
+  useEffect(() => {
+    if (formData.make && formData.make !== '') {
+      console.log('Make changed to:', formData.make, 'fetching models...');
+      getModelsByMake(formData.make);
     }
+  }, [formData.make, getModelsByMake]);
+
+  const handleMakeChange = (value: string) => {
+    console.log('Make selected:', value);
+    updateFormData({ 
+      make: value,
+      model: '' // Reset model when make changes
+    });
   };
 
-  // Handle model selection
-  const handleModelChange = (modelName: string) => {
-    console.log('Model selected:', modelName);
-    updateFormData({ model: modelName });
+  const handleModelChange = (value: string) => {
+    console.log('Model selected:', value);
+    updateFormData({ model: value });
   };
 
-  // Handle year change
-  const handleYearChange = (yearString: string) => {
-    const yearNumber = parseInt(yearString);
-    updateFormData({ year: yearNumber });
+  const handleYearChange = (value: string) => {
+    const yearNum = parseInt(value);
+    updateFormData({ year: yearNum });
   };
 
-  // Handle mileage change
   const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, ''); // Only numbers
-    updateFormData({ mileage: parseInt(value) || 0 });
+    const value = parseInt(e.target.value) || 0;
+    updateFormData({ mileage: value });
   };
 
-  // Handle zip code change
   const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 5); // Only 5 digits
+    const value = e.target.value.replace(/\D/g, '').slice(0, 5);
     updateFormData({ zipCode: value });
   };
+
+  const handleConditionChange = (value: string) => {
+    updateFormData({ condition: value as ConditionLevel });
+  };
+
+  // Generate year options (current year + 1 down to 1990)
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1989 }, (_, i) => currentYear + 1 - i);
 
   if (isLoading) {
     return <div>Loading vehicle data...</div>;
@@ -79,114 +73,138 @@ export function BasicVehicleForm({
     return <div className="text-red-500">Error loading vehicle data: {error}</div>;
   }
 
+  console.log('Rendering BasicVehicleForm with:', {
+    makesCount: makes.length,
+    modelsCount: models.length,
+    selectedMake: formData.make,
+    selectedModel: formData.model
+  });
+
   return (
     <div className="space-y-6">
-      <h3 className="text-lg font-medium">Vehicle Information</h3>
-      
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {/* Make Selection */}
+      {/* Make and Model Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">
+          <Label htmlFor="make" className="text-sm font-medium">
             Make <span className="text-red-500">*</span>
-          </label>
-          <Select 
-            value={formData.make} 
-            onValueChange={handleMakeChange}
-          >
+          </Label>
+          <Select value={formData.make} onValueChange={handleMakeChange}>
             <SelectTrigger className={errors.make ? 'border-red-300' : ''}>
               <SelectValue placeholder="Select make" />
             </SelectTrigger>
             <SelectContent>
-              {makes.map(make => (
+              {makes.map((make) => (
                 <SelectItem key={make.id} value={make.make_name}>
                   {make.make_name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {errors.make && <p className="text-sm text-red-500">{errors.make}</p>}
+          {errors.make && <p className="text-red-500 text-sm">{errors.make}</p>}
         </div>
 
-        {/* Model Selection */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">
+          <Label htmlFor="model" className="text-sm font-medium">
             Model <span className="text-red-500">*</span>
-          </label>
+          </Label>
           <Select 
             value={formData.model} 
             onValueChange={handleModelChange}
-            disabled={!selectedMakeId || models.length === 0}
+            disabled={!formData.make || models.length === 0}
           >
             <SelectTrigger className={errors.model ? 'border-red-300' : ''}>
-              <SelectValue placeholder={!selectedMakeId ? "Select make first" : "Select model"} />
+              <SelectValue placeholder={
+                !formData.make 
+                  ? "Select make first" 
+                  : models.length === 0 
+                    ? "No models available" 
+                    : "Select model"
+              } />
             </SelectTrigger>
             <SelectContent>
-              {models.map(model => (
+              {models.map((model) => (
                 <SelectItem key={model.id} value={model.model_name}>
                   {model.model_name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {errors.model && <p className="text-sm text-red-500">{errors.model}</p>}
+          {errors.model && <p className="text-red-500 text-sm">{errors.model}</p>}
         </div>
+      </div>
 
-        {/* Year Selection */}
+      {/* Year and Mileage Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">
+          <Label htmlFor="year" className="text-sm font-medium">
             Year <span className="text-red-500">*</span>
-          </label>
-          <Select 
-            value={formData.year?.toString() || ''} 
-            onValueChange={handleYearChange}
-          >
+          </Label>
+          <Select value={formData.year?.toString() || ''} onValueChange={handleYearChange}>
             <SelectTrigger className={errors.year ? 'border-red-300' : ''}>
               <SelectValue placeholder="Select year" />
             </SelectTrigger>
             <SelectContent>
-              {yearOptions.map(year => (
+              {years.map((year) => (
                 <SelectItem key={year} value={year.toString()}>
                   {year}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {errors.year && <p className="text-sm text-red-500">{errors.year}</p>}
+          {errors.year && <p className="text-red-500 text-sm">{errors.year}</p>}
         </div>
 
-        {/* Mileage Input */}
         <div className="space-y-2">
-          <label className="text-sm font-medium">
+          <Label htmlFor="mileage" className="text-sm font-medium">
             Mileage <span className="text-red-500">*</span>
-          </label>
+          </Label>
           <Input
-            type="text"
+            id="mileage"
+            type="number"
             value={formData.mileage || ''}
             onChange={handleMileageChange}
-            placeholder="e.g. 45000"
+            placeholder="Enter mileage"
             className={errors.mileage ? 'border-red-300' : ''}
           />
-          {errors.mileage && <p className="text-sm text-red-500">{errors.mileage}</p>}
+          {errors.mileage && <p className="text-red-500 text-sm">{errors.mileage}</p>}
         </div>
       </div>
 
-      {/* ZIP Code - Full Width */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">
-          ZIP Code <span className="text-red-500">*</span>
-        </label>
-        <Input
-          type="text"
-          value={formData.zipCode || ''}
-          onChange={handleZipCodeChange}
-          placeholder="Enter 5-digit ZIP code"
-          maxLength={5}
-          className={`max-w-xs ${errors.zipCode ? 'border-red-300' : ''}`}
-        />
-        {errors.zipCode && <p className="text-sm text-red-500">{errors.zipCode}</p>}
-        <p className="text-xs text-gray-500">
-          Your location helps us provide accurate regional pricing
-        </p>
+      {/* Condition and ZIP Code Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="condition" className="text-sm font-medium">
+            Condition <span className="text-red-500">*</span>
+          </Label>
+          <Select value={formData.condition} onValueChange={handleConditionChange}>
+            <SelectTrigger className={errors.condition ? 'border-red-300' : ''}>
+              <SelectValue placeholder="Select condition" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ConditionLevel.Excellent}>Excellent</SelectItem>
+              <SelectItem value={ConditionLevel.Good}>Good</SelectItem>
+              <SelectItem value={ConditionLevel.Fair}>Fair</SelectItem>
+              <SelectItem value={ConditionLevel.Poor}>Poor</SelectItem>
+            </SelectContent>
+          </Select>
+          {errors.condition && <p className="text-red-500 text-sm">{errors.condition}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="zipCode" className="text-sm font-medium">
+            ZIP Code <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="zipCode"
+            type="text"
+            value={formData.zipCode}
+            onChange={handleZipCodeChange}
+            placeholder="Enter ZIP code"
+            maxLength={5}
+            className={errors.zipCode ? 'border-red-300' : ''}
+          />
+          {errors.zipCode && <p className="text-red-500 text-sm">{errors.zipCode}</p>}
+        </div>
       </div>
     </div>
   );
