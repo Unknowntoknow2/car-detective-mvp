@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FollowUpAnswers, AccidentDetails } from '@/types/follow-up-answers';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FollowUpAnswers, AccidentDetails, ModificationDetails } from '@/types/follow-up-answers';
 
 interface UnifiedFollowUpFormProps {
   vin?: string;
@@ -22,40 +23,48 @@ export function UnifiedFollowUpForm({ vin, onSubmit }: UnifiedFollowUpFormProps)
     condition: 'good',
     accidents: {
       hadAccident: false,
-      count: undefined,
-      severity: undefined,
-      repaired: undefined,
-      frameDamage: undefined
+      count: 0,
+      severity: 'minor',
+      repaired: false,
+      frameDamage: false
     },
-    service_history: '',
-    maintenance_status: '',
-    title_status: '',
-    previous_owners: undefined,
-    previous_use: '',
-    tire_condition: '',
+    service_history: 'unknown',
+    maintenance_status: 'Unknown',
+    title_status: 'clean',
+    previous_owners: 1,
+    previous_use: 'personal',
+    tire_condition: 'good',
     dashboard_lights: [],
-    frame_damage: false,
     modifications: {
       modified: false,
-      types: undefined,
-      reversible: undefined
-    }
+      types: [],
+      reversible: true
+    },
+    completion_percentage: 0,
+    is_complete: false
   });
 
-  const handleAccidentChange = (field: keyof AccidentDetails, value: boolean | number | string) => {
-    setFormData((prev: FollowUpAnswers): FollowUpAnswers => ({
+  const updateAccidents = (updates: Partial<AccidentDetails>) => {
+    setFormData(prev => ({
       ...prev,
       accidents: {
-        ...prev.accidents,
-        [field]: value
+        hadAccident: updates.hadAccident ?? prev.accidents?.hadAccident ?? false,
+        count: updates.count ?? prev.accidents?.count ?? 0,
+        severity: updates.severity ?? prev.accidents?.severity ?? 'minor',
+        repaired: updates.repaired ?? prev.accidents?.repaired ?? false,
+        frameDamage: updates.frameDamage ?? prev.accidents?.frameDamage ?? false
       }
     }));
   };
 
-  const handleInputChange = (field: keyof FollowUpAnswers, value: any) => {
-    setFormData((prev: FollowUpAnswers): FollowUpAnswers => ({
+  const updateModifications = (updates: Partial<ModificationDetails>) => {
+    setFormData(prev => ({
       ...prev,
-      [field]: value
+      modifications: {
+        modified: updates.modified ?? prev.modifications?.modified ?? false,
+        types: updates.types ?? prev.modifications?.types ?? [],
+        reversible: updates.reversible ?? prev.modifications?.reversible ?? true
+      }
     }));
   };
 
@@ -65,44 +74,48 @@ export function UnifiedFollowUpForm({ vin, onSubmit }: UnifiedFollowUpFormProps)
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle>Vehicle Details & Follow-up Questions</CardTitle>
-        {vin && (
-          <p className="text-sm text-muted-foreground">VIN: {vin}</p>
-        )}
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Vehicle Info */}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Vehicle Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="mileage">Mileage</Label>
+              <Label htmlFor="mileage">Current Mileage</Label>
               <Input
                 id="mileage"
                 type="number"
-                value={formData.mileage || ''}
-                onChange={(e) => handleInputChange('mileage', parseInt(e.target.value) || undefined)}
                 placeholder="Enter mileage"
+                value={formData.mileage || ''}
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  mileage: e.target.value ? parseInt(e.target.value) : undefined
+                }))}
               />
             </div>
             <div>
-              <Label htmlFor="zip_code">Zip Code</Label>
+              <Label htmlFor="zip_code">ZIP Code</Label>
               <Input
                 id="zip_code"
+                placeholder="Enter ZIP code"
                 value={formData.zip_code || ''}
-                onChange={(e) => handleInputChange('zip_code', e.target.value)}
-                placeholder="Enter zip code"
+                onChange={(e) => setFormData(prev => ({
+                  ...prev,
+                  zip_code: e.target.value
+                }))}
               />
             </div>
           </div>
 
-          {/* Vehicle Condition */}
           <div>
             <Label>Vehicle Condition</Label>
             <RadioGroup
               value={formData.condition}
-              onValueChange={(value) => handleInputChange('condition', value)}
+              onValueChange={(value: any) => setFormData(prev => ({
+                ...prev,
+                condition: value
+              }))}
               className="flex flex-wrap gap-4 mt-2"
             >
               <div className="flex items-center space-x-2">
@@ -123,137 +136,135 @@ export function UnifiedFollowUpForm({ vin, onSubmit }: UnifiedFollowUpFormProps)
               </div>
             </RadioGroup>
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Accident History */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Accident History</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Accident History</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>Has this vehicle been in an accident?</Label>
+            <RadioGroup
+              value={formData.accidents?.hadAccident ? 'yes' : 'no'}
+              onValueChange={(value) => updateAccidents({ hadAccident: value === 'yes' })}
+              className="flex gap-4 mt-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="no" id="no-accident" />
+                <Label htmlFor="no-accident">No</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="yes" id="yes-accident" />
+                <Label htmlFor="yes-accident">Yes</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {formData.accidents?.hadAccident && (
+            <div className="space-y-4">
               <div>
-                <Label>Has this vehicle been in any accidents?</Label>
-                <RadioGroup
-                  value={formData.accidents?.hadAccident ? "yes" : "no"}
-                  onValueChange={(value) => handleAccidentChange('hadAccident', value === 'yes')}
-                  className="flex gap-4 mt-2"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="no" id="no-accident" />
-                    <Label htmlFor="no-accident">No</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="yes" id="yes-accident" />
-                    <Label htmlFor="yes-accident">Yes</Label>
-                  </div>
-                </RadioGroup>
+                <Label htmlFor="accident-count">Number of Accidents</Label>
+                <Input
+                  id="accident-count"
+                  type="number"
+                  min="1"
+                  value={formData.accidents.count || 1}
+                  onChange={(e) => updateAccidents({ count: parseInt(e.target.value) || 1 })}
+                />
               </div>
 
-              {formData.accidents?.hadAccident && (
-                <>
-                  <div>
-                    <Label htmlFor="accident-count">Number of accidents</Label>
-                    <Input
-                      id="accident-count"
-                      type="number"
-                      value={formData.accidents?.count || ''}
-                      onChange={(e) => handleAccidentChange('count', parseInt(e.target.value) || undefined)}
-                      placeholder="Enter number of accidents"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="accident-severity">Severity of most recent accident</Label>
-                    <Select
-                      value={formData.accidents?.severity}
-                      onValueChange={(value) => handleAccidentChange('severity', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select severity" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="minor">Minor</SelectItem>
-                        <SelectItem value="moderate">Moderate</SelectItem>
-                        <SelectItem value="major">Major</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Was the damage properly repaired?</Label>
-                    <RadioGroup
-                      value={formData.accidents?.repaired ? "yes" : "no"}
-                      onValueChange={(value) => handleAccidentChange('repaired', value === 'yes')}
-                      className="flex gap-4 mt-2"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="yes" id="repaired-yes" />
-                        <Label htmlFor="repaired-yes">Yes</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="no" id="repaired-no" />
-                        <Label htmlFor="repaired-no">No</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+              <div>
+                <Label>Accident Severity</Label>
+                <Select
+                  value={formData.accidents.severity}
+                  onValueChange={(value: any) => updateAccidents({ severity: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="minor">Minor</SelectItem>
+                    <SelectItem value="moderate">Moderate</SelectItem>
+                    <SelectItem value="major">Major</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Service History */}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="repaired"
+                  checked={formData.accidents.repaired}
+                  onCheckedChange={(checked) => updateAccidents({ repaired: !!checked })}
+                />
+                <Label htmlFor="repaired">Accident has been professionally repaired</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="frame-damage"
+                  checked={formData.accidents.frameDamage}
+                  onCheckedChange={(checked) => updateAccidents({ frameDamage: !!checked })}
+                />
+                <Label htmlFor="frame-damage">Frame damage occurred</Label>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Service & Maintenance</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="service_history">Service History</Label>
+            <Label>Service History</Label>
             <Select
               value={formData.service_history}
-              onValueChange={(value) => handleInputChange('service_history', value)}
+              onValueChange={(value) => setFormData(prev => ({
+                ...prev,
+                service_history: value
+              }))}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select service history" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="dealer">Dealer-maintained</SelectItem>
                 <SelectItem value="independent">Independent mechanic</SelectItem>
                 <SelectItem value="owner">Owner-maintained</SelectItem>
-                <SelectItem value="unknown">No known history</SelectItem>
+                <SelectItem value="unknown">Unknown</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {/* Title Status */}
           <div>
-            <Label htmlFor="title_status">Title Status</Label>
+            <Label>Maintenance Status</Label>
             <Select
-              value={formData.title_status}
-              onValueChange={(value) => handleInputChange('title_status', value)}
+              value={formData.maintenance_status}
+              onValueChange={(value: any) => setFormData(prev => ({
+                ...prev,
+                maintenance_status: value
+              }))}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select title status" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="clean">Clean</SelectItem>
-                <SelectItem value="salvage">Salvage</SelectItem>
-                <SelectItem value="rebuilt">Rebuilt</SelectItem>
-                <SelectItem value="branded">Branded</SelectItem>
-                <SelectItem value="lemon">Lemon Law</SelectItem>
+                <SelectItem value="Up to date">Up to date</SelectItem>
+                <SelectItem value="Overdue">Overdue</SelectItem>
+                <SelectItem value="Unknown">Unknown</SelectItem>
               </SelectContent>
             </Select>
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Previous Owners */}
-          <div>
-            <Label htmlFor="previous_owners">Number of Previous Owners</Label>
-            <Input
-              id="previous_owners"
-              type="number"
-              value={formData.previous_owners || ''}
-              onChange={(e) => handleInputChange('previous_owners', parseInt(e.target.value) || undefined)}
-              placeholder="Enter number of previous owners"
-            />
-          </div>
-
-          <Button type="submit" className="w-full">
-            Calculate Vehicle Valuation
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+      <Button type="submit" className="w-full">
+        Calculate Vehicle Value
+      </Button>
+    </form>
   );
 }
