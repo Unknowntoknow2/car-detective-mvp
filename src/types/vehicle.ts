@@ -39,7 +39,7 @@ export interface DealerInventoryItem {
   model: string;
   year: number;
   price: number;
-  mileage: number;
+  mileage?: number;
   vin: string;
   status: 'available' | 'pending' | 'sold';
   photos?: string[];
@@ -50,6 +50,9 @@ export interface DealerInventoryItem {
   bodyType?: string;
   color?: string;
   trim?: string;
+  dealer_id?: string;
+  zip_code?: string;
+  updated_at?: string;
 }
 
 export interface ValuationResponse {
