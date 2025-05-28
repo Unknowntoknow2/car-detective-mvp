@@ -4,7 +4,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import DealerDashboardPage from './DealerDashboardPage';
 import DealerInventoryPage from './DealerInventoryPage';
 import { useAuth } from '@/hooks/useAuth';
-import DealerLayout from '@/layouts/DealerLayout';
 
 const DealerDashboardRoutes = () => {
   const { user, userDetails, isLoading } = useAuth();
@@ -22,17 +21,17 @@ const DealerDashboardRoutes = () => {
 
   // If not logged in or not a dealer, redirect to login
   if (!user || userDetails?.role !== 'dealer') {
-    return <Navigate to="/sign-in" replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   return (
-    <DealerLayout>
+    <div className="container mx-auto py-8 px-4">
       <Routes>
         <Route path="/" element={<DealerDashboardPage />} />
         <Route path="/inventory" element={<DealerInventoryPage />} />
         <Route path="*" element={<Navigate to="/dealer" replace />} />
       </Routes>
-    </DealerLayout>
+    </div>
   );
 };
 
