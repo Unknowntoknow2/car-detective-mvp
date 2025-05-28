@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { SigninForm } from '@/components/auth/forms/SigninForm';
 import { SignupForm } from '@/components/auth/forms/SignupForm';
 import { Building, User, ArrowLeft } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
