@@ -37,7 +37,8 @@ import {
 } from '@/types/follow-up-answers';
 
 interface UnifiedFollowUpFormProps {
-  vin: string;
+  vin?: string;
+  plateNumber?: string;
   entryMethod?: 'vin' | 'plate' | 'manual';
   onComplete?: () => void;
 }
@@ -50,8 +51,9 @@ interface SectionState {
   modifications: boolean;
 }
 
-export function UnifiedFollowUpForm({ vin, entryMethod = 'vin', onComplete }: UnifiedFollowUpFormProps) {
-  const { answers, loading, saving, updateAnswers, saveAnswers } = useFollowUpAnswers(vin);
+export function UnifiedFollowUpForm({ vin, plateNumber, entryMethod = 'vin', onComplete }: UnifiedFollowUpFormProps) {
+  const identifier = vin || plateNumber || '';
+  const { answers, loading, saving, updateAnswers, saveAnswers } = useFollowUpAnswers(identifier);
   
   const [openSections, setOpenSections] = useState<SectionState>({
     vehicleInfo: true,
