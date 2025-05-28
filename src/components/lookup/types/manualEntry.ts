@@ -15,16 +15,19 @@ export interface AccidentDetails {
 }
 
 export interface ManualEntryFormData {
-  // Basic vehicle info
-  make: string;
-  model: string;
+  // Basic vehicle info - store both ID and name for proper data flow
+  make: string; // This will store the make ID
+  makeName?: string; // Display name for UI
+  model: string; // This will store the model ID
+  modelName?: string; // Display name for UI
+  trim?: string; // This will store the trim ID
+  trimName?: string; // Display name for UI
   year: number;
   mileage: number;
   condition: ConditionLevel;
   zipCode: string;
   fuelType?: string;
   transmission?: string;
-  trim?: string;
   vin?: string;
   selectedFeatures?: string[];
   bodyStyle?: string;

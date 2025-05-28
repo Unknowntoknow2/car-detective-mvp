@@ -28,6 +28,8 @@ export function useMakeModels() {
   const [models, setModels] = useState<VehicleModel[]>([]);
   const [trims, setTrims] = useState<VehicleTrim[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const [isLoadingTrims, setIsLoadingTrims] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // Load makes on initial component mount
@@ -67,58 +69,17 @@ export function useMakeModels() {
     fetchMakes();
   }, []);
 
-  // Stabilized function to fetch models for a specific make using useCallback
-  const getModelsByMake = useCallback(async (makeName: string) => {
-    if (!makeName || makes.length === 0) {
-      console.log('No make name provided or makes not loaded, clearing models');
-      setModels([]);
-      return [];
-    }
-
-    try {
-      setError(null);
-      
-      // Find the make ID from the make name
-      const selectedMake = makes.find(make => make.make_name === makeName);
-      if (!selectedMake) {
-        console.log('Make not found:', makeName);
-        setModels([]);
-        return [];
-      }
-      
-      console.log('Fetching models for make:', makeName, 'with ID:', selectedMake.id);
-      const { data, error } = await supabase
-        .from('models')
-        .select('id, make_id, model_name')
-        .eq('make_id', selectedMake.id)
-        .order('model_name');
-        
-      if (error) {
-        console.error('Supabase error fetching models:', error);
-        throw error;
-      }
-      
-      const modelsList = data || [];
-      console.log('Fetched models:', modelsList.length, modelsList.slice(0, 5));
-      setModels(modelsList);
-      return modelsList;
-    } catch (err: any) {
-      console.error('Error fetching models:', err);
-      setError('Failed to load vehicle models: ' + err.message);
-      setModels([]);
-      return [];
-    }
-  }, [makes]); // Only depend on makes array
-
-  // Legacy function for backward compatibility - now uses make ID directly
+  // Function to fetch models for a specific make ID
   const getModelsByMakeId = useCallback(async (makeId: string) => {
     if (!makeId) {
       console.log('No makeId provided, clearing models');
       setModels([]);
+      setTrims([]);
       return [];
     }
 
     try {
+      setIsLoadingModels(true);
       setError(null);
       
       console.log('Fetching models for make ID:', makeId);
@@ -136,16 +97,20 @@ export function useMakeModels() {
       const modelsList = data || [];
       console.log('Fetched models:', modelsList.length, modelsList.slice(0, 5));
       setModels(modelsList);
+      setTrims([]); // Clear trims when models change
       return modelsList;
     } catch (err: any) {
       console.error('Error fetching models:', err);
       setError('Failed to load vehicle models: ' + err.message);
       setModels([]);
+      setTrims([]);
       return [];
+    } finally {
+      setIsLoadingModels(false);
     }
   }, []);
 
-  // Function to fetch trims for a specific model
+  // Function to fetch trims for a specific model ID
   const getTrimsByModelId = useCallback(async (modelId: string) => {
     if (!modelId) {
       console.log('No modelId provided, clearing trims');
@@ -154,6 +119,7 @@ export function useMakeModels() {
     }
 
     try {
+      setIsLoadingTrims(true);
       setError(null);
       
       console.log('Fetching trims for model ID:', modelId);
@@ -177,17 +143,32 @@ export function useMakeModels() {
       setError('Failed to load vehicle trims: ' + err.message);
       setTrims([]);
       return [];
+    } finally {
+      setIsLoadingTrims(false);
     }
   }, []);
+
+  // Helper function to find make by ID
+  const findMakeById = useCallback((makeId: string) => {
+    return makes.find(make => make.id === makeId);
+  }, [makes]);
+
+  // Helper function to find model by ID
+  const findModelById = useCallback((modelId: string) => {
+    return models.find(model => model.id === modelId);
+  }, [models]);
 
   return {
     makes,
     models,
     trims,
     isLoading,
+    isLoadingModels,
+    isLoadingTrims,
     error,
     getModelsByMakeId,
-    getModelsByMake, // Now stabilized with useCallback
     getTrimsByModelId,
+    findMakeById,
+    findModelById,
   };
 }

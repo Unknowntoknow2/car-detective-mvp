@@ -24,7 +24,11 @@ export function ManualEntryFormFree({
   const [activeTab, setActiveTab] = useState<'basic' | 'details'>('basic');
   const [formData, setFormData] = useState<ManualEntryFormData>({
     make: '',
+    makeName: '',
     model: '',
+    modelName: '',
+    trim: '',
+    trimName: '',
     year: new Date().getFullYear(),
     mileage: 0,
     condition: ConditionLevel.Good,
@@ -54,6 +58,7 @@ export function ManualEntryFormFree({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const updateFormData = (updates: Partial<ManualEntryFormData>) => {
+    console.log('Updating form data with:', updates);
     setFormData(prev => ({ ...prev, ...updates }));
     
     // Clear errors for updated fields
@@ -102,7 +107,17 @@ export function ManualEntryFormFree({
     }
 
     if (validateBasicForm()) {
-      onSubmit(formData);
+      // Prepare final form data with proper structure
+      const finalFormData = {
+        ...formData,
+        // Ensure we're sending the correct data structure
+        make: formData.makeName || formData.make, // Send display name for backend compatibility
+        model: formData.modelName || formData.model, // Send display name for backend compatibility
+        trim: formData.trimName || formData.trim || '', // Send display name, fallback to empty string
+      };
+      
+      console.log('Submitting form data:', finalFormData);
+      onSubmit(finalFormData);
     }
   };
 
