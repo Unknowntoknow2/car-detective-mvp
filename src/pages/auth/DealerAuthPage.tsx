@@ -1,67 +1,98 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SEO } from '@/components/layout/seo';
 import { SigninForm } from '@/components/auth/forms/SigninForm';
-import { SignupForm } from '@/components/auth/forms/SignupForm';
-import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
+import { DealerSignupForm } from '@/components/dealer/DealerSignupForm';
+import { ArrowLeft, Building } from 'lucide-react';
 
-export default function DealerAuthPage() {
+const DealerAuthPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('signin');
-  const { user, userDetails, isLoading } = useAuth();
-  const navigate = useNavigate();
-
-  // Redirect authenticated dealers to dashboard
-  useEffect(() => {
-    if (!isLoading && user && userDetails?.role === 'dealer') {
-      console.log('Dealer authenticated, redirecting to dashboard');
-      navigate('/dealer/dashboard', { replace: true });
-    }
-  }, [user, userDetails, isLoading, navigate]);
-
-  // Show loading while checking authentication
-  if (isLoading) {
-    return (
-      <div className="container mx-auto max-w-md py-12 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Checking authentication...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Don't render the auth form if user is already authenticated as dealer
-  if (user && userDetails?.role === 'dealer') {
-    return null; // Will redirect in useEffect
-  }
 
   return (
-    <div className="container mx-auto max-w-md py-12">
-      <SEO title="Dealer Account" description="Sign in or register your dealership" />
-      <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold">Dealer Account</h1>
-          <p className="text-muted-foreground mt-2">Sign in or register your dealership</p>
+          <Link to="/auth" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Auth Options
+          </Link>
+          <div className="flex items-center justify-center mb-4">
+            <Building className="h-8 w-8 text-primary mr-2" />
+            <h2 className="text-3xl font-extrabold text-gray-900">Dealer Account</h2>
+          </div>
+          <p className="text-sm text-gray-600">
+            Advanced tools for automotive professionals
+          </p>
         </div>
-        
-        <Tabs defaultValue="signin" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-2">
-            <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="signup">Register Dealership</TabsTrigger>
-          </TabsList>
+
+        <Card>
+          <CardHeader>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="signin">Sign In</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="signin">
+                <CardTitle>Dealer Sign In</CardTitle>
+                <CardDescription>
+                  Access your dealer dashboard and tools
+                </CardDescription>
+              </TabsContent>
+              
+              <TabsContent value="signup">
+                <CardTitle>Register Dealership</CardTitle>
+                <CardDescription>
+                  Join our network of automotive professionals
+                </CardDescription>
+              </TabsContent>
+            </Tabs>
+          </CardHeader>
           
-          <TabsContent value="signin">
-            <SigninForm userType="dealer" redirectPath="/dealer/dashboard" />
-          </TabsContent>
-          
-          <TabsContent value="signup">
-            <SignupForm userType="dealer" />
-          </TabsContent>
-        </Tabs>
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsContent value="signin">
+                <SigninForm 
+                  userType="dealer"
+                  redirectPath="/dealer/dashboard"
+                />
+              </TabsContent>
+              
+              <TabsContent value="signup">
+                <DealerSignupForm />
+              </TabsContent>
+            </Tabs>
+            
+            <div className="mt-6 text-center text-sm text-gray-500">
+              {activeTab === 'signin' ? (
+                <p>
+                  Need a dealer account?{' '}
+                  <button
+                    onClick={() => setActiveTab('signup')}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Register dealership
+                  </button>
+                </p>
+              ) : (
+                <p>
+                  Already have an account?{' '}
+                  <button
+                    onClick={() => setActiveTab('signin')}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Sign in
+                  </button>
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
-}
+};
+
+export default DealerAuthPage;
