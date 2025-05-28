@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { RouteObject } from 'react-router-dom';
+import { RouteObject, Navigate } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
 import AboutPage from './pages/AboutPage';
 import VinLookupPage from './pages/VinLookupPage';
@@ -41,6 +41,25 @@ const routes: RouteObject[] = [
     path: 'auth',
     element: <UnifiedAuthPage />
   },
+  
+  // Redirect old auth paths to unified auth page
+  {
+    path: 'login',
+    element: <Navigate to="/auth" replace />
+  },
+  {
+    path: 'register',
+    element: <Navigate to="/auth" replace />
+  },
+  {
+    path: 'signup',
+    element: <Navigate to="/auth" replace />
+  },
+  {
+    path: 'signin',
+    element: <Navigate to="/auth" replace />
+  },
+  
   {
     path: 'auth/callback',
     element: <AuthCallbackPage />

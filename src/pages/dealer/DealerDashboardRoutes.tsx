@@ -18,7 +18,7 @@ const DealerDashboardRoutes = () => {
     );
   }
 
-  // If not logged in or not a dealer, redirect to login
+  // If not logged in or not a dealer, redirect to unified auth
   if (!user || userDetails?.role !== 'dealer') {
     return <Navigate to="/auth" replace />;
   }

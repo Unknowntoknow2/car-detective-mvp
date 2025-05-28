@@ -74,7 +74,7 @@ export const Header: React.FC = () => {
           ) : (
             <>
               <Link to="/auth" className="text-sm font-medium hover:text-primary">Sign In</Link>
-              <Link to="/register" className="text-sm font-medium hover:text-primary">Sign Up</Link>
+              <Link to="/auth" className="text-sm font-medium hover:text-primary">Sign Up</Link>
             </>
           )}
         </div>

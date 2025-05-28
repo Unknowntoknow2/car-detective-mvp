@@ -84,7 +84,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, setIsOpen }) => {
                 <User className="h-5 w-5" />
                 Sign In
               </Link>
-              <Link to="/register" className="flex items-center gap-2 text-base font-medium" onClick={() => setIsOpen(false)}>
+              <Link to="/auth" className="flex items-center gap-2 text-base font-medium" onClick={() => setIsOpen(false)}>
                 <User className="h-5 w-5" />
                 Sign Up
               </Link>

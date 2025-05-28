@@ -27,9 +27,9 @@ const RoleGuard: React.FC<RoleGuardProps> = ({ children, allowedRoles }) => {
     );
   }
 
-  // If user is not authenticated, redirect to login
+  // If user is not authenticated, redirect to unified auth page
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   // If user doesn't have the required role, redirect to access denied

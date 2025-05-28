@@ -26,10 +26,10 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     );
   }
 
-  // If user is not authenticated, redirect to login page
+  // If user is not authenticated, redirect to unified auth page
   if (!user) {
     // Save the attempted URL for redirection after login
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   // If user is authenticated, render the protected route
