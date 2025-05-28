@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { DecodedVehicleInfo } from '@/types/vehicle';
-import { getCarPricePrediction } from '@/services/carPricePredictionService';
 
 interface UseVinLookupResult {
   isLoading: boolean;
@@ -28,48 +27,25 @@ export const useVinLookup = (): UseVinLookupResult => {
     setError(null);
     
     try {
-      // Mock decoded data - in production this would come from VIN decoder API
-      const decoded = {
-        make: 'Toyota',
-        model: 'Camry',
-        year: 2020,
-        fuelType: 'Gasoline',
-        transmission: 'Automatic',
-        bodyType: 'Sedan',
-        color: 'Silver'
-      };
-
-      // Get real valuation from API
-      const prediction = await getCarPricePrediction({
-        make: decoded.make,
-        model: decoded.model,
-        year: decoded.year,
-        mileage: 42000,
-        condition: 'good',
-        zipCode: '90210',
-        fuelType: decoded.fuelType,
-        transmission: decoded.transmission,
-        color: decoded.color,
-        bodyType: decoded.bodyType,
-        vin: vin
-      });
+      // Mock decoded data
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const result: DecodedVehicleInfo = {
         vin,
-        make: prediction.make,
-        model: prediction.model,
-        year: prediction.year,
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2020,
         trim: 'LE',
         engine: '2.5L I4',
-        transmission: prediction.transmission,
+        transmission: 'Automatic',
         drivetrain: 'FWD',
-        bodyType: prediction.bodyType,
-        exteriorColor: prediction.color,
-        color: prediction.color,
-        fuelType: prediction.fuelType,
+        bodyType: 'Sedan',
+        exteriorColor: 'Silver',
+        color: 'Silver',
+        fuelType: 'Gasoline',
         features: ['bluetooth', 'backup_camera', 'alloy_wheels'],
-        estimatedValue: prediction.estimatedValue,
-        confidenceScore: prediction.confidenceScore,
+        estimatedValue: 25000,
+        confidenceScore: 85,
         valuationId: `vin-${Date.now()}`
       };
       
@@ -89,47 +65,25 @@ export const useVinLookup = (): UseVinLookupResult => {
     setError(null);
     
     try {
-      // Mock decoded data - in production this would come from plate lookup API
-      const decoded = {
-        make: 'Honda',
-        model: 'Accord',
-        year: 2019,
-        fuelType: 'Gasoline',
-        transmission: 'CVT',
-        bodyType: 'Sedan',
-        color: 'Blue'
-      };
-
-      // Get real valuation from API
-      const prediction = await getCarPricePrediction({
-        make: decoded.make,
-        model: decoded.model,
-        year: decoded.year,
-        mileage: 52000,
-        condition: 'good',
-        zipCode: '90210',
-        fuelType: decoded.fuelType,
-        transmission: decoded.transmission,
-        color: decoded.color,
-        bodyType: decoded.bodyType
-      });
+      // Mock decoded data
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const result: DecodedVehicleInfo = {
         vin: `PLATE-${plate}-${state}`,
-        make: prediction.make,
-        model: prediction.model,
-        year: prediction.year,
+        make: 'Honda',
+        model: 'Accord',
+        year: 2019,
         trim: 'EX',
         engine: '1.5L Turbo',
-        transmission: prediction.transmission,
+        transmission: 'CVT',
         drivetrain: 'FWD',
-        bodyType: prediction.bodyType,
-        exteriorColor: prediction.color,
-        color: prediction.color,
-        fuelType: prediction.fuelType,
+        bodyType: 'Sedan',
+        exteriorColor: 'Blue',
+        color: 'Blue',
+        fuelType: 'Gasoline',
         features: ['sunroof', 'lane_assist', 'heated_seats'],
-        estimatedValue: prediction.estimatedValue,
-        confidenceScore: prediction.confidenceScore,
+        estimatedValue: 23000,
+        confidenceScore: 80,
         valuationId: `plate-${Date.now()}`
       };
       

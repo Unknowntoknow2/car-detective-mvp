@@ -2,8 +2,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { getCarfaxReport } from '@/utils/carfax/mockCarfaxService';
-import { useVinDecoder } from '@/hooks/useVinDecoder';
-import { useFullValuationPipeline } from '@/hooks/useFullValuationPipeline';
 import { supabase } from '@/integrations/supabase/client';
 
 export function useVinDecoderForm() {
@@ -12,25 +10,9 @@ export function useVinDecoderForm() {
   const [carfaxData, setCarfaxData] = useState<any>(null);
   const [carfaxError, setCarfaxError] = useState<string | null>(null);
   const [isLoadingCarfax, setIsLoadingCarfax] = useState(false);
-
-  const {
-    result,
-    isLoading,
-    error,
-    lookupVin,
-    valuationId,
-  } = useVinDecoder();
-
-  const {
-    stage,
-    vehicle: pipelineVehicle,
-    requiredInputs,
-    valuationResult,
-    error: valuationError,
-    isLoading: pipelineLoading,
-    runLookup,
-    submitValuation,
-  } = useFullValuationPipeline();
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // VIN → Decode → Real API → Save to Supabase
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,22 +24,18 @@ export function useVinDecoderForm() {
     }
 
     try {
+      setIsLoading(true);
       setCarfaxData(null);
       setCarfaxError(null);
+      setError(null);
 
-      // Step 1: Decode VIN
-      await lookupVin(vin);
-      
-      // Step 2: Run pipeline lookup
-      await runLookup('vin', vin);
-
-      // Step 3: Get Carfax data
+      // Step 1: Get Carfax data
       setIsLoadingCarfax(true);
       const report = await getCarfaxReport(vin);
       setCarfaxData(report);
       setIsLoadingCarfax(false);
 
-      // Step 4: Call real valuation API with decoded data
+      // Step 2: Call real valuation API with decoded data
       try {
         console.log('Calling car-price-prediction with:', {
           make: 'Toyota',
@@ -95,6 +73,7 @@ export function useVinDecoderForm() {
         } else {
           console.log('Real valuation completed:', valuationData);
           localStorage.setItem('latest_valuation_id', valuationData.id);
+          setResult(valuationData);
           toast.success('VIN lookup completed with real valuation data');
         }
       } catch (valuationError) {
@@ -105,51 +84,11 @@ export function useVinDecoderForm() {
     } catch (err) {
       console.error('CARFAX error:', err);
       setCarfaxError('Unable to retrieve vehicle history report.');
-      setIsLoadingCarfax(false);
+      setError('Could not retrieve vehicle history report.');
       toast.error('Could not retrieve vehicle history report.');
-    }
-  };
-
-  const handleDetailsSubmit = async (details: any): Promise<void> => {
-    try {
-      const { data: valuationData, error: valuationError } = await supabase.functions.invoke('car-price-prediction', {
-        body: {
-          make: details.make,
-          model: details.model,
-          year: details.year,
-          mileage: details.mileage || 45000,
-          condition: details.condition || 'good',
-          zipCode: zipCode || details.zipCode || '90210',
-          fuelType: details.fuelType,
-          transmission: details.transmission,
-          color: details.color,
-          bodyType: details.bodyType,
-          vin: vin,
-          carfaxData: carfaxData || undefined,
-        }
-      });
-
-      if (valuationError) {
-        throw new Error('Valuation failed');
-      }
-
-      await submitValuation({
-        ...details,
-        estimatedValue: valuationData.estimatedValue,
-        confidenceScore: valuationData.confidenceScore,
-        carfaxData: carfaxData || undefined,
-      });
-      
-      toast.success('Valuation completed with real pricing data');
-    } catch (error) {
-      console.error('Real valuation failed:', error);
-      // Fallback to original submission
-      await submitValuation({
-        ...details,
-        zipCode: zipCode || details.zipCode,
-        carfaxData: carfaxData || undefined,
-      });
-      toast.error('Used basic valuation due to API error');
+    } finally {
+      setIsLoading(false);
+      setIsLoadingCarfax(false);
     }
   };
 
@@ -164,15 +103,6 @@ export function useVinDecoderForm() {
     carfaxData,
     isLoadingCarfax,
     carfaxError,
-    stage,
-    pipelineVehicle,
-    requiredInputs,
-    valuationResult,
-    valuationError,
-    pipelineLoading,
     handleSubmit,
-    handleDetailsSubmit,
-    submitValuation,
-    valuationId,
   };
 }

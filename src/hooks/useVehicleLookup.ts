@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 import { toast } from 'sonner';
-import { getCarPricePrediction } from '@/services/carPricePredictionService';
 
 interface VehicleLookupResult {
   isLoading: boolean;
@@ -39,125 +38,63 @@ export function useVehicleLookup(): VehicleLookupResult {
       let result: DecodedVehicleInfo | null = null;
       
       if (type === 'manual' && manualData) {
-        // Handle manual entry with real API call
-        const predictionResult = await getCarPricePrediction({
+        result = {
+          vin: manualData.vin || 'MANUAL_ENTRY',
           make: manualData.make,
           model: manualData.model,
           year: manualData.year,
           mileage: manualData.mileage,
-          condition: manualData.condition.toString(),
-          zipCode: manualData.zipCode,
+          trim: manualData.trim,
           fuelType: manualData.fuelType,
           transmission: manualData.transmission,
-          color: manualData.color,
           bodyType: manualData.bodyStyle,
-          vin: manualData.vin
-        });
-
-        result = {
-          vin: manualData.vin || 'MANUAL_ENTRY',
-          make: predictionResult.make,
-          model: predictionResult.model,
-          year: predictionResult.year,
-          mileage: predictionResult.mileage,
-          trim: manualData.trim,
-          fuelType: predictionResult.fuelType,
-          transmission: predictionResult.transmission,
-          bodyType: predictionResult.bodyType,
-          exteriorColor: predictionResult.color,
-          estimatedValue: predictionResult.estimatedValue,
-          confidenceScore: predictionResult.confidenceScore,
+          exteriorColor: manualData.color,
+          estimatedValue: 25000,
+          confidenceScore: 80,
           valuationId: `manual-${Date.now()}`
         };
       } else if (type === 'vin') {
-        // Mock VIN decode then real valuation
+        // Mock VIN decode
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const mockDecoded = {
+        result = {
+          vin: value,
           make: 'Toyota',
           model: 'Camry',
           year: 2019,
-          fuelType: 'Gasoline',
-          transmission: 'Automatic',
-          bodyType: 'Sedan',
-          color: 'Silver'
-        };
-
-        const predictionResult = await getCarPricePrediction({
-          make: mockDecoded.make,
-          model: mockDecoded.model,
-          year: mockDecoded.year,
           mileage: 45000,
-          condition: 'good',
-          zipCode: '90210',
-          fuelType: mockDecoded.fuelType,
-          transmission: mockDecoded.transmission,
-          color: mockDecoded.color,
-          bodyType: mockDecoded.bodyType,
-          vin: value
-        });
-
-        result = {
-          vin: value,
-          make: predictionResult.make,
-          model: predictionResult.model,
-          year: predictionResult.year,
-          mileage: predictionResult.mileage,
           trim: 'SE',
           engine: '2.5L I4',
-          transmission: predictionResult.transmission,
+          transmission: 'Automatic',
           drivetrain: 'FWD',
-          bodyType: predictionResult.bodyType,
-          fuelType: predictionResult.fuelType,
-          exteriorColor: predictionResult.color,
+          bodyType: 'Sedan',
+          fuelType: 'Gasoline',
+          exteriorColor: 'Silver',
           features: ['Bluetooth', 'Backup Camera', 'Alloy Wheels'],
-          estimatedValue: predictionResult.estimatedValue,
-          confidenceScore: predictionResult.confidenceScore,
+          estimatedValue: 24000,
+          confidenceScore: 85,
           valuationId: `vin-${Date.now()}`
         };
       } else if (type === 'plate') {
-        // Mock plate decode then real valuation
+        // Mock plate decode
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const mockDecoded = {
+        result = {
+          vin: 'PLATE123456789ABCD',
           make: 'Honda',
           model: 'Accord',
           year: 2018,
-          fuelType: 'Gasoline',
-          transmission: 'CVT',
-          bodyType: 'Sedan',
-          color: 'Blue'
-        };
-
-        const predictionResult = await getCarPricePrediction({
-          make: mockDecoded.make,
-          model: mockDecoded.model,
-          year: mockDecoded.year,
           mileage: 52000,
-          condition: 'good',
-          zipCode: '90210',
-          fuelType: mockDecoded.fuelType,
-          transmission: mockDecoded.transmission,
-          color: mockDecoded.color,
-          bodyType: mockDecoded.bodyType
-        });
-
-        result = {
-          vin: 'PLATE123456789ABCD',
-          make: predictionResult.make,
-          model: predictionResult.model,
-          year: predictionResult.year,
-          mileage: predictionResult.mileage,
           trim: 'EX-L',
           engine: '1.5L I4 Turbo',
-          transmission: predictionResult.transmission,
+          transmission: 'CVT',
           drivetrain: 'FWD',
-          bodyType: predictionResult.bodyType,
-          fuelType: predictionResult.fuelType,
-          exteriorColor: predictionResult.color,
+          bodyType: 'Sedan',
+          fuelType: 'Gasoline',
+          exteriorColor: 'Blue',
           features: ['Bluetooth', 'Navigation', 'Leather Seats'],
-          estimatedValue: predictionResult.estimatedValue,
-          confidenceScore: predictionResult.confidenceScore,
+          estimatedValue: 22000,
+          confidenceScore: 80,
           valuationId: `plate-${Date.now()}`
         };
       }
