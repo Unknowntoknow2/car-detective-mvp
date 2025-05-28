@@ -1,150 +1,63 @@
 
-import React, { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Mail, KeyRound } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import React, { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
-export interface SigninFormProps {
-  isLoading?: boolean;
-  setIsLoading?: (loading: boolean) => void;
-  redirectPath?: string;
-  role?: string;
-  alternateLoginPath?: string;
-  alternateLoginText?: string;
-  userType?: 'individual' | 'dealer';
-}
-
-export const SigninForm: React.FC<SigninFormProps> = ({ 
-  isLoading: externalIsLoading, 
-  setIsLoading: externalSetIsLoading,
-  redirectPath = '/dashboard',
-  role,
-  alternateLoginPath,
-  alternateLoginText,
-  userType = 'individual'
-}) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [internalIsLoading, setInternalIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function SigninForm() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  // Use external or internal loading state
-  const isLoading = externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
-  const setIsLoading = externalSetIsLoading || setInternalIsLoading;
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setIsLoading(true);
-    setError(null);
     
     try {
       const result = await signIn(email, password);
-      
-      if (!result.success) {
-        const errorMessage = result.error || 'Authentication failed';
-        setError(errorMessage);
-        setIsLoading(false);
-        
-        toast({
-          title: "Sign in failed",
-          description: errorMessage,
-          variant: "destructive",
-        });
-        return;
+      if (result.error) {
+        setError(result.error);
+      } else {
+        navigate("/dashboard");
       }
-      
-      // Show success toast
-      toast({
-        title: "Signed in successfully",
-        description: "Welcome back!",
-        variant: "success",
-      });
-      
-      // Determine redirect path based on user type
-      let targetPath = redirectPath;
-      if (userType === 'dealer') {
-        targetPath = '/dealer/dashboard';
-      }
-      
-      // Use the from location if available, otherwise use the target path
-      const from = location.state?.from?.pathname || targetPath;
-      
-      console.log(`Redirecting ${userType} to:`, from);
-      navigate(from, { replace: true });
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+      setError(err.message || "Sign in failed");
+    } finally {
       setIsLoading(false);
-      
-      toast({
-        title: "Sign in failed",
-        description: err.message || 'An unexpected error occurred',
-        variant: "destructive",
-      });
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
-          {error}
-        </div>
-      )}
-      
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="email"
-            type="email"
-            placeholder="your@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={isLoading}
-            className="pl-10"
-            required
-          />
-        </div>
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <div className="relative">
-          <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="password"
-            type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={isLoading}
-            className="pl-10"
-            required
-          />
-        </div>
-      </div>
-      
+      <Input 
+        type="email" 
+        placeholder="Email" 
+        value={email} 
+        onChange={(e) => setEmail(e.target.value)} 
+        required 
+        name="email"
+        disabled={isLoading}
+      />
+      <Input 
+        type="password" 
+        placeholder="Password" 
+        value={password} 
+        onChange={(e) => setPassword(e.target.value)} 
+        required 
+        name="password"
+        disabled={isLoading}
+      />
+      {error && <p className="text-sm text-red-500">{error}</p>}
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Signing in...' : 'Sign In'}
+        {isLoading ? "Signing In..." : "Sign In"}
       </Button>
-
-      {alternateLoginPath && alternateLoginText && (
-        <div className="text-center mt-4 text-sm text-muted-foreground">
-          <a href={alternateLoginPath} className="hover:underline">
-            {alternateLoginText}
-          </a>
-        </div>
-      )}
     </form>
   );
-};
+}
 
 export default SigninForm;
