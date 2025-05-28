@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Container } from '@/components/ui/container';
 import { VINFollowUpWrapper } from '@/components/followup/VINFollowUpWrapper';
-import { VinDecoderForm } from '@/components/lookup/VinDecoderForm';
+import VinDecoderForm from '@/components/lookup/VinDecoderForm';
 import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
 
 export default function VinLookupPage() {
