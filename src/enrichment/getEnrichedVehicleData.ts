@@ -1,9 +1,42 @@
 
-import { getStatVinData } from './sources/statvin';
-import { getFacebookListings } from './sources/facebook';
-import { getCraigslistListings } from './sources/craigslist';
-import { getEbayListings } from './sources/ebay';
-import { EnrichedVehicleData } from './types';
+import { supabase } from '@/integrations/supabase/client';
+
+export interface StatVinData {
+  vin: string;
+  statVinData?: {
+    auctionHistory: Array<{
+      date: string;
+      price: number;
+      location: string;
+      condition: string;
+      mileage: number;
+    }>;
+    damageHistory: Array<{
+      type: string;
+      location: string;
+      severity: string;
+    }>;
+    titleHistory: Array<{
+      state: string;
+      type: string;
+      date: string;
+    }>;
+  };
+}
+
+export interface EnrichedVehicleData {
+  vin: string;
+  sources: {
+    statVin: StatVinData | null;
+    facebook: null;
+    craigslist: null;
+    ebay: null;
+    carsdotcom: null;
+    offerup: null;
+  };
+  lastUpdated?: string;
+  cached?: boolean;
+}
 
 export async function getEnrichedVehicleData(
   vin: string, 
@@ -14,45 +47,81 @@ export async function getEnrichedVehicleData(
   console.log(`🔍 Starting enriched data fetch for VIN: ${vin}`);
   
   try {
-    // Fetch data from all sources in parallel
-    const [statVin, facebook, craigslist, ebay] = await Promise.allSettled([
-      getStatVinData(vin),
-      getFacebookListings(vin, make, model, year),
-      getCraigslistListings(vin, make, model, year),
-      getEbayListings(vin, make, model, year)
-    ]);
+    // Check user access level first
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.log('❌ User not authenticated');
+      return createEmptyEnrichedData(vin);
+    }
+
+    // Get user profile to check role
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, is_premium_dealer')
+      .eq('id', user.id)
+      .single();
+
+    const hasAccess = profile && (
+      ['premium', 'dealer', 'admin'].includes(profile.role) || 
+      profile.is_premium_dealer
+    );
+
+    if (!hasAccess) {
+      console.log('❌ User does not have premium access');
+      return createEmptyEnrichedData(vin);
+    }
+
+    console.log('✅ User has premium access, fetching enrichment data');
+
+    // Call the enrichment cache edge function
+    const { data, error } = await supabase.functions.invoke('enrichment-cache', {
+      body: {
+        vin,
+        source: 'statvin'
+      }
+    });
+
+    if (error) {
+      console.error('❌ Error calling enrichment cache:', error);
+      return createEmptyEnrichedData(vin);
+    }
 
     const enrichedData: EnrichedVehicleData = {
       vin,
       sources: {
-        statVin: statVin.status === 'fulfilled' ? statVin.value : null,
-        facebook: facebook.status === 'fulfilled' ? facebook.value : null,
-        craigslist: craigslist.status === 'fulfilled' ? craigslist.value : null,
-        ebay: ebay.status === 'fulfilled' ? ebay.value : null,
-        carsdotcom: null, // Reserved for future implementation
-        offerup: null,    // Reserved for future implementation
-      }
+        statVin: data.data || null,
+        facebook: null,
+        craigslist: null,
+        ebay: null,
+        carsdotcom: null,
+        offerup: null,
+      },
+      lastUpdated: data.lastUpdated,
+      cached: data.cached
     };
 
     console.log('✅ Enriched data compilation complete');
     return enrichedData;
   } catch (error) {
     console.error('❌ Error fetching enriched vehicle data:', error);
-    
-    // Return structure with null values on error
-    return {
-      vin,
-      sources: {
-        statVin: null,
-        facebook: null,
-        craigslist: null,
-        ebay: null,
-        carsdotcom: null,
-        offerup: null,
-      }
-    };
+    return createEmptyEnrichedData(vin);
   }
 }
 
+function createEmptyEnrichedData(vin: string): EnrichedVehicleData {
+  return {
+    vin,
+    sources: {
+      statVin: null,
+      facebook: null,
+      craigslist: null,
+      ebay: null,
+      carsdotcom: null,
+      offerup: null,
+    }
+  };
+}
+
 // Export types for external use
-export type { EnrichedVehicleData, StatVinData, FacebookListing, CraigslistListing, EbayListing } from './types';
+export type { EnrichedVehicleData, StatVinData };

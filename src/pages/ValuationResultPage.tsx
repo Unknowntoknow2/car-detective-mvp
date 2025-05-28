@@ -1,18 +1,40 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useValuationResult } from '@/hooks/useValuationResult';
-import ValuationResultPremium from '@/components/valuation/result/ValuationResultPremium';
+import { useUserRole } from '@/hooks/useUserRole';
 import { AIChatBubble } from '@/components/chat/AIChatBubble';
 import { DealerOffersList } from '@/components/dealer/DealerOffersList';
 import PredictionResult from '@/components/valuation/PredictionResult';
 import { EnrichedDataCard } from '@/components/enriched/EnrichedDataCard';
+import { PremiumEnrichmentGate } from '@/components/enriched/PremiumEnrichmentGate';
 import { getEnrichedVehicleData, EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
 
 export default function ValuationResultPage() {
   const { valuationId } = useParams<{ valuationId: string }>();
   const { data: valuationResult, isLoading, error } = useValuationResult(valuationId);
+  const { userRole, hasPermiumAccess, isLoading: roleLoading } = useUserRole();
   const [enrichedData, setEnrichedData] = useState<EnrichedVehicleData | null>(null);
   const [isLoadingEnriched, setIsLoadingEnriched] = useState(false);
+
+  const refreshEnrichedData = async () => {
+    if (!valuationResult?.vin || !hasPermiumAccess) return;
+    
+    setIsLoadingEnriched(true);
+    try {
+      const enriched = await getEnrichedVehicleData(
+        valuationResult.vin,
+        valuationResult.make || undefined,
+        valuationResult.model || undefined,
+        valuationResult.year || undefined
+      );
+      setEnrichedData(enriched);
+    } catch (error) {
+      console.error('Failed to refresh enriched data:', error);
+    } finally {
+      setIsLoadingEnriched(false);
+    }
+  };
 
   useEffect(() => {
     async function loadEnrichedData() {
@@ -24,7 +46,8 @@ export default function ValuationResultPage() {
         valuationResult.model && 
         typeof valuationResult.model === 'string' &&
         valuationResult.year && 
-        typeof valuationResult.year === 'number'
+        typeof valuationResult.year === 'number' &&
+        !roleLoading // Wait for role to load
       ) {
         setIsLoadingEnriched(true);
         try {
@@ -44,9 +67,9 @@ export default function ValuationResultPage() {
     }
 
     loadEnrichedData();
-  }, [valuationResult?.vin, valuationResult?.make, valuationResult?.model, valuationResult?.year]);
+  }, [valuationResult?.vin, valuationResult?.make, valuationResult?.model, valuationResult?.year, roleLoading]);
 
-  if (isLoading) {
+  if (isLoading || roleLoading) {
     return (
       <div className="container mx-auto p-4 space-y-6">
         <div className="flex flex-col items-center justify-center py-12">
@@ -92,16 +115,29 @@ export default function ValuationResultPage() {
       {/* Main Valuation Result */}
       <PredictionResult valuationId={valuationId || ''} />
       
-      {/* Enriched Data Section */}
-      {enrichedData && (
-        <EnrichedDataCard data={enrichedData} />
-      )}
-      
-      {isLoadingEnriched && (
-        <div className="flex items-center justify-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mr-2"></div>
-          <span className="text-sm text-muted-foreground">Loading market data...</span>
-        </div>
+      {/* Enriched Data Section - Role-based display */}
+      {hasPermiumAccess ? (
+        // Premium users see full enriched data
+        enrichedData && enrichedData.sources.statVin ? (
+          <EnrichedDataCard 
+            data={enrichedData} 
+            userRole={userRole}
+            onRefresh={refreshEnrichedData}
+            isRefreshing={isLoadingEnriched}
+            lastUpdated={enrichedData.lastUpdated}
+          />
+        ) : isLoadingEnriched ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mr-3"></div>
+            <span className="text-muted-foreground">Loading market intelligence...</span>
+          </div>
+        ) : null
+      ) : (
+        // Free users see upgrade prompt
+        <PremiumEnrichmentGate 
+          vin={valuationResult.vin || undefined}
+          valuationId={valuationId}
+        />
       )}
 
       {/* AI Chat Bubble */}
