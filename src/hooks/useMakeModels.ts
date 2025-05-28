@@ -82,7 +82,10 @@ export function useMakeModels() {
         .eq('make_id', makeId)
         .order('model_name');
         
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error fetching models:', error);
+        throw error;
+      }
       
       const modelsList = data || [];
       console.log('Fetched models:', modelsList.length, modelsList);

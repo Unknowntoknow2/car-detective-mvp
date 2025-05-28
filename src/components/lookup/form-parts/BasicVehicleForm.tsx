@@ -3,7 +3,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMakeModels } from '@/hooks/useMakeModels';
-import { ManualEntryFormData } from '../types/manualEntry';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { ManualEntryFormData, ConditionLevel } from '../types/manualEntry';
+import ConditionSelectorBar from '@/components/common/ConditionSelectorBar';
 
 interface BasicVehicleFormProps {
   formData: ManualEntryFormData;
@@ -12,21 +14,25 @@ interface BasicVehicleFormProps {
   isPremium?: boolean;
 }
 
-export const BasicVehicleForm: React.FC<BasicVehicleFormProps> = ({ 
-  formData, 
-  updateFormData, 
-  errors, 
-  isPremium = false 
-}) => {
+export function BasicVehicleForm({ formData, updateFormData, errors, isPremium }: BasicVehicleFormProps) {
   const { makes, models, isLoading, error, getModelsByMakeId } = useMakeModels();
   const [selectedMakeId, setSelectedMakeId] = useState<string>('');
   const [loadingModels, setLoadingModels] = useState(false);
 
   // Generate year options
   const currentYear = new Date().getFullYear();
-  const yearOptions = Array.from({ length: currentYear - 1979 }, (_, i) => currentYear - i);
+  const years = Array.from({ length: 35 }, (_, i) => currentYear - i);
 
-  // Handle make selection and fetch models
+  // Fuel type options
+  const fuelTypeOptions = [
+    { value: 'gasoline', label: 'Gasoline' },
+    { value: 'diesel', label: 'Diesel' },
+    { value: 'hybrid', label: 'Hybrid' },
+    { value: 'electric', label: 'Electric' },
+    { value: 'alternative', label: 'Alternative' }
+  ];
+
+  // Handle make selection
   const handleMakeChange = useCallback(async (makeId: string) => {
     console.log('Make changed to:', makeId);
     setSelectedMakeId(makeId);
@@ -41,9 +47,9 @@ export const BasicVehicleForm: React.FC<BasicVehicleFormProps> = ({
       setLoadingModels(true);
       try {
         await getModelsByMakeId(makeId);
-        console.log('Models fetched successfully');
-      } catch (error) {
-        console.error('Error fetching models:', error);
+        console.log('Models fetched successfully for make:', makeId);
+      } catch (err) {
+        console.error('Error fetching models:', err);
       } finally {
         setLoadingModels(false);
       }
@@ -72,24 +78,25 @@ export const BasicVehicleForm: React.FC<BasicVehicleFormProps> = ({
 
   if (error) {
     return (
-      <div className="p-4 border border-red-200 bg-red-50 rounded-md text-red-800">
-        <p className="font-medium">Error loading vehicle data</p>
-        <p className="text-sm mt-1">{error}</p>
+      <div className="p-4 border border-red-200 bg-red-50 rounded-md text-red-800 flex items-start gap-2">
+        <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+        <div>
+          <p className="font-medium">Failed to load vehicle data</p>
+          <p className="text-sm mt-1">{error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <h3 className="text-lg font-medium mb-4">Vehicle Information</h3>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="space-y-6">
+      {/* Make and Model Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Make</label>
-          <Select 
-            onValueChange={handleMakeChange} 
-            value={selectedMakeId}
-            disabled={isLoading}
-          >
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Make <span className="text-red-500">*</span>
+          </label>
+          <Select onValueChange={handleMakeChange} value={selectedMakeId}>
             <SelectTrigger className={errors.make ? 'border-red-300' : ''}>
               <SelectValue placeholder={isLoading ? "Loading makes..." : "Select make"} />
             </SelectTrigger>
@@ -103,9 +110,11 @@ export const BasicVehicleForm: React.FC<BasicVehicleFormProps> = ({
           </Select>
           {errors.make && <p className="text-red-500 text-sm mt-1">{errors.make}</p>}
         </div>
-        
+
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Model <span className="text-red-500">*</span>
+          </label>
           <Select 
             onValueChange={handleModelChange} 
             value={formData.model}
@@ -113,9 +122,9 @@ export const BasicVehicleForm: React.FC<BasicVehicleFormProps> = ({
           >
             <SelectTrigger className={errors.model ? 'border-red-300' : ''}>
               <SelectValue placeholder={
-                !selectedMakeId ? "Select make first" :
-                loadingModels ? "Loading models..." :
-                models.length === 0 ? "No models available" :
+                loadingModels ? "Loading models..." : 
+                !selectedMakeId ? "Select make first" : 
+                models.length === 0 ? "No models available" : 
                 "Select model"
               } />
             </SelectTrigger>
@@ -127,20 +136,31 @@ export const BasicVehicleForm: React.FC<BasicVehicleFormProps> = ({
               ))}
             </SelectContent>
           </Select>
+          {loadingModels && (
+            <div className="flex items-center mt-1 text-sm text-gray-500">
+              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+              Loading models...
+            </div>
+          )}
           {errors.model && <p className="text-red-500 text-sm mt-1">{errors.model}</p>}
         </div>
-        
+      </div>
+
+      {/* Year and Trim Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Year</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Year <span className="text-red-500">*</span>
+          </label>
           <Select 
             onValueChange={(value) => updateFormData({ year: parseInt(value) })} 
-            value={formData.year?.toString() || ''}
+            value={formData.year?.toString()}
           >
             <SelectTrigger className={errors.year ? 'border-red-300' : ''}>
               <SelectValue placeholder="Select year" />
             </SelectTrigger>
             <SelectContent>
-              {yearOptions.map(year => (
+              {years.map(year => (
                 <SelectItem key={year} value={year.toString()}>
                   {year}
                 </SelectItem>
@@ -149,38 +169,56 @@ export const BasicVehicleForm: React.FC<BasicVehicleFormProps> = ({
           </Select>
           {errors.year && <p className="text-red-500 text-sm mt-1">{errors.year}</p>}
         </div>
-        
+
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Mileage</label>
-          <Input 
-            type="number" 
-            placeholder="e.g. 45000" 
-            value={formData.mileage || ''} 
-            onChange={(e) => {
-              const value = e.target.value.replace(/\D/g, '');
-              updateFormData({ mileage: parseInt(value) || 0 });
-            }}
-            className={errors.mileage ? 'border-red-300' : ''}
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Trim (Optional)
+          </label>
+          <Input
+            type="text"
+            placeholder="e.g. LE, XLE, Sport"
+            value={formData.trim || ''}
+            onChange={(e) => updateFormData({ trim: e.target.value })}
+            className={errors.trim ? 'border-red-300' : ''}
           />
-          {errors.mileage && <p className="text-red-500 text-sm mt-1">{errors.mileage}</p>}
+          {errors.trim && <p className="text-red-500 text-sm mt-1">{errors.trim}</p>}
         </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
-          <Input 
-            type="text" 
-            placeholder="e.g. 90210" 
-            value={formData.zipCode || ''} 
-            onChange={(e) => {
-              const value = e.target.value.replace(/\D/g, '').slice(0, 5);
-              updateFormData({ zipCode: value });
-            }}
-            maxLength={5}
-            className={errors.zipCode ? 'border-red-300' : ''}
-          />
-          {errors.zipCode && <p className="text-red-500 text-sm mt-1">{errors.zipCode}</p>}
-        </div>
+      </div>
+
+      {/* Fuel Type */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Fuel Type
+        </label>
+        <Select 
+          onValueChange={(value) => updateFormData({ fuelType: value })} 
+          value={formData.fuelType}
+        >
+          <SelectTrigger className={errors.fuelType ? 'border-red-300' : ''}>
+            <SelectValue placeholder="Select fuel type" />
+          </SelectTrigger>
+          <SelectContent>
+            {fuelTypeOptions.map(option => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {errors.fuelType && <p className="text-red-500 text-sm mt-1">{errors.fuelType}</p>}
+      </div>
+
+      {/* Vehicle Condition */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Vehicle Condition <span className="text-red-500">*</span>
+        </label>
+        <ConditionSelectorBar 
+          value={formData.condition}
+          onChange={(condition) => updateFormData({ condition })}
+        />
+        {errors.condition && <p className="text-red-500 text-sm mt-1">{errors.condition}</p>}
       </div>
     </div>
   );
-};
+}
