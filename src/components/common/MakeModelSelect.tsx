@@ -57,7 +57,6 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   const handleMakeChange = (newMakeId: string) => {
     console.log('Make changed to:', newMakeId);
     setSelectedMakeId(newMakeId);
-    // Always reset model selection when make changes
     setSelectedModelId('');
   };
 
@@ -153,7 +152,7 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
         </div>
       </div>
       
-      {/* Improved messaging for no models scenario */}
+      {/* Info message for no models scenario */}
       {selectedMakeId && !isLoadingModels && filteredModels.length === 0 && (
         <Alert className="border-blue-200 bg-blue-50">
           <Info className="h-4 w-4 text-blue-600" />
@@ -161,12 +160,8 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
             <div className="space-y-2">
               <p className="font-medium">No models available for this make</p>
               <p className="text-sm">
-                This make may not have model data in our system yet. You can:
+                This make may not have model data in our system yet. You can try selecting a different make or contact support if you believe this is an error.
               </p>
-              <ul className="text-sm list-disc list-inside space-y-1 ml-2">
-                <li>Try selecting a different make</li>
-                <li>Contact support if you believe this is an error</li>
-              </ul>
             </div>
           </AlertDescription>
         </Alert>
