@@ -85,32 +85,48 @@ export function useMakeModels() {
       setError(null);
       
       console.log('Fetching models for make ID:', makeId);
-      const { data, error } = await supabase
+      
+      // First, let's check if the make exists
+      const { data: makeCheck } = await supabase
+        .from('makes')
+        .select('make_name')
+        .eq('id', makeId)
+        .single();
+      
+      console.log('Make check result:', makeCheck);
+      
+      // Now fetch models with explicit filtering
+      const { data: modelsData, error: modelsError } = await supabase
         .from('models')
         .select('id, make_id, model_name')
         .eq('make_id', makeId)
-        .not('make_id', 'is', null)
         .order('model_name');
         
-      if (error) {
-        console.error('Supabase error fetching models:', error);
-        throw error;
+      if (modelsError) {
+        console.error('Supabase error fetching models:', modelsError);
+        throw modelsError;
       }
       
-      const modelsList = data || [];
-      console.log('Fetched models:', modelsList.length, modelsList.slice(0, 5));
+      console.log('Raw models query result:', modelsData);
       
+      const modelsList = modelsData || [];
+      console.log('Processed models list:', modelsList);
+      
+      // If no models found, let's also check the total count in the models table
       if (modelsList.length === 0) {
-        console.warn('No models found for make ID:', makeId);
-        const { data: makeData } = await supabase
-          .from('makes')
-          .select('make_name')
-          .eq('id', makeId)
-          .single();
+        const { count } = await supabase
+          .from('models')
+          .select('*', { count: 'exact', head: true });
         
-        if (makeData) {
-          console.warn(`Make "${makeData.make_name}" exists but has no models`);
-        }
+        console.log('Total models in database:', count);
+        
+        // Check if there are any models with this make_id (case-insensitive check)
+        const { data: debugModels } = await supabase
+          .from('models')
+          .select('id, make_id, model_name')
+          .limit(5);
+        
+        console.log('Sample models for debugging:', debugModels);
       }
       
       setModels(modelsList);
