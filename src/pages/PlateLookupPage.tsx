@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { PlateFollowUpWrapper } from '@/components/followup/PlateFollowUpWrapper';
 import PlateDecoderForm from '@/components/lookup/PlateDecoderForm';
 import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
 import { MarketingBanner } from '@/components/marketing/MarketingBanner';
@@ -44,17 +43,7 @@ export default function PlateLookupPage() {
             ctaHref="/premium"
           />
 
-          {!showFollowUp ? (
-            <PlateDecoderForm onManualEntryClick={handleManualEntryClick} />
-          ) : (
-            <div className="mt-8">
-              <h2 className="text-xl font-semibold mb-4">Complete Your Valuation</h2>
-              <p className="text-gray-600 mb-6">
-                Please provide additional details to get an accurate valuation for your vehicle.
-              </p>
-              <PlateFollowUpWrapper plateNumber={plateNumber || ''} />
-            </div>
-          )}
+          <PlateDecoderForm onManualEntryClick={handleManualEntryClick} />
         </div>
       </main>
       <Footer />

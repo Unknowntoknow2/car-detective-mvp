@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Container } from '@/components/ui/container';
-import { VINFollowUpWrapper } from '@/components/followup/VINFollowUpWrapper';
 import VinDecoderForm from '@/components/lookup/VinDecoderForm';
 import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
 
@@ -26,18 +25,14 @@ export default function VinLookupPage() {
         </p>
       </div>
       
-      {!showFollowUp ? (
-        <VinDecoderForm />
-      ) : (
-        <VINFollowUpWrapper vin={vin || ''} />
-      )}
+      <VinDecoderForm />
       
       {/* Debug info only visible in development mode */}
       {SHOW_ALL_COMPONENTS && (
         <div className="fixed bottom-4 right-4 bg-yellow-100 text-black p-3 rounded-lg text-xs z-50 opacity-80">
           <div className="space-y-1">
             <div>Debug Mode: ON</div>
-            <div>Component: VINFollowUpWrapper</div>
+            <div>Component: VinLookupPage</div>
             <div>VIN: {vin || 'None'}</div>
           </div>
         </div>
