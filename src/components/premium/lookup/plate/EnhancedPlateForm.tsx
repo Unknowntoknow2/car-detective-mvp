@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { states } from '@/components/premium/lookup/shared/states-data'; // Changed from US_STATES to states
+import { states } from '@/components/premium/lookup/shared/states-data';
 
 export const EnhancedPlateForm = () => {
   const [plateNumber, setPlateNumber] = React.useState('');
