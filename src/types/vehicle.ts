@@ -1,4 +1,5 @@
 
+
 // Consolidated vehicle types for the entire application
 
 export interface VehicleMake {
@@ -55,7 +56,7 @@ export interface VehicleApiResponse<T> {
   isLoading: boolean;
 }
 
-// Restored DecodedVehicleInfo interface that many components depend on
+// Enhanced DecodedVehicleInfo interface with all properties used across the codebase
 export interface DecodedVehicleInfo {
   vin?: string;
   year?: number;
@@ -84,9 +85,11 @@ export interface DecodedVehicleInfo {
   primaryPhoto?: string;
   interiorColor?: string;
   displacement?: string;
+  features?: string[]; // Added missing features property
+  zipCode?: string; // Added missing zipCode property
 }
 
-// Restored ValuationResponse interface
+// Enhanced ValuationResponse interface with all vehicle properties
 export interface ValuationResponse {
   success: boolean;
   data?: any;
@@ -99,4 +102,31 @@ export interface ValuationResponse {
     description: string;
   }>;
   priceRange?: [number, number];
+  // Added vehicle properties that are used in the codebase
+  make?: string;
+  model?: string;
+  year?: number;
+  mileage?: number;
+  condition?: string;
+  valuationId?: string;
+  zipCode?: string;
+  fuelType?: string;
+  transmission?: string;
+  bodyType?: string;
+  bodyStyle?: string;
+  color?: string;
+  trim?: string;
+  vin?: string;
+  isPremium?: boolean;
+  price_range?: {
+    low: number;
+    high: number;
+  };
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected: string[];
+  };
+  userId?: string;
 }
+
