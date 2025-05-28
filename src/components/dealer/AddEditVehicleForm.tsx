@@ -3,12 +3,12 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { DealerInventoryItem } from '@/types/vehicle';
+import { DealerVehicle } from '@/types/dealerVehicle';
 
 interface AddEditVehicleFormProps {
-  vehicle?: DealerInventoryItem;
+  vehicle?: DealerVehicle;
   vehicleId?: string;
-  onSubmit?: (vehicle: Partial<DealerInventoryItem>) => void;
+  onSubmit?: (vehicle: Partial<DealerVehicle>) => void;
   onSuccess?: () => void;
   onCancel?: () => void;
 }

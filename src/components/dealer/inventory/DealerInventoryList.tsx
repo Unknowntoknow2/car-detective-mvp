@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { DealerInventoryItem } from '@/types/vehicle';
+import { DealerVehicle } from '@/types/dealerVehicle';
 
 // Function to fix status check display
 export const fixStatusCheck = (status?: string) => {
@@ -21,7 +21,7 @@ export const fixStatusCheck = (status?: string) => {
 
 // Dealer inventory list component
 export const DealerInventoryList: React.FC<{ 
-  inventory: DealerInventoryItem[];
+  inventory: DealerVehicle[];
   isLoading: boolean;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
