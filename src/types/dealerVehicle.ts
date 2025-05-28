@@ -21,4 +21,27 @@ export interface DealerVehicle {
   updated_at?: string;
 }
 
+export interface DealerVehicleFormData {
+  make: string;
+  model: string;
+  year: number;
+  mileage: number | null;
+  price: number;
+  condition: "Excellent" | "Good" | "Fair" | "Poor";
+  status: "available" | "pending" | "sold";
+  photos: string[];
+  transmission?: "Automatic" | "Manual";
+  fuel_type?: "Gasoline" | "Diesel" | "Hybrid" | "Electric";
+  zip_code?: string;
+  description?: string;
+  vin?: string;
+}
+
+export type DealerVehicleStatus = 'available' | 'pending' | 'sold';
+
+export interface DeleteVehicleResult {
+  success: boolean;
+  error?: string;
+}
+
 export type DealerInventoryItem = DealerVehicle;
