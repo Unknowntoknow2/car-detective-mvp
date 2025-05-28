@@ -1,21 +1,11 @@
 
 import React from 'react';
-import { ManualLookup } from '@/components/lookup/ManualLookup';
-import { toast } from '@/hooks/use-toast';
+import { ManualFollowUpWrapper } from '@/components/followup/ManualFollowUpWrapper';
 
 const ManualLookupPage = () => {
-  const handleSubmit = (data: any) => {
-    // Here you would normally handle form submission
-    console.log("Form submitted with data:", data);
-    
-    // Show toast with proper structure
-    toast({
-      title: "Success",
-      description: "Vehicle information submitted successfully!",
-      variant: "success",
-    });
-    
-    // Redirect to results page or handle response
+  const handleComplete = () => {
+    // Handle completion - could redirect to results or dashboard
+    console.log("Manual follow-up completed");
   };
   
   return (
@@ -26,7 +16,19 @@ const ManualLookupPage = () => {
       </p>
       
       <div className="bg-white rounded-lg shadow-md p-6">
-        <ManualLookup onSubmit={handleSubmit} />
+        <ManualFollowUpWrapper
+          initialData={{
+            make: '',
+            model: '',
+            year: 0,
+            mileage: 0,
+            condition: 'good' as any,
+            zipCode: '',
+            fuelType: '',
+            transmission: ''
+          }}
+          onComplete={handleComplete}
+        />
       </div>
     </div>
   );
