@@ -1,9 +1,12 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ManualEntryFormData, ConditionLevel } from '../types/manualEntry';
+import { useMakeModels } from '@/hooks/useMakeModels';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AlertCircle } from 'lucide-react';
 
 interface BasicVehicleFormProps {
   formData: ManualEntryFormData;
@@ -18,33 +21,123 @@ export function BasicVehicleForm({
   errors,
   isPremium = false
 }: BasicVehicleFormProps) {
+  const { makes, models, isLoading, error, getModelsByMakeId } = useMakeModels();
+  const [availableModels, setAvailableModels] = useState<any[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+  
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
+
+  // Find the selected make object to get its ID for model filtering
+  const selectedMake = makes.find(make => make.make_name === formData.make);
+  const selectedMakeId = selectedMake?.id;
+
+  // Load models when make changes
+  useEffect(() => {
+    const loadModels = async () => {
+      if (selectedMakeId) {
+        setLoadingModels(true);
+        try {
+          const modelsList = await getModelsByMakeId(selectedMakeId);
+          setAvailableModels(modelsList);
+          
+          // Reset model if current selection is not in the new list
+          if (formData.model && !modelsList.some(m => m.model_name === formData.model)) {
+            updateFormData({ model: '' });
+          }
+        } catch (error) {
+          console.error('Error loading models:', error);
+          setAvailableModels([]);
+        } finally {
+          setLoadingModels(false);
+        }
+      } else {
+        setAvailableModels([]);
+        if (formData.model) {
+          updateFormData({ model: '' });
+        }
+      }
+    };
+
+    loadModels();
+  }, [selectedMakeId, getModelsByMakeId, formData.model, updateFormData]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label>Make *</Label>
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div>
+            <Label>Model *</Label>
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 border border-red-200 bg-red-50 rounded-md text-red-800 flex items-start gap-2">
+        <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+        <div>
+          <p className="font-medium">Failed to load vehicle data</p>
+          <p className="text-sm mt-1">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="make">Make *</Label>
-          <Input
-            id="make"
+          <Select
             value={formData.make}
-            onChange={(e) => updateFormData({ make: e.target.value })}
-            placeholder="e.g., Toyota"
-            className={errors.make ? 'border-red-500' : ''}
-          />
+            onValueChange={(value) => updateFormData({ make: value })}
+          >
+            <SelectTrigger className={errors.make ? 'border-red-500' : ''}>
+              <SelectValue placeholder="Select make" />
+            </SelectTrigger>
+            <SelectContent>
+              {makes.map(make => (
+                <SelectItem key={make.id} value={make.make_name}>
+                  {make.make_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {errors.make && <p className="text-red-500 text-sm mt-1">{errors.make}</p>}
         </div>
 
         <div>
           <Label htmlFor="model">Model *</Label>
-          <Input
-            id="model"
+          <Select
             value={formData.model}
-            onChange={(e) => updateFormData({ model: e.target.value })}
-            placeholder="e.g., Camry"
-            className={errors.model ? 'border-red-500' : ''}
-          />
+            onValueChange={(value) => updateFormData({ model: value })}
+            disabled={!selectedMakeId || loadingModels}
+          >
+            <SelectTrigger className={errors.model ? 'border-red-500' : ''}>
+              <SelectValue placeholder={
+                !selectedMakeId 
+                  ? "Select make first" 
+                  : loadingModels 
+                    ? "Loading models..." 
+                    : "Select model"
+              } />
+            </SelectTrigger>
+            <SelectContent>
+              {availableModels.map(model => (
+                <SelectItem key={model.id} value={model.model_name}>
+                  {model.model_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {errors.model && <p className="text-red-500 text-sm mt-1">{errors.model}</p>}
         </div>
       </div>
@@ -90,6 +183,7 @@ export function BasicVehicleForm({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ConditionLevel.Excellent}>Excellent</SelectItem>
+              <SelectItem value={ConditionLevel.VeryGood}>Very Good</SelectItem>
               <SelectItem value={ConditionLevel.Good}>Good</SelectItem>
               <SelectItem value={ConditionLevel.Fair}>Fair</SelectItem>
               <SelectItem value={ConditionLevel.Poor}>Poor</SelectItem>
