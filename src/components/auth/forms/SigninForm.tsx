@@ -5,13 +5,37 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
-export function SigninForm() {
+interface SigninFormProps {
+  userType?: 'individual' | 'dealer';
+  role?: string;
+  isLoading?: boolean;
+  setIsLoading?: (loading: boolean) => void;
+  redirectPath?: string;
+  alternateLoginPath?: string;
+  alternateLoginText?: string;
+  showDealershipField?: boolean;
+}
+
+export function SigninForm({
+  userType = 'individual',
+  role,
+  isLoading: externalIsLoading,
+  setIsLoading: externalSetIsLoading,
+  redirectPath = '/dashboard',
+  alternateLoginPath,
+  alternateLoginText,
+  showDealershipField = false
+}: SigninFormProps = {}) {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [internalIsLoading, setInternalIsLoading] = useState(false);
+
+  // Use external loading state if provided, otherwise use internal
+  const isLoading = externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
+  const setIsLoading = externalSetIsLoading || setInternalIsLoading;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +47,7 @@ export function SigninForm() {
       if (result.error) {
         setError(result.error);
       } else {
-        navigate("/dashboard");
+        navigate(redirectPath);
       }
     } catch (err: any) {
       setError(err.message || "Sign in failed");

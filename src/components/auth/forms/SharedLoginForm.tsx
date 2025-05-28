@@ -11,21 +11,27 @@ import { toast } from 'sonner';
 import { errorToString } from '@/utils/errorHandling';
 
 interface SharedLoginFormProps {
-  isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
-  expectedRole: 'individual' | 'dealer' | undefined;
-  redirectPath: string;
-  alternateLoginPath: string;
-  alternateLoginText: string;
+  userType?: 'individual' | 'dealer';
+  role?: string;
+  isLoading?: boolean;
+  setIsLoading?: (loading: boolean) => void;
+  expectedRole?: 'individual' | 'dealer' | undefined;
+  redirectPath?: string;
+  alternateLoginPath?: string;
+  alternateLoginText?: string;
+  showDealershipField?: boolean;
 }
 
 export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
-  isLoading,
+  userType = 'individual',
+  role,
+  isLoading = false,
   setIsLoading,
   expectedRole,
-  redirectPath,
-  alternateLoginPath,
-  alternateLoginText
+  redirectPath = '/dashboard',
+  alternateLoginPath = '/auth',
+  alternateLoginText = 'Switch to other login',
+  showDealershipField = false
 }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,7 +48,7 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
     }
     
     setError(null);
-    setIsLoading(true);
+    if (setIsLoading) setIsLoading(true);
     
     try {
       // Sign in using the auth context
@@ -59,7 +65,7 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
     } catch (err: any) {
       console.error('Login error:', err);
       setError(errorToString(err));
-      setIsLoading(false);
+      if (setIsLoading) setIsLoading(false);
     }
   };
 
