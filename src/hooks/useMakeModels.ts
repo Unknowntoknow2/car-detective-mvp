@@ -37,6 +37,7 @@ export function useMakeModels() {
         setIsLoading(true);
         setError(null);
         
+        console.log('Fetching makes from database...');
         const { data, error } = await supabase
           .from('makes')
           .select('id, make_name')
@@ -44,14 +45,13 @@ export function useMakeModels() {
           
         if (error) throw error;
         
-        // Update the type handling to match the actual structure of the makes table
-        // which appears to not have a logo_url column
         const typedData: VehicleMake[] = data ? data.map(make => ({
           id: make.id,
           make_name: make.make_name,
-          logo_url: null // Set logo_url to null since it doesn't exist in the database
+          logo_url: null
         })) : [];
         
+        console.log('Fetched makes:', typedData.length);
         setMakes(typedData);
       } catch (err: any) {
         console.error('Error fetching makes:', err);
@@ -66,10 +66,17 @@ export function useMakeModels() {
 
   // Function to fetch models for a specific make
   const getModelsByMakeId = async (makeId: string) => {
+    if (!makeId) {
+      console.log('No makeId provided, clearing models');
+      setModels([]);
+      return [];
+    }
+
     try {
       setIsLoading(true);
       setError(null);
       
+      console.log('Fetching models for make ID:', makeId);
       const { data, error } = await supabase
         .from('models')
         .select('id, make_id, model_name')
@@ -78,11 +85,14 @@ export function useMakeModels() {
         
       if (error) throw error;
       
-      setModels(data || []);
-      return data || [];
+      const modelsList = data || [];
+      console.log('Fetched models:', modelsList.length, modelsList);
+      setModels(modelsList);
+      return modelsList;
     } catch (err: any) {
       console.error('Error fetching models:', err);
       setError('Failed to load vehicle models');
+      setModels([]);
       return [];
     } finally {
       setIsLoading(false);

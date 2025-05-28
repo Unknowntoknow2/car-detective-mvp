@@ -1,256 +1,186 @@
 
-import React, { useEffect, useCallback, useState } from 'react';
-import { Label } from '@/components/ui/label';
+import React, { useState, useEffect, useCallback } from 'react';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ConditionSelectorSegmented } from '../ConditionSelectorSegmented';
-import { ManualEntryFormData } from '../types/manualEntry';
 import { useMakeModels } from '@/hooks/useMakeModels';
 
 interface BasicVehicleFormProps {
-  formData: ManualEntryFormData;
-  updateFormData: (updates: Partial<ManualEntryFormData>) => void;
-  errors: Record<string, string>;
-  isPremium?: boolean;
+  form: any;
 }
 
-export function BasicVehicleForm({
-  formData,
-  updateFormData,
-  errors,
-  isPremium = false
-}: BasicVehicleFormProps) {
+export const BasicVehicleForm: React.FC<BasicVehicleFormProps> = ({ form }) => {
   const { makes, models, isLoading, error, getModelsByMakeId } = useMakeModels();
-  const [availableModels, setAvailableModels] = useState<any[]>([]);
+  const [selectedMakeId, setSelectedMakeId] = useState<string>('');
   const [loadingModels, setLoadingModels] = useState(false);
+
+  // Watch form values
+  const watchedMake = form.watch('make');
+  const watchedModel = form.watch('model');
 
   // Generate year options
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: currentYear - 1979 }, (_, i) => currentYear - i);
+  const yearOptions = Array.from({ length: currentYear - 1979 }, (_, i) => currentYear - i);
 
   // Handle make selection and fetch models
   const handleMakeChange = useCallback(async (makeId: string) => {
     console.log('Make changed to:', makeId);
-    updateFormData({ make: makeId, model: '' }); // Reset model when make changes
-    
+    setSelectedMakeId(makeId);
+    form.setValue('make', makeId);
+    form.setValue('model', ''); // Reset model when make changes
+
     if (makeId) {
       setLoadingModels(true);
       try {
-        const modelsData = await getModelsByMakeId(makeId);
-        console.log('Fetched models:', modelsData);
-        setAvailableModels(modelsData);
-      } catch (err) {
-        console.error('Error fetching models:', err);
-        setAvailableModels([]);
+        const fetchedModels = await getModelsByMakeId(makeId);
+        console.log('Fetched models:', fetchedModels);
+      } catch (error) {
+        console.error('Error fetching models:', error);
       } finally {
         setLoadingModels(false);
       }
-    } else {
-      setAvailableModels([]);
     }
-  }, [updateFormData, getModelsByMakeId]);
+  }, [form, getModelsByMakeId]);
 
   // Handle model selection
-  const handleModelChange = useCallback((modelName: string) => {
-    console.log('Model changed to:', modelName);
-    updateFormData({ model: modelName });
-  }, [updateFormData]);
+  const handleModelChange = useCallback((modelId: string) => {
+    console.log('Model changed to:', modelId);
+    form.setValue('model', modelId);
+  }, [form]);
 
-  // Handle other field changes
-  const handleYearChange = useCallback((year: string) => {
-    updateFormData({ year: parseInt(year) });
-  }, [updateFormData]);
-
-  const handleMileageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '');
-    updateFormData({ mileage: parseInt(value) || 0 });
-  }, [updateFormData]);
-
-  const handleZipCodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 5);
-    updateFormData({ zipCode: value });
-  }, [updateFormData]);
-
-  const handleConditionChange = useCallback((condition: any) => {
-    updateFormData({ condition });
-  }, [updateFormData]);
-
-  if (isLoading) {
-    return <div>Loading vehicle data...</div>;
-  }
+  // Sync form value with local state
+  useEffect(() => {
+    if (watchedMake && watchedMake !== selectedMakeId) {
+      setSelectedMakeId(watchedMake);
+    }
+  }, [watchedMake, selectedMakeId]);
 
   if (error) {
-    return <div className="text-red-500">Error loading vehicle data: {error}</div>;
+    return (
+      <div className="p-4 border border-red-200 bg-red-50 rounded-md text-red-800">
+        <p className="font-medium">Error loading vehicle data</p>
+        <p className="text-sm mt-1">{error}</p>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Make and Model Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Make Dropdown */}
-        <div className="space-y-2">
-          <Label htmlFor="make">Make *</Label>
-          <Select value={formData.make || ''} onValueChange={handleMakeChange}>
-            <SelectTrigger 
-              id="make"
-              className={errors.make ? 'border-red-300' : ''}
-            >
-              <SelectValue placeholder="Select make" />
-            </SelectTrigger>
-            <SelectContent>
-              {makes.map(make => (
-                <SelectItem key={make.id} value={make.id}>
-                  {make.make_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.make && <p className="text-sm text-red-500">{errors.make}</p>}
-        </div>
-
-        {/* Model Dropdown */}
-        <div className="space-y-2">
-          <Label htmlFor="model">Model *</Label>
-          <Select 
-            value={formData.model || ''} 
-            onValueChange={handleModelChange}
-            disabled={!formData.make || loadingModels || availableModels.length === 0}
-          >
-            <SelectTrigger 
-              id="model"
-              className={errors.model ? 'border-red-300' : ''}
-            >
-              <SelectValue 
-                placeholder={
-                  !formData.make 
-                    ? "Select make first" 
-                    : loadingModels 
-                    ? "Loading models..." 
-                    : availableModels.length === 0
-                    ? "No models available"
-                    : "Select model"
-                } 
-              />
-            </SelectTrigger>
-            <SelectContent>
-              {availableModels.map(model => (
-                <SelectItem key={model.id} value={model.model_name}>
-                  {model.model_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.model && <p className="text-sm text-red-500">{errors.model}</p>}
-        </div>
-      </div>
-
-      {/* Year and Mileage Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Year Dropdown */}
-        <div className="space-y-2">
-          <Label htmlFor="year">Year *</Label>
-          <Select value={formData.year?.toString() || ''} onValueChange={handleYearChange}>
-            <SelectTrigger 
-              id="year"
-              className={errors.year ? 'border-red-300' : ''}
-            >
-              <SelectValue placeholder="Select year" />
-            </SelectTrigger>
-            <SelectContent>
-              {years.map(year => (
-                <SelectItem key={year} value={year.toString()}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.year && <p className="text-sm text-red-500">{errors.year}</p>}
-        </div>
-
-        {/* Mileage Input */}
-        <div className="space-y-2">
-          <Label htmlFor="mileage">Mileage *</Label>
-          <Input
-            id="mileage"
-            type="text"
-            value={formData.mileage || ''}
-            onChange={handleMileageChange}
-            placeholder="e.g. 45000"
-            className={errors.mileage ? 'border-red-300' : ''}
-          />
-          {errors.mileage && <p className="text-sm text-red-500">{errors.mileage}</p>}
-        </div>
-      </div>
-
-      {/* ZIP Code */}
-      <div className="space-y-2">
-        <Label htmlFor="zipCode">ZIP Code *</Label>
-        <Input
-          id="zipCode"
-          type="text"
-          value={formData.zipCode || ''}
-          onChange={handleZipCodeChange}
-          placeholder="Enter ZIP code"
-          maxLength={5}
-          className={`max-w-xs ${errors.zipCode ? 'border-red-300' : ''}`}
+    <div>
+      <h3 className="text-lg font-medium mb-4">Vehicle Information</h3>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <FormField
+          control={form.control}
+          name="make"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Make</FormLabel>
+              <Select 
+                onValueChange={handleMakeChange} 
+                value={selectedMakeId}
+                disabled={isLoading}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={isLoading ? "Loading makes..." : "Select make"} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {makes.map(make => (
+                    <SelectItem key={make.id} value={make.id}>
+                      {make.make_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        {errors.zipCode && <p className="text-sm text-red-500">{errors.zipCode}</p>}
-        <p className="text-xs text-gray-500">
-          Your location helps us determine regional market values
-        </p>
-      </div>
-
-      {/* Vehicle Condition */}
-      <div className="space-y-2">
-        <ConditionSelectorSegmented
-          value={formData.condition}
-          onChange={handleConditionChange}
+        
+        <FormField
+          control={form.control}
+          name="model"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Model</FormLabel>
+              <Select 
+                onValueChange={handleModelChange} 
+                value={watchedModel}
+                disabled={!selectedMakeId || loadingModels || models.length === 0}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={
+                      !selectedMakeId ? "Select make first" :
+                      loadingModels ? "Loading models..." :
+                      models.length === 0 ? "No models available" :
+                      "Select model"
+                    } />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {models.map(model => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {model.model_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        {errors.condition && <p className="text-sm text-red-500">{errors.condition}</p>}
+        
+        <FormField
+          control={form.control}
+          name="year"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Year</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {yearOptions.map(year => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="mileage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Mileage</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  placeholder="e.g. 45000" 
+                  {...field} 
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    field.onChange(value);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
-
-      {/* Premium Fields */}
-      {isPremium && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Fuel Type */}
-          <div className="space-y-2">
-            <Label htmlFor="fuelType">Fuel Type</Label>
-            <Select 
-              value={formData.fuelType || 'gasoline'} 
-              onValueChange={(value) => updateFormData({ fuelType: value })}
-            >
-              <SelectTrigger id="fuelType">
-                <SelectValue placeholder="Select fuel type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="gasoline">Gasoline</SelectItem>
-                <SelectItem value="diesel">Diesel</SelectItem>
-                <SelectItem value="hybrid">Hybrid</SelectItem>
-                <SelectItem value="electric">Electric</SelectItem>
-                <SelectItem value="flex-fuel">Flex Fuel</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Transmission */}
-          <div className="space-y-2">
-            <Label htmlFor="transmission">Transmission</Label>
-            <Select 
-              value={formData.transmission || 'automatic'} 
-              onValueChange={(value) => updateFormData({ transmission: value })}
-            >
-              <SelectTrigger id="transmission">
-                <SelectValue placeholder="Select transmission" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="automatic">Automatic</SelectItem>
-                <SelectItem value="manual">Manual</SelectItem>
-                <SelectItem value="cvt">CVT</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      )}
     </div>
   );
-}
+};
