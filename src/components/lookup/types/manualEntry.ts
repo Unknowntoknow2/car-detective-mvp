@@ -1,3 +1,4 @@
+// 🔐 LOCKED: Shared Manual Entry Types for Free + Premium + VIN flows
 
 export enum ConditionLevel {
   Poor = "poor",
@@ -34,7 +35,6 @@ export interface ManualEntryFormData {
   accidentDetails?: AccidentDetails;
 }
 
-// Add the missing interface that ManualEntryForm.tsx is trying to import
 export interface ManualEntryFormProps {
   onSubmit: (data: ManualEntryFormData) => void;
   isLoading?: boolean;
