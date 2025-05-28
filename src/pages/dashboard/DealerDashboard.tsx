@@ -1,7 +1,7 @@
 
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { Navigate } from 'react-router-dom';
 import { DealerHeader } from '@/components/dealer/DealerHeader';
 import { DealerStats } from '@/components/dealer/DealerStats';
 import { DealerValuationsList } from '@/components/dealer/DealerValuationsList';
@@ -10,19 +10,16 @@ import { Button } from '@/components/ui/button';
 
 const DealerDashboard = () => {
   const { user, userDetails } = useAuth();
-  const navigate = useNavigate();
-  const dealerName = userDetails?.dealership_name || user?.user_metadata?.dealership_name || userDetails?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name || 'Dealer';
   
-  // Redirect to auth if not logged in
-  useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-    }
-  }, [user, navigate]);
-
-  if (!user) {
-    return null; // Will be redirected by the effect
+  // Redirect if not a dealer
+  if (userDetails?.role !== 'dealer') {
+    return <Navigate to="/dashboard" replace />;
   }
+
+  const dealerName = userDetails?.dealership_name || 
+                    user?.user_metadata?.dealership_name || 
+                    userDetails?.full_name || 
+                    'Dealer';
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -36,26 +33,9 @@ const DealerDashboard = () => {
           <div className="bg-card rounded-lg shadow p-6 border h-full">
             <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
             <div className="space-y-4">
-              <Button 
-                className="w-full" 
-                onClick={() => navigate('/dealer/inventory/add')}
-              >
-                Add Vehicle
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => navigate('/dealer/offers')}
-              >
-                View Offers
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => navigate('/dealer/leads')}
-              >
-                Manage Leads
-              </Button>
+              <Button className="w-full">Add Vehicle</Button>
+              <Button variant="outline" className="w-full">View Offers</Button>
+              <Button variant="outline" className="w-full">Manage Leads</Button>
             </div>
           </div>
         </div>

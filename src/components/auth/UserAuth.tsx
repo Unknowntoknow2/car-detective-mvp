@@ -20,17 +20,14 @@ export const UserAuth: React.FC<UserAuthProps> = ({ children, requiredRole }) =>
     );
   }
 
-  // If user is not authenticated, redirect to login
   if (!user) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // If role is required but user doesn't have it
   if (requiredRole && userDetails?.role !== requiredRole) {
     return <Navigate to="/access-denied" replace />;
   }
 
-  // If all checks pass, render the protected content
   return <>{children}</>;
 };
 
