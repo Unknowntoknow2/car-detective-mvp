@@ -3,21 +3,51 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import Layout from "./components/layout/Layout";
+import { Navbar } from "./components/layout/Navbar";
+import { Footer } from "./components/layout/Footer";
+import { AINAssistantTrigger } from '@/components/chat/AINAssistantTrigger';
+import routes from '@/router';
 
 const queryClient = new QueryClient();
 
 function App() {
+  const renderRoutes = (routeConfigs: any[]) => {
+    return routeConfigs.map((route, index) => {
+      if (route.index) {
+        return <Route key={index} index element={route.element} />;
+      }
+      
+      if (route.children) {
+        return (
+          <Route key={index} path={route.path} element={route.element}>
+            {renderRoutes(route.children)}
+          </Route>
+        );
+      }
+      
+      return <Route key={index} path={route.path} element={route.element} />;
+    });
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
           <TooltipProvider>
+            <div className="min-h-screen flex flex-col bg-background">
+              <Navbar />
+              <main className="flex-grow">
+                <Routes>
+                  {renderRoutes(routes)}
+                </Routes>
+              </main>
+              <Footer />
+              <AINAssistantTrigger />
+            </div>
             <Toaster />
             <Sonner />
-            <Layout />
           </TooltipProvider>
         </AuthProvider>
       </BrowserRouter>
