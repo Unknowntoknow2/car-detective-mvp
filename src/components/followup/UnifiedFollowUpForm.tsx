@@ -1,22 +1,23 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface UnifiedFollowUpFormProps {
   vin?: string;
-  onSubmit: (answers: FollowUpAnswers) => Promise<void>;
+  onSubmit: (answers: FollowUpAnswers) => void;
 }
 
 export function UnifiedFollowUpForm({ vin, onSubmit }: UnifiedFollowUpFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FollowUpAnswers>({
     vin: vin || '',
-    mileage: 0,
+    mileage: undefined,
     zip_code: '',
     condition: 'good',
     accidents: {
@@ -26,8 +27,8 @@ export function UnifiedFollowUpForm({ vin, onSubmit }: UnifiedFollowUpFormProps)
       repaired: false,
       frameDamage: false
     },
-    service_history: 'independent',
-    maintenance_status: 'Up to date',
+    service_history: 'unknown',
+    maintenance_status: 'Unknown',
     title_status: 'clean',
     previous_owners: 1,
     previous_use: 'personal',
@@ -37,165 +38,213 @@ export function UnifiedFollowUpForm({ vin, onSubmit }: UnifiedFollowUpFormProps)
     modifications: {
       modified: false,
       types: [],
-      reversible: false
+      reversible: true
     }
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      await onSubmit(formData);
-    } finally {
-      setIsLoading(false);
-    }
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const updateFormData = (updates: Partial<FollowUpAnswers>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
   };
 
-  const updateFormData = (field: keyof FollowUpAnswers, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const updateAccidents = (field: keyof FollowUpAnswers['accidents'], value: any) => {
+  const updateAccidentData = (updates: Partial<FollowUpAnswers['accidents']>) => {
     setFormData(prev => ({
       ...prev,
-      accidents: { ...prev.accidents!, [field]: value }
+      accidents: { ...prev.accidents, ...updates }
     }));
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.mileage || !formData.zip_code) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      await onSubmit(formData);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      toast.error('Failed to submit form. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg border shadow-sm">
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Vehicle Details</h2>
-        <p className="text-gray-600">Please provide additional details about your vehicle for accurate valuation.</p>
-      </div>
+    <Card className="max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle>Vehicle Details</CardTitle>
+        {vin && (
+          <p className="text-sm text-muted-foreground">VIN: {vin}</p>
+        )}
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="mileage">Mileage *</Label>
+              <Input
+                id="mileage"
+                type="number"
+                placeholder="e.g. 45000"
+                value={formData.mileage || ''}
+                onChange={(e) => updateFormData({ mileage: parseInt(e.target.value) || undefined })}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="zip_code">ZIP Code *</Label>
+              <Input
+                id="zip_code"
+                placeholder="e.g. 90210"
+                value={formData.zip_code}
+                onChange={(e) => updateFormData({ zip_code: e.target.value })}
+                required
+              />
+            </div>
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="mileage">Current Mileage</Label>
-          <Input
-            id="mileage"
-            type="number"
-            value={formData.mileage || ''}
-            onChange={(e) => updateFormData('mileage', parseInt(e.target.value) || 0)}
-            placeholder="e.g., 85000"
-            required
-          />
-        </div>
+          {/* Vehicle Condition */}
+          <div>
+            <Label htmlFor="condition">Overall Condition</Label>
+            <Select 
+              value={formData.condition} 
+              onValueChange={(value: 'excellent' | 'good' | 'fair' | 'poor') => 
+                updateFormData({ condition: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select condition" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="excellent">Excellent</SelectItem>
+                <SelectItem value="good">Good</SelectItem>
+                <SelectItem value="fair">Fair</SelectItem>
+                <SelectItem value="poor">Poor</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="zipCode">ZIP Code</Label>
-          <Input
-            id="zipCode"
-            value={formData.zip_code || ''}
-            onChange={(e) => updateFormData('zip_code', e.target.value)}
-            placeholder="e.g., 10001"
-            required
-          />
-        </div>
-      </div>
+          {/* Accident History */}
+          <div className="space-y-4">
+            <Label>Has this vehicle been in any accidents?</Label>
+            <div className="flex gap-4">
+              <Button
+                type="button"
+                variant={formData.accidents?.hadAccident === false ? "default" : "outline"}
+                onClick={() => updateAccidentData({ hadAccident: false })}
+              >
+                No
+              </Button>
+              <Button
+                type="button"
+                variant={formData.accidents?.hadAccident === true ? "default" : "outline"}
+                onClick={() => updateAccidentData({ hadAccident: true })}
+              >
+                Yes
+              </Button>
+            </div>
 
-      <div className="space-y-2">
-        <Label>Vehicle Condition</Label>
-        <RadioGroup
-          value={formData.condition}
-          onValueChange={(value) => updateFormData('condition', value)}
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="excellent" id="excellent" />
-            <Label htmlFor="excellent">Excellent - No cosmetic/mechanical issues</Label>
+            {formData.accidents?.hadAccident && (
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="accident-severity">Severity</Label>
+                  <Select 
+                    value={formData.accidents.severity} 
+                    onValueChange={(value: 'minor' | 'moderate' | 'major') => 
+                      updateAccidentData({ severity: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select severity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="minor">Minor</SelectItem>
+                      <SelectItem value="moderate">Moderate</SelectItem>
+                      <SelectItem value="major">Major</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-4">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.accidents.repaired || false}
+                      onChange={(e) => updateAccidentData({ repaired: e.target.checked })}
+                    />
+                    <span>Properly repaired</span>
+                  </label>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="good" id="good" />
-            <Label htmlFor="good">Good - Minor wear, no major damage</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="fair" id="fair" />
-            <Label htmlFor="fair">Fair - Visible damage or mechanical issues</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="poor" id="poor" />
-            <Label htmlFor="poor">Poor - Needs repair or structural concerns</Label>
-          </div>
-        </RadioGroup>
-      </div>
 
-      <div className="space-y-2">
-        <Label>Accident History</Label>
-        <RadioGroup
-          value={formData.accidents?.hadAccident ? 'yes' : 'no'}
-          onValueChange={(value) => updateAccidents('hadAccident', value === 'yes')}
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="no" id="no-accident" />
-            <Label htmlFor="no-accident">No accidents</Label>
+          {/* Title Status */}
+          <div>
+            <Label htmlFor="title_status">Title Status</Label>
+            <Select 
+              value={formData.title_status} 
+              onValueChange={(value: string) => updateFormData({ title_status: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select title status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="clean">Clean</SelectItem>
+                <SelectItem value="salvage">Salvage</SelectItem>
+                <SelectItem value="rebuilt">Rebuilt</SelectItem>
+                <SelectItem value="branded">Branded</SelectItem>
+                <SelectItem value="lemon">Lemon Law</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="yes" id="yes-accident" />
-            <Label htmlFor="yes-accident">Has been in accident(s)</Label>
-          </div>
-        </RadioGroup>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="serviceHistory">Service History</Label>
-          <Select
-            value={formData.service_history}
-            onValueChange={(value) => updateFormData('service_history', value)}
+          {/* Previous Owners */}
+          <div>
+            <Label htmlFor="previous_owners">Number of Previous Owners</Label>
+            <Input
+              id="previous_owners"
+              type="number"
+              min="1"
+              value={formData.previous_owners || 1}
+              onChange={(e) => updateFormData({ previous_owners: parseInt(e.target.value) || 1 })}
+            />
+          </div>
+
+          {/* Service History */}
+          <div>
+            <Label htmlFor="service_history">Service History</Label>
+            <Select 
+              value={formData.service_history} 
+              onValueChange={(value: string) => updateFormData({ service_history: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select service history" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dealer">Dealer-maintained</SelectItem>
+                <SelectItem value="independent">Independent mechanic</SelectItem>
+                <SelectItem value="owner">Owner-maintained</SelectItem>
+                <SelectItem value="unknown">Unknown</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isSubmitting}
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="dealer">Dealer-maintained</SelectItem>
-              <SelectItem value="independent">Independent mechanic</SelectItem>
-              <SelectItem value="owner">Owner-maintained</SelectItem>
-              <SelectItem value="unknown">No known history</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="titleStatus">Title Status</Label>
-          <Select
-            value={formData.title_status}
-            onValueChange={(value) => updateFormData('title_status', value)}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="clean">Clean</SelectItem>
-              <SelectItem value="salvage">Salvage</SelectItem>
-              <SelectItem value="rebuilt">Rebuilt</SelectItem>
-              <SelectItem value="branded">Branded</SelectItem>
-              <SelectItem value="lemon">Lemon Law</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="previousOwners">Number of Previous Owners</Label>
-        <Select
-          value={formData.previous_owners?.toString()}
-          onValueChange={(value) => updateFormData('previous_owners', parseInt(value))}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1">1 owner</SelectItem>
-            <SelectItem value="2">2 owners</SelectItem>
-            <SelectItem value="3">3 owners</SelectItem>
-            <SelectItem value="4">4+ owners</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? 'Calculating Valuation...' : 'Get Vehicle Valuation'}
-      </Button>
-    </form>
+            {isSubmitting ? 'Calculating...' : 'Get Valuation'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
