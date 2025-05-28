@@ -16,7 +16,7 @@ import ProfilePage from './pages/ProfilePage';
 import AccountPage from './pages/AccountPage';
 import ServiceHistoryPage from './pages/ServiceHistoryPage';
 import Layout from './components/layout/Layout';
-import AuthPage from './pages/auth/AuthPage';
+import UnifiedAuthPage from './pages/auth/UnifiedAuthPage';
 import DashboardPage from './pages/DashboardPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import PlatformDiagnosticsPage from './pages/PlatformDiagnosticsPage';
@@ -40,10 +40,10 @@ const routes: RouteObject[] = [
         element: <VinLookupPage />
       },
       
-      // Main auth route - this is the working one
+      // Main auth route - unified authentication
       {
         path: 'auth',
-        element: <AuthPage />
+        element: <UnifiedAuthPage />
       },
       {
         path: 'auth/callback',
@@ -56,7 +56,7 @@ const routes: RouteObject[] = [
         element: <PlatformDiagnosticsPage />
       },
       
-      // Redirect ALL legacy auth routes to the main auth page
+      // Redirect ALL legacy auth routes to the unified auth page
       {
         path: 'login',
         element: <Navigate to="/auth" replace />
@@ -107,6 +107,14 @@ const routes: RouteObject[] = [
       },
       {
         path: 'auth/dealer',
+        element: <Navigate to="/auth" replace />
+      },
+      {
+        path: 'login-user',
+        element: <Navigate to="/auth" replace />
+      },
+      {
+        path: 'login-dealer',
         element: <Navigate to="/auth" replace />
       },
       
