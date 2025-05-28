@@ -17,6 +17,7 @@ interface MakeModelSelectProps {
   isLoading?: boolean;
   isLoadingModels?: boolean;
   error?: string | null;
+  onMakeChange?: (makeId: string) => void;
 }
 
 const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
@@ -29,7 +30,8 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   isDisabled = false,
   isLoading = false,
   isLoadingModels = false,
-  error = null
+  error = null,
+  onMakeChange
 }) => {
   console.log('MakeModelSelect render:', { 
     selectedMakeId, 
@@ -43,7 +45,7 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
   const filteredModels = models.filter(model => model.make_id === selectedMakeId);
   console.log('Filtered models:', filteredModels, 'makeId:', selectedMakeId);
 
-  // Reset model selection when make changes
+  // Reset model selection when make changes and no valid model exists
   useEffect(() => {
     if (selectedMakeId && selectedModelId) {
       const modelExists = filteredModels.some(model => model.id === selectedModelId);
@@ -58,6 +60,11 @@ const MakeModelSelect: React.FC<MakeModelSelectProps> = ({
     console.log('Make changed to:', newMakeId);
     setSelectedMakeId(newMakeId);
     setSelectedModelId('');
+    
+    // Trigger the callback to load models for this make
+    if (onMakeChange) {
+      onMakeChange(newMakeId);
+    }
   };
 
   const handleModelChange = (newModelId: string) => {
