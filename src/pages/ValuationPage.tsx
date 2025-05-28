@@ -1,272 +1,109 @@
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
-import { LookupTabs } from '@/components/home/LookupTabs';
-import { VehicleFoundCard } from '@/components/lookup/shared/VehicleFoundCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
-import { formatCurrency } from '@/utils/formatters';
+import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
+import { FoundCarCard } from '@/components/lookup/found/FoundCarCard';
+import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
+import { decodeVin } from '@/services/vinService';
 import { DecodedVehicleInfo } from '@/types/vehicle';
+import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
+import { toast } from 'sonner';
 
 export default function ValuationPage() {
-  const { vin: urlVin } = useParams();
-  const navigate = useNavigate();
-  
-  // State management
-  const [currentStep, setCurrentStep] = useState<'lookup' | 'details' | 'result'>('lookup');
-  const [vehicleData, setVehicleData] = useState<DecodedVehicleInfo | null>(null);
+  const { vin } = useParams<{ vin: string }>();
+  const [vehicle, setVehicle] = useState<DecodedVehicleInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Form data for follow-up questions
-  const [mileage, setMileage] = useState('');
-  const [condition, setCondition] = useState('');
-  const [zipCode, setZipCode] = useState('');
-  const [accidents, setAccidents] = useState('');
-  
-  // Check for existing vehicle data on mount
+  const [showFollowUp, setShowFollowUp] = useState(false);
+
   useEffect(() => {
-    console.log('ValuationPage: Checking for VIN:', urlVin);
-    
-    if (urlVin) {
-      // Check localStorage for vehicle data
-      const storedData = localStorage.getItem('current_vehicle_data');
-      if (storedData) {
-        try {
-          const data = JSON.parse(storedData);
-          console.log('ValuationPage: Found stored vehicle data:', data);
-          setVehicleData(data);
-          setCurrentStep('details');
-        } catch (error) {
-          console.error('Error parsing stored vehicle data:', error);
-        }
-      }
+    if (vin && vin.length === 17) {
+      console.log('🔍 ValuationPage: Loading vehicle data for VIN:', vin);
+      loadVehicleData(vin);
     }
-  }, [urlVin]);
+  }, [vin]);
 
-  const handleLookupSubmit = (type: string, value: string, state?: string) => {
-    console.log('ValuationPage: Lookup submitted:', { type, value, state });
-    // The lookup components will handle navigation internally
-  };
-
-  const handleBackToLookup = () => {
-    setCurrentStep('lookup');
-    setVehicleData(null);
-    localStorage.removeItem('current_vin');
-    localStorage.removeItem('current_vehicle_data');
-    navigate('/valuation');
-  };
-
-  const handleSubmitDetails = async () => {
-    if (!vehicleData) return;
-
+  const loadVehicleData = async (vinCode: string) => {
     setIsLoading(true);
-
     try {
-      // Calculate estimated value based on inputs
-      const baseValue = vehicleData.estimatedValue || 20000;
-      const mileageAdjustment = Math.max(0, (150000 - parseInt(mileage || '0')) / 150000) * 0.3;
-      const conditionMultiplier = {
-        'excellent': 1.15,
-        'good': 1.0,
-        'fair': 0.85,
-        'poor': 0.7
-      }[condition] || 1.0;
+      const result = await decodeVin(vinCode);
       
-      const accidentAdjustment = accidents === 'yes' ? 0.9 : 1.0;
-      
-      const finalValue = Math.round(baseValue * (1 + mileageAdjustment) * conditionMultiplier * accidentAdjustment);
-
-      // Create valuation result
-      const valuationResult = {
-        ...vehicleData,
-        mileage: parseInt(mileage || '0'),
-        condition,
-        zipCode,
-        accidents: accidents === 'yes',
-        estimatedValue: finalValue,
-        confidenceScore: 92,
-        timestamp: new Date().toISOString(),
-        valuationId: crypto.randomUUID()
-      };
-
-      // Store result
-      localStorage.setItem('latest_valuation', JSON.stringify(valuationResult));
-      
-      setCurrentStep('result');
-      toast.success('Valuation completed successfully!');
-      
+      if (result.success && result.data) {
+        console.log('✅ ValuationPage: Vehicle data loaded:', result.data);
+        setVehicle(result.data);
+        setShowFollowUp(true);
+        toast.success('Vehicle details loaded successfully!');
+      } else {
+        console.error('❌ ValuationPage: Failed to load vehicle data:', result.error);
+        toast.error('Failed to load vehicle details');
+      }
     } catch (error) {
-      console.error('Error calculating valuation:', error);
-      toast.error('Error calculating valuation. Please try again.');
+      console.error('❌ ValuationPage: Error loading vehicle data:', error);
+      toast.error('Error loading vehicle details');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const renderValuationResult = () => {
-    if (!vehicleData) return null;
-
-    const estimatedValue = vehicleData.estimatedValue || 20000;
-
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Valuation Complete</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">
-                {formatCurrency(estimatedValue)}
-              </div>
-              <p className="text-muted-foreground">Estimated Market Value</p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-sm text-muted-foreground">Trade-in Value</p>
-                <p className="font-semibold">{formatCurrency(Math.round(estimatedValue * 0.85))}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Private Sale</p>
-                <p className="font-semibold">{formatCurrency(estimatedValue)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Retail Value</p>
-                <p className="font-semibold">{formatCurrency(Math.round(estimatedValue * 1.15))}</p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <Button onClick={() => navigate('/valuation-result')} className="flex-1">
-                View Detailed Report
-              </Button>
-              <Button variant="outline" onClick={handleBackToLookup} className="flex-1">
-                Start New Valuation
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+  const handleFollowUpComplete = (formData: any) => {
+    console.log('✅ ValuationPage: Follow-up completed:', formData);
+    toast.success('Valuation completed successfully!');
+    // Handle final valuation here
   };
 
-  const renderFollowUpQuestions = () => {
-    if (!vehicleData) return null;
-
+  if (!vin) {
     return (
-      <div className="space-y-6">
-        <VehicleFoundCard 
-          vehicle={vehicleData}
-          showActions={false}
-        />
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Vehicle Details</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Please provide additional details for a more accurate valuation
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="mileage">Current Mileage *</Label>
-                <Input
-                  id="mileage"
-                  type="number"
-                  placeholder="e.g. 50000"
-                  value={mileage}
-                  onChange={(e) => setMileage(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="condition">Vehicle Condition *</Label>
-                <Select value={condition} onValueChange={setCondition}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select condition" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="excellent">Excellent</SelectItem>
-                    <SelectItem value="good">Good</SelectItem>
-                    <SelectItem value="fair">Fair</SelectItem>
-                    <SelectItem value="poor">Poor</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="zipcode">ZIP Code</Label>
-                <Input
-                  id="zipcode"
-                  placeholder="e.g. 90210"
-                  value={zipCode}
-                  onChange={(e) => setZipCode(e.target.value)}
-                  maxLength={5}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="accidents">Any Accidents?</Label>
-                <Select value={accidents} onValueChange={setAccidents}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no">No Accidents</SelectItem>
-                    <SelectItem value="yes">Yes, Minor</SelectItem>
-                    <SelectItem value="major">Yes, Major</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex gap-4 pt-4">
-              <Button
-                onClick={handleSubmitDetails}
-                disabled={!mileage || !condition || isLoading}
-                className="flex-1"
-              >
-                {isLoading ? 'Calculating...' : 'Get My Valuation'}
-              </Button>
-              <Button variant="outline" onClick={handleBackToLookup}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Lookup
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Container className="max-w-6xl py-10">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+            Vehicle Valuation
+          </h1>
+          <p className="mt-4 text-lg text-gray-600">
+            Please enter a VIN to get started with your valuation.
+          </p>
+        </div>
+      </Container>
     );
-  };
+  }
 
   return (
-    <Container className="max-w-4xl py-10">
-      <div className="space-y-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Get Your Car's Value</h1>
-          <p className="text-xl text-gray-600">Enter your vehicle information for an instant, accurate valuation</p>
+    <Container className="max-w-6xl py-10">
+      <CarFinderQaherHeader />
+      
+      {isLoading && (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading vehicle details...</p>
         </div>
-
-        {currentStep === 'lookup' && (
-          <LookupTabs 
-            defaultTab="vin"
-            onSubmit={handleLookupSubmit}
-          />
-        )}
-
-        {currentStep === 'details' && renderFollowUpQuestions()}
-        
-        {currentStep === 'result' && renderValuationResult()}
-      </div>
+      )}
+      
+      {vehicle && (
+        <div className="space-y-8">
+          <FoundCarCard vehicle={vehicle} readonly={false} />
+          
+          {showFollowUp && (
+            <div className="mt-8">
+              <UnifiedFollowUpForm 
+                vin={vin}
+                onComplete={handleFollowUpComplete}
+              />
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Debug info only visible in development mode */}
+      {SHOW_ALL_COMPONENTS && (
+        <div className="fixed bottom-4 right-4 bg-yellow-100 text-black p-3 rounded-lg text-xs z-50 opacity-80">
+          <div className="space-y-1">
+            <div>Debug Mode: ON</div>
+            <div>Component: ValuationPage</div>
+            <div>VIN: {vin || 'None'}</div>
+            <div>Vehicle Loaded: {vehicle ? 'Yes' : 'No'}</div>
+            <div>Show Follow-up: {showFollowUp ? 'Yes' : 'No'}</div>
+          </div>
+        </div>
+      )}
     </Container>
   );
 }
