@@ -1,408 +1,328 @@
-
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Calendar, MapPin, DollarSign, AlertTriangle, Shield, Car, FileText, Wrench, Users } from 'lucide-react';
-import { EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
-import { formatCurrency } from '@/utils/formatCurrency';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { RefreshCw, ExternalLink, Car, DollarSign, MapPin, Calendar, AlertTriangle } from 'lucide-react';
+import { EnrichedVehicleData } from '@/enrichment/types';
+import { formatCurrency } from '@/lib/utils';
+import { format, parseISO } from 'date-fns';
 
 interface EnrichedDataCardProps {
   data: EnrichedVehicleData;
-  userRole: string;
+  userRole: 'individual' | 'dealer' | 'admin';
   onRefresh?: () => void;
   isRefreshing?: boolean;
   lastUpdated?: string;
 }
 
-export const EnrichedDataCard: React.FC<EnrichedDataCardProps> = ({
-  data,
-  userRole,
-  onRefresh,
+export function EnrichedDataCard({ 
+  data, 
+  userRole, 
+  onRefresh, 
   isRefreshing = false,
-  lastUpdated
-}) => {
-  const [activeTab, setActiveTab] = useState('overview');
+  lastUpdated 
+}: EnrichedDataCardProps) {
   const statVinData = data.sources.statVin;
-
-  if (!statVinData) {
-    return null;
-  }
-
-  const renderOverview = () => (
-    <div className="space-y-6">
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">{statVinData.photos.length}</div>
-          <div className="text-sm text-blue-700">Photos</div>
-        </div>
-        <div className="bg-green-50 p-4 rounded-lg">
-          <div className="text-2xl font-bold text-green-600">{statVinData.auctionSalesHistory.length}</div>
-          <div className="text-sm text-green-700">Auction Sales</div>
-        </div>
-        <div className="bg-amber-50 p-4 rounded-lg">
-          <div className="text-2xl font-bold text-amber-600">{statVinData.ownershipHistory.length}</div>
-          <div className="text-sm text-amber-700">Owners</div>
-        </div>
-        <div className="bg-red-50 p-4 rounded-lg">
-          <div className="text-2xl font-bold text-red-600">{statVinData.damageHistory.length}</div>
-          <div className="text-sm text-red-700">Damage Events</div>
-        </div>
-      </div>
-
-      {/* Vehicle Summary */}
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h3 className="font-semibold mb-2">Vehicle Summary</h3>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-gray-600">Year:</span> {statVinData.vehicleDetails.year}
-          </div>
-          <div>
-            <span className="text-gray-600">Make:</span> {statVinData.vehicleDetails.make}
-          </div>
-          <div>
-            <span className="text-gray-600">Model:</span> {statVinData.vehicleDetails.model}
-          </div>
-          <div>
-            <span className="text-gray-600">Engine:</span> {statVinData.vehicleDetails.engine || 'N/A'}
-          </div>
-        </div>
-      </div>
-
-      {/* Critical Alerts */}
-      {(statVinData.summaries.hasSalvageTitle || statVinData.summaries.hasStructuralDamage) && (
-        <div className="border-l-4 border-red-500 bg-red-50 p-4">
-          <div className="flex items-center">
-            <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
-            <h3 className="font-semibold text-red-800">Critical Issues Found</h3>
-          </div>
-          <ul className="mt-2 text-red-700 text-sm space-y-1">
-            {statVinData.summaries.hasSalvageTitle && <li>• Salvage title reported</li>}
-            {statVinData.summaries.hasStructuralDamage && <li>• Structural damage reported</li>}
-            {statVinData.summaries.hasAirbagDeployment && <li>• Airbag deployment reported</li>}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderPhotos = () => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {statVinData.photos.map((photo, index) => (
-          <div key={index} className="relative">
-            <img 
-              src={photo.url} 
-              alt={`Vehicle photo ${index + 1}`}
-              className="w-full h-32 object-cover rounded-lg"
-            />
-            {photo.date && (
-              <div className="absolute bottom-2 left-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                {photo.date}
-              </div>
-            )}
-            {photo.auction && (
-              <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                {photo.auction}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderAuctionHistory = () => (
-    <div className="space-y-4">
-      {statVinData.auctionSalesHistory.map((sale, index) => (
-        <div key={index} className="border rounded-lg p-4">
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <div className="font-semibold">{sale.auction}</div>
-              <div className="text-sm text-gray-600">{sale.date}</div>
-              {sale.location && <div className="text-sm text-gray-600">{sale.location}</div>}
-            </div>
-            <div className="text-right">
-              <div className="text-lg font-bold">{formatCurrency(sale.price)}</div>
-              <Badge variant={sale.status === 'Sold' ? 'default' : 'secondary'}>
-                {sale.status}
-              </Badge>
-            </div>
-          </div>
-          <div className="text-sm text-gray-600">
-            Lot: {sale.lotNumber}
-            {sale.mileage && ` • ${sale.mileage.toLocaleString()} miles`}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderOwnershipHistory = () => (
-    <div className="space-y-4">
-      {statVinData.ownershipHistory.map((owner, index) => (
-        <div key={index} className="border rounded-lg p-4">
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <div className="font-semibold">Owner {owner.ownerNumber}</div>
-              <div className="text-sm text-gray-600">Purchased: {owner.yearPurchased}</div>
-            </div>
-            <Badge variant="outline">{owner.ownerType}</Badge>
-          </div>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-gray-600">Ownership Length:</span> {owner.estimatedOwnershipLength}
-            </div>
-            {owner.estimatedMilesPerYear && (
-              <div>
-                <span className="text-gray-600">Miles/Year:</span> {owner.estimatedMilesPerYear.toLocaleString()}
-              </div>
-            )}
-            {owner.lastReportedOdometer && (
-              <div className="col-span-2">
-                <span className="text-gray-600">Last Odometer:</span> {owner.lastReportedOdometer.toLocaleString()} miles
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderDamageHistory = () => (
-    <div className="space-y-4">
-      {statVinData.damageHistory.map((damage, index) => (
-        <div key={index} className="border rounded-lg p-4">
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <div className="font-semibold">{damage.date}</div>
-              <div className="text-sm text-gray-600">Owner {damage.owner}</div>
-            </div>
-            <Badge 
-              variant={damage.severity === 'severe' ? 'destructive' : 
-                     damage.severity === 'moderate' ? 'secondary' : 'outline'}
-            >
-              {damage.severity}
-            </Badge>
-          </div>
-          <div className="mb-2">
-            <div className="text-sm font-medium">Damage Locations:</div>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {damage.damageLocation.map((location, idx) => (
-                <Badge key={idx} variant="outline" className="text-xs">
-                  {location}
-                </Badge>
-              ))}
-            </div>
-          </div>
-          <div className="text-sm text-gray-700">{damage.description}</div>
-          {damage.repairStatus && (
-            <div className="mt-2 text-sm">
-              <span className="text-gray-600">Repair Status:</span>{' '}
-              <Badge variant={damage.repairStatus === 'repaired' ? 'default' : 'secondary'}>
-                {damage.repairStatus}
-              </Badge>
-            </div>
-          )}
-          {damage.mileage && (
-            <div className="text-sm text-gray-600 mt-1">
-              Mileage: {damage.mileage.toLocaleString()}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderTitleHistory = () => (
-    <div className="space-y-4">
-      {statVinData.titleHistory.map((title, index) => (
-        <div key={index} className="border rounded-lg p-4">
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <div className="font-semibold">{title.date}</div>
-              <div className="text-sm text-gray-600">{title.state}</div>
-            </div>
-            <Badge 
-              variant={title.titleType === 'Clean' ? 'default' : 'destructive'}
-            >
-              {title.titleType}
-            </Badge>
-          </div>
-          <div className="text-sm space-y-1">
-            {title.titleNumber && (
-              <div><span className="text-gray-600">Title #:</span> {title.titleNumber}</div>
-            )}
-            {title.issuedTo && (
-              <div><span className="text-gray-600">Issued To:</span> {title.issuedTo}</div>
-            )}
-            {title.vehicleColor && (
-              <div><span className="text-gray-600">Color:</span> {title.vehicleColor}</div>
-            )}
-            {title.loanLienReported !== undefined && (
-              <div>
-                <span className="text-gray-600">Loan/Lien:</span>{' '}
-                <Badge variant={title.loanLienReported ? 'secondary' : 'outline'}>
-                  {title.loanLienReported ? 'Yes' : 'No'}
-                </Badge>
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderServiceHistory = () => (
-    <div className="space-y-4">
-      {statVinData.serviceHistory.map((service, index) => (
-        <div key={index} className="border rounded-lg p-4">
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <div className="font-semibold">{service.date}</div>
-              <div className="text-sm text-gray-600">{service.serviceProvider}</div>
-              <div className="text-sm text-gray-600">{service.location}</div>
-            </div>
-            {service.mileage && (
-              <div className="text-sm text-gray-600">
-                {service.mileage.toLocaleString()} miles
-              </div>
-            )}
-          </div>
-          <div className="mb-2">
-            <div className="text-sm font-medium">Service Types:</div>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {service.serviceType.map((type, idx) => (
-                <Badge key={idx} variant="outline" className="text-xs">
-                  {type}
-                </Badge>
-              ))}
-            </div>
-          </div>
-          <div className="text-sm text-gray-700">{service.description}</div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderDetailedHistory = () => (
-    <div className="space-y-4">
-      {statVinData.detailedHistory.map((event, index) => (
-        <div key={index} className="border rounded-lg p-4">
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <div className="font-semibold">{event.date}</div>
-              <div className="text-sm text-gray-600">{event.source}</div>
-            </div>
-            <div className="text-right">
-              <Badge variant="outline">{event.eventType}</Badge>
-              {event.mileage && (
-                <div className="text-sm text-gray-600 mt-1">
-                  {event.mileage.toLocaleString()} miles
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="text-sm text-gray-700">{event.description}</div>
-          {event.location && (
-            <div className="text-sm text-gray-600 mt-1">
-              <MapPin className="h-3 w-3 inline mr-1" />
-              {event.location}
-            </div>
-          )}
-          {event.owner && (
-            <div className="text-sm text-gray-600 mt-1">
-              Owner {event.owner}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
+  const hasAuctionData = !!statVinData;
+  
+  // Count total marketplace listings
+  const marketplaceCount = [
+    data.sources.facebook,
+    data.sources.craigslist,
+    data.sources.ebay,
+    data.sources.carsdotcom
+  ].reduce((count, listings) => {
+    return count + (Array.isArray(listings) ? listings.length : 0);
+  }, 0);
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-blue-600" />
-              Market Intelligence Report
-            </CardTitle>
-            <CardDescription>
-              Comprehensive vehicle history and market data
-            </CardDescription>
-          </div>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <div>
+          <CardTitle className="text-xl font-bold flex items-center gap-2">
+            <Car className="h-5 w-5" />
+            Market Intelligence Report
+          </CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            Comprehensive auction and marketplace data analysis
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {lastUpdated && (
+            <span className="text-xs text-muted-foreground">
+              Updated {format(parseISO(lastUpdated), 'MMM d, h:mm a')}
+            </span>
+          )}
+          
           {onRefresh && (
             <Button
               variant="outline"
               size="sm"
               onClick={onRefresh}
               disabled={isRefreshing}
-              className="flex items-center gap-2"
+              className="gap-1"
             >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
           )}
         </div>
-        {lastUpdated && (
-          <div className="text-sm text-gray-500 flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            Last updated: {new Date(lastUpdated).toLocaleDateString()}
+      </CardHeader>
+
+      <CardContent className="space-y-6">
+        {/* Auction Data Section */}
+        {hasAuctionData && (
+          <div>
+            <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Auction History
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              {statVinData.salePrice && (
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Last Sale Price</p>
+                  <p className="font-semibold text-lg">
+                    {formatCurrency(parseFloat(statVinData.salePrice.replace(/[,$]/g, '')))}
+                  </p>
+                </div>
+              )}
+              
+              {statVinData.auctionDate && (
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Sale Date</p>
+                  <p className="font-semibold">{statVinData.auctionDate}</p>
+                </div>
+              )}
+              
+              {statVinData.location && (
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Auction Location</p>
+                  <p className="font-semibold">{statVinData.location}</p>
+                </div>
+              )}
+              
+              {statVinData.condition && (
+                <div className="bg-muted/50 p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Condition</p>
+                  <Badge variant={statVinData.condition.toLowerCase().includes('salvage') ? 'destructive' : 'secondary'}>
+                    {statVinData.condition}
+                  </Badge>
+                </div>
+              )}
+            </div>
+
+            {/* Auction Photos */}
+            {statVinData.images && statVinData.images.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm font-medium mb-2">Auction Photos</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {statVinData.images.map((photo: string, index: number) => (
+                    <img
+                      key={index}
+                      src={photo}
+                      alt={`Auction photo ${index + 1}`}
+                      className="w-full h-24 object-cover rounded-md border"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Enhanced Data Sections */}
+            {statVinData.auctionSalesHistory && statVinData.auctionSalesHistory.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm font-medium mb-2">Sales History</p>
+                <div className="space-y-2">
+                  {statVinData.auctionSalesHistory.map((sale: any, index: number) => (
+                    <div key={index} className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                      <span className="text-sm">{sale.date} - {sale.location}</span>
+                      <span className="font-medium">{formatCurrency(parseFloat(sale.price))}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {statVinData.ownershipHistory && statVinData.ownershipHistory.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm font-medium mb-2">Ownership History</p>
+                <div className="space-y-2">
+                  {statVinData.ownershipHistory.map((owner: any, index: number) => (
+                    <div key={index} className="p-2 bg-muted/30 rounded">
+                      <p className="text-sm">{owner.owner} ({owner.period})</p>
+                      <p className="text-xs text-muted-foreground">{owner.usage}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Damage History */}
+            {statVinData.damageHistory && statVinData.damageHistory.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm font-medium mb-2 flex items-center gap-1">
+                  <AlertTriangle className="h-4 w-4 text-warning" />
+                  Damage History
+                </p>
+                <div className="space-y-2">
+                  {statVinData.damageHistory.map((damage: any, index: number) => (
+                    <div key={index} className="p-2 bg-red-50 border border-red-200 rounded">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium text-sm">{damage.type}</p>
+                          <p className="text-xs text-muted-foreground">{damage.description}</p>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant="destructive" className="text-xs">{damage.severity}</Badge>
+                          <p className="text-xs text-muted-foreground mt-1">{damage.date}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
-      </CardHeader>
-      
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 lg:grid-cols-8 w-full">
-            <TabsTrigger value="overview" className="text-xs">
-              <Car className="h-3 w-3 mr-1" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="photos" className="text-xs">
-              Photos ({statVinData.photos.length})
-            </TabsTrigger>
-            <TabsTrigger value="auction" className="text-xs">
-              <DollarSign className="h-3 w-3 mr-1" />
-              Auctions
-            </TabsTrigger>
-            <TabsTrigger value="ownership" className="text-xs">
-              <Users className="h-3 w-3 mr-1" />
-              Owners
-            </TabsTrigger>
-            <TabsTrigger value="damage" className="text-xs">
-              <AlertTriangle className="h-3 w-3 mr-1" />
-              Damage
-            </TabsTrigger>
-            <TabsTrigger value="title" className="text-xs">
-              <FileText className="h-3 w-3 mr-1" />
-              Title
-            </TabsTrigger>
-            <TabsTrigger value="service" className="text-xs">
-              <Wrench className="h-3 w-3 mr-1" />
-              Service
-            </TabsTrigger>
-            <TabsTrigger value="timeline" className="text-xs">
-              Timeline
-            </TabsTrigger>
-          </TabsList>
 
-          <div className="mt-6">
-            <TabsContent value="overview">{renderOverview()}</TabsContent>
-            <TabsContent value="photos">{renderPhotos()}</TabsContent>
-            <TabsContent value="auction">{renderAuctionHistory()}</TabsContent>
-            <TabsContent value="ownership">{renderOwnershipHistory()}</TabsContent>
-            <TabsContent value="damage">{renderDamageHistory()}</TabsContent>
-            <TabsContent value="title">{renderTitleHistory()}</TabsContent>
-            <TabsContent value="service">{renderServiceHistory()}</TabsContent>
-            <TabsContent value="timeline">{renderDetailedHistory()}</TabsContent>
+        {/* Marketplace Data Section */}
+        <Separator />
+        
+        <div>
+          <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+            <MapPin className="h-4 w-4" />
+            Marketplace Listings ({marketplaceCount} found)
+          </h3>
+          
+          {marketplaceCount === 0 ? (
+            <p className="text-muted-foreground text-sm">No active marketplace listings found for this vehicle.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Facebook Marketplace */}
+              {data.sources.facebook && data.sources.facebook.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm flex items-center gap-2">
+                    Facebook Marketplace ({data.sources.facebook.length})
+                  </h4>
+                  {data.sources.facebook.slice(0, 3).map((listing: any, index: number) => (
+                    <div key={index} className="p-3 border rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <p className="font-medium text-sm truncate">{listing.title}</p>
+                        <Badge variant="outline">{formatCurrency(listing.price)}</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-2">{listing.location}</p>
+                      {listing.url && (
+                        <Button variant="ghost" size="sm" className="p-0 h-auto">
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          View Listing
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Other marketplace sources */}
+              {data.sources.craigslist && data.sources.craigslist.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Craigslist ({data.sources.craigslist.length})</h4>
+                  {data.sources.craigslist.slice(0, 3).map((listing: any, index: number) => (
+                    <div key={index} className="p-3 border rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <p className="font-medium text-sm truncate">{listing.title}</p>
+                        <Badge variant="outline">{formatCurrency(listing.price)}</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{listing.location}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Enhanced Service History */}
+        {statVinData?.serviceHistory && statVinData.serviceHistory.length > 0 && (
+          <>
+            <Separator />
+            <div>
+              <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Service History
+              </h3>
+              <div className="space-y-2">
+                {statVinData.serviceHistory.map((service: any, index: number) => (
+                  <div key={index} className="p-3 border rounded-lg">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium text-sm">{service.type}</p>
+                        <p className="text-xs text-muted-foreground">{service.provider}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm">{service.date}</p>
+                        <p className="text-xs text-muted-foreground">{service.mileage} miles</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Additional Data for Dealers */}
+        {userRole === 'dealer' && hasAuctionData && (
+          <>
+            <Separator />
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold text-lg mb-2 text-blue-900">Dealer Insights</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <p className="text-blue-700 font-medium">Profit Potential</p>
+                  <p className="text-blue-600">
+                    {statVinData.estimatedRetailValue && statVinData.salePrice ? 
+                      formatCurrency(
+                        parseFloat(statVinData.estimatedRetailValue) - parseFloat(statVinData.salePrice.replace(/[,$]/g, ''))
+                      ) : 'Data unavailable'
+                    }
+                  </p>
+                </div>
+                <div>
+                  <p className="text-blue-700 font-medium">Title Types</p>
+                  {statVinData.titleHistory?.map((type: any, idx: number) => (
+                    <Badge key={idx} variant="outline" className="mr-1 mb-1">
+                      {type.status}
+                    </Badge>
+                  ))}
+                </div>
+                <div>
+                  <p className="text-blue-700 font-medium">Market Events</p>
+                  {statVinData.vehicleDetails && (
+                    <p className="text-blue-600">
+                      {statVinData.auctionSalesHistory?.length || 0} sales tracked
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {!hasAuctionData && marketplaceCount === 0 && (
+          <div className="text-center py-8">
+            <Car className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground">
+              No enrichment data available for this vehicle.
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Try refreshing or check back later for updated information.
+            </p>
           </div>
-        </Tabs>
+        )}
       </CardContent>
     </Card>
   );
-};
+}
