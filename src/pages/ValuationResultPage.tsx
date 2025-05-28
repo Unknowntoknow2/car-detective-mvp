@@ -57,7 +57,7 @@ export default function ValuationResultPage() {
             Error Loading Valuation
           </h2>
           <p className="text-red-600">
-            {error || "Could not load the valuation details. Please try again or contact support."}
+            {typeof error === 'string' ? error : "Could not load the valuation details. Please try again or contact support."}
           </p>
         </div>
       </div>
@@ -82,7 +82,7 @@ export default function ValuationResultPage() {
   return (
     <div className="container mx-auto p-4 space-y-6">
       {/* Main Valuation Result */}
-      <PredictionResult valuationId={valuationId} />
+      <PredictionResult valuationId={valuationId || ''} />
       
       {/* Enriched Data Section */}
       {enrichedData && (
@@ -98,7 +98,10 @@ export default function ValuationResultPage() {
 
       {/* AI Chat Bubble */}
       {valuationResult && (
-        <AIChatBubble valuation={valuationResult} />
+        <AIChatBubble valuation={{
+          ...valuationResult,
+          created_at: valuationResult.created_at || new Date().toISOString()
+        }} />
       )}
 
       {/* Dealer Offers */}
