@@ -9,6 +9,7 @@ import PredictionResult from '@/components/valuation/PredictionResult';
 import { EnrichedDataCard } from '@/components/enriched/EnrichedDataCard';
 import { PremiumEnrichmentGate } from '@/components/enriched/PremiumEnrichmentGate';
 import { getEnrichedVehicleData, EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
+import PDFDownloadButton from '@/components/common/PDFDownloadButton';
 
 export default function ValuationResultPage() {
   const { valuationId } = useParams<{ valuationId: string }>();
@@ -115,6 +116,17 @@ export default function ValuationResultPage() {
       {/* Main Valuation Result */}
       <PredictionResult valuationId={valuationId || ''} />
       
+      {/* Premium PDF Download */}
+      {hasPermiumAccess && (
+        <div className="flex justify-center">
+          <PDFDownloadButton 
+            valuationResult={valuationResult}
+            enrichedData={enrichedData}
+            isPremium={hasPermiumAccess}
+          />
+        </div>
+      )}
+      
       {/* Enriched Data Section - Role-based display */}
       {hasPermiumAccess ? (
         // Premium users see full enriched data
@@ -140,12 +152,15 @@ export default function ValuationResultPage() {
         />
       )}
 
-      {/* AI Chat Bubble */}
+      {/* AI Chat Bubble with enriched context */}
       {valuationResult && (
-        <AIChatBubble valuation={{
-          ...valuationResult,
-          created_at: valuationResult.created_at || new Date().toISOString()
-        }} />
+        <AIChatBubble 
+          valuation={{
+            ...valuationResult,
+            created_at: valuationResult.created_at || new Date().toISOString()
+          }}
+          enrichedData={hasPermiumAccess ? enrichedData : null}
+        />
       )}
 
       {/* Dealer Offers */}

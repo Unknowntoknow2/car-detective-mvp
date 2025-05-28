@@ -8,15 +8,18 @@ import { saveAs } from 'file-saver';
 import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { ReportData } from '@/utils/pdf/types';
 import { formatCurrency } from '@/utils/formatters';
+import { EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
 
 interface PDFDownloadButtonProps {
   valuationResult: any;
+  enrichedData?: EnrichedVehicleData | null;
   className?: string;
   isPremium?: boolean;
 }
 
 export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({ 
   valuationResult, 
+  enrichedData,
   className = '',
   isPremium = false
 }) => {
@@ -52,7 +55,6 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
         mileage: valuationResult.mileage || 0,
         zipCode: valuationResult.zip || valuationResult.zipCode || '',
         condition: valuationResult.condition || 'Good',
-        // Use estimated value for price and estimatedValue
         estimatedValue: valuationResult.estimated_value || valuationResult.estimatedValue || 0,
         adjustments: (valuationResult.adjustments || []).map((adj: any) => ({
           factor: adj.factor || '',
@@ -66,11 +68,16 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
           confidenceScore: 0,
           issuesDetected: [],
           summary: 'No condition assessment available'
-        }
+        },
+        vin: valuationResult.vin
       };
       
-      // Generate the PDF
-      const pdfBytes = await generateValuationPdf(formData);
+      // Generate the PDF with enriched data
+      const pdfBytes = await generateValuationPdf(formData, {
+        isPremium: true,
+        includeExplanation: true,
+        enrichedData: enrichedData || undefined
+      });
       
       // Create a blob from the PDF bytes
       const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -78,14 +85,14 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
       // Create a sanitized filename
       const sanitizedMake = valuationResult.make?.replace(/[^a-z0-9]/gi, '') || 'Vehicle';
       const sanitizedModel = valuationResult.model?.replace(/[^a-z0-9]/gi, '') || 'Report';
-      const filename = `CarDetective_Valuation_${sanitizedMake}_${sanitizedModel}_${Date.now()}.pdf`;
+      const filename = `CarDetective_Premium_${sanitizedMake}_${sanitizedModel}_${Date.now()}.pdf`;
       
       // Trigger the download
       saveAs(pdfBlob, filename);
       
       toast({
         title: "Success",
-        description: "PDF report downloaded successfully",
+        description: "Premium PDF report with STAT.vin data downloaded successfully",
       });
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -110,11 +117,11 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
               disabled={true}
             >
               <FileDown className="mr-2 h-4 w-4" />
-              Download Report (PDF)
+              Download Premium Report (PDF)
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Upgrade to Premium to download PDF reports</p>
+            <p>Upgrade to Premium to download reports with STAT.vin data</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -133,7 +140,7 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
       ) : (
         <FileDown className="mr-2 h-4 w-4" />
       )}
-      Download Report (PDF)
+      Download Premium Report (PDF)
     </Button>
   );
 };
