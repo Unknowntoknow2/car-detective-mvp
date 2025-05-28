@@ -1,10 +1,10 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useMakeModels } from '@/hooks/useMakeModels';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ManualEntryFormData, ConditionLevel } from '../types/manualEntry';
-import { useMakeModels } from '@/hooks/useMakeModels';
+import { ManualEntryFormData } from '../types/manualEntry';
 
 interface BasicVehicleFormProps {
   formData: ManualEntryFormData;
@@ -20,36 +20,43 @@ export function BasicVehicleForm({
   isPremium = false
 }: BasicVehicleFormProps) {
   const { makes, models, isLoading, error, getModelsByMake } = useMakeModels();
+  const [loadingModels, setLoadingModels] = useState(false);
 
-  // Fetch models when make changes
-  useEffect(() => {
-    if (formData.make && formData.make !== '') {
-      console.log('Make changed to:', formData.make, 'fetching models...');
-      getModelsByMake(formData.make);
+  console.log('Rendering BasicVehicleForm with:', {
+    makesCount: makes.length,
+    modelsCount: models.length,
+    selectedMake: formData.make,
+    selectedModel: formData.model
+  });
+
+  // Handle make selection and fetch models
+  const handleMakeChange = async (makeName: string) => {
+    console.log('Make changed to:', makeName, 'fetching models...');
+    updateFormData({ make: makeName, model: '' }); // Clear model when make changes
+    
+    if (makeName && makes.length > 0) {
+      setLoadingModels(true);
+      try {
+        await getModelsByMake(makeName);
+      } finally {
+        setLoadingModels(false);
+      }
     }
-  }, [formData.make, getModelsByMake]);
-
-  const handleMakeChange = (value: string) => {
-    console.log('Make selected:', value);
-    updateFormData({ 
-      make: value,
-      model: '' // Reset model when make changes
-    });
   };
 
-  const handleModelChange = (value: string) => {
-    console.log('Model selected:', value);
-    updateFormData({ model: value });
+  const handleModelChange = (modelName: string) => {
+    console.log('Model changed to:', modelName);
+    updateFormData({ model: modelName });
   };
 
-  const handleYearChange = (value: string) => {
-    const yearNum = parseInt(value);
-    updateFormData({ year: yearNum });
+  const handleYearChange = (yearString: string) => {
+    const year = parseInt(yearString, 10);
+    updateFormData({ year: year });
   };
 
   const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || 0;
-    updateFormData({ mileage: value });
+    const mileage = parseInt(e.target.value, 10) || 0;
+    updateFormData({ mileage });
   };
 
   const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,13 +64,13 @@ export function BasicVehicleForm({
     updateFormData({ zipCode: value });
   };
 
-  const handleConditionChange = (value: string) => {
-    updateFormData({ condition: value as ConditionLevel });
+  const handleConditionChange = (condition: string) => {
+    updateFormData({ condition });
   };
 
-  // Generate year options (current year + 1 down to 1990)
+  // Generate year options
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: currentYear - 1989 }, (_, i) => currentYear + 1 - i);
+  const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
 
   if (isLoading) {
     return <div>Loading vehicle data...</div>;
@@ -73,23 +80,14 @@ export function BasicVehicleForm({
     return <div className="text-red-500">Error loading vehicle data: {error}</div>;
   }
 
-  console.log('Rendering BasicVehicleForm with:', {
-    makesCount: makes.length,
-    modelsCount: models.length,
-    selectedMake: formData.make,
-    selectedModel: formData.model
-  });
-
   return (
     <div className="space-y-6">
       {/* Make and Model Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="make" className="text-sm font-medium">
-            Make <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="make">Make *</Label>
           <Select value={formData.make} onValueChange={handleMakeChange}>
-            <SelectTrigger className={errors.make ? 'border-red-300' : ''}>
+            <SelectTrigger className={errors.make ? 'border-red-500' : ''}>
               <SelectValue placeholder="Select make" />
             </SelectTrigger>
             <SelectContent>
@@ -104,21 +102,17 @@ export function BasicVehicleForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="model" className="text-sm font-medium">
-            Model <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="model">Model *</Label>
           <Select 
             value={formData.model} 
             onValueChange={handleModelChange}
-            disabled={!formData.make || models.length === 0}
+            disabled={!formData.make || loadingModels}
           >
-            <SelectTrigger className={errors.model ? 'border-red-300' : ''}>
+            <SelectTrigger className={errors.model ? 'border-red-500' : ''}>
               <SelectValue placeholder={
-                !formData.make 
-                  ? "Select make first" 
-                  : models.length === 0 
-                    ? "No models available" 
-                    : "Select model"
+                !formData.make ? "Select make first" : 
+                loadingModels ? "Loading models..." : 
+                "Select model"
               } />
             </SelectTrigger>
             <SelectContent>
@@ -136,11 +130,9 @@ export function BasicVehicleForm({
       {/* Year and Mileage Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="year" className="text-sm font-medium">
-            Year <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="year">Year *</Label>
           <Select value={formData.year?.toString() || ''} onValueChange={handleYearChange}>
-            <SelectTrigger className={errors.year ? 'border-red-300' : ''}>
+            <SelectTrigger className={errors.year ? 'border-red-500' : ''}>
               <SelectValue placeholder="Select year" />
             </SelectTrigger>
             <SelectContent>
@@ -155,16 +147,14 @@ export function BasicVehicleForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="mileage" className="text-sm font-medium">
-            Mileage <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="mileage">Mileage</Label>
           <Input
             id="mileage"
             type="number"
             value={formData.mileage || ''}
             onChange={handleMileageChange}
             placeholder="Enter mileage"
-            className={errors.mileage ? 'border-red-300' : ''}
+            className={errors.mileage ? 'border-red-500' : ''}
           />
           {errors.mileage && <p className="text-red-500 text-sm">{errors.mileage}</p>}
         </div>
@@ -173,27 +163,22 @@ export function BasicVehicleForm({
       {/* Condition and ZIP Code Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="condition" className="text-sm font-medium">
-            Condition <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="condition">Condition</Label>
           <Select value={formData.condition} onValueChange={handleConditionChange}>
-            <SelectTrigger className={errors.condition ? 'border-red-300' : ''}>
+            <SelectTrigger>
               <SelectValue placeholder="Select condition" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ConditionLevel.Excellent}>Excellent</SelectItem>
-              <SelectItem value={ConditionLevel.Good}>Good</SelectItem>
-              <SelectItem value={ConditionLevel.Fair}>Fair</SelectItem>
-              <SelectItem value={ConditionLevel.Poor}>Poor</SelectItem>
+              <SelectItem value="excellent">Excellent</SelectItem>
+              <SelectItem value="good">Good</SelectItem>
+              <SelectItem value="fair">Fair</SelectItem>
+              <SelectItem value="poor">Poor</SelectItem>
             </SelectContent>
           </Select>
-          {errors.condition && <p className="text-red-500 text-sm">{errors.condition}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="zipCode" className="text-sm font-medium">
-            ZIP Code <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="zipCode">ZIP Code *</Label>
           <Input
             id="zipCode"
             type="text"
@@ -201,7 +186,7 @@ export function BasicVehicleForm({
             onChange={handleZipCodeChange}
             placeholder="Enter ZIP code"
             maxLength={5}
-            className={errors.zipCode ? 'border-red-300' : ''}
+            className={errors.zipCode ? 'border-red-500' : ''}
           />
           {errors.zipCode && <p className="text-red-500 text-sm">{errors.zipCode}</p>}
         </div>

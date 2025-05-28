@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface VehicleMake {
@@ -67,19 +67,18 @@ export function useMakeModels() {
     fetchMakes();
   }, []);
 
-  // Function to fetch models for a specific make - accepts make name and finds the ID
-  const getModelsByMake = async (makeName: string) => {
-    if (!makeName) {
-      console.log('No make name provided, clearing models');
+  // Stabilized function to fetch models for a specific make using useCallback
+  const getModelsByMake = useCallback(async (makeName: string) => {
+    if (!makeName || makes.length === 0) {
+      console.log('No make name provided or makes not loaded, clearing models');
       setModels([]);
       return [];
     }
 
     try {
       setError(null);
-      setIsLoading(true);
       
-      // First find the make ID from the make name
+      // Find the make ID from the make name
       const selectedMake = makes.find(make => make.make_name === makeName);
       if (!selectedMake) {
         console.log('Make not found:', makeName);
@@ -108,13 +107,11 @@ export function useMakeModels() {
       setError('Failed to load vehicle models: ' + err.message);
       setModels([]);
       return [];
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [makes]); // Only depend on makes array
 
   // Legacy function for backward compatibility - now uses make ID directly
-  const getModelsByMakeId = async (makeId: string) => {
+  const getModelsByMakeId = useCallback(async (makeId: string) => {
     if (!makeId) {
       console.log('No makeId provided, clearing models');
       setModels([]);
@@ -123,7 +120,6 @@ export function useMakeModels() {
 
     try {
       setError(null);
-      setIsLoading(true);
       
       console.log('Fetching models for make ID:', makeId);
       const { data, error } = await supabase
@@ -146,13 +142,11 @@ export function useMakeModels() {
       setError('Failed to load vehicle models: ' + err.message);
       setModels([]);
       return [];
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, []);
 
   // Function to fetch trims for a specific model
-  const getTrimsByModelId = async (modelId: string) => {
+  const getTrimsByModelId = useCallback(async (modelId: string) => {
     if (!modelId) {
       console.log('No modelId provided, clearing trims');
       setTrims([]);
@@ -184,7 +178,7 @@ export function useMakeModels() {
       setTrims([]);
       return [];
     }
-  };
+  }, []);
 
   return {
     makes,
@@ -193,7 +187,7 @@ export function useMakeModels() {
     isLoading,
     error,
     getModelsByMakeId,
-    getModelsByMake, // New function that works with make names
+    getModelsByMake, // Now stabilized with useCallback
     getTrimsByModelId,
   };
 }
