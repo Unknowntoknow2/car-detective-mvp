@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMakeModels } from '@/hooks/useMakeModels';
@@ -31,7 +30,12 @@ export const BasicVehicleForm: React.FC<BasicVehicleFormProps> = ({
   const handleMakeChange = useCallback(async (makeId: string) => {
     console.log('Make changed to:', makeId);
     setSelectedMakeId(makeId);
-    updateFormData({ make: makeId, model: '' }); // Reset model when make changes
+    
+    // Find the make name from the makes array
+    const selectedMake = makes.find(make => make.id === makeId);
+    const makeName = selectedMake ? selectedMake.make_name : '';
+    
+    updateFormData({ make: makeName, model: '' }); // Store make name, reset model
 
     if (makeId) {
       setLoadingModels(true);
@@ -44,20 +48,27 @@ export const BasicVehicleForm: React.FC<BasicVehicleFormProps> = ({
         setLoadingModels(false);
       }
     }
-  }, [updateFormData, getModelsByMakeId]);
+  }, [updateFormData, getModelsByMakeId, makes]);
 
   // Handle model selection
-  const handleModelChange = useCallback((modelId: string) => {
-    console.log('Model changed to:', modelId);
-    updateFormData({ model: modelId });
+  const handleModelChange = useCallback((modelName: string) => {
+    console.log('Model changed to:', modelName);
+    updateFormData({ model: modelName });
   }, [updateFormData]);
 
-  // Sync formData with local state
+  // Initialize selectedMakeId when formData.make changes
   useEffect(() => {
-    if (formData.make && formData.make !== selectedMakeId) {
-      setSelectedMakeId(formData.make);
+    if (formData.make && makes.length > 0) {
+      const foundMake = makes.find(make => make.make_name === formData.make);
+      if (foundMake && foundMake.id !== selectedMakeId) {
+        setSelectedMakeId(foundMake.id);
+        // Fetch models for this make if we haven't already
+        if (models.length === 0) {
+          getModelsByMakeId(foundMake.id);
+        }
+      }
     }
-  }, [formData.make, selectedMakeId]);
+  }, [formData.make, makes, selectedMakeId, models.length, getModelsByMakeId]);
 
   if (error) {
     return (
@@ -98,7 +109,7 @@ export const BasicVehicleForm: React.FC<BasicVehicleFormProps> = ({
           <Select 
             onValueChange={handleModelChange} 
             value={formData.model}
-            disabled={!selectedMakeId || loadingModels || models.length === 0}
+            disabled={!selectedMakeId || loadingModels}
           >
             <SelectTrigger className={errors.model ? 'border-red-300' : ''}>
               <SelectValue placeholder={
@@ -110,7 +121,7 @@ export const BasicVehicleForm: React.FC<BasicVehicleFormProps> = ({
             </SelectTrigger>
             <SelectContent>
               {models.map(model => (
-                <SelectItem key={model.id} value={model.id}>
+                <SelectItem key={model.id} value={model.model_name}>
                   {model.model_name}
                 </SelectItem>
               ))}
