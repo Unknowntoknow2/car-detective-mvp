@@ -49,6 +49,7 @@ export const PlateLookup: React.FC<PlateLookupProps> = ({
       // Store data in localStorage for follow-up steps
       localStorage.setItem('current_plate', plate);
       localStorage.setItem('current_state', state);
+      localStorage.setItem('plate_lookup_result', JSON.stringify(result));
       
       // Call the parent's onSubmit handler
       onSubmit(plate, state);
@@ -58,8 +59,8 @@ export const PlateLookup: React.FC<PlateLookupProps> = ({
         onResultsReady(result);
       }
       
-      // Navigate to the follow-up questions page
-      navigate(`/valuation-followup?plate=${plate}&state=${state}`);
+      // Navigate to the valuation page instead of a non-existent followup page
+      navigate(`/valuation?plate=${plate}&state=${state}`);
     } catch (error: any) {
       console.error('Plate lookup error:', error);
       setError(error.message || 'Failed to lookup license plate. Please try again.');
