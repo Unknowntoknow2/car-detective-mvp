@@ -1,58 +1,122 @@
 
 import React, { useState, useEffect } from 'react';
+import { ValuationHistory } from '@/components/dashboard/ValuationHistory';
+import { supabase } from '@/integrations/supabase/client';
 import { ValuationResult } from '@/types/valuation';
-import { formatCurrency } from '@/utils/formatters';
+import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
+import { Container } from '@/components/ui/container';
+import { AdjustmentItem } from '@/utils/pdf/types';
 
 export default function UserDashboard() {
-  const [valuations, setValuations] = useState<ValuationResult[]>([]);
+  const [userValuations, setUserValuations] = useState<ValuationResult[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Get the user session safely
+  const session = supabase.auth.getSession ? 
+    (supabase.auth.getSession() as any)?.data?.session : 
+    null;
+  const userId = session?.user?.id;
 
   useEffect(() => {
-    // Mock data for dashboard
-    const mockValuations: ValuationResult[] = [
-      {
-        id: '1',
-        make: 'Toyota',
-        model: 'Camry',
-        year: 2020,
-        mileage: 30000,
-        vin: '1234567890ABCDEFG',
-        estimatedValue: 25000,
-        photoScore: 0.8,
-        created_at: '2023-01-01T00:00:00Z',
-        priceRange: [23000, 27000],
+    if (userId) {
+      fetchUserValuations();
+    } else {
+      setIsLoading(false);
+      setError('User not authenticated');
+    }
+  }, [userId]);
+
+  const fetchUserValuations = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('valuations')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform data to meet ValuationResult interface requirements
+      const transformedData = data.map(item => ({
+        id: item.id,
+        make: item.make || '',
+        model: item.model || '',
+        year: item.year || 0,
+        mileage: item.mileage || 0,
+        vin: item.vin || '',
+        estimatedValue: item.estimated_value || 0, // ✅ Fixed: Added fallback value
+        photoUrl: item.photo_url || '',
+        photoScore: item.photo_score || 0,
+        createdAt: item.created_at || '',
+        // Add missing required properties
+        priceRange: [
+          Math.round((item.estimated_value || 0) * 0.95), 
+          Math.round((item.estimated_value || 0) * 1.05)
+        ],
         adjustments: [],
-        condition: 'Good',
-        confidenceScore: 85
-      }
-    ];
-    
-    setValuations(mockValuations);
-  }, []);
+        condition: item.condition || 'Unknown',
+        confidenceScore: item.confidence_score || 0,
+        zipCode: item.zip_code || ''
+      }));
+
+      setUserValuations(transformedData);
+    } catch (err: any) {
+      console.error('Error fetching valuations:', err);
+      setError(err.message || 'Failed to fetch valuations');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDownloadPdf = async (valuation: ValuationResult) => {
+    try {
+      // Prepare report data with non-null values for required fields
+      // Transform adjustments to ensure description is always defined
+      const formattedAdjustments: AdjustmentItem[] = (valuation.adjustments || []).map(adj => ({
+        factor: adj.factor,
+        impact: adj.impact,
+        description: adj.description || `Adjustment for ${adj.factor}`
+      }));
+
+      const reportData = {
+        make: valuation.make || 'Unknown',
+        model: valuation.model || 'Unknown',
+        year: valuation.year || new Date().getFullYear(),
+        mileage: valuation.mileage || 0,
+        condition: valuation.condition || 'Good',
+        estimatedValue: valuation.estimatedValue || 0, // ✅ Fixed: Added fallback value
+        confidenceScore: valuation.confidenceScore || 75,
+        zipCode: valuation.zipCode || '00000',
+        aiCondition: {
+          condition: valuation.condition || 'Good',
+          confidenceScore: valuation.confidenceScore || 75,
+          issuesDetected: [],
+          summary: `Vehicle is in ${valuation.condition || 'Good'} condition.`
+        },
+        adjustments: formattedAdjustments,
+        generatedAt: new Date().toISOString() 
+      };
+
+      await downloadValuationPdf(reportData);
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+    }
+  };
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">My Valuations</h1>
-      
-      <div className="grid gap-4">
-        {valuations.map((valuation) => (
-          <div key={valuation.id} className="border rounded-lg p-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-semibold">
-                  {valuation.year} {valuation.make} {valuation.model}
-                </h3>
-                <p className="text-muted-foreground">VIN: {valuation.vin}</p>
-                <p className="text-lg font-bold">
-                  {formatCurrency(valuation.estimatedValue || 0)}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Created: {new Date(valuation.created_at).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
+    <Container>
+      <div className="py-8">
+        <h1 className="text-3xl font-bold mb-6">Your Dashboard</h1>
+        
+        <ValuationHistory 
+          valuations={userValuations} 
+          isLoading={isLoading} 
+          error={error} 
+          onDownloadPdf={handleDownloadPdf}
+        />
       </div>
-    </div>
+    </Container>
   );
 }

@@ -1,187 +1,208 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, Car, AlertCircle } from 'lucide-react';
 import { validateVIN } from '@/utils/validation/vin-validation';
-import { useVinLookupFlow } from '@/hooks/useVinLookupFlow';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { VehicleFoundCard } from '@/components/valuation/VehicleFoundCard';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface UnifiedVinLookupProps {
+  onSubmit?: (vin: string) => void;
   showHeader?: boolean;
   className?: string;
-  onSubmit?: (vin: string) => void;
-  onVehicleFound?: (vehicle: any) => void;
-  initialVin?: string;
-  // External state props - if provided, use these instead of internal hook
-  externalState?: any;
-  externalSetVin?: (vin: string) => void;
-  externalLookupVin?: (vin: string) => Promise<any>;
 }
 
 export function UnifiedVinLookup({ 
-  showHeader = false, 
-  className,
-  onSubmit,
-  onVehicleFound,
-  initialVin,
-  externalState,
-  externalSetVin,
-  externalLookupVin
+  onSubmit, 
+  showHeader = true, 
+  className = "" 
 }: UnifiedVinLookupProps) {
-  // Use external state if provided, otherwise use internal hook
-  const internalHook = useVinLookupFlow();
-  const { state, setVin, lookupVin } = externalState ? {
-    state: externalState,
-    setVin: externalSetVin!,
-    lookupVin: externalLookupVin!
-  } : internalHook;
-
-  const [localVin, setLocalVin] = useState(initialVin || '');
+  const [vin, setVin] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [vehicleData, setVehicleData] = useState<any>(null);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
-  console.log('🔍 UnifiedVinLookup render:', {
-    localVin,
-    stateVin: state.vin,
-    isLoading: state.isLoading,
-    stateStage: state.stage,
-    vehicle: state.vehicle,
-    usingExternalState: !!externalState,
-    hasOnVehicleFoundCallback: !!onVehicleFound
-  });
-
-  // Set initial VIN if provided
-  useEffect(() => {
-    if (initialVin && initialVin !== localVin) {
-      console.log('🔄 Setting initial VIN:', initialVin);
-      setLocalVin(initialVin);
-      setVin(initialVin);
+  const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, '');
+    if (value.length <= 17) {
+      setVin(value);
+      setError(null);
     }
-  }, [initialVin, localVin, setVin]);
+  };
 
-  // Handle vehicle found - trigger callback when vehicle is found
-  useEffect(() => {
-    if (state.vehicle && onVehicleFound) {
-      console.log('🎯 UnifiedVinLookup: Vehicle found, triggering onVehicleFound callback:', state.vehicle);
-      onVehicleFound(state.vehicle);
-    }
-  }, [state.vehicle, onVehicleFound]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('🚀 UnifiedVinLookup: Form submitted with VIN:', localVin);
-    
-    const validation = validateVIN(localVin);
+  const handleLookup = async () => {
+    const validation = validateVIN(vin);
     if (!validation.isValid) {
-      const errorMsg = validation.error || 'Invalid VIN format';
-      console.log('❌ VIN validation failed:', errorMsg);
-      setError(errorMsg);
-      toast.error(errorMsg);
+      setError(validation.error || 'Invalid VIN format');
       return;
     }
 
+    setIsLoading(true);
     setError(null);
-    console.log('✅ VIN validation passed, proceeding with lookup');
-    
-    if (onSubmit) {
-      console.log('🔄 Calling onSubmit callback');
-      onSubmit(localVin);
-    } else {
-      console.log('🔄 Calling lookupVin directly');
-      try {
-        const result = await lookupVin(localVin);
-        console.log('🔍 Lookup result in UnifiedVinLookup:', result);
-        
-        // The useEffect above will handle calling onVehicleFound when state.vehicle updates
-      } catch (error) {
-        console.error('❌ Lookup error:', error);
-        toast.error('VIN lookup failed. Please try again.');
+
+    try {
+      // First check if vehicle already exists in decoded_vehicles
+      const { data: existingVehicle } = await supabase
+        .from('decoded_vehicles')
+        .select('*')
+        .eq('vin', vin)
+        .single();
+
+      if (existingVehicle) {
+        // Vehicle already exists, navigate to valuation page
+        navigate(`/valuation/${vin}`);
+        return;
       }
+
+      // Call the NHTSA vPIC edge function to decode new VIN
+      const { data: result, error: apiError } = await supabase.functions.invoke('fetch_vpic_data', {
+        body: { vin }
+      });
+
+      if (apiError) {
+        throw new Error(apiError.message || 'Failed to decode VIN');
+      }
+
+      if (!result?.data) {
+        throw new Error('No vehicle data found for this VIN');
+      }
+
+      // Save decoded vehicle data to database
+      const decodedVehicleData = {
+        vin: result.data.vin,
+        year: result.data.modelYear ? parseInt(result.data.modelYear) : null,
+        make: result.data.make,
+        model: result.data.model,
+        trim: result.data.trim || result.data.series,
+        engine: result.data.engineSize ? `${result.data.engineSize}L` : null,
+        transmission: result.data.transmissionStyle,
+        bodytype: result.data.bodyClass,
+        fueltype: result.data.fuelType,
+        drivetrain: result.data.driveType,
+        doors: result.data.doors ? parseInt(result.data.doors) : null,
+        seats: result.data.seats ? parseInt(result.data.seats) : null,
+        displacementl: result.data.displacementL,
+        enginecylinders: result.data.engineCylinders
+      };
+
+      const { data: savedVehicle, error: saveError } = await supabase
+        .from('decoded_vehicles')
+        .insert(decodedVehicleData)
+        .select()
+        .single();
+
+      if (saveError) {
+        console.error('Error saving vehicle data:', saveError);
+        throw new Error('Failed to save vehicle data');
+      }
+
+      // Create car finder session if user is authenticated
+      if (user) {
+        await supabase.from('car_finder_sessions').insert({
+          vin,
+          user_id: user.id,
+          status: 'decoded',
+          decoded_vehicle_id: savedVehicle.id
+        });
+      }
+
+      // Navigate to the valuation page
+      navigate(`/valuation/${vin}`);
+      
+      if (onSubmit) {
+        onSubmit(vin);
+      }
+
+    } catch (err: any) {
+      console.error('VIN lookup error:', err);
+      setError(err.message || 'Failed to decode VIN: Edge Function returned a non-2xx status code');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVin = e.target.value.toUpperCase();
-    console.log('📝 VIN input changed:', newVin);
-    setLocalVin(newVin);
-    setVin(newVin);
-    setError(null);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleLookup();
   };
 
-  const isFormValid = localVin.length === 17;
-  const isSubmitDisabled = state.isLoading || !isFormValid;
-
-  console.log('🎯 Button state:', {
-    isFormValid,
-    isSubmitDisabled,
-    localVinLength: localVin.length,
-    isLoading: state.isLoading
-  });
-
   return (
-    <div className={cn('w-full max-w-2xl mx-auto', className)}>
-      <Card>
-        {showHeader && (
-          <CardHeader>
-            <CardTitle className="text-center">Vehicle Lookup</CardTitle>
-            <p className="text-center text-muted-foreground">
-              Enter your VIN to get started with your vehicle valuation
-            </p>
-          </CardHeader>
-        )}
-        <CardContent className="space-y-4">
+    <div className={className}>
+      {showHeader && (
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-4">VIN Lookup (NHTSA Database)</h1>
+          <p className="text-muted-foreground">
+            Enter your 17-character VIN to get detailed vehicle information
+          </p>
+        </div>
+      )}
+
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Car className="h-5 w-5" />
+            Vehicle Identification Number (VIN)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Input
                 type="text"
-                placeholder="Enter VIN (17 characters)"
-                value={localVin}
+                placeholder="Enter 17-character VIN"
+                value={vin}
                 onChange={handleVinChange}
                 maxLength={17}
-                className={cn(
-                  'text-center font-mono text-lg',
-                  error && 'border-red-500'
-                )}
-                disabled={state.isLoading}
+                className={`font-mono text-center ${error ? 'border-red-500' : ''}`}
               />
-              {error && (
-                <p className="text-sm text-red-500 mt-1 text-center">{error}</p>
-              )}
-              {state.error && (
-                <p className="text-sm text-red-500 mt-1 text-center">{state.error}</p>
-              )}
-              
-              {/* Debug info */}
-              <div className="text-xs text-gray-500 mt-2 text-center">
-                Debug: VIN length: {localVin.length}, Valid: {isFormValid ? 'Yes' : 'No'}, Loading: {state.isLoading ? 'Yes' : 'No'}
+              <div className="flex justify-between items-center mt-2 text-sm text-muted-foreground">
+                <span>Find your VIN on your dashboard, driver's side door, or vehicle registration</span>
+                <span className={vin.length === 17 ? 'text-green-600' : ''}>
+                  {vin.length}/17 characters
+                </span>
               </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                VIN format: letters and numbers only (no I, O, Q)
+              </p>
             </div>
-            
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
             <Button 
               type="submit" 
-              disabled={isSubmitDisabled}
+              disabled={isLoading || vin.length !== 17}
               className="w-full"
-              size="lg"
             >
-              {state.isLoading ? 'Looking up...' : 'Lookup Vehicle'}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Decoding VIN...
+                </>
+              ) : (
+                'Decode VIN'
+              )}
             </Button>
           </form>
-          
-          {state.vehicle && (
-            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h3 className="font-semibold text-green-800">Vehicle Found</h3>
-              <p className="text-green-700">
-                {state.vehicle.year} {state.vehicle.make} {state.vehicle.model}
-                {state.vehicle.trim && ` ${state.vehicle.trim}`}
-              </p>
-              <p className="text-sm text-green-600 mt-1">
-                Ready to proceed with valuation
-              </p>
-            </div>
-          )}
         </CardContent>
       </Card>
+
+      {vehicleData && (
+        <div className="mt-8">
+          <VehicleFoundCard vehicle={vehicleData} />
+        </div>
+      )}
     </div>
   );
 }

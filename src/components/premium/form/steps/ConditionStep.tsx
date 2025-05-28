@@ -30,7 +30,7 @@ export function ConditionStep({
 
   const handleConditionChange = (value: ConditionLevel) => {
     // Map condition values to labels
-    const labelMap: Record<ConditionLevel, 'Excellent' | 'Very Good' | 'Good' | 'Fair' | 'Poor'> = {
+    const labelMap: Record<string, 'Excellent' | 'Very Good' | 'Good' | 'Fair' | 'Poor'> = {
       [ConditionLevel.Excellent]: 'Excellent',
       [ConditionLevel.VeryGood]: 'Very Good',
       [ConditionLevel.Good]: 'Good',
@@ -45,11 +45,6 @@ export function ConditionStep({
     }));
   };
 
-  // Convert string condition to ConditionLevel if needed
-  const currentCondition = Object.values(ConditionLevel).includes(formData.condition as ConditionLevel) 
-    ? formData.condition as ConditionLevel 
-    : ConditionLevel.Good;
-
   return (
     <div className="space-y-6">
       <div>
@@ -61,7 +56,7 @@ export function ConditionStep({
 
       <div>
         <ConditionSelectorBar
-          value={currentCondition}
+          value={formData.condition || ConditionLevel.Good}
           onChange={handleConditionChange}
         />
       </div>

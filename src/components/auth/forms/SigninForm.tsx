@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, KeyRound } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 export interface SigninFormProps {
   isLoading?: boolean;
@@ -20,7 +21,7 @@ export interface SigninFormProps {
 export const SigninForm: React.FC<SigninFormProps> = ({ 
   isLoading: externalIsLoading, 
   setIsLoading: externalSetIsLoading,
-  redirectPath,
+  redirectPath = '/dashboard',
   role,
   alternateLoginPath,
   alternateLoginText,
@@ -34,6 +35,7 @@ export const SigninForm: React.FC<SigninFormProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   
+  // Use external or internal loading state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : internalIsLoading;
   const setIsLoading = externalSetIsLoading || setInternalIsLoading;
 
@@ -48,27 +50,43 @@ export const SigninForm: React.FC<SigninFormProps> = ({
       if (!result.success) {
         const errorMessage = result.error || 'Authentication failed';
         setError(errorMessage);
-        toast.error('Sign in failed', {
-          description: errorMessage
+        setIsLoading(false);
+        
+        toast({
+          title: "Sign in failed",
+          description: errorMessage,
+          variant: "destructive",
         });
         return;
       }
       
-      toast.success('Signed in successfully!');
+      // Show success toast
+      toast({
+        title: "Signed in successfully",
+        description: "Welcome back!",
+        variant: "success",
+      });
       
-      const from = location.state?.from?.pathname;
-      if (from && from !== '/auth' && from !== '/login' && from !== '/signin') {
-        navigate(from, { replace: true });
-      } else {
-        navigate('/', { replace: true });
+      // Determine redirect path based on user type
+      let targetPath = redirectPath;
+      if (userType === 'dealer') {
+        targetPath = '/dealer/dashboard';
       }
+      
+      // Use the from location if available, otherwise use the target path
+      const from = location.state?.from?.pathname || targetPath;
+      
+      console.log(`Redirecting ${userType} to:`, from);
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
-      toast.error('Sign in failed', {
-        description: err.message || 'An unexpected error occurred'
-      });
-    } finally {
       setIsLoading(false);
+      
+      toast({
+        title: "Sign in failed",
+        description: err.message || 'An unexpected error occurred',
+        variant: "destructive",
+      });
     }
   };
 

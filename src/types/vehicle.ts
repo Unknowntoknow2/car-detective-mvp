@@ -1,56 +1,36 @@
 
 export interface DecodedVehicleInfo {
   vin?: string;
-  make: string;
-  model: string;
-  year: number;
-  mileage?: number;
+  plate?: string;
+  state?: string;
+  year?: number;
+  make?: string;
+  model?: string;
   trim?: string;
   engine?: string;
   transmission?: string;
-  drivetrain?: string;
   bodyType?: string;
   fuelType?: string;
+  drivetrain?: string;
   exteriorColor?: string;
   interiorColor?: string;
-  color?: string;
-  features?: string[];
-  photos?: string[];
+  doors?: string;
+  seats?: string;
+  displacement?: string;
   estimatedValue?: number;
   confidenceScore?: number;
-  valuationId?: string;
-  // Additional properties for compatibility
-  primaryPhoto?: string;
-  seats?: number;
+  mileage?: number;
   condition?: string;
+  valuationId?: string;
+  
+  // Enhanced photo support
+  photos?: string[];
+  primaryPhoto?: string;
+  
+  // Additional properties that were missing
+  features?: string[];
+  color?: string;
   zipCode?: string;
-}
-
-export interface VehicleSearchResult {
-  id: string;
-  make: string;
-  model: string;
-  year: number;
-  trim?: string;
-  bodyType?: string;
-  engine?: string;
-  transmission?: string;
-  fuelType?: string;
-  estimatedValue?: number;
-}
-
-export interface VehiclePhoto {
-  id: string;
-  url: string;
-  caption?: string;
-  type: 'exterior' | 'interior' | 'engine' | 'other';
-}
-
-export interface VehicleFeature {
-  id: string;
-  name: string;
-  category: string;
-  valueImpact: number;
 }
 
 export interface DealerInventoryItem {
@@ -59,13 +39,17 @@ export interface DealerInventoryItem {
   model: string;
   year: number;
   price: number;
-  mileage?: number;
+  mileage: number;
   vin: string;
-  status: 'available' | 'sold' | 'pending';
-  condition?: string;
+  status: 'available' | 'pending' | 'sold';
   photos?: string[];
-  created_at?: string;
-  updated_at?: string;
+  createdAt: string;
+  condition?: string;
+  transmission?: string;
+  fuelType?: string;
+  bodyType?: string;
+  color?: string;
+  trim?: string;
 }
 
 export interface ValuationResponse {
@@ -80,6 +64,7 @@ export interface ValuationResponse {
   zipCode?: string;
   fuelType?: string;
   transmission?: string;
+  bodyType?: string;
   bodyStyle?: string;
   color?: string;
   accidents?: number;
@@ -90,8 +75,17 @@ export interface ValuationResponse {
     low: number;
     high: number;
   };
-  adjustments?: any[];
-  aiCondition?: any;
+  adjustments?: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected: string[];
+    summary?: string;
+  };
   userId?: string;
   [key: string]: any;
 }

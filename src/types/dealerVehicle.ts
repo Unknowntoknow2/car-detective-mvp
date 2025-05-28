@@ -21,30 +21,4 @@ export interface DealerVehicle {
   updated_at?: string;
 }
 
-export interface DealerVehicleFormData {
-  make: string;
-  model: string;
-  year: number;
-  price: number;
-  mileage?: number;
-  vin?: string;
-  condition: string;
-  transmission?: string;
-  fuel_type?: string;
-  fuelType?: string;
-  bodyType?: string;
-  color?: string;
-  trim?: string;
-  status: 'available' | 'pending' | 'sold';
-  photos?: string[];
-  zip_code?: string;
-}
-
-export interface DeleteVehicleResult {
-  success: boolean;
-  error?: string;
-}
-
-export type DealerVehicleStatus = 'available' | 'pending' | 'sold';
-
 export type DealerInventoryItem = DealerVehicle;

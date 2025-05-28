@@ -1,54 +1,77 @@
 
+import { ConditionLevel } from '@/components/lookup/types/manualEntry';
+
+// Re-export ConditionLevel so it can be imported from this module
+export { ConditionLevel } from '@/components/lookup/types/manualEntry';
+
 export interface FormData {
-  // Vehicle identification
-  vin?: string;
-  make: string;
-  model: string;
-  year: number;
-  identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
-  identifier?: string;
-  
-  // Vehicle details
+  make?: string;
+  model?: string;
+  year?: number;
   mileage: number;
+  condition: ConditionLevel;
+  zipCode: string;
   fuelType: string;
   transmission: string;
+  vin?: string;
+  plate?: string;
+  stateCode?: string;
   trim?: string;
+  bodyType?: string;
+  color?: string;
+  accidentHistory?: boolean;
+  accidentSeverity?: string;
+  features?: string[];
+  serviceHistory?: boolean;
+  serviceFrequency?: string;
+  ownerCount?: number;
+  drivingBehavior?: string;
+  photos?: File[];
+  photoUrls?: string[];
+  conditionScore: number;
+  valuationId?: string;
+  userId?: string;
+  
+  // Adding missing properties
+  hasAccident?: boolean | 'yes' | 'no';
+  accidentDescription?: string;
+  drivingProfile?: 'light' | 'average' | 'heavy';
+  saleDate?: Date;
+  bodyStyle?: string;
+  conditionLabel?: string;
   exteriorColor?: string;
   interiorColor?: string;
   colorMultiplier?: number;
-  zipCode: string;
-  bodyStyle?: string;
-  bodyType?: string;
-  color?: string;
-  
-  // Condition and history
-  condition?: string;
-  conditionLabel?: string;
-  conditionScore?: number;
-  hasAccident?: boolean | string;
-  accidentDescription?: string;
-  
-  // Premium features
-  features?: string[];
-  drivingProfile?: 'light' | 'average' | 'heavy';
-  hasRegularMaintenance?: boolean | string;
-  maintenanceNotes?: string;
-  photos?: File[];
-  photoUrls?: string[];
-  saleDate?: string;
-  
-  // Valuation results
-  valuationId?: string;
+  identifierType?: string;
   valuation?: number;
   confidenceScore?: number;
+  identifier?: string;
+  
+  // Maintenance history properties
+  hasRegularMaintenance?: boolean | 'yes' | 'no';
+  maintenanceNotes?: string;
 }
 
+export interface PremiumFeatureProps {
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+export interface PremiumTestimonialProps {
+  name: string;
+  role: string;
+  content: string;
+  rating: number;
+}
+
+// Add FeatureOption interface for components using it
 export interface FeatureOption {
   id: string;
   name: string;
-  category: string;
-  valueImpact: number;
   description?: string;
-  isSelected?: boolean;
-  value?: number;
+  category?: string;
+  value: number;
+  impact?: number;
+  selected?: boolean;
 }

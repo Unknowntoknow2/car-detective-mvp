@@ -18,17 +18,18 @@ export function ValuationTable({ valuations }: ValuationTableProps) {
       year: valuation.year || 0,
       vin: valuation.vin || '',
       transmission: 'Automatic', // Add default transmission
-      // Don't include plate or state properties here as they're not in DecodedVehicleInfo
+      state: valuation.state,
+      // Don't include plate property here as it's not in DecodedVehicleInfo
     };
     
     const reportData = convertVehicleInfoToReportData(vehicleInfo, {
       mileage: valuation.mileage || 0,
-      estimatedValue: valuation.estimatedValue || valuation.estimated_value || 0,
+      estimatedValue: valuation.valuation || valuation.estimated_value || 0,
       confidenceScore: 85,
       condition: "Good",
       zipCode: "10001",
       adjustments: [],
-      isPremium: valuation.is_premium || false
+      isPremium: valuation.is_premium
     });
     
     downloadPdf(reportData);
@@ -50,7 +51,7 @@ export function ValuationTable({ valuations }: ValuationTableProps) {
         {valuations.map((valuation) => (
           <TableRow key={valuation.id}>
             <TableCell>
-              {new Date(valuation.createdAt || valuation.created_at || '').toLocaleDateString()}
+              {new Date(valuation.created_at).toLocaleDateString()}
             </TableCell>
             <TableCell>
               {valuation.year} {valuation.make} {valuation.model}
@@ -62,8 +63,8 @@ export function ValuationTable({ valuations }: ValuationTableProps) {
               }
             </TableCell>
             <TableCell className="text-right">
-              {(valuation.estimatedValue || valuation.estimated_value || valuation.valuation) ? 
-                `$${(valuation.estimatedValue || valuation.estimated_value || valuation.valuation || 0).toLocaleString()}` : 
+              {(valuation.valuation || valuation.estimated_value) ? 
+                `$${(valuation.valuation || valuation.estimated_value || 0).toLocaleString()}` : 
                 'N/A'
               }
             </TableCell>

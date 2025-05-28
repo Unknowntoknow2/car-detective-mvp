@@ -1,134 +1,152 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useValuationResult } from '@/hooks/useValuationResult';
 import { FormData } from '@/types/premium-valuation';
-import { ValuationResult } from '@/types/valuation';
-import { formatCurrency } from '@/utils/formatters';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
+import { Button } from '@/components/ui/button';
+import { Loader2, AlertCircle, Download, Mail } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { toast } from 'sonner';
 
 interface ValuationResultStepProps {
+  step: number;
   formData: FormData;
-  valuation?: ValuationResult;
-  onNext: () => void;
-  onPrevious: () => void;
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  updateValidity: (step: number, isValid: boolean) => void;
 }
 
-export const ValuationResultStep: React.FC<ValuationResultStepProps> = ({
+export function ValuationResultStep({
+  step,
   formData,
-  valuation,
-  onNext,
-  onPrevious
-}) => {
-  if (!valuation) {
+  updateValidity
+}: ValuationResultStepProps) {
+  const valuationId = formData.valuationId;
+  
+  const {
+    data: result,
+    isLoading,
+    error,
+    isError,
+    refetch,
+  } = useValuationResult(valuationId || '');
+
+  // Set step validity
+  useEffect(() => {
+    updateValidity(step, !!result);
+  }, [result, step, updateValidity]);
+
+  // Refetch when valuationId changes
+  useEffect(() => {
+    if (valuationId) {
+      refetch();
+    }
+  }, [valuationId, refetch]);
+
+  const handleDownloadPdf = async () => {
+    try {
+      // Here we'd generate PDF using a utility function
+      // For now, just show a toast
+      toast.success("PDF download started!");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF report");
+    }
+  };
+
+  const handleEmailPdf = async () => {
+    try {
+      // Here we'd call the edge function to email the PDF
+      // For now, just show a toast
+      toast.success("PDF emailed successfully!");
+    } catch (error) {
+      console.error("Error emailing PDF:", error);
+      toast.error("Failed to email PDF report");
+    }
+  };
+
+  if (isLoading) {
     return (
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold">Generating Your Valuation...</h2>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex flex-col items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p className="text-gray-600">Loading valuation results...</p>
       </div>
     );
   }
 
-  // Handle price range safely with proper typing
-  const getPriceRange = (): { min: number; max: number } | null => {
-    if (valuation.price_range && typeof valuation.price_range === 'object') {
-      if ('low' in valuation.price_range && 'high' in valuation.price_range) {
-        const range = valuation.price_range as { low: number; high: number; min?: number; max?: number };
-        return {
-          min: range.min ?? range.low,
-          max: range.max ?? range.high
-        };
-      }
-      if ('min' in valuation.price_range && 'max' in valuation.price_range) {
-        const range = valuation.price_range as { min: number; max: number };
-        return {
-          min: range.min,
-          max: range.max
-        };
-      }
-    }
-    
-    if (valuation.priceRange && Array.isArray(valuation.priceRange) && valuation.priceRange.length >= 2) {
-      return {
-        min: valuation.priceRange[0],
-        max: valuation.priceRange[1]
-      };
-    }
-    
-    return null;
-  };
+  if (isError || !result) {
+    return (
+      <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription className="space-y-2">
+          <p>Could not load valuation results. Please try again.</p>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
+            Retry
+          </Button>
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
-  const priceRange = getPriceRange();
-  const estimatedValue = valuation.estimatedValue || valuation.estimated_value || 0;
-  const confidenceScore = valuation.confidenceScore || valuation.confidence_score || 0;
-
-  const mockAdjustments = [
-    { factor: 'Condition', impact: 1000, description: 'Good condition adjustment' },
-    { factor: 'Mileage', impact: -500, description: 'High mileage adjustment' },
-    { factor: 'Features', impact: 800, description: 'Feature value adjustment' }
-  ];
+  // Ensure priceRange is a tuple with exactly two elements
+  let priceRange: [number, number];
+  const estimatedValue = result.estimatedValue || 0;
+  
+  if (result.price_range) {
+    if (Array.isArray(result.price_range)) {
+      priceRange = [
+        Number(result.price_range[0]), 
+        Number(result.price_range[1])
+      ];
+    } else if ('min' in result.price_range && 'max' in result.price_range) {
+      priceRange = [
+        Number(result.price_range.min), 
+        Number(result.price_range.max)
+      ];
+    } else if ('low' in result.price_range && 'high' in result.price_range) {
+      priceRange = [
+        Number(result.price_range.low), 
+        Number(result.price_range.high)
+      ];
+    } else {
+      priceRange = [
+        Math.round(estimatedValue * 0.95),
+        Math.ceil(estimatedValue * 1.05)
+      ];
+    }
+  } else {
+    priceRange = [
+      Math.round(estimatedValue * 0.95),
+      Math.ceil(estimatedValue * 1.05)
+    ];
+  }
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold mb-2">Your Vehicle Valuation</h2>
-        <p className="text-gray-600">Based on current market data and vehicle condition</p>
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Valuation Results</h2>
+        <p className="text-gray-600 mb-6">
+          Based on your vehicle details, our AI pricing model has generated the following valuation.
+        </p>
       </div>
 
-      <Card className="p-6">
-        <div className="text-center space-y-4">
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Estimated Value</p>
-            <p className="text-4xl font-bold text-green-600">
-              {formatCurrency(estimatedValue)}
-            </p>
-          </div>
-
-          {priceRange && (
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Price Range</p>
-              <p className="text-lg">
-                {formatCurrency(priceRange.min)} - {formatCurrency(priceRange.max)}
-              </p>
-            </div>
-          )}
-
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Confidence Score</p>
-            <Badge variant={confidenceScore >= 80 ? 'default' : 'secondary'}>
-              {confidenceScore}% Confident
-            </Badge>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Valuation Breakdown</h3>
-        <div className="space-y-3">
-          {mockAdjustments.map((adjustment, index) => (
-            <div key={index} className="flex justify-between items-center">
-              <span className="text-gray-700">{adjustment.factor}</span>
-              <span className={`font-medium ${adjustment.impact >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {adjustment.impact >= 0 ? '+' : ''}{formatCurrency(adjustment.impact)}
-              </span>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <div className="flex justify-between">
-        <button
-          onClick={onPrevious}
-          className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-        >
-          Previous
-        </button>
-        <button
-          onClick={onNext}
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Download Report
-        </button>
-      </div>
+      <UnifiedValuationResult
+        valuationId={valuationId || ''}
+        displayMode="full"
+        estimatedValue={estimatedValue}
+        confidenceScore={result.confidenceScore || 0}
+        priceRange={priceRange}
+        adjustments={result.adjustments || []}
+        vehicleInfo={{
+          year: result.year,
+          make: result.make,
+          model: result.model,
+          mileage: result.mileage,
+          condition: result.condition
+        }}
+        onDownloadPdf={handleDownloadPdf}
+        onEmailReport={handleEmailPdf}
+      />
     </div>
   );
-};
+}

@@ -4,25 +4,26 @@ export interface CarfaxData {
   owners: number;
   serviceRecords: number;
   salvageTitle: boolean;
-  titleEvents: string[];
   reportUrl: string;
-  damageSeverity?: string;
+  titleEvents: string[]; // Required property
+  damageSeverity?: string; // Optional property for VehicleInfoCard.tsx
 }
 
-export const getCarfaxReport = async (vin: string): Promise<CarfaxData> => {
-  // Simulate API delay
+export const fetchCarfaxReport = async (vin: string): Promise<CarfaxData | null> => {
+  // Mock implementation
   await new Promise(resolve => setTimeout(resolve, 800));
   
-  // Mock data based on VIN
-  const mockData: CarfaxData = {
-    accidentsReported: Math.floor(Math.random() * 3),
-    owners: Math.floor(Math.random() * 4) + 1,
-    serviceRecords: Math.floor(Math.random() * 10) + 1,
-    salvageTitle: Math.random() < 0.1,
-    titleEvents: ['Clean Title'],
-    reportUrl: `https://www.carfax.com/vehicle/${vin}`,
-    damageSeverity: Math.random() < 0.3 ? 'minor' : undefined
+  // For demo purposes, return mock data
+  return {
+    accidentsReported: Math.random() > 0.7 ? 1 : 0,
+    owners: Math.floor(Math.random() * 3) + 1,
+    serviceRecords: Math.floor(Math.random() * 10) + 2,
+    salvageTitle: Math.random() > 0.9,
+    reportUrl: `https://example.com/carfax/${vin}`,
+    titleEvents: ["Clean Title Issued", "Registration Renewed"], // Add example title events
+    damageSeverity: Math.random() > 0.7 ? 'Minor' : 'None' // Add damage severity
   };
-  
-  return mockData;
 };
+
+// Add alias for backward compatibility
+export const getCarfaxReport = fetchCarfaxReport;

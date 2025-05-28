@@ -5,7 +5,7 @@ import { X, Minimize2, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAINStore } from '@/stores/useAINStore';
-import AIAssistant from './AIAssistant';
+import { AIAssistant } from './AIAssistant';
 
 interface AINFloatingChatProps {
   contextualGreeting?: string;
@@ -71,7 +71,10 @@ export const AINFloatingChat: React.FC<AINFloatingChatProps> = ({
               exit={{ height: 0, opacity: 0 }}
               className="flex-1 flex flex-col overflow-hidden"
             >
-              <AIAssistant className="flex-1" />
+              <AIAssistant
+                onClose={() => setOpen(false)}
+                isPremium={false}
+              />
             </motion.div>
           )}
 

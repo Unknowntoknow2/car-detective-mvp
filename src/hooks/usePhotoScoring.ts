@@ -39,7 +39,7 @@ export function usePhotoScoring() {
         issues: ['Minor scratches on rear bumper', 'Small dent on driver door'],
         url: uploadedUrls[0],
         photoUrls: uploadedUrls,
-        individualScores: uploadedUrls.map((url: string, index: number) => ({
+        individualScores: uploadedUrls.map((url, index) => ({
           url,
           score: index === 0 ? 85 : Math.floor(Math.random() * 30) + 60,
           isPrimary: index === 0
@@ -80,7 +80,7 @@ export function usePhotoScoring() {
       
       // Update result if needed
       if (result && result.photoUrls) {
-        const updatedPhotoUrls = result.photoUrls.filter((photoUrl: string) => photoUrl !== url);
+        const updatedPhotoUrls = result.photoUrls.filter(photoUrl => photoUrl !== url);
         
         if (updatedPhotoUrls.length === 0) {
           setResult(null);

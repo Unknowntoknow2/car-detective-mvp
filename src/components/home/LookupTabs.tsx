@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UnifiedVinLookup } from '@/components/lookup/UnifiedVinLookup';
-import { UnifiedPlateLookup } from '@/components/lookup/UnifiedPlateLookup';
+import { PlateLookup } from '@/components/lookup/PlateLookup';
 import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
 
 interface LookupTabsProps {
@@ -21,6 +21,7 @@ export const LookupTabs: React.FC<LookupTabsProps> = ({
     if (onSubmit) {
       onSubmit('vin', vin);
     }
+    // The UnifiedVinLookup component will handle navigation internally
   };
 
   const handlePlateSubmit = (plate: string, state: string) => {
@@ -50,7 +51,7 @@ export const LookupTabs: React.FC<LookupTabsProps> = ({
       </TabsContent>
       
       <TabsContent value="plate" className="mt-6">
-        <UnifiedPlateLookup onSubmit={handlePlateSubmit} />
+        <PlateLookup onSubmit={handlePlateSubmit} />
       </TabsContent>
       
       <TabsContent value="manual" className="mt-6">

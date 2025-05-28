@@ -9,8 +9,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Loader2, Mail, KeyRound, User, Building } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
+// Define form schema with role
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
@@ -27,21 +28,18 @@ export interface SignupFormProps {
 }
 
 export const SignupForm = ({ 
-  isLoading: externalIsLoading = false, 
-  setIsLoading: externalSetIsLoading, 
+  isLoading = false, 
+  setIsLoading = () => {}, 
   role = 'individual', 
-  redirectPath, 
+  redirectPath = '/dashboard', 
   showDealershipField = false,
   userType
 }: SignupFormProps) => {
   const { signUp } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
-  const [internalIsLoading, setInternalIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const isLoading = externalIsLoading || internalIsLoading;
-  const setIsLoading = externalSetIsLoading || setInternalIsLoading;
-
+  // Initialize form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -51,6 +49,7 @@ export const SignupForm = ({
     },
   });
 
+  // Form submission handler
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setFormError(null);
     setIsLoading(true);
@@ -58,40 +57,49 @@ export const SignupForm = ({
     try {
       const { email, password, dealershipName } = values;
       
-      const options = {
-        data: {
-          role: userType || role,
-          ...(dealershipName ? { dealership_name: dealershipName } : {})
-        }
+      // Call the signUp function with email, password, and metadata for the user role
+      const metadata = {
+        role: userType || role,
+        ...(dealershipName ? { dealershipName } : {})
       };
       
-      const result = await signUp(email, password, options);
+      const result = await signUp(email, password, metadata);
       
       if (!result.success) {
         const errorMessage = result.error || 'Error creating account';
         setFormError(errorMessage);
-        toast.error('Sign up failed', {
-          description: errorMessage
+        setIsLoading(false);
+        
+        toast({
+          title: "Sign up failed",
+          description: errorMessage,
+          variant: "destructive",
         });
         return;
       }
       
-      toast.success('Account created successfully!', {
-        description: 'Welcome to Car Detective!'
+      // If sign-up was successful
+      toast({
+        title: "Account created successfully",
+        description: "Welcome to Car Detective!",
+        variant: "success",
       });
       
-      // Simple redirect - always go to home page and let the app handle routing
-      navigate('/', { replace: true });
+      // Redirect to the specified path
+      navigate(redirectPath);
     } catch (err: any) {
+      console.error('Sign up error:', err);
       setFormError('An unexpected error occurred');
-      toast.error('Sign up failed', {
-        description: 'Please try again'
+      toast({
+        title: "Sign up failed",
+        description: "Please try again",
+        variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
 
+  // Use showDealershipField or check if userType is 'dealer'
   const shouldShowDealershipField = showDealershipField || userType === 'dealer';
 
   return (

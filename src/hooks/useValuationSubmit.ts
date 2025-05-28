@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 import { ValuationResponse } from '@/types/vehicle';
@@ -32,15 +31,15 @@ export function useValuationSubmit() {
         model: formData.model || 'Generic Model',
         year: formData.year || 2020,
         mileage: formData.mileage,
-        condition: formData.condition?.toString() || 'Good',
+        condition: formData.condition.toString(),
         estimatedValue: 20000,
         confidenceScore: 80,
         valuationId: `mock-${Date.now()}`,
         zipCode: formData.zipCode,
         fuelType: formData.fuelType,
         transmission: formData.transmission,
-        bodyStyle: formData.bodyStyle,
-        color: formData.color || formData.exteriorColor,
+        bodyType: formData.bodyStyle,
+        color: formData.color,
         trim: formData.trim,
         vin: formData.vin,
         isPremium: true,
@@ -50,7 +49,7 @@ export function useValuationSubmit() {
         },
         adjustments: [],
         aiCondition: {
-          condition: formData.condition?.toString() || 'Good',
+          condition: formData.condition.toString(),
           confidenceScore: 80,
           issuesDetected: []
         },

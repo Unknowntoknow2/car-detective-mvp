@@ -1,102 +1,97 @@
-
 import { DecodedVehicleInfo } from '@/types/vehicle';
-import { supabase } from '@/lib/supabase';
 
-export const fetchVehicleByVin = async (vin: string): Promise<DecodedVehicleInfo> => {
-  console.log('🔍 Starting VIN lookup for:', vin);
+export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo> {
+  // Mock implementation for now - replace with actual API call
+  console.log('Fetching vehicle data for VIN:', vin);
   
-  try {
-    // First check our database cache
-    const { data: cachedVehicle } = await supabase
-      .from('decoded_vehicles')
-      .select('*')
-      .eq('vin', vin)
-      .single();
-    
-    if (cachedVehicle) {
-      console.log('✅ Found cached vehicle data');
-      return {
-        vin: cachedVehicle.vin,
-        make: cachedVehicle.make || '',
-        model: cachedVehicle.model || '',
-        year: cachedVehicle.year || new Date().getFullYear(),
-        trim: cachedVehicle.trim,
-        engine: cachedVehicle.engine,
-        transmission: cachedVehicle.transmission,
-        drivetrain: cachedVehicle.drivetrain,
-        bodyType: cachedVehicle.bodytype || cachedVehicle.bodyType,
-        fuelType: cachedVehicle.fueltype
-      };
-    }
-    
-    // If not cached, create mock data for demo
-    console.log('📝 Creating mock vehicle data for VIN:', vin);
-    const mockVehicle: DecodedVehicleInfo = {
-      vin,
-      make: 'Toyota',
-      model: 'Camry',
-      year: 2020,
-      trim: 'SE',
-      engine: '2.5L 4-Cylinder',
-      transmission: 'Automatic',
-      drivetrain: 'FWD',
-      bodyType: 'Sedan',
-      fuelType: 'Gasoline'
-    };
-    
-    return mockVehicle;
-  } catch (error) {
-    console.error('❌ VIN lookup error:', error);
-    throw new Error(`Failed to decode VIN ${vin}`);
-  }
-};
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Enhanced mock vehicle data with more realistic information and photos
+  const mockVehicle: DecodedVehicleInfo = {
+    vin,
+    year: 2021,
+    make: 'Toyota',
+    model: 'Corolla',
+    trim: 'LE',
+    engine: '2.0L 4-Cylinder DOHC',
+    transmission: 'CVT Automatic',
+    bodyType: 'Sedan',
+    fuelType: 'Gasoline',
+    drivetrain: 'FWD',
+    exteriorColor: 'Celestite Gray Metallic',
+    interiorColor: 'Black Fabric',
+    doors: '4',
+    seats: '5',
+    displacement: '2.0L',
+    estimatedValue: 18500,
+    confidenceScore: 85,
+    mileage: 35000,
+    condition: 'Good',
+    // Add sample vehicle photos
+    photos: [
+      'https://images.unsplash.com/photo-1549924231-f129b911e442?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&h=600&fit=crop'
+    ],
+    primaryPhoto: 'https://images.unsplash.com/photo-1549924231-f129b911e442?w=800&h=600&fit=crop'
+  };
+  
+  return mockVehicle;
+}
 
-export const fetchVehicleByPlate = async (plate: string, state: string): Promise<DecodedVehicleInfo> => {
-  console.log('🔍 Starting plate lookup for:', plate, state);
+export async function fetchVehicleByPlate(plate: string, state: string): Promise<DecodedVehicleInfo> {
+  console.log('Fetching vehicle data for plate:', plate, 'state:', state);
   
-  try {
-    // Check database cache
-    const { data: cachedPlate } = await supabase
-      .from('plate_lookups')
-      .select('*')
-      .eq('plate', plate)
-      .eq('state', state)
-      .single();
-    
-    if (cachedPlate) {
-      console.log('✅ Found cached plate data');
-      return {
-        make: cachedPlate.make || '',
-        model: cachedPlate.model || '',
-        year: cachedPlate.year || new Date().getFullYear(),
-        color: cachedPlate.color
-      };
-    }
-    
-    // Mock data for demo
-    const mockVehicle: DecodedVehicleInfo = {
-      make: 'Honda',
-      model: 'Civic',
-      year: 2019,
-      color: 'Silver'
-    };
-    
-    return mockVehicle;
-  } catch (error) {
-    console.error('❌ Plate lookup error:', error);
-    throw new Error(`Failed to lookup plate ${plate} in ${state}`);
-  }
-};
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 1200));
+  
+  // Enhanced mock vehicle data
+  const mockVehicle: DecodedVehicleInfo = {
+    plate,
+    state,
+    year: 2020,
+    make: 'Honda',
+    model: 'Accord',
+    trim: 'Sport',
+    engine: '1.5L Turbo 4-Cylinder',
+    transmission: 'CVT',
+    bodyType: 'Sedan',
+    fuelType: 'Gasoline',
+    drivetrain: 'FWD',
+    exteriorColor: 'Still Night Pearl',
+    interiorColor: 'Black Leather',
+    doors: '4',
+    seats: '5',
+    displacement: '1.5L',
+    estimatedValue: 21000,
+    confidenceScore: 80,
+    mileage: 52000,
+    condition: 'Good',
+    photos: [
+      'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=600&fit=crop'
+    ],
+    primaryPhoto: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop'
+  };
+  
+  return mockVehicle;
+}
 
-export const fetchTrimOptions = async (make: string, model: string, year: number): Promise<string[]> => {
-  console.log('🔍 Fetching trim options for:', make, model, year);
+export async function fetchTrimOptions(make: string, model: string, year: number): Promise<string[]> {
+  console.log('Fetching trim options for:', make, model, year);
   
-  try {
-    // Mock trim options for demo
-    const mockTrims = ['Base', 'SE', 'XLE', 'Limited'];
-    return mockTrims;
-  } catch (error) {
-    console.error('❌ Trim lookup error:', error);
-    return [];
-  }
-};
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Mock trim options based on make/model
+  const trimOptions: Record<string, string[]> = {
+    'Toyota_Camry': ['L', 'LE', 'SE', 'XLE', 'XSE', 'TRD'],
+    'Honda_Accord': ['LX', 'Sport', 'EX', 'EX-L', 'Touring'],
+    'Ford_F-150': ['Regular Cab', 'SuperCab', 'SuperCrew', 'Raptor'],
+    'Chevrolet_Silverado': ['Work Truck', 'Custom', 'LT', 'RST', 'LTZ', 'High Country']
+  };
+  
+  const key = `${make}_${model}`;
+  return trimOptions[key] || ['Base', 'Premium', 'Luxury'];
+}

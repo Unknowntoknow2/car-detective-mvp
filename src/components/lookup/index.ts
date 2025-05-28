@@ -1,8 +1,7 @@
 
-// Main exports for lookup components
-export { ManualEntryForm } from './ManualEntryForm';
-export { PremiumManualEntryForm } from './manual/PremiumManualEntryForm';
-export { ManualEntryFormPremium } from './manual/ManualEntryFormPremium';
-export * from './UnifiedVinLookup';
+// Update imports for the renamed components
+export * from './ManualEntryFormFree';
+export * from './manual/ManualEntryFormPremium';
+export * from './VinLookup';
 export * from './PlateLookup';
 export * from './types/manualEntry';

@@ -2,46 +2,41 @@
 import { ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requireRole?: 'admin' | 'dealer' | 'individual';
 }
 
-export default function ProtectedRoute({ children, requireRole }: ProtectedRouteProps) {
-  const { user, userDetails, isLoading } = useAuth();
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+  const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     if (!isLoading && !user) {
-      navigate('/auth', { state: { from: location.pathname }, replace: true });
+      // Save the attempted URL for redirection after login
+      navigate('/auth', { state: { from: location.pathname } });
     }
-    
-    if (!isLoading && user && requireRole && userDetails?.role !== requireRole) {
-      navigate('/auth', { replace: true });
-    }
-  }, [user, userDetails, isLoading, navigate, location, requireRole]);
+  }, [user, isLoading, navigate, location]);
 
+  // Show loading state while checking authentication
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <h2 className="text-xl font-semibold mt-4">Loading</h2>
+          <p className="text-muted-foreground">Please wait...</p>
         </div>
       </div>
     );
   }
 
-  if (!user) {
-    return null;
+  // If authenticated, render the protected content
+  if (user) {
+    return <>{children}</>;
   }
 
-  if (requireRole && userDetails?.role !== requireRole) {
-    return null;
-  }
-
-  return <>{children}</>;
+  // This should not be visible as we redirect in the useEffect
+  return null;
 }

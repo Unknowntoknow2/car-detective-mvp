@@ -52,7 +52,7 @@ export function DashboardLightsSection({ value = [], onChange }: DashboardLights
         </Label>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {DASHBOARD_LIGHTS.map((light: typeof DASHBOARD_LIGHTS[number]) => (
+          {DASHBOARD_LIGHTS.map((light) => (
             <div
               key={light.value}
               className={`p-3 rounded-lg border transition-all ${

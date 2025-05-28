@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
@@ -7,6 +6,8 @@ import VinLookupPage from './pages/VinLookupPage';
 import NotFound from './pages/NotFound';
 import ValuationPage from './pages/ValuationPage';
 import PremiumPage from './pages/PremiumPage';
+import ValuationResultPage from './pages/ValuationResultPage';
+import ValuationFollowupPage from './pages/ValuationFollowupPage';
 import DealerDashboardPage from './pages/dealer/DealerDashboardPage';
 import DealerVehicleDetailsPage from './pages/dealer/DealerVehicleDetailsPage';
 import DealerLayoutPage from './pages/dealer/DealerLayoutPage';
@@ -14,12 +15,14 @@ import ProfilePage from './pages/ProfilePage';
 import AccountPage from './pages/AccountPage';
 import ServiceHistoryPage from './pages/ServiceHistoryPage';
 import Layout from './components/layout/Layout';
-import AuthPage from './pages/auth/AuthPage';
+import UnifiedAuthPage from './pages/auth/UnifiedAuthPage';
 import DashboardPage from './pages/DashboardPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
+import IndividualAuthPage from './pages/auth/IndividualAuthPage';
+import DealerAuthPage from './pages/auth/DealerAuthPage';
 import PlatformDiagnosticsPage from './pages/PlatformDiagnosticsPage';
-import ProtectedRoute from './components/auth/ProtectedRoute';
 
+// Export routes configuration
 const routes: RouteObject[] = [
   {
     path: '/',
@@ -38,23 +41,31 @@ const routes: RouteObject[] = [
         element: <VinLookupPage />
       },
       
-      // Single auth route
+      // Core auth routes - keep only the canonical ones
       {
         path: 'auth',
-        element: <AuthPage />
+        element: <UnifiedAuthPage />
+      },
+      {
+        path: 'auth/individual',
+        element: <IndividualAuthPage />
+      },
+      {
+        path: 'auth/dealer',
+        element: <DealerAuthPage />
       },
       {
         path: 'auth/callback',
         element: <AuthCallbackPage />
       },
       
-      // Platform diagnostics
+      // Platform diagnostics page
       {
         path: 'platform-diagnostics',
         element: <PlatformDiagnosticsPage />
       },
       
-      // Redirect all legacy auth routes
+      // Redirect legacy auth routes to the canonical paths
       {
         path: 'login',
         element: <Navigate to="/auth" replace />
@@ -81,16 +92,36 @@ const routes: RouteObject[] = [
       },
       {
         path: 'dealer-signup',
-        element: <Navigate to="/auth" replace />
+        element: <Navigate to="/auth/dealer" replace />
+      },
+      {
+        path: 'signin/individual',
+        element: <Navigate to="/auth/individual" replace />
+      },
+      {
+        path: 'signin/dealer',
+        element: <Navigate to="/auth/dealer" replace />
+      },
+      {
+        path: 'signup/individual',
+        element: <Navigate to="/auth/individual" replace />
+      },
+      {
+        path: 'signup/dealer',
+        element: <Navigate to="/auth/dealer" replace />
       },
       
-      // Protected dashboard
+      // Dashboard routes
       {
         path: 'dashboard',
-        element: <ProtectedRoute><DashboardPage /></ProtectedRoute>
+        element: <DashboardPage />
+      },
+      {
+        path: 'dashboard/individual',
+        element: <Navigate to="/dashboard" replace />
       },
       
-      // Valuation routes
+      // Enhanced Valuation routes with proper VIN handling
       {
         path: 'valuation',
         element: <ValuationPage />
@@ -100,28 +131,48 @@ const routes: RouteObject[] = [
         element: <ValuationPage />
       },
       {
+        path: 'valuation-followup',
+        element: <ValuationFollowupPage />
+      },
+      {
         path: 'premium',
         element: <PremiumPage />
       },
+      {
+        path: 'valuation/result/:id',
+        element: <ValuationResultPage />
+      },
+      {
+        path: 'valuation/vin/:vin/followup',
+        element: <VinLookupPage />
+      },
+      {
+        path: 'valuation/:id',
+        element: <ValuationResultPage />
+      },
+      {
+        path: 'result',
+        element: <Navigate to="/valuation" replace />
+      },
       
-      // Protected profile routes
+      // Profile and account routes
       {
         path: 'profile',
-        element: <ProtectedRoute><ProfilePage /></ProtectedRoute>
+        element: <ProfilePage />
       },
       {
         path: 'account',
-        element: <ProtectedRoute><AccountPage /></ProtectedRoute>
+        element: <AccountPage />
       },
       {
         path: 'service-history',
-        element: <ProtectedRoute><ServiceHistoryPage /></ProtectedRoute>
+        element: <ServiceHistoryPage />
       },
       
-      // Protected dealer routes
+      // Dealer routes
       {
         path: 'dealer',
-        element: <ProtectedRoute requireRole="dealer"><DealerLayoutPage /></ProtectedRoute>,
+        element: <DealerLayoutPage />,
         children: [
           {
             index: true,
@@ -138,7 +189,7 @@ const routes: RouteObject[] = [
         ]
       },
       
-      // 404 route
+      // Catch-all 404 route
       {
         path: '*',
         element: <NotFound />

@@ -2,57 +2,63 @@
 export interface ValuationResult {
   id: string;
   vin?: string;
+  year: number;
   make: string;
   model: string;
-  year: number;
-  estimated_value?: number;
-  estimatedValue?: number;
-  confidence_score?: number;
-  confidenceScore?: number;
+  trim?: string;
+  bodyType?: string;
+  fuelType?: string;
+  body_type?: string;
+  fuel_type?: string;
+  transmission?: string;
+  color?: string;
   mileage?: number;
   condition?: string;
-  created_at: string;
+  zipCode?: string;
+  zip_code?: string; // For backward compatibility
+  estimatedValue?: number;
+  estimated_value?: number;
+  accident_count?: number;
+  manual_entry?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  
+  // Updated properties
+  confidenceScore?: number;
+  confidence_score?: number;
+  features?: string[];
+  pdfUrl?: string;
+  pdf_url?: string; // For backward compatibility
+  gptExplanation?: string;
+  explanation?: string;
+  price_range?: any;
+  priceRange?: any;
   adjustments?: Array<{
-    label?: string;
     factor: string;
-    value?: number;
     impact: number;
     description?: string;
   }>;
-  price_range?: { low: number; high: number; min: number; max: number };
-  priceRange?: [number, number];
-  features?: string[];
-  pdfUrl?: string;
-  gptExplanation?: string;
-  explanation?: string;
-  // Additional properties for compatibility
-  bodyType?: string;
-  fuelType?: string;
-  transmission?: string;
-  color?: string;
-  zipCode?: string;
-  basePrice?: number;
-  base_price?: number;
+  photoUrl?: string;
+  photo_url?: string;
   isPremium?: boolean;
   premium_unlocked?: boolean;
-  bestPhotoUrl?: string;
-  photo_url?: string;
+  basePrice?: number;
+  base_price?: number;
   photoScore?: number;
-  userId?: string;
-  trim?: string;
-  aiCondition?: any;
+  bestPhotoUrl?: string;
+  valuationId?: string;
+  userId?: string; // Added userId
+  aiCondition?: { // Added aiCondition type
+    condition: string;
+    confidenceScore: number;
+    issuesDetected: string[];
+    summary?: string;
+  };
 }
 
-export interface ValuationAdjustment {
-  label?: string;
-  factor: string;
-  value?: number;
-  impact: number;
-  description?: string;
-}
-
-export interface ValuationFactor {
-  name: string;
-  impact: number;
-  description?: string;
+export interface ValuationResponse {
+  success: boolean;
+  data?: ValuationResult;
+  message?: string;
+  error?: any;
 }

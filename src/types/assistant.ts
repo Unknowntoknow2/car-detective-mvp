@@ -1,44 +1,41 @@
 
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export interface VehicleContext {
   make?: string;
   model?: string;
   year?: number;
+  trim?: string;
   mileage?: number;
   condition?: string;
   vin?: string;
-  features?: string[];
   zipCode?: string;
+  estimatedValue?: number;
+  accidentCount?: number;
   accidentHistory?: boolean;
+  accidentSeverity?: string;
+  bodyType?: string;
+  fuelType?: string;
+  color?: string;
 }
 
 export interface AssistantContext {
-  vehicle?: VehicleContext;
-  valuation?: any;
-  user?: any;
-  session?: any;
-}
-
-export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp?: Date;
-  id?: string;
+  isPremium: boolean;
+  hasDealerAccess: boolean;
+  valuationId?: string;
+  vehicleContext?: VehicleContext;
 }
 
 export interface AskAIRequest {
-  message: string;
-  context?: AssistantContext;
-  history?: ChatMessage[];
-  question?: string;
-  userContext?: any;
+  question: string;
+  userContext: AssistantContext;
   chatHistory?: ChatMessage[];
   systemPrompt?: string;
 }
 
 export interface AskAIResponse {
-  response: string;
-  context?: AssistantContext;
-  success: boolean;
-  error?: string;
-  answer?: string;
+  answer: string;
 }

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ManualEntryForm } from './ManualEntryForm';
+import { ManualEntryFormFree } from './ManualEntryFormFree';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 import { ConditionLevel, ManualEntryFormData } from './types/manualEntry';
@@ -64,10 +64,11 @@ export function ManualLookup({
           });
         }
       } else {
-        // If no user, just show a toast with default variant instead of warning
+        // If no user, just show a toast
         toast({
           title: "Not Logged In",
           description: "Your data is not being saved. Sign in to save your entries.",
+          variant: "warning",
         });
       }
       
@@ -87,7 +88,7 @@ export function ManualLookup({
   };
 
   return (
-    <ManualEntryForm
+    <ManualEntryFormFree
       onSubmit={handleSubmit}
       isLoading={isLoading}
       submitButtonText={submitButtonText}
