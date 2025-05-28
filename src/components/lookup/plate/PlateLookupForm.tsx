@@ -1,85 +1,105 @@
 
 import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export interface PlateLookupFormProps {
-  plate: string;
-  state: string;
-  isLoading: boolean;
-  onPlateChange: (value: string) => void;
-  onStateChange: (value: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onVehicleFound: (data: any) => void;
 }
 
-export const PlateLookupForm: React.FC<PlateLookupFormProps> = ({
-  plate,
-  state,
-  isLoading,
-  onPlateChange,
-  onStateChange,
-  onSubmit
-}) => {
-  const states = [
-    { value: 'AL', label: 'Alabama' },
-    { value: 'AK', label: 'Alaska' },
-    { value: 'AZ', label: 'Arizona' },
-    { value: 'AR', label: 'Arkansas' },
-    { value: 'CA', label: 'California' },
-    { value: 'CO', label: 'Colorado' },
-    { value: 'CT', label: 'Connecticut' },
-    // Add more states as needed
-  ];
+const US_STATES = [
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+];
+
+export function PlateLookupForm({ onVehicleFound }: PlateLookupFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    plate: '',
+    state: ''
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // Simulate plate lookup processing
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const vehicleData = {
+        plate: formData.plate,
+        state: formData.state,
+        year: 2020,
+        make: 'Toyota',
+        model: 'Camry',
+        vin: `PLATE_${formData.plate}_${formData.state}`
+      };
+
+      toast.success('Vehicle found by license plate!');
+      onVehicleFound(vehicleData);
+    } catch (error) {
+      console.error('Plate lookup error:', error);
+      toast.error('Failed to find vehicle by license plate');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <label htmlFor="plate" className="text-sm font-medium block">
-          License Plate
-        </label>
-        <Input
-          id="plate"
-          value={plate}
-          onChange={(e) => onPlateChange(e.target.value.toUpperCase())}
-          placeholder="Enter license plate"
-          className="uppercase"
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <label htmlFor="state" className="text-sm font-medium block">
-          State
-        </label>
-        <Select value={state} onValueChange={onStateChange}>
-          <SelectTrigger id="state">
-            <SelectValue placeholder="Select state" />
-          </SelectTrigger>
-          <SelectContent>
-            {states.map((state) => (
-              <SelectItem key={state.value} value={state.value}>
-                {state.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <Button 
-        type="submit" 
-        className="w-full" 
-        disabled={isLoading || !plate || !state}
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Looking up plate...
-          </>
-        ) : (
-          'Get Vehicle Details'
-        )}
-      </Button>
-    </form>
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle>License Plate Lookup</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="plate">License Plate Number</Label>
+            <Input
+              id="plate"
+              value={formData.plate}
+              onChange={(e) => setFormData(prev => ({ ...prev, plate: e.target.value.toUpperCase() }))}
+              placeholder="ABC123"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="state">State</Label>
+            <Select value={formData.state} onValueChange={(value) => setFormData(prev => ({ ...prev, state: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select state" />
+              </SelectTrigger>
+              <SelectContent>
+                {US_STATES.map((state) => (
+                  <SelectItem key={state} value={state}>
+                    {state}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button type="submit" disabled={isLoading || !formData.plate || !formData.state} className="w-full">
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Looking up...
+              </>
+            ) : (
+              'Find Vehicle'
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
-};
+}
