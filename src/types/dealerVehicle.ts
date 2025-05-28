@@ -44,4 +44,5 @@ export interface DeleteVehicleResult {
   error?: string;
 }
 
+// Ensure DealerInventoryItem is exactly the same as DealerVehicle
 export type DealerInventoryItem = DealerVehicle;
