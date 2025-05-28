@@ -1,11 +1,20 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ManualFollowUpWrapper } from '@/components/followup/ManualFollowUpWrapper';
+import { ManualEntryFormFree } from '@/components/lookup/ManualEntryFormFree';
+import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
 const ManualLookupPage = () => {
-  const handleComplete = () => {
-    // Handle completion - could redirect to results or dashboard
+  const [formData, setFormData] = useState<ManualEntryFormData | null>(null);
+
+  const handleFormComplete = (data: ManualEntryFormData) => {
+    console.log("Manual entry form completed:", data);
+    setFormData(data);
+  };
+
+  const handleFollowUpComplete = () => {
     console.log("Manual follow-up completed");
+    // Could redirect to results or dashboard
   };
   
   return (
@@ -16,19 +25,26 @@ const ManualLookupPage = () => {
       </p>
       
       <div className="bg-white rounded-lg shadow-md p-6">
-        <ManualFollowUpWrapper
-          initialData={{
-            make: '',
-            model: '',
-            year: 0,
-            mileage: 0,
-            condition: 'good' as any,
-            zipCode: '',
-            fuelType: '',
-            transmission: ''
-          }}
-          onComplete={handleComplete}
-        />
+        {!formData ? (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Vehicle Information</h2>
+            <p className="text-gray-600 mb-6">
+              Please provide basic information about your vehicle.
+            </p>
+            <ManualEntryFormFree onSubmit={handleFormComplete} />
+          </div>
+        ) : (
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Additional Details</h2>
+            <p className="text-gray-600 mb-6">
+              Please provide additional details to complete your valuation.
+            </p>
+            <ManualFollowUpWrapper
+              initialData={formData}
+              onComplete={handleFollowUpComplete}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

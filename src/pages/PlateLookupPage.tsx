@@ -2,19 +2,19 @@
 import React, { useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { PlateFollowUpWrapper } from '@/components/followup/PlateFollowUpWrapper';
 import PlateDecoderForm from '@/components/lookup/PlateDecoderForm';
-import ManualEntryForm from '@/components/lookup/ManualEntryForm';
 import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
 import { MarketingBanner } from '@/components/marketing/MarketingBanner';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
 export default function PlateLookupPage() {
-  const [showManualEntry, setShowManualEntry] = useState(false);
+  const [plateNumber, setPlateNumber] = useState<string | null>(null);
+  const [showFollowUp, setShowFollowUp] = useState(false);
 
-  // Add a handler for the ManualEntryForm
-  const handleManualSubmit = (data: ManualEntryFormData) => {
-    console.log("Manual entry form submitted:", data);
-    // Here you would typically handle the form submission
+  const handlePlateSubmit = (plate: string, state: string) => {
+    console.log("Plate submitted:", plate, state);
+    setPlateNumber(plate);
+    setShowFollowUp(true);
   };
 
   return (
@@ -39,15 +39,15 @@ export default function PlateLookupPage() {
             ctaHref="/premium"
           />
 
-          <PlateDecoderForm onManualEntryClick={() => setShowManualEntry(true)} />
-
-          {showManualEntry && (
+          {!showFollowUp ? (
+            <PlateDecoderForm onSubmit={handlePlateSubmit} />
+          ) : (
             <div className="mt-8">
-              <h2 className="text-xl font-semibold mb-4">Manual Entry</h2>
+              <h2 className="text-xl font-semibold mb-4">Complete Your Valuation</h2>
               <p className="text-gray-600 mb-6">
-                If you prefer, you can manually enter your vehicle details below.
+                Please provide additional details to get an accurate valuation for your vehicle.
               </p>
-              <ManualEntryForm onSubmit={handleManualSubmit} />
+              <PlateFollowUpWrapper plateNumber={plateNumber || ''} />
             </div>
           )}
         </div>
