@@ -3,8 +3,6 @@
 
 // Layout components
 export * from './layout';
-export * from './navbar';
-export * from './footer';
 
 // UI components with namespaced exports
 export * as UI from './ui';
