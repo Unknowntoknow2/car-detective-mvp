@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Navbar } from "./components/layout/Navbar";
 import { Footer } from "./components/layout/Footer";
@@ -33,24 +33,22 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <TooltipProvider>
-            <div className="min-h-screen flex flex-col bg-background">
-              <Navbar />
-              <main className="flex-grow">
-                <Routes>
-                  {renderRoutes(routes)}
-                </Routes>
-              </main>
-              <Footer />
-              <AINAssistantTrigger />
-            </div>
-            <Toaster />
-            <Sonner />
-          </TooltipProvider>
-        </AuthProvider>
-      </BrowserRouter>
+      <AuthProvider>
+        <TooltipProvider>
+          <div className="min-h-screen flex flex-col bg-background">
+            <Navbar />
+            <main className="flex-grow">
+              <Routes>
+                {renderRoutes(routes)}
+              </Routes>
+            </main>
+            <Footer />
+            <AINAssistantTrigger />
+          </div>
+          <Toaster />
+          <Sonner />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
