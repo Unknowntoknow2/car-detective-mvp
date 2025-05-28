@@ -1,10 +1,11 @@
 
+
 // ARCHIVED - DO NOT USE  
 // Original file: src/utils/scrapers/cargurus.ts
 
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { RawListing } from '../normalization/normalizeListing';
+import { RawListing } from '../utils/normalization/normalizeListing';
 
 export async function fetchCarGurusListings(
   make: string,
@@ -15,3 +16,4 @@ export async function fetchCarGurusListings(
   // Archived implementation
   return [];
 }
+
