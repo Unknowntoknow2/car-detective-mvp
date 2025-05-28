@@ -1,5 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
+import { fetchStatVinData } from './sources/fetchStatVinData';
+import { fetchMarketplaceListings, MarketplaceData } from './sources/fetchMarketplaceListings';
 
 export interface AuctionSaleRecord {
   date: string;
@@ -111,11 +112,18 @@ export interface EnrichedVehicleData {
   vin: string;
   sources: {
     statVin: StatVinData | null;
+    marketplaces: MarketplaceData | null;
     facebook: null;
     craigslist: null;
     ebay: null;
     carsdotcom: null;
     offerup: null;
+  };
+  marketAnalysis?: {
+    averageMarketPrice: number;
+    auctionDiscount: number;
+    dealerMargin: number;
+    priceConfidence: number;
   };
   lastUpdated?: string;
   cached?: boolean;
@@ -127,7 +135,7 @@ export async function getEnrichedVehicleData(
   model?: string, 
   year?: number
 ): Promise<EnrichedVehicleData> {
-  console.log(`🔍 Starting enriched data fetch for VIN: ${vin}`);
+  console.log(`🔍 Starting enhanced enriched data fetch for VIN: ${vin}`);
   
   try {
     // Check user access level first
@@ -155,41 +163,124 @@ export async function getEnrichedVehicleData(
       return createEmptyEnrichedData(vin);
     }
 
-    console.log('✅ User has premium access, fetching enrichment data');
+    console.log('✅ User has premium access, fetching comprehensive enrichment data');
 
-    // Call the enrichment cache edge function
-    const { data, error } = await supabase.functions.invoke('enrichment-cache', {
-      body: {
-        vin,
-        source: 'statvin'
+    // Check cache first
+    const { data: cached } = await supabase
+      .from('auction_enrichment_by_vin')
+      .select('*')
+      .eq('vin', vin)
+      .eq('source', 'comprehensive')
+      .single();
+
+    // Use cache if it's less than 24 hours old
+    if (cached && cached.updated_at) {
+      const cacheAge = Date.now() - new Date(cached.updated_at).getTime();
+      const maxCacheAge = 24 * 60 * 60 * 1000; // 24 hours
+      
+      if (cacheAge < maxCacheAge) {
+        console.log('✅ Using cached comprehensive enrichment data');
+        return {
+          ...cached.data,
+          cached: true,
+          lastUpdated: cached.updated_at,
+        };
       }
-    });
-
-    if (error) {
-      console.error('❌ Error calling enrichment cache:', error);
-      return createEmptyEnrichedData(vin);
     }
+
+    // Fetch fresh data from all sources
+    console.log('🔄 Fetching fresh data from all sources...');
+    
+    const [statVinData, marketplaceData] = await Promise.allSettled([
+      fetchStatVinData(vin),
+      make && model && year 
+        ? fetchMarketplaceListings({ make, model, year, zipCode: '90210' }) // Default ZIP for nationwide search
+        : Promise.resolve(null),
+    ]);
+
+    const statVin = statVinData.status === 'fulfilled' ? statVinData.value : null;
+    const marketplaces = marketplaceData.status === 'fulfilled' ? marketplaceData.value : null;
+
+    // Calculate market analysis
+    const marketAnalysis = calculateMarketAnalysis(statVin, marketplaces);
 
     const enrichedData: EnrichedVehicleData = {
       vin,
       sources: {
-        statVin: data.data || null,
+        statVin,
+        marketplaces,
         facebook: null,
         craigslist: null,
         ebay: null,
         carsdotcom: null,
         offerup: null,
       },
-      lastUpdated: data.lastUpdated,
-      cached: data.cached
+      marketAnalysis,
+      lastUpdated: new Date().toISOString(),
+      cached: false,
     };
 
-    console.log('✅ Enriched data compilation complete');
+    // Cache the comprehensive data
+    await supabase
+      .from('auction_enrichment_by_vin')
+      .upsert({
+        vin,
+        source: 'comprehensive',
+        data: enrichedData,
+        updated_at: new Date().toISOString(),
+      });
+
+    console.log('✅ Comprehensive enriched data compilation complete');
     return enrichedData;
+    
   } catch (error) {
-    console.error('❌ Error fetching enriched vehicle data:', error);
+    console.error('❌ Error fetching comprehensive enriched vehicle data:', error);
     return createEmptyEnrichedData(vin);
   }
+}
+
+function calculateMarketAnalysis(
+  statVin: StatVinData | null, 
+  marketplaces: MarketplaceData | null
+) {
+  if (!marketplaces || marketplaces.allListings.length === 0) {
+    return undefined;
+  }
+
+  const averageMarketPrice = marketplaces.priceAnalysis.averagePrice;
+  
+  // Calculate auction discount if we have STAT.vin data
+  let auctionDiscount = 0;
+  if (statVin?.salePrice) {
+    const auctionPrice = parseFloat(statVin.salePrice.replace(/,/g, ''));
+    if (auctionPrice > 0) {
+      auctionDiscount = ((averageMarketPrice - auctionPrice) / averageMarketPrice) * 100;
+    }
+  }
+
+  // Estimate dealer margin (typically 15-25% markup from auction)
+  const dealerMargin = auctionDiscount > 0 ? auctionDiscount * 0.7 : 20; // Default 20% if no auction data
+
+  // Calculate price confidence based on number of listings and data sources
+  const listingCount = marketplaces.allListings.length;
+  const sourceCount = [
+    marketplaces.bySource.facebook.length > 0,
+    marketplaces.bySource.craigslist.length > 0,
+    marketplaces.bySource.carscom.length > 0,
+    statVin !== null,
+  ].filter(Boolean).length;
+
+  const priceConfidence = Math.min(
+    (listingCount * 10) + (sourceCount * 20), 
+    100
+  );
+
+  return {
+    averageMarketPrice,
+    auctionDiscount: Math.round(auctionDiscount),
+    dealerMargin: Math.round(dealerMargin),
+    priceConfidence,
+  };
 }
 
 function createEmptyEnrichedData(vin: string): EnrichedVehicleData {
@@ -197,6 +288,7 @@ function createEmptyEnrichedData(vin: string): EnrichedVehicleData {
     vin,
     sources: {
       statVin: null,
+      marketplaces: null,
       facebook: null,
       craigslist: null,
       ebay: null,
