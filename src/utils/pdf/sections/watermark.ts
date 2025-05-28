@@ -20,6 +20,7 @@ export function drawWatermark(params: SectionParams, text: string): void {
     color: rgb(0.85, 0.85, 0.85), // Light gray
     opacity: 0.3,
     rotate: {
+      type: 'degrees',
       angle: -45
     },
   });
