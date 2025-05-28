@@ -52,6 +52,8 @@ export interface ReportOptions {
     titleFont: string;
     bodyFont: string;
   };
+  watermarkText?: string;
+  showPremiumWatermark?: boolean;
 }
 
 // Export AdjustmentItem interface
