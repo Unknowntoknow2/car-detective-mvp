@@ -1,229 +1,236 @@
 
-import { EnrichedVehicleData } from './getEnrichedVehicleData';
-
-export interface ValuationFactors {
-  baseValue: number;
-  mileageAdjustment: number;
-  conditionAdjustment: number;
-  auctionDiscount: number;
-  marketDemandMultiplier: number;
-  locationAdjustment: number;
-  damageAdjustment: number;
-  titleStatusAdjustment: number;
-}
+import { EnrichedVehicleData } from './types';
 
 export interface ValuationResult {
   baseValue: number;
-  valueRange: [number, number];
-  conditionPenalty: number;
-  dealerFlipMargin: number;
-  marketComparison: {
-    belowMarket: boolean;
-    competingOffers: number[];
-    marketPosition: string;
-    pricePercentile: number;
-  };
-  factors: ValuationFactors;
+  adjustedValue: number;
   confidenceScore: number;
-  recommendedActions: string[];
+  adjustments: Array<{
+    factor: string;
+    impact: number;
+    description: string;
+  }>;
+  marketComparison: {
+    averagePrice: number;
+    belowMarket: boolean;
+    dataPoints: number;
+  };
 }
 
 export async function calculateVehicleValue(
-  enrichedData: EnrichedVehicleData,
-  followUpAnswers?: any
+  vehicleData: {
+    make: string;
+    model: string;
+    year: number;
+    mileage: number;
+    condition: string;
+    zipCode: string;
+    vin?: string;
+  },
+  enrichedData?: EnrichedVehicleData
 ): Promise<ValuationResult> {
+  
   console.log('🔢 Calculating vehicle value with enriched data');
+  
+  // Start with a base value calculation
+  let baseValue = calculateBaseValue(vehicleData);
+  let adjustments: Array<{ factor: string; impact: number; description: string }> = [];
+  let confidenceScore = 50; // Base confidence
+  
+  // Market comparison data
+  let marketComparison = {
+    averagePrice: 0,
+    belowMarket: false,
+    dataPoints: 0
+  };
 
-  // Extract base data
-  const { statVinData, marketData, conditionAnalysis, dealerOpportunity } = enrichedData;
-  
-  // Start with market average as base value
-  let baseValue = marketData.priceAnalysis.averagePrice || 15000; // Default fallback
-  
-  // If we have auction data, use it to inform base value
-  if (statVinData?.salePrice) {
-    const auctionPrice = parseFloat(statVinData.salePrice.replace(/[^0-9.]/g, ''));
-    if (auctionPrice > 0) {
-      // Auction prices are typically 60-70% of retail
-      baseValue = Math.max(baseValue, auctionPrice * 1.6);
+  // Apply enriched data adjustments if available
+  if (enrichedData) {
+    console.log('📊 Applying enrichment data adjustments');
+    
+    // Apply STAT.vin auction data adjustments
+    if (enrichedData.sources.statVin) {
+      const auctionAdjustment = calculateAuctionAdjustment(enrichedData.sources.statVin, baseValue);
+      if (auctionAdjustment) {
+        adjustments.push(auctionAdjustment);
+        baseValue += auctionAdjustment.impact;
+        confidenceScore += 10; // Increase confidence with auction data
+      }
+    }
+
+    // Calculate market comparison
+    marketComparison = calculateMarketComparison(enrichedData, baseValue);
+    
+    // Adjust confidence based on data availability
+    if (marketComparison.dataPoints > 0) {
+      confidenceScore += Math.min(marketComparison.dataPoints * 5, 25);
     }
   }
 
-  // Calculate individual factors
-  const factors: ValuationFactors = {
-    baseValue,
-    mileageAdjustment: calculateMileageAdjustment(enrichedData),
-    conditionAdjustment: calculateConditionAdjustment(enrichedData),
-    auctionDiscount: calculateAuctionDiscount(enrichedData),
-    marketDemandMultiplier: calculateMarketDemand(enrichedData),
-    locationAdjustment: 1.0, // TODO: Implement ZIP-based adjustments
-    damageAdjustment: calculateDamageAdjustment(enrichedData),
-    titleStatusAdjustment: calculateTitleStatusAdjustment(enrichedData)
+  // Apply condition and mileage adjustments
+  const conditionAdjustment = calculateConditionAdjustment(vehicleData.condition, baseValue);
+  adjustments.push(conditionAdjustment);
+  baseValue += conditionAdjustment.impact;
+
+  const mileageAdjustment = calculateMileageAdjustment(vehicleData.mileage, vehicleData.year, baseValue);
+  adjustments.push(mileageAdjustment);
+  baseValue += mileageAdjustment.impact;
+
+  // Cap confidence score
+  confidenceScore = Math.min(confidenceScore, 95);
+
+  const result: ValuationResult = {
+    baseValue: Math.round(baseValue - adjustments.reduce((sum, adj) => sum + adj.impact, 0)),
+    adjustedValue: Math.round(baseValue),
+    confidenceScore,
+    adjustments,
+    marketComparison
   };
 
-  // Apply all factors to base value
-  const adjustedValue = baseValue * 
-    factors.mileageAdjustment * 
-    factors.conditionAdjustment * 
-    factors.marketDemandMultiplier * 
-    factors.locationAdjustment * 
-    factors.damageAdjustment * 
-    factors.titleStatusAdjustment;
+  console.log('✅ Vehicle valuation completed:', result);
+  return result;
+}
 
-  // Calculate value range (±15%)
-  const valueRange: [number, number] = [
-    Math.round(adjustedValue * 0.85),
-    Math.round(adjustedValue * 1.15)
-  ];
+function calculateBaseValue(vehicleData: {
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+}): number {
+  // Simplified base value calculation
+  // In production, this would use comprehensive market data
+  const currentYear = new Date().getFullYear();
+  const age = currentYear - vehicleData.year;
+  
+  // Base depreciation curve
+  let baseValue = 35000; // Average new car price
+  
+  // Apply age depreciation (steeper in first few years)
+  if (age <= 2) {
+    baseValue *= (1 - (age * 0.15)); // 15% per year for first 2 years
+  } else {
+    baseValue *= 0.7; // 30% depreciation for first 2 years
+    baseValue *= (1 - ((age - 2) * 0.08)); // 8% per year after that
+  }
 
-  // Calculate condition penalty
-  const conditionPenalty = baseValue - (baseValue * factors.conditionAdjustment);
+  return Math.max(baseValue, 2000); // Minimum value floor
+}
 
-  // Market comparison
-  const marketComparison = {
-    belowMarket: adjustedValue < marketData.priceAnalysis.averagePrice * 0.9,
-    competingOffers: marketData.allListings.map(listing => listing.price),
-    marketPosition: determineMarketPosition(adjustedValue, marketData.priceAnalysis.averagePrice),
-    pricePercentile: enrichedData.marketPosition.pricePercentile
-  };
+function calculateAuctionAdjustment(
+  statVinData: any,
+  baseValue: number
+): { factor: string; impact: number; description: string } | null {
+  
+  if (!statVinData.salePrice) return null;
+  
+  const auctionPrice = parseFloat(statVinData.salePrice.replace(/[,$]/g, ''));
+  if (isNaN(auctionPrice)) return null;
 
-  // Generate recommendations
-  const recommendedActions = generateRecommendations(enrichedData, factors, adjustedValue);
+  // If vehicle has auction history, it may indicate damage or title issues
+  let impact = 0;
+  let description = '';
+
+  if (statVinData.primaryDamage || statVinData.damage) {
+    const damageType = statVinData.primaryDamage || statVinData.damage;
+    if (damageType.toLowerCase().includes('front')) {
+      impact = -baseValue * 0.15; // 15% reduction for front damage
+      description = `Front damage history reduces value`;
+    } else if (damageType.toLowerCase().includes('rear')) {
+      impact = -baseValue * 0.10; // 10% reduction for rear damage  
+      description = `Rear damage history reduces value`;
+    } else {
+      impact = -baseValue * 0.12; // 12% reduction for other damage
+      description = `${damageType} damage history reduces value`;
+    }
+  }
+
+  if (impact === 0) {
+    // Vehicle has clean auction history
+    impact = baseValue * 0.05; // 5% increase for verified clean history
+    description = 'Clean auction history increases confidence';
+  }
 
   return {
-    baseValue: Math.round(adjustedValue),
-    valueRange,
-    conditionPenalty: Math.round(conditionPenalty),
-    dealerFlipMargin: Math.round(dealerOpportunity.potentialMargin),
-    marketComparison,
-    factors,
-    confidenceScore: enrichedData.confidenceScore,
-    recommendedActions
+    factor: 'Auction History',
+    impact: Math.round(impact),
+    description
   };
 }
 
-function calculateMileageAdjustment(enrichedData: EnrichedVehicleData): number {
-  const mileage = parseInt(enrichedData.vehicleDetails.mileage || '100000');
+function calculateMarketComparison(enrichedData: EnrichedVehicleData, baseValue: number) {
+  const prices: number[] = [];
   
-  // Mileage adjustments based on common brackets
-  if (mileage < 30000) return 1.15; // Low mileage premium
-  if (mileage < 60000) return 1.05; // Slightly above average
-  if (mileage < 100000) return 1.0;  // Average
-  if (mileage < 150000) return 0.9;  // High mileage discount
-  return 0.8; // Very high mileage
+  // Collect prices from all sources
+  if (enrichedData.sources.statVin?.salePrice) {
+    const price = parseFloat(enrichedData.sources.statVin.salePrice.replace(/[,$]/g, ''));
+    if (!isNaN(price)) prices.push(price);
+  }
+
+  [
+    enrichedData.sources.facebook,
+    enrichedData.sources.craigslist, 
+    enrichedData.sources.ebay
+  ].forEach(listings => {
+    if (Array.isArray(listings)) {
+      listings.forEach(listing => {
+        if (listing.price > 0) prices.push(listing.price);
+      });
+    }
+  });
+
+  if (prices.length === 0) {
+    return { averagePrice: 0, belowMarket: false, dataPoints: 0 };
+  }
+
+  const averagePrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+  const belowMarket = baseValue < averagePrice * 0.9; // 10% threshold
+
+  return {
+    averagePrice: Math.round(averagePrice),
+    belowMarket,
+    dataPoints: prices.length
+  };
 }
 
-function calculateConditionAdjustment(enrichedData: EnrichedVehicleData): number {
-  const conditionScore = enrichedData.conditionAnalysis.conditionScore;
-  
-  // Convert 1-10 scale to multiplier
-  return 0.5 + (conditionScore / 10) * 0.6; // Range: 0.56 to 1.16
+function calculateConditionAdjustment(condition: string, baseValue: number) {
+  const conditionMultipliers: Record<string, number> = {
+    excellent: 0.1,
+    good: 0,
+    fair: -0.15,
+    poor: -0.3
+  };
+
+  const multiplier = conditionMultipliers[condition.toLowerCase()] || 0;
+  const impact = baseValue * multiplier;
+
+  return {
+    factor: 'Vehicle Condition',
+    impact: Math.round(impact),
+    description: `${condition.charAt(0).toUpperCase() + condition.slice(1)} condition adjustment`
+  };
 }
 
-function calculateAuctionDiscount(enrichedData: EnrichedVehicleData): number {
-  // If vehicle has auction history, apply auction discount
-  if (enrichedData.auctionHistory.totalSales > 0) {
-    return 0.85; // 15% discount for auction vehicles
+function calculateMileageAdjustment(mileage: number, year: number, baseValue: number) {
+  const currentYear = new Date().getFullYear();
+  const age = currentYear - year;
+  const expectedMileage = age * 12000; // 12k miles per year average
+  const mileageDifference = mileage - expectedMileage;
+  
+  // $0.10 per mile over/under expected
+  const impact = -mileageDifference * 0.10;
+  
+  let description = '';
+  if (mileageDifference > 0) {
+    description = `High mileage (${mileageDifference.toLocaleString()} over average)`;
+  } else if (mileageDifference < 0) {
+    description = `Low mileage (${Math.abs(mileageDifference).toLocaleString()} under average)`;
+  } else {
+    description = 'Average mileage for year';
   }
-  return 1.0;
-}
 
-function calculateMarketDemand(enrichedData: EnrichedVehicleData): number {
-  const competitorCount = enrichedData.marketPosition.competitorCount;
-  
-  // More competitors = lower prices
-  if (competitorCount > 20) return 0.95;
-  if (competitorCount > 10) return 0.98;
-  if (competitorCount < 3) return 1.05; // Low supply premium
-  return 1.0;
-}
-
-function calculateDamageAdjustment(enrichedData: EnrichedVehicleData): number {
-  const { detectedDamage, accidentHistory } = enrichedData.conditionAnalysis;
-  const { statVinData } = enrichedData;
-  
-  let adjustment = 1.0;
-  
-  // Check for damage from STAT.vin data
-  if (statVinData?.primaryDamage || statVinData?.damage) {
-    const damageType = (statVinData.primaryDamage || statVinData.damage || '').toLowerCase();
-    
-    if (damageType.includes('front')) adjustment *= 0.85;
-    if (damageType.includes('rear')) adjustment *= 0.9;
-    if (damageType.includes('side')) adjustment *= 0.88;
-    if (damageType.includes('roof') || damageType.includes('hail')) adjustment *= 0.92;
-    if (damageType.includes('flood') || damageType.includes('water')) adjustment *= 0.7;
-    if (damageType.includes('fire')) adjustment *= 0.6;
-  }
-  
-  // Additional penalty for multiple damage types
-  if (detectedDamage.length > 1) {
-    adjustment *= 0.95;
-  }
-  
-  return adjustment;
-}
-
-function calculateTitleStatusAdjustment(enrichedData: EnrichedVehicleData): number {
-  const titleStatus = enrichedData.conditionAnalysis.titleStatus?.toLowerCase() || '';
-  
-  if (titleStatus.includes('salvage')) return 0.6;
-  if (titleStatus.includes('rebuilt')) return 0.75;
-  if (titleStatus.includes('flood')) return 0.65;
-  if (titleStatus.includes('lemon')) return 0.7;
-  if (titleStatus.includes('clean')) return 1.0;
-  
-  return 0.95; // Unknown status gets small penalty
-}
-
-function determineMarketPosition(vehicleValue: number, marketAverage: number): string {
-  const ratio = vehicleValue / marketAverage;
-  
-  if (ratio < 0.8) return 'Well Below Market';
-  if (ratio < 0.9) return 'Below Market';
-  if (ratio < 1.1) return 'At Market';
-  if (ratio < 1.2) return 'Above Market';
-  return 'Premium';
-}
-
-function generateRecommendations(
-  enrichedData: EnrichedVehicleData, 
-  factors: ValuationFactors, 
-  finalValue: number
-): string[] {
-  const recommendations: string[] = [];
-  const { dealerOpportunity, conditionAnalysis, marketPosition } = enrichedData;
-  
-  // Flip opportunity recommendations
-  if (dealerOpportunity.flipOpportunityScore > 70) {
-    recommendations.push('🚀 High flip potential - strong profit margins expected');
-  } else if (dealerOpportunity.flipOpportunityScore > 40) {
-    recommendations.push('💰 Moderate flip potential - decent margins available');
-  } else if (dealerOpportunity.flipOpportunityScore < 20) {
-    recommendations.push('⚠️ Low flip potential - tight margins, proceed with caution');
-  }
-  
-  // Condition-based recommendations
-  if (conditionAnalysis.detectedDamage.length > 0) {
-    recommendations.push(`🔧 Address damage issues: ${conditionAnalysis.detectedDamage.join(', ')}`);
-  }
-  
-  // Market position recommendations
-  if (marketPosition.isUndervalued) {
-    recommendations.push('📈 Vehicle appears undervalued relative to market');
-  }
-  
-  // Timing recommendations
-  if (dealerOpportunity.timeToSell === 'fast') {
-    recommendations.push('⚡ Quick sale expected - high market demand');
-  } else if (dealerOpportunity.timeToSell === 'slow') {
-    recommendations.push('🐌 Longer sales cycle expected - price competitively');
-  }
-  
-  // Risk factor recommendations
-  if (enrichedData.riskFactors.length > 2) {
-    recommendations.push('⚠️ Multiple risk factors identified - thorough inspection recommended');
-  }
-  
-  return recommendations;
+  return {
+    factor: 'Mileage',
+    impact: Math.round(Math.max(Math.min(impact, baseValue * 0.2), -baseValue * 0.2)), // Cap at ±20%
+    description
+  };
 }

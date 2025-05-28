@@ -3,6 +3,7 @@ export interface StatVinData {
   vin: string;
   salePrice?: string;
   damage?: string;
+  primaryDamage?: string;
   status?: string;
   auctionDate?: string;
   location?: string;
@@ -25,10 +26,45 @@ export interface StatVinData {
   estimatedRetailValue?: string;
   condition?: string;
   titleType?: string;
-  primaryDamage?: string;
   secondaryDamage?: string;
   saleType?: string;
   runAndDrive?: boolean;
+  // Enhanced data structure for enrichment
+  vehicleDetails?: {
+    make: string;
+    model: string;
+    year: string;
+    mileage: string;
+  };
+  photos?: string[];
+  auctionSalesHistory?: Array<{
+    date: string;
+    price: string;
+    location: string;
+    condition: string;
+  }>;
+  ownershipHistory?: Array<{
+    owner: string;
+    period: string;
+    usage: string;
+  }>;
+  damageHistory?: Array<{
+    type: string;
+    severity: string;
+    date: string;
+    description: string;
+  }>;
+  serviceHistory?: Array<{
+    date: string;
+    type: string;
+    mileage: string;
+    provider: string;
+  }>;
+  titleHistory?: Array<{
+    status: string;
+    date: string;
+    state: string;
+  }>;
 }
 
 export interface FacebookListing {
@@ -68,12 +104,13 @@ export interface EbayListing {
 
 export interface EnrichedVehicleData {
   vin: string;
+  lastUpdated?: string;
   sources: {
     statVin: StatVinData | null;
     facebook: FacebookListing[] | null;
     craigslist: CraigslistListing[] | null;
     ebay: EbayListing[] | null;
-    carsdotcom: any | null; // Reserved for future implementation
-    offerup: any | null; // Reserved for future implementation
+    carsdotcom: any | null;
+    offerup: any | null;
   };
 }
