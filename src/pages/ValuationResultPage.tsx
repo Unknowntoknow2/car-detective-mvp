@@ -20,10 +20,10 @@ export default function ValuationResultPage() {
         setIsLoadingEnriched(true);
         try {
           const enriched = await getEnrichedVehicleData(
-            valuationResult.vin,
-            valuationResult.make,
-            valuationResult.model,
-            valuationResult.year
+            valuationResult.vin!,
+            valuationResult.make!,
+            valuationResult.model!,
+            valuationResult.year!
           );
           setEnrichedData(enriched);
         } catch (error) {
