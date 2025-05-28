@@ -1,688 +1,213 @@
-import { PDFDocument, PDFFont, rgb, PDFPage } from 'pdf-lib';
-import { ReportData, ReportOptions, SectionParams, DocumentFonts } from '../types';
-import { drawExplanationSection } from '../sections/explanationSection';
-import { drawValuePredictionSection } from '../sections/valuePredictionSection';
-import { drawProfessionalOpinionSection } from '../sections/professionalOpinionSection';
-import { RotationTypes } from '../types';
 
-// Create function signatures to avoid name conflicts with imports
-function addHeaderSection(page: PDFPage, params: any): number { return 0; }
-function addSummarySection(page: PDFPage, params: any): number { return 0; }
-function addBreakdownSection(page: PDFPage, params: any): number { return 0; }
-function addFooterSection(page: PDFPage, params: any): void {}
-function addExplanationSection(page: PDFPage, params: any): number { return 0; }
-function addConditionAssessmentSection(page: PDFPage, params: any): number { return 0; }
-function addComparablesSection(page: PDFPage, params: any): number { return 0; }
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { ReportData, ReportOptions } from '../types';
+import { EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
 
-/**
- * Generate a premium valuation report with full details
- * @param reportData The data to include in the report
- * @param options Additional options for PDF generation
- * @returns Promise resolving to PDF document as Uint8Array
- */
 export async function generatePremiumReport(
-  reportData: ReportData,
+  data: ReportData, 
   options: Partial<ReportOptions> = {}
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([612, 792]); // Letter size
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   
-  // Create a new page
-  const page = pdfDoc.addPage([8.5 * 72, 11 * 72]); // Letter size
   const { width, height } = page.getSize();
+  let yPosition = height - 50;
   
-  // Set margins
-  const margin = 50;
-  const contentWidth = width - (margin * 2);
+  // Header
+  page.drawText('Car Detective Premium Valuation Report', {
+    x: 50,
+    y: yPosition,
+    size: 20,
+    font: boldFont,
+    color: rgb(0.1, 0.1, 0.1),
+  });
   
-  // Load fonts
-  const fontBytes = await pdfDoc.embedFont('Helvetica');
-  const boldFontBytes = await pdfDoc.embedFont('Helvetica-Bold');
+  yPosition -= 40;
   
-  const fonts: DocumentFonts = {
-    regular: fontBytes,
-    bold: boldFontBytes,
-  };
-  
-  // Define colors
-  const primaryColor = rgb(0, 0.5, 0.8);
-  const secondaryColor = rgb(0.6, 0.6, 0.6);
-  const textColor = rgb(0.1, 0.1, 0.1);
-  
-  // Current Y position for drawing elements
-  let currentY = height - margin;
-  
-  // Add title
-  page.drawText(`Vehicle Valuation Report: ${reportData.year} ${reportData.make} ${reportData.model}`, {
-    x: margin,
-    y: currentY,
+  // Vehicle Information
+  page.drawText(`${data.year} ${data.make} ${data.model}`, {
+    x: 50,
+    y: yPosition,
     size: 16,
-    font: fonts.bold,
-    color: primaryColor,
+    font: boldFont,
   });
   
-  currentY -= 10;
+  yPosition -= 25;
   
-  // Add subtitle with date
-  const generatedDate = reportData.generatedAt ? 
-    new Date(reportData.generatedAt).toLocaleDateString() : 
-    new Date().toLocaleDateString();
+  // Basic details
+  const basicInfo = [
+    `VIN: ${data.vin || 'N/A'}`,
+    `Mileage: ${data.mileage?.toLocaleString() || 'N/A'} miles`,
+    `Condition: ${data.condition}`,
+    `Location: ${data.zipCode}`
+  ];
   
-  page.drawText(`Generated on: ${generatedDate}`, {
-    x: margin,
-    y: currentY,
-    size: 10,
-    font: fonts.regular,
-    color: secondaryColor,
+  basicInfo.forEach(info => {
+    page.drawText(info, { x: 50, y: yPosition, size: 12, font });
+    yPosition -= 20;
   });
   
-  currentY -= 30;
+  yPosition -= 20;
   
-  // Add watermark if option is set
-  if (options.showPremiumWatermark) {
-    // Add diagonal watermark across the page
-    const watermarkText = options.watermarkText || 'CAR DETECTIVE';
-    const watermarkFont = fonts.bold;
-    const watermarkSize = 60;
-    const watermarkTextWidth = watermarkFont.widthOfTextAtSize(watermarkText, watermarkSize);
-    
-    // Position watermark in the center of the page
-    const watermarkX = (width - watermarkTextWidth) / 2;
-    const watermarkY = height / 2;
-    
-    // Set rotation for the watermark text (30 degrees)
-    // Using degrees for rotation type
-    page.drawText(watermarkText, {
-      x: watermarkX,
-      y: watermarkY,
-      size: watermarkSize,
-      font: watermarkFont,
-      color: rgb(0.9, 0.9, 0.9), // Light gray
-      opacity: 0.2,
-      rotate: {
-        type: RotationTypes.Degrees,
-        angle: -30,
-      },
-    });
-  }
-  
-  // Create parameters object for section drawing
-  const sectionParams: SectionParams = {
-    page,
-    width: contentWidth,
-    pageWidth: width,
-    startY: currentY,
-    margin,
-    fonts,
-    data: reportData,
-    options,
-    textColor,
-    primaryColor,
-    height,
-    pdfDoc,
-  };
-  
-  // Draw vehicle details section
-  currentY = drawVehicleDetailsSection(sectionParams);
-  
-  // Draw valuation summary section
-  currentY = drawValuationSummarySection({ ...sectionParams, startY: currentY });
-  
-  // Draw adjustments section
-  currentY = drawAdjustmentsSection({ ...sectionParams, startY: currentY });
-  
-  // Draw explanation section if included
-  currentY = drawExplanationSection({ ...sectionParams, startY: currentY });
-  
-  // Draw value prediction section (premium only)
-  currentY = drawValuePredictionSection({ ...sectionParams, startY: currentY });
-  
-  // Draw professional opinion section (premium only)
-  currentY = drawProfessionalOpinionSection({ ...sectionParams, startY: currentY });
-  
-  // Draw footer
-  drawFooterSection({ ...sectionParams, startY: currentY });
-  
-  // Return the PDF as a buffer
-  return await pdfDoc.save();
-}
-
-/**
- * Draw vehicle details section
- * @param params Section parameters
- * @returns New Y position
- */
-function drawVehicleDetailsSection(params: SectionParams): number {
-  const { page, startY, margin, fonts, data, textColor, primaryColor } = params;
-  let y = startY;
-  
-  // Draw section title
-  page.drawText('Vehicle Details', {
-    x: margin,
-    y,
-    size: 12,
-    font: fonts.bold,
-    color: primaryColor,
-  });
-  
-  y -= 20;
-  
-  // Create a two-column layout for vehicle details
-  const leftCol = margin;
-  const rightCol = margin + 200;
-  
-  // Left column details
-  page.drawText('Make:', {
-    x: leftCol,
-    y,
-    size: 9,
-    font: fonts.bold,
-    color: textColor,
-  });
-  
-  page.drawText(data.make, {
-    x: leftCol + 80,
-    y,
-    size: 9,
-    font: fonts.regular,
-    color: textColor,
-  });
-  
-  y -= 15;
-  
-  page.drawText('Model:', {
-    x: leftCol,
-    y,
-    size: 9,
-    font: fonts.bold,
-    color: textColor,
-  });
-  
-  page.drawText(data.model, {
-    x: leftCol + 80,
-    y,
-    size: 9,
-    font: fonts.regular,
-    color: textColor,
-  });
-  
-  y -= 15;
-  
-  page.drawText('Year:', {
-    x: leftCol,
-    y,
-    size: 9,
-    font: fonts.bold,
-    color: textColor,
-  });
-  
-  page.drawText(data.year.toString(), {
-    x: leftCol + 80,
-    y,
-    size: 9,
-    font: fonts.regular,
-    color: textColor,
-  });
-  
-  // Reset Y for right column
-  y += 30;
-  
-  // Right column details
-  page.drawText('Mileage:', {
-    x: rightCol,
-    y,
-    size: 9,
-    font: fonts.bold,
-    color: textColor,
-  });
-  
-  page.drawText(data.mileage.toLocaleString(), {
-    x: rightCol + 80,
-    y,
-    size: 9,
-    font: fonts.regular,
-    color: textColor,
-  });
-  
-  y -= 15;
-  
-  page.drawText('Condition:', {
-    x: rightCol,
-    y,
-    size: 9,
-    font: fonts.bold,
-    color: textColor,
-  });
-  
-  page.drawText(data.condition, {
-    x: rightCol + 80,
-    y,
-    size: 9,
-    font: fonts.regular,
-    color: textColor,
-  });
-  
-  y -= 15;
-  
-  if (data.vin) {
-    page.drawText('VIN:', {
-      x: rightCol,
-      y,
-      size: 9,
-      font: fonts.bold,
-      color: textColor,
-    });
-    
-    page.drawText(data.vin, {
-      x: rightCol + 80,
-      y,
-      size: 9,
-      font: fonts.regular,
-      color: textColor,
-    });
-    
-    y -= 15;
-  }
-  
-  // Additional details for premium reports
-  if (data.isPremium) {
-    // Add more vehicle details if available
-    if (data.transmission) {
-      y -= 15;
-      
-      page.drawText('Transmission:', {
-        x: leftCol,
-        y,
-        size: 9,
-        font: fonts.bold,
-        color: textColor,
-      });
-      
-      page.drawText(data.transmission, {
-        x: leftCol + 80,
-        y,
-        size: 9,
-        font: fonts.regular,
-        color: textColor,
-      });
-    }
-    
-    if (data.bodyStyle) {
-      // Reset Y for right column
-      if (!data.transmission) {
-        y -= 15;
-      }
-      
-      page.drawText('Body Style:', {
-        x: rightCol,
-        y,
-        size: 9,
-        font: fonts.bold,
-        color: textColor,
-      });
-      
-      page.drawText(data.bodyStyle, {
-        x: rightCol + 80,
-        y,
-        size: 9,
-        font: fonts.regular,
-        color: textColor,
-      });
-    }
-    
-    if (data.fuelType) {
-      y -= 15;
-      
-      page.drawText('Fuel Type:', {
-        x: leftCol,
-        y,
-        size: 9,
-        font: fonts.bold,
-        color: textColor,
-      });
-      
-      page.drawText(data.fuelType, {
-        x: leftCol + 80,
-        y,
-        size: 9,
-        font: fonts.regular,
-        color: textColor,
-      });
-    }
-    
-    if (data.color) {
-      // Reset Y for right column
-      if (!data.fuelType) {
-        y -= 15;
-      }
-      
-      page.drawText('Color:', {
-        x: rightCol,
-        y,
-        size: 9,
-        font: fonts.bold,
-        color: textColor,
-      });
-      
-      page.drawText(data.color, {
-        x: rightCol + 80,
-        y,
-        size: 9,
-        font: fonts.regular,
-        color: textColor,
-      });
-    }
-  }
-  
-  y -= 20;
-  
-  return y;
-}
-
-/**
- * Draw valuation summary section
- * @param params Section parameters
- * @returns New Y position
- */
-function drawValuationSummarySection(params: SectionParams): number {
-  const { page, startY, margin, width, fonts, data, textColor, primaryColor } = params;
-  let y = startY;
-  
-  // Draw section title
+  // Valuation Summary
   page.drawText('Valuation Summary', {
-    x: margin,
-    y,
-    size: 12,
-    font: fonts.bold,
-    color: primaryColor,
-  });
-  
-  y -= 20;
-  
-  // Draw estimated value with larger font
-  page.drawText('Estimated Value:', {
-    x: margin,
-    y,
-    size: 10,
-    font: fonts.bold,
-    color: textColor,
-  });
-  
-  const valueString = `$${data.estimatedValue.toLocaleString()}`;
-  const valueWidth = fonts.bold.widthOfTextAtSize(valueString, 14);
-  
-  page.drawText(valueString, {
-    x: margin + 120,
-    y,
+    x: 50,
+    y: yPosition,
     size: 14,
-    font: fonts.bold,
-    color: primaryColor,
+    font: boldFont,
   });
   
-  y -= 20;
+  yPosition -= 25;
   
-  // Draw confidence score
-  page.drawText('Confidence Score:', {
-    x: margin,
-    y,
-    size: 9,
-    font: fonts.bold,
-    color: textColor,
+  page.drawText(`Estimated Value: $${data.estimatedValue.toLocaleString()}`, {
+    x: 50,
+    y: yPosition,
+    size: 16,
+    font: boldFont,
+    color: rgb(0, 0.6, 0),
   });
   
-  const scoreWidth = 100 * (data.confidenceScore / 100);
+  yPosition -= 20;
   
-  // Draw score background
-  page.drawRectangle({
-    x: margin + 120,
-    y: y - 5,
-    width: 100,
-    height: 10,
-    color: rgb(0.9, 0.9, 0.9),
-    borderColor: rgb(0.7, 0.7, 0.7),
-    borderWidth: 1,
-  });
-  
-  // Draw score fill
-  page.drawRectangle({
-    x: margin + 120,
-    y: y - 5,
-    width: scoreWidth,
-    height: 10,
-    color: primaryColor,
-  });
-  
-  // Draw score text
-  page.drawText(`${data.confidenceScore}%`, {
-    x: margin + 225,
-    y,
-    size: 9,
-    font: fonts.bold,
-    color: textColor,
-  });
-  
-  y -= 25;
-  
-  // Draw price range if available
-  if (data.priceRange) {
-    const priceRangeText = Array.isArray(data.priceRange)
-      ? `$${data.priceRange[0].toLocaleString()} - $${data.priceRange[1].toLocaleString()}`
-      : `$${Math.floor(data.estimatedValue * 0.95).toLocaleString()} - $${Math.ceil(data.estimatedValue * 1.05).toLocaleString()}`;
-    
-    page.drawText('Price Range:', {
-      x: margin,
-      y,
-      size: 9,
-      font: fonts.bold,
-      color: textColor,
-    });
-    
-    page.drawText(priceRangeText, {
-      x: margin + 120,
-      y,
-      size: 9,
-      font: fonts.regular,
-      color: textColor,
-    });
-    
-    y -= 15;
-  }
-  
-  // Show the base value for premium reports
-  if (data.baseValue) {
-    page.drawText('Base Value:', {
-      x: margin,
-      y,
-      size: 9,
-      font: fonts.bold,
-      color: textColor,
-    });
-    
-    const baseValueText = `$${data.baseValue.toLocaleString()}`;
-    
-    page.drawText(baseValueText, {
-      x: margin + 120,
-      y,
-      size: 9,
-      font: fonts.regular,
-      color: textColor,
-    });
-    
-    y -= 15;
-  }
-  
-  // Location information
-  if (data.zipCode) {
-    page.drawText('Location:', {
-      x: margin,
-      y,
-      size: 9,
-      font: fonts.bold,
-      color: textColor,
-    });
-    
-    page.drawText(`ZIP Code ${data.zipCode}`, {
-      x: margin + 120,
-      y,
-      size: 9,
-      font: fonts.regular,
-      color: textColor,
-    });
-    
-    y -= 15;
-  }
-  
-  y -= 10;
-  
-  return y;
-}
-
-/**
- * Draw adjustments section
- * @param params Section parameters
- * @returns New Y position
- */
-function drawAdjustmentsSection(params: SectionParams): number {
-  const { page, startY, margin, fonts, data, textColor, primaryColor } = params;
-  let y = startY;
-  
-  // Skip if no adjustments
-  if (!data.adjustments || data.adjustments.length === 0) {
-    return y;
-  }
-  
-  // Draw section title
-  page.drawText('Value Adjustments', {
-    x: margin,
-    y,
+  page.drawText(`Confidence Score: ${data.confidenceScore}%`, {
+    x: 50,
+    y: yPosition,
     size: 12,
-    font: fonts.bold,
-    color: primaryColor,
+    font,
   });
   
-  y -= 20;
+  yPosition -= 40;
   
-  // Headers
-  page.drawText('Factor', {
-    x: margin,
-    y,
-    size: 9,
-    font: fonts.bold,
-    color: textColor,
-  });
-  
-  page.drawText('Impact', {
-    x: margin + 200,
-    y,
-    size: 9,
-    font: fonts.bold,
-    color: textColor,
-  });
-  
-  page.drawText('Description', {
-    x: margin + 280,
-    y,
-    size: 9,
-    font: fonts.bold,
-    color: textColor,
-  });
-  
-  y -= 15;
-  
-  // Draw line under headers
-  page.drawLine({
-    start: { x: margin, y },
-    end: { x: margin + 500, y },
-    thickness: 1,
-    color: rgb(0.8, 0.8, 0.8),
-  });
-  
-  y -= 10;
-  
-  // Draw each adjustment
-  for (const adjustment of data.adjustments) {
-    page.drawText(adjustment.factor, {
-      x: margin,
-      y,
-      size: 9,
-      font: fonts.regular,
-      color: textColor,
+  // STAT.vin Section for Premium Users
+  if (options.enrichedData?.sources?.statVin) {
+    const statVin = options.enrichedData.sources.statVin;
+    
+    page.drawText('STAT.vin Auction Report', {
+      x: 50,
+      y: yPosition,
+      size: 14,
+      font: boldFont,
+      color: rgb(0.2, 0.4, 0.8),
     });
     
-    const impactText = adjustment.impact >= 0 ? 
-      `+$${adjustment.impact.toLocaleString()}` : 
-      `-$${Math.abs(adjustment.impact).toLocaleString()}`;
+    yPosition -= 25;
     
-    const impactColor = adjustment.impact >= 0 ? 
-      rgb(0.2, 0.6, 0.2) : // Green for positive
-      rgb(0.8, 0.2, 0.2);  // Red for negative
+    const auctionInfo = [
+      `Source: STAT.vin Professional Database`,
+      `Last Auction Date: ${statVin.auctionSalesHistory?.[0]?.date || 'N/A'}`,
+      `Last Sale Price: $${statVin.auctionSalesHistory?.[0]?.price?.toLocaleString() || 'N/A'}`,
+      `Status: ${statVin.auctionSalesHistory?.[0]?.status || 'N/A'}`,
+      `Location: ${statVin.auctionSalesHistory?.[0]?.location || 'N/A'}`,
+      `Auction House: ${statVin.auctionSalesHistory?.[0]?.auction || 'N/A'}`
+    ];
     
-    page.drawText(impactText, {
-      x: margin + 200,
-      y,
-      size: 9,
-      font: fonts.bold,
-      color: impactColor,
+    auctionInfo.forEach(info => {
+      page.drawText(info, { x: 70, y: yPosition, size: 11, font });
+      yPosition -= 18;
     });
     
-    if (adjustment.description) {
-      page.drawText(adjustment.description, {
-        x: margin + 280,
-        y,
-        size: 9,
-        font: fonts.regular,
-        color: textColor,
+    // Damage History Section
+    if (statVin.damageHistory && statVin.damageHistory.length > 0) {
+      yPosition -= 10;
+      page.drawText('Damage History:', {
+        x: 70,
+        y: yPosition,
+        size: 12,
+        font: boldFont,
+        color: rgb(0.8, 0.2, 0.2),
+      });
+      
+      yPosition -= 20;
+      
+      statVin.damageHistory.slice(0, 3).forEach(damage => {
+        const damageText = `${damage.date}: ${damage.severity} damage - ${damage.description}`;
+        page.drawText(damageText, { x: 90, y: yPosition, size: 10, font });
+        yPosition -= 16;
       });
     }
     
-    y -= 15;
+    // Title History Section
+    if (statVin.titleHistory && statVin.titleHistory.length > 0) {
+      yPosition -= 10;
+      page.drawText('Title History:', {
+        x: 70,
+        y: yPosition,
+        size: 12,
+        font: boldFont,
+      });
+      
+      yPosition -= 20;
+      
+      const latestTitle = statVin.titleHistory[0];
+      page.drawText(`Current Title: ${latestTitle.titleType} (${latestTitle.state})`, {
+        x: 90,
+        y: yPosition,
+        size: 10,
+        font,
+      });
+      yPosition -= 16;
+    }
+    
+    yPosition -= 20;
+    
+    // STAT.vin Link
+    page.drawText(`View full VIN report: https://stat.vin/vin-decoder/${statVin.vin}`, {
+      x: 70,
+      y: yPosition,
+      size: 10,
+      font,
+      color: rgb(0, 0, 0.8),
+    });
+    
+    yPosition -= 30;
   }
   
-  y -= 10;
-  
-  return y;
-}
-
-/**
- * Draw footer section
- * @param params Section parameters
- */
-function drawFooterSection(params: SectionParams): void {
-  const { page, margin, width, fonts, options } = params;
-  const { height } = page.getSize();
-  
-  // Skip if footer is not included
-  if (options.includeFooter === false) {
-    return;
+  // Adjustments Section
+  if (data.adjustments && data.adjustments.length > 0) {
+    page.drawText('Price Adjustments', {
+      x: 50,
+      y: yPosition,
+      size: 14,
+      font: boldFont,
+    });
+    
+    yPosition -= 25;
+    
+    data.adjustments.forEach(adjustment => {
+      const impactText = adjustment.impact > 0 ? `+$${adjustment.impact}` : `-$${Math.abs(adjustment.impact)}`;
+      page.drawText(`${adjustment.factor}: ${impactText}`, {
+        x: 70,
+        y: yPosition,
+        size: 11,
+        font,
+      });
+      
+      if (adjustment.description) {
+        yPosition -= 15;
+        page.drawText(adjustment.description, {
+          x: 90,
+          y: yPosition,
+          size: 9,
+          font,
+          color: rgb(0.5, 0.5, 0.5),
+        });
+      }
+      
+      yPosition -= 20;
+    });
   }
   
-  const footerText = options.footerText || 'This report was generated by Car Detective. Values are estimates based on market data.';
-  const footerY = 40; // Fixed position from bottom
-  
-  page.drawText(footerText, {
-    x: margin,
-    y: footerY,
+  // Footer
+  const footer = `Generated on ${new Date().toLocaleDateString()} • Car Detective Premium Report`;
+  page.drawText(footer, {
+    x: 50,
+    y: 50,
     size: 8,
-    font: fonts.regular,
+    font,
     color: rgb(0.5, 0.5, 0.5),
   });
   
-  // Add page number
-  const pageText = 'Page 1 of 1';
-  const pageTextWidth = fonts.regular.widthOfTextAtSize(pageText, 8);
-  
-  page.drawText(pageText, {
-    x: width - margin - pageTextWidth,
-    y: footerY,
-    size: 8,
-    font: fonts.regular,
-    color: rgb(0.5, 0.5, 0.5),
-  });
-  
-  // Draw line above footer
-  page.drawLine({
-    start: { x: margin, y: footerY + 15 },
-    end: { x: width - margin, y: footerY + 15 },
-    thickness: 1,
-    color: rgb(0.8, 0.8, 0.8),
-  });
+  return await pdfDoc.save();
 }
