@@ -98,9 +98,8 @@ export async function generatePremiumReport(
       `Source: STAT.vin Professional Database`,
       `Last Auction Date: ${statVin.auctionSalesHistory?.[0]?.date || 'N/A'}`,
       `Last Sale Price: $${statVin.auctionSalesHistory?.[0]?.price?.toLocaleString() || 'N/A'}`,
-      `Status: ${statVin.auctionSalesHistory?.[0]?.status || 'N/A'}`,
-      `Location: ${statVin.auctionSalesHistory?.[0]?.location || 'N/A'}`,
-      `Auction House: ${statVin.auctionSalesHistory?.[0]?.auction || 'N/A'}`
+      `Condition: ${statVin.auctionSalesHistory?.[0]?.condition || 'N/A'}`,
+      `Location: ${statVin.auctionSalesHistory?.[0]?.location || 'N/A'}`
     ];
     
     auctionInfo.forEach(info => {
