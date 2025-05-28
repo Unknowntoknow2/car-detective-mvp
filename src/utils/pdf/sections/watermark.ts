@@ -1,5 +1,5 @@
 
-import { rgb } from 'pdf-lib';
+import { rgb, degrees } from 'pdf-lib';
 import { SectionParams } from '../types';
 
 export function drawWatermark(params: SectionParams, text: string): void {
@@ -19,9 +19,6 @@ export function drawWatermark(params: SectionParams, text: string): void {
     font: params.fonts.regular,
     color: rgb(0.85, 0.85, 0.85), // Light gray
     opacity: 0.3,
-    rotate: {
-      type: 'degrees',
-      angle: -45
-    },
+    rotate: degrees(-45),
   });
 }
