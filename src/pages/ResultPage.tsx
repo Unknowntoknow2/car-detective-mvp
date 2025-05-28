@@ -11,6 +11,7 @@ const ResultPage = () => {
   // In a real app, you would fetch the valuation data based on the ID
   // For now, we'll just mock some data
   const valuationData = {
+    success: true, // Added required success property
     make: 'Toyota',
     model: 'Camry',
     year: 2020,
