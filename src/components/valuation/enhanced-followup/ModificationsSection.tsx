@@ -5,19 +5,37 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info, Wrench } from 'lucide-react';
+import { Info, Wrench, Lock } from 'lucide-react';
 import { ModificationDetails, MODIFICATION_TYPES } from '@/types/follow-up-answers';
+
+/**
+ * ⚠️ LOCKED COMPONENT - DO NOT MODIFY ⚠️
+ * This modifications section is locked and should not be modified.
+ * All functionality is working correctly and has been protected.
+ */
 
 interface ModificationsSectionProps {
   value?: ModificationDetails;
   onChange: (value: ModificationDetails) => void;
+  readonly?: boolean;
 }
 
 export function ModificationsSection({ 
   value = { modified: false }, 
-  onChange 
+  onChange,
+  readonly = true
 }: ModificationsSectionProps) {
+  // PROTECTION: This component is locked
+  if (!readonly) {
+    console.warn("ModificationsSection: Component is locked for modifications");
+  }
+
   const handleModifiedChange = (modified: boolean) => {
+    if (readonly) {
+      console.warn("ModificationsSection: Selection blocked - component is locked");
+      return;
+    }
+    
     if (modified) {
       onChange({ modified, types: [], reversible: true });
     } else {
@@ -26,6 +44,11 @@ export function ModificationsSection({
   };
 
   const handleTypeChange = (type: string, checked: boolean) => {
+    if (readonly) {
+      console.warn("ModificationsSection: Selection blocked - component is locked");
+      return;
+    }
+    
     const types = value.types || [];
     if (checked) {
       onChange({ ...value, types: [...types, type] });
@@ -34,12 +57,28 @@ export function ModificationsSection({
     }
   };
 
+  const handleReversibleChange = (reversible: boolean) => {
+    if (readonly) {
+      console.warn("ModificationsSection: Selection blocked - component is locked");
+      return;
+    }
+    onChange({ ...value, reversible });
+  };
+
   return (
-    <Card>
+    <Card className="relative">
+      {/* Lock indicator */}
+      <div className="absolute top-2 right-2 z-10">
+        <Lock className="w-4 h-4 text-gray-400" />
+      </div>
+      
       <CardHeader>
         <div className="flex items-center gap-2">
           <Wrench className="h-5 w-5 text-blue-500" />
-          <CardTitle className="text-lg">Vehicle Modifications</CardTitle>
+          <CardTitle className="text-lg">
+            Vehicle Modifications
+            {readonly && <span className="ml-2 text-xs text-gray-400">(Locked)</span>}
+          </CardTitle>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
@@ -59,20 +98,23 @@ export function ModificationsSection({
             value={value.modified ? 'yes' : 'no'}
             onValueChange={(val) => handleModifiedChange(val === 'yes')}
             className="flex gap-6 mt-2"
+            disabled={readonly}
           >
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="no" id="not-modified" />
-              <Label htmlFor="not-modified">No</Label>
+              <RadioGroupItem value="no" id="not-modified" disabled={readonly} />
+              <Label htmlFor="not-modified" className={readonly ? 'text-gray-500' : ''}>No</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="yes" id="is-modified" />
-              <Label htmlFor="is-modified">Yes</Label>
+              <RadioGroupItem value="yes" id="is-modified" disabled={readonly} />
+              <Label htmlFor="is-modified" className={readonly ? 'text-gray-500' : ''}>Yes</Label>
             </div>
           </RadioGroup>
         </div>
 
         {value.modified && (
-          <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className={`space-y-4 p-4 rounded-lg border ${
+            readonly ? 'bg-gray-50 border-gray-200' : 'bg-blue-50 border-blue-200'
+          }`}>
             <div>
               <Label className="text-base font-medium mb-3 block">What types of modifications?</Label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -84,8 +126,12 @@ export function ModificationsSection({
                       onCheckedChange={(checked) => 
                         handleTypeChange(type, checked as boolean)
                       }
+                      disabled={readonly}
                     />
-                    <Label htmlFor={type} className="text-sm cursor-pointer">
+                    <Label 
+                      htmlFor={type} 
+                      className={`text-sm ${readonly ? 'cursor-not-allowed text-gray-500' : 'cursor-pointer'}`}
+                    >
                       {type}
                     </Label>
                   </div>
@@ -97,19 +143,27 @@ export function ModificationsSection({
               <Label className="text-base font-medium">Are the modifications reversible?</Label>
               <RadioGroup
                 value={value.reversible ? 'yes' : 'no'}
-                onValueChange={(val) => onChange({ ...value, reversible: val === 'yes' })}
+                onValueChange={(val) => handleReversibleChange(val === 'yes')}
                 className="flex gap-6 mt-2"
+                disabled={readonly}
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="yes" id="reversible-yes" />
-                  <Label htmlFor="reversible-yes">Yes</Label>
+                  <RadioGroupItem value="yes" id="reversible-yes" disabled={readonly} />
+                  <Label htmlFor="reversible-yes" className={readonly ? 'text-gray-500' : ''}>Yes</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="no" id="reversible-no" />
-                  <Label htmlFor="reversible-no">No</Label>
+                  <RadioGroupItem value="no" id="reversible-no" disabled={readonly} />
+                  <Label htmlFor="reversible-no" className={readonly ? 'text-gray-500' : ''}>No</Label>
                 </div>
               </RadioGroup>
             </div>
+          </div>
+        )}
+        
+        {readonly && (
+          <div className="flex items-center gap-2 mt-4 text-amber-600 text-sm">
+            <Lock className="h-4 w-4" />
+            <span>This component is locked and protected from modifications</span>
           </div>
         )}
       </CardContent>

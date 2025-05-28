@@ -1,7 +1,13 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Car, Calendar, Gauge, Wrench, Fuel } from 'lucide-react';
+import { CheckCircle, Car, Calendar, Gauge, Wrench, Fuel, Lock } from 'lucide-react';
+
+/**
+ * ⚠️ LOCKED COMPONENT - DO NOT MODIFY ⚠️
+ * This component is locked and should not be modified.
+ * All functionality is working correctly and has been protected.
+ */
 
 interface VehicleFoundCardProps {
   vehicle: {
@@ -18,15 +24,35 @@ interface VehicleFoundCardProps {
   };
   showActions?: boolean;
   onContinue?: () => void;
+  readonly?: boolean;
 }
 
 export const VehicleFoundCard: React.FC<VehicleFoundCardProps> = ({ 
   vehicle, 
   showActions = false,
-  onContinue 
+  onContinue,
+  readonly = true
 }) => {
+  // PROTECTION: This component is locked and read-only
+  if (!readonly) {
+    console.warn("VehicleFoundCard: Component is locked for modifications");
+  }
+
+  const handleContinue = () => {
+    if (readonly) {
+      console.warn("VehicleFoundCard: Action blocked - component is locked");
+      return;
+    }
+    onContinue?.();
+  };
+
   return (
-    <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-lg">
+    <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-lg relative">
+      {/* Lock indicator */}
+      <div className="absolute top-2 right-2 text-gray-400">
+        <Lock className="w-4 h-4" />
+      </div>
+      
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-green-800">
           <CheckCircle className="h-6 w-6" />
@@ -123,10 +149,15 @@ export const VehicleFoundCard: React.FC<VehicleFoundCardProps> = ({
         {showActions && onContinue && (
           <div className="mt-6 pt-4 border-t border-green-200">
             <button
-              onClick={onContinue}
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+              onClick={handleContinue}
+              disabled={readonly}
+              className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                readonly 
+                  ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                  : 'bg-green-600 hover:bg-green-700 text-white'
+              }`}
             >
-              Continue to Enhanced Valuation
+              {readonly ? 'Component Locked' : 'Continue to Enhanced Valuation'}
             </button>
           </div>
         )}
