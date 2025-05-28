@@ -1,9 +1,10 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMakeModels } from '@/hooks/useMakeModels';
 import { ManualEntryFormData } from '../types/manualEntry';
+import { useMakeModels } from '@/hooks/useMakeModels';
 
 interface BasicVehicleFormProps {
   formData: ManualEntryFormData;
@@ -18,201 +19,150 @@ export function BasicVehicleForm({
   errors,
   isPremium = false
 }: BasicVehicleFormProps) {
-  const { makes, models, trims, isLoading, error, getModelsByMakeId, getTrimsByModelId } = useMakeModels();
-  const [selectedMakeId, setSelectedMakeId] = useState<string>('');
-  const [selectedModelId, setSelectedModelId] = useState<string>('');
-  const [isLoadingModels, setIsLoadingModels] = useState(false);
-  const [isLoadingTrims, setIsLoadingTrims] = useState(false);
+  const { makes, models, isLoading, error, getModelsByMakeId } = useMakeModels();
 
-  // Update local state when formData changes
+  console.log('BasicVehicleForm render:', {
+    makesCount: makes.length,
+    modelsCount: models.length,
+    selectedMake: formData.make,
+    selectedModel: formData.model,
+    isLoading,
+    error
+  });
+
+  // When make changes, fetch models and reset model selection
   useEffect(() => {
     if (formData.make) {
-      const selectedMake = makes.find(make => make.make_name === formData.make);
-      if (selectedMake) {
-        setSelectedMakeId(selectedMake.id);
+      console.log('Make changed, fetching models for:', formData.make);
+      getModelsByMakeId(formData.make);
+      // Reset model when make changes
+      if (formData.model) {
+        updateFormData({ model: '' });
       }
     }
-  }, [formData.make, makes]);
+  }, [formData.make, getModelsByMakeId]);
 
-  const handleMakeChange = async (makeId: string) => {
-    const selectedMake = makes.find(make => make.id === makeId);
-    if (selectedMake) {
-      setSelectedMakeId(makeId);
-      setIsLoadingModels(true);
-      
-      // Update form data with make name
-      updateFormData({ 
-        make: selectedMake.make_name,
-        model: '', // Reset model when make changes
-        trim: ''  // Reset trim when make changes
-      });
-      
-      // Clear previous selections
-      setSelectedModelId('');
-      
-      try {
-        await getModelsByMakeId(makeId);
-      } catch (err) {
-        console.error('Error loading models:', err);
-      } finally {
-        setIsLoadingModels(false);
-      }
-    }
+  const handleMakeChange = (makeId: string) => {
+    console.log('Make selected:', makeId);
+    updateFormData({ 
+      make: makeId,
+      model: '' // Reset model when make changes
+    });
   };
 
-  const handleModelChange = async (modelId: string) => {
-    const selectedModel = models.find(model => model.id === modelId);
-    if (selectedModel) {
-      setSelectedModelId(modelId);
-      setIsLoadingTrims(true);
-      
-      // Update form data with model name
-      updateFormData({ 
-        model: selectedModel.model_name,
-        trim: '' // Reset trim when model changes
-      });
-      
-      try {
-        await getTrimsByModelId(modelId);
-      } catch (err) {
-        console.error('Error loading trims:', err);
-      } finally {
-        setIsLoadingTrims(false);
-      }
-    }
+  const handleModelChange = (modelId: string) => {
+    console.log('Model selected:', modelId);
+    updateFormData({ model: modelId });
   };
 
-  const handleTrimChange = (trimName: string) => {
-    updateFormData({ trim: trimName });
+  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const year = parseInt(e.target.value) || '';
+    updateFormData({ year });
   };
 
-  const handleFuelTypeChange = (fuelType: string) => {
-    updateFormData({ fuelType });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="text-center py-4">Loading vehicle data...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-4">
-        <div className="text-center py-4 text-red-600">Error: {error}</div>
-      </div>
-    );
-  }
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 35 }, (_, i) => currentYear - i);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Make Selection */}
         <div className="space-y-2">
-          <Label htmlFor="make" className="text-sm font-medium text-slate-700">
-            Make <span className="text-red-500">*</span>
-          </Label>
-          <Select value={selectedMakeId} onValueChange={handleMakeChange}>
-            <SelectTrigger 
-              id="make"
-              className={`h-10 transition-all duration-200 ${errors.make ? 'border-red-300 focus:ring-red-200' : 'focus:ring-primary/20 focus:border-primary hover:border-primary/30'}`}
-            >
+          <Label htmlFor="make">Make *</Label>
+          <Select value={formData.make} onValueChange={handleMakeChange}>
+            <SelectTrigger>
               <SelectValue placeholder="Select make" />
             </SelectTrigger>
             <SelectContent>
-              {makes.map(make => (
+              {makes.map((make) => (
                 <SelectItem key={make.id} value={make.id}>
                   {make.make_name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {errors.make && <p className="text-sm text-red-500 mt-1">{errors.make}</p>}
+          {errors.make && <p className="text-sm text-red-500">{errors.make}</p>}
         </div>
 
         {/* Model Selection */}
         <div className="space-y-2">
-          <Label htmlFor="model" className="text-sm font-medium text-slate-700">
-            Model <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="model">Model *</Label>
           <Select 
-            value={selectedModelId} 
+            value={formData.model} 
             onValueChange={handleModelChange}
-            disabled={!selectedMakeId || isLoadingModels}
+            disabled={!formData.make || isLoading}
           >
-            <SelectTrigger 
-              id="model"
-              className={`h-10 transition-all duration-200 ${errors.model ? 'border-red-300 focus:ring-red-200' : 'focus:ring-primary/20 focus:border-primary hover:border-primary/30'}`}
-            >
+            <SelectTrigger>
               <SelectValue 
                 placeholder={
-                  isLoadingModels 
+                  !formData.make 
+                    ? "Select make first" 
+                    : isLoading 
                     ? "Loading models..." 
-                    : selectedMakeId 
-                      ? "Select model" 
-                      : "Select make first"
+                    : "Select model"
                 } 
               />
             </SelectTrigger>
             <SelectContent>
-              {models.map(model => (
-                <SelectItem key={model.id} value={model.id}>
-                  {model.model_name}
+              {models.length > 0 ? (
+                models.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.model_name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="" disabled>
+                  {formData.make ? "No models found" : "Select make first"}
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
-          {errors.model && <p className="text-sm text-red-500 mt-1">{errors.model}</p>}
+          {errors.model && <p className="text-sm text-red-500">{errors.model}</p>}
+          {error && <p className="text-sm text-red-500">Error loading models: {error}</p>}
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Trim Selection */}
+        {/* Year Input */}
         <div className="space-y-2">
-          <Label htmlFor="trim" className="text-sm font-medium text-slate-700">
-            Trim
-          </Label>
+          <Label htmlFor="year">Year *</Label>
           <Select 
-            value={formData.trim || ''} 
-            onValueChange={handleTrimChange}
-            disabled={!selectedModelId || isLoadingTrims}
+            value={formData.year?.toString() || ''} 
+            onValueChange={(value) => updateFormData({ year: parseInt(value) })}
           >
-            <SelectTrigger 
-              id="trim"
-              className="h-10 transition-all duration-200 focus:ring-primary/20 focus:border-primary hover:border-primary/30"
-            >
-              <SelectValue 
-                placeholder={
-                  isLoadingTrims 
-                    ? "Loading trims..." 
-                    : selectedModelId 
-                      ? "Select trim (optional)" 
-                      : "Select model first"
-                } 
-              />
+            <SelectTrigger>
+              <SelectValue placeholder="Select year" />
             </SelectTrigger>
             <SelectContent>
-              {trims.map(trim => (
-                <SelectItem key={trim.id} value={trim.trim_name}>
-                  {trim.trim_name}
+              {years.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {errors.year && <p className="text-sm text-red-500">{errors.year}</p>}
         </div>
 
-        {/* Fuel Type Selection */}
+        {/* Trim Input */}
         <div className="space-y-2">
-          <Label htmlFor="fuelType" className="text-sm font-medium text-slate-700">
-            Fuel Type <span className="text-red-500">*</span>
-          </Label>
-          <Select value={formData.fuelType || ''} onValueChange={handleFuelTypeChange}>
-            <SelectTrigger 
-              id="fuelType"
-              className={`h-10 transition-all duration-200 ${errors.fuelType ? 'border-red-300 focus:ring-red-200' : 'focus:ring-primary/20 focus:border-primary hover:border-primary/30'}`}
-            >
+          <Label htmlFor="trim">Trim</Label>
+          <Input
+            id="trim"
+            type="text"
+            value={formData.trim || ''}
+            onChange={(e) => updateFormData({ trim: e.target.value })}
+            placeholder="e.g., LX, Sport, Premium"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Fuel Type */}
+        <div className="space-y-2">
+          <Label htmlFor="fuelType">Fuel Type</Label>
+          <Select value={formData.fuelType} onValueChange={(value) => updateFormData({ fuelType: value })}>
+            <SelectTrigger>
               <SelectValue placeholder="Select fuel type" />
             </SelectTrigger>
             <SelectContent>
@@ -223,9 +173,35 @@ export function BasicVehicleForm({
               <SelectItem value="flex">Flex Fuel</SelectItem>
             </SelectContent>
           </Select>
-          {errors.fuelType && <p className="text-sm text-red-500 mt-1">{errors.fuelType}</p>}
+        </div>
+
+        {/* Transmission */}
+        <div className="space-y-2">
+          <Label htmlFor="transmission">Transmission</Label>
+          <Select value={formData.transmission} onValueChange={(value) => updateFormData({ transmission: value })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select transmission" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="automatic">Automatic</SelectItem>
+              <SelectItem value="manual">Manual</SelectItem>
+              <SelectItem value="cvt">CVT</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
+
+      {/* Debug Info in Development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="p-2 bg-gray-100 rounded text-xs">
+          <p>Debug: Makes loaded: {makes.length}</p>
+          <p>Debug: Models loaded: {models.length}</p>
+          <p>Debug: Selected make ID: {formData.make}</p>
+          <p>Debug: Selected model ID: {formData.model}</p>
+          <p>Debug: Loading: {isLoading.toString()}</p>
+          {error && <p>Debug: Error: {error}</p>}
+        </div>
+      )}
     </div>
   );
 }

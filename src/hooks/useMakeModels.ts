@@ -43,7 +43,10 @@ export function useMakeModels() {
           .select('id, make_name')
           .order('make_name');
           
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error fetching makes:', error);
+          throw error;
+        }
         
         const typedData: VehicleMake[] = data ? data.map(make => ({
           id: make.id,
@@ -51,11 +54,11 @@ export function useMakeModels() {
           logo_url: null
         })) : [];
         
-        console.log('Fetched makes:', typedData.length);
+        console.log('Fetched makes:', typedData.length, typedData.slice(0, 5));
         setMakes(typedData);
       } catch (err: any) {
         console.error('Error fetching makes:', err);
-        setError('Failed to load vehicle makes');
+        setError('Failed to load vehicle makes: ' + err.message);
       } finally {
         setIsLoading(false);
       }
@@ -88,12 +91,12 @@ export function useMakeModels() {
       }
       
       const modelsList = data || [];
-      console.log('Fetched models:', modelsList.length, modelsList);
+      console.log('Fetched models:', modelsList.length, modelsList.slice(0, 5));
       setModels(modelsList);
       return modelsList;
     } catch (err: any) {
       console.error('Error fetching models:', err);
-      setError('Failed to load vehicle models');
+      setError('Failed to load vehicle models: ' + err.message);
       setModels([]);
       return [];
     }
@@ -128,7 +131,7 @@ export function useMakeModels() {
       return trimsList;
     } catch (err: any) {
       console.error('Error fetching trims:', err);
-      setError('Failed to load vehicle trims');
+      setError('Failed to load vehicle trims: ' + err.message);
       setTrims([]);
       return [];
     }
