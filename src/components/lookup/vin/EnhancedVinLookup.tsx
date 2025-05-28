@@ -5,13 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { validateVIN } from '@/utils/validation/vin-validation';
 import { toast } from 'sonner';
-import { Lock } from 'lucide-react';
-
-/**
- * ⚠️ LOCKED COMPONENT - DO NOT MODIFY ⚠️
- * This enhanced VIN lookup is locked and should not be modified.
- * All functionality is working correctly and has been protected.
- */
 
 interface EnhancedVinLookupProps {
   onSubmit?: (vin: string) => void;
@@ -26,24 +19,13 @@ export function EnhancedVinLookup({
   isLoading, 
   onVehicleFound, 
   showManualFallback = true,
-  readonly = true
+  readonly = false
 }: EnhancedVinLookupProps) {
   const [vin, setVin] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // PROTECTION: This component is locked
-  if (!readonly) {
-    console.warn("EnhancedVinLookup: Component is locked for modifications");
-  }
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (readonly) {
-      console.warn("EnhancedVinLookup: Submit blocked - component is locked");
-      toast.error('Component is locked and cannot be used');
-      return;
-    }
     
     const validation = validateVIN(vin);
     if (!validation.isValid) {
@@ -57,26 +39,14 @@ export function EnhancedVinLookup({
   };
 
   const handleVinChange = (value: string) => {
-    if (readonly) {
-      console.warn("EnhancedVinLookup: Input blocked - component is locked");
-      return;
-    }
     setVin(value.toUpperCase());
     setError(null);
   };
 
   return (
-    <Card className="relative">
-      {/* Lock indicator */}
-      <div className="absolute top-2 right-2 z-10">
-        <Lock className="w-4 h-4 text-gray-400" />
-      </div>
-      
+    <Card>
       <CardHeader>
-        <CardTitle>
-          VIN Lookup
-          {readonly && <span className="ml-2 text-xs text-gray-400">(Locked)</span>}
-        </CardTitle>
+        <CardTitle>VIN Lookup</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -87,9 +57,8 @@ export function EnhancedVinLookup({
               value={vin}
               onChange={(e) => handleVinChange(e.target.value)}
               maxLength={17}
-              className={`${error ? 'border-red-500' : ''} ${readonly ? 'bg-gray-100' : ''}`}
+              className={error ? 'border-red-500' : ''}
               disabled={readonly}
-              readOnly={readonly}
             />
             {error && (
               <p className="text-sm text-red-500 mt-1">{error}</p>
@@ -100,18 +69,9 @@ export function EnhancedVinLookup({
             disabled={isLoading || vin.length < 17 || readonly}
             className="w-full"
           >
-            {readonly ? 'Component Locked' : isLoading ? 'Looking up...' : 'Lookup VIN'}
+            {isLoading ? 'Looking up...' : 'Lookup VIN'}
           </Button>
         </form>
-        
-        {readonly && (
-          <div className="mt-4 p-2 bg-amber-50 border border-amber-200 rounded text-amber-700 text-sm">
-            <div className="flex items-center gap-2">
-              <Lock className="h-4 w-4" />
-              <span>This component is locked and protected from modifications</span>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
