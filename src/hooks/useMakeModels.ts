@@ -73,7 +73,6 @@ export function useMakeModels() {
     }
 
     try {
-      setIsLoading(true);
       setError(null);
       
       console.log('Fetching models for make ID:', makeId);
@@ -94,15 +93,12 @@ export function useMakeModels() {
       setError('Failed to load vehicle models');
       setModels([]);
       return [];
-    } finally {
-      setIsLoading(false);
     }
   };
 
   // Function to fetch trims for a specific model
   const getTrimsByModelId = async (modelId: string) => {
     try {
-      setIsLoading(true);
       setError(null);
       
       const { data, error } = await supabase
@@ -119,8 +115,6 @@ export function useMakeModels() {
       console.error('Error fetching trims:', err);
       setError('Failed to load vehicle trims');
       return [];
-    } finally {
-      setIsLoading(false);
     }
   };
 
