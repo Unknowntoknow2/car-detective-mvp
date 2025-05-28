@@ -139,12 +139,12 @@ export function UnifiedVinLookup({
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Decoding VIN...
+                  Finding Car...
                 </>
               ) : (
                 <>
                   <Search className="h-4 w-4 mr-2" />
-                  Decode VIN
+                  Find Car
                 </>
               )}
             </Button>
