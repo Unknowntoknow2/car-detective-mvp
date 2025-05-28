@@ -1,205 +1,240 @@
 
 import React, { useEffect } from 'react';
+import { useMakeModels } from '@/hooks/useMakeModels';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ManualEntryFormData } from '../types/manualEntry';
-import { useMakeModels } from '@/hooks/useMakeModels';
+import { FormValidationError } from '@/components/premium/common/FormValidationError';
 
 interface BasicVehicleFormProps {
-  formData: ManualEntryFormData;
-  updateFormData: (updates: Partial<ManualEntryFormData>) => void;
-  errors: Record<string, string>;
+  formData: any;
+  updateFormData: (updates: any) => void;
+  errors?: Record<string, string>;
   isPremium?: boolean;
 }
 
 export function BasicVehicleForm({
   formData,
   updateFormData,
-  errors,
+  errors = {},
   isPremium = false
 }: BasicVehicleFormProps) {
-  const { makes, models, isLoading, error, getModelsByMakeId } = useMakeModels();
+  const { makes, models, isLoading, getModelsByMakeId } = useMakeModels();
 
-  console.log('BasicVehicleForm render:', {
-    makesCount: makes.length,
-    modelsCount: models.length,
-    selectedMake: formData.make,
-    selectedModel: formData.model,
-    isLoading,
-    error
-  });
-
-  // When make changes, fetch models and reset model selection
-  useEffect(() => {
-    if (formData.make) {
-      console.log('Make changed, fetching models for:', formData.make);
-      getModelsByMakeId(formData.make);
-      // Reset model when make changes
-      if (formData.model) {
-        updateFormData({ model: '' });
-      }
-    }
-  }, [formData.make, getModelsByMakeId]);
-
-  const handleMakeChange = (makeId: string) => {
-    console.log('Make selected:', makeId);
-    updateFormData({ 
-      make: makeId,
-      model: '' // Reset model when make changes
-    });
-  };
-
-  const handleModelChange = (modelId: string) => {
-    console.log('Model selected:', modelId);
-    updateFormData({ model: modelId });
-  };
-
-  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const year = parseInt(e.target.value) || '';
-    updateFormData({ year });
-  };
-
+  // Get current year for year options
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 35 }, (_, i) => currentYear - i);
+  const yearOptions = Array.from({ length: 35 }, (_, i) => currentYear - i);
+
+  // Handle make selection
+  const handleMakeChange = async (makeName: string) => {
+    console.log('Make selected:', makeName);
+    const selectedMake = makes.find(make => make.make_name === makeName);
+    
+    if (selectedMake) {
+      console.log('Found make ID:', selectedMake.id);
+      updateFormData({ 
+        make: makeName,
+        model: '' // Reset model when make changes
+      });
+      
+      // Fetch models for this make
+      await getModelsByMakeId(selectedMake.id);
+    }
+  };
+
+  // Handle model selection
+  const handleModelChange = (modelName: string) => {
+    console.log('Model selected:', modelName);
+    updateFormData({ model: modelName });
+  };
+
+  // Handle year selection - ensure we convert to number
+  const handleYearChange = (yearValue: string) => {
+    const yearNumber = parseInt(yearValue, 10);
+    if (!isNaN(yearNumber)) {
+      updateFormData({ year: yearNumber });
+    }
+  };
+
+  // Handle ZIP code input
+  const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+    updateFormData({ zipCode: value });
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {/* Make Selection */}
         <div className="space-y-2">
-          <Label htmlFor="make">Make *</Label>
-          <Select value={formData.make} onValueChange={handleMakeChange}>
-            <SelectTrigger>
+          <Label htmlFor="make" className="text-sm font-medium text-slate-700">
+            Make
+          </Label>
+          <Select
+            value={formData.make || ''}
+            onValueChange={handleMakeChange}
+          >
+            <SelectTrigger 
+              id="make"
+              className={`h-10 transition-all duration-200 ${errors.make ? 'border-red-300 focus:ring-red-200' : 'focus:ring-primary/20 focus:border-primary hover:border-primary/30'}`}
+            >
               <SelectValue placeholder="Select make" />
             </SelectTrigger>
             <SelectContent>
-              {makes.map((make) => (
-                <SelectItem key={make.id} value={make.id}>
-                  {make.make_name}
-                </SelectItem>
-              ))}
+              {isLoading ? (
+                <SelectItem value="loading" disabled>Loading makes...</SelectItem>
+              ) : (
+                makes.map(make => (
+                  <SelectItem key={make.id} value={make.make_name}>
+                    {make.make_name}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
-          {errors.make && <p className="text-sm text-red-500">{errors.make}</p>}
+          {errors.make && <FormValidationError error={errors.make} />}
         </div>
 
         {/* Model Selection */}
         <div className="space-y-2">
-          <Label htmlFor="model">Model *</Label>
-          <Select 
-            value={formData.model} 
+          <Label htmlFor="model" className="text-sm font-medium text-slate-700">
+            Model
+          </Label>
+          <Select
+            value={formData.model || ''}
             onValueChange={handleModelChange}
-            disabled={!formData.make || isLoading}
+            disabled={!formData.make}
           >
-            <SelectTrigger>
-              <SelectValue 
-                placeholder={
-                  !formData.make 
-                    ? "Select make first" 
-                    : isLoading 
-                    ? "Loading models..." 
-                    : "Select model"
-                } 
-              />
+            <SelectTrigger 
+              id="model"
+              className={`h-10 transition-all duration-200 ${errors.model ? 'border-red-300 focus:ring-red-200' : 'focus:ring-primary/20 focus:border-primary hover:border-primary/30'}`}
+            >
+              <SelectValue placeholder={formData.make ? "Select model" : "Select make first"} />
             </SelectTrigger>
             <SelectContent>
-              {models.length > 0 ? (
-                models.map((model) => (
-                  <SelectItem key={model.id} value={model.id}>
+              {models.length === 0 && formData.make ? (
+                <SelectItem value="no-models" disabled>No models available</SelectItem>
+              ) : (
+                models.map(model => (
+                  <SelectItem key={model.id} value={model.model_name}>
                     {model.model_name}
                   </SelectItem>
                 ))
-              ) : (
-                <SelectItem value="" disabled>
-                  {formData.make ? "No models found" : "Select make first"}
-                </SelectItem>
               )}
             </SelectContent>
           </Select>
-          {errors.model && <p className="text-sm text-red-500">{errors.model}</p>}
-          {error && <p className="text-sm text-red-500">Error loading models: {error}</p>}
+          {errors.model && <FormValidationError error={errors.model} />}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Year Input */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        {/* Year Selection */}
         <div className="space-y-2">
-          <Label htmlFor="year">Year *</Label>
-          <Select 
-            value={formData.year?.toString() || ''} 
-            onValueChange={(value) => updateFormData({ year: parseInt(value) })}
+          <Label htmlFor="year" className="text-sm font-medium text-slate-700">
+            Year
+          </Label>
+          <Select
+            value={formData.year ? formData.year.toString() : ''}
+            onValueChange={handleYearChange}
           >
-            <SelectTrigger>
+            <SelectTrigger 
+              id="year"
+              className={`h-10 transition-all duration-200 ${errors.year ? 'border-red-300 focus:ring-red-200' : 'focus:ring-primary/20 focus:border-primary hover:border-primary/30'}`}
+            >
               <SelectValue placeholder="Select year" />
             </SelectTrigger>
             <SelectContent>
-              {years.map((year) => (
+              {yearOptions.map(year => (
                 <SelectItem key={year} value={year.toString()}>
                   {year}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {errors.year && <p className="text-sm text-red-500">{errors.year}</p>}
+          {errors.year && <FormValidationError error={errors.year} />}
         </div>
 
-        {/* Trim Input */}
+        {/* Mileage Input */}
         <div className="space-y-2">
-          <Label htmlFor="trim">Trim</Label>
+          <Label htmlFor="mileage" className="text-sm font-medium text-slate-700">
+            Mileage
+          </Label>
           <Input
-            id="trim"
-            type="text"
-            value={formData.trim || ''}
-            onChange={(e) => updateFormData({ trim: e.target.value })}
-            placeholder="e.g., LX, Sport, Premium"
+            id="mileage"
+            type="number"
+            value={formData.mileage || ''}
+            onChange={(e) => updateFormData({ mileage: parseInt(e.target.value) || 0 })}
+            placeholder="Enter mileage"
+            className={`h-10 transition-all duration-200 ${errors.mileage ? 'border-red-300 focus:ring-red-200' : 'focus:ring-primary/20 focus:border-primary hover:border-primary/30'}`}
           />
+          {errors.mileage && <FormValidationError error={errors.mileage} />}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Fuel Type */}
+      {/* ZIP Code */}
+      <div className="sm:w-1/2">
         <div className="space-y-2">
-          <Label htmlFor="fuelType">Fuel Type</Label>
-          <Select value={formData.fuelType} onValueChange={(value) => updateFormData({ fuelType: value })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select fuel type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="gasoline">Gasoline</SelectItem>
-              <SelectItem value="diesel">Diesel</SelectItem>
-              <SelectItem value="hybrid">Hybrid</SelectItem>
-              <SelectItem value="electric">Electric</SelectItem>
-              <SelectItem value="flex">Flex Fuel</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Transmission */}
-        <div className="space-y-2">
-          <Label htmlFor="transmission">Transmission</Label>
-          <Select value={formData.transmission} onValueChange={(value) => updateFormData({ transmission: value })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select transmission" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="automatic">Automatic</SelectItem>
-              <SelectItem value="manual">Manual</SelectItem>
-              <SelectItem value="cvt">CVT</SelectItem>
-            </SelectContent>
-          </Select>
+          <Label htmlFor="zipCode" className="text-sm font-medium text-slate-700">
+            ZIP Code
+          </Label>
+          <Input
+            id="zipCode"
+            type="text"
+            value={formData.zipCode || ''}
+            onChange={handleZipCodeChange}
+            placeholder="Enter ZIP code"
+            maxLength={5}
+            className={`h-10 transition-all duration-200 ${errors.zipCode ? 'border-red-300 focus:ring-red-200' : 'focus:ring-primary/20 focus:border-primary hover:border-primary/30'}`}
+          />
+          {errors.zipCode && <FormValidationError error={errors.zipCode} />}
+          <p className="text-xs text-slate-500">
+            Your location helps us determine regional market values
+          </p>
         </div>
       </div>
 
-      {/* Debug Info in Development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="p-2 bg-gray-100 rounded text-xs">
-          <p>Debug: Makes loaded: {makes.length}</p>
-          <p>Debug: Models loaded: {models.length}</p>
-          <p>Debug: Selected make ID: {formData.make}</p>
-          <p>Debug: Selected model ID: {formData.model}</p>
-          <p>Debug: Loading: {isLoading.toString()}</p>
-          {error && <p>Debug: Error: {error}</p>}
+      {/* Premium fields */}
+      {isPremium && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {/* Trim Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="trim" className="text-sm font-medium text-slate-700">
+              Trim
+            </Label>
+            <Input
+              id="trim"
+              type="text"
+              value={formData.trim || ''}
+              onChange={(e) => updateFormData({ trim: e.target.value })}
+              placeholder="Enter trim level"
+              className="h-10 transition-all duration-200 focus:ring-primary/20 focus:border-primary hover:border-primary/30"
+            />
+          </div>
+
+          {/* Fuel Type Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="fuelType" className="text-sm font-medium text-slate-700">
+              Fuel Type
+            </Label>
+            <Select
+              value={formData.fuelType || ''}
+              onValueChange={(value) => updateFormData({ fuelType: value })}
+            >
+              <SelectTrigger 
+                id="fuelType"
+                className="h-10 transition-all duration-200 focus:ring-primary/20 focus:border-primary hover:border-primary/30"
+              >
+                <SelectValue placeholder="Select fuel type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gasoline">Gasoline</SelectItem>
+                <SelectItem value="diesel">Diesel</SelectItem>
+                <SelectItem value="hybrid">Hybrid</SelectItem>
+                <SelectItem value="electric">Electric</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       )}
     </div>
