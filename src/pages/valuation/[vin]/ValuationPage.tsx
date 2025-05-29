@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
 import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
 import { FoundCarCard } from '@/components/lookup/found/FoundCarCard';
-import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
+import { ImprovedUnifiedFollowUpForm } from '@/components/followup/ImprovedUnifiedFollowUpForm';
 import { decodeVin } from '@/services/vinService';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
@@ -107,7 +107,7 @@ export default function ValuationPage() {
           
           {showFollowUp && safeVin.length === 17 && (
             <div className="mt-8">
-              <UnifiedFollowUpForm 
+              <ImprovedUnifiedFollowUpForm 
                 vin={safeVin}
                 onComplete={handleFollowUpComplete}
               />
