@@ -78,6 +78,15 @@ export function useMakeModels() {
         makeName: makeExists?.make_name
       })
       
+      // First, let's check what's actually in the models table
+      const { data: allModelsDebug, error: debugError } = await supabase
+        .from('models')
+        .select('id, model_name, make_id')
+        .limit(5)
+
+      console.log('🔍 useMakeModels: Debug - Sample models in database:', allModelsDebug)
+      
+      // Now fetch models for the specific make
       const { data, error } = await supabase
         .from('models')
         .select('id, model_name, make_id')
@@ -93,26 +102,44 @@ export function useMakeModels() {
         query: `SELECT * FROM models WHERE make_id = '${makeId}'`
       })
 
-      // If no models found, let's check all models to see if there's a data mismatch
+      // If no models found, let's check if there's a data mismatch
       if (!data || data.length === 0) {
-        console.log('🔍 useMakeModels: No models found, checking for data mismatch...')
+        console.log('🔍 useMakeModels: No models found, checking for data issues...')
         
-        // Check all models in the database
-        const { data: allModels, error: allModelsError } = await supabase
-          .from('models')
-          .select('id, model_name, make_id')
-          .limit(10)
+        // Check if there are models with similar make names instead of IDs
+        const selectedMake = makes.find(m => m.id === makeId)
+        if (selectedMake) {
+          console.log('🔍 useMakeModels: Trying to find models by make name:', selectedMake.make_name)
+          
+          // Try to find models where make_id might be the make name instead of ID
+          const { data: modelsByName, error: nameError } = await supabase
+            .from('models')
+            .select('id, model_name, make_id')
+            .ilike('make_id', `%${selectedMake.make_name}%`)
+            .limit(5)
 
-        if (!allModelsError && allModels) {
-          console.log('📊 useMakeModels: Sample of all models in database:', allModels)
-          
-          // Check unique make_ids in models table
-          const uniqueMakeIds = [...new Set(allModels.map(m => m.make_id))]
-          console.log('📊 useMakeModels: Unique make_ids in models table:', uniqueMakeIds)
-          
-          // Check if our selected makeId exists in the models table at all
-          const modelsWithMakeId = allModels.filter(m => m.make_id === makeId)
-          console.log('📊 useMakeModels: Models with selected make_id:', modelsWithMakeId)
+          if (!nameError && modelsByName && modelsByName.length > 0) {
+            console.log('🔍 useMakeModels: Found models using make name:', modelsByName)
+          }
+        }
+        
+        // Check all unique make_ids in models table
+        const { data: uniqueMakeIds, error: uniqueError } = await supabase
+          .rpc('get_unique_make_ids')
+          .then(result => result)
+          .catch(() => {
+            // Fallback query if RPC doesn't exist
+            return supabase
+              .from('models')
+              .select('make_id')
+              .limit(100)
+          })
+
+        if (!uniqueError && uniqueMakeIds) {
+          const ids = Array.isArray(uniqueMakeIds) ? 
+            [...new Set(uniqueMakeIds.map((row: any) => row.make_id))] : 
+            uniqueMakeIds
+          console.log('📊 useMakeModels: Unique make_ids in models table:', ids)
         }
       }
       
