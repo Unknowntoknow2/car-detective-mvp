@@ -1,13 +1,12 @@
+
 import React from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
 import AboutPage from './pages/AboutPage';
-import VinLookupPage from './pages/VinLookupPage';
 import NotFound from './pages/NotFound';
 import ValuationPage from './pages/ValuationPage';
 import PremiumPage from './pages/PremiumPage';
 import ValuationResultPage from './pages/ValuationResultPage';
-import ValuationFollowupPage from './pages/ValuationFollowupPage';
 import DealerDashboardPage from './pages/dealer/DealerDashboardPage';
 import DealerVehicleDetailsPage from './pages/dealer/DealerVehicleDetailsPage';
 import DealerLayoutPage from './pages/dealer/DealerLayoutPage';
@@ -31,10 +30,6 @@ const routes: RouteObject[] = [
   {
     path: 'about',
     element: <AboutPage />
-  },
-  {
-    path: 'vin-lookup',
-    element: <VinLookupPage />
   },
   
   // Main auth route - unified authentication
@@ -93,10 +88,6 @@ const routes: RouteObject[] = [
     path: 'valuation/:vin',
     element: <ValuationPage />
   },
-  {
-    path: 'valuation-followup',
-    element: <ValuationFollowupPage />
-  },
   
   // Plate lookup valuation route
   {
@@ -121,10 +112,6 @@ const routes: RouteObject[] = [
   {
     path: 'valuation/result/:id',
     element: <ValuationResultPage />
-  },
-  {
-    path: 'valuation/vin/:vin/followup',
-    element: <VinLookupPage />
   },
   {
     path: 'valuation/:id',
