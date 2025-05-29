@@ -1,6 +1,8 @@
+
 export interface AccidentDetails {
   hadAccident: boolean;
   count?: number;
+  location?: 'front' | 'rear' | 'side' | 'multiple';
   severity?: 'minor' | 'moderate' | 'major';
   repaired?: boolean;
   frameDamage?: boolean;
