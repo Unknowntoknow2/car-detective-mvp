@@ -1,4 +1,3 @@
-
 export interface AccidentDetails {
   hadAccident: boolean;
   count?: number;
