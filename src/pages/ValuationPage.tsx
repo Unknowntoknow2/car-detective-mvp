@@ -108,7 +108,7 @@ export default function ValuationPage() {
           {showFollowUp && (
             <div className="mt-8">
               <UnifiedFollowUpForm 
-                vin={vinParam}
+                vin={vin}
                 onComplete={handleFollowUpComplete}
               />
             </div>
