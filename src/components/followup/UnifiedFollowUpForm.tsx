@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -14,7 +13,9 @@ import { ModificationsTab } from './tabs/ModificationsTab';
 
 export interface UnifiedFollowUpFormProps {
   vin: string;
-  onComplete: (formData: FollowUpAnswers) => void;
+  initialData: FollowUpAnswers;
+  onSubmit: (formData: FollowUpAnswers) => void;
+  onSave: (formData: FollowUpAnswers) => void;
 }
 
 const TABS = [
@@ -26,7 +27,12 @@ const TABS = [
   { id: 'modifications', label: 'Modifications', icon: '⚙️', color: 'gray' }
 ];
 
-export function UnifiedFollowUpForm({ vin, onComplete }: UnifiedFollowUpFormProps) {
+export function UnifiedFollowUpForm({ 
+  vin, 
+  initialData, 
+  onSubmit, 
+  onSave 
+}: UnifiedFollowUpFormProps) {
   const [activeTab, setActiveTab] = useState('condition');
   const [formData, setFormData] = useState<FollowUpAnswers>({
     vin,
@@ -34,6 +40,10 @@ export function UnifiedFollowUpForm({ vin, onComplete }: UnifiedFollowUpFormProp
     modifications: { modified: false },
     updated_at: new Date().toISOString()
   });
+
+  useEffect(() => {
+    setFormData(initialData);
+  }, [initialData]);
 
   const currentTabIndex = TABS.findIndex(tab => tab.id === activeTab);
   const progress = ((currentTabIndex + 1) / TABS.length) * 100;
@@ -58,7 +68,7 @@ export function UnifiedFollowUpForm({ vin, onComplete }: UnifiedFollowUpFormProp
     }));
   };
 
-  const handleModificationsChange = (modified: boolean, types?: string[]) => {
+  const handleModificationChange = (modified: boolean, types?: string[]) => {
     setFormData(prev => ({
       ...prev,
       modifications: {
@@ -83,7 +93,7 @@ export function UnifiedFollowUpForm({ vin, onComplete }: UnifiedFollowUpFormProp
   };
 
   const handleComplete = () => {
-    onComplete({
+    onSubmit({
       ...formData,
       completion_percentage: 100,
       is_complete: true
@@ -93,17 +103,47 @@ export function UnifiedFollowUpForm({ vin, onComplete }: UnifiedFollowUpFormProp
   const renderTabContent = () => {
     switch (activeTab) {
       case 'condition':
-        return <VehicleConditionTab formData={formData} updateFormData={updateFormData} />;
+        return (
+          <VehicleConditionTab
+            formData={formData}
+            updateFormData={updateFormData}
+          />
+        );
       case 'accidents':
-        return <AccidentHistoryTab formData={formData} onAccidentChange={handleAccidentChange} />;
+        return (
+          <AccidentHistoryTab
+            formData={formData}
+            onAccidentsChange={handleAccidentChange}
+          />
+        );
       case 'service':
-        return <ServiceMaintenanceTab formData={formData} updateFormData={updateFormData} />;
+        return (
+          <ServiceMaintenanceTab
+            formData={formData}
+            updateFormData={updateFormData}
+          />
+        );
       case 'title':
-        return <TitleOwnershipTab formData={formData} updateFormData={updateFormData} />;
+        return (
+          <TitleOwnershipTab
+            formData={formData}
+            updateFormData={updateFormData}
+          />
+        );
       case 'physical':
-        return <PhysicalFeaturesTab formData={formData} updateFormData={updateFormData} />;
+        return (
+          <PhysicalFeaturesTab
+            formData={formData}
+            updateFormData={updateFormData}
+          />
+        );
       case 'modifications':
-        return <ModificationsTab formData={formData} onModificationsChange={handleModificationsChange} />;
+        return (
+          <ModificationsTab
+            formData={formData}
+            onModificationsChange={handleModificationChange}
+          />
+        );
       default:
         return null;
     }
