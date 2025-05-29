@@ -1,3 +1,4 @@
+
 export const TITLE_STATUS_OPTIONS = [
   { value: 'clean', label: 'Clean Title', description: 'No reported accidents, damage, or issues' },
   { value: 'salvage', label: 'Salvage Title', description: 'Vehicle has been declared a total loss by an insurance company' },
@@ -25,6 +26,13 @@ export const MAINTENANCE_STATUS_OPTIONS = [
   { value: 'good', label: 'Good', description: 'Minor maintenance may be needed soon' },
   { value: 'fair', label: 'Fair', description: 'Some maintenance needed' },
   { value: 'poor', label: 'Poor', description: 'Major maintenance needed' },
+];
+
+export const CONDITION_OPTIONS = [
+  { value: 'excellent', label: 'Excellent', description: 'Like new condition' },
+  { value: 'good', label: 'Good', description: 'Well maintained with minor wear' },
+  { value: 'fair', label: 'Fair', description: 'Shows wear but functional' },
+  { value: 'poor', label: 'Poor', description: 'Needs significant work' },
 ];
 
 export const TIRE_CONDITION_OPTIONS = [
@@ -93,6 +101,8 @@ export interface FollowUpAnswers {
   
   // Physical Features
   tire_condition: 'excellent' | 'good' | 'fair' | 'poor';
+  exterior_condition?: 'excellent' | 'good' | 'fair' | 'poor';
+  interior_condition?: 'excellent' | 'good' | 'fair' | 'poor';
   frame_damage: boolean;
   dashboard_lights: string[];
   
@@ -101,6 +111,9 @@ export interface FollowUpAnswers {
   
   // Modifications
   modifications: ModificationDetails;
+  
+  // Features
+  features?: string[];
   
   // Progress Tracking
   completion_percentage: number;
