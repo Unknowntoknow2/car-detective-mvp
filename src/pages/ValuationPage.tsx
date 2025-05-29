@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
@@ -16,15 +17,18 @@ export default function ValuationPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showFollowUp, setShowFollowUp] = useState(false);
 
-  // Ensure VIN is defined before proceeding - handle undefined case
+  // Handle potentially undefined VIN parameter
   const vin = vinParam || '';
 
   useEffect(() => {
     if (vin && vin.length === 17) {
       console.log('🔍 ValuationPage: Loading vehicle data for VIN:', vin);
       loadVehicleData(vin);
+    } else if (vinParam) {
+      // VIN is present but invalid length
+      toast.error('Invalid VIN format. VIN must be 17 characters long.');
     }
-  }, [vin]);
+  }, [vin, vinParam]);
 
   const loadVehicleData = async (vinCode: string) => {
     setIsLoading(true);
@@ -54,7 +58,8 @@ export default function ValuationPage() {
     // Handle final valuation here
   };
 
-  if (!vin) {
+  // If no VIN parameter at all, show error message
+  if (!vinParam) {
     return (
       <Container className="max-w-6xl py-10">
         <div className="text-center">
@@ -63,6 +68,22 @@ export default function ValuationPage() {
           </h1>
           <p className="mt-4 text-lg text-gray-600">
             Please enter a VIN to get started with your valuation.
+          </p>
+        </div>
+      </Container>
+    );
+  }
+
+  // If VIN is present but invalid length
+  if (vin.length !== 17) {
+    return (
+      <Container className="max-w-6xl py-10">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+            Invalid VIN
+          </h1>
+          <p className="mt-4 text-lg text-gray-600">
+            The provided VIN "{vin}" is not valid. VINs must be exactly 17 characters long.
           </p>
         </div>
       </Container>
