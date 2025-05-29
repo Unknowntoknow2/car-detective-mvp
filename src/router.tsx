@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
@@ -21,6 +20,7 @@ import AuthCallbackPage from './pages/AuthCallbackPage';
 import PlatformDiagnosticsPage from './pages/PlatformDiagnosticsPage';
 import AuditPage from './pages/AuditPage';
 import PlateValuationPage from './pages/valuation/plate/PlateValuationPage';
+import ManualValuationPage from './pages/valuation/manual/ManualValuationPage';
 
 // Export routes configuration
 const routes: RouteObject[] = [
@@ -106,6 +106,12 @@ const routes: RouteObject[] = [
   {
     path: 'valuation/plate/:plate/:state',
     element: <PlateValuationPage />
+  },
+  
+  // Manual entry valuation route
+  {
+    path: 'valuation/manual',
+    element: <ManualValuationPage />
   },
   
   {

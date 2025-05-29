@@ -35,7 +35,7 @@ export function LookupTabs({ defaultTab = "vin" }: LookupTabsProps) {
   };
 
   const handleManualEntry = () => {
-    navigate('/premium');
+    navigate('/valuation/manual');
   };
 
   return (
