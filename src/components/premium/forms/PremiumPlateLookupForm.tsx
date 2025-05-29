@@ -1,12 +1,19 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
 import { Loader2, Car } from 'lucide-react';
+import { toast } from 'sonner';
+
+interface PremiumPlateLookupFormProps {
+  plate?: string;
+  setPlate?: (plate: string) => void;
+  stateCode?: string;
+  setStateCode?: (stateCode: string) => void;
+  onSubmit?: () => void;
+}
 
 const US_STATES = [
   { code: 'AL', name: 'Alabama' },
@@ -61,41 +68,28 @@ const US_STATES = [
   { code: 'WY', name: 'Wyoming' }
 ];
 
-interface PremiumPlateLookupFormProps {
-  plate?: string;
-  setPlate?: (plate: string) => void;
-  stateCode?: string;
-  setStateCode?: (state: string) => void;
-  onSubmit?: () => void;
-}
-
 export default function PremiumPlateLookupForm({ 
   plate: externalPlate, 
-  setPlate: externalSetPlate,
-  stateCode: externalStateCode,
-  setStateCode: externalSetStateCode,
+  setPlate: externalSetPlate, 
+  stateCode: externalStateCode, 
+  setStateCode: externalSetStateCode, 
   onSubmit: externalOnSubmit 
 }: PremiumPlateLookupFormProps) {
   const [internalPlate, setInternalPlate] = useState('');
-  const [internalState, setInternalState] = useState('');
+  const [internalStateCode, setInternalStateCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
   // Use external state if provided, otherwise use internal state
   const plate = externalPlate !== undefined ? externalPlate : internalPlate;
   const setPlate = externalSetPlate || setInternalPlate;
-  const state = externalStateCode !== undefined ? externalStateCode : internalState;
-  const setState = externalSetStateCode || setInternalState;
+  const stateCode = externalStateCode !== undefined ? externalStateCode : internalStateCode;
+  const setStateCode = externalSetStateCode || setInternalStateCode;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!plate || !state) {
-      toast({
-        title: "Missing Information",
-        description: "Please enter both license plate and state",
-        variant: "destructive"
-      });
+    if (!plate || !stateCode) {
+      toast.error('Please enter both license plate and state');
       return;
     }
 
@@ -108,23 +102,13 @@ export default function PremiumPlateLookupForm({
         return;
       }
 
-      // Mock license plate lookup for premium service
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Otherwise, use internal logic
+      toast.success('Processing premium plate lookup...');
+      console.log('Premium plate lookup:', { plate, stateCode });
       
-      toast({
-        title: "Plate Lookup Successful",
-        description: `Processing vehicle data for ${plate} from ${state}`,
-      });
-      
-      // Navigate to premium valuation results or next step
-      console.log('Premium plate lookup:', { plate, state });
     } catch (error) {
       console.error('Premium plate lookup error:', error);
-      toast({
-        title: "Lookup Error",
-        description: "An error occurred while processing your license plate",
-        variant: "destructive"
-      });
+      toast.error('An error occurred while processing your plate lookup');
     } finally {
       setIsLoading(false);
     }
@@ -138,7 +122,7 @@ export default function PremiumPlateLookupForm({
           Premium License Plate Lookup
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Enter your license plate number and state for advanced vehicle identification and premium analysis.
+          Enter your license plate and state for comprehensive vehicle analysis with CARFAX data, auction comparisons, and AI-powered insights.
         </p>
       </CardHeader>
       <CardContent>
@@ -158,14 +142,14 @@ export default function PremiumPlateLookupForm({
 
             <div className="space-y-2">
               <Label htmlFor="state">State</Label>
-              <Select value={state} onValueChange={setState}>
+              <Select value={stateCode} onValueChange={setStateCode}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
-                <SelectContent className="max-h-[200px]">
-                  {US_STATES.map((usState) => (
-                    <SelectItem key={usState.code} value={usState.code}>
-                      {usState.name} ({usState.code})
+                <SelectContent>
+                  {US_STATES.map((state) => (
+                    <SelectItem key={state.code} value={state.code}>
+                      {state.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -173,21 +157,21 @@ export default function PremiumPlateLookupForm({
             </div>
           </div>
 
-          <div className="bg-green-50 p-4 rounded-lg">
-            <h4 className="font-semibold text-green-900 mb-2">Premium Plate Lookup Includes:</h4>
-            <ul className="text-sm text-green-800 space-y-1">
-              <li>• Enhanced vehicle identification</li>
-              <li>• Registration history analysis</li>
-              <li>• Multi-source data verification</li>
-              <li>• Ownership timeline insights</li>
-              <li>• Premium market comparisons</li>
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h4 className="font-semibold text-blue-900 mb-2">Premium Features Include:</h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• CARFAX vehicle history report</li>
+              <li>• Real-time auction data analysis</li>
+              <li>• AI-powered condition assessment</li>
+              <li>• Market trend predictions</li>
+              <li>• Comprehensive valuation breakdown</li>
             </ul>
           </div>
 
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={isLoading || !plate || !state}
+            disabled={isLoading || !plate || !stateCode}
           >
             {isLoading ? (
               <>
