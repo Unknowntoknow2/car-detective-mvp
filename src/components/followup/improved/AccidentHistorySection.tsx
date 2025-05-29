@@ -1,178 +1,218 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Plus, X, CheckCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Button } from '@/components/ui/button';
+import { Plus, Trash2, AlertTriangle, Car, DollarSign } from 'lucide-react';
 
-interface AccidentReport {
-  id: string;
-  severity: 'minor' | 'moderate' | 'severe';
-  location: 'front' | 'rear' | 'side' | 'multiple';
-  professionallyRepaired: boolean;
-  description: string;
-  estimatedCost?: number;
+interface AccidentDetails {
+  hadAccident: boolean;
+  count?: number;
+  severity?: 'minor' | 'moderate' | 'major';
+  repaired?: boolean;
+  frameDamage?: boolean;
+  description?: string;
+  location?: string;
+  repairCost?: number;
+  accidents?: Array<{
+    severity: 'minor' | 'moderate' | 'major';
+    location: string;
+    repaired: boolean;
+    cost?: number;
+    description?: string;
+  }>;
 }
 
 interface AccidentHistorySectionProps {
-  hasAccident: boolean;
-  accidents: AccidentReport[];
-  onChange: (hasAccident: boolean, accidents: AccidentReport[]) => void;
+  value: AccidentDetails;
+  onChange: (value: AccidentDetails) => void;
 }
 
 const severityOptions = [
-  { value: 'minor', label: 'Minor', description: 'Cosmetic damage only', impact: '-5% to -10%' },
-  { value: 'moderate', label: 'Moderate', description: 'Structural damage, no frame', impact: '-10% to -20%' },
-  { value: 'severe', label: 'Severe', description: 'Frame damage, airbag deployment', impact: '-20% to -40%' }
+  {
+    id: 'minor',
+    title: 'Minor',
+    description: 'Cosmetic damage only, no structural impact',
+    icon: '🟢',
+    valueImpact: '-2% to -5%',
+    color: 'text-green-600 bg-green-50 border-green-200'
+  },
+  {
+    id: 'moderate',
+    title: 'Moderate',
+    description: 'Visible damage requiring repairs',
+    icon: '🟡',
+    valueImpact: '-8% to -15%',
+    color: 'text-yellow-600 bg-yellow-50 border-yellow-200'
+  },
+  {
+    id: 'major',
+    title: 'Major',
+    description: 'Significant structural damage',
+    icon: '🔴',
+    valueImpact: '-20% to -40%',
+    color: 'text-red-600 bg-red-50 border-red-200'
+  }
 ];
 
 const locationOptions = [
   { value: 'front', label: 'Front End' },
   { value: 'rear', label: 'Rear End' },
   { value: 'side', label: 'Side Impact' },
+  { value: 'roof', label: 'Roof/Rollover' },
   { value: 'multiple', label: 'Multiple Areas' }
 ];
 
-export function AccidentHistorySection({ hasAccident, accidents, onChange }: AccidentHistorySectionProps) {
-  const [currentReport, setCurrentReport] = useState<Partial<AccidentReport>>({});
-
-  const addAccidentReport = () => {
-    if (currentReport.severity && currentReport.location) {
-      const newReport: AccidentReport = {
-        id: Date.now().toString(),
-        severity: currentReport.severity as 'minor' | 'moderate' | 'severe',
-        location: currentReport.location as 'front' | 'rear' | 'side' | 'multiple',
-        professionallyRepaired: currentReport.professionallyRepaired || false,
-        description: currentReport.description || '',
-        estimatedCost: currentReport.estimatedCost
-      };
-      
-      onChange(true, [...accidents, newReport]);
-      setCurrentReport({});
-    }
+export function AccidentHistorySection({ value, onChange }: AccidentHistorySectionProps) {
+  const handleAccidentToggle = (hadAccident: boolean) => {
+    onChange({
+      ...value,
+      hadAccident,
+      count: hadAccident ? (value.count || 1) : undefined,
+      accidents: hadAccident ? (value.accidents || []) : [],
+      severity: hadAccident ? value.severity : undefined,
+      location: hadAccident ? value.location : undefined,
+      repaired: hadAccident ? value.repaired : undefined,
+      repairCost: hadAccident ? value.repairCost : undefined,
+      description: hadAccident ? value.description : undefined
+    });
   };
 
-  const removeAccidentReport = (id: string) => {
-    const updatedAccidents = accidents.filter(acc => acc.id !== id);
-    onChange(updatedAccidents.length > 0, updatedAccidents);
+  const handleAccidentCountChange = (count: number) => {
+    const accidents = Array.from({ length: count }, (_, index) => 
+      value.accidents?.[index] || {
+        severity: 'minor' as const,
+        location: 'front',
+        repaired: false,
+        cost: undefined,
+        description: ''
+      }
+    );
+    
+    onChange({
+      ...value,
+      count,
+      accidents
+    });
   };
 
-  const handleAccidentToggle = (value: boolean) => {
-    onChange(value, value ? accidents : []);
-    if (!value) {
-      setCurrentReport({});
-    }
+  const updateAccident = (index: number, accidentData: Partial<typeof value.accidents[0]>) => {
+    const updatedAccidents = [...(value.accidents || [])];
+    updatedAccidents[index] = { ...updatedAccidents[index], ...accidentData };
+    onChange({
+      ...value,
+      accidents: updatedAccidents
+    });
   };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-orange-500" />
+          <AlertTriangle className="h-5 w-5" />
           Accident History
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Has this vehicle been in any accidents?
+          Accident history significantly impacts vehicle value
         </p>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Yes/No Toggle */}
-        <div className="flex gap-3">
-          <Button
-            type="button"
-            variant={!hasAccident ? "default" : "outline"}
-            onClick={() => handleAccidentToggle(false)}
-            className="flex-1"
+      <CardContent className="space-y-6">
+        {/* Has Accident Toggle */}
+        <div>
+          <Label className="text-base font-medium">Has this vehicle been in any accidents?</Label>
+          <RadioGroup 
+            value={value.hadAccident ? 'yes' : 'no'}
+            onValueChange={(val) => handleAccidentToggle(val === 'yes')}
+            className="flex gap-6 mt-3"
           >
-            <CheckCircle className="h-4 w-4 mr-2" />
-            No accidents
-          </Button>
-          <Button
-            type="button"
-            variant={hasAccident ? "default" : "outline"}
-            onClick={() => handleAccidentToggle(true)}
-            className="flex-1"
-          >
-            <AlertTriangle className="h-4 w-4 mr-2" />
-            Yes, there were accidents
-          </Button>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="no" id="no-accident" />
+              <Label htmlFor="no-accident" className="cursor-pointer">No accidents</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="yes" id="yes-accident" />
+              <Label htmlFor="yes-accident" className="cursor-pointer">Yes, there were accidents</Label>
+            </div>
+          </RadioGroup>
         </div>
 
-        {hasAccident && (
-          <div className="space-y-4 border-t pt-4">
-            {/* Existing Accident Reports */}
-            {accidents.map((accident, index) => (
-              <div key={accident.id} className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-medium">Accident #{index + 1}</h4>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeAccidentReport(accident.id)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium">Severity:</span> {accident.severity}
-                    <Badge variant="secondary" className="ml-2">
-                      {severityOptions.find(s => s.value === accident.severity)?.impact}
-                    </Badge>
-                  </div>
-                  <div>
-                    <span className="font-medium">Location:</span> {accident.location}
-                  </div>
-                  <div>
-                    <span className="font-medium">Professionally Repaired:</span> {accident.professionallyRepaired ? 'Yes' : 'No'}
-                  </div>
-                  {accident.estimatedCost && (
-                    <div>
-                      <span className="font-medium">Repair Cost:</span> ${accident.estimatedCost.toLocaleString()}
-                    </div>
-                  )}
-                </div>
-                {accident.description && (
-                  <div className="mt-2">
-                    <span className="font-medium text-sm">Description:</span>
-                    <p className="text-sm text-gray-600 mt-1">{accident.description}</p>
-                  </div>
-                )}
-              </div>
-            ))}
+        {value.hadAccident && (
+          <div className="space-y-6 pt-4 border-t">
+            {/* Accident Count */}
+            <div>
+              <Label className="text-base font-medium">Number of accidents</Label>
+              <Select 
+                value={value.count?.toString() || '1'} 
+                onValueChange={(val) => handleAccidentCountChange(parseInt(val))}
+              >
+                <SelectTrigger className="w-full mt-2">
+                  <SelectValue placeholder="Select number of accidents" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5].map(num => (
+                    <SelectItem key={num} value={num.toString()}>
+                      {num} {num === 1 ? 'accident' : 'accidents'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            {/* Add New Accident Form */}
-            <div className="border-2 border-dashed border-gray-300 p-4 rounded-lg">
-              <h4 className="font-medium mb-3">Add Accident Report</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Individual Accident Details */}
+            {value.accidents?.map((accident, index) => (
+              <div key={index} className="space-y-4 p-4 border rounded-lg bg-gray-50">
+                <h4 className="font-medium flex items-center gap-2">
+                  <Car className="h-4 w-4" />
+                  Accident #{index + 1}
+                </h4>
+
+                {/* Severity Selection */}
                 <div>
-                  <Label>Severity Level</Label>
-                  <Select value={currentReport.severity} onValueChange={(value) => setCurrentReport({...currentReport, severity: value as any})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select severity" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {severityOptions.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                          <div>
-                            <div className="font-medium">{option.label}</div>
-                            <div className="text-xs text-gray-500">{option.description}</div>
+                  <Label className="text-sm font-medium">Severity Level</Label>
+                  <div className="grid grid-cols-1 gap-3 mt-2">
+                    {severityOptions.map((option) => (
+                      <div
+                        key={option.id}
+                        onClick={() => updateAccident(index, { severity: option.id as 'minor' | 'moderate' | 'major' })}
+                        className={`
+                          cursor-pointer rounded-lg border-2 p-3 transition-all hover:shadow-md
+                          ${accident.severity === option.id 
+                            ? `${option.color} ring-2 ring-blue-500 ring-offset-2` 
+                            : 'border-gray-200 hover:border-gray-300 bg-white'
+                          }
+                        `}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg">{option.icon}</span>
+                            <div>
+                              <h4 className="font-medium">{option.title}</h4>
+                              <p className="text-sm text-gray-600">{option.description}</p>
+                            </div>
                           </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                          <Badge variant={accident.severity === option.id ? 'default' : 'secondary'} className="text-xs">
+                            {option.valueImpact}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
+                {/* Location */}
                 <div>
-                  <Label>Accident Location</Label>
-                  <Select value={currentReport.location} onValueChange={(value) => setCurrentReport({...currentReport, location: value as any})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select location" />
+                  <Label className="text-sm font-medium">Accident Location</Label>
+                  <Select 
+                    value={accident.location || 'front'} 
+                    onValueChange={(val) => updateAccident(index, { location: val })}
+                  >
+                    <SelectTrigger className="w-full mt-2">
+                      <SelectValue placeholder="Select accident location" />
                     </SelectTrigger>
                     <SelectContent>
                       {locationOptions.map(option => (
@@ -184,47 +224,55 @@ export function AccidentHistorySection({ hasAccident, accidents, onChange }: Acc
                   </Select>
                 </div>
 
+                {/* Professional Repair */}
                 <div>
-                  <Label>Estimated Repair Cost (Optional)</Label>
-                  <Input
-                    type="number"
-                    placeholder="$0"
-                    value={currentReport.estimatedCost || ''}
-                    onChange={(e) => setCurrentReport({...currentReport, estimatedCost: parseInt(e.target.value) || undefined})}
-                  />
+                  <Label className="text-sm font-medium">Was it professionally repaired?</Label>
+                  <RadioGroup 
+                    value={accident.repaired ? 'yes' : 'no'}
+                    onValueChange={(val) => updateAccident(index, { repaired: val === 'yes' })}
+                    className="flex gap-4 mt-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="yes" id={`repaired-yes-${index}`} />
+                      <Label htmlFor={`repaired-yes-${index}`}>Yes, professionally repaired</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="no" id={`repaired-no-${index}`} />
+                      <Label htmlFor={`repaired-no-${index}`}>No / DIY repair</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="professionally-repaired"
-                    checked={currentReport.professionallyRepaired || false}
-                    onChange={(e) => setCurrentReport({...currentReport, professionallyRepaired: e.target.checked})}
+                {/* Repair Cost */}
+                {accident.repaired && (
+                  <div>
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Repair Cost (optional)
+                    </Label>
+                    <Input
+                      type="number"
+                      placeholder="Enter repair cost"
+                      value={accident.cost || ''}
+                      onChange={(e) => updateAccident(index, { cost: e.target.value ? parseInt(e.target.value) : undefined })}
+                      className="mt-2"
+                    />
+                  </div>
+                )}
+
+                {/* Description */}
+                <div>
+                  <Label className="text-sm font-medium">Description (optional)</Label>
+                  <Textarea
+                    placeholder="Describe the accident and any additional details..."
+                    value={accident.description || ''}
+                    onChange={(e) => updateAccident(index, { description: e.target.value })}
+                    rows={3}
+                    className="mt-2"
                   />
-                  <Label htmlFor="professionally-repaired">Professionally repaired</Label>
                 </div>
               </div>
-
-              <div className="mt-4">
-                <Label>Description (Optional)</Label>
-                <Textarea
-                  placeholder="Describe the accident and repairs..."
-                  value={currentReport.description || ''}
-                  onChange={(e) => setCurrentReport({...currentReport, description: e.target.value})}
-                  rows={3}
-                />
-              </div>
-
-              <Button
-                type="button"
-                onClick={addAccidentReport}
-                disabled={!currentReport.severity || !currentReport.location}
-                className="mt-4"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Accident Report
-              </Button>
-            </div>
+            ))}
           </div>
         )}
       </CardContent>
