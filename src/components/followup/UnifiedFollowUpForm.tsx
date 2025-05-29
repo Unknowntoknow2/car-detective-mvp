@@ -1,536 +1,602 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
-import { FollowUpAnswers, CONDITION_OPTIONS, SERVICE_HISTORY_OPTIONS, TITLE_STATUS_OPTIONS, TIRE_CONDITION_OPTIONS, PREVIOUS_USE_OPTIONS, DASHBOARD_LIGHTS, MODIFICATION_TYPES } from '@/types/follow-up-answers';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { 
-  Car, 
-  FileText, 
-  Wrench, 
-  AlertTriangle, 
-  Gauge, 
-  HandCoins,
-  Info
+  Car, Shield, Wrench, AlertTriangle, 
+  Settings, HandCoins, CheckCircle2, 
+  Clock, Star, TrendingUp, Award,
+  Gauge, PaintBucket, Engine, Zap
 } from 'lucide-react';
-
-const followUpSchema = z.object({
-  mileage: z.number().min(0).optional(),
-  zip_code: z.string().optional(),
-  condition: z.enum(['excellent', 'good', 'fair', 'poor']).optional(),
-  accidents: z.object({
-    hadAccident: z.boolean(),
-    count: z.number().optional(),
-    severity: z.enum(['minor', 'moderate', 'major']).optional(),
-    repaired: z.boolean().optional(),
-    frameDamage: z.boolean().optional(),
-    description: z.string().optional(),
-  }).optional(),
-  service_history: z.string().optional(),
-  maintenance_status: z.string().optional(),
-  last_service_date: z.string().optional(),
-  title_status: z.string().optional(),
-  previous_owners: z.number().optional(),
-  previous_use: z.string().optional(),
-  tire_condition: z.string().optional(),
-  dashboard_lights: z.array(z.string()).optional(),
-  frame_damage: z.boolean().optional(),
-  modifications: z.object({
-    modified: z.boolean(),
-    types: z.array(z.string()).optional(),
-    reversible: z.boolean().optional(),
-  }).optional(),
-});
+import { cn } from '@/lib/utils';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { toast } from 'sonner';
 
 interface UnifiedFollowUpFormProps {
   vin: string;
-  onComplete: (data: FollowUpAnswers) => void;
+  onComplete: (answers: FollowUpAnswers) => void;
   initialData?: Partial<FollowUpAnswers>;
-  className?: string;
 }
 
-export function UnifiedFollowUpForm({ vin, onComplete, initialData = {}, className = '' }: UnifiedFollowUpFormProps) {
-  const [completionProgress, setCompletionProgress] = useState(0);
-  
-  const form = useForm<FollowUpAnswers>({
+const followUpSchema = z.object({
+  mileage: z.number().min(0).max(999999),
+  zipCode: z.string().min(5).max(10),
+  condition: z.enum(['excellent', 'good', 'fair', 'poor']),
+  titleStatus: z.enum(['clean', 'salvage', 'rebuilt', 'branded', 'lemon']),
+  previousOwners: z.number().min(1).max(10),
+  previousUse: z.enum(['personal', 'commercial', 'rental', 'emergency']),
+  serviceHistory: z.enum(['dealer', 'independent', 'owner', 'unknown']),
+  hasRegularMaintenance: z.boolean().nullable(),
+  hasAccident: z.boolean().nullable(),
+  accidentSeverity: z.enum(['minor', 'moderate', 'severe']).optional(),
+  tireCondition: z.enum(['excellent', 'good', 'worn', 'replacement']),
+  dashboardLights: z.array(z.string()),
+  hasModifications: z.boolean(),
+});
+
+type FormData = z.infer<typeof followUpSchema>;
+
+const CONDITION_OPTIONS = [
+  { 
+    value: 'excellent', 
+    label: 'Excellent', 
+    description: 'Like new condition, no visible wear',
+    color: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+    icon: Award,
+    impact: '+15% to +20%'
+  },
+  { 
+    value: 'good', 
+    label: 'Good', 
+    description: 'Minor wear, well maintained',
+    color: 'bg-blue-50 border-blue-200 text-blue-800',
+    icon: CheckCircle2,
+    impact: 'Baseline'
+  },
+  { 
+    value: 'fair', 
+    label: 'Fair', 
+    description: 'Noticeable wear, some issues',
+    color: 'bg-amber-50 border-amber-200 text-amber-800',
+    icon: Clock,
+    impact: '-10% to -20%'
+  },
+  { 
+    value: 'poor', 
+    label: 'Poor', 
+    description: 'Significant wear, needs repairs',
+    color: 'bg-red-50 border-red-200 text-red-800',
+    icon: AlertTriangle,
+    impact: '-25% to -40%'
+  }
+];
+
+const TITLE_STATUS_OPTIONS = [
+  { 
+    value: 'clean', 
+    label: 'Clean Title', 
+    description: 'No damage history',
+    color: 'bg-green-50 border-green-200 text-green-800',
+    impact: 'Full Value'
+  },
+  { 
+    value: 'branded', 
+    label: 'Branded Title', 
+    description: 'Minor damage reported',
+    color: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+    impact: '-15% to -30%'
+  },
+  { 
+    value: 'rebuilt', 
+    label: 'Rebuilt Title', 
+    description: 'Previously totaled, rebuilt',
+    color: 'bg-orange-50 border-orange-200 text-orange-800',
+    impact: '-20% to -40%'
+  },
+  { 
+    value: 'salvage', 
+    label: 'Salvage Title', 
+    description: 'Declared total loss',
+    color: 'bg-red-50 border-red-200 text-red-800',
+    impact: '-40% to -60%'
+  }
+];
+
+const SERVICE_HISTORY_OPTIONS = [
+  { 
+    value: 'dealer', 
+    label: 'Dealer Serviced', 
+    description: 'Full dealer maintenance records',
+    color: 'bg-purple-50 border-purple-200 text-purple-800',
+    icon: Award,
+    impact: '+5% to +10%'
+  },
+  { 
+    value: 'independent', 
+    label: 'Independent Shop', 
+    description: 'Professional mechanic serviced',
+    color: 'bg-blue-50 border-blue-200 text-blue-800',
+    icon: Wrench,
+    impact: '+2% to +5%'
+  },
+  { 
+    value: 'owner', 
+    label: 'Owner Maintained', 
+    description: 'Self-serviced with records',
+    color: 'bg-green-50 border-green-200 text-green-800',
+    icon: Settings,
+    impact: 'Neutral'
+  },
+  { 
+    value: 'unknown', 
+    label: 'Unknown History', 
+    description: 'No maintenance records',
+    color: 'bg-gray-50 border-gray-200 text-gray-800',
+    icon: AlertTriangle,
+    impact: '-5% to -10%'
+  }
+];
+
+const TIRE_CONDITIONS = [
+  { 
+    value: 'excellent', 
+    label: 'Excellent', 
+    description: '8/32" or more tread depth',
+    color: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+    impact: '+2% to +3%'
+  },
+  { 
+    value: 'good', 
+    label: 'Good', 
+    description: '6-7/32" tread depth',
+    color: 'bg-blue-50 border-blue-200 text-blue-800',
+    impact: 'Neutral'
+  },
+  { 
+    value: 'worn', 
+    label: 'Worn', 
+    description: '3-5/32" tread depth',
+    color: 'bg-amber-50 border-amber-200 text-amber-800',
+    impact: '-1% to -2%'
+  },
+  { 
+    value: 'replacement', 
+    label: 'Needs Replacement', 
+    description: 'Less than 3/32" tread',
+    color: 'bg-red-50 border-red-200 text-red-800',
+    impact: '-3% to -5%'
+  }
+];
+
+export function UnifiedFollowUpForm({ vin, onComplete, initialData }: UnifiedFollowUpFormProps) {
+  const [selectedCondition, setSelectedCondition] = useState(initialData?.condition || 'good');
+  const [selectedTitleStatus, setSelectedTitleStatus] = useState(initialData?.titleStatus || 'clean');
+  const [selectedServiceHistory, setSelectedServiceHistory] = useState(initialData?.serviceHistory || 'unknown');
+  const [selectedTireCondition, setSelectedTireCondition] = useState(initialData?.tireCondition || 'good');
+  const [hasAccident, setHasAccident] = useState<boolean | null>(initialData?.accidents?.hadAccident || null);
+  const [hasRegularMaintenance, setHasRegularMaintenance] = useState<boolean | null>(initialData?.hasRegularMaintenance || null);
+  const [hasModifications, setHasModifications] = useState(initialData?.hasModifications || false);
+  const [mileage, setMileage] = useState(initialData?.mileage || 0);
+  const [zipCode, setZipCode] = useState(initialData?.zip_code || '');
+  const [previousOwners, setPreviousOwners] = useState(initialData?.previous_owners || 1);
+  const [dashboardLights, setDashboardLights] = useState<string[]>(initialData?.dashboard_lights || []);
+
+  const form = useForm<FormData>({
     resolver: zodResolver(followUpSchema),
     defaultValues: {
-      vin,
-      ...initialData,
-      accidents: {
-        hadAccident: false,
-        ...initialData.accidents,
-      },
-      modifications: {
-        modified: false,
-        ...initialData.modifications,
-      },
-      dashboard_lights: initialData.dashboard_lights || [],
-    },
+      condition: selectedCondition as any,
+      titleStatus: selectedTitleStatus as any,
+      serviceHistory: selectedServiceHistory as any,
+      tireCondition: selectedTireCondition as any,
+      hasAccident,
+      hasRegularMaintenance,
+      hasModifications,
+      mileage,
+      zipCode,
+      previousOwners,
+      dashboardLights,
+    }
   });
 
-  const watchedValues = form.watch();
+  // Calculate progress based on completed fields
+  const calculateProgress = () => {
+    let completed = 0;
+    const total = 11; // Total number of required fields
 
-  // Calculate completion progress
-  useEffect(() => {
-    const totalFields = 15; // Approximate number of important fields
-    let completedFields = 0;
+    if (mileage > 0) completed++;
+    if (zipCode.length >= 5) completed++;
+    if (selectedCondition) completed++;
+    if (selectedTitleStatus) completed++;
+    if (previousOwners >= 1) completed++;
+    if (selectedServiceHistory) completed++;
+    if (hasRegularMaintenance !== null) completed++;
+    if (hasAccident !== null) completed++;
+    if (selectedTireCondition) completed++;
+    if (dashboardLights.length >= 0) completed++; // Always counted as completed
+    if (typeof hasModifications === 'boolean') completed++;
 
-    if (watchedValues.mileage) completedFields++;
-    if (watchedValues.zip_code) completedFields++;
-    if (watchedValues.condition) completedFields++;
-    if (watchedValues.service_history) completedFields++;
-    if (watchedValues.maintenance_status) completedFields++;
-    if (watchedValues.title_status) completedFields++;
-    if (watchedValues.previous_owners) completedFields++;
-    if (watchedValues.previous_use) completedFields++;
-    if (watchedValues.tire_condition) completedFields++;
-    if (watchedValues.dashboard_lights?.length) completedFields++;
-    if (watchedValues.accidents?.hadAccident !== undefined) completedFields++;
-    if (watchedValues.modifications?.modified !== undefined) completedFields++;
-    if (watchedValues.frame_damage !== undefined) completedFields++;
-    if (watchedValues.last_service_date) completedFields++;
-
-    const progress = Math.round((completedFields / totalFields) * 100);
-    setCompletionProgress(progress);
-  }, [watchedValues]);
-
-  const setAnswer = (field: keyof FollowUpAnswers, value: any) => {
-    form.setValue(field, value);
+    return Math.round((completed / total) * 100);
   };
 
-  const onSubmit = (data: FollowUpAnswers) => {
-    const completionPercentage = completionProgress;
-    const isComplete = completionPercentage >= 80;
+  const progress = calculateProgress();
 
-    const finalData = {
-      ...data,
+  const handleSubmit = (data: FormData) => {
+    const answers: FollowUpAnswers = {
       vin,
-      completion_percentage: completionPercentage,
-      is_complete: isComplete,
+      mileage: data.mileage,
+      zip_code: data.zipCode,
+      condition: data.condition,
+      title_status: data.titleStatus,
+      previous_owners: data.previousOwners,
+      previous_use: 'personal', // Default value
+      service_history: data.serviceHistory,
+      maintenance_status: hasRegularMaintenance ? 'Up to date' : 'Overdue',
+      tire_condition: data.tireCondition,
+      dashboard_lights: data.dashboardLights,
+      accidents: {
+        hadAccident: data.hasAccident || false,
+        severity: data.accidentSeverity,
+      },
+      modifications: {
+        modified: data.hasModifications,
+      },
+      completion_percentage: progress,
+      is_complete: progress >= 80,
     };
 
-    onComplete(finalData);
+    onComplete(answers);
+    toast.success('Vehicle details submitted successfully!');
   };
 
-  return (
-    <TooltipProvider>
-      <div className={`max-w-4xl mx-auto space-y-6 ${className}`}>
-        {/* Progress Bar */}
-        <div className="bg-white rounded-lg border p-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold">Vehicle Assessment Progress</h3>
-            <span className="text-sm text-gray-600">{completionProgress}% Complete</span>
-          </div>
-          <Progress value={completionProgress} className="h-3" />
-          <p className="text-sm text-gray-500 mt-2">
-            Complete more sections to improve valuation accuracy
-          </p>
-        </div>
-
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <Accordion type="multiple" className="space-y-4">
-            
-            {/* Vehicle Details Section */}
-            <AccordionItem value="vehicle-details" className="bg-white rounded-lg border">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <Car className="w-5 h-5 text-blue-600" />
-                  <span className="text-lg font-semibold">Vehicle Details</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="mileage">Current Mileage</Label>
-                    <Input
-                      id="mileage"
-                      type="number"
-                      placeholder="e.g., 50000"
-                      {...form.register('mileage', { valueAsNumber: true })}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="zip_code">Zip Code</Label>
-                    <Input
-                      id="zip_code"
-                      placeholder="e.g., 90210"
-                      {...form.register('zip_code')}
-                    />
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <Label>Overall Condition</Label>
-                    <RadioGroup
-                      value={watchedValues.condition || ''}
-                      onValueChange={(value) => setAnswer('condition', value)}
-                    >
-                      {CONDITION_OPTIONS.map((option) => (
-                        <div key={option.value} className="flex items-center space-x-2">
-                          <RadioGroupItem value={option.value} id={option.value} />
-                          <Label htmlFor={option.value} className="flex-1">
-                            <div className="font-medium">{option.label}</div>
-                            <div className="text-sm text-gray-500">{option.description}</div>
-                            <div className="text-xs text-blue-600">{option.impact}</div>
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* Ownership & Title Section */}
-            <AccordionItem value="ownership-title" className="bg-white rounded-lg border">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <FileText className="w-5 h-5 text-green-600" />
-                  <span className="text-lg font-semibold">Ownership & Title</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label>Title Status</Label>
-                    <Select value={watchedValues.title_status || ''} onValueChange={(value) => setAnswer('title_status', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select title status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TITLE_STATUS_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label} - {option.impact}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="previous_owners">Number of Previous Owners</Label>
-                    <Input
-                      id="previous_owners"
-                      type="number"
-                      min="0"
-                      placeholder="e.g., 2"
-                      {...form.register('previous_owners', { valueAsNumber: true })}
-                    />
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <Label>Previous Use</Label>
-                    <RadioGroup
-                      value={watchedValues.previous_use || ''}
-                      onValueChange={(value) => setAnswer('previous_use', value)}
-                    >
-                      {PREVIOUS_USE_OPTIONS.map((option) => (
-                        <div key={option.value} className="flex items-center space-x-2">
-                          <RadioGroupItem value={option.value} id={`use-${option.value}`} />
-                          <Label htmlFor={`use-${option.value}`}>
-                            {option.label} - <span className="text-sm text-blue-600">{option.impact}</span>
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* Service History Section */}
-            <AccordionItem value="service-history" className="bg-white rounded-lg border">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <Wrench className="w-5 h-5 text-purple-600" />
-                  <span className="text-lg font-semibold">Service History</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label>Service History Type</Label>
-                    <Select value={watchedValues.service_history || ''} onValueChange={(value) => setAnswer('service_history', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select service history" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SERVICE_HISTORY_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label} - {option.impact}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Maintenance Status</Label>
-                    <Select value={watchedValues.maintenance_status || ''} onValueChange={(value) => setAnswer('maintenance_status', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select maintenance status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="up-to-date">Up to date</SelectItem>
-                        <SelectItem value="overdue">Overdue</SelectItem>
-                        <SelectItem value="unknown">Unknown</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="last_service_date">Last Service Date</Label>
-                    <Input
-                      id="last_service_date"
-                      type="date"
-                      {...form.register('last_service_date')}
-                    />
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* Damage & Accidents Section */}
-            <AccordionItem value="damage-accidents" className="bg-white rounded-lg border">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
-                  <span className="text-lg font-semibold">Damage & Accidents</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="space-y-6">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="had-accident"
-                      checked={watchedValues.accidents?.hadAccident || false}
-                      onCheckedChange={(checked) => 
-                        setAnswer('accidents', { 
-                          ...watchedValues.accidents, 
-                          hadAccident: checked === true 
-                        })
-                      }
-                    />
-                    <Label htmlFor="had-accident">Vehicle has been in an accident</Label>
-                  </div>
-
-                  {watchedValues.accidents?.hadAccident && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label>Accident Severity</Label>
-                        <Select 
-                          value={watchedValues.accidents?.severity || ''} 
-                          onValueChange={(value) => 
-                            setAnswer('accidents', { 
-                              ...watchedValues.accidents, 
-                              severity: value as 'minor' | 'moderate' | 'major'
-                            })
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select severity" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="minor">Minor</SelectItem>
-                            <SelectItem value="moderate">Moderate</SelectItem>
-                            <SelectItem value="major">Major</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="accident-count">Number of Accidents</Label>
-                        <Input
-                          id="accident-count"
-                          type="number"
-                          min="0"
-                          value={watchedValues.accidents?.count || ''}
-                          onChange={(e) => 
-                            setAnswer('accidents', { 
-                              ...watchedValues.accidents, 
-                              count: parseInt(e.target.value) || 0
-                            })
-                          }
-                        />
-                      </div>
-
-                      <div className="md:col-span-2 space-y-2">
-                        <Label htmlFor="accident-description">Accident Description</Label>
-                        <Textarea
-                          id="accident-description"
-                          placeholder="Describe the accident and any damage..."
-                          value={watchedValues.accidents?.description || ''}
-                          onChange={(e) => 
-                            setAnswer('accidents', { 
-                              ...watchedValues.accidents, 
-                              description: e.target.value
-                            })
-                          }
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="frame-damage"
-                      checked={watchedValues.frame_damage || false}
-                      onCheckedChange={(checked) => setAnswer('frame_damage', checked === true)}
-                    />
-                    <Label htmlFor="frame-damage">Vehicle has frame damage</Label>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* Tires & Maintenance Section */}
-            <AccordionItem value="tires-maintenance" className="bg-white rounded-lg border">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <Gauge className="w-5 h-5 text-orange-600" />
-                  <span className="text-lg font-semibold">Tires & Maintenance</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label>Tire Condition</Label>
-                    <RadioGroup
-                      value={watchedValues.tire_condition || ''}
-                      onValueChange={(value) => setAnswer('tire_condition', value)}
-                    >
-                      {TIRE_CONDITION_OPTIONS.map((option) => (
-                        <div key={option.value} className="flex items-center space-x-2">
-                          <RadioGroupItem value={option.value} id={`tire-${option.value}`} />
-                          <Label htmlFor={`tire-${option.value}`}>
-                            {option.label} - <span className="text-sm text-blue-600">{option.impact}</span>
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Dashboard Warning Lights</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {DASHBOARD_LIGHTS.map((light) => (
-                        <div key={light.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`light-${light.value}`}
-                            checked={watchedValues.dashboard_lights?.includes(light.value) || false}
-                            onCheckedChange={(checked) => {
-                              const currentLights = watchedValues.dashboard_lights || [];
-                              if (checked) {
-                                setAnswer('dashboard_lights', [...currentLights, light.value]);
-                              } else {
-                                setAnswer('dashboard_lights', currentLights.filter(l => l !== light.value));
-                              }
-                            }}
-                          />
-                          <Label htmlFor={`light-${light.value}`} className="text-sm">
-                            {light.icon} {light.label}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* Offers & Listings Section */}
-            <AccordionItem value="offers-listings" className="bg-white rounded-lg border">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center gap-3">
-                  <HandCoins className="w-5 h-5 text-yellow-600" />
-                  <span className="text-lg font-semibold">Modifications & Extras</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-6">
-                <div className="space-y-6">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="modified"
-                      checked={watchedValues.modifications?.modified || false}
-                      onCheckedChange={(checked) => 
-                        setAnswer('modifications', { 
-                          ...watchedValues.modifications, 
-                          modified: checked === true 
-                        })
-                      }
-                    />
-                    <Label htmlFor="modified">Vehicle has been modified</Label>
-                  </div>
-
-                  {watchedValues.modifications?.modified && (
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Modification Types</Label>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                          {MODIFICATION_TYPES.map((type) => (
-                            <div key={type} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`mod-${type}`}
-                                checked={watchedValues.modifications?.types?.includes(type) || false}
-                                onCheckedChange={(checked) => {
-                                  const currentTypes = watchedValues.modifications?.types || [];
-                                  if (checked) {
-                                    setAnswer('modifications', {
-                                      ...watchedValues.modifications,
-                                      types: [...currentTypes, type]
-                                    });
-                                  } else {
-                                    setAnswer('modifications', {
-                                      ...watchedValues.modifications,
-                                      types: currentTypes.filter(t => t !== type)
-                                    });
-                                  }
-                                }}
-                              />
-                              <Label htmlFor={`mod-${type}`} className="text-sm">{type}</Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="reversible"
-                          checked={watchedValues.modifications?.reversible || false}
-                          onCheckedChange={(checked) => 
-                            setAnswer('modifications', { 
-                              ...watchedValues.modifications, 
-                              reversible: checked === true 
-                            })
-                          }
-                        />
-                        <Label htmlFor="reversible">Modifications are reversible</Label>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-          </Accordion>
-
-          <div className="flex justify-end pt-6">
-            <Button type="submit" size="lg" className="px-8">
-              Complete Assessment
-            </Button>
-          </div>
-        </form>
+  const SelectionCard = ({ 
+    options, 
+    selectedValue, 
+    onSelect, 
+    title, 
+    icon: Icon 
+  }: {
+    options: any[];
+    selectedValue: string;
+    onSelect: (value: string) => void;
+    title: string;
+    icon: any;
+  }) => (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-4">
+        <Icon className="h-5 w-5 text-primary" />
+        <h3 className="text-lg font-semibold">{title}</h3>
       </div>
-    </TooltipProvider>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {options.map((option) => {
+          const OptionIcon = option.icon || CheckCircle2;
+          return (
+            <div
+              key={option.value}
+              onClick={() => onSelect(option.value)}
+              className={cn(
+                "relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-lg",
+                selectedValue === option.value 
+                  ? `${option.color} border-current shadow-md scale-[1.02]` 
+                  : "bg-white border-gray-200 hover:border-gray-300"
+              )}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <OptionIcon className="h-4 w-4" />
+                    <span className="font-semibold">{option.label}</span>
+                  </div>
+                  <p className="text-sm opacity-80 mb-2">{option.description}</p>
+                  {option.impact && (
+                    <Badge variant="secondary" className="text-xs">
+                      {option.impact}
+                    </Badge>
+                  )}
+                </div>
+                {selectedValue === option.value && (
+                  <CheckCircle2 className="h-5 w-5 text-current flex-shrink-0" />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const YesNoSelector = ({ 
+    value, 
+    onChange, 
+    title, 
+    description,
+    icon: Icon 
+  }: {
+    value: boolean | null;
+    onChange: (value: boolean | null) => void;
+    title: string;
+    description?: string;
+    icon: any;
+  }) => (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-4">
+        <Icon className="h-5 w-5 text-primary" />
+        <div>
+          <h3 className="text-lg font-semibold">{title}</h3>
+          {description && <p className="text-sm text-gray-600">{description}</p>}
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { value: true, label: 'Yes', color: 'bg-green-50 border-green-200 text-green-800' },
+          { value: false, label: 'No', color: 'bg-red-50 border-red-200 text-red-800' },
+          { value: null, label: 'Unknown', color: 'bg-gray-50 border-gray-200 text-gray-800' }
+        ].map((option) => (
+          <div
+            key={String(option.value)}
+            onClick={() => onChange(option.value)}
+            className={cn(
+              "p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-lg text-center",
+              value === option.value 
+                ? `${option.color} border-current shadow-md scale-[1.02]` 
+                : "bg-white border-gray-200 hover:border-gray-300"
+            )}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <span className="font-semibold">{option.label}</span>
+              {value === option.value && (
+                <CheckCircle2 className="h-4 w-4 text-current" />
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 space-y-8">
+      {/* Progress Header */}
+      <Card className="border-none shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl font-bold text-gray-900">
+                Vehicle Assessment
+              </CardTitle>
+              <p className="text-gray-600 mt-1">
+                Complete your vehicle details for accurate valuation
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-primary">{progress}%</div>
+              <div className="text-sm text-gray-600">Complete</div>
+            </div>
+          </div>
+          <Progress value={progress} className="mt-4 h-3" />
+        </CardHeader>
+      </Card>
+
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        {/* Vehicle Condition Section */}
+        <Card className="shadow-lg border-l-4 border-l-blue-500">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
+            <CardTitle className="flex items-center gap-2 text-blue-900">
+              <Car className="h-6 w-6" />
+              Vehicle Condition
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <SelectionCard
+              options={CONDITION_OPTIONS}
+              selectedValue={selectedCondition}
+              onSelect={(value) => {
+                setSelectedCondition(value);
+                form.setValue('condition', value as any);
+              }}
+              title="Overall Condition"
+              icon={Gauge}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Title & Ownership Section */}
+        <Card className="shadow-lg border-l-4 border-l-green-500">
+          <CardHeader className="bg-gradient-to-r from-green-50 to-green-100">
+            <CardTitle className="flex items-center gap-2 text-green-900">
+              <Shield className="h-6 w-6" />
+              Title & Ownership
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-8">
+            <SelectionCard
+              options={TITLE_STATUS_OPTIONS}
+              selectedValue={selectedTitleStatus}
+              onSelect={(value) => {
+                setSelectedTitleStatus(value);
+                form.setValue('titleStatus', value as any);
+              }}
+              title="Title Status"
+              icon={Shield}
+            />
+            
+            <Separator />
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold">Previous Owners</h3>
+              </div>
+              <div className="grid grid-cols-5 gap-2">
+                {[1, 2, 3, 4, 5].map((num) => (
+                  <div
+                    key={num}
+                    onClick={() => {
+                      setPreviousOwners(num);
+                      form.setValue('previousOwners', num);
+                    }}
+                    className={cn(
+                      "p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-lg text-center",
+                      previousOwners === num 
+                        ? "bg-blue-50 border-blue-500 text-blue-800 shadow-md scale-[1.02]" 
+                        : "bg-white border-gray-200 hover:border-gray-300"
+                    )}
+                  >
+                    <span className="font-semibold">{num}</span>
+                    {num === 5 && <span className="text-xs block">+</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Service History Section */}
+        <Card className="shadow-lg border-l-4 border-l-purple-500">
+          <CardHeader className="bg-gradient-to-r from-purple-50 to-purple-100">
+            <CardTitle className="flex items-center gap-2 text-purple-900">
+              <Wrench className="h-6 w-6" />
+              Service & Maintenance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-8">
+            <SelectionCard
+              options={SERVICE_HISTORY_OPTIONS}
+              selectedValue={selectedServiceHistory}
+              onSelect={(value) => {
+                setSelectedServiceHistory(value);
+                form.setValue('serviceHistory', value as any);
+              }}
+              title="Service History"
+              icon={Wrench}
+            />
+            
+            <Separator />
+            
+            <YesNoSelector
+              value={hasRegularMaintenance}
+              onChange={(value) => {
+                setHasRegularMaintenance(value);
+                form.setValue('hasRegularMaintenance', value);
+              }}
+              title="Regular Maintenance"
+              description="Has the vehicle been regularly maintained?"
+              icon={Settings}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Damage & Accidents Section */}
+        <Card className="shadow-lg border-l-4 border-l-red-500">
+          <CardHeader className="bg-gradient-to-r from-red-50 to-red-100">
+            <CardTitle className="flex items-center gap-2 text-red-900">
+              <AlertTriangle className="h-6 w-6" />
+              Damage & Accidents
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <YesNoSelector
+              value={hasAccident}
+              onChange={(value) => {
+                setHasAccident(value);
+                form.setValue('hasAccident', value);
+              }}
+              title="Accident History"
+              description="Has this vehicle been in any accidents?"
+              icon={AlertTriangle}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Tires & Physical Condition */}
+        <Card className="shadow-lg border-l-4 border-l-orange-500">
+          <CardHeader className="bg-gradient-to-r from-orange-50 to-orange-100">
+            <CardTitle className="flex items-center gap-2 text-orange-900">
+              <TrendingUp className="h-6 w-6" />
+              Physical Condition
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <SelectionCard
+              options={TIRE_CONDITIONS}
+              selectedValue={selectedTireCondition}
+              onSelect={(value) => {
+                setSelectedTireCondition(value);
+                form.setValue('tireCondition', value as any);
+              }}
+              title="Tire Condition"
+              icon={TrendingUp}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Vehicle Details */}
+        <Card className="shadow-lg border-l-4 border-l-indigo-500">
+          <CardHeader className="bg-gradient-to-r from-indigo-50 to-indigo-100">
+            <CardTitle className="flex items-center gap-2 text-indigo-900">
+              <Engine className="h-6 w-6" />
+              Vehicle Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">Mileage</label>
+                <input
+                  type="number"
+                  value={mileage}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || 0;
+                    setMileage(value);
+                    form.setValue('mileage', value);
+                  }}
+                  className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
+                  placeholder="Enter mileage"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">ZIP Code</label>
+                <input
+                  type="text"
+                  value={zipCode}
+                  onChange={(e) => {
+                    setZipCode(e.target.value);
+                    form.setValue('zipCode', e.target.value);
+                  }}
+                  className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:outline-none transition-colors"
+                  placeholder="Enter ZIP code"
+                  maxLength={10}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Submit Button */}
+        <Card className="shadow-lg bg-gradient-to-r from-primary/5 to-primary/10">
+          <CardContent className="pt-6">
+            <Button 
+              type="submit" 
+              size="lg" 
+              className="w-full py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+              disabled={progress < 80}
+            >
+              <CheckCircle2 className="h-5 w-5 mr-2" />
+              Complete Assessment ({progress}% Complete)
+            </Button>
+            {progress < 80 && (
+              <p className="text-center text-sm text-gray-600 mt-2">
+                Please complete at least 80% of the assessment to continue
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </form>
+    </div>
   );
 }
