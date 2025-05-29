@@ -98,7 +98,7 @@ export function BasicVehicleForm({
         setSelectedModelId={handleModelChange}
         isLoading={isLoading}
         error={error}
-        onMakeChange={handleMakeChange}
+        isDisabled={false}
       />
       
       {errors.make && (
