@@ -75,6 +75,21 @@ export function useMakeModels() {
         console.log('✅ Make found:', makeCheck);
       }
 
+      // Check total count of models in the database
+      const { count: totalModelsCount } = await supabase
+        .from('models')
+        .select('*', { count: 'exact', head: true });
+      
+      console.log('📊 Total models in database:', totalModelsCount);
+
+      // Check if there are ANY models for ANY make
+      const { data: sampleModels } = await supabase
+        .from('models')
+        .select('id, model_name, make_id')
+        .limit(5);
+      
+      console.log('🔍 Sample models from database:', sampleModels);
+
       // Now fetch models with detailed logging
       const { data, error, count } = await supabase
         .from('models')
@@ -101,22 +116,6 @@ export function useMakeModels() {
       } else {
         console.log('⚠️ No models found for this make');
         setModels([]);
-        
-        // Debug query - let's see what's actually in the models table for this make
-        const { data: debugData } = await supabase
-          .from('models')
-          .select('*')
-          .eq('make_id', makeId);
-          
-        console.log('🔍 Debug - raw models data:', debugData);
-        
-        // Also check if there are any models at all
-        const { data: allModels } = await supabase
-          .from('models')
-          .select('id, model_name, make_id')
-          .limit(5);
-          
-        console.log('🔍 Debug - sample of all models:', allModels);
       }
 
     } catch (err: any) {
