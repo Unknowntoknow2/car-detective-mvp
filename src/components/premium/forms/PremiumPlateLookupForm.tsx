@@ -61,11 +61,31 @@ const US_STATES = [
   { code: 'WY', name: 'Wyoming' }
 ];
 
-export default function PremiumPlateLookupForm() {
-  const [plate, setPlate] = useState('');
-  const [state, setState] = useState('');
+interface PremiumPlateLookupFormProps {
+  plate?: string;
+  setPlate?: (plate: string) => void;
+  stateCode?: string;
+  setStateCode?: (state: string) => void;
+  onSubmit?: () => void;
+}
+
+export default function PremiumPlateLookupForm({ 
+  plate: externalPlate, 
+  setPlate: externalSetPlate,
+  stateCode: externalStateCode,
+  setStateCode: externalSetStateCode,
+  onSubmit: externalOnSubmit 
+}: PremiumPlateLookupFormProps) {
+  const [internalPlate, setInternalPlate] = useState('');
+  const [internalState, setInternalState] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Use external state if provided, otherwise use internal state
+  const plate = externalPlate !== undefined ? externalPlate : internalPlate;
+  const setPlate = externalSetPlate || setInternalPlate;
+  const state = externalStateCode !== undefined ? externalStateCode : internalState;
+  const setState = externalSetStateCode || setInternalState;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +102,12 @@ export default function PremiumPlateLookupForm() {
     setIsLoading(true);
     
     try {
+      // If external onSubmit is provided, use it
+      if (externalOnSubmit) {
+        externalOnSubmit();
+        return;
+      }
+
       // Mock license plate lookup for premium service
       await new Promise(resolve => setTimeout(resolve, 2000));
       

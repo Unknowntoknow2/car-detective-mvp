@@ -7,43 +7,43 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, Car } from 'lucide-react';
+import MakeAndModelSelector from '@/components/lookup/form-parts/MakeAndModelSelector';
 
-interface FormData {
-  makeId: string;
-  modelId: string;
-  year: string;
-  mileage: string;
-  condition: string;
-  zipCode: string;
-  fuelType: string;
-  transmission: string;
+interface PremiumManualEntryFormProps {
+  formData?: any;
+  setFormData?: (data: any) => void;
+  onSubmit?: (data: any) => void;
 }
 
-export default function PremiumManualEntryForm() {
-  const [formData, setFormData] = useState<FormData>({
+export default function PremiumManualEntryForm({ 
+  formData: externalFormData, 
+  setFormData: externalSetFormData,
+  onSubmit: externalOnSubmit 
+}: PremiumManualEntryFormProps) {
+  const [internalFormData, setInternalFormData] = useState({
+    year: '',
     makeId: '',
     modelId: '',
-    year: '',
     mileage: '',
     condition: '',
     zipCode: '',
-    fuelType: '',
-    transmission: ''
+    vin: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  // Use external state if provided, otherwise use internal state
+  const formData = externalFormData || internalFormData;
+  const setFormData = externalSetFormData || setInternalFormData;
+
+  const updateFormData = (field: string, value: string) => {
+    setFormData({ ...formData, [field]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.makeId || !formData.modelId || !formData.year || !formData.mileage) {
+    if (!formData.year || !formData.makeId || !formData.modelId || !formData.mileage) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields",
@@ -55,21 +55,26 @@ export default function PremiumManualEntryForm() {
     setIsLoading(true);
     
     try {
-      // Mock premium manual entry processing
+      // If external onSubmit is provided, use it
+      if (externalOnSubmit) {
+        externalOnSubmit(formData);
+        return;
+      }
+
+      // Mock manual entry processing for premium service
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       toast({
-        title: "Premium Manual Entry Successful",
-        description: `Processing premium valuation for ${formData.year} vehicle`,
+        title: "Manual Entry Successful",
+        description: "Processing your premium valuation...",
       });
       
-      // Navigate to premium valuation results or next step
       console.log('Premium manual entry:', formData);
     } catch (error) {
       console.error('Premium manual entry error:', error);
       toast({
         title: "Entry Error",
-        description: "An error occurred while processing your manual entry",
+        description: "An error occurred while processing your information",
         variant: "destructive"
       });
     } finally {
@@ -85,45 +90,26 @@ export default function PremiumManualEntryForm() {
           Premium Manual Entry
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Enter your vehicle details manually for comprehensive premium analysis with AI insights and market data.
+          Enter your vehicle details manually for comprehensive premium analysis and valuation.
         </p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="makeId">Make</Label>
-              <Input
-                id="makeId"
-                type="text"
-                placeholder="Enter vehicle make"
-                value={formData.makeId}
-                onChange={(e) => handleInputChange('makeId', e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="modelId">Model</Label>
-              <Input
-                id="modelId"
-                type="text"
-                placeholder="Enter vehicle model"
-                value={formData.modelId}
-                onChange={(e) => handleInputChange('modelId', e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="year">Year</Label>
-              <Input
-                id="year"
-                type="number"
-                placeholder="2020"
-                value={formData.year}
-                onChange={(e) => handleInputChange('year', e.target.value)}
-                min="1900"
-                max="2025"
-              />
+              <Select value={formData.year} onValueChange={(value) => updateFormData('year', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
@@ -131,21 +117,30 @@ export default function PremiumManualEntryForm() {
               <Input
                 id="mileage"
                 type="number"
-                placeholder="50000"
+                placeholder="e.g., 50000"
                 value={formData.mileage}
-                onChange={(e) => handleInputChange('mileage', e.target.value)}
+                onChange={(e) => updateFormData('mileage', e.target.value)}
               />
             </div>
+          </div>
 
+          <MakeAndModelSelector
+            makeId={formData.makeId}
+            setMakeId={(makeId) => updateFormData('makeId', makeId)}
+            modelId={formData.modelId}
+            setModelId={(modelId) => updateFormData('modelId', modelId)}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="condition">Condition</Label>
-              <Select value={formData.condition} onValueChange={(value) => handleInputChange('condition', value)}>
+              <Select value={formData.condition} onValueChange={(value) => updateFormData('condition', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select condition" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="excellent">Excellent</SelectItem>
-                  <SelectItem value="very_good">Very Good</SelectItem>
+                  <SelectItem value="very-good">Very Good</SelectItem>
                   <SelectItem value="good">Good</SelectItem>
                   <SelectItem value="fair">Fair</SelectItem>
                   <SelectItem value="poor">Poor</SelectItem>
@@ -158,58 +153,42 @@ export default function PremiumManualEntryForm() {
               <Input
                 id="zipCode"
                 type="text"
-                placeholder="12345"
+                placeholder="e.g., 90210"
                 value={formData.zipCode}
-                onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                onChange={(e) => updateFormData('zipCode', e.target.value)}
                 maxLength={5}
               />
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="fuelType">Fuel Type</Label>
-              <Select value={formData.fuelType} onValueChange={(value) => handleInputChange('fuelType', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select fuel type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="gasoline">Gasoline</SelectItem>
-                  <SelectItem value="diesel">Diesel</SelectItem>
-                  <SelectItem value="hybrid">Hybrid</SelectItem>
-                  <SelectItem value="electric">Electric</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="transmission">Transmission</Label>
-              <Select value={formData.transmission} onValueChange={(value) => handleInputChange('transmission', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select transmission" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="automatic">Automatic</SelectItem>
-                  <SelectItem value="manual">Manual</SelectItem>
-                  <SelectItem value="cvt">CVT</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="vin">VIN (Optional)</Label>
+            <Input
+              id="vin"
+              type="text"
+              placeholder="17-character VIN (optional)"
+              value={formData.vin}
+              onChange={(e) => updateFormData('vin', e.target.value.toUpperCase())}
+              maxLength={17}
+              className="font-mono"
+            />
           </div>
 
           <div className="bg-purple-50 p-4 rounded-lg">
             <h4 className="font-semibold text-purple-900 mb-2">Premium Manual Entry Includes:</h4>
             <ul className="text-sm text-purple-800 space-y-1">
-              <li>• AI-powered vehicle verification</li>
-              <li>• Advanced condition assessment</li>
-              <li>• Real-time market data integration</li>
-              <li>• Comprehensive feature analysis</li>
-              <li>• Professional-grade valuation report</li>
+              <li>• Advanced algorithmic valuation</li>
+              <li>• Detailed market analysis</li>
+              <li>• Comprehensive feature assessment</li>
+              <li>• Professional valuation report</li>
+              <li>• Market trend predictions</li>
             </ul>
           </div>
 
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={isLoading || !formData.makeId || !formData.modelId || !formData.year || !formData.mileage}
+            disabled={isLoading || !formData.year || !formData.makeId || !formData.modelId || !formData.mileage}
           >
             {isLoading ? (
               <>

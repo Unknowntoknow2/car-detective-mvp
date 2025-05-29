@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,10 +7,20 @@ import { useToast } from '@/components/ui/use-toast';
 import { decodeVin } from '@/services/vinService';
 import { Loader2, Car } from 'lucide-react';
 
-export default function PremiumVinLookupForm() {
-  const [vin, setVin] = useState('');
+interface PremiumVinLookupFormProps {
+  vin?: string;
+  setVin?: (vin: string) => void;
+  onSubmit?: () => void;
+}
+
+export default function PremiumVinLookupForm({ vin: externalVin, setVin: externalSetVin, onSubmit: externalOnSubmit }: PremiumVinLookupFormProps) {
+  const [internalVin, setInternalVin] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Use external state if provided, otherwise use internal state
+  const vin = externalVin !== undefined ? externalVin : internalVin;
+  const setVin = externalSetVin || setInternalVin;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +37,13 @@ export default function PremiumVinLookupForm() {
     setIsLoading(true);
     
     try {
+      // If external onSubmit is provided, use it
+      if (externalOnSubmit) {
+        externalOnSubmit();
+        return;
+      }
+
+      // Otherwise, use the internal VIN decoding logic
       const result = await decodeVin(vin);
       
       if (result.success && result.data) {
