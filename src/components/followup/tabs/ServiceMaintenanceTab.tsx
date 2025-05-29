@@ -38,7 +38,7 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
           <CardContent>
             <Select 
               value={formData.service_history || ''} 
-              onValueChange={(value) => updateFormData({ service_history: value })}
+              onValueChange={(value: 'excellent' | 'good' | 'fair' | 'poor') => updateFormData({ service_history: value })}
             >
               <SelectTrigger className="h-14 text-lg bg-white border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500">
                 <SelectValue placeholder="Select service type" className="text-lg" />
@@ -48,7 +48,7 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
                   <SelectItem key={option.value} value={option.value} className="p-4 cursor-pointer hover:bg-blue-50">
                     <div className="flex flex-col space-y-1">
                       <span className="font-semibold text-base">{option.label}</span>
-                      <span className="text-sm text-gray-600">{option.impact}</span>
+                      <span className="text-sm text-gray-600">{option.description}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -68,19 +68,17 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
           <CardContent>
             <Select 
               value={formData.maintenance_status || ''} 
-              onValueChange={(value) => updateFormData({ maintenance_status: value })}
+              onValueChange={(value: 'excellent' | 'good' | 'fair' | 'poor') => updateFormData({ maintenance_status: value })}
             >
               <SelectTrigger className="h-14 text-lg bg-white border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500">
                 <SelectValue placeholder="Select status" className="text-lg" />
               </SelectTrigger>
               <SelectContent className="bg-white border-2 border-blue-200">
                 {MAINTENANCE_STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option} className="p-4 cursor-pointer hover:bg-blue-50">
-                    <div className="flex items-center space-x-3">
-                      {option === 'Up to date' && <CheckCircle className="h-5 w-5 text-green-500" />}
-                      {option === 'Overdue' && <AlertCircle className="h-5 w-5 text-red-500" />}
-                      {option === 'Unknown' && <Clock className="h-5 w-5 text-gray-500" />}
-                      <span className="font-semibold text-base">{option}</span>
+                  <SelectItem key={option.value} value={option.value} className="p-4 cursor-pointer hover:bg-blue-50">
+                    <div className="flex flex-col space-y-1">
+                      <span className="font-semibold text-base">{option.label}</span>
+                      <span className="text-sm text-gray-600">{option.description}</span>
                     </div>
                   </SelectItem>
                 ))}
