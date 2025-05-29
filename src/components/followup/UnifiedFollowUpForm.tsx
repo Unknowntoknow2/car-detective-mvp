@@ -1,581 +1,692 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { FollowUpAnswers, CONDITION_OPTIONS, SERVICE_HISTORY_OPTIONS, TITLE_STATUS_OPTIONS, TIRE_CONDITION_OPTIONS, PREVIOUS_USE_OPTIONS, DASHBOARD_LIGHTS, MODIFICATION_TYPES } from '@/types/follow-up-answers';
-import { toast } from 'sonner';
-import { ChevronRight, ChevronLeft, Car, FileText, AlertTriangle, Star, Activity, Check } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { 
+  ChevronDown, 
+  ChevronRight, 
+  Car, 
+  Shield, 
+  Wrench, 
+  Star,
+  CheckCircle2,
+  AlertTriangle,
+  Settings,
+  Zap,
+  Sun,
+  Navigation
+} from 'lucide-react';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface UnifiedFollowUpFormProps {
   vin: string;
-  onComplete: (data: FollowUpAnswers) => void;
+  onComplete: (formData: FollowUpAnswers) => void;
 }
 
-type FormStep = 'basic' | 'accidents' | 'service' | 'features' | 'condition' | 'review';
+interface AccidentDetail {
+  date: string;
+  location: string;
+  severity: 'minor' | 'moderate' | 'major';
+  repaired: boolean;
+  description: string;
+}
 
-const STEPS: { id: FormStep; title: string; icon: React.ElementType; description: string }[] = [
-  { id: 'basic', title: 'Basic Info', icon: Car, description: 'Vehicle mileage and location' },
-  { id: 'accidents', title: 'Accident History', icon: AlertTriangle, description: 'Any accidents or damage' },
-  { id: 'service', title: 'Service History', icon: FileText, description: 'Maintenance and service records' },
-  { id: 'features', title: 'Vehicle Features', icon: Star, description: 'Premium features and options' },
-  { id: 'condition', title: 'Current Condition', icon: Activity, description: 'Overall condition assessment' },
-  { id: 'review', title: 'Review & Submit', icon: Check, description: 'Review all information' }
-];
+interface FormData extends FollowUpAnswers {
+  accidents?: AccidentDetail[];
+  features?: string[];
+  accidentCount?: number;
+}
 
-// Vehicle features with their value impacts
-const VEHICLE_FEATURES = [
-  { id: 'leather_seats', name: 'Leather Seats', category: 'Interior', value: 1200 },
-  { id: 'sunroof', name: 'Sunroof/Moonroof', category: 'Exterior', value: 800 },
-  { id: 'navigation', name: 'Navigation System', category: 'Technology', value: 600 },
-  { id: 'heated_seats', name: 'Heated Seats', category: 'Comfort', value: 500 },
-  { id: 'bluetooth', name: 'Bluetooth', category: 'Technology', value: 200 },
-  { id: 'backup_camera', name: 'Backup Camera', category: 'Safety', value: 400 },
-  { id: 'remote_start', name: 'Remote Start', category: 'Convenience', value: 300 },
-  { id: 'third_row', name: 'Third Row Seating', category: 'Capacity', value: 1000 },
-  { id: 'blind_spot', name: 'Blind Spot Monitoring', category: 'Safety', value: 600 },
-  { id: 'carplay', name: 'Apple CarPlay/Android Auto', category: 'Technology', value: 400 },
-  { id: 'lane_departure', name: 'Lane Departure Warning', category: 'Safety', value: 500 },
-  { id: 'keyless_entry', name: 'Keyless Entry', category: 'Convenience', value: 250 },
-  { id: 'adaptive_cruise', name: 'Adaptive Cruise Control', category: 'Safety', value: 800 },
-  { id: 'premium_audio', name: 'Premium Audio System', category: 'Technology', value: 700 },
-  { id: 'parking_sensors', name: 'Parking Sensors', category: 'Safety', value: 350 },
-  { id: 'panoramic_roof', name: 'Panoramic Roof', category: 'Exterior', value: 1200 }
-];
+const FEATURE_GROUPS = {
+  comfort: {
+    title: 'Comfort Features',
+    icon: Star,
+    color: 'bg-purple-50 border-purple-200',
+    iconColor: 'text-purple-600',
+    features: [
+      { label: 'Leather Seats', value: 'leather_seats', impact: 500 },
+      { label: 'Heated Seats', value: 'heated_seats', impact: 300 },
+      { label: 'Cooled/Ventilated Seats', value: 'cooled_seats', impact: 400 },
+      { label: 'Memory Seats', value: 'memory_seats', impact: 250 }
+    ]
+  },
+  technology: {
+    title: 'Technology Features',
+    icon: Zap,
+    color: 'bg-blue-50 border-blue-200',
+    iconColor: 'text-blue-600',
+    features: [
+      { label: 'Navigation System', value: 'navigation', impact: 400 },
+      { label: 'Premium Audio', value: 'premium_audio', impact: 600 },
+      { label: 'Remote Start', value: 'remote_start', impact: 250 },
+      { label: 'Wireless Charging', value: 'wireless_charging', impact: 200 }
+    ]
+  },
+  safety: {
+    title: 'Safety Features',
+    icon: Shield,
+    color: 'bg-green-50 border-green-200',
+    iconColor: 'text-green-600',
+    features: [
+      { label: 'Blind Spot Monitor', value: 'blind_spot_monitor', impact: 350 },
+      { label: 'Adaptive Cruise Control', value: 'adaptive_cruise', impact: 450 },
+      { label: 'Lane Keep Assist', value: 'lane_assist', impact: 300 },
+      { label: 'Emergency Braking', value: 'emergency_braking', impact: 400 }
+    ]
+  },
+  exterior: {
+    title: 'Exterior Features',
+    icon: Sun,
+    color: 'bg-orange-50 border-orange-200',
+    iconColor: 'text-orange-600',
+    features: [
+      { label: 'Sunroof/Moonroof', value: 'sunroof', impact: 500 },
+      { label: 'Premium Wheels', value: 'premium_wheels', impact: 300 },
+      { label: 'All-Wheel Drive', value: 'awd', impact: 800 },
+      { label: 'Towing Package', value: 'towing_package', impact: 400 }
+    ]
+  }
+};
 
 export function UnifiedFollowUpForm({ vin, onComplete }: UnifiedFollowUpFormProps) {
-  const [currentStep, setCurrentStep] = useState<FormStep>('basic');
-  const [formData, setFormData] = useState<Partial<FollowUpAnswers>>({
+  const [formData, setFormData] = useState<FormData>({
     vin,
-    mileage: undefined,
-    zip_code: '',
-    condition: 'good',
-    service_history: 'unknown',
-    accidents: { hadAccident: false },
-    title_status: 'clean',
-    previous_owners: 1,
-    previous_use: 'personal',
-    tire_condition: 'good',
-    dashboard_lights: [],
-    modifications: { modified: false, types: [] }
+    accidents: [],
+    features: [],
+    accidentCount: 0
   });
-  
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
 
-  const updateFormData = (updates: Partial<FollowUpAnswers>) => {
+  const [openSections, setOpenSections] = useState({
+    basics: true,
+    condition: false,
+    history: false,
+    features: false
+  });
+
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    // Calculate progress based on completed fields
+    let completed = 0;
+    let total = 8; // Total required fields
+
+    if (formData.mileage) completed++;
+    if (formData.zip_code) completed++;
+    if (formData.condition) completed++;
+    if (formData.service_history) completed++;
+    if (formData.title_status) completed++;
+    if (formData.tire_condition) completed++;
+    if (formData.accidents !== undefined) completed++;
+    if (formData.features && formData.features.length > 0) completed++;
+
+    setProgress((completed / total) * 100);
+  }, [formData]);
+
+  const updateFormData = (updates: Partial<FormData>) => {
     setFormData(prev => ({ ...prev, ...updates }));
   };
 
-  const getCurrentStepIndex = () => STEPS.findIndex(step => step.id === currentStep);
-  const getProgress = () => ((getCurrentStepIndex() + 1) / STEPS.length) * 100;
-
-  const canProceed = () => {
-    switch (currentStep) {
-      case 'basic':
-        return formData.mileage && formData.mileage > 0 && formData.zip_code && formData.zip_code.length === 5;
-      case 'accidents':
-        return formData.accidents !== undefined;
-      case 'service':
-        return formData.service_history !== undefined;
-      case 'features':
-        return true; // Features are optional
-      case 'condition':
-        return formData.condition !== undefined;
-      case 'review':
-        return true;
-      default:
-        return false;
-    }
+  const toggleSection = (section: keyof typeof openSections) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const nextStep = () => {
-    if (!canProceed()) {
-      toast.error('Please complete all required fields before proceeding');
-      return;
-    }
-    
-    const currentIndex = getCurrentStepIndex();
-    if (currentIndex < STEPS.length - 1) {
-      setCurrentStep(STEPS[currentIndex + 1].id);
-    }
+  const addAccident = () => {
+    const newAccident: AccidentDetail = {
+      date: '',
+      location: '',
+      severity: 'minor',
+      repaired: false,
+      description: ''
+    };
+    updateFormData({
+      accidents: [...(formData.accidents || []), newAccident],
+      accidentCount: (formData.accidentCount || 0) + 1
+    });
   };
 
-  const prevStep = () => {
-    const currentIndex = getCurrentStepIndex();
-    if (currentIndex > 0) {
-      setCurrentStep(STEPS[currentIndex - 1].id);
-    }
+  const updateAccident = (index: number, updates: Partial<AccidentDetail>) => {
+    const updatedAccidents = [...(formData.accidents || [])];
+    updatedAccidents[index] = { ...updatedAccidents[index], ...updates };
+    updateFormData({ accidents: updatedAccidents });
+  };
+
+  const removeAccident = (index: number) => {
+    const updatedAccidents = formData.accidents?.filter((_, i) => i !== index) || [];
+    updateFormData({
+      accidents: updatedAccidents,
+      accidentCount: Math.max(0, (formData.accidentCount || 0) - 1)
+    });
+  };
+
+  const toggleFeature = (featureValue: string) => {
+    const current = formData.features || [];
+    const updated = current.includes(featureValue)
+      ? current.filter(f => f !== featureValue)
+      : [...current, featureValue];
+    updateFormData({ features: updated });
   };
 
   const handleSubmit = () => {
-    const finalData: FollowUpAnswers = {
+    const submissionData: FollowUpAnswers = {
       ...formData,
-      vin,
-      completion_percentage: 100,
-      is_complete: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as FollowUpAnswers;
-
-    onComplete(finalData);
+      accidents: formData.accidents?.length ? {
+        hadAccident: true,
+        count: formData.accidents.length,
+        description: formData.accidents.map(acc => 
+          `${acc.date} - ${acc.location} - ${acc.severity} - ${acc.repaired ? 'Repaired' : 'Not repaired'} - ${acc.description}`
+        ).join('; ')
+      } : { hadAccident: false }
+    };
+    onComplete(submissionData);
   };
 
-  const getFeaturesValue = () => {
-    return selectedFeatures.reduce((total, featureId) => {
-      const feature = VEHICLE_FEATURES.find(f => f.id === featureId);
-      return total + (feature?.value || 0);
+  const getSectionCompletionIcon = (section: string) => {
+    switch (section) {
+      case 'basics':
+        return formData.mileage && formData.zip_code ? 
+          <CheckCircle2 className="h-4 w-4 text-green-600" /> : 
+          <div className="h-4 w-4 rounded-full border-2 border-gray-300" />;
+      case 'condition':
+        return formData.condition ? 
+          <CheckCircle2 className="h-4 w-4 text-green-600" /> : 
+          <div className="h-4 w-4 rounded-full border-2 border-gray-300" />;
+      case 'history':
+        return formData.service_history && formData.title_status && formData.tire_condition ? 
+          <CheckCircle2 className="h-4 w-4 text-green-600" /> : 
+          <div className="h-4 w-4 rounded-full border-2 border-gray-300" />;
+      case 'features':
+        return formData.features && formData.features.length > 0 ? 
+          <CheckCircle2 className="h-4 w-4 text-green-600" /> : 
+          <div className="h-4 w-4 rounded-full border-2 border-gray-300" />;
+      default:
+        return <div className="h-4 w-4 rounded-full border-2 border-gray-300" />;
+    }
+  };
+
+  const getTotalFeatureValue = () => {
+    if (!formData.features) return 0;
+    return Object.values(FEATURE_GROUPS).reduce((total, group) => {
+      return total + group.features.reduce((groupTotal, feature) => {
+        return groupTotal + (formData.features?.includes(feature.value) ? feature.impact : 0);
+      }, 0);
     }, 0);
   };
 
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 'basic':
-        return (
-          <div className="space-y-6">
-            <div>
-              <Label htmlFor="mileage">Current Mileage *</Label>
-              <Input
-                id="mileage"
-                type="number"
-                value={formData.mileage || ''}
-                onChange={(e) => updateFormData({ mileage: parseInt(e.target.value) || 0 })}
-                placeholder="Enter current mileage"
-                className="mt-2"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="zip-code">ZIP Code *</Label>
-              <Input
-                id="zip-code"
-                value={formData.zip_code || ''}
-                onChange={(e) => updateFormData({ zip_code: e.target.value })}
-                placeholder="Enter 5-digit ZIP code"
-                maxLength={5}
-                className="mt-2"
-              />
-            </div>
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Progress Header */}
+      <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-bold text-blue-900">Vehicle Valuation Assessment</CardTitle>
+            <Badge variant="outline" className="text-blue-700 border-blue-300">
+              {Math.round(progress)}% Complete
+            </Badge>
           </div>
-        );
+          <Progress value={progress} className="h-2 mt-3" />
+        </CardHeader>
+      </Card>
 
-      case 'accidents':
-        return (
-          <div className="space-y-6">
-            <div>
-              <Label className="text-lg font-medium">Has this vehicle been in any accidents?</Label>
-              <div className="flex gap-4 mt-4">
-                <Button
-                  type="button"
-                  variant={formData.accidents?.hadAccident === false ? "default" : "outline"}
-                  onClick={() => updateFormData({ 
-                    accidents: { hadAccident: false } 
-                  })}
-                  className="flex-1"
-                >
-                  No Accidents
-                </Button>
-                <Button
-                  type="button"
-                  variant={formData.accidents?.hadAccident === true ? "default" : "outline"}
-                  onClick={() => updateFormData({ 
-                    accidents: { hadAccident: true, count: 1, severity: 'minor' } 
-                  })}
-                  className="flex-1"
-                >
-                  Yes, Has Accidents
-                </Button>
+      {/* Vehicle Basics Section */}
+      <Card className="border-2 border-green-200 bg-green-50/30">
+        <Collapsible open={openSections.basics} onOpenChange={() => toggleSection('basics')}>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-green-50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {getSectionCompletionIcon('basics')}
+                  <Car className="h-5 w-5 text-green-600" />
+                  <CardTitle className="text-green-800">Vehicle Basics</CardTitle>
+                  <Badge variant="secondary">Step 1 of 4</Badge>
+                </div>
+                {openSections.basics ? 
+                  <ChevronDown className="h-4 w-4 text-green-600" /> : 
+                  <ChevronRight className="h-4 w-4 text-green-600" />
+                }
               </div>
-            </div>
-
-            {formData.accidents?.hadAccident && (
-              <div className="space-y-4 p-4 bg-red-50 rounded-lg border border-red-200">
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="accident-count">Number of Accidents</Label>
+                  <Label htmlFor="mileage" className="text-green-800 font-medium">Current Mileage *</Label>
                   <Input
-                    id="accident-count"
+                    id="mileage"
                     type="number"
-                    min="1"
-                    max="10"
-                    value={formData.accidents?.count || 1}
-                    onChange={(e) => updateFormData({
-                      accidents: { 
-                        ...formData.accidents!, 
-                        count: parseInt(e.target.value) || 1 
-                      }
-                    })}
-                    className="mt-2"
+                    placeholder="e.g., 45000"
+                    value={formData.mileage || ''}
+                    onChange={(e) => updateFormData({ mileage: parseInt(e.target.value) || 0 })}
+                    className="border-green-200 focus:ring-green-200"
                   />
                 </div>
-
                 <div>
-                  <Label htmlFor="accident-severity">Severity of Most Recent Accident</Label>
-                  <Select 
-                    value={formData.accidents?.severity || 'minor'} 
-                    onValueChange={(value: 'minor' | 'moderate' | 'major') => 
-                      updateFormData({
-                        accidents: { 
-                          ...formData.accidents!, 
-                          severity: value 
-                        }
-                      })
-                    }
+                  <Label htmlFor="zip" className="text-green-800 font-medium">ZIP Code *</Label>
+                  <Input
+                    id="zip"
+                    placeholder="e.g., 90210"
+                    value={formData.zip_code || ''}
+                    onChange={(e) => updateFormData({ zip_code: e.target.value })}
+                    className="border-green-200 focus:ring-green-200"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
+
+      {/* Vehicle Condition Section */}
+      <Card className="border-2 border-blue-200 bg-blue-50/30">
+        <Collapsible open={openSections.condition} onOpenChange={() => toggleSection('condition')}>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-blue-50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {getSectionCompletionIcon('condition')}
+                  <Star className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-blue-800">Vehicle Condition</CardTitle>
+                  <Badge variant="secondary">Step 2 of 4</Badge>
+                </div>
+                {openSections.condition ? 
+                  <ChevronDown className="h-4 w-4 text-blue-600" /> : 
+                  <ChevronRight className="h-4 w-4 text-blue-600" />
+                }
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-6">
+              <div>
+                <Label className="text-blue-800 font-medium mb-3 block">Overall Condition *</Label>
+                <RadioGroup
+                  value={formData.condition}
+                  onValueChange={(value) => updateFormData({ condition: value as any })}
+                  className="grid grid-cols-2 md:grid-cols-4 gap-3"
+                >
+                  {[
+                    { value: 'excellent', label: 'Excellent', description: 'Like new', impact: '+15-20%' },
+                    { value: 'good', label: 'Good', description: 'Minor wear', impact: 'Baseline' },
+                    { value: 'fair', label: 'Fair', description: 'Visible issues', impact: '-10-20%' },
+                    { value: 'poor', label: 'Poor', description: 'Needs repair', impact: '-25-40%' }
+                  ].map((option) => (
+                    <div key={option.value} className="relative">
+                      <RadioGroupItem value={option.value} id={option.value} className="sr-only" />
+                      <Label
+                        htmlFor={option.value}
+                        className={`flex flex-col p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
+                          formData.condition === option.value
+                            ? 'border-blue-500 bg-blue-100 shadow-md'
+                            : 'border-gray-200 bg-white hover:border-blue-300'
+                        }`}
+                      >
+                        <span className="font-semibold text-gray-900">{option.label}</span>
+                        <span className="text-xs text-gray-600">{option.description}</span>
+                        <span className="text-xs font-medium text-blue-600 mt-1">{option.impact}</span>
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              {/* Accident History */}
+              <div className="border-t pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertTriangle className="h-5 w-5 text-orange-600" />
+                  <Label className="text-blue-800 font-medium">Accident History</Label>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm text-gray-700">Number of accidents</Label>
+                    <div className="flex items-center gap-3 mt-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="10"
+                        value={formData.accidentCount || 0}
+                        onChange={(e) => {
+                          const count = parseInt(e.target.value) || 0;
+                          updateFormData({ accidentCount: count });
+                          // Adjust accidents array to match count
+                          const current = formData.accidents || [];
+                          if (count > current.length) {
+                            for (let i = current.length; i < count; i++) {
+                              addAccident();
+                            }
+                          } else if (count < current.length) {
+                            updateFormData({ accidents: current.slice(0, count) });
+                          }
+                        }}
+                        className="w-20"
+                      />
+                      <span className="text-sm text-gray-600">accidents</span>
+                    </div>
+                  </div>
+
+                  {formData.accidents && formData.accidents.map((accident, index) => (
+                    <Card key={index} className="border border-orange-200 bg-orange-50/50">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-sm font-medium text-orange-800">
+                            Accident {index + 1}
+                          </CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeAccident(index)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-xs font-medium">Approximate Date</Label>
+                            <Input
+                              placeholder="e.g., 2022 or Jan 2022"
+                              value={accident.date}
+                              onChange={(e) => updateAccident(index, { date: e.target.value })}
+                              className="text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs font-medium">Damage Location</Label>
+                            <Select
+                              value={accident.location}
+                              onValueChange={(value) => updateAccident(index, { location: value })}
+                            >
+                              <SelectTrigger className="text-sm">
+                                <SelectValue placeholder="Select location" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="front">Front</SelectItem>
+                                <SelectItem value="rear">Rear</SelectItem>
+                                <SelectItem value="driver-side">Driver Side</SelectItem>
+                                <SelectItem value="passenger-side">Passenger Side</SelectItem>
+                                <SelectItem value="roof">Roof</SelectItem>
+                                <SelectItem value="multiple">Multiple Areas</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-xs font-medium">Severity</Label>
+                            <RadioGroup
+                              value={accident.severity}
+                              onValueChange={(value) => updateAccident(index, { severity: value as any })}
+                              className="flex gap-2 mt-1"
+                            >
+                              {['minor', 'moderate', 'major'].map((severity) => (
+                                <div key={severity} className="flex items-center space-x-1">
+                                  <RadioGroupItem value={severity} id={`${index}-${severity}`} />
+                                  <Label htmlFor={`${index}-${severity}`} className="text-xs capitalize">
+                                    {severity}
+                                  </Label>
+                                </div>
+                              ))}
+                            </RadioGroup>
+                          </div>
+                          <div className="flex items-center space-x-2 mt-4">
+                            <Checkbox
+                              id={`repaired-${index}`}
+                              checked={accident.repaired}
+                              onCheckedChange={(checked) => updateAccident(index, { repaired: !!checked })}
+                            />
+                            <Label htmlFor={`repaired-${index}`} className="text-xs">
+                              Professionally repaired
+                            </Label>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label className="text-xs font-medium">Description</Label>
+                          <Textarea
+                            placeholder="Brief description of the accident and repairs..."
+                            value={accident.description}
+                            onChange={(e) => updateAccident(index, { description: e.target.value })}
+                            className="text-sm mt-1"
+                            rows={2}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
+
+      {/* Service & History Section */}
+      <Card className="border-2 border-purple-200 bg-purple-50/30">
+        <Collapsible open={openSections.history} onOpenChange={() => toggleSection('history')}>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-purple-50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {getSectionCompletionIcon('history')}
+                  <Wrench className="h-5 w-5 text-purple-600" />
+                  <CardTitle className="text-purple-800">Service & History</CardTitle>
+                  <Badge variant="secondary">Step 3 of 4</Badge>
+                </div>
+                {openSections.history ? 
+                  <ChevronDown className="h-4 w-4 text-purple-600" /> : 
+                  <ChevronRight className="h-4 w-4 text-purple-600" />
+                }
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-6">
+              <div>
+                <Label className="text-purple-800 font-medium mb-3 block">Service History *</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { value: 'dealer', label: 'Dealer Maintained', impact: '+5-10%' },
+                    { value: 'independent', label: 'Independent Shop', impact: '+2-5%' },
+                    { value: 'owner', label: 'Owner Maintained', impact: 'Neutral' },
+                    { value: 'unknown', label: 'Unknown History', impact: '-5-10%' }
+                  ].map((option) => (
+                    <div key={option.value} className="relative">
+                      <Label
+                        className={`flex flex-col p-3 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
+                          formData.service_history === option.value
+                            ? 'border-purple-500 bg-purple-100 shadow-md'
+                            : 'border-gray-200 bg-white hover:border-purple-300'
+                        }`}
+                        onClick={() => updateFormData({ service_history: option.value })}
+                      >
+                        <span className="font-medium text-sm text-gray-900">{option.label}</span>
+                        <span className="text-xs font-medium text-purple-600 mt-1">{option.impact}</span>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-purple-800 font-medium mb-3 block">Title Status *</Label>
+                  <Select
+                    value={formData.title_status}
+                    onValueChange={(value) => updateFormData({ title_status: value })}
                   >
-                    <SelectTrigger className="mt-2">
-                      <SelectValue />
+                    <SelectTrigger className="border-purple-200">
+                      <SelectValue placeholder="Select title status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="minor">Minor (cosmetic damage)</SelectItem>
-                      <SelectItem value="moderate">Moderate (some structural damage)</SelectItem>
-                      <SelectItem value="major">Major (significant structural damage)</SelectItem>
+                      <SelectItem value="clean">Clean Title</SelectItem>
+                      <SelectItem value="salvage">Salvage Title</SelectItem>
+                      <SelectItem value="rebuilt">Rebuilt Title</SelectItem>
+                      <SelectItem value="branded">Branded Title</SelectItem>
+                      <SelectItem value="lemon">Lemon Law</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium">Was the damage properly repaired?</Label>
-                  <div className="flex gap-4 mt-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={formData.accidents?.repaired === true ? "default" : "outline"}
-                      onClick={() => updateFormData({
-                        accidents: { ...formData.accidents!, repaired: true }
-                      })}
-                    >
-                      Yes, Fully Repaired
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={formData.accidents?.repaired === false ? "default" : "outline"}
-                      onClick={() => updateFormData({
-                        accidents: { ...formData.accidents!, repaired: false }
-                      })}
-                    >
-                      No / Partially Repaired
-                    </Button>
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="accident-description">Additional Details (Optional)</Label>
-                  <Textarea
-                    id="accident-description"
-                    value={formData.accidents?.description || ''}
-                    onChange={(e) => updateFormData({
-                      accidents: { 
-                        ...formData.accidents!, 
-                        description: e.target.value 
-                      }
-                    })}
-                    placeholder="Describe the accident and any relevant details"
-                    rows={3}
-                    className="mt-2"
-                  />
+                  <Label className="text-purple-800 font-medium mb-3 block">Tire Condition *</Label>
+                  <Select
+                    value={formData.tire_condition}
+                    onValueChange={(value) => updateFormData({ tire_condition: value })}
+                  >
+                    <SelectTrigger className="border-purple-200">
+                      <SelectValue placeholder="Select tire condition" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="excellent">Excellent (8/32"+ tread)</SelectItem>
+                      <SelectItem value="good">Good (6-7/32")</SelectItem>
+                      <SelectItem value="worn">Worn (3-5/32")</SelectItem>
+                      <SelectItem value="replacement">Needs Replacement (&lt;3/32")</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            )}
-          </div>
-        );
 
-      case 'service':
-        return (
-          <div className="space-y-6">
-            <div>
-              <Label className="text-lg font-medium">Service History</Label>
-              <p className="text-sm text-muted-foreground mb-4">
-                How has the vehicle been maintained?
+              <div>
+                <Label htmlFor="maintenance-notes" className="text-purple-800 font-medium">Additional Maintenance Notes</Label>
+                <Textarea
+                  id="maintenance-notes"
+                  placeholder="Recent services, repairs, or maintenance records..."
+                  value={formData.maintenance_status || ''}
+                  onChange={(e) => updateFormData({ maintenance_status: e.target.value })}
+                  className="border-purple-200 focus:ring-purple-200 mt-2"
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
+
+      {/* High-Impact Features Section */}
+      <Card className="border-2 border-orange-200 bg-orange-50/30">
+        <Collapsible open={openSections.features} onOpenChange={() => toggleSection('features')}>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-orange-50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {getSectionCompletionIcon('features')}
+                  <Settings className="h-5 w-5 text-orange-600" />
+                  <CardTitle className="text-orange-800">High-Impact Features</CardTitle>
+                  <Badge variant="secondary">Step 4 of 4</Badge>
+                  {formData.features && formData.features.length > 0 && (
+                    <Badge variant="outline" className="text-green-700 border-green-300">
+                      +${getTotalFeatureValue().toLocaleString()}
+                    </Badge>
+                  )}
+                </div>
+                {openSections.features ? 
+                  <ChevronDown className="h-4 w-4 text-orange-600" /> : 
+                  <ChevronRight className="h-4 w-4 text-orange-600" />
+                }
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-6">
+              <p className="text-sm text-orange-700">
+                Select features that your vehicle has. Each feature adds to your vehicle's estimated value.
               </p>
               
-              <div className="grid gap-3">
-                {SERVICE_HISTORY_OPTIONS.map((option) => (
-                  <div
-                    key={option.value}
-                    onClick={() => updateFormData({ service_history: option.value })}
-                    className={`
-                      cursor-pointer rounded-lg border-2 p-4 transition-all hover:shadow-md
-                      ${formData.service_history === option.value 
-                        ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500 ring-offset-2' 
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
-                      }
-                    `}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">{option.label}</h3>
-                        <p className="text-sm text-muted-foreground mt-1">{option.impact}</p>
-                      </div>
-                      <Badge variant={formData.service_history === option.value ? 'default' : 'secondary'}>
-                        {option.impact}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="maintenance-notes">Maintenance Notes (Optional)</Label>
-              <Textarea
-                id="maintenance-notes"
-                value={formData.maintenance_status || ''}
-                onChange={(e) => updateFormData({ maintenance_status: e.target.value })}
-                placeholder="Any specific maintenance details, recent services, or upcoming needs"
-                rows={3}
-                className="mt-2"
-              />
-            </div>
-          </div>
-        );
-
-      case 'features':
-        return (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-medium">Vehicle Features</h3>
-                <p className="text-sm text-muted-foreground">
-                  Select all features your vehicle has
-                </p>
-              </div>
-              <div className="text-right">
-                <div className="text-sm text-muted-foreground">Added Value</div>
-                <div className="text-2xl font-bold text-green-600">
-                  ${getFeaturesValue().toLocaleString()}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {VEHICLE_FEATURES.map((feature) => {
-                const isSelected = selectedFeatures.includes(feature.id);
+              {Object.entries(FEATURE_GROUPS).map(([key, group]) => {
+                const IconComponent = group.icon;
                 return (
-                  <div
-                    key={feature.id}
-                    onClick={() => {
-                      if (isSelected) {
-                        setSelectedFeatures(prev => prev.filter(id => id !== feature.id));
-                      } else {
-                        setSelectedFeatures(prev => [...prev, feature.id]);
-                      }
-                    }}
-                    className={`
-                      flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all
-                      ${isSelected 
-                        ? 'border-blue-500 bg-blue-50' 
-                        : 'border-gray-200 hover:border-gray-300'
-                      }
-                    `}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Checkbox checked={isSelected} />
-                      <div>
-                        <span className="text-sm font-medium">{feature.name}</span>
-                        <div className="text-xs text-muted-foreground">{feature.category}</div>
+                  <Card key={key} className={`${group.color} border-2`}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 bg-white rounded-lg`}>
+                          <IconComponent className={`h-5 w-5 ${group.iconColor}`} />
+                        </div>
+                        <CardTitle className="text-lg">{group.title}</CardTitle>
                       </div>
-                    </div>
-                    <Badge variant="outline" className="text-xs">
-                      +${feature.value}
-                    </Badge>
-                  </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {group.features.map((feature) => (
+                          <div key={feature.value} className="flex items-center space-x-3">
+                            <Checkbox
+                              id={`feature-${feature.value}`}
+                              checked={formData.features?.includes(feature.value) || false}
+                              onCheckedChange={() => toggleFeature(feature.value)}
+                            />
+                            <Label 
+                              htmlFor={`feature-${feature.value}`}
+                              className="flex-1 text-sm font-medium cursor-pointer"
+                            >
+                              {feature.label}
+                              <span className="text-xs text-green-600 ml-2 font-semibold">
+                                +${feature.impact}
+                              </span>
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
                 );
               })}
-            </div>
-          </div>
-        );
-
-      case 'condition':
-        return (
-          <div className="space-y-6">
-            <div>
-              <Label className="text-lg font-medium">Overall Vehicle Condition</Label>
-              <p className="text-sm text-muted-foreground mb-4">
-                What best describes your vehicle's current condition?
-              </p>
               
-              <div className="grid gap-3">
-                {CONDITION_OPTIONS.map((option) => (
-                  <div
-                    key={option.value}
-                    onClick={() => updateFormData({ condition: option.value })}
-                    className={`
-                      cursor-pointer rounded-lg border-2 p-4 transition-all hover:shadow-md
-                      ${formData.condition === option.value 
-                        ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500 ring-offset-2' 
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
-                      }
-                    `}
-                  >
+              {formData.features && formData.features.length > 0 && (
+                <Card className="border-2 border-green-200 bg-green-50">
+                  <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium">{option.label}</h3>
-                        <p className="text-sm text-muted-foreground mt-1">{option.description}</p>
-                      </div>
-                      <Badge variant={formData.condition === option.value ? 'default' : 'secondary'}>
-                        {option.impact}
-                      </Badge>
+                      <span className="font-semibold text-green-800">Total Feature Value:</span>
+                      <span className="text-2xl font-bold text-green-700">
+                        +${getTotalFeatureValue().toLocaleString()}
+                      </span>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  </CardContent>
+                </Card>
+              )}
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
 
-            <div>
-              <Label className="text-lg font-medium">Tire Condition</Label>
-              <Select 
-                value={formData.tire_condition || 'good'} 
-                onValueChange={(value: any) => updateFormData({ tire_condition: value })}
-              >
-                <SelectTrigger className="mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIRE_CONDITION_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label} - {option.impact}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label className="text-lg font-medium">Dashboard Warning Lights</Label>
-              <p className="text-sm text-muted-foreground mb-3">
-                Select any warning lights currently on
+      {/* Submit Button */}
+      <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <CardContent className="pt-6">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-blue-900">Ready to Get Your Valuation?</h3>
+              <p className="text-sm text-blue-700">
+                Complete form • {Math.round(progress)}% done
+                {formData.features && formData.features.length > 0 && (
+                  <span className="ml-2 text-green-600 font-semibold">
+                    • ${getTotalFeatureValue().toLocaleString()} in features
+                  </span>
+                )}
               </p>
-              <div className="grid grid-cols-2 gap-2">
-                {DASHBOARD_LIGHTS.map((light) => {
-                  const isSelected = formData.dashboard_lights?.includes(light.value) || false;
-                  return (
-                    <div
-                      key={light.value}
-                      onClick={() => {
-                        const current = formData.dashboard_lights || [];
-                        if (isSelected) {
-                          updateFormData({ 
-                            dashboard_lights: current.filter(l => l !== light.value) 
-                          });
-                        } else {
-                          updateFormData({ 
-                            dashboard_lights: [...current, light.value] 
-                          });
-                        }
-                      }}
-                      className={`
-                        flex items-center space-x-2 p-2 rounded border cursor-pointer transition-all
-                        ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}
-                      `}
-                    >
-                      <Checkbox checked={isSelected} />
-                      <span className="text-sm">{light.icon} {light.label}</span>
-                    </div>
-                  );
-                })}
-              </div>
             </div>
-          </div>
-        );
-
-      case 'review':
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-medium">Review Your Information</h3>
-            
-            <div className="grid gap-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium mb-2">Basic Information</h4>
-                <p>Mileage: {formData.mileage?.toLocaleString()} miles</p>
-                <p>ZIP Code: {formData.zip_code}</p>
-              </div>
-
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium mb-2">Accident History</h4>
-                <p>{formData.accidents?.hadAccident ? `${formData.accidents.count} accident(s) - ${formData.accidents.severity} severity` : 'No accidents reported'}</p>
-              </div>
-
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium mb-2">Service History</h4>
-                <p>{SERVICE_HISTORY_OPTIONS.find(opt => opt.value === formData.service_history)?.label || 'Not specified'}</p>
-              </div>
-
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium mb-2">Features</h4>
-                <p>{selectedFeatures.length} features selected (+${getFeaturesValue().toLocaleString()} value)</p>
-              </div>
-
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium mb-2">Condition</h4>
-                <p>{CONDITION_OPTIONS.find(opt => opt.value === formData.condition)?.label || 'Not specified'}</p>
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  const currentStepData = STEPS.find(step => step.id === currentStep);
-  const StepIcon = currentStepData?.icon || Car;
-
-  return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <div className="flex items-center space-x-3 mb-4">
-          <StepIcon className="h-6 w-6 text-blue-600" />
-          <div>
-            <CardTitle>{currentStepData?.title}</CardTitle>
-            <p className="text-sm text-muted-foreground">{currentStepData?.description}</p>
-          </div>
-        </div>
-        
-        <Progress value={getProgress()} className="mb-4" />
-        
-        <div className="flex justify-between text-sm text-muted-foreground">
-          <span>Step {getCurrentStepIndex() + 1} of {STEPS.length}</span>
-          <span>{Math.round(getProgress())}% Complete</span>
-        </div>
-      </CardHeader>
-
-      <CardContent>
-        {renderStepContent()}
-        
-        <div className="flex justify-between mt-8">
-          <Button
-            variant="outline"
-            onClick={prevStep}
-            disabled={getCurrentStepIndex() === 0}
-            className="flex items-center space-x-2"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span>Previous</span>
-          </Button>
-          
-          {currentStep === 'review' ? (
-            <Button onClick={handleSubmit} className="flex items-center space-x-2">
-              <Check className="h-4 w-4" />
-              <span>Complete Valuation</span>
-            </Button>
-          ) : (
             <Button
-              onClick={nextStep}
-              disabled={!canProceed()}
-              className="flex items-center space-x-2"
+              onClick={handleSubmit}
+              size="lg"
+              className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
+              disabled={progress < 60} // Require at least basic info
             >
-              <span>Next</span>
-              <ChevronRight className="h-4 w-4" />
+              Get My Vehicle Valuation
             </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
+
+export default UnifiedFollowUpForm;

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
 import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
-import { FoundCarCard } from '@/components/lookup/found/FoundCarCard';
+import { CarFinderQaherCard } from '@/components/valuation/CarFinderQaherCard';
 import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
 import { decodeVin } from '@/services/vinService';
 import { DecodedVehicleInfo } from '@/types/vehicle';
@@ -103,7 +103,8 @@ export default function ValuationPage() {
       
       {vehicle && (
         <div className="space-y-8">
-          <FoundCarCard vehicle={vehicle} readonly={false} />
+          {/* Enhanced Car Finder Qaher Card */}
+          <CarFinderQaherCard vehicle={vehicle} />
           
           {showFollowUp && safeVin.length === 17 && (
             <div className="mt-8">
