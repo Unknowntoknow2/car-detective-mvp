@@ -40,6 +40,20 @@ export function MakeModelSelect({
     setSelectedModelId(modelId);
   };
 
+  // Log when component renders with new props
+  console.log('🎯 MakeModelSelect: Rendering with props:', {
+    makesCount: makes.length,
+    modelsCount: models.length,
+    selectedMakeId,
+    selectedModelId,
+    isLoading,
+    error
+  });
+
+  if (models.length > 0) {
+    console.log('🎯 MakeModelSelect: Models available for display:', models.slice(0, 5).map(m => m.model_name));
+  }
+
   if (isLoading && makes.length === 0) {
     return (
       <div className="space-y-4">
@@ -66,8 +80,6 @@ export function MakeModelSelect({
       </div>
     );
   }
-
-  console.log('🎯 MakeModelSelect: Rendering with models:', models.length);
 
   return (
     <div className="space-y-4">
@@ -121,11 +133,14 @@ export function MakeModelSelect({
                 No models found for selected make
               </div>
             ) : (
-              models.map((model) => (
-                <SelectItem key={model.id} value={model.id}>
-                  {model.model_name}
-                </SelectItem>
-              ))
+              models.map((model) => {
+                console.log('🎯 Rendering model option:', model.model_name);
+                return (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.model_name}
+                  </SelectItem>
+                );
+              })
             )}
           </SelectContent>
         </Select>

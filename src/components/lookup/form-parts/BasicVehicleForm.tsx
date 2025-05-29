@@ -28,7 +28,7 @@ export function BasicVehicleForm({
   } = useMakeModels();
 
   const handleMakeChange = async (makeId: string) => {
-    console.log('🔄 Make changed to:', makeId);
+    console.log('🔄 BasicVehicleForm: Make changed to:', makeId);
     
     const selectedMake = findMakeById(makeId);
     console.log('🏭 Selected make:', selectedMake);
@@ -43,17 +43,19 @@ export function BasicVehicleForm({
       trimName: ''
     };
     
+    console.log('🧹 Clearing model selection and updating form data:', updates);
     updateFormData(updates);
     
     // Fetch models for the selected make AFTER clearing model selection
     if (makeId) {
       console.log('📞 Calling fetchModelsByMakeId for:', makeId);
       await fetchModelsByMakeId(makeId);
+      console.log('✅ fetchModelsByMakeId completed');
     }
   };
 
   const handleModelChange = (modelId: string) => {
-    console.log('🔄 Model changed to:', modelId);
+    console.log('🔄 BasicVehicleForm: Model changed to:', modelId);
     
     const selectedModel = findModelById(modelId);
     console.log('🚗 Selected model:', selectedModel);
@@ -65,6 +67,7 @@ export function BasicVehicleForm({
       trimName: ''
     };
     
+    console.log('📝 Updating form data with model selection:', updates);
     updateFormData(updates);
   };
 
@@ -76,9 +79,9 @@ export function BasicVehicleForm({
     }
   }, [formData.make, makes.length, fetchModelsByMakeId]);
 
-  // Debug logging
+  // Debug logging for state changes
   useEffect(() => {
-    console.log('📊 BasicVehicleForm state:', {
+    console.log('📊 BasicVehicleForm state update:', {
       makesCount: makes.length,
       modelsCount: models.length,
       selectedMake: formData.make,
@@ -86,7 +89,11 @@ export function BasicVehicleForm({
       isLoading,
       error
     });
-  }, [makes.length, models.length, formData.make, formData.model, isLoading, error]);
+    
+    if (models.length > 0) {
+      console.log('🎯 Models available for display:', models.slice(0, 5).map(m => m.model_name));
+    }
+  }, [makes.length, models.length, formData.make, formData.model, isLoading, error, models]);
 
   return (
     <div className="space-y-4">
