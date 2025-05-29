@@ -4,62 +4,54 @@ import { Container } from '@/components/ui/container';
 import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
 import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
 import { ManualVehicleForm } from '@/components/lookup/ManualVehicleForm';
+import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface VehicleSpecs {
-  make: string;
-  model: string;
-  trim?: string;
-  year: number;
-  fuelType: string;
-  transmission: string;
-  drivetrain: string;
-  bodyType: string;
-  vin?: string;
-}
-
 export default function ManualValuationPage() {
-  const [vehicleSpecs, setVehicleSpecs] = useState<VehicleSpecs | null>(null);
+  const [vehicleData, setVehicleData] = useState<ManualEntryFormData | null>(null);
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleVehicleSpecsSubmit = async (specs: VehicleSpecs) => {
-    console.log('✅ Manual vehicle specs submitted:', specs);
+  const handleVehicleDataSubmit = async (data: ManualEntryFormData) => {
+    console.log('✅ Manual vehicle data submitted:', data);
     setIsLoading(true);
     
     try {
-      // Save vehicle specs to manual_entry_valuations table
-      const { data, error } = await supabase
+      // Save vehicle data to manual_entry_valuations table
+      const { data: savedData, error } = await supabase
         .from('manual_entry_valuations')
         .insert({
-          make: specs.make,
-          model: specs.model,
-          year: specs.year,
-          fuel_type: specs.fuelType,
-          transmission: specs.transmission,
-          vin: specs.vin || `MANUAL_${Date.now()}`, // Generate unique identifier if no VIN
-          condition: 'good', // Default condition
-          zip_code: '', // Will be filled in follow-up
-          mileage: 0, // Will be filled in follow-up
+          make: data.make,
+          model: data.model,
+          year: data.year,
+          mileage: data.mileage,
+          condition: data.condition,
+          zip_code: data.zipCode,
+          fuel_type: data.fuelType || 'gasoline',
+          transmission: data.transmission || 'automatic',
+          vin: data.vin || `MANUAL_${Date.now()}`, // Generate unique identifier if no VIN
+          accident: data.accidentDetails?.hasAccident || false,
+          accident_severity: data.accidentDetails?.severity || null,
+          selected_features: data.selectedFeatures || [],
           user_id: (await supabase.auth.getUser()).data.user?.id
         })
         .select()
         .single();
 
       if (error) {
-        console.error('Error saving vehicle specs:', error);
+        console.error('Error saving vehicle data:', error);
         toast.error('Failed to save vehicle information');
         return;
       }
 
-      console.log('Vehicle specs saved:', data);
-      setVehicleSpecs(specs);
+      console.log('Vehicle data saved:', savedData);
+      setVehicleData(data);
       setShowFollowUp(true);
       toast.success('Vehicle information saved successfully!');
     } catch (error) {
-      console.error('Error in handleVehicleSpecsSubmit:', error);
+      console.error('Error in handleVehicleDataSubmit:', error);
       toast.error('Failed to save vehicle information');
     } finally {
       setIsLoading(false);
@@ -78,7 +70,7 @@ export default function ManualValuationPage() {
   };
 
   // Generate a unique identifier for the follow-up form
-  const followUpVin = vehicleSpecs?.vin || `MANUAL_${vehicleSpecs?.make}_${vehicleSpecs?.model}_${vehicleSpecs?.year}`;
+  const followUpVin = vehicleData?.vin || `MANUAL_${vehicleData?.make}_${vehicleData?.model}_${vehicleData?.year}`;
 
   return (
     <Container className="max-w-6xl py-10">
@@ -96,27 +88,27 @@ export default function ManualValuationPage() {
       <div className="space-y-8">
         {!showFollowUp ? (
           <ManualVehicleForm 
-            onSubmit={handleVehicleSpecsSubmit}
+            onSubmit={handleVehicleDataSubmit}
             isLoading={isLoading}
           />
         ) : (
           <>
             {/* Vehicle Summary Card */}
-            {vehicleSpecs && (
+            {vehicleData && (
               <div className="bg-white p-6 rounded-lg shadow-md mb-6">
                 <h2 className="text-xl font-bold mb-4">Vehicle Summary</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div><strong>Year:</strong> {vehicleSpecs.year}</div>
-                  <div><strong>Make:</strong> {vehicleSpecs.make}</div>
-                  <div><strong>Model:</strong> {vehicleSpecs.model}</div>
-                  <div><strong>Fuel Type:</strong> {vehicleSpecs.fuelType}</div>
-                  <div><strong>Transmission:</strong> {vehicleSpecs.transmission}</div>
-                  <div><strong>Body Type:</strong> {vehicleSpecs.bodyType}</div>
-                  {vehicleSpecs.trim && (
-                    <div><strong>Trim:</strong> {vehicleSpecs.trim}</div>
+                  <div><strong>Year:</strong> {vehicleData.year}</div>
+                  <div><strong>Make:</strong> {vehicleData.make}</div>
+                  <div><strong>Model:</strong> {vehicleData.model}</div>
+                  <div><strong>Mileage:</strong> {vehicleData.mileage}</div>
+                  <div><strong>Condition:</strong> {vehicleData.condition}</div>
+                  <div><strong>ZIP Code:</strong> {vehicleData.zipCode}</div>
+                  {vehicleData.fuelType && (
+                    <div><strong>Fuel Type:</strong> {vehicleData.fuelType}</div>
                   )}
-                  {vehicleSpecs.vin && (
-                    <div><strong>VIN:</strong> {vehicleSpecs.vin}</div>
+                  {vehicleData.transmission && (
+                    <div><strong>Transmission:</strong> {vehicleData.transmission}</div>
                   )}
                 </div>
               </div>
@@ -127,7 +119,7 @@ export default function ManualValuationPage() {
               vin={followUpVin}
               initialData={{ 
                 vin: followUpVin,
-                zip_code: ''
+                zip_code: vehicleData?.zipCode || ''
               }}
               onSubmit={handleFollowUpSubmit}
               onSave={handleFollowUpSave}
