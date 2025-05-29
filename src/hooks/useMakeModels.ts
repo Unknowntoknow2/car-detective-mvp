@@ -33,6 +33,7 @@ export function useMakeModels() {
       if (error) throw error;
 
       console.log('✅ Fetched makes:', data?.length || 0);
+      console.log('📋 Sample makes:', data?.slice(0, 5)?.map(m => `${m.make_name} (${m.id})`));
       setMakes(data || []);
     } catch (err: any) {
       console.error('❌ Error fetching makes:', err);
@@ -54,18 +55,60 @@ export function useMakeModels() {
       setError(null);
 
       console.log('🔍 Fetching models for make_id:', makeId);
+      console.log('🔍 Make ID type:', typeof makeId);
+      console.log('🔍 Make ID length:', makeId.length);
 
-      const { data, error } = await supabase
+      // First, let's verify the make exists
+      const { data: makeCheck, error: makeError } = await supabase
+        .from('makes')
+        .select('id, make_name')
+        .eq('id', makeId)
+        .single();
+
+      if (makeError) {
+        console.error('❌ Make verification error:', makeError);
+      } else {
+        console.log('✅ Make found:', makeCheck);
+      }
+
+      // Now fetch models with detailed logging
+      const { data, error, count } = await supabase
         .from('models')
-        .select('id, model_name, make_id')
+        .select('id, model_name, make_id', { count: 'exact' })
         .eq('make_id', makeId)
         .order('model_name');
 
-      if (error) throw error;
+      console.log('🔍 Raw query result:', { data, error, count });
+      console.log('🔍 Query executed for make_id:', makeId);
+
+      if (error) {
+        console.error('❌ Models query error:', error);
+        throw error;
+      }
 
       console.log('✅ Fetched models for make:', data?.length || 0, 'models');
+      console.log('📊 Total count from query:', count);
+      
       if (data && data.length > 0) {
-        console.log('📋 Sample models:', data.slice(0, 3).map(m => m.model_name));
+        console.log('📋 All models found:', data.map(m => `${m.model_name} (${m.id})`));
+      } else {
+        console.log('⚠️ No models found - checking if any models exist for this make');
+        
+        // Debug query - let's see what's actually in the models table for this make
+        const { data: debugData } = await supabase
+          .from('models')
+          .select('*')
+          .eq('make_id', makeId);
+          
+        console.log('🔍 Debug - raw models data:', debugData);
+        
+        // Also check if there are any models at all
+        const { data: allModels } = await supabase
+          .from('models')
+          .select('id, model_name, make_id')
+          .limit(5);
+          
+        console.log('🔍 Debug - sample of all models:', allModels);
       }
 
       setModels(data || []);
