@@ -34,7 +34,6 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     features: [],
     completion_percentage: 0,
     is_complete: false,
-    created_at: new Date().toISOString(),
     ...initialData
   });
 
