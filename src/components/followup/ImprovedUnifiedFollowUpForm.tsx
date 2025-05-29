@@ -1,23 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { ChevronLeft, ChevronRight, Car, Wrench, Shield, Cog } from 'lucide-react';
 import { ServiceHistorySection } from './improved/ServiceHistorySection';
-import { AccidentHistorySection } from './improved/AccidentHistorySection';
+import { AccidentHistorySection, AccidentDetails } from './improved/AccidentHistorySection';
 import { VehicleFeaturesSection } from './improved/VehicleFeaturesSection';
-import { ChevronLeft, ChevronRight, Car, FileText, Star, CheckCircle } from 'lucide-react';
-
-interface AccidentReport {
-  id: string;
-  severity: 'minor' | 'moderate' | 'severe';
-  location: 'front' | 'rear' | 'side' | 'multiple';
-  professionallyRepaired: boolean;
-  description: string;
-  estimatedCost?: number;
-}
+import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface ImprovedUnifiedFollowUpFormProps {
   vin: string;
@@ -25,27 +15,72 @@ interface ImprovedUnifiedFollowUpFormProps {
 }
 
 const steps = [
-  { id: 'basics', title: 'Vehicle Basics', icon: Car, description: 'Essential vehicle information' },
-  { id: 'condition', title: 'Condition Assessment', icon: FileText, description: 'Current vehicle condition' },
-  { id: 'history', title: 'Service & History', icon: FileText, description: 'Maintenance and accident history' },
-  { id: 'features', title: 'Features & Details', icon: Star, description: 'Equipment and specifications' }
+  {
+    id: 'service',
+    title: 'Service History',
+    description: 'How has your vehicle been maintained?',
+    icon: Wrench
+  },
+  {
+    id: 'accidents',
+    title: 'Accident History',
+    description: 'Any accidents or damage history?',
+    icon: Shield
+  },
+  {
+    id: 'features',
+    title: 'Vehicle Features',
+    description: 'Select your vehicle features and options',
+    icon: Cog
+  }
 ];
 
 export function ImprovedUnifiedFollowUpForm({ vin, onComplete }: ImprovedUnifiedFollowUpFormProps) {
-  const [currentStep, setCurrentStep] = useState(2); // Start at step 2 (Service & History)
-  const [serviceHistory, setServiceHistory] = useState('');
-  const [hasAccident, setHasAccident] = useState(false);
-  const [accidents, setAccidents] = useState<AccidentReport[]>([]);
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [formData, setFormData] = useState<FollowUpAnswers>({
+    serviceHistory: '',
+    hasAccidents: false,
+    accidentDetails: {
+      severity: 'minor',
+      location: '',
+      repaired: false,
+      cost: undefined,
+      description: ''
+    },
+    selectedFeatures: [],
+    additionalNotes: ''
+  });
 
-  const currentStepData = steps[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;
+
+  const updateServiceHistory = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      serviceHistory: value
+    }));
+  };
+
+  const updateAccidentDetails = (value: AccidentDetails) => {
+    setFormData(prev => ({
+      ...prev,
+      accidentDetails: value,
+      hasAccidents: true
+    }));
+  };
+
+  const updateFeatures = (features: string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedFeatures: features
+    }));
+  };
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      handleComplete();
+      // Final step - submit form
+      onComplete(formData);
     }
   };
 
@@ -55,36 +90,75 @@ export function ImprovedUnifiedFollowUpForm({ vin, onComplete }: ImprovedUnified
     }
   };
 
-  const handleComplete = () => {
-    const formData: FollowUpAnswers = {
-      vin,
-      service_history: serviceHistory,
-      accidents: {
-        hadAccident: hasAccident,
-        count: accidents.length,
-        severity: accidents.length > 0 ? accidents[0].severity : undefined,
-        description: accidents.map(acc => 
-          `${acc.severity} ${acc.location} accident - ${acc.professionallyRepaired ? 'Professionally repaired' : 'Not professionally repaired'}. ${acc.description}`
-        ).join('; ')
-      },
-      modifications: {
-        modified: false
-      },
-      completion_percentage: 100,
-      is_complete: true
-    };
-
-    onComplete(formData);
-  };
-
-  const isStepValid = () => {
+  const canProceed = () => {
     switch (currentStep) {
-      case 2: // Service & History
-        return serviceHistory !== '';
-      case 3: // Features
-        return true; // Features are optional
+      case 0: // Service History
+        return formData.serviceHistory !== '';
+      case 1: // Accidents
+        return true; // Always can proceed from accidents step
+      case 2: // Features
+        return true; // Always can proceed from features step
       default:
         return true;
+    }
+  };
+
+  const renderStepContent = () => {
+    const step = steps[currentStep];
+    
+    switch (step.id) {
+      case 'service':
+        return (
+          <ServiceHistorySection
+            value={formData.serviceHistory}
+            onChange={updateServiceHistory}
+          />
+        );
+      
+      case 'accidents':
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-4">
+              <h3 className="text-lg font-semibold">Has this vehicle been in any accidents?</h3>
+              <div className="flex gap-4 justify-center">
+                <Button
+                  type="button"
+                  variant={!formData.hasAccidents ? "default" : "outline"}
+                  onClick={() => setFormData(prev => ({ ...prev, hasAccidents: false }))}
+                  className="px-8"
+                >
+                  No Accidents
+                </Button>
+                <Button
+                  type="button"
+                  variant={formData.hasAccidents ? "default" : "outline"}
+                  onClick={() => setFormData(prev => ({ ...prev, hasAccidents: true }))}
+                  className="px-8"
+                >
+                  Yes, Had Accidents
+                </Button>
+              </div>
+            </div>
+            
+            {formData.hasAccidents && (
+              <AccidentHistorySection
+                value={formData.accidentDetails}
+                onChange={updateAccidentDetails}
+              />
+            )}
+          </div>
+        );
+      
+      case 'features':
+        return (
+          <VehicleFeaturesSection
+            value={formData.selectedFeatures}
+            onChange={updateFeatures}
+          />
+        );
+      
+      default:
+        return null;
     }
   };
 
@@ -92,119 +166,82 @@ export function ImprovedUnifiedFollowUpForm({ vin, onComplete }: ImprovedUnified
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Progress Header */}
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold">Vehicle Valuation Assessment</h2>
-            <Badge variant="outline">
-              Step {currentStep + 1} of {steps.length}
-            </Badge>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Car className="h-5 w-5" />
+                Vehicle Valuation Assessment
+              </CardTitle>
+              <p className="text-muted-foreground mt-1">
+                Complete the assessment to get your accurate valuation
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-sm font-medium">Overall Progress</div>
+              <div className="text-2xl font-bold text-primary">
+                {currentStep + 1} of {steps.length}
+              </div>
+            </div>
           </div>
-          <p className="text-muted-foreground mb-4">
-            Complete the assessment to get your accurate valuation
-          </p>
-          <Progress value={progress} className="h-2" />
+          
+          {/* Progress Bar */}
+          <div className="space-y-2">
+            <Progress value={progress} className="h-2" />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              {steps.map((step, index) => {
+                const Icon = step.icon;
+                const isActive = index === currentStep;
+                const isCompleted = index < currentStep;
+                
+                return (
+                  <div
+                    key={step.id}
+                    className={`flex flex-col items-center space-y-1 ${
+                      isActive ? 'text-primary' : isCompleted ? 'text-green-600' : 'text-gray-400'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="text-center max-w-20">
+                      {step.title}
+                    </span>
+                    <span className="text-xs text-center max-w-20">
+                      {step.description}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </CardHeader>
       </Card>
 
-      {/* Steps Overview */}
-      <div className="grid grid-cols-4 gap-3">
-        {steps.map((step, index) => {
-          const Icon = step.icon;
-          const isActive = index === currentStep;
-          const isCompleted = index < currentStep;
-          const isAvailable = index <= currentStep;
-
-          return (
-            <Card 
-              key={step.id}
-              className={`
-                cursor-pointer transition-all
-                ${isActive ? 'ring-2 ring-blue-500 border-blue-500' : ''}
-                ${isCompleted ? 'bg-green-50 border-green-200' : ''}
-                ${!isAvailable ? 'opacity-50' : ''}
-              `}
-              onClick={() => isAvailable && setCurrentStep(index)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className={`
-                    p-2 rounded-lg
-                    ${isCompleted ? 'bg-green-100' : isActive ? 'bg-blue-100' : 'bg-gray-100'}
-                  `}>
-                    {isCompleted ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <Icon className={`h-5 w-5 ${isActive ? 'text-blue-600' : 'text-gray-600'}`} />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className={`font-medium text-sm ${isActive ? 'text-blue-900' : 'text-gray-900'}`}>
-                      {step.title}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-1">{step.description}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Current Step Content */}
-      <div className="min-h-[400px]">
-        {currentStep === 2 && (
-          <div className="space-y-6">
-            <ServiceHistorySection 
-              value={serviceHistory}
-              onChange={setServiceHistory}
-            />
-            <AccidentHistorySection
-              hasAccident={hasAccident}
-              accidents={accidents}
-              onChange={(hasAcc, accList) => {
-                setHasAccident(hasAcc);
-                setAccidents(accList);
-              }}
-            />
-          </div>
-        )}
-
-        {currentStep === 3 && (
-          <VehicleFeaturesSection
-            selectedFeatures={selectedFeatures}
-            onChange={setSelectedFeatures}
-          />
-        )}
+      {/* Step Content */}
+      <div className="min-h-96">
+        {renderStepContent()}
       </div>
 
       {/* Navigation */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex justify-between items-center">
+        <CardContent className="pt-6">
+          <div className="flex justify-between">
             <Button
               variant="outline"
               onClick={handlePrevious}
               disabled={currentStep === 0}
+              className="flex items-center gap-2"
             >
-              <ChevronLeft className="h-4 w-4 mr-2" />
+              <ChevronLeft className="h-4 w-4" />
               Previous
             </Button>
-
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">
-                {currentStepData.title}
-              </p>
-              <p className="text-xs text-gray-500">
-                {currentStepData.description}
-              </p>
-            </div>
-
+            
             <Button
               onClick={handleNext}
-              disabled={!isStepValid()}
+              disabled={!canProceed()}
+              className="flex items-center gap-2"
             >
               {currentStep === steps.length - 1 ? 'Complete Assessment' : 'Next Step'}
-              {currentStep < steps.length - 1 && <ChevronRight className="h-4 w-4 ml-2" />}
+              {currentStep < steps.length - 1 && <ChevronRight className="h-4 w-4" />}
             </Button>
           </div>
         </CardContent>
