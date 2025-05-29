@@ -12,10 +12,13 @@ import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
 import { toast } from 'sonner';
 
 export default function ValuationPage() {
-  const { vin } = useParams<{ vin: string }>();
+  const { vin: vinParam } = useParams<{ vin: string }>();
   const [vehicle, setVehicle] = useState<DecodedVehicleInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showFollowUp, setShowFollowUp] = useState(false);
+
+  // Ensure VIN is defined before proceeding
+  const vin = vinParam;
 
   useEffect(() => {
     if (vin && vin.length === 17) {

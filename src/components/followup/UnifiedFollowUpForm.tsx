@@ -1,34 +1,34 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { 
   Car, 
   FileText, 
   Wrench, 
   AlertTriangle, 
-  Tire, 
-  TrendingUp,
+  Gauge, 
+  DollarSign,
   Info,
-  CheckCircle2
+  CheckCircle
 } from 'lucide-react';
 import { FollowUpAnswers, CONDITION_OPTIONS, SERVICE_HISTORY_OPTIONS, TITLE_STATUS_OPTIONS, TIRE_CONDITION_OPTIONS, PREVIOUS_USE_OPTIONS, DASHBOARD_LIGHTS, MODIFICATION_TYPES } from '@/types/follow-up-answers';
 import { saveFollowUpAnswers, loadFollowUpAnswers } from '@/services/followUpService';
 import { toast } from 'sonner';
 
-// Create a Zod schema that matches FollowUpAnswers
 const followUpSchema = z.object({
   mileage: z.number().optional(),
   zip_code: z.string().optional(),
@@ -57,7 +57,7 @@ const followUpSchema = z.object({
   }).optional(),
 });
 
-type FormData = z.infer<typeof followUpSchema>;
+type FollowUpFormData = z.infer<typeof followUpSchema>;
 
 interface UnifiedFollowUpFormProps {
   vin: string;
@@ -67,141 +67,126 @@ interface UnifiedFollowUpFormProps {
 export function UnifiedFollowUpForm({ vin, onComplete }: UnifiedFollowUpFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [progress, setProgress] = useState(0);
 
-  const form = useForm<FormData>({
+  const form = useForm<FollowUpFormData>({
     resolver: zodResolver(followUpSchema),
     defaultValues: {
-      accidents: { hadAccident: false },
-      modifications: { modified: false },
+      accidents: {
+        hadAccident: false,
+      },
+      modifications: {
+        modified: false,
+      },
       dashboard_lights: [],
     },
   });
 
-  // Load existing answers
   useEffect(() => {
-    const loadExistingAnswers = async () => {
+    loadExistingAnswers();
+  }, [vin]);
+
+  const loadExistingAnswers = async () => {
+    try {
       setIsLoading(true);
-      try {
-        const existingAnswers = await loadFollowUpAnswers(vin);
-        if (existingAnswers) {
-          console.log('📥 Loading existing answers:', existingAnswers);
-          
-          // Set form values individually to avoid type issues
-          if (existingAnswers.mileage) form.setValue('mileage', existingAnswers.mileage);
-          if (existingAnswers.zip_code) form.setValue('zip_code', existingAnswers.zip_code);
-          if (existingAnswers.condition) form.setValue('condition', existingAnswers.condition);
-          if (existingAnswers.service_history) form.setValue('service_history', existingAnswers.service_history);
-          if (existingAnswers.maintenance_status) form.setValue('maintenance_status', existingAnswers.maintenance_status);
-          if (existingAnswers.last_service_date) form.setValue('last_service_date', existingAnswers.last_service_date);
-          if (existingAnswers.title_status) form.setValue('title_status', existingAnswers.title_status);
-          if (existingAnswers.previous_owners) form.setValue('previous_owners', existingAnswers.previous_owners);
-          if (existingAnswers.previous_use) form.setValue('previous_use', existingAnswers.previous_use);
-          if (existingAnswers.tire_condition) form.setValue('tire_condition', existingAnswers.tire_condition);
-          if (existingAnswers.dashboard_lights) form.setValue('dashboard_lights', existingAnswers.dashboard_lights);
-          if (existingAnswers.frame_damage !== undefined) form.setValue('frame_damage', existingAnswers.frame_damage);
-          
-          // Handle accidents object
-          if (existingAnswers.accidents) {
-            form.setValue('accidents', {
-              hadAccident: existingAnswers.accidents.hadAccident || false,
-              count: existingAnswers.accidents.count,
-              severity: existingAnswers.accidents.severity,
-              repaired: existingAnswers.accidents.repaired,
-              frameDamage: existingAnswers.accidents.frameDamage,
-              description: existingAnswers.accidents.description,
-            });
-          }
-          
-          // Handle modifications object
-          if (existingAnswers.modifications) {
-            form.setValue('modifications', {
-              modified: existingAnswers.modifications.modified || false,
-              types: existingAnswers.modifications.types,
-              reversible: existingAnswers.modifications.reversible,
-            });
-          }
-        }
-      } catch (error) {
-        console.error('❌ Error loading existing answers:', error);
-      } finally {
-        setIsLoading(false);
+      const existingAnswers = await loadFollowUpAnswers(vin);
+      
+      if (existingAnswers) {
+        console.log('📥 Loading existing answers:', existingAnswers);
+        
+        const formData: FollowUpFormData = {
+          mileage: existingAnswers.mileage || undefined,
+          zip_code: existingAnswers.zip_code || undefined,
+          condition: existingAnswers.condition || undefined,
+          accidents: existingAnswers.accidents || { hadAccident: false },
+          service_history: existingAnswers.service_history || undefined,
+          maintenance_status: existingAnswers.maintenance_status || undefined,
+          last_service_date: existingAnswers.last_service_date || undefined,
+          title_status: existingAnswers.title_status || undefined,
+          previous_owners: existingAnswers.previous_owners || undefined,
+          previous_use: existingAnswers.previous_use || undefined,
+          tire_condition: existingAnswers.tire_condition || undefined,
+          dashboard_lights: existingAnswers.dashboard_lights || [],
+          frame_damage: existingAnswers.frame_damage || false,
+          modifications: existingAnswers.modifications || { modified: false },
+        };
+
+        form.reset(formData);
       }
-    };
-
-    if (vin) {
-      loadExistingAnswers();
+    } catch (error) {
+      console.error('❌ Error loading existing answers:', error);
+      toast.error('Failed to load existing answers');
+    } finally {
+      setIsLoading(false);
     }
-  }, [vin, form]);
+  };
 
-  // Calculate progress based on filled fields
-  const watchedValues = form.watch();
-  useEffect(() => {
-    const totalFields = 13; // Total number of main fields
+  const setAnswer = (path: string, value: any) => {
+    const pathParts = path.split('.');
+    
+    if (pathParts.length === 1) {
+      form.setValue(path as any, value);
+    } else {
+      const [parent, child] = pathParts;
+      const currentParent = form.getValues(parent as any) || {};
+      form.setValue(parent as any, {
+        ...currentParent,
+        [child]: value,
+      });
+    }
+  };
+
+  const calculateProgress = () => {
+    const values = form.watch();
+    const totalFields = 13;
     let filledFields = 0;
 
-    if (watchedValues.mileage) filledFields++;
-    if (watchedValues.zip_code) filledFields++;
-    if (watchedValues.condition) filledFields++;
-    if (watchedValues.service_history) filledFields++;
-    if (watchedValues.maintenance_status) filledFields++;
-    if (watchedValues.title_status) filledFields++;
-    if (watchedValues.previous_owners) filledFields++;
-    if (watchedValues.previous_use) filledFields++;
-    if (watchedValues.tire_condition) filledFields++;
-    if (watchedValues.dashboard_lights && watchedValues.dashboard_lights.length > 0) filledFields++;
-    if (watchedValues.frame_damage !== undefined) filledFields++;
-    if (watchedValues.accidents?.hadAccident !== undefined) filledFields++;
-    if (watchedValues.modifications?.modified !== undefined) filledFields++;
+    if (values.mileage) filledFields++;
+    if (values.zip_code) filledFields++;
+    if (values.condition) filledFields++;
+    if (values.accidents?.hadAccident !== undefined) filledFields++;
+    if (values.service_history) filledFields++;
+    if (values.maintenance_status) filledFields++;
+    if (values.title_status) filledFields++;
+    if (values.previous_owners) filledFields++;
+    if (values.previous_use) filledFields++;
+    if (values.tire_condition) filledFields++;
+    if (values.dashboard_lights && values.dashboard_lights.length > 0) filledFields++;
+    if (values.modifications?.modified !== undefined) filledFields++;
+    if (values.frame_damage !== undefined) filledFields++;
 
-    const newProgress = Math.round((filledFields / totalFields) * 100);
-    setProgress(newProgress);
-  }, [watchedValues]);
+    return Math.round((filledFields / totalFields) * 100);
+  };
 
-  const handleSubmit = async (data: FormData) => {
-    setIsSubmitting(true);
+  const onSubmit = async (data: FollowUpFormData) => {
     try {
+      setIsSubmitting(true);
       console.log('📤 Submitting follow-up answers:', data);
 
-      const followUpAnswers: FollowUpAnswers = {
+      const answers: FollowUpAnswers = {
         vin,
-        mileage: data.mileage,
-        zip_code: data.zip_code,
-        condition: data.condition,
-        accidents: data.accidents,
-        service_history: data.service_history,
-        maintenance_status: data.maintenance_status,
-        last_service_date: data.last_service_date,
-        title_status: data.title_status,
-        previous_owners: data.previous_owners,
-        previous_use: data.previous_use,
-        tire_condition: data.tire_condition,
-        dashboard_lights: data.dashboard_lights,
-        frame_damage: data.frame_damage,
-        modifications: data.modifications,
-        completion_percentage: progress,
-        is_complete: progress >= 80,
+        ...data,
+        completion_percentage: calculateProgress(),
+        is_complete: calculateProgress() >= 80,
       };
 
-      await saveFollowUpAnswers(followUpAnswers);
-      toast.success('Follow-up information saved successfully!');
-      onComplete(followUpAnswers);
+      await saveFollowUpAnswers(answers);
+      onComplete(answers);
+      toast.success('Follow-up answers saved successfully!');
     } catch (error) {
       console.error('❌ Error submitting follow-up answers:', error);
-      toast.error('Failed to save follow-up information');
+      toast.error('Failed to save answers');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const progress = calculateProgress();
+
   if (isLoading) {
     return (
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardContent className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <span className="ml-2">Loading your information...</span>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
@@ -210,485 +195,621 @@ export function UnifiedFollowUpForm({ vin, onComplete }: UnifiedFollowUpFormProp
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CheckCircle2 className="h-6 w-6 text-primary" />
-            Complete Your Vehicle Assessment
+            <Car className="h-5 w-5" />
+            Vehicle Details & Follow-up Questions
           </CardTitle>
           <div className="space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Completion Progress</span>
-              <span>{progress}%</span>
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>Progress: {progress}% complete</span>
+              <Badge variant={progress >= 80 ? "default" : "secondary"}>
+                {progress >= 80 ? "Ready for valuation" : "In progress"}
+              </Badge>
             </div>
             <Progress value={progress} className="w-full" />
           </div>
         </CardHeader>
-        
         <CardContent>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <Accordion type="multiple" className="w-full" defaultValue={["vehicle-details"]}>
-              
-              {/* Vehicle Details Section */}
-              <AccordionItem value="vehicle-details">
-                <AccordionTrigger className="flex items-center gap-2">
-                  <Car className="h-5 w-5" />
-                  Vehicle Details
-                </AccordionTrigger>
-                <AccordionContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="mileage">Current Mileage</Label>
-                      <Input
-                        id="mileage"
-                        type="number"
-                        placeholder="e.g., 75000"
-                        {...form.register('mileage', { valueAsNumber: true })}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <Accordion type="multiple" defaultValue={["vehicle-details"]} className="w-full">
+                
+                {/* Vehicle Details Section */}
+                <AccordionItem value="vehicle-details">
+                  <AccordionTrigger className="flex items-center gap-2">
+                    <Car className="h-4 w-4" />
+                    Vehicle Details
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-4 pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="mileage"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-1">
+                              Current Mileage
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Info className="h-3 w-3" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Enter the current odometer reading</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="e.g., 75000"
+                                {...field}
+                                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="zip_code"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>ZIP Code</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., 90210" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="zip_code">ZIP Code</Label>
-                      <Input
-                        id="zip_code"
-                        placeholder="e.g., 90210"
-                        {...form.register('zip_code')}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Overall Vehicle Condition</Label>
-                    <Select
-                      value={form.watch('condition') || ''}
-                      onValueChange={(value) => form.setValue('condition', value as any)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select condition" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CONDITION_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            <div className="flex flex-col">
-                              <span>{option.label}</span>
-                              <span className="text-xs text-muted-foreground">{option.description}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
 
-              {/* Ownership & Title Section */}
-              <AccordionItem value="ownership-title">
-                <AccordionTrigger className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Ownership & Title
-                </AccordionTrigger>
-                <AccordionContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Title Status</Label>
-                      <Select
-                        value={form.watch('title_status') || ''}
-                        onValueChange={(value) => form.setValue('title_status', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select title status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {TITLE_STATUS_OPTIONS.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              <div className="flex flex-col">
-                                <span>{option.label}</span>
-                                <span className="text-xs text-muted-foreground">{option.impact}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="previous_owners">Number of Previous Owners</Label>
-                      <Input
-                        id="previous_owners"
-                        type="number"
-                        min="1"
-                        placeholder="e.g., 2"
-                        {...form.register('previous_owners', { valueAsNumber: true })}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Previous Use</Label>
-                    <Select
-                      value={form.watch('previous_use') || ''}
-                      onValueChange={(value) => form.setValue('previous_use', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select previous use" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PREVIOUS_USE_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            <div className="flex flex-col">
-                              <span>{option.label}</span>
-                              <span className="text-xs text-muted-foreground">{option.impact}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Service History Section */}
-              <AccordionItem value="service-history">
-                <AccordionTrigger className="flex items-center gap-2">
-                  <Wrench className="h-5 w-5" />
-                  Service History
-                </AccordionTrigger>
-                <AccordionContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Service History Type</Label>
-                    <Select
-                      value={form.watch('service_history') || ''}
-                      onValueChange={(value) => form.setValue('service_history', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select service history" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SERVICE_HISTORY_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            <div className="flex flex-col">
-                              <span>{option.label}</span>
-                              <span className="text-xs text-muted-foreground">{option.impact}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Maintenance Status</Label>
-                      <Select
-                        value={form.watch('maintenance_status') || ''}
-                        onValueChange={(value) => form.setValue('maintenance_status', value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Up to date">Up to date</SelectItem>
-                          <SelectItem value="Overdue">Overdue</SelectItem>
-                          <SelectItem value="Unknown">Unknown</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="last_service_date">Last Service Date</Label>
-                      <Input
-                        id="last_service_date"
-                        type="date"
-                        {...form.register('last_service_date')}
-                      />
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Damage / Accidents Section */}
-              <AccordionItem value="damage-accidents">
-                <AccordionTrigger className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  Damage / Accidents
-                </AccordionTrigger>
-                <AccordionContent className="space-y-4">
-                  <div className="space-y-4">
-                    <div className="space-y-3">
-                      <Label>Has this vehicle been in an accident?</Label>
-                      <RadioGroup
-                        value={form.watch('accidents')?.hadAccident?.toString() || 'false'}
-                        onValueChange={(value) => {
-                          const hadAccident = value === 'true';
-                          const currentAccidents = form.watch('accidents') || { hadAccident: false };
-                          form.setValue('accidents', {
-                            ...currentAccidents,
-                            hadAccident,
-                          });
-                        }}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="false" id="no-accident" />
-                          <Label htmlFor="no-accident">No accidents</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="true" id="has-accident" />
-                          <Label htmlFor="has-accident">Yes, has been in accident(s)</Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
-
-                    {form.watch('accidents')?.hadAccident && (
-                      <div className="space-y-4 pl-4 border-l-2 border-orange-200">
-                        <div className="space-y-2">
-                          <Label>Accident Severity</Label>
-                          <Select
-                            value={form.watch('accidents')?.severity || ''}
-                            onValueChange={(value) => {
-                              const currentAccidents = form.watch('accidents') || { hadAccident: true };
-                              form.setValue('accidents', {
-                                ...currentAccidents,
-                                hadAccident: currentAccidents.hadAccident ?? true,
-                                severity: value as any,
-                              });
-                            }}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select severity" />
-                            </SelectTrigger>
+                    <FormField
+                      control={form.control}
+                      name="condition"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Overall Condition</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select vehicle condition" />
+                              </SelectTrigger>
+                            </FormControl>
                             <SelectContent>
-                              <SelectItem value="minor">Minor</SelectItem>
-                              <SelectItem value="moderate">Moderate</SelectItem>
-                              <SelectItem value="major">Major</SelectItem>
+                              {CONDITION_OPTIONS.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  <div className="flex flex-col">
+                                    <span>{option.label}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {option.description} • {option.impact}
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="accident_count">Number of Accidents</Label>
-                          <Input
-                            id="accident_count"
-                            type="number"
-                            min="1"
-                            placeholder="e.g., 1"
-                            value={form.watch('accidents')?.count || ''}
-                            onChange={(e) => {
-                              const count = e.target.value ? parseInt(e.target.value) : undefined;
-                              const currentAccidents = form.watch('accidents') || { hadAccident: true };
-                              form.setValue('accidents', {
-                                ...currentAccidents,
-                                hadAccident: currentAccidents.hadAccident ?? true,
-                                count,
-                              });
-                            }}
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="accident_description">Accident Description</Label>
-                          <Textarea
-                            id="accident_description"
-                            placeholder="Describe the accident(s), repairs made, etc."
-                            value={form.watch('accidents')?.description || ''}
-                            onChange={(e) => {
-                              const currentAccidents = form.watch('accidents') || { hadAccident: true };
-                              form.setValue('accidents', {
-                                ...currentAccidents,
-                                hadAccident: currentAccidents.hadAccident ?? true,
-                                description: e.target.value,
-                              });
-                            }}
-                          />
-                        </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Ownership & Title Section */}
+                <AccordionItem value="ownership-title">
+                  <AccordionTrigger className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Ownership & Title
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-4 pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="title_status"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Title Status</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select title status" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {TITLE_STATUS_OPTIONS.map((option) => (
+                                  <SelectItem key={option.value} value={option.value}>
+                                    <div className="flex flex-col">
+                                      <span>{option.label}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {option.impact}
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="previous_owners"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Number of Previous Owners</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="e.g., 2"
+                                {...field}
+                                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="previous_use"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Previous Use</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select previous use" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {PREVIOUS_USE_OPTIONS.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  <div className="flex flex-col">
+                                    <span>{option.label}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {option.impact}
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Service History Section */}
+                <AccordionItem value="service-history">
+                  <AccordionTrigger className="flex items-center gap-2">
+                    <Wrench className="h-4 w-4" />
+                    Service History
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-4 pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="service_history"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Service History</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select service history" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {SERVICE_HISTORY_OPTIONS.map((option) => (
+                                  <SelectItem key={option.value} value={option.value}>
+                                    <div className="flex flex-col">
+                                      <span>{option.label}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {option.impact}
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="maintenance_status"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Maintenance Status</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select maintenance status" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Up to date">Up to date</SelectItem>
+                                <SelectItem value="Overdue">Overdue</SelectItem>
+                                <SelectItem value="Unknown">Unknown</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="last_service_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Service Date</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="date"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Damage / Accidents Section */}
+                <AccordionItem value="damage-accidents">
+                  <AccordionTrigger className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    Damage / Accidents
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-4 pt-4">
+                    <FormField
+                      control={form.control}
+                      name="accidents.hadAccident"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={(checked) => {
+                                field.onChange(checked);
+                                setAnswer('accidents', {
+                                  ...form.getValues('accidents'),
+                                  hadAccident: checked === true,
+                                });
+                              }}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>
+                              Has this vehicle been in any accidents?
+                            </FormLabel>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    {form.watch('accidents.hadAccident') && (
+                      <div className="space-y-4 pl-6 border-l-2 border-muted">
+                        <FormField
+                          control={form.control}
+                          name="accidents.severity"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Accident Severity</FormLabel>
+                              <FormControl>
+                                <RadioGroup
+                                  onValueChange={(value) => {
+                                    field.onChange(value);
+                                    setAnswer('accidents', {
+                                      ...form.getValues('accidents'),
+                                      hadAccident: true,
+                                      severity: value,
+                                    });
+                                  }}
+                                  value={field.value}
+                                  className="flex flex-col space-y-1"
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="minor" id="minor" />
+                                    <label htmlFor="minor">Minor (cosmetic damage only)</label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="moderate" id="moderate" />
+                                    <label htmlFor="moderate">Moderate (structural but repairable)</label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="major" id="major" />
+                                    <label htmlFor="major">Major (significant structural damage)</label>
+                                  </div>
+                                </RadioGroup>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="accidents.count"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Number of Accidents</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  placeholder="e.g., 1"
+                                  {...field}
+                                  onChange={(e) => {
+                                    const count = e.target.value ? parseInt(e.target.value) : undefined;
+                                    field.onChange(count);
+                                    setAnswer('accidents', {
+                                      ...form.getValues('accidents'),
+                                      hadAccident: true,
+                                      count,
+                                    });
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="accidents.description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Accident Description</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Describe the accident(s) and any repairs..."
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e.target.value);
+                                    setAnswer('accidents', {
+                                      ...form.getValues('accidents'),
+                                      hadAccident: true,
+                                      description: e.target.value,
+                                    });
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
                     )}
-                  </div>
 
-                  <div className="space-y-3">
-                    <Label>Frame Damage</Label>
-                    <RadioGroup
-                      value={form.watch('frame_damage')?.toString() || ''}
-                      onValueChange={(value) => form.setValue('frame_damage', value === 'true')}
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="false" id="no-frame-damage" />
-                        <Label htmlFor="no-frame-damage">No frame damage</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="true" id="has-frame-damage" />
-                        <Label htmlFor="has-frame-damage">Has frame damage</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
+                    <Separator />
 
-              {/* Tires & Maintenance Section */}
-              <AccordionItem value="tires-maintenance">
-                <AccordionTrigger className="flex items-center gap-2">
-                  <Tire className="h-5 w-5" />
-                  Tires & Dashboard
-                </AccordionTrigger>
-                <AccordionContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Tire Condition</Label>
-                    <Select
-                      value={form.watch('tire_condition') || ''}
-                      onValueChange={(value) => form.setValue('tire_condition', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select tire condition" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TIRE_CONDITION_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            <div className="flex flex-col">
-                              <span>{option.label}</span>
-                              <span className="text-xs text-muted-foreground">{option.impact}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <Label>Dashboard Warning Lights</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {DASHBOARD_LIGHTS.map((light) => (
-                        <div key={light.value} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`light-${light.value}`}
-                            checked={form.watch('dashboard_lights')?.includes(light.value) || false}
-                            onCheckedChange={(checked) => {
-                              const currentLights = form.watch('dashboard_lights') || [];
-                              const newLights = checked
-                                ? [...currentLights, light.value]
-                                : currentLights.filter(l => l !== light.value);
-                              form.setValue('dashboard_lights', newLights);
-                            }}
-                          />
-                          <Label htmlFor={`light-${light.value}`} className="text-sm flex items-center gap-1">
-                            <span>{light.icon}</span>
-                            {light.label}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Modifications Section */}
-              <AccordionItem value="modifications">
-                <AccordionTrigger className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Vehicle Modifications
-                </AccordionTrigger>
-                <AccordionContent className="space-y-4">
-                  <div className="space-y-3">
-                    <Label>Has this vehicle been modified?</Label>
-                    <RadioGroup
-                      value={form.watch('modifications')?.modified?.toString() || 'false'}
-                      onValueChange={(value) => {
-                        const modified = value === 'true';
-                        const currentMods = form.watch('modifications') || { modified: false };
-                        form.setValue('modifications', {
-                          ...currentMods,
-                          modified,
-                        });
-                      }}
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="false" id="no-modifications" />
-                        <Label htmlFor="no-modifications">No modifications</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="true" id="has-modifications" />
-                        <Label htmlFor="has-modifications">Yes, has modifications</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-
-                  {form.watch('modifications')?.modified && (
-                    <div className="space-y-4 pl-4 border-l-2 border-blue-200">
-                      <div className="space-y-3">
-                        <Label>Types of Modifications</Label>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                          {MODIFICATION_TYPES.map((type) => (
-                            <div key={type} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`mod-${type}`}
-                                checked={form.watch('modifications')?.types?.includes(type) || false}
-                                onCheckedChange={(checked) => {
-                                  const currentMods = form.watch('modifications') || { modified: true };
-                                  const currentTypes = currentMods.types || [];
-                                  const newTypes = checked
-                                    ? [...currentTypes, type]
-                                    : currentTypes.filter(t => t !== type);
-                                  form.setValue('modifications', {
-                                    ...currentMods,
-                                    modified: currentMods.modified ?? true,
-                                    types: newTypes,
-                                  });
-                                }}
-                              />
-                              <Label htmlFor={`mod-${type}`} className="text-sm">{type}</Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <Label>Are modifications reversible?</Label>
-                        <RadioGroup
-                          value={form.watch('modifications')?.reversible?.toString() || ''}
-                          onValueChange={(value) => {
-                            const currentMods = form.watch('modifications') || { modified: true };
-                            form.setValue('modifications', {
-                              ...currentMods,
-                              modified: currentMods.modified ?? true,
-                              reversible: value === 'true',
-                            });
-                          }}
-                        >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="true" id="reversible-yes" />
-                            <Label htmlFor="reversible-yes">Yes, easily reversible</Label>
+                    <FormField
+                      control={form.control}
+                      name="frame_damage"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>
+                              Does this vehicle have any frame damage?
+                            </FormLabel>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="false" id="reversible-no" />
-                            <Label htmlFor="reversible-no">No, permanent modifications</Label>
+                        </FormItem>
+                      )}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Tires & Maintenance Section */}
+                <AccordionItem value="tires-maintenance">
+                  <AccordionTrigger className="flex items-center gap-2">
+                    <Gauge className="h-4 w-4" />
+                    Tires & Maintenance
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-4 pt-4">
+                    <FormField
+                      control={form.control}
+                      name="tire_condition"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tire Condition</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select tire condition" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {TIRE_CONDITION_OPTIONS.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  <div className="flex flex-col">
+                                    <span>{option.label}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {option.impact}
+                                    </span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="dashboard_lights"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Dashboard Warning Lights</FormLabel>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {DASHBOARD_LIGHTS.map((light) => (
+                              <div key={light.value} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={light.value}
+                                  checked={field.value?.includes(light.value)}
+                                  onCheckedChange={(checked) => {
+                                    const updatedLights = checked
+                                      ? [...(field.value || []), light.value]
+                                      : (field.value || []).filter((l) => l !== light.value);
+                                    field.onChange(updatedLights);
+                                  }}
+                                />
+                                <label htmlFor={light.value} className="text-sm">
+                                  {light.icon} {light.label}
+                                </label>
+                              </div>
+                            ))}
                           </div>
-                        </RadioGroup>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Modifications Section */}
+                <AccordionItem value="modifications">
+                  <AccordionTrigger className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Modifications
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-4 pt-4">
+                    <FormField
+                      control={form.control}
+                      name="modifications.modified"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={(checked) => {
+                                field.onChange(checked);
+                                setAnswer('modifications', {
+                                  ...form.getValues('modifications'),
+                                  modified: checked === true,
+                                  types: checked ? form.getValues('modifications.types') || [] : [],
+                                });
+                              }}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>
+                              Has this vehicle been modified from factory specifications?
+                            </FormLabel>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+
+                    {form.watch('modifications.modified') && (
+                      <div className="space-y-4 pl-6 border-l-2 border-muted">
+                        <FormField
+                          control={form.control}
+                          name="modifications.types"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Types of Modifications</FormLabel>
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                {MODIFICATION_TYPES.map((type) => (
+                                  <div key={type} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={type}
+                                      checked={field.value?.includes(type)}
+                                      onCheckedChange={(checked) => {
+                                        const updatedTypes = checked
+                                          ? [...(field.value || []), type]
+                                          : (field.value || []).filter((t) => t !== type);
+                                        field.onChange(updatedTypes);
+                                        setAnswer('modifications', {
+                                          ...form.getValues('modifications'),
+                                          modified: true,
+                                          types: updatedTypes,
+                                        });
+                                      }}
+                                    />
+                                    <label htmlFor={type} className="text-sm">
+                                      {type}
+                                    </label>
+                                  </div>
+                                ))}
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="modifications.reversible"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={(checked) => {
+                                    field.onChange(checked);
+                                    setAnswer('modifications', {
+                                      ...form.getValues('modifications'),
+                                      modified: true,
+                                      reversible: checked === true,
+                                    });
+                                  }}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>
+                                  Are the modifications easily reversible?
+                                </FormLabel>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
                       </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+              </Accordion>
+
+              <div className="flex items-center justify-between pt-6 border-t">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle className="h-4 w-4" />
+                  <span>{progress}% complete</span>
+                </div>
+                <Button type="submit" disabled={isSubmitting} className="min-w-[120px]">
+                  {isSubmitting ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Saving...
                     </div>
+                  ) : (
+                    'Complete Valuation'
                   )}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-
-            <div className="flex justify-between items-center pt-6 border-t">
-              <div className="text-sm text-muted-foreground">
-                {progress >= 80 ? (
-                  <span className="text-green-600 font-medium">✓ Ready to submit</span>
-                ) : (
-                  <span>Complete more fields for better accuracy</span>
-                )}
+                </Button>
               </div>
-              <Button 
-                type="submit" 
-                disabled={isSubmitting}
-                className="min-w-32"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Saving...
-                  </>
-                ) : (
-                  'Complete Assessment'
-                )}
-              </Button>
-            </div>
-          </form>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </TooltipProvider>
