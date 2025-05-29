@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, UseFormReturn } from 'react-hook-form';
 import { Container } from '@/components/ui/container';
 import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
 import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
 import { ManualVehicleForm } from '@/components/lookup/ManualVehicleForm';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -15,19 +14,19 @@ export default function ManualValuationPage() {
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Initialize the form with react-hook-form
+  // Initialize the form with react-hook-form and proper typing
   const form = useForm<ManualEntryFormData>({
     defaultValues: {
       make: '',
       model: '',
       year: new Date().getFullYear(),
       mileage: 0,
-      condition: 'good',
+      condition: ConditionLevel.Good,
       zipCode: '',
       fuelType: 'gasoline',
       transmission: 'automatic'
     }
-  });
+  }) as UseFormReturn<ManualEntryFormData>;
 
   const handleVehicleDataSubmit = async (data: ManualEntryFormData) => {
     console.log('✅ Manual vehicle data submitted:', data);
