@@ -1,15 +1,15 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { AccidentHistoryTab } from './tabs/AccidentHistoryTab';
 import { ServiceMaintenanceTab } from './tabs/ServiceMaintenanceTab';
 import { TitleOwnershipTab } from './tabs/TitleOwnershipTab';
 import { PhysicalFeaturesTab } from './tabs/PhysicalFeaturesTab';
 import { ModificationsTab } from './tabs/ModificationsTab';
 import { FeaturesTab } from './tabs/FeaturesTab';
+import { toast } from 'sonner';
 
 interface UnifiedFollowUpFormProps {
   vin: string;
@@ -18,35 +18,52 @@ interface UnifiedFollowUpFormProps {
   onSave: (formData: FollowUpAnswers) => void;
 }
 
-const tabs = [
-  { id: 'accidents', label: 'Accident History', icon: '🚗', color: 'red' },
-  { id: 'service', label: 'Service & Maintenance', icon: '🔧', color: 'blue' },
-  { id: 'title', label: 'Title & Ownership', icon: '📄', color: 'purple' },
-  { id: 'physical', label: 'Physical Features', icon: '🔍', color: 'orange' },
-  { id: 'modifications', label: 'Modifications', icon: '⚙️', color: 'green' },
-  { id: 'features', label: 'Features', icon: '✨', color: 'indigo' }
-];
+type ColorScheme = {
+  bg: string;
+  border: string;
+  text: string;
+};
 
-export function UnifiedFollowUpForm({ vin, initialData = {}, onSubmit, onSave }: UnifiedFollowUpFormProps) {
+type ColorSchemes = {
+  red: ColorScheme;
+  blue: ColorScheme;
+  purple: ColorScheme;
+  orange: ColorScheme;
+  green: ColorScheme;
+  indigo: ColorScheme;
+};
+
+export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: UnifiedFollowUpFormProps) {
   const [currentTab, setCurrentTab] = useState(0);
   const [formData, setFormData] = useState<FollowUpAnswers>({
     vin,
     ...initialData
   });
 
-  const updateFormData = (updates: Partial<FollowUpAnswers>) => {
-    const newFormData = { ...formData, ...updates };
-    setFormData(newFormData);
-    onSave(newFormData);
+  const tabs = [
+    { id: 'condition', name: 'Basic Info', color: 'red' },
+    { id: 'service', name: 'Service & Maintenance', color: 'blue' },
+    { id: 'title', name: 'Title & Ownership', color: 'purple' },
+    { id: 'physical', name: 'Physical Features', color: 'orange' },
+    { id: 'modifications', name: 'Modifications', color: 'green' },
+    { id: 'features', name: 'Features', color: 'indigo' }
+  ];
+
+  const colors: ColorSchemes = {
+    red: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700' },
+    blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
+    purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700' },
+    orange: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700' },
+    green: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700' },
+    indigo: { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700' }
   };
 
-  const handleAccidentsChange = (hadAccident: boolean, details?: any) => {
-    updateFormData({
-      accidents: {
-        hadAccident,
-        ...details
-      }
-    });
+  const updateFormData = (updates: Partial<FollowUpAnswers>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
+  };
+
+  const handleTabClick = (index: number) => {
+    setCurrentTab(index);
   };
 
   const handleNext = () => {
@@ -61,98 +78,88 @@ export function UnifiedFollowUpForm({ vin, initialData = {}, onSubmit, onSave }:
     }
   };
 
+  const handleSave = () => {
+    onSave(formData);
+    toast.success('Progress saved successfully!');
+  };
+
   const handleSubmit = () => {
     onSubmit(formData);
   };
 
-  const getColorClasses = (color: string, variant: 'bg' | 'border' | 'text' = 'bg') => {
-    const colorMap = {
-      red: { bg: 'bg-red-500', border: 'border-red-500', text: 'text-red-600' },
-      blue: { bg: 'bg-blue-500', border: 'border-blue-500', text: 'text-blue-600' },
-      purple: { bg: 'bg-purple-500', border: 'border-purple-500', text: 'text-purple-600' },
-      orange: { bg: 'bg-orange-500', border: 'border-orange-500', text: 'text-orange-600' },
-      green: { bg: 'bg-green-500', border: 'border-green-500', text: 'text-green-600' },
-      indigo: { bg: 'bg-indigo-500', border: 'border-indigo-500', text: 'text-indigo-600' }
-    };
-    return colorMap[color]?.[variant] || colorMap.blue[variant];
+  const getCurrentTabColor = () => {
+    const colorKey = tabs[currentTab].color as keyof ColorSchemes;
+    return colors[colorKey];
   };
 
   const renderTabContent = () => {
-    const currentTabId = tabs[currentTab].id;
-    
-    switch (currentTabId) {
-      case 'accidents':
+    switch (currentTab) {
+      case 0:
         return (
-          <AccidentHistoryTab 
-            formData={formData} 
-            onAccidentsChange={handleAccidentsChange}
-          />
+          <div className="space-y-6">
+            <div className="text-center py-8">
+              <h3 className="text-xl font-semibold mb-4">Basic Vehicle Information</h3>
+              <p className="text-gray-600">This section will contain basic condition and mileage inputs.</p>
+            </div>
+          </div>
         );
-      case 'service':
-        return (
-          <ServiceMaintenanceTab 
-            formData={formData} 
-            updateFormData={updateFormData}
-          />
-        );
-      case 'title':
-        return (
-          <TitleOwnershipTab 
-            formData={formData} 
-            updateFormData={updateFormData}
-          />
-        );
-      case 'physical':
-        return (
-          <PhysicalFeaturesTab 
-            formData={formData} 
-            updateFormData={updateFormData}
-          />
-        );
-      case 'modifications':
+      case 1:
+        return <ServiceMaintenanceTab formData={formData} updateFormData={updateFormData} />;
+      case 2:
+        return <TitleOwnershipTab formData={formData} updateFormData={updateFormData} />;
+      case 3:
+        return <PhysicalFeaturesTab formData={formData} updateFormData={updateFormData} />;
+      case 4:
         return (
           <ModificationsTab 
             formData={formData} 
-            updateFormData={updateFormData}
+            onModificationsChange={(modified: boolean, types?: string[]) => {
+              updateFormData({
+                modifications: {
+                  modified,
+                  types: types || [],
+                  reversible: formData.modifications?.reversible
+                }
+              });
+            }}
           />
         );
-      case 'features':
-        return (
-          <FeaturesTab 
-            formData={formData} 
-            updateFormData={updateFormData}
-          />
-        );
+      case 5:
+        return <FeaturesTab formData={formData} updateFormData={updateFormData} />;
       default:
-        return <div>Tab content not found</div>;
+        return null;
     }
   };
 
+  const currentColor = getCurrentTabColor();
+
   return (
-    <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+    <div className="max-w-6xl mx-auto">
       {/* Tab Navigation */}
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b">
-        <div className="flex flex-wrap gap-2">
+      <div className="mb-8">
+        <div className="flex flex-wrap gap-2 mb-6">
           {tabs.map((tab, index) => {
-            const isActive = index === currentTab;
+            const tabColorKey = tab.color as keyof ColorSchemes;
+            const tabColor = colors[tabColorKey];
+            const isActive = currentTab === index;
             const isCompleted = index < currentTab;
-            
+
             return (
               <button
                 key={tab.id}
-                onClick={() => setCurrentTab(index)}
+                onClick={() => handleTabClick(index)}
                 className={`
-                  flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200
+                  flex items-center px-4 py-3 rounded-lg font-medium transition-all duration-200
                   ${isActive 
-                    ? `${getColorClasses(tab.color, 'bg')} text-white shadow-md transform scale-105` 
+                    ? `${tabColor.bg} ${tabColor.border} ${tabColor.text} border-2 shadow-md` 
                     : isCompleted
-                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                      : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                      ? 'bg-green-50 border-green-200 text-green-700 border-2'
+                      : 'bg-gray-50 border-gray-200 text-gray-600 border hover:bg-gray-100'
                   }
                 `}
               >
-                <span className="text-lg">{isCompleted ? '✅' : tab.icon}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
+                {isCompleted && <Check className="h-4 w-4 mr-2" />}
+                <span className="text-sm">{tab.name}</span>
               </button>
             );
           })}
@@ -160,45 +167,41 @@ export function UnifiedFollowUpForm({ vin, initialData = {}, onSubmit, onSave }:
       </div>
 
       {/* Tab Content */}
-      <div className="p-6">
-        {renderTabContent()}
-      </div>
+      <Card className={`${currentColor.border} border-2 ${currentColor.bg}`}>
+        <CardContent className="p-8">
+          {renderTabContent()}
+        </CardContent>
+      </Card>
 
-      {/* Navigation Footer */}
-      <div className="bg-gray-50 px-6 py-4 border-t flex justify-between items-center">
+      {/* Navigation Buttons */}
+      <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
         <Button
-          variant="outline"
           onClick={handlePrevious}
           disabled={currentTab === 0}
-          className="flex items-center space-x-2"
+          variant="outline"
+          className="flex items-center"
         >
-          <ChevronLeft className="h-4 w-4" />
-          <span>Previous</span>
+          <ChevronLeft className="h-4 w-4 mr-2" />
+          Previous
         </Button>
 
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-600">
-            {currentTab + 1} of {tabs.length}
-          </span>
+        <div className="flex space-x-4">
+          <Button onClick={handleSave} variant="outline">
+            Save Progress
+          </Button>
+          
+          {currentTab === tabs.length - 1 ? (
+            <Button onClick={handleSubmit} className="flex items-center">
+              Complete Valuation
+              <Check className="h-4 w-4 ml-2" />
+            </Button>
+          ) : (
+            <Button onClick={handleNext} className="flex items-center">
+              Next
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          )}
         </div>
-
-        {currentTab === tabs.length - 1 ? (
-          <Button
-            onClick={handleSubmit}
-            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
-          >
-            <Check className="h-4 w-4" />
-            <span>Complete Valuation</span>
-          </Button>
-        ) : (
-          <Button
-            onClick={handleNext}
-            className="flex items-center space-x-2"
-          >
-            <span>Next</span>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        )}
       </div>
     </div>
   );
