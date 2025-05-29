@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { HeroSection } from '@/components/home/HeroSection';
 import { ValuePropositionSection } from '@/components/home/ValuePropositionSection';
 import { PremiumServicesGrid } from '@/components/home/PremiumServicesGrid';
-import { KeyFeatures } from '@/components/home/KeyFeatures';
 import { TestimonialsSection } from '@/components/home/TestimonialsSection';
 import { FeaturesOverview } from '@/components/home/FeaturesOverview';
 import { MarketingBanner } from '@/components/marketing/MarketingBanner';
@@ -48,7 +47,6 @@ export const EnhancedHomePage: React.FC = () => {
       <div className="min-h-screen">
         {/* Core sections */}
         <HeroSection onFreeValuationClick={handleFreeValuationClick} />
-        <KeyFeatures />
         
         {/* Add lookup tabs to the home page */}
         <div className="container mx-auto max-w-2xl px-4 py-12">
