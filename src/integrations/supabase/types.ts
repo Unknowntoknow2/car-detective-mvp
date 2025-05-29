@@ -1113,6 +1113,20 @@ export type Database = {
             referencedRelation: "makes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_make_id"
+            columns: ["make_id"]
+            isOneToOne: false
+            referencedRelation: "makes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "models_make_id_fkey"
+            columns: ["make_id"]
+            isOneToOne: false
+            referencedRelation: "makes"
+            referencedColumns: ["id"]
+          },
         ]
       }
       models_backup: {

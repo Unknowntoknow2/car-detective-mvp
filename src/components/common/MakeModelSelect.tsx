@@ -32,29 +32,17 @@ export function MakeModelSelect({
   isDisabled = false
 }: MakeModelSelectProps) {
   const handleMakeChange = (makeId: string) => {
-    console.log('🎯 MakeModelSelect: Make selected:', {
-      makeId,
-      makeName: makes.find(m => m.id === makeId)?.make_name
-    });
-    
     setSelectedMakeId(makeId);
     setSelectedModelId(''); // Reset model selection
     
     if (onMakeChange) {
-      console.log('🔄 MakeModelSelect: Calling onMakeChange with makeId:', makeId);
       onMakeChange(makeId);
     }
   };
 
-  // Debug log for models passed to dropdown
-  console.log('📋 MakeModelSelect: Render state:', {
-    selectedMakeId,
-    selectedModelId,
-    modelsCount: models.length,
-    isLoading,
-    modelsPreview: models.slice(0, 3),
-    allModels: models
-  });
+  const handleModelChange = (modelId: string) => {
+    setSelectedModelId(modelId);
+  };
 
   if (isLoading && makes.length === 0) {
     return (
@@ -115,13 +103,7 @@ export function MakeModelSelect({
         </Label>
         <Select
           value={selectedModelId}
-          onValueChange={(modelId) => {
-            console.log('🎯 MakeModelSelect: Model selected:', {
-              modelId,
-              modelName: models.find(m => m.id === modelId)?.model_name
-            });
-            setSelectedModelId(modelId);
-          }}
+          onValueChange={handleModelChange}
           disabled={isDisabled || !selectedMakeId}
         >
           <SelectTrigger id="model" className="h-10">
@@ -141,18 +123,11 @@ export function MakeModelSelect({
                 No models found for selected make
               </div>
             ) : (
-              models.map((model) => {
-                console.log('🔧 MakeModelSelect: Rendering model option:', {
-                  modelId: model.id,
-                  modelName: model.model_name,
-                  makeId: model.make_id
-                });
-                return (
-                  <SelectItem key={model.id} value={model.id}>
-                    {model.model_name}
-                  </SelectItem>
-                );
-              })
+              models.map((model) => (
+                <SelectItem key={model.id} value={model.id}>
+                  {model.model_name}
+                </SelectItem>
+              ))
             )}
           </SelectContent>
         </Select>
