@@ -15,7 +15,6 @@ interface MakeModelSelectProps {
   setSelectedModelId: (modelId: string) => void;
   isLoading?: boolean;
   error?: string | null;
-  onMakeChange?: (makeId: string) => void;
   isDisabled?: boolean;
 }
 
@@ -28,19 +27,17 @@ export function MakeModelSelect({
   setSelectedModelId,
   isLoading = false,
   error = null,
-  onMakeChange,
   isDisabled = false
 }: MakeModelSelectProps) {
   const handleMakeChange = (makeId: string) => {
+    console.log('🎯 MakeModelSelect: Make changed to:', makeId);
     setSelectedMakeId(makeId);
-    setSelectedModelId(''); // Reset model selection
-    
-    if (onMakeChange) {
-      onMakeChange(makeId);
-    }
+    // Clear model selection when make changes
+    setSelectedModelId('');
   };
 
   const handleModelChange = (modelId: string) => {
+    console.log('🎯 MakeModelSelect: Model changed to:', modelId);
     setSelectedModelId(modelId);
   };
 
@@ -70,6 +67,8 @@ export function MakeModelSelect({
       </div>
     );
   }
+
+  console.log('🎯 MakeModelSelect: Rendering with models:', models.length);
 
   return (
     <div className="space-y-4">
