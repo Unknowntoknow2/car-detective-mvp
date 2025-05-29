@@ -14,23 +14,23 @@ interface TitleOwnershipTabProps {
 
 export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTabProps) {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
-          <FileText className="h-5 w-5 text-white" />
+    <div className="space-y-8">
+      <div className="flex items-center space-x-3 mb-8">
+        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
+          <FileText className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Title & Ownership</h2>
-          <p className="text-gray-600">Legal documentation and ownership history</p>
+          <h2 className="text-3xl font-bold text-gray-900">Title & Ownership</h2>
+          <p className="text-gray-600 text-lg">Legal documentation and ownership history</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Title Status */}
-        <Card className="border-purple-200 bg-purple-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-purple-700">
-              <FileText className="h-5 w-5 mr-2" />
+        <Card className="border-purple-200 bg-purple-50/50 h-fit">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center text-purple-700 text-xl">
+              <FileText className="h-6 w-6 mr-3" />
               Title Status
             </CardTitle>
           </CardHeader>
@@ -39,15 +39,15 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
               value={formData.title_status || ''} 
               onValueChange={(value) => updateFormData({ title_status: value })}
             >
-              <SelectTrigger className="text-lg">
-                <SelectValue placeholder="Select title status" />
+              <SelectTrigger className="h-14 text-lg bg-white border-2 border-purple-200 hover:border-purple-300 focus:border-purple-500">
+                <SelectValue placeholder="Select title status" className="text-lg" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white border-2 border-purple-200">
                 {TITLE_STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{option.label}</span>
-                      <span className="text-xs text-gray-500">{option.impact}</span>
+                  <SelectItem key={option.value} value={option.value} className="p-4 cursor-pointer hover:bg-purple-50">
+                    <div className="flex flex-col space-y-1">
+                      <span className="font-semibold text-base">{option.label}</span>
+                      <span className="text-sm text-gray-600">{option.impact}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -57,10 +57,10 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
         </Card>
 
         {/* Previous Owners */}
-        <Card className="border-purple-200 bg-purple-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-purple-700">
-              <Users className="h-5 w-5 mr-2" />
+        <Card className="border-purple-200 bg-purple-50/50 h-fit">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center text-purple-700 text-xl">
+              <Users className="h-6 w-6 mr-3" />
               Number of Previous Owners
             </CardTitle>
           </CardHeader>
@@ -72,17 +72,17 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
               placeholder="Enter number"
               value={formData.previous_owners || ''}
               onChange={(e) => updateFormData({ previous_owners: parseInt(e.target.value) || 0 })}
-              className="text-lg font-medium"
+              className="h-14 text-lg font-semibold bg-white border-2 border-purple-200 hover:border-purple-300 focus:border-purple-500"
             />
-            <p className="text-xs text-purple-600 mt-1">Fewer owners typically means better care</p>
+            <p className="text-sm text-purple-600 mt-3 font-medium">Fewer owners typically means better care</p>
           </CardContent>
         </Card>
 
         {/* Previous Use */}
         <Card className="border-purple-200 bg-purple-50/50 md:col-span-2">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-purple-700">
-              <Car className="h-5 w-5 mr-2" />
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center text-purple-700 text-xl">
+              <Car className="h-6 w-6 mr-3" />
               Previous Use Type
             </CardTitle>
           </CardHeader>
@@ -91,15 +91,15 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
               value={formData.previous_use || ''} 
               onValueChange={(value) => updateFormData({ previous_use: value })}
             >
-              <SelectTrigger className="text-lg">
-                <SelectValue placeholder="Select previous use" />
+              <SelectTrigger className="h-14 text-lg bg-white border-2 border-purple-200 hover:border-purple-300 focus:border-purple-500">
+                <SelectValue placeholder="Select previous use" className="text-lg" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white border-2 border-purple-200">
                 {PREVIOUS_USE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{option.label}</span>
-                      <span className="text-xs text-gray-500">{option.impact}</span>
+                  <SelectItem key={option.value} value={option.value} className="p-4 cursor-pointer hover:bg-purple-50">
+                    <div className="flex flex-col space-y-1">
+                      <span className="font-semibold text-base">{option.label}</span>
+                      <span className="text-sm text-gray-600">{option.impact}</span>
                     </div>
                   </SelectItem>
                 ))}

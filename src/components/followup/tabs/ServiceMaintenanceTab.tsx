@@ -15,23 +15,23 @@ interface ServiceMaintenanceTabProps {
 
 export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaintenanceTabProps) {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-          <Wrench className="h-5 w-5 text-white" />
+    <div className="space-y-8">
+      <div className="flex items-center space-x-3 mb-8">
+        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+          <Wrench className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Service & Maintenance</h2>
-          <p className="text-gray-600">Track maintenance history and current status</p>
+          <h2 className="text-3xl font-bold text-gray-900">Service & Maintenance</h2>
+          <p className="text-gray-600 text-lg">Track maintenance history and current status</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Service History */}
-        <Card className="border-blue-200 bg-blue-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-blue-700">
-              <Wrench className="h-5 w-5 mr-2" />
+        <Card className="border-blue-200 bg-blue-50/50 h-fit">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center text-blue-700 text-xl">
+              <Wrench className="h-6 w-6 mr-3" />
               Service History Type
             </CardTitle>
           </CardHeader>
@@ -40,15 +40,15 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
               value={formData.service_history || ''} 
               onValueChange={(value) => updateFormData({ service_history: value })}
             >
-              <SelectTrigger className="text-lg">
-                <SelectValue placeholder="Select service type" />
+              <SelectTrigger className="h-14 text-lg bg-white border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500">
+                <SelectValue placeholder="Select service type" className="text-lg" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white border-2 border-blue-200">
                 {SERVICE_HISTORY_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{option.label}</span>
-                      <span className="text-xs text-gray-500">{option.impact}</span>
+                  <SelectItem key={option.value} value={option.value} className="p-4 cursor-pointer hover:bg-blue-50">
+                    <div className="flex flex-col space-y-1">
+                      <span className="font-semibold text-base">{option.label}</span>
+                      <span className="text-sm text-gray-600">{option.impact}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -58,10 +58,10 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
         </Card>
 
         {/* Maintenance Status */}
-        <Card className="border-blue-200 bg-blue-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-blue-700">
-              <CheckCircle className="h-5 w-5 mr-2" />
+        <Card className="border-blue-200 bg-blue-50/50 h-fit">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center text-blue-700 text-xl">
+              <CheckCircle className="h-6 w-6 mr-3" />
               Current Maintenance Status
             </CardTitle>
           </CardHeader>
@@ -70,17 +70,17 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
               value={formData.maintenance_status || ''} 
               onValueChange={(value) => updateFormData({ maintenance_status: value })}
             >
-              <SelectTrigger className="text-lg">
-                <SelectValue placeholder="Select status" />
+              <SelectTrigger className="h-14 text-lg bg-white border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500">
+                <SelectValue placeholder="Select status" className="text-lg" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white border-2 border-blue-200">
                 {MAINTENANCE_STATUS_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    <div className="flex items-center">
-                      {option === 'Up to date' && <CheckCircle className="h-4 w-4 mr-2 text-green-500" />}
-                      {option === 'Overdue' && <AlertCircle className="h-4 w-4 mr-2 text-red-500" />}
-                      {option === 'Unknown' && <Clock className="h-4 w-4 mr-2 text-gray-500" />}
-                      <span>{option}</span>
+                  <SelectItem key={option} value={option} className="p-4 cursor-pointer hover:bg-blue-50">
+                    <div className="flex items-center space-x-3">
+                      {option === 'Up to date' && <CheckCircle className="h-5 w-5 text-green-500" />}
+                      {option === 'Overdue' && <AlertCircle className="h-5 w-5 text-red-500" />}
+                      {option === 'Unknown' && <Clock className="h-5 w-5 text-gray-500" />}
+                      <span className="font-semibold text-base">{option}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -90,10 +90,10 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
         </Card>
 
         {/* Last Service Date */}
-        <Card className="border-blue-200 bg-blue-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-blue-700">
-              <Clock className="h-5 w-5 mr-2" />
+        <Card className="border-blue-200 bg-blue-50/50 h-fit">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center text-blue-700 text-xl">
+              <Clock className="h-6 w-6 mr-3" />
               Last Service Date
             </CardTitle>
           </CardHeader>
@@ -102,27 +102,27 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
               type="date"
               value={formData.last_service_date || ''}
               onChange={(e) => updateFormData({ last_service_date: e.target.value })}
-              className="text-lg"
+              className="h-14 text-lg bg-white border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500"
             />
-            <p className="text-xs text-blue-600 mt-1">Recent service indicates better maintenance</p>
+            <p className="text-sm text-blue-600 mt-3 font-medium">Recent service indicates better maintenance</p>
           </CardContent>
         </Card>
 
         {/* Additional Notes */}
-        <Card className="border-blue-200 bg-blue-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-blue-700">
-              <Wrench className="h-5 w-5 mr-2" />
+        <Card className="border-blue-200 bg-blue-50/50 h-fit">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center text-blue-700 text-xl">
+              <Wrench className="h-6 w-6 mr-3" />
               Maintenance Notes
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Textarea
               placeholder="Any specific maintenance history, recent repairs, or upcoming service needs..."
-              value={formData.service_history || ''}
-              onChange={(e) => updateFormData({ service_history: e.target.value })}
-              rows={4}
-              className="resize-none"
+              value={formData.service_notes || ''}
+              onChange={(e) => updateFormData({ service_notes: e.target.value })}
+              rows={6}
+              className="resize-none text-base bg-white border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500 p-4"
             />
           </CardContent>
         </Card>

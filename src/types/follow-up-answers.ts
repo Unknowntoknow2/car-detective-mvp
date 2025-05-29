@@ -1,6 +1,5 @@
-
 export interface AccidentDetails {
-  hadAccident?: boolean; // Made optional to match usage
+  hadAccident?: boolean;
   count?: number;
   location?: 'front' | 'rear' | 'side' | 'multiple';
   severity?: 'minor' | 'moderate' | 'major';
@@ -10,7 +9,7 @@ export interface AccidentDetails {
 }
 
 export interface ModificationDetails {
-  modified?: boolean; // Made optional to match usage
+  modified?: boolean;
   types?: string[];
   reversible?: boolean;
 }
@@ -35,6 +34,7 @@ export interface FollowUpAnswers {
   
   // Service and maintenance
   service_history?: string;
+  service_notes?: string;
   maintenance_status?: string;
   last_service_date?: string;
   
