@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { RouteObject, Navigate } from 'react-router-dom';
 import { EnhancedHomePage } from './components/home/EnhancedHomePage';
@@ -19,6 +20,7 @@ import DashboardPage from './pages/DashboardPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import PlatformDiagnosticsPage from './pages/PlatformDiagnosticsPage';
 import AuditPage from './pages/AuditPage';
+import PlateValuationPage from './pages/valuation/plate/PlateValuationPage';
 
 // Export routes configuration
 const routes: RouteObject[] = [
@@ -95,6 +97,17 @@ const routes: RouteObject[] = [
     path: 'valuation-followup',
     element: <ValuationFollowupPage />
   },
+  
+  // Plate lookup valuation route
+  {
+    path: 'valuation/plate',
+    element: <PlateValuationPage />
+  },
+  {
+    path: 'valuation/plate/:plate/:state',
+    element: <PlateValuationPage />
+  },
+  
   {
     path: 'premium',
     element: <PremiumPage />
