@@ -59,6 +59,12 @@ export function ValuationResult({ valuationId: propValuationId }: ValuationResul
       [0, 0]) : 
     [0, 0];
 
+  // Ensure all adjustments have proper descriptions
+  const adjustmentsWithDescriptions = (data?.adjustments || []).map(adjustment => ({
+    ...adjustment,
+    description: adjustment.description || `Adjustment for ${adjustment.factor}`
+  }));
+
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-bold mb-4">Your Valuation Result</h2>
@@ -69,7 +75,7 @@ export function ValuationResult({ valuationId: propValuationId }: ValuationResul
         estimatedValue={data?.estimatedValue || 0}
         confidenceScore={data?.confidenceScore || 85}
         priceRange={priceRange}
-        adjustments={data?.adjustments || []}
+        adjustments={adjustmentsWithDescriptions}
       />
     </div>
   );
