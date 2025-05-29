@@ -13,6 +13,10 @@ export interface Model {
   make_id: string;
 }
 
+// Export these for compatibility with other components
+export interface VehicleMake extends Make {}
+export interface VehicleModel extends Model {}
+
 export function useMakeModels() {
   const [makes, setMakes] = useState<Make[]>([]);
   const [models, setModels] = useState<Model[]>([]);
@@ -75,11 +79,22 @@ export function useMakeModels() {
     }
   };
 
+  // Helper functions for compatibility
+  const findMakeById = (makeId: string): Make | undefined => {
+    return makes.find(make => make.id === makeId);
+  };
+
+  const findModelById = (modelId: string): Model | undefined => {
+    return models.find(model => model.id === modelId);
+  };
+
   return {
     makes,
     models,
     isLoading,
     error,
-    fetchModelsByMakeId
+    fetchModelsByMakeId,
+    findMakeById,
+    findModelById
   };
 }

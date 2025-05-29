@@ -20,13 +20,9 @@ export function BasicVehicleForm({
   const {
     makes,
     models,
-    trims,
     isLoading,
-    isLoadingModels,
-    isLoadingTrims,
     error,
-    getModelsByMakeId,
-    getTrimsByModelId,
+    fetchModelsByMakeId,
     findMakeById,
     findModelById,
   } = useMakeModels();
@@ -46,7 +42,7 @@ export function BasicVehicleForm({
     
     // Load models for the selected make
     if (makeId) {
-      getModelsByMakeId(makeId);
+      fetchModelsByMakeId(makeId);
     }
   };
 
@@ -61,28 +57,12 @@ export function BasicVehicleForm({
     updateFormData(updates);
   };
 
-  const handleTrimChange = (trimId: string) => {
-    const selectedTrim = trims.find(t => t.id === trimId);
-    const updates = {
-      trim: trimId,
-      trimName: selectedTrim?.trim_name || ''
-    };
-    updateFormData(updates);
-  };
-
   // Load models when component mounts if make is already selected
   useEffect(() => {
     if (formData.make) {
-      getModelsByMakeId(formData.make);
+      fetchModelsByMakeId(formData.make);
     }
-  }, [formData.make, getModelsByMakeId]);
-
-  // Load trims when model changes
-  useEffect(() => {
-    if (formData.model) {
-      getTrimsByModelId(formData.model);
-    }
-  }, [formData.model, getTrimsByModelId]);
+  }, [formData.make, fetchModelsByMakeId]);
 
   return (
     <div className="space-y-4">
@@ -94,30 +74,9 @@ export function BasicVehicleForm({
         selectedModelId={formData.model}
         setSelectedModelId={handleModelChange}
         isLoading={isLoading}
-        isLoadingModels={isLoadingModels}
         error={error}
         onMakeChange={handleMakeChange}
       />
-      
-      {isPremium && trims.length > 0 && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Trim (Optional)
-          </label>
-          <select
-            value={formData.trim || ''}
-            onChange={(e) => handleTrimChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="">Select trim (optional)</option>
-            {trims.map(trim => (
-              <option key={trim.id} value={trim.id}>
-                {trim.trim_name}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
       
       {errors.make && (
         <p className="text-red-500 text-sm">{errors.make}</p>
