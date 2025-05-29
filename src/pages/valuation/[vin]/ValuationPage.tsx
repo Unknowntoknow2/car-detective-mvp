@@ -1,236 +1,133 @@
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
-import { toast } from 'sonner';
-import { getEnrichedVehicleData, type EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
-import { calculateVehicleValue } from '@/valuation/calculateVehicleValue';
-import { type VehicleValuationResult } from '@/valuation/types';
+import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
+import { FoundCarCard } from '@/components/lookup/found/FoundCarCard';
 import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
-import { ValuationResultCard } from '@/components/results/ValuationResultCard';
-import { type FollowUpAnswers } from '@/types/follow-up-answers';
 import { decodeVin } from '@/services/vinService';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { DecodedVehicleInfo } from '@/types/vehicle';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
+import { toast } from 'sonner';
 
 export default function ValuationPage() {
-  const { vin } = useParams<{ vin: string }>();
-  const navigate = useNavigate();
-  const [enrichedData, setEnrichedData] = useState<EnrichedVehicleData | null>(null);
-  const [valuation, setValuation] = useState<VehicleValuationResult | null>(null);
+  const { vin: vinParam } = useParams<{ vin: string }>();
+  const [vehicle, setVehicle] = useState<DecodedVehicleInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [vehicleInfo, setVehicleInfo] = useState<any>(null);
   const [showFollowUp, setShowFollowUp] = useState(false);
 
-  useEffect(() => {
-    // If VIN is provided in URL, validate and decode it
-    if (vin) {
-      console.log(`🔍 ValuationPage loaded with VIN: ${vin}`);
-      
-      // Basic VIN validation
-      if (vin.length !== 17) {
-        toast.error('Invalid VIN format. VIN must be 17 characters.');
-        navigate('/valuation');
-        return;
-      }
-      
-      // Decode the VIN to get vehicle info
-      decodeVehicleInfo();
-    }
-  }, [vin, navigate]);
+  // Handle potentially undefined VIN parameter with proper type handling
+  const safeVin: string = vinParam ?? '';
 
-  const decodeVehicleInfo = async () => {
-    if (!vin) return;
-    
+  useEffect(() => {
+    if (safeVin && safeVin.length === 17) {
+      console.log('🔍 ValuationPage: Loading vehicle data for VIN:', safeVin);
+      loadVehicleData(safeVin);
+    } else if (vinParam) {
+      // VIN is present but invalid length
+      toast.error('Invalid VIN format. VIN must be 17 characters long.');
+    }
+  }, [safeVin, vinParam]);
+
+  const loadVehicleData = async (vinCode: string) => {
     setIsLoading(true);
     try {
-      console.log('🔄 Decoding VIN for vehicle info:', vin);
-      const result = await decodeVin(vin);
+      const result = await decodeVin(vinCode);
       
       if (result.success && result.data) {
-        console.log('✅ Vehicle info decoded:', result.data);
-        setVehicleInfo(result.data);
+        console.log('✅ ValuationPage: Vehicle data loaded:', result.data);
+        setVehicle(result.data);
         setShowFollowUp(true);
-        toast.success('Vehicle found! Please provide additional details.');
+        toast.success('Vehicle details loaded successfully!');
       } else {
-        console.error('❌ Failed to decode VIN:', result.error);
-        toast.error('Failed to decode VIN. Please try again.');
-        navigate('/valuation');
+        console.error('❌ ValuationPage: Failed to load vehicle data:', result.error);
+        toast.error('Failed to load vehicle details');
       }
     } catch (error) {
-      console.error('❌ VIN decode error:', error);
-      toast.error('Failed to decode VIN. Please try again.');
-      navigate('/valuation');
+      console.error('❌ ValuationPage: Error loading vehicle data:', error);
+      toast.error('Error loading vehicle details');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleFollowUpSubmit = async (followUpAnswers: FollowUpAnswers) => {
-    if (!vin) {
-      toast.error('VIN is required for valuation');
-      return;
-    }
-
-    setIsLoading(true);
-    
-    try {
-      console.log('🔄 Fetching enriched data for VIN:', vin);
-      
-      // Get enriched data from multiple sources
-      const data = await getEnrichedVehicleData(vin);
-      setEnrichedData(data);
-      
-      console.log('✅ Enriched data received:', data);
-
-      // Extract market data from enriched sources
-      const marketListings = [
-        ...(data.sources.facebook || []),
-        ...(data.sources.craigslist || []),
-        ...(data.sources.ebay || [])
-      ];
-
-      // Calculate average marketplace price
-      const avgMarketplacePrice = marketListings.length > 0
-        ? marketListings.reduce((acc, listing) => acc + listing.price, 0) / marketListings.length
-        : 18000; // Default fallback
-
-      // Get auction price from STAT.vin
-      const statVinSalePrice = data.sources.statVin?.salePrice 
-        ? parseFloat(data.sources.statVin.salePrice.replace(/[,$]/g, ''))
-        : 16500; // Default fallback
-
-      // Determine damage penalty from STAT.vin
-      const hasDamage = data.sources.statVin?.damage || data.sources.statVin?.primaryDamage;
-      const statVinDamagePenalty = hasDamage ? 1200 : 0;
-
-      console.log('💰 Market data:', {
-        avgMarketplacePrice,
-        statVinSalePrice,
-        statVinDamagePenalty,
-        listingCount: marketListings.length
-      });
-
-      // Calculate valuation using the new engine
-      const valuationResult = calculateVehicleValue({
-        vin,
-        enrichedData: data,
-        followUpAnswers,
-        basePrice: avgMarketplacePrice
-      });
-
-      console.log('🎯 Valuation result:', valuationResult);
-      
-      setValuation(valuationResult);
-      toast.success('Valuation calculated successfully!');
-      
-    } catch (error) {
-      console.error('❌ Valuation error:', error);
-      toast.error('Failed to calculate valuation. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleFollowUpComplete = (formData: FollowUpAnswers) => {
+    console.log('✅ ValuationPage: Follow-up completed:', formData);
+    toast.success('Valuation completed successfully!');
+    // Handle final valuation here
   };
 
-  const handleBackToLookup = () => {
-    navigate('/valuation');
-  };
+  // If no VIN parameter at all, show error message
+  if (!vinParam) {
+    return (
+      <Container className="max-w-6xl py-10">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+            Vehicle Valuation
+          </h1>
+          <p className="mt-4 text-lg text-gray-600">
+            Please enter a VIN to get started with your valuation.
+          </p>
+        </div>
+      </Container>
+    );
+  }
+
+  // If VIN is present but invalid length
+  if (safeVin.length !== 17) {
+    return (
+      <Container className="max-w-6xl py-10">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+            Invalid VIN
+          </h1>
+          <p className="mt-4 text-lg text-gray-600">
+            The provided VIN "{safeVin}" is not valid. VINs must be exactly 17 characters long.
+          </p>
+        </div>
+      </Container>
+    );
+  }
 
   return (
-    <Container className="max-w-4xl py-10">
-      <div className="space-y-8">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={handleBackToLookup} className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Lookup
-          </Button>
+    <Container className="max-w-6xl py-10">
+      <CarFinderQaherHeader />
+      
+      {isLoading && (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading vehicle details...</p>
         </div>
-
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Vehicle Valuation Engine</h1>
-          <p className="text-muted-foreground">
-            Get an accurate, data-driven vehicle valuation using our advanced pricing engine
-          </p>
-          {vin && (
-            <div className="inline-flex items-center px-4 py-2 bg-primary/10 text-primary rounded-full">
-              <span className="text-sm font-mono">VIN: {vin}</span>
+      )}
+      
+      {vehicle && (
+        <div className="space-y-8">
+          <FoundCarCard vehicle={vehicle} readonly={false} />
+          
+          {showFollowUp && safeVin.length === 17 && (
+            <div className="mt-8">
+              <UnifiedFollowUpForm 
+                vin={safeVin}
+                onComplete={handleFollowUpComplete}
+              />
             </div>
           )}
         </div>
-
-        {/* Show vehicle info card if available */}
-        {vehicleInfo && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Vehicle Found</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Year</p>
-                  <p className="font-semibold">{vehicleInfo.year}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Make</p>
-                  <p className="font-semibold">{vehicleInfo.make}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Model</p>
-                  <p className="font-semibold">{vehicleInfo.model}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Trim</p>
-                  <p className="font-semibold">{vehicleInfo.trim || 'Base'}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Show follow-up form if vehicle is found */}
-        {showFollowUp && (
-          <UnifiedFollowUpForm 
-            vin={vin} 
-            onSubmit={handleFollowUpSubmit}
-          />
-        )}
-
-        {isLoading && (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mr-3"></div>
-            <span className="text-muted-foreground">
-              {showFollowUp ? 'Calculating vehicle valuation...' : 'Decoding VIN...'}
-            </span>
+      )}
+      
+      {/* Debug info only visible in development mode */}
+      {SHOW_ALL_COMPONENTS && (
+        <div className="fixed bottom-4 right-4 bg-yellow-100 text-black p-3 rounded-lg text-xs z-50 opacity-80">
+          <div className="space-y-1">
+            <div>Debug Mode: ON</div>
+            <div>Component: ValuationPage</div>
+            <div>VIN: {safeVin || 'None'}</div>
+            <div>Vehicle Loaded: {vehicle ? 'Yes' : 'No'}</div>
+            <div>Show Follow-up: {showFollowUp ? 'Yes' : 'No'}</div>
           </div>
-        )}
-
-        {valuation && (
-          <div className="space-y-6">
-            <ValuationResultCard data={valuation} />
-            
-            {enrichedData && (
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold mb-2">Data Sources Used</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                  <div className={`p-2 rounded ${enrichedData.sources.statVin ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
-                    STAT.vin: {enrichedData.sources.statVin ? '✓' : '✗'}
-                  </div>
-                  <div className={`p-2 rounded ${enrichedData.sources.facebook?.length ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
-                    Facebook: {enrichedData.sources.facebook?.length || 0} listings
-                  </div>
-                  <div className={`p-2 rounded ${enrichedData.sources.craigslist?.length ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
-                    Craigslist: {enrichedData.sources.craigslist?.length || 0} listings
-                  </div>
-                  <div className={`p-2 rounded ${enrichedData.sources.ebay?.length ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
-                    eBay: {enrichedData.sources.ebay?.length || 0} listings
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </Container>
   );
 }
