@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Container } from '@/components/ui/container';
 import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
 import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
@@ -13,6 +14,20 @@ export default function ManualValuationPage() {
   const [vehicleData, setVehicleData] = useState<ManualEntryFormData | null>(null);
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Initialize the form with react-hook-form
+  const form = useForm<ManualEntryFormData>({
+    defaultValues: {
+      make: '',
+      model: '',
+      year: new Date().getFullYear(),
+      mileage: 0,
+      condition: 'good' as any,
+      zipCode: '',
+      fuelType: 'gasoline',
+      transmission: 'automatic'
+    }
+  });
 
   const handleVehicleDataSubmit = async (data: ManualEntryFormData) => {
     console.log('✅ Manual vehicle data submitted:', data);
@@ -88,6 +103,7 @@ export default function ManualValuationPage() {
       <div className="space-y-8">
         {!showFollowUp ? (
           <ManualVehicleForm 
+            form={form}
             onSubmit={handleVehicleDataSubmit}
             isLoading={isLoading}
           />
