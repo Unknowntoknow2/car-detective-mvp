@@ -1,14 +1,13 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { VehicleMake, VehicleModel } from '@/hooks/useMakeModels';
+import { Make, Model } from '@/hooks/useMakeModels';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
 
 interface MakeModelSelectProps {
-  makes: VehicleMake[];
-  models: VehicleModel[];
+  makes: Make[];
+  models: Model[];
   selectedMakeId: string;
   setSelectedMakeId: (makeId: string) => void;
   selectedModelId: string;
