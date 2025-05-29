@@ -14,18 +14,17 @@ interface MakeModelSelectWrapperProps {
 }
 
 export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelectWrapperProps) {
-  // Fetch makes and models data using our hook
-  const { makes, models, isLoading, error } = useMakeModels();
+  const { makes, models, isLoading, error, fetchModelsByMakeId } = useMakeModels();
   
   useEffect(() => {
-    console.log('MakeModelFormField: form values updated', {
+    console.log('🎯 MakeModelFormField: form values updated', {
       make: form.watch('make'),
       model: form.watch('model')
     });
   }, [form.watch('make'), form.watch('model')]);
   
   // Handle loading state
-  if (isLoading) {
+  if (isLoading && makes.length === 0) {
     return (
       <div className="space-y-4">
         <div>
@@ -53,7 +52,7 @@ export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelect
     );
   }
   
-  console.log('MakeModelFormField: rendering with data', { 
+  console.log('🎯 MakeModelFormField: rendering with data', { 
     makesCount: makes.length, 
     modelsCount: models.length,
     selectedMake: form.watch('make'),
@@ -63,15 +62,20 @@ export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelect
   const selectedMakeId = form.watch('make') || '';
   const selectedModelId = form.watch('model') || '';
   
-  const handleMakeChange = (makeId: string) => {
-    console.log('MakeModelFormField: make changed to', makeId);
+  const handleMakeChange = async (makeId: string) => {
+    console.log('🎯 MakeModelFormField: make changed to', makeId);
     form.setValue('make', makeId, { shouldValidate: true });
     // Reset model when make changes
     form.setValue('model', '', { shouldValidate: true });
+    
+    // Fetch models for the new make
+    if (makeId) {
+      await fetchModelsByMakeId(makeId);
+    }
   };
   
   const handleModelChange = (modelId: string) => {
-    console.log('MakeModelFormField: model changed to', modelId);
+    console.log('🎯 MakeModelFormField: model changed to', modelId);
     form.setValue('model', modelId, { shouldValidate: true });
   };
 
@@ -92,6 +96,8 @@ export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelect
                 selectedModelId={selectedModelId}
                 setSelectedModelId={handleModelChange}
                 isDisabled={isDisabled}
+                isLoading={isLoading}
+                error={error}
               />
             </FormControl>
             <FormMessage />
