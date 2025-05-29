@@ -52,7 +52,7 @@ export function BasicVehicleForm({
       const modelsFetched = await fetchModelsByMakeId(makeId);
 
       // 🛠️ Force state update to trigger rerender
-      updateFormData(prev => ({ ...prev, _modelListVersion: Date.now() }));
+      updateFormData({ _modelListVersion: Date.now() });
       console.log('✅ BasicVehicleForm: Fetched', modelsFetched.length, 'models for make', makeId);
     }
   };
