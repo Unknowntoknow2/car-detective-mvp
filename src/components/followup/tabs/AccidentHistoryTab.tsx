@@ -3,213 +3,205 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Shield, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertTriangle, Shield } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface AccidentHistoryTabProps {
   formData: FollowUpAnswers;
-  onAccidentsChange: (hadAccident: boolean, details?: any) => void;
+  onUpdate: (updates: Partial<FollowUpAnswers>) => void;
 }
 
-export function AccidentHistoryTab({ formData, onAccidentsChange }: AccidentHistoryTabProps) {
+export function AccidentHistoryTab({ formData, onUpdate }: AccidentHistoryTabProps) {
+  const handleAccidentChange = (value: string) => {
+    const hadAccident = value === 'yes';
+    onUpdate({
+      accidents: {
+        ...formData.accidents,
+        hadAccident,
+        // Reset other fields if no accident
+        ...(hadAccident ? {} : {
+          count: undefined,
+          location: undefined,
+          severity: undefined,
+          repaired: undefined,
+          frameDamage: undefined,
+          description: ''
+        })
+      }
+    });
+  };
+
+  const updateAccidentDetails = (field: string, value: any) => {
+    onUpdate({
+      accidents: {
+        ...formData.accidents,
+        [field]: value
+      }
+    });
+  };
+
   const hasAccident = formData.accidents?.hadAccident;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
-          <Shield className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Accident History</h2>
-          <p className="text-gray-600">Document any damage or accidents</p>
-        </div>
-      </div>
-
-      {/* Primary Question */}
-      <Card className="border-red-200 bg-red-50/50">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center text-red-700">
-            <AlertTriangle className="h-5 w-5 mr-2" />
-            Has this vehicle been in any accidents?
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-orange-500" />
+            Accident History
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <RadioGroup
-            value={hasAccident ? 'yes' : 'no'}
-            onValueChange={(value) => onAccidentsChange(value === 'yes')}
-            className="flex space-x-6"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="no" id="no-accident" />
-              <Label htmlFor="no-accident" className="flex items-center cursor-pointer">
-                <CheckCircle className="h-4 w-4 mr-1 text-green-500" />
-                No accidents
-              </Label>
+        <CardContent className="space-y-6">
+          {/* Has Accident */}
+          <div>
+            <Label className="text-base font-medium">Has this vehicle been in any accidents?</Label>
+            <RadioGroup
+              value={hasAccident ? 'yes' : 'no'}
+              onValueChange={handleAccidentChange}
+              className="flex gap-6 mt-3"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="no" id="no-accident" />
+                <Label htmlFor="no-accident" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-green-500" />
+                  No accidents
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="yes" id="has-accident" />
+                <Label htmlFor="has-accident" className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-orange-500" />
+                  Yes, has accident history
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {hasAccident && (
+            <div className="space-y-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
+              {/* Number of Accidents */}
+              <div>
+                <Label htmlFor="accident-count">Number of accidents</Label>
+                <Select
+                  value={formData.accidents?.count?.toString() || ''}
+                  onValueChange={(value) => updateAccidentDetails('count', parseInt(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select number" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 accident</SelectItem>
+                    <SelectItem value="2">2 accidents</SelectItem>
+                    <SelectItem value="3">3 accidents</SelectItem>
+                    <SelectItem value="4">4+ accidents</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Accident Location */}
+              <div>
+                <Label htmlFor="accident-location">Primary damage location</Label>
+                <Select
+                  value={formData.accidents?.location || ''}
+                  onValueChange={(value) => updateAccidentDetails('location', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="front">Front end</SelectItem>
+                    <SelectItem value="rear">Rear end</SelectItem>
+                    <SelectItem value="side">Side impact</SelectItem>
+                    <SelectItem value="multiple">Multiple areas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Accident Severity */}
+              <div>
+                <Label htmlFor="accident-severity">Accident severity</Label>
+                <Select
+                  value={formData.accidents?.severity || ''}
+                  onValueChange={(value) => updateAccidentDetails('severity', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select severity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="minor">Minor (cosmetic damage only)</SelectItem>
+                    <SelectItem value="moderate">Moderate (structural repair needed)</SelectItem>
+                    <SelectItem value="major">Major (airbags deployed, extensive damage)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Repaired Status */}
+              <div>
+                <Label>Was the damage professionally repaired?</Label>
+                <RadioGroup
+                  value={formData.accidents?.repaired ? 'yes' : 'no'}
+                  onValueChange={(value) => updateAccidentDetails('repaired', value === 'yes')}
+                  className="flex gap-4 mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="yes" id="repaired-yes" />
+                    <Label htmlFor="repaired-yes">Yes, professionally repaired</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="no" id="repaired-no" />
+                    <Label htmlFor="repaired-no">No / DIY repair</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* Frame Damage */}
+              <div>
+                <Label>Any frame or structural damage?</Label>
+                <RadioGroup
+                  value={formData.accidents?.frameDamage ? 'yes' : 'no'}
+                  onValueChange={(value) => updateAccidentDetails('frameDamage', value === 'yes')}
+                  className="flex gap-4 mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="no" id="frame-no" />
+                    <Label htmlFor="frame-no">No frame damage</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="yes" id="frame-yes" />
+                    <Label htmlFor="frame-yes">Yes, frame damage reported</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* Description */}
+              <div>
+                <Label htmlFor="accident-description">Additional details (optional)</Label>
+                <Textarea
+                  id="accident-description"
+                  placeholder="Describe the accident circumstances, repairs made, insurance claims, etc."
+                  value={formData.accidents?.description || ''}
+                  onChange={(e) => updateAccidentDetails('description', e.target.value)}
+                  className="mt-1"
+                />
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="yes" id="yes-accident" />
-              <Label htmlFor="yes-accident" className="flex items-center cursor-pointer">
-                <AlertTriangle className="h-4 w-4 mr-1 text-red-500" />
-                Yes, there have been accidents
-              </Label>
+          )}
+
+          {!hasAccident && (
+            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex items-center gap-2 text-green-800">
+                <Shield className="h-5 w-5" />
+                <span className="font-medium">Clean accident history</span>
+              </div>
+              <p className="text-green-700 text-sm mt-1">
+                No reported accidents help maintain higher resale value
+              </p>
             </div>
-          </RadioGroup>
+          )}
         </CardContent>
       </Card>
-
-      {/* Accident Details */}
-      {hasAccident && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="border-red-200 bg-red-50/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center text-red-700">
-                <Info className="h-5 w-5 mr-2" />
-                Number of Accidents
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select 
-                value={formData.accidents?.count?.toString() || ''} 
-                onValueChange={(value) => onAccidentsChange(true, { 
-                  ...formData.accidents, 
-                  count: parseInt(value) 
-                })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select number" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 accident</SelectItem>
-                  <SelectItem value="2">2 accidents</SelectItem>
-                  <SelectItem value="3">3 accidents</SelectItem>
-                  <SelectItem value="4">4+ accidents</SelectItem>
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-
-          <Card className="border-red-200 bg-red-50/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center text-red-700">
-                <AlertTriangle className="h-5 w-5 mr-2" />
-                Severity Level
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select 
-                value={formData.accidents?.severity || ''} 
-                onValueChange={(value) => onAccidentsChange(true, { 
-                  ...formData.accidents, 
-                  severity: value 
-                })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select severity" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="minor">
-                    <div className="flex flex-col">
-                      <span>Minor</span>
-                      <span className="text-xs text-gray-500">Cosmetic damage only</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="moderate">
-                    <div className="flex flex-col">
-                      <span>Moderate</span>
-                      <span className="text-xs text-gray-500">Some structural damage</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="major">
-                    <div className="flex flex-col">
-                      <span>Major</span>
-                      <span className="text-xs text-gray-500">Significant damage or totaled</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-
-          <Card className="border-red-200 bg-red-50/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center text-red-700">
-                <Shield className="h-5 w-5 mr-2" />
-                Impact Location
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select 
-                value={formData.accidents?.location || ''} 
-                onValueChange={(value) => onAccidentsChange(true, { 
-                  ...formData.accidents, 
-                  location: value 
-                })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select location" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="front">Front</SelectItem>
-                  <SelectItem value="rear">Rear</SelectItem>
-                  <SelectItem value="side">Side</SelectItem>
-                  <SelectItem value="multiple">Multiple areas</SelectItem>
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-
-          <Card className="border-red-200 bg-red-50/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center text-red-700">
-                <CheckCircle className="h-5 w-5 mr-2" />
-                Repair Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup
-                value={formData.accidents?.repaired ? 'yes' : 'no'}
-                onValueChange={(value) => onAccidentsChange(true, { 
-                  ...formData.accidents, 
-                  repaired: value === 'yes' 
-                })}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="yes" id="repaired-yes" />
-                  <Label htmlFor="repaired-yes">Professionally repaired</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="no" id="repaired-no" />
-                  <Label htmlFor="repaired-no">Not repaired</Label>
-                </div>
-              </RadioGroup>
-            </CardContent>
-          </Card>
-
-          <Card className="border-red-200 bg-red-50/50 md:col-span-2">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center text-red-700">
-                <Info className="h-5 w-5 mr-2" />
-                Additional Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                placeholder="Describe the accident(s), damage, and any other relevant details..."
-                value={formData.accidents?.description || ''}
-                onChange={(e) => onAccidentsChange(true, { 
-                  ...formData.accidents, 
-                  description: e.target.value 
-                })}
-                rows={4}
-                className="resize-none"
-              />
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 }

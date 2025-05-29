@@ -1,208 +1,137 @@
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { FeaturesTab } from './tabs/FeaturesTab';
+import { ModificationsTab } from './tabs/ModificationsTab';
+import { PhysicalFeaturesTab } from './tabs/PhysicalFeaturesTab';
 import { ServiceMaintenanceTab } from './tabs/ServiceMaintenanceTab';
 import { TitleOwnershipTab } from './tabs/TitleOwnershipTab';
-import { PhysicalFeaturesTab } from './tabs/PhysicalFeaturesTab';
-import { ModificationsTab } from './tabs/ModificationsTab';
-import { FeaturesTab } from './tabs/FeaturesTab';
-import { toast } from 'sonner';
+import { AccidentHistoryTab } from './tabs/AccidentHistoryTab';
+import { BasicInfoTab } from './tabs/BasicInfoTab';
 
 interface UnifiedFollowUpFormProps {
   vin: string;
-  initialData?: Partial<FollowUpAnswers>;
-  onSubmit: (formData: FollowUpAnswers) => void;
-  onSave: (formData: FollowUpAnswers) => void;
+  initialData?: FollowUpAnswers;
+  onSubmit: (data: FollowUpAnswers) => void;
+  onSave?: (data: FollowUpAnswers) => void;
 }
 
-type ColorScheme = {
-  bg: string;
-  border: string;
-  text: string;
-};
-
-type ColorSchemes = {
-  red: ColorScheme;
-  blue: ColorScheme;
-  purple: ColorScheme;
-  orange: ColorScheme;
-  green: ColorScheme;
-  indigo: ColorScheme;
-};
+type TabId = 'basic' | 'accidents' | 'features' | 'service' | 'title' | 'physical' | 'modifications';
 
 export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: UnifiedFollowUpFormProps) {
-  const [currentTab, setCurrentTab] = useState(0);
-  const [formData, setFormData] = useState<FollowUpAnswers>({
-    vin,
-    ...initialData
-  });
+  const [formData, setFormData] = useState<FollowUpAnswers>(initialData || { vin });
+  const [activeTab, setActiveTab] = useState<TabId>('basic');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const updateFormData = useCallback(
+    (updates: Partial<FollowUpAnswers>) => {
+      setFormData(prev => ({ ...prev, ...updates }));
+    },
+    []
+  );
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      onSubmit(formData);
+      toast.success('Follow-up submitted successfully!');
+    } catch (error) {
+      toast.error('Failed to submit follow-up.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      onSave?.(formData);
+      toast.success('Follow-up saved successfully!');
+    } catch (error) {
+      toast.error('Failed to save follow-up.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const tabs = [
-    { id: 'condition', name: 'Basic Info', color: 'red' },
-    { id: 'service', name: 'Service & Maintenance', color: 'blue' },
-    { id: 'title', name: 'Title & Ownership', color: 'purple' },
-    { id: 'physical', name: 'Physical Features', color: 'orange' },
-    { id: 'modifications', name: 'Modifications', color: 'green' },
-    { id: 'features', name: 'Features', color: 'indigo' }
+    { id: 'basic', label: 'Basic Info', color: 'blue' },
+    { id: 'accidents', label: 'Accident History', color: 'red' },
+    { id: 'features', label: 'Features', color: 'purple' },
+    { id: 'service', label: 'Service & Maintenance', color: 'orange' },
+    { id: 'title', label: 'Title & Ownership', color: 'green' },
+    { id: 'physical', label: 'Physical Features', color: 'indigo' },
+    { id: 'modifications', label: 'Modifications', color: 'purple' }
   ];
 
-  const colors: ColorSchemes = {
-    red: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700' },
-    blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
-    purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700' },
-    orange: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700' },
-    green: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700' },
-    indigo: { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700' }
+  const tabColors: { [key in TabId]: string } = {
+    basic: 'bg-blue-50 border-blue-200',
+    accidents: 'bg-red-50 border-red-200',
+    features: 'bg-purple-50 border-purple-200',
+    service: 'bg-orange-50 border-orange-200',
+    title: 'bg-green-50 border-green-200',
+    physical: 'bg-indigo-50 border-indigo-200',
+    modifications: 'bg-purple-50 border-purple-200',
   };
 
-  const updateFormData = (updates: Partial<FollowUpAnswers>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
-  };
-
-  const handleTabClick = (index: number) => {
-    setCurrentTab(index);
-  };
-
-  const handleNext = () => {
-    if (currentTab < tabs.length - 1) {
-      setCurrentTab(currentTab + 1);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentTab > 0) {
-      setCurrentTab(currentTab - 1);
-    }
-  };
-
-  const handleSave = () => {
-    onSave(formData);
-    toast.success('Progress saved successfully!');
-  };
-
-  const handleSubmit = () => {
-    onSubmit(formData);
-  };
-
-  const getCurrentTabColor = () => {
-    const colorKey = tabs[currentTab].color as keyof ColorSchemes;
-    return colors[colorKey];
-  };
+  const getTabColor = (tabId: TabId) => tabColors[tabId] || 'bg-gray-50 border-gray-200';
 
   const renderTabContent = () => {
-    switch (currentTab) {
-      case 0:
-        return (
-          <div className="space-y-6">
-            <div className="text-center py-8">
-              <h3 className="text-xl font-semibold mb-4">Basic Vehicle Information</h3>
-              <p className="text-gray-600">This section will contain basic condition and mileage inputs.</p>
-            </div>
-          </div>
-        );
-      case 1:
-        return <ServiceMaintenanceTab formData={formData} updateFormData={updateFormData} />;
-      case 2:
-        return <TitleOwnershipTab formData={formData} updateFormData={updateFormData} />;
-      case 3:
-        return <PhysicalFeaturesTab formData={formData} updateFormData={updateFormData} />;
-      case 4:
-        return (
-          <ModificationsTab 
-            formData={formData} 
-            onModificationsChange={(modified: boolean, types?: string[]) => {
-              updateFormData({
-                modifications: {
-                  modified,
-                  types: types || [],
-                  reversible: formData.modifications?.reversible
-                }
-              });
-            }}
-          />
-        );
-      case 5:
-        return <FeaturesTab formData={formData} updateFormData={updateFormData} />;
+    switch (activeTab) {
+      case 'basic':
+        return <BasicInfoTab formData={formData} onUpdate={updateFormData} />;
+      case 'accidents':
+        return <AccidentHistoryTab formData={formData} onUpdate={updateFormData} />;
+      case 'features':
+        return <FeaturesTab formData={formData} onUpdate={updateFormData} />;
+      case 'service':
+        return <ServiceMaintenanceTab formData={formData} onUpdate={updateFormData} />;
+      case 'title':
+        return <TitleOwnershipTab formData={formData} onUpdate={updateFormData} />;
+      case 'physical':
+        return <PhysicalFeaturesTab formData={formData} />;
+      case 'modifications':
+        return <ModificationsTab formData={formData} />;
       default:
-        return null;
+        return <BasicInfoTab formData={formData} onUpdate={updateFormData} />;
     }
   };
 
-  const currentColor = getCurrentTabColor();
-
   return (
-    <div className="max-w-6xl mx-auto">
-      {/* Tab Navigation */}
-      <div className="mb-8">
-        <div className="flex flex-wrap gap-2 mb-6">
-          {tabs.map((tab, index) => {
-            const tabColorKey = tab.color as keyof ColorSchemes;
-            const tabColor = colors[tabColorKey];
-            const isActive = currentTab === index;
-            const isCompleted = index < currentTab;
+    <Card className="w-full">
+      <CardContent className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList>
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab.id} value={tab.id} className="capitalize">
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {tabs.map((tab) => (
+            <TabsContent key={tab.id} value={tab.id} className="focus:outline-none">
+              {renderTabContent()}
+            </TabsContent>
+          ))}
+        </Tabs>
 
-            return (
-              <button
-                key={tab.id}
-                onClick={() => handleTabClick(index)}
-                className={`
-                  flex items-center px-4 py-3 rounded-lg font-medium transition-all duration-200
-                  ${isActive 
-                    ? `${tabColor.bg} ${tabColor.border} ${tabColor.text} border-2 shadow-md` 
-                    : isCompleted
-                      ? 'bg-green-50 border-green-200 text-green-700 border-2'
-                      : 'bg-gray-50 border-gray-200 text-gray-600 border hover:bg-gray-100'
-                  }
-                `}
-              >
-                {isCompleted && <Check className="h-4 w-4 mr-2" />}
-                <span className="text-sm">{tab.name}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      <Card className={`${currentColor.border} border-2 ${currentColor.bg}`}>
-        <CardContent className="p-8">
-          {renderTabContent()}
-        </CardContent>
-      </Card>
-
-      {/* Navigation Buttons */}
-      <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
-        <Button
-          onClick={handlePrevious}
-          disabled={currentTab === 0}
-          variant="outline"
-          className="flex items-center"
-        >
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Previous
-        </Button>
-
-        <div className="flex space-x-4">
-          <Button onClick={handleSave} variant="outline">
-            Save Progress
+        <div className="flex justify-between">
+          <Button type="button" variant="secondary" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Progress'}
           </Button>
-          
-          {currentTab === tabs.length - 1 ? (
-            <Button onClick={handleSubmit} className="flex items-center">
-              Complete Valuation
-              <Check className="h-4 w-4 ml-2" />
-            </Button>
-          ) : (
-            <Button onClick={handleNext} className="flex items-center">
-              Next
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </Button>
-          )}
+          <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting...' : 'Submit Follow-Up'}
+          </Button>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
