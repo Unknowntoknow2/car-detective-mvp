@@ -105,10 +105,10 @@ export default function ValuationPage() {
         <div className="space-y-8">
           <FoundCarCard vehicle={vehicle} readonly={false} />
           
-          {showFollowUp && (
+          {showFollowUp && vinParam && (
             <div className="mt-8">
               <UnifiedFollowUpForm 
-                vin={vin}
+                vin={vinParam}
                 onComplete={handleFollowUpComplete}
               />
             </div>
