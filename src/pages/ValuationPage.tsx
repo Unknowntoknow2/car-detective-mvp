@@ -18,17 +18,17 @@ export default function ValuationPage() {
   const [showFollowUp, setShowFollowUp] = useState(false);
 
   // Handle potentially undefined VIN parameter with proper type handling
-  const vin: string = vinParam || '';
+  const safeVin: string = vinParam ?? '';
 
   useEffect(() => {
-    if (vin && vin.length === 17) {
-      console.log('🔍 ValuationPage: Loading vehicle data for VIN:', vin);
-      loadVehicleData(vin);
+    if (safeVin && safeVin.length === 17) {
+      console.log('🔍 ValuationPage: Loading vehicle data for VIN:', safeVin);
+      loadVehicleData(safeVin);
     } else if (vinParam) {
       // VIN is present but invalid length
       toast.error('Invalid VIN format. VIN must be 17 characters long.');
     }
-  }, [vin, vinParam]);
+  }, [safeVin, vinParam]);
 
   const loadVehicleData = async (vinCode: string) => {
     setIsLoading(true);
@@ -75,7 +75,7 @@ export default function ValuationPage() {
   }
 
   // If VIN is present but invalid length
-  if (vin.length !== 17) {
+  if (safeVin.length !== 17) {
     return (
       <Container className="max-w-6xl py-10">
         <div className="text-center">
@@ -83,7 +83,7 @@ export default function ValuationPage() {
             Invalid VIN
           </h1>
           <p className="mt-4 text-lg text-gray-600">
-            The provided VIN "{vin}" is not valid. VINs must be exactly 17 characters long.
+            The provided VIN "{safeVin}" is not valid. VINs must be exactly 17 characters long.
           </p>
         </div>
       </Container>
@@ -105,10 +105,10 @@ export default function ValuationPage() {
         <div className="space-y-8">
           <FoundCarCard vehicle={vehicle} readonly={false} />
           
-          {showFollowUp && vin.length === 17 && (
+          {showFollowUp && safeVin.length === 17 && (
             <div className="mt-8">
               <UnifiedFollowUpForm 
-                vin={vin}
+                vin={safeVin}
                 onComplete={handleFollowUpComplete}
               />
             </div>
@@ -122,7 +122,7 @@ export default function ValuationPage() {
           <div className="space-y-1">
             <div>Debug Mode: ON</div>
             <div>Component: ValuationPage</div>
-            <div>VIN: {vin || 'None'}</div>
+            <div>VIN: {safeVin || 'None'}</div>
             <div>Vehicle Loaded: {vehicle ? 'Yes' : 'No'}</div>
             <div>Show Follow-up: {showFollowUp ? 'Yes' : 'No'}</div>
           </div>
