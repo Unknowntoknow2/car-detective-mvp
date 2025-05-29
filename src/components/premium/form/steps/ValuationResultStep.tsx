@@ -121,6 +121,12 @@ export function ValuationResultStep({
     ];
   }
 
+  // Ensure all adjustments have proper descriptions
+  const adjustmentsWithDescriptions = (result.adjustments || []).map(adjustment => ({
+    ...adjustment,
+    description: adjustment.description || `Adjustment for ${adjustment.factor}`
+  }));
+
   return (
     <div className="space-y-6">
       <div>
@@ -136,7 +142,7 @@ export function ValuationResultStep({
         estimatedValue={estimatedValue}
         confidenceScore={result.confidenceScore || 0}
         priceRange={priceRange}
-        adjustments={result.adjustments || []}
+        adjustments={adjustmentsWithDescriptions}
         vehicleInfo={{
           year: result.year,
           make: result.make,

@@ -15,6 +15,7 @@ import { ValuationProvider } from './context/ValuationContext';
 import { AICondition } from '@/types/photo';
 import { MarketInsightsTab } from '@/components/premium/sections/valuation-tabs/market-analysis/MarketInsightsTab';
 import { AINSummary } from '@/components/premium/insights/AINSummary';
+import { CarfaxSummary } from '@/components/premium/insights/CarfaxSummary';
 
 interface ValuationResultProps {
   valuationId?: string;
@@ -135,7 +136,7 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
         {/* Premium AIN Summary */}
         {isPremium && (
           <AINSummary
-            vin={data.vin}
+            vin={data.vin || ''}
             vehicleData={{
               year: data.year,
               make: data.make,
@@ -144,6 +145,11 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
               estimatedValue: estimatedValue
             }}
           />
+        )}
+        
+        {/* Premium CARFAX Summary */}
+        {isPremium && (
+          <CarfaxSummary />
         )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -172,7 +178,7 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
           year={data.year}
           mileage={data.mileage}
           condition={data.condition}
-          vin={data.vin}
+          vin={data.vin || ''}
           onUpgrade={handleUpgrade}
         />
         
