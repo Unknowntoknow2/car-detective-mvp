@@ -1,4 +1,3 @@
-
 export interface FollowUpAnswers {
   vin: string;
   valuation_id?: string;
@@ -11,9 +10,17 @@ export interface FollowUpAnswers {
   previous_owners?: number;
   dashboard_lights?: string[];
   
-  // Accident History
+  // Accident History - Fix the type from boolean to object
   has_accidents?: boolean;
-  accidents?: boolean;
+  accidents?: {
+    hadAccident: boolean;
+    count?: number;
+    location?: string;
+    severity?: 'minor' | 'moderate' | 'severe';
+    repaired?: boolean;
+    frameDamage?: boolean;
+    description?: string;
+  };
   accident_count?: number;
   accident_severity?: 'minor' | 'moderate' | 'severe';
   accident_types?: string[];
@@ -166,22 +173,26 @@ export const SERVICE_HISTORY_OPTIONS = [
   {
     value: 'excellent',
     label: 'Excellent',
-    description: 'Complete service records, maintained at dealer/certified shop'
+    description: 'Complete service records, maintained at dealer/certified shop',
+    impact: 'Full documentation available'
   },
   {
     value: 'good',
     label: 'Good',
-    description: 'Most service records available, regular maintenance'
+    description: 'Most service records available, regular maintenance',
+    impact: 'Good maintenance history'
   },
   {
     value: 'fair',
     label: 'Fair',
-    description: 'Some service records, basic maintenance performed'
+    description: 'Some service records, basic maintenance performed',
+    impact: 'Limited documentation'
   },
   {
     value: 'poor',
     label: 'Poor',
-    description: 'Limited or no service records available'
+    description: 'Limited or no service records available',
+    impact: 'No service history'
   }
 ];
 
@@ -189,22 +200,26 @@ export const MAINTENANCE_STATUS_OPTIONS = [
   {
     value: 'excellent',
     label: 'Excellent',
-    description: 'All maintenance up to date, no deferred items'
+    description: 'All maintenance up to date, no deferred items',
+    impact: 'Up to date maintenance'
   },
   {
     value: 'good',
     label: 'Good',
-    description: 'Recent maintenance, minor items may be due'
+    description: 'Recent maintenance, minor items may be due',
+    impact: 'Recent maintenance'
   },
   {
     value: 'fair',
     label: 'Fair',
-    description: 'Some maintenance overdue, needs attention'
+    description: 'Some maintenance overdue, needs attention',
+    impact: 'Some items overdue'
   },
   {
     value: 'poor',
     label: 'Poor',
-    description: 'Significant maintenance overdue or neglected'
+    description: 'Significant maintenance overdue or neglected',
+    impact: 'Maintenance neglected'
   }
 ];
 
@@ -212,22 +227,26 @@ export const TITLE_STATUS_OPTIONS = [
   {
     value: 'clean',
     label: 'Clean Title',
-    description: 'No major damage or issues reported'
+    description: 'No major damage or issues reported',
+    impact: 'No title issues'
   },
   {
     value: 'salvage',
     label: 'Salvage Title',
-    description: 'Vehicle was declared total loss by insurance'
+    description: 'Vehicle was declared total loss by insurance',
+    impact: 'Significant value reduction'
   },
   {
     value: 'flood',
     label: 'Flood Damage',
-    description: 'Vehicle has flood damage history'
+    description: 'Vehicle has flood damage history',
+    impact: 'Major value impact'
   },
   {
     value: 'lemon',
     label: 'Lemon Law',
-    description: 'Vehicle was returned under lemon law'
+    description: 'Vehicle was returned under lemon law',
+    impact: 'Substantial value reduction'
   }
 ];
 
@@ -235,27 +254,32 @@ export const PREVIOUS_USE_OPTIONS = [
   {
     value: 'personal',
     label: 'Personal Use',
-    description: 'Privately owned and operated'
+    description: 'Privately owned and operated',
+    impact: 'Best condition typically'
   },
   {
     value: 'rental',
     label: 'Rental Vehicle',
-    description: 'Previously used as rental car'
+    description: 'Previously used as rental car',
+    impact: 'Higher wear expected'
   },
   {
     value: 'fleet',
     label: 'Fleet Vehicle',
-    description: 'Corporate or government fleet use'
+    description: 'Corporate or government fleet use',
+    impact: 'Moderate wear'
   },
   {
     value: 'commercial',
     label: 'Commercial Use',
-    description: 'Used for business purposes'
+    description: 'Used for business purposes',
+    impact: 'Heavy use expected'
   },
   {
     value: 'taxi',
     label: 'Taxi/Rideshare',
-    description: 'Used for taxi or rideshare service'
+    description: 'Used for taxi or rideshare service',
+    impact: 'Very high mileage/wear'
   }
 ];
 

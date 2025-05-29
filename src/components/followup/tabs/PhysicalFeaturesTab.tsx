@@ -53,7 +53,7 @@ export function PhysicalFeaturesTab({ formData, updateFormData }: PhysicalFeatur
           <CardContent>
             <Select 
               value={formData.tire_condition || ''} 
-              onValueChange={(value) => updateFormData({ tire_condition: value })}
+              onValueChange={(value: 'excellent' | 'good' | 'fair' | 'poor') => updateFormData({ tire_condition: value })}
             >
               <SelectTrigger className="h-14 text-lg bg-white border-2 border-orange-200 hover:border-orange-300 focus:border-orange-500">
                 <SelectValue placeholder="Select tire condition" className="text-lg" />

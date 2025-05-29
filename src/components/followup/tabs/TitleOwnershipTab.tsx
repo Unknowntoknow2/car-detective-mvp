@@ -37,7 +37,7 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
           <CardContent>
             <Select 
               value={formData.title_status || ''} 
-              onValueChange={(value) => updateFormData({ title_status: value })}
+              onValueChange={(value: 'clean' | 'salvage' | 'flood' | 'lemon') => updateFormData({ title_status: value })}
             >
               <SelectTrigger className="h-14 text-lg bg-white border-2 border-purple-200 hover:border-purple-300 focus:border-purple-500">
                 <SelectValue placeholder="Select title status" className="text-lg" />
@@ -47,7 +47,7 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
                   <SelectItem key={option.value} value={option.value} className="p-4 cursor-pointer hover:bg-purple-50">
                     <div className="flex flex-col space-y-1">
                       <span className="font-semibold text-base">{option.label}</span>
-                      <span className="text-sm text-gray-600">{option.impact}</span>
+                      <span className="text-sm text-gray-600">{option.description}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -89,7 +89,7 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
           <CardContent>
             <Select 
               value={formData.previous_use || ''} 
-              onValueChange={(value) => updateFormData({ previous_use: value })}
+              onValueChange={(value: 'personal' | 'rental' | 'fleet' | 'commercial' | 'taxi') => updateFormData({ previous_use: value })}
             >
               <SelectTrigger className="h-14 text-lg bg-white border-2 border-purple-200 hover:border-purple-300 focus:border-purple-500">
                 <SelectValue placeholder="Select previous use" className="text-lg" />
@@ -99,7 +99,7 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
                   <SelectItem key={option.value} value={option.value} className="p-4 cursor-pointer hover:bg-purple-50">
                     <div className="flex flex-col space-y-1">
                       <span className="font-semibold text-base">{option.label}</span>
-                      <span className="text-sm text-gray-600">{option.impact}</span>
+                      <span className="text-sm text-gray-600">{option.description}</span>
                     </div>
                   </SelectItem>
                 ))}
