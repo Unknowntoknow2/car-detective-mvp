@@ -1,519 +1,317 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  FollowUpAnswers, 
-  CONDITION_OPTIONS,
-  SERVICE_HISTORY_OPTIONS,
-  MAINTENANCE_STATUS_OPTIONS,
-  TITLE_STATUS_OPTIONS,
-  TIRE_CONDITION_OPTIONS,
-  PREVIOUS_USE_OPTIONS,
-  DASHBOARD_LIGHTS,
-  MODIFICATION_TYPES
-} from '@/types/follow-up-answers';
-import { Car, Wrench, Shield, Gauge, AlertTriangle, Star } from 'lucide-react';
-import { toast } from 'sonner';
+  Car, 
+  Shield, 
+  Wrench, 
+  FileText, 
+  Gauge, 
+  Palette,
+  Star,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Settings,
+  Zap
+} from 'lucide-react';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { VehicleConditionTab } from './tabs/VehicleConditionTab';
+import { AccidentHistoryTab } from './tabs/AccidentHistoryTab';
+import { ServiceMaintenanceTab } from './tabs/ServiceMaintenanceTab';
+import { TitleOwnershipTab } from './tabs/TitleOwnershipTab';
+import { PhysicalFeaturesTab } from './tabs/PhysicalFeaturesTab';
+import { ModificationsTab } from './tabs/ModificationsTab';
 
-interface UnifiedFollowUpFormProps {
+export interface UnifiedFollowUpFormProps {
   vin: string;
   onComplete: (formData: FollowUpAnswers) => void;
 }
 
+const categories = [
+  {
+    id: 'condition',
+    label: 'Vehicle Condition',
+    icon: Star,
+    color: 'from-emerald-500 to-teal-600',
+    bgColor: 'bg-emerald-50',
+    borderColor: 'border-emerald-200',
+    textColor: 'text-emerald-700',
+    description: 'Overall condition assessment'
+  },
+  {
+    id: 'accidents',
+    label: 'Accident History',
+    icon: Shield,
+    color: 'from-red-500 to-pink-600',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-200',
+    textColor: 'text-red-700',
+    description: 'Damage and accident details'
+  },
+  {
+    id: 'service',
+    label: 'Service & Maintenance',
+    icon: Wrench,
+    color: 'from-blue-500 to-indigo-600',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200',
+    textColor: 'text-blue-700',
+    description: 'Maintenance history and status'
+  },
+  {
+    id: 'title',
+    label: 'Title & Ownership',
+    icon: FileText,
+    color: 'from-purple-500 to-violet-600',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-200',
+    textColor: 'text-purple-700',
+    description: 'Legal and ownership information'
+  },
+  {
+    id: 'physical',
+    label: 'Physical Features',
+    icon: Car,
+    color: 'from-orange-500 to-amber-600',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-200',
+    textColor: 'text-orange-700',
+    description: 'Tires, lights, and physical state'
+  },
+  {
+    id: 'modifications',
+    label: 'Modifications',
+    icon: Settings,
+    color: 'from-gray-500 to-slate-600',
+    bgColor: 'bg-gray-50',
+    borderColor: 'border-gray-200',
+    textColor: 'text-gray-700',
+    description: 'Aftermarket changes and upgrades'
+  }
+];
+
 export function UnifiedFollowUpForm({ vin, onComplete }: UnifiedFollowUpFormProps) {
+  const [activeTab, setActiveTab] = useState('condition');
   const [formData, setFormData] = useState<FollowUpAnswers>({
     vin,
-    mileage: 0,
-    zip_code: '',
-    condition: 'good',
-    exterior_condition: 'good',
-    interior_condition: 'good',
-    accidents: {
-      hadAccident: false, // Provide default value
-    },
-    service_history: 'unknown',
-    maintenance_status: 'Unknown',
-    title_status: 'clean',
-    previous_owners: 1,
-    previous_use: 'personal',
-    tire_condition: 'good',
-    dashboard_lights: [],
-    frame_damage: false,
-    modifications: {
-      modified: false, // Provide default value
-      types: [],
-      reversible: true,
-    },
-    features: [],
+    accidents: { hadAccident: false },
+    modifications: { modified: false },
     completion_percentage: 0,
     is_complete: false,
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   });
 
-  useEffect(() => {
-    // Calculate completion percentage
-    const totalFields = 17; // Total number of fields to consider
-    let completedFields = 0;
-
-    if (formData.mileage) completedFields++;
-    if (formData.zip_code) completedFields++;
-    if (formData.condition) completedFields++;
-    if (formData.exterior_condition) completedFields++;
-    if (formData.interior_condition) completedFields++;
-    if (formData.accidents) {
-      if (formData.accidents.hadAccident !== undefined) completedFields++;
-    }
-    if (formData.service_history) completedFields++;
-    if (formData.maintenance_status) completedFields++;
-    if (formData.title_status) completedFields++;
-    if (formData.previous_owners) completedFields++;
-    if (formData.previous_use) completedFields++;
-    if (formData.tire_condition) completedFields++;
-    if (formData.dashboard_lights && formData.dashboard_lights.length > 0) completedFields++;
-    if (formData.frame_damage !== undefined) completedFields++;
-    if (formData.modifications) {
-      if (formData.modifications.modified !== undefined) completedFields++;
-    }
-    if (formData.features && formData.features.length > 0) completedFields++;
-
-    const percentage = Math.round((completedFields / totalFields) * 100);
-    setFormData(prev => ({ ...prev, completion_percentage: percentage }));
-  }, [formData]);
-
-  const handleSubmit = () => {
-    // Validate required fields
-    if (!formData.mileage || !formData.zip_code || !formData.condition) {
-      toast.error('Please fill in all required fields.');
-      return;
-    }
-
-    // Mark as complete and submit
-    setFormData(prev => ({ ...prev, is_complete: true }));
-    toast.success('Follow-up data submitted successfully!');
-    onComplete(formData);
+  // Calculate completion percentage
+  const calculateCompletion = () => {
+    const requiredFields = [
+      'mileage', 'zip_code', 'condition', 'exterior_condition', 'interior_condition',
+      'service_history', 'title_status', 'tire_condition'
+    ];
+    
+    const completedFields = requiredFields.filter(field => {
+      const value = formData[field as keyof FollowUpAnswers];
+      return value !== undefined && value !== null && value !== '';
+    }).length;
+    
+    return Math.round((completedFields / requiredFields.length) * 100);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+  const completion = calculateCompletion();
+
+  const updateFormData = (updates: Partial<FollowUpAnswers>) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value,
-      updated_at: new Date().toISOString(),
+      ...updates,
+      updated_at: new Date().toISOString()
     }));
   };
 
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-      updated_at: new Date().toISOString(),
-    }));
-  };
-
-  const handleAccidentChange = (field: string, value: any) => {
+  const handleAccidentsChange = (hadAccident: boolean, details?: any) => {
     setFormData(prev => ({
       ...prev,
       accidents: {
-        ...prev.accidents,
-        [field]: value,
-        hadAccident: field === 'hadAccident' ? value : (prev.accidents?.hadAccident ?? false), // Ensure boolean
+        hadAccident,
+        ...details
       },
-      updated_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     }));
   };
 
-  const handleModificationChange = (field: string, value: any) => {
+  const handleModificationsChange = (modified: boolean, types?: string[]) => {
     setFormData(prev => ({
       ...prev,
       modifications: {
-        ...prev.modifications,
-        [field]: value,
-        modified: field === 'modified' ? value : (prev.modifications?.modified ?? false), // Ensure boolean
+        modified,
+        types: types || []
       },
-      updated_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     }));
   };
 
-  const handleModificationTypeToggle = (type: string) => {
-    setFormData(prev => ({
-      ...prev,
-      modifications: {
-        ...prev.modifications,
-        types: prev.modifications?.types?.includes(type) 
-          ? prev.modifications.types.filter(t => t !== type)
-          : [...(prev.modifications?.types || []), type],
-        modified: prev.modifications?.modified ?? false, // Ensure boolean
-      },
-      updated_at: new Date().toISOString(),
-    }));
+  const handleSubmit = () => {
+    const finalData = {
+      ...formData,
+      completion_percentage: completion,
+      is_complete: completion >= 80,
+      updated_at: new Date().toISOString()
+    };
+    
+    onComplete(finalData);
   };
 
-  const handleDashboardLightsChange = (light: string) => {
-    setFormData(prev => {
-      const currentLights = prev.dashboard_lights || [];
-      const isSelected = currentLights.includes(light);
-
-      const updatedLights = isSelected
-        ? currentLights.filter(l => l !== light)
-        : [...currentLights, light];
-
-      return {
-        ...prev,
-        dashboard_lights: updatedLights,
-        updated_at: new Date().toISOString(),
-      };
-    });
-  };
-
-  const handleFeaturesChange = (feature: string) => {
-    setFormData(prev => {
-      const currentFeatures = prev.features || [];
-      const isSelected = currentFeatures.includes(feature);
-
-      const updatedFeatures = isSelected
-        ? currentFeatures.filter(f => f !== feature)
-        : [...currentFeatures, feature];
-
-      return {
-        ...prev,
-        features: updatedFeatures,
-        updated_at: new Date().toISOString(),
-      };
-    });
+  const getTabStatus = (tabId: string) => {
+    switch (tabId) {
+      case 'condition':
+        return formData.condition && formData.exterior_condition && formData.interior_condition ? 'complete' : 'incomplete';
+      case 'accidents':
+        return formData.accidents?.hadAccident !== undefined ? 'complete' : 'incomplete';
+      case 'service':
+        return formData.service_history ? 'complete' : 'incomplete';
+      case 'title':
+        return formData.title_status ? 'complete' : 'incomplete';
+      case 'physical':
+        return formData.tire_condition ? 'complete' : 'incomplete';
+      case 'modifications':
+        return formData.modifications?.modified !== undefined ? 'complete' : 'incomplete';
+      default:
+        return 'incomplete';
+    }
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Vehicle Details</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-6">
-        {/* Progress Indicator */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <Label>Completion</Label>
-            <span className="text-sm text-muted-foreground">{formData.completion_percentage}%</span>
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* Header with Progress */}
+      <div className="text-center space-y-4">
+        <div className="flex items-center justify-center space-x-3">
+          <div className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+            <Car className="h-6 w-6 text-white" />
           </div>
-          <Progress value={formData.completion_percentage} />
-        </div>
-
-        {/* VIN Display */}
-        <div className="space-y-2">
-          <Label htmlFor="vin">VIN</Label>
-          <Input id="vin" name="vin" value={formData.vin} readOnly />
-        </div>
-
-        {/* Mileage Input */}
-        <div className="space-y-2">
-          <Label htmlFor="mileage">Mileage</Label>
-          <Input
-            id="mileage"
-            name="mileage"
-            type="number"
-            placeholder="Enter mileage"
-            value={String(formData.mileage)}
-            onChange={handleChange}
-          />
-        </div>
-
-        {/* Zip Code Input */}
-        <div className="space-y-2">
-          <Label htmlFor="zip_code">Zip Code</Label>
-          <Input
-            id="zip_code"
-            name="zip_code"
-            type="text"
-            placeholder="Enter zip code"
-            value={formData.zip_code}
-            onChange={handleChange}
-          />
-        </div>
-
-        {/* Condition Select */}
-        <div className="space-y-2">
-          <Label htmlFor="condition">Condition</Label>
-          <Select onValueChange={(value) => handleSelectChange('condition', value)}>
-            <SelectTrigger id="condition">
-              <SelectValue placeholder="Select condition" />
-            </SelectTrigger>
-            <SelectContent>
-              {CONDITION_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Exterior Condition Select */}
-        <div className="space-y-2">
-          <Label htmlFor="exterior_condition">Exterior Condition</Label>
-          <Select onValueChange={(value) => handleSelectChange('exterior_condition', value)}>
-            <SelectTrigger id="exterior_condition">
-              <SelectValue placeholder="Select exterior condition" />
-            </SelectTrigger>
-            <SelectContent>
-              {CONDITION_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Interior Condition Select */}
-        <div className="space-y-2">
-          <Label htmlFor="interior_condition">Interior Condition</Label>
-          <Select onValueChange={(value) => handleSelectChange('interior_condition', value)}>
-            <SelectTrigger id="interior_condition">
-              <SelectValue placeholder="Select interior condition" />
-            </SelectTrigger>
-            <SelectContent>
-              {CONDITION_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Accident History */}
-        <div className="space-y-3 border rounded-md p-4">
-          <Label className="flex items-center space-x-2">
-            <Shield className="h-4 w-4" />
-            <span>Accident History</span>
-          </Label>
-          <RadioGroup onValueChange={(value) => handleAccidentChange('hadAccident', value === 'true')} defaultValue={String(formData.accidents?.hadAccident)}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="true" id="accident-yes" />
-              <Label htmlFor="accident-yes">Yes</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="false" id="accident-no" />
-              <Label htmlFor="accident-no">No</Label>
-            </div>
-          </RadioGroup>
-          {formData.accidents?.hadAccident && (
-            <div className="mt-2">
-              <Label htmlFor="accident-description">Accident Description</Label>
-              <Textarea
-                id="accident-description"
-                placeholder="Describe the accident"
-                value={formData.accidents?.description || ''}
-                onChange={(e) => handleAccidentChange('description', e.target.value)}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Service History */}
-        <div className="space-y-2">
-          <Label htmlFor="service_history">Service History</Label>
-          <Select onValueChange={(value) => handleSelectChange('service_history', value)}>
-            <SelectTrigger id="service_history">
-              <SelectValue placeholder="Select service history" />
-            </SelectTrigger>
-            <SelectContent>
-              {SERVICE_HISTORY_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Maintenance Status */}
-        <div className="space-y-2">
-          <Label htmlFor="maintenance_status">Maintenance Status</Label>
-          <Select onValueChange={(value) => handleSelectChange('maintenance_status', value)}>
-            <SelectTrigger id="maintenance_status">
-              <SelectValue placeholder="Select maintenance status" />
-            </SelectTrigger>
-            <SelectContent>
-              {MAINTENANCE_STATUS_OPTIONS.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Title Status */}
-        <div className="space-y-2">
-          <Label htmlFor="title_status">Title Status</Label>
-          <Select onValueChange={(value) => handleSelectChange('title_status', value)}>
-            <SelectTrigger id="title_status">
-              <SelectValue placeholder="Select title status" />
-            </SelectTrigger>
-            <SelectContent>
-              {TITLE_STATUS_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Previous Owners */}
-        <div className="space-y-2">
-          <Label htmlFor="previous_owners">Previous Owners</Label>
-          <Input
-            id="previous_owners"
-            name="previous_owners"
-            type="number"
-            placeholder="Enter number of previous owners"
-            value={String(formData.previous_owners)}
-            onChange={handleChange}
-          />
-        </div>
-
-        {/* Previous Use */}
-        <div className="space-y-2">
-          <Label htmlFor="previous_use">Previous Use</Label>
-          <Select onValueChange={(value) => handleSelectChange('previous_use', value)}>
-            <SelectTrigger id="previous_use">
-              <SelectValue placeholder="Select previous use" />
-            </SelectTrigger>
-            <SelectContent>
-              {PREVIOUS_USE_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Tire Condition */}
-        <div className="space-y-2">
-          <Label htmlFor="tire_condition">Tire Condition</Label>
-          <Select onValueChange={(value) => handleSelectChange('tire_condition', value)}>
-            <SelectTrigger id="tire_condition">
-              <SelectValue placeholder="Select tire condition" />
-            </SelectTrigger>
-            <SelectContent>
-              {TIRE_CONDITION_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Dashboard Lights */}
-        <div className="space-y-3 border rounded-md p-4">
-          <Label className="flex items-center space-x-2">
-            <AlertTriangle className="h-4 w-4" />
-            <span>Dashboard Lights</span>
-          </Label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {DASHBOARD_LIGHTS.map((light) => (
-              <div key={light.value} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`dashboard-light-${light.value}`}
-                  checked={formData.dashboard_lights?.includes(light.value)}
-                  onCheckedChange={() => handleDashboardLightsChange(light.value)}
-                />
-                <Label htmlFor={`dashboard-light-${light.value}`}>{light.label}</Label>
-              </div>
-            ))}
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              Vehicle Assessment
+            </h1>
+            <p className="text-gray-600">VIN: {vin}</p>
           </div>
         </div>
-
-        {/* Frame Damage */}
-        <div className="space-y-3 border rounded-md p-4">
-          <Label className="flex items-center space-x-2">
-            <Wrench className="h-4 w-4" />
-            <span>Frame Damage</span>
-          </Label>
-          <RadioGroup onValueChange={(value) => setFormData(prev => ({ ...prev, frame_damage: value === 'true' }))} defaultValue={String(formData.frame_damage)}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="true" id="frame-damage-yes" />
-              <Label htmlFor="frame-damage-yes">Yes</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="false" id="frame-damage-no" />
-              <Label htmlFor="frame-damage-no">No</Label>
-            </div>
-          </RadioGroup>
+        
+        <div className="max-w-md mx-auto space-y-2">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium text-gray-600">Progress</span>
+            <span className="text-sm font-bold text-gray-900">{completion}%</span>
+          </div>
+          <Progress value={completion} className="h-3" />
         </div>
+      </div>
 
-        {/* Modifications */}
-        <div className="space-y-3 border rounded-md p-4">
-          <Label className="flex items-center space-x-2">
-            <Car className="h-4 w-4" />
-            <span>Modifications</span>
-          </Label>
-          <RadioGroup onValueChange={(value) => handleModificationChange('modified', value === 'true')} defaultValue={String(formData.modifications?.modified)}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="true" id="modifications-yes" />
-              <Label htmlFor="modifications-yes">Yes</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="false" id="modifications-no" />
-              <Label htmlFor="modifications-no">No</Label>
-            </div>
-          </RadioGroup>
-
-          {formData.modifications?.modified && (
-            <div className="mt-2 space-y-2">
-              <Label>Modification Types</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {MODIFICATION_TYPES.map((type) => (
-                  <div key={type} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`modification-type-${type}`}
-                      checked={formData.modifications?.types?.includes(type)}
-                      onCheckedChange={() => handleModificationTypeToggle(type)}
-                    />
-                    <Label htmlFor={`modification-type-${type}`}>{type}</Label>
+      {/* Tabbed Interface */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid grid-cols-3 lg:grid-cols-6 gap-2 h-auto p-2 bg-gray-100/50 rounded-xl">
+          {categories.map((category) => {
+            const Icon = category.icon;
+            const status = getTabStatus(category.id);
+            
+            return (
+              <TabsTrigger
+                key={category.id}
+                value={category.id}
+                className={`
+                  relative flex flex-col items-center p-4 space-y-2 rounded-lg border-2 transition-all duration-300
+                  data-[state=active]:shadow-lg data-[state=active]:scale-105
+                  ${activeTab === category.id 
+                    ? `bg-gradient-to-br ${category.color} text-white border-transparent` 
+                    : `${category.bgColor} ${category.borderColor} ${category.textColor} hover:shadow-md`
+                  }
+                `}
+              >
+                <div className="relative">
+                  <Icon className="h-6 w-6" />
+                  {status === 'complete' && (
+                    <CheckCircle className="absolute -top-1 -right-1 h-4 w-4 text-green-500 bg-white rounded-full" />
+                  )}
+                </div>
+                <div className="text-center">
+                  <div className="font-medium text-xs">{category.label}</div>
+                  <div className={`text-xs opacity-75 ${activeTab === category.id ? 'text-white' : 'text-gray-500'}`}>
+                    {category.description}
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
+                </div>
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+
+        {/* Tab Content */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
+          <TabsContent value="condition" className="p-6 m-0">
+            <VehicleConditionTab 
+              formData={formData} 
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+
+          <TabsContent value="accidents" className="p-6 m-0">
+            <AccidentHistoryTab 
+              formData={formData} 
+              onAccidentsChange={handleAccidentsChange}
+            />
+          </TabsContent>
+
+          <TabsContent value="service" className="p-6 m-0">
+            <ServiceMaintenanceTab 
+              formData={formData} 
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+
+          <TabsContent value="title" className="p-6 m-0">
+            <TitleOwnershipTab 
+              formData={formData} 
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+
+          <TabsContent value="physical" className="p-6 m-0">
+            <PhysicalFeaturesTab 
+              formData={formData} 
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+
+          <TabsContent value="modifications" className="p-6 m-0">
+            <ModificationsTab 
+              formData={formData} 
+              onModificationsChange={handleModificationsChange}
+            />
+          </TabsContent>
         </div>
 
-        {/* Features */}
-        <div className="space-y-3 border rounded-md p-4">
-          <Label className="flex items-center space-x-2">
-            <Star className="h-4 w-4" />
-            <span>Features</span>
-          </Label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {["Sunroof", "Leather Seats", "Navigation System", "Premium Audio", "Heated Seats", "Cooled Seats"].map((feature) => (
-              <div key={feature} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`feature-${feature}`}
-                  checked={formData.features?.includes(feature)}
-                  onCheckedChange={() => handleFeaturesChange(feature)}
-                />
-                <Label htmlFor={`feature-${feature}`}>{feature}</Label>
-              </div>
-            ))}
-          </div>
+        {/* Action Buttons */}
+        <div className="flex justify-between items-center pt-6">
+          <Badge variant="outline" className="text-sm">
+            {completion >= 80 ? (
+              <><CheckCircle className="h-4 w-4 mr-1 text-green-500" /> Ready to Submit</>
+            ) : (
+              <><Clock className="h-4 w-4 mr-1 text-amber-500" /> {Math.max(0, 80 - completion)}% more needed</>
+            )}
+          </Badge>
+          
+          <Button 
+            onClick={handleSubmit}
+            size="lg"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
+            disabled={completion < 80}
+          >
+            <Zap className="h-4 w-4 mr-2" />
+            Complete Assessment
+          </Button>
         </div>
-
-        {/* Submit Button */}
-        <Button onClick={handleSubmit}>Submit</Button>
-      </CardContent>
-    </Card>
+      </Tabs>
+    </div>
   );
 }
