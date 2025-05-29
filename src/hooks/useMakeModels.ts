@@ -1,3 +1,4 @@
+
 // src/hooks/useMakeModels.ts
 import { useState, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client'
@@ -44,9 +45,10 @@ export function useMakeModels() {
         .order('make_name')
 
       if (error) throw error
+      console.log('✅ useMakeModels: Fetched makes:', data?.length || 0, 'makes')
       setMakes(data || [])
     } catch (err) {
-      console.error('Error fetching makes:', err)
+      console.error('❌ useMakeModels: Error fetching makes:', err)
       setError('Failed to load vehicle makes')
     } finally {
       setIsLoading(false)
@@ -55,12 +57,16 @@ export function useMakeModels() {
 
   const fetchModelsByMakeId = async (makeId: string) => {
     if (!makeId) {
+      console.log('⚠️ useMakeModels: No makeId provided, clearing models')
       setModels([])
       return []
     }
+    
     try {
       setIsLoadingModels(true)
       setError(null)
+      console.log('🔍 useMakeModels: Fetching models for make_id:', makeId)
+      
       const { data, error } = await supabase
         .from('models')
         .select('id, model_name, make_id')
@@ -68,10 +74,20 @@ export function useMakeModels() {
         .order('model_name')
 
       if (error) throw error
+      
+      console.log('📊 useMakeModels: Raw Supabase response for models:', {
+        makeId,
+        dataLength: data?.length || 0,
+        sampleData: data?.slice(0, 3),
+        fullData: data
+      })
+      
       setModels(data || [])
+      console.log('✅ useMakeModels: setModels called with:', data?.length || 0, 'models')
+      
       return data || []
     } catch (err) {
-      console.error('Error fetching models:', err)
+      console.error('❌ useMakeModels: Error fetching models:', err)
       setError('Failed to load vehicle models')
       return []
     } finally {

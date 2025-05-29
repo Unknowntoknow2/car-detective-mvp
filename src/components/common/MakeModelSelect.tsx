@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -31,12 +32,29 @@ export function MakeModelSelect({
   isDisabled = false
 }: MakeModelSelectProps) {
   const handleMakeChange = (makeId: string) => {
+    console.log('🎯 MakeModelSelect: Make selected:', {
+      makeId,
+      makeName: makes.find(m => m.id === makeId)?.make_name
+    });
+    
     setSelectedMakeId(makeId);
     setSelectedModelId(''); // Reset model selection
+    
     if (onMakeChange) {
+      console.log('🔄 MakeModelSelect: Calling onMakeChange with makeId:', makeId);
       onMakeChange(makeId);
     }
   };
+
+  // Debug log for models passed to dropdown
+  console.log('📋 MakeModelSelect: Render state:', {
+    selectedMakeId,
+    selectedModelId,
+    modelsCount: models.length,
+    isLoading,
+    modelsPreview: models.slice(0, 3),
+    allModels: models
+  });
 
   if (isLoading && makes.length === 0) {
     return (
@@ -97,7 +115,13 @@ export function MakeModelSelect({
         </Label>
         <Select
           value={selectedModelId}
-          onValueChange={setSelectedModelId}
+          onValueChange={(modelId) => {
+            console.log('🎯 MakeModelSelect: Model selected:', {
+              modelId,
+              modelName: models.find(m => m.id === modelId)?.model_name
+            });
+            setSelectedModelId(modelId);
+          }}
           disabled={isDisabled || !selectedMakeId}
         >
           <SelectTrigger id="model" className="h-10">
@@ -106,7 +130,9 @@ export function MakeModelSelect({
                 ? "Select make first" 
                 : isLoading 
                   ? "Loading models..." 
-                  : "Select model"
+                  : models.length === 0
+                    ? "No models found"
+                    : "Select model"
             } />
           </SelectTrigger>
           <SelectContent className="max-h-[300px] overflow-y-auto">
@@ -115,11 +141,18 @@ export function MakeModelSelect({
                 No models found for selected make
               </div>
             ) : (
-              models.map((model) => (
-                <SelectItem key={model.id} value={model.id}>
-                  {model.model_name}
-                </SelectItem>
-              ))
+              models.map((model) => {
+                console.log('🔧 MakeModelSelect: Rendering model option:', {
+                  modelId: model.id,
+                  modelName: model.model_name,
+                  makeId: model.make_id
+                });
+                return (
+                  <SelectItem key={model.id} value={model.id}>
+                    {model.model_name}
+                  </SelectItem>
+                );
+              })
             )}
           </SelectContent>
         </Select>

@@ -28,7 +28,11 @@ export function BasicVehicleForm({
   } = useMakeModels();
 
   const handleMakeChange = (makeId: string) => {
-    console.log('BasicVehicleForm: Make changed to:', makeId);
+    console.log('🚀 BasicVehicleForm: Make changed to:', {
+      makeId,
+      makeName: findMakeById(makeId)?.make_name
+    });
+    
     const selectedMake = findMakeById(makeId);
     const updates = {
       make: makeId,
@@ -38,15 +42,23 @@ export function BasicVehicleForm({
       trim: '',
       trimName: ''
     };
+    
+    console.log('📝 BasicVehicleForm: Updating form data with:', updates);
     updateFormData(updates);
     
     // Load models for the selected make
     if (makeId) {
+      console.log('🔄 BasicVehicleForm: Calling fetchModelsByMakeId for:', makeId);
       fetchModelsByMakeId(makeId);
     }
   };
 
   const handleModelChange = (modelId: string) => {
+    console.log('🚀 BasicVehicleForm: Model changed to:', {
+      modelId,
+      modelName: findModelById(modelId)?.model_name
+    });
+    
     const selectedModel = findModelById(modelId);
     const updates = {
       model: modelId,
@@ -54,15 +66,28 @@ export function BasicVehicleForm({
       trim: '',
       trimName: ''
     };
+    
+    console.log('📝 BasicVehicleForm: Updating form data with:', updates);
     updateFormData(updates);
   };
 
   // Load models when component mounts if make is already selected
   useEffect(() => {
     if (formData.make) {
+      console.log('🔄 BasicVehicleForm: Component mounted with existing make, fetching models for:', formData.make);
       fetchModelsByMakeId(formData.make);
     }
   }, [formData.make, fetchModelsByMakeId]);
+
+  // Debug log for component state
+  console.log('🏠 BasicVehicleForm: Component state:', {
+    formDataMake: formData.make,
+    formDataModel: formData.model,
+    makesCount: makes.length,
+    modelsCount: models.length,
+    isLoading,
+    error
+  });
 
   return (
     <div className="space-y-4">
