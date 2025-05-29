@@ -25,6 +25,10 @@ export interface FollowUpAnswers {
   zip_code?: string;
   condition?: 'excellent' | 'good' | 'fair' | 'poor';
   
+  // NEW: Separate exterior and interior conditions
+  exterior_condition?: 'excellent' | 'good' | 'fair' | 'poor';
+  interior_condition?: 'excellent' | 'good' | 'fair' | 'poor';
+  
   // Accident history
   accidents?: AccidentDetails;
   
