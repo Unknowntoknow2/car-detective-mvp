@@ -20,6 +20,7 @@ export function BasicVehicleForm({
   const {
     makes,
     models,
+    modelListVersion, // 🔁 Track model updates
     isLoading,
     error,
     fetchModelsByMakeId,
@@ -46,13 +47,10 @@ export function BasicVehicleForm({
     console.log('📝 BasicVehicleForm: Updating form data with:', updates);
     updateFormData(updates);
     
-    // ✅ Await model fetch and force re-render by setting models
+    // ✅ Fetch models for the selected make
     if (makeId) {
       console.log('🔄 BasicVehicleForm: Calling fetchModelsByMakeId for:', makeId);
       const modelsFetched = await fetchModelsByMakeId(makeId);
-
-      // 🛠️ Force state update to trigger rerender
-      updateFormData({ _modelListVersion: Date.now() });
       console.log('✅ BasicVehicleForm: Fetched', modelsFetched.length, 'models for make', makeId);
     }
   };
@@ -83,12 +81,18 @@ export function BasicVehicleForm({
     }
   }, [formData.make, fetchModelsByMakeId]);
 
+  // 🔁 React to model list updates
+  useEffect(() => {
+    console.log('🔁 React detected modelListVersion change:', modelListVersion);
+  }, [modelListVersion]);
+
   // Debug log for component state
   console.log('🏠 BasicVehicleForm: Component state:', {
     formDataMake: formData.make,
     formDataModel: formData.model,
     makesCount: makes.length,
     modelsCount: models.length,
+    modelListVersion,
     isLoading,
     error
   });

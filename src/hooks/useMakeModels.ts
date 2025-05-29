@@ -25,6 +25,7 @@ export function useMakeModels() {
   const [makes, setMakes] = useState<Make[]>([])
   const [models, setModels] = useState<Model[]>([])
   const [trims, setTrims] = useState<Trim[]>([])
+  const [modelListVersion, setModelListVersion] = useState<number>(0)
 
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingModels, setIsLoadingModels] = useState(false)
@@ -59,6 +60,7 @@ export function useMakeModels() {
     if (!makeId) {
       console.log('⚠️ useMakeModels: No makeId provided, clearing models')
       setModels([])
+      setModelListVersion(Date.now())
       return []
     }
     
@@ -83,6 +85,7 @@ export function useMakeModels() {
       })
       
       setModels(data || [])
+      setModelListVersion(Date.now()) // 🔁 Track when models are fetched
       console.log('✅ useMakeModels: setModels called with:', data?.length || 0, 'models')
       
       return data || []
@@ -137,6 +140,7 @@ export function useMakeModels() {
     makes,
     models,
     trims,
+    modelListVersion, // 🔁 Expose this to track model updates
     isLoading,
     isLoadingModels,
     isLoadingTrims,
