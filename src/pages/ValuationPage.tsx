@@ -18,7 +18,7 @@ export default function ValuationPage() {
   const [showFollowUp, setShowFollowUp] = useState(false);
 
   // Ensure VIN is defined before proceeding
-  const vin = vinParam;
+  const vin = vinParam || '';
 
   useEffect(() => {
     if (vin && vin.length === 17) {
