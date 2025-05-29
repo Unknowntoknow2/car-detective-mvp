@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -62,6 +63,18 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
     }
   };
 
+  const handleModificationsChange = useCallback(
+    (modified: boolean, types?: string[]) => {
+      updateFormData({
+        modifications: {
+          modified,
+          types: types || []
+        }
+      });
+    },
+    [updateFormData]
+  );
+
   const tabs = [
     { id: 'basic', label: 'Basic Info', color: 'blue' },
     { id: 'accidents', label: 'Accident History', color: 'red' },
@@ -72,18 +85,6 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
     { id: 'modifications', label: 'Modifications', color: 'purple' }
   ];
 
-  const tabColors: { [key in TabId]: string } = {
-    basic: 'bg-blue-50 border-blue-200',
-    accidents: 'bg-red-50 border-red-200',
-    features: 'bg-purple-50 border-purple-200',
-    service: 'bg-orange-50 border-orange-200',
-    title: 'bg-green-50 border-green-200',
-    physical: 'bg-indigo-50 border-indigo-200',
-    modifications: 'bg-purple-50 border-purple-200',
-  };
-
-  const getTabColor = (tabId: TabId) => tabColors[tabId] || 'bg-gray-50 border-gray-200';
-
   const renderTabContent = () => {
     switch (activeTab) {
       case 'basic':
@@ -93,22 +94,26 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
       case 'features':
         return <FeaturesTab formData={formData} onUpdate={updateFormData} />;
       case 'service':
-        return <ServiceMaintenanceTab formData={formData} onUpdate={updateFormData} />;
+        return <ServiceMaintenanceTab formData={formData} updateFormData={updateFormData} />;
       case 'title':
-        return <TitleOwnershipTab formData={formData} onUpdate={updateFormData} />;
+        return <TitleOwnershipTab formData={formData} updateFormData={updateFormData} />;
       case 'physical':
-        return <PhysicalFeaturesTab formData={formData} />;
+        return <PhysicalFeaturesTab formData={formData} updateFormData={updateFormData} />;
       case 'modifications':
-        return <ModificationsTab formData={formData} />;
+        return <ModificationsTab formData={formData} onModificationsChange={handleModificationsChange} />;
       default:
         return <BasicInfoTab formData={formData} onUpdate={updateFormData} />;
     }
   };
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as TabId);
+  };
+
   return (
     <Card className="w-full">
       <CardContent className="space-y-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <TabsList>
             {tabs.map((tab) => (
               <TabsTrigger key={tab.id} value={tab.id} className="capitalize">
