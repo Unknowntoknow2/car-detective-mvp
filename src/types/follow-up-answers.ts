@@ -46,6 +46,9 @@ export interface FollowUpAnswers {
   // Modifications
   modifications?: ModificationDetails;
   
+  // Features - NEW FIELD
+  features?: string[];
+  
   // Metadata
   completion_percentage?: number;
   is_complete?: boolean;
