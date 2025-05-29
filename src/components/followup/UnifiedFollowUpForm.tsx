@@ -1,575 +1,714 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Car, 
-  Shield, 
-  Wrench, 
-  AlertTriangle, 
-  CheckCircle, 
-  Info,
-  Sparkles,
-  Palette,
-  Home,
-  DollarSign
-} from 'lucide-react';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { DecodedVehicleInfo } from '@/types/vehicle';
-import { FeaturesSelector } from '@/components/valuation/FeaturesSelector';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Info, Car, AlertTriangle, Wrench, FileText, Settings, Star, ChevronDown, ChevronUp } from 'lucide-react';
+import { FollowUpAnswers, CONDITION_OPTIONS, SERVICE_HISTORY_OPTIONS, TITLE_STATUS_OPTIONS, TIRE_CONDITION_OPTIONS, PREVIOUS_USE_OPTIONS, DASHBOARD_LIGHTS, MODIFICATION_TYPES } from '@/types/follow-up-answers';
+import { supabase } from '@/lib/supabaseClient';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface UnifiedFollowUpFormProps {
   vin: string;
-  vehicle?: DecodedVehicleInfo;
-  onComplete: (formData: FollowUpAnswers) => void;
+  valuationId?: string;
+  onComplete: (answers: FollowUpAnswers) => void;
+  onSkip?: () => void;
 }
 
-const CONDITION_OPTIONS = [
-  {
-    value: 'excellent',
-    label: 'Excellent',
-    description: 'Like new condition with minimal wear and tear',
-    impact: '+15% to +20% value',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50 border-green-200'
-  },
-  {
-    value: 'good',
-    label: 'Good',
-    description: 'Normal wear and tear for age, well maintained',
-    impact: 'Market value baseline',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50 border-blue-200'
-  },
-  {
-    value: 'fair',
-    label: 'Fair',
-    description: 'Visible damage or mechanical issues requiring attention',
-    impact: '-10% to -20% value',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50 border-orange-200'
-  },
-  {
-    value: 'poor',
-    label: 'Poor',
-    description: 'Significant mechanical/cosmetic issues, needs major repairs',
-    impact: '-25% to -40% value',
-    color: 'text-red-600',
-    bgColor: 'bg-red-50 border-red-200'
-  }
-];
-
-const FEATURE_CATEGORIES = {
-  Safety: [
-    { name: 'ABS', value: 200 },
-    { name: 'Airbags (Front)', value: 300 },
-    { name: 'Airbags (Side)', value: 250 },
-    { name: 'Backup Camera', value: 400 },
-    { name: 'Blind Spot Monitor', value: 600 },
-    { name: 'Lane Departure Warning', value: 500 },
-    { name: 'Automatic Emergency Braking', value: 800 }
-  ],
-  Technology: [
-    { name: 'Bluetooth', value: 200 },
-    { name: 'Navigation System', value: 800 },
-    { name: 'Premium Sound System', value: 600 },
-    { name: 'Remote Start', value: 400 },
-    { name: 'Wireless Charging', value: 300 },
-    { name: 'Apple CarPlay/Android Auto', value: 400 }
-  ],
-  Comfort: [
-    { name: 'Leather Seats', value: 1200 },
-    { name: 'Heated Seats', value: 500 },
-    { name: 'Cooled Seats', value: 700 },
-    { name: 'Sunroof', value: 800 },
-    { name: 'Keyless Entry', value: 200 },
-    { name: 'Power Seats', value: 400 },
-    { name: 'Dual Zone Climate', value: 300 }
-  ],
-  Other: [
-    { name: 'Alloy Wheels', value: 400 },
-    { name: 'Third-Row Seating', value: 1000 },
-    { name: 'Four-Wheel Drive', value: 1500 },
-    { name: 'Tow Package', value: 600 },
-    { name: 'Roof Rack', value: 200 },
-    { name: 'Running Boards', value: 300 }
-  ]
-};
-
-export const UnifiedFollowUpForm: React.FC<UnifiedFollowUpFormProps> = ({
-  vin,
-  vehicle,
-  onComplete
-}) => {
+export function UnifiedFollowUpForm({ vin, valuationId, onComplete, onSkip }: UnifiedFollowUpFormProps) {
   const [formData, setFormData] = useState<FollowUpAnswers>({
     vin,
-    mileage: 0,
+    valuation_id: valuationId,
+    mileage: undefined,
     zip_code: '',
-    condition: 'good',
-    exterior_condition: 'good',
-    interior_condition: 'good',
-    accidents: { hadAccident: false },
-    service_history: 'unknown',
+    exterior_condition: undefined,
+    interior_condition: undefined,
+    accidents: {
+      hadAccident: false,
+      count: undefined,
+      severity: undefined,
+      repaired: undefined,
+      frameDamage: undefined,
+      description: ''
+    },
+    service_history: undefined,
+    maintenance_status: undefined,
+    last_service_date: undefined,
+    title_status: undefined,
+    previous_owners: undefined,
+    previous_use: undefined,
+    tire_condition: undefined,
+    dashboard_lights: [],
+    frame_damage: undefined,
+    modifications: {
+      modified: false,
+      types: [],
+      reversible: undefined
+    },
     features: [],
-    completion_percentage: 0
+    completion_percentage: 0,
+    is_complete: false
   });
 
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  const [featureValueTotal, setFeatureValueTotal] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
 
+  // Calculate completion percentage
   useEffect(() => {
-    const total = selectedFeatures.reduce((sum, featureName) => {
-      const feature = Object.values(FEATURE_CATEGORIES)
-        .flat()
-        .find(f => f.name === featureName);
-      return sum + (feature?.value || 0);
-    }, 0);
-    setFeatureValueTotal(total);
-  }, [selectedFeatures]);
+    const totalSections = 7; // Basic Info, Exterior, Interior, Accidents, Service, Title/Ownership, Modifications
+    const completion = Math.round((completedSections.size / totalSections) * 100);
+    setFormData(prev => ({ ...prev, completion_percentage: completion }));
+  }, [completedSections]);
 
-  const handleFeatureToggle = (featureName: string) => {
-    setSelectedFeatures(prev => {
-      const newFeatures = prev.includes(featureName)
-        ? prev.filter(f => f !== featureName)
-        : [...prev, featureName];
-      
-      setFormData(prevData => ({
-        ...prevData,
-        features: newFeatures
-      }));
-      
-      return newFeatures;
+  // Check section completion
+  const checkSectionCompletion = (sectionId: string, isComplete: boolean) => {
+    setCompletedSections(prev => {
+      const updated = new Set(prev);
+      if (isComplete) {
+        updated.add(sectionId);
+      } else {
+        updated.delete(sectionId);
+      }
+      return updated;
     });
   };
 
-  const updateFormData = (updates: Partial<FollowUpAnswers>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
+  // Condition selection handlers
+  const handleExteriorConditionChange = (condition: 'excellent' | 'good' | 'fair' | 'poor') => {
+    setFormData(prev => ({ ...prev, exterior_condition: condition }));
+    checkSectionCompletion('exterior', !!condition);
   };
 
-  const calculateProgress = () => {
-    const requiredFields = [
-      formData.mileage,
-      formData.zip_code,
-      formData.exterior_condition,
-      formData.interior_condition
-    ];
-    const filledFields = requiredFields.filter(field => field && field !== 0).length;
-    return Math.round((filledFields / requiredFields.length) * 100);
+  const handleInteriorConditionChange = (condition: 'excellent' | 'good' | 'fair' | 'poor') => {
+    setFormData(prev => ({ ...prev, interior_condition: condition }));
+    checkSectionCompletion('interior', !!condition);
   };
 
-  const handleSubmit = () => {
-    const finalData = {
-      ...formData,
-      features: selectedFeatures,
-      completion_percentage: 100,
-      is_complete: true
-    };
-    onComplete(finalData);
+  // Enhanced accident handlers
+  const handleAccidentChange = (hasAccident: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      accidents: {
+        ...prev.accidents,
+        hadAccident: hasAccident,
+        // Reset other fields if no accident
+        ...(hasAccident ? {} : {
+          count: undefined,
+          severity: undefined,
+          repaired: undefined,
+          frameDamage: undefined,
+          description: ''
+        })
+      }
+    }));
   };
 
-  const ConditionSelector = ({ 
-    value, 
-    onChange, 
-    title, 
-    description 
-  }: { 
-    value: string; 
-    onChange: (value: string) => void; 
-    title: string; 
-    description: string; 
-  }) => (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <h4 className="font-medium text-gray-900">{title}</h4>
-        <Info className="h-4 w-4 text-gray-400" />
+  const handleAccidentDetailsChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      accidents: {
+        ...prev.accidents,
+        [field]: value
+      }
+    }));
+  };
+
+  // Modifications handlers
+  const handleModificationChange = (modified: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      modifications: {
+        ...prev.modifications,
+        modified,
+        ...(modified ? {} : { types: [], reversible: undefined })
+      }
+    }));
+  };
+
+  const handleModificationTypeToggle = (type: string) => {
+    setFormData(prev => ({
+      ...prev,
+      modifications: {
+        ...prev.modifications,
+        types: prev.modifications?.types?.includes(type)
+          ? prev.modifications.types.filter(t => t !== type)
+          : [...(prev.modifications?.types || []), type]
+      }
+    }));
+  };
+
+  // Features handlers
+  const handleFeatureToggle = (feature: string) => {
+    setFormData(prev => ({
+      ...prev,
+      features: prev.features?.includes(feature)
+        ? prev.features.filter(f => f !== feature)
+        : [...(prev.features || []), feature]
+    }));
+  };
+
+  // Dashboard lights handler
+  const handleDashboardLightToggle = (light: string) => {
+    setFormData(prev => ({
+      ...prev,
+      dashboard_lights: prev.dashboard_lights?.includes(light)
+        ? prev.dashboard_lights.filter(l => l !== light)
+        : [...(prev.dashboard_lights || []), light]
+    }));
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const submissionData = {
+        ...formData,
+        is_complete: true,
+        completion_percentage: 100,
+        updated_at: new Date().toISOString()
+      };
+
+      if (formData.id) {
+        const { error } = await supabase
+          .from('follow_up_answers')
+          .update(submissionData)
+          .eq('id', formData.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('follow_up_answers')
+          .insert([submissionData]);
+        if (error) throw error;
+      }
+
+      toast.success('Vehicle details saved successfully!');
+      onComplete(submissionData);
+    } catch (error) {
+      console.error('Error saving follow-up answers:', error);
+      toast.error('Failed to save vehicle details. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const renderConditionOption = (condition: any, isSelected: boolean, onClick: () => void) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`p-4 rounded-lg border-2 transition-all text-left ${
+        isSelected 
+          ? 'border-blue-500 bg-blue-50' 
+          : 'border-gray-200 hover:border-gray-300'
+      }`}
+    >
+      <div className="font-medium">{condition.label}</div>
+      <div className="text-sm text-gray-600 mt-1">{condition.description}</div>
+      <div className={`text-xs mt-2 font-medium ${
+        condition.impact.includes('+') ? 'text-green-600' : 
+        condition.impact.includes('-') ? 'text-red-600' : 'text-gray-600'
+      }`}>
+        {condition.impact}
       </div>
-      <p className="text-sm text-gray-600 mb-4">{description}</p>
-      
-      <RadioGroup value={value} onValueChange={onChange} className="space-y-3">
-        {CONDITION_OPTIONS.map((option) => (
-          <div key={option.value} className={`border rounded-lg p-4 ${option.bgColor} hover:shadow-sm transition-all`}>
-            <div className="flex items-start space-x-3">
-              <RadioGroupItem value={option.value} id={`${title}-${option.value}`} className="mt-1" />
-              <div className="flex-1">
-                <Label htmlFor={`${title}-${option.value}`} className="cursor-pointer">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={`font-medium ${option.color}`}>{option.label}</span>
-                    <Badge variant="outline" className={`text-xs ${option.color}`}>
-                      {option.impact}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">{option.description}</p>
-                </Label>
-              </div>
-            </div>
-          </div>
-        ))}
-      </RadioGroup>
-    </div>
+    </button>
   );
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Progress Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Car className="h-5 w-5" />
-                Vehicle Details & Features
-              </CardTitle>
-              <p className="text-sm text-gray-600 mt-1">
-                Help us provide the most accurate valuation for your {vehicle?.year} {vehicle?.make} {vehicle?.model}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Progress</p>
-              <div className="flex items-center gap-2">
-                <Progress value={calculateProgress()} className="w-20" />
-                <span className="text-sm font-medium">{calculateProgress()}%</span>
-              </div>
-            </div>
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Car className="h-5 w-5" />
+          Vehicle Details Assessment
+        </CardTitle>
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm text-gray-600">
+            <span>Completion Progress</span>
+            <span>{formData.completion_percentage}%</span>
           </div>
-        </CardHeader>
-      </Card>
+          <Progress value={formData.completion_percentage} className="h-2" />
+        </div>
+      </CardHeader>
 
-      {/* Main Form Accordion */}
-      <Accordion type="multiple" defaultValue={["basic", "condition", "features"]} className="space-y-4">
-        
-        {/* Basic Information */}
-        <AccordionItem value="basic">
-          <Card>
-            <AccordionTrigger className="px-6 py-4 hover:no-underline">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Car className="h-4 w-4 text-blue-600" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-semibold">Basic Vehicle Information</h3>
-                  <p className="text-sm text-gray-600">Mileage and location details</p>
-                </div>
-              </div>
+      <CardContent>
+        <Accordion type="multiple" defaultValue={["basic", "exterior", "interior"]} className="space-y-4">
+          
+          {/* Basic Information */}
+          <AccordionItem value="basic">
+            <AccordionTrigger className="text-lg font-medium">
+              Basic Information
+              {completedSections.has('basic') && <Badge variant="secondary" className="ml-2">Complete</Badge>}
             </AccordionTrigger>
-            <AccordionContent>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="mileage">Current Mileage</Label>
-                    <Input
-                      id="mileage"
-                      type="number"
-                      placeholder="e.g. 45,000"
-                      value={formData.mileage || ''}
-                      onChange={(e) => updateFormData({ mileage: parseInt(e.target.value) || 0 })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="zipcode">ZIP Code</Label>
-                    <Input
-                      id="zipcode"
-                      placeholder="e.g. 90210"
-                      value={formData.zip_code || ''}
-                      onChange={(e) => updateFormData({ zip_code: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </AccordionContent>
-          </Card>
-        </AccordionItem>
-
-        {/* Vehicle Condition */}
-        <AccordionItem value="condition">
-          <Card>
-            <AccordionTrigger className="px-6 py-4 hover:no-underline">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Sparkles className="h-4 w-4 text-green-600" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-semibold">Vehicle Condition Assessment</h3>
-                  <p className="text-sm text-gray-600">Exterior and interior condition evaluation</p>
-                </div>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <CardContent className="space-y-8">
-                {/* Exterior Condition */}
-                <ConditionSelector
-                  value={formData.exterior_condition || 'good'}
-                  onChange={(value) => updateFormData({ exterior_condition: value as any })}
-                  title="Exterior Condition"
-                  description="Evaluate the paint, body panels, glass, wheels, and overall exterior appearance"
-                />
-
-                {/* Interior Condition */}
-                <ConditionSelector
-                  value={formData.interior_condition || 'good'}
-                  onChange={(value) => updateFormData({ interior_condition: value as any })}
-                  title="Interior Condition"
-                  description="Assess seats, dashboard, electronics, cleanliness, and overall interior wear"
-                />
-              </CardContent>
-            </AccordionContent>
-          </Card>
-        </AccordionItem>
-
-        {/* Vehicle Features */}
-        <AccordionItem value="features">
-          <Card>
-            <AccordionTrigger className="px-6 py-4 hover:no-underline">
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Shield className="h-4 w-4 text-purple-600" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-semibold">Vehicle Features & Options</h3>
-                    <p className="text-sm text-gray-600">Select features that add value to your vehicle</p>
-                  </div>
-                </div>
-                <AnimatePresence>
-                  {featureValueTotal > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      className="flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full"
-                    >
-                      <DollarSign className="h-4 w-4" />
-                      <span className="font-semibold">+${featureValueTotal.toLocaleString()}</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <CardContent>
-                {/* Feature Value Breakdown */}
-                {selectedFeatures.length > 0 && (
-                  <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <h4 className="font-medium text-green-800 mb-3 flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      Feature Adjustments
-                    </h4>
-                    <div className="space-y-1 text-sm">
-                      {selectedFeatures.map(featureName => {
-                        const feature = Object.values(FEATURE_CATEGORIES)
-                          .flat()
-                          .find(f => f.name === featureName);
-                        return feature ? (
-                          <div key={featureName} className="flex justify-between text-green-700">
-                            <span>+ ${feature.value.toLocaleString()}</span>
-                            <span>{feature.name}</span>
-                          </div>
-                        ) : null;
-                      })}
-                      <div className="border-t border-green-300 pt-2 mt-2 flex justify-between font-semibold text-green-800">
-                        <span>= ${featureValueTotal.toLocaleString()}</span>
-                        <span>Total Added Value</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Feature Categories */}
-                <div className="space-y-6">
-                  {Object.entries(FEATURE_CATEGORIES).map(([category, features]) => (
-                    <div key={category}>
-                      <h4 className="font-medium text-gray-900 mb-3">{category}</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {features.map((feature) => (
-                          <div
-                            key={feature.name}
-                            className={`border rounded-lg p-3 cursor-pointer transition-all hover:shadow-sm ${
-                              selectedFeatures.includes(feature.name)
-                                ? 'border-blue-300 bg-blue-50'
-                                : 'border-gray-200 hover:border-gray-300'
-                            }`}
-                            onClick={() => handleFeatureToggle(feature.name)}
-                          >
-                            <div className="flex items-center space-x-3">
-                              <Checkbox
-                                checked={selectedFeatures.includes(feature.name)}
-                                onChange={() => handleFeatureToggle(feature.name)}
-                              />
-                              <div className="flex-1">
-                                <div className="flex justify-between items-center">
-                                  <span className="font-medium text-sm">{feature.name}</span>
-                                  <span className="text-green-600 font-medium text-sm">
-                                    +${feature.value.toLocaleString()}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </AccordionContent>
-          </Card>
-        </AccordionItem>
-
-        {/* Accident History */}
-        <AccordionItem value="accidents">
-          <Card>
-            <AccordionTrigger className="px-6 py-4 hover:no-underline">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-100 rounded-lg">
-                  <AlertTriangle className="h-4 w-4 text-orange-600" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-semibold">Accident History</h3>
-                  <p className="text-sm text-gray-600">Any damage or accident history</p>
-                </div>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <CardContent className="space-y-4">
+            <AccordionContent className="space-y-6 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>Has this vehicle been in any accidents?</Label>
-                  <RadioGroup
-                    value={formData.accidents?.hadAccident ? 'yes' : 'no'}
-                    onValueChange={(value) => updateFormData({
-                      accidents: { hadAccident: value === 'yes' }
-                    })}
-                    className="flex gap-6 mt-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="no" id="no-accident" />
-                      <Label htmlFor="no-accident">No accidents</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="yes" id="yes-accident" />
-                      <Label htmlFor="yes-accident">Yes, has accident history</Label>
-                    </div>
-                  </RadioGroup>
+                  <Label htmlFor="mileage">Current Mileage</Label>
+                  <Input
+                    id="mileage"
+                    type="number"
+                    placeholder="Enter mileage"
+                    value={formData.mileage || ''}
+                    onChange={(e) => {
+                      const mileage = parseInt(e.target.value);
+                      setFormData(prev => ({ ...prev, mileage: isNaN(mileage) ? undefined : mileage }));
+                      checkSectionCompletion('basic', !isNaN(mileage) && !!formData.zip_code);
+                    }}
+                  />
                 </div>
+                <div>
+                  <Label htmlFor="zip_code">ZIP Code</Label>
+                  <Input
+                    id="zip_code"
+                    placeholder="Enter ZIP code"
+                    value={formData.zip_code || ''}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, zip_code: e.target.value }));
+                      checkSectionCompletion('basic', !!e.target.value && !!formData.mileage);
+                    }}
+                  />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
 
-                {formData.accidents?.hadAccident && (
-                  <div className="space-y-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+          {/* Exterior Condition */}
+          <AccordionItem value="exterior">
+            <AccordionTrigger className="text-lg font-medium">
+              Exterior Condition
+              {completedSections.has('exterior') && <Badge variant="secondary" className="ml-2">Complete</Badge>}
+            </AccordionTrigger>
+            <AccordionContent className="space-y-6 pt-4">
+              <p className="text-sm text-gray-600">
+                Assess the exterior condition including paint, body panels, glass, wheels, and overall appearance.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {CONDITION_OPTIONS.map((condition) => 
+                  renderConditionOption(
+                    condition, 
+                    formData.exterior_condition === condition.value,
+                    () => handleExteriorConditionChange(condition.value as any)
+                  )
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Interior Condition */}
+          <AccordionItem value="interior">
+            <AccordionTrigger className="text-lg font-medium">
+              Interior Condition
+              {completedSections.has('interior') && <Badge variant="secondary" className="ml-2">Complete</Badge>}
+            </AccordionTrigger>
+            <AccordionContent className="space-y-6 pt-4">
+              <p className="text-sm text-gray-600">
+                Evaluate the interior including seats, dashboard, electronics, cleanliness, and wear.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {CONDITION_OPTIONS.map((condition) => 
+                  renderConditionOption(
+                    condition, 
+                    formData.interior_condition === condition.value,
+                    () => handleInteriorConditionChange(condition.value as any)
+                  )
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Enhanced Accident History */}
+          <AccordionItem value="accidents">
+            <AccordionTrigger className="text-lg font-medium">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Accident History
+              {completedSections.has('accidents') && <Badge variant="secondary" className="ml-2">Complete</Badge>}
+            </AccordionTrigger>
+            <AccordionContent className="space-y-6 pt-4">
+              <div>
+                <Label className="text-base font-medium mb-4 block">Has this vehicle been in any accidents?</Label>
+                <RadioGroup 
+                  value={formData.accidents?.hadAccident ? 'yes' : 'no'}
+                  onValueChange={(value) => handleAccidentChange(value === 'yes')}
+                  className="flex gap-6"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="no" id="no-accident" />
+                    <Label htmlFor="no-accident">No accidents</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="yes" id="yes-accident" />
+                    <Label htmlFor="yes-accident">Yes, has accident history</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {formData.accidents?.hadAccident && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="space-y-6 border-t pt-6"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="accident-severity">Severity</Label>
-                      <Select
-                        value={formData.accidents?.severity || 'minor'}
-                        onValueChange={(value) => updateFormData({
-                          accidents: { ...formData.accidents!, severity: value as any }
-                        })}
+                      <Label htmlFor="accident-count">Number of Accidents</Label>
+                      <Input
+                        id="accident-count"
+                        type="number"
+                        min="1"
+                        placeholder="Enter number"
+                        value={formData.accidents?.count || ''}
+                        onChange={(e) => handleAccidentDetailsChange('count', parseInt(e.target.value))}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="accident-severity">Severity of Damage</Label>
+                      <Select 
+                        value={formData.accidents?.severity || ''} 
+                        onValueChange={(value) => handleAccidentDetailsChange('severity', value)}
                       >
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue placeholder="Select severity" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="minor">Minor</SelectItem>
-                          <SelectItem value="moderate">Moderate</SelectItem>
-                          <SelectItem value="major">Major</SelectItem>
+                          <SelectItem value="minor">Minor (cosmetic damage only)</SelectItem>
+                          <SelectItem value="moderate">Moderate (required repairs)</SelectItem>
+                          <SelectItem value="major">Major (structural damage)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                    <div>
-                      <Label htmlFor="accident-description">Description (Optional)</Label>
-                      <Textarea
-                        id="accident-description"
-                        placeholder="Brief description of the accident and repairs..."
-                        value={formData.accidents?.description || ''}
-                        onChange={(e) => updateFormData({
-                          accidents: { ...formData.accidents!, description: e.target.value }
-                        })}
-                      />
-                    </div>
                   </div>
-                )}
-              </CardContent>
-            </AccordionContent>
-          </Card>
-        </AccordionItem>
 
-        {/* Service & Maintenance */}
-        <AccordionItem value="service">
-          <Card>
-            <AccordionTrigger className="px-6 py-4 hover:no-underline">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Wrench className="h-4 w-4 text-blue-600" />
-                </div>
-                <div className="text-left">
-                  <h3 className="font-semibold">Service & Maintenance</h3>
-                  <p className="text-sm text-gray-600">Maintenance history and records</p>
-                </div>
-              </div>
+                  <div>
+                    <Label className="text-base font-medium mb-3 block">Was the damage professionally repaired?</Label>
+                    <RadioGroup 
+                      value={formData.accidents?.repaired ? 'yes' : 'no'}
+                      onValueChange={(value) => handleAccidentDetailsChange('repaired', value === 'yes')}
+                      className="flex gap-6"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yes" id="repaired-yes" />
+                        <Label htmlFor="repaired-yes">Yes, professionally repaired</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="no" id="repaired-no" />
+                        <Label htmlFor="repaired-no">No, not properly repaired</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  <div>
+                    <Label className="text-base font-medium mb-3 block">Any frame damage?</Label>
+                    <RadioGroup 
+                      value={formData.accidents?.frameDamage ? 'yes' : 'no'}
+                      onValueChange={(value) => handleAccidentDetailsChange('frameDamage', value === 'yes')}
+                      className="flex gap-6"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="no" id="frame-no" />
+                        <Label htmlFor="frame-no">No frame damage</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yes" id="frame-yes" />
+                        <Label htmlFor="frame-yes">Yes, frame damage reported</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="accident-description">Additional Accident Details</Label>
+                    <Textarea
+                      id="accident-description"
+                      placeholder="Describe the accident location (front, rear, side), when it occurred, and any other relevant details..."
+                      value={formData.accidents?.description || ''}
+                      onChange={(e) => handleAccidentDetailsChange('description', e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Service & Maintenance */}
+          <AccordionItem value="service">
+            <AccordionTrigger className="text-lg font-medium">
+              <Wrench className="h-4 w-4 mr-2" />
+              Service & Maintenance
+              {completedSections.has('service') && <Badge variant="secondary" className="ml-2">Complete</Badge>}
             </AccordionTrigger>
-            <AccordionContent>
-              <CardContent className="space-y-4">
+            <AccordionContent className="space-y-6 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="service-history">Service History</Label>
-                  <Select
-                    value={formData.service_history || 'unknown'}
-                    onValueChange={(value) => updateFormData({ service_history: value as any })}
+                  <Select 
+                    value={formData.service_history || ''} 
+                    onValueChange={(value) => {
+                      setFormData(prev => ({ ...prev, service_history: value }));
+                      checkSectionCompletion('service', !!value && !!formData.maintenance_status);
+                    }}
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Select service type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="dealer">Dealer-maintained</SelectItem>
-                      <SelectItem value="independent">Independent mechanic</SelectItem>
-                      <SelectItem value="owner">Owner-maintained</SelectItem>
-                      <SelectItem value="unknown">No known history</SelectItem>
+                      {SERVICE_HISTORY_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <div>
+                            <div>{option.label}</div>
+                            <div className="text-xs text-gray-500">{option.impact}</div>
+                          </div>
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label htmlFor="maintenance-notes">Additional Notes (Optional)</Label>
-                  <Textarea
-                    id="maintenance-notes"
-                    placeholder="Any additional maintenance details..."
-                    value={formData.maintenance_status || ''}
-                    onChange={(e) => updateFormData({ maintenance_status: e.target.value })}
-                  />
-                </div>
-              </CardContent>
-            </AccordionContent>
-          </Card>
-        </AccordionItem>
-      </Accordion>
 
-      {/* Submit Button */}
-      <Card>
-        <CardContent className="py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Ready to get your valuation?</p>
-              <p className="text-sm text-gray-600">
-                All information provided will be used to calculate the most accurate value.
-              </p>
-            </div>
-            <Button
-              onClick={handleSubmit}
-              size="lg"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              disabled={calculateProgress() < 50}
+                <div>
+                  <Label htmlFor="maintenance-status">Maintenance Status</Label>
+                  <Select 
+                    value={formData.maintenance_status || ''} 
+                    onValueChange={(value) => {
+                      setFormData(prev => ({ ...prev, maintenance_status: value }));
+                      checkSectionCompletion('service', !!value && !!formData.service_history);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Up to date">Up to date</SelectItem>
+                      <SelectItem value="Overdue">Overdue</SelectItem>
+                      <SelectItem value="Unknown">Unknown</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="tire-condition">Tire Condition</Label>
+                <Select 
+                  value={formData.tire_condition || ''} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, tire_condition: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select tire condition" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TIRE_CONDITION_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        <div>
+                          <div>{option.label}</div>
+                          <div className="text-xs text-gray-500">{option.impact}</div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-base font-medium mb-3 block">Dashboard Warning Lights</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {DASHBOARD_LIGHTS.map((light) => (
+                    <div key={light.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={light.value}
+                        checked={formData.dashboard_lights?.includes(light.value)}
+                        onCheckedChange={() => handleDashboardLightToggle(light.value)}
+                      />
+                      <Label htmlFor={light.value} className="flex items-center gap-2 cursor-pointer">
+                        <span>{light.icon}</span>
+                        <span className="text-sm">{light.label}</span>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Title & Ownership */}
+          <AccordionItem value="ownership">
+            <AccordionTrigger className="text-lg font-medium">
+              <FileText className="h-4 w-4 mr-2" />
+              Title & Ownership
+              {completedSections.has('ownership') && <Badge variant="secondary" className="ml-2">Complete</Badge>}
+            </AccordionTrigger>
+            <AccordionContent className="space-y-6 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="title-status">Title Status</Label>
+                  <Select 
+                    value={formData.title_status || ''} 
+                    onValueChange={(value) => {
+                      setFormData(prev => ({ ...prev, title_status: value }));
+                      checkSectionCompletion('ownership', !!value && !!formData.previous_use);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select title status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TITLE_STATUS_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <div>
+                            <div>{option.label}</div>
+                            <div className="text-xs text-gray-500">{option.impact}</div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="previous-use">Previous Use</Label>
+                  <Select 
+                    value={formData.previous_use || ''} 
+                    onValueChange={(value) => {
+                      setFormData(prev => ({ ...prev, previous_use: value }));
+                      checkSectionCompletion('ownership', !!value && !!formData.title_status);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select previous use" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PREVIOUS_USE_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <div>
+                            <div>{option.label}</div>
+                            <div className="text-xs text-gray-500">{option.impact}</div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="previous-owners">Number of Previous Owners</Label>
+                <Input
+                  id="previous-owners"
+                  type="number"
+                  min="0"
+                  placeholder="Enter number of owners"
+                  value={formData.previous_owners || ''}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    previous_owners: parseInt(e.target.value) || undefined 
+                  }))}
+                />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Modifications */}
+          <AccordionItem value="modifications">
+            <AccordionTrigger className="text-lg font-medium">
+              <Settings className="h-4 w-4 mr-2" />
+              Modifications
+              {completedSections.has('modifications') && <Badge variant="secondary" className="ml-2">Complete</Badge>}
+            </AccordionTrigger>
+            <AccordionContent className="space-y-6 pt-4">
+              <div>
+                <Label className="text-base font-medium mb-4 block">Has this vehicle been modified?</Label>
+                <RadioGroup 
+                  value={formData.modifications?.modified ? 'yes' : 'no'}
+                  onValueChange={(value) => {
+                    const modified = value === 'yes';
+                    handleModificationChange(modified);
+                    checkSectionCompletion('modifications', true);
+                  }}
+                  className="flex gap-6"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="no" id="mod-no" />
+                    <Label htmlFor="mod-no">No modifications</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="yes" id="mod-yes" />
+                    <Label htmlFor="mod-yes">Yes, has modifications</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {formData.modifications?.modified && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="space-y-6 border-t pt-6"
+                >
+                  <div>
+                    <Label className="text-base font-medium mb-3 block">Types of Modifications</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {MODIFICATION_TYPES.map((type) => (
+                        <div key={type} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={type}
+                            checked={formData.modifications?.types?.includes(type)}
+                            onCheckedChange={() => handleModificationTypeToggle(type)}
+                          />
+                          <Label htmlFor={type} className="cursor-pointer text-sm">{type}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-base font-medium mb-3 block">Are modifications reversible?</Label>
+                    <RadioGroup 
+                      value={formData.modifications?.reversible ? 'yes' : 'no'}
+                      onValueChange={(value) => setFormData(prev => ({
+                        ...prev,
+                        modifications: {
+                          ...prev.modifications,
+                          reversible: value === 'yes'
+                        }
+                      }))}
+                      className="flex gap-6"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yes" id="rev-yes" />
+                        <Label htmlFor="rev-yes">Yes, reversible</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="no" id="rev-no" />
+                        <Label htmlFor="rev-no">No, permanent</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </motion.div>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+
+        </Accordion>
+
+        <div className="flex justify-between mt-8 pt-6 border-t">
+          {onSkip && (
+            <Button variant="outline" onClick={onSkip}>
+              Skip Assessment
+            </Button>
+          )}
+          <div className="flex gap-3 ml-auto">
+            <Button 
+              onClick={handleSubmit} 
+              disabled={isSubmitting || formData.completion_percentage < 50}
+              className="px-8"
             >
-              <CheckCircle className="h-5 w-5 mr-2" />
-              Get My Valuation
+              {isSubmitting ? 'Saving...' : 'Complete Assessment'}
             </Button>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
-};
-
-export default UnifiedFollowUpForm;
+}
