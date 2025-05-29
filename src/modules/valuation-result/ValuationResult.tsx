@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Header } from './sections/Header';
 import Summary from './sections/Summary';
 import { PhotoAnalysis } from './sections/PhotoAnalysis';
@@ -13,6 +14,7 @@ import { useValuationPdfHelper } from './hooks/useValuationPdfHelper';
 import { ValuationProvider } from './context/ValuationContext';
 import { AICondition } from '@/types/photo';
 import { MarketInsightsTab } from '@/components/premium/sections/valuation-tabs/market-analysis/MarketInsightsTab';
+import { AINSummary } from '@/components/premium/insights/AINSummary';
 
 interface ValuationResultProps {
   valuationId?: string;
@@ -27,14 +29,20 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
 }) => {
   const params = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isPremium, setIsPremium] = useState(false);
+  const [searchParams] = useSearchParams();
   const [photoCondition, setPhotoCondition] = useState<AICondition | null>(null);
   
   // Use the ID from props or from URL params
   const id = propValuationId || params.id;
   
+  // Check if this is a premium valuation from URL params
+  const isPremiumFromUrl = searchParams.get('premium') === 'true';
+  
   // Fetch valuation data
   const { data, isLoading, error, refetch } = useValuationData(id || '');
+  
+  // Determine if this is premium (from data or URL)
+  const isPremium = data?.isPremium || data?.premium_unlocked || isPremiumFromUrl;
   
   // PDF generation helpers
   const { isDownloading, handleDownloadPdf } = useValuationPdfHelper({
@@ -64,13 +72,6 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
   const handleUpgrade = () => {
     navigate('/premium');
   };
-  
-  // Check if this is a premium valuation
-  useEffect(() => {
-    if (data) {
-      setIsPremium(data.isPremium || data.premium_unlocked || false);
-    }
-  }, [data]);
   
   // Handle photo condition update
   const handlePhotoConditionUpdate = (condition: AICondition) => {
@@ -130,6 +131,20 @@ const ValuationResult: React.FC<ValuationResultProps> = ({
           marketTrend="stable"
           recommendationText="Based on current market conditions, this vehicle is priced competitively."
         />
+        
+        {/* Premium AIN Summary */}
+        {isPremium && (
+          <AINSummary
+            vin={data.vin}
+            vehicleData={{
+              year: data.year,
+              make: data.make,
+              model: data.model,
+              mileage: data.mileage,
+              estimatedValue: estimatedValue
+            }}
+          />
+        )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <PhotoAnalysis
