@@ -1,111 +1,60 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Star, Zap, Shield, Music } from 'lucide-react';
-
-interface Feature {
-  id: string;
-  name: string;
-  category: string;
-  valueImpact: number; // percentage
-  description: string;
-}
+import { Badge } from '@/components/ui/badge';
 
 interface VehicleFeaturesSectionProps {
   selectedFeatures: string[];
   onChange: (features: string[]) => void;
 }
 
-const featureCategories = [
-  {
-    id: 'comfort',
-    name: 'Comfort & Convenience',
-    icon: Star,
-    features: [
-      { id: 'leather_seats', name: 'Leather Seats', valueImpact: 3, description: 'Premium leather upholstery' },
-      { id: 'heated_seats', name: 'Heated Seats', valueImpact: 2, description: 'Front seat heating' },
-      { id: 'cooled_seats', name: 'Cooled/Ventilated Seats', valueImpact: 2.5, description: 'Seat ventilation system' },
-      { id: 'memory_seats', name: 'Memory Seats', valueImpact: 1.5, description: 'Power seat memory settings' },
-      { id: 'sunroof', name: 'Sunroof/Moonroof', valueImpact: 2, description: 'Power sunroof or moonroof' },
-      { id: 'keyless_entry', name: 'Keyless Entry/Start', valueImpact: 1, description: 'Push button start and keyless entry' },
-      { id: 'remote_start', name: 'Remote Start', valueImpact: 1.5, description: 'Remote engine start capability' },
-      { id: 'climate_zones', name: 'Dual/Tri-Zone Climate', valueImpact: 1.5, description: 'Multi-zone climate control' }
-    ]
-  },
-  {
-    id: 'technology',
-    name: 'Technology & Entertainment',
-    icon: Music,
-    features: [
-      { id: 'premium_audio', name: 'Premium Audio System', valueImpact: 2, description: 'High-end audio system (Bose, Harman Kardon, etc.)' },
-      { id: 'navigation', name: 'Built-in Navigation', valueImpact: 1.5, description: 'Factory navigation system' },
-      { id: 'large_screen', name: 'Large Touchscreen (10"+)', valueImpact: 2, description: 'Large infotainment display' },
-      { id: 'wireless_charging', name: 'Wireless Charging', valueImpact: 1, description: 'Wireless phone charging pad' },
-      { id: 'head_up_display', name: 'Head-Up Display', valueImpact: 2, description: 'Windshield projection display' },
-      { id: 'premium_connectivity', name: 'Premium Connectivity', valueImpact: 1, description: 'WiFi hotspot, premium services' }
-    ]
-  },
-  {
-    id: 'safety',
-    name: 'Safety & Driver Assistance',
-    icon: Shield,
-    features: [
-      { id: 'adaptive_cruise', name: 'Adaptive Cruise Control', valueImpact: 2, description: 'Speed and distance maintaining cruise control' },
-      { id: 'lane_assist', name: 'Lane Keep Assist', valueImpact: 1.5, description: 'Lane departure warning and assistance' },
-      { id: 'blind_spot', name: 'Blind Spot Monitoring', valueImpact: 1.5, description: 'Blind spot detection with alerts' },
-      { id: 'backup_camera', name: 'Backup Camera', valueImpact: 1, description: 'Rear view camera system' },
-      { id: 'surround_camera', name: '360° Camera System', valueImpact: 2.5, description: 'Surround view camera system' },
-      { id: 'parking_sensors', name: 'Parking Sensors', valueImpact: 1, description: 'Front and rear parking sensors' },
-      { id: 'auto_parking', name: 'Automatic Parking', valueImpact: 2, description: 'Self-parking capability' },
-      { id: 'collision_avoidance', name: 'Collision Avoidance', valueImpact: 2, description: 'Automatic emergency braking' }
-    ]
-  },
-  {
-    id: 'performance',
-    name: 'Performance & Drivetrain',
-    icon: Zap,
-    features: [
-      { id: 'awd', name: 'All-Wheel Drive', valueImpact: 4, description: 'AWD or 4WD system' },
-      { id: 'sport_mode', name: 'Sport/Performance Mode', valueImpact: 1.5, description: 'Selectable driving modes' },
-      { id: 'air_suspension', name: 'Air Suspension', valueImpact: 3, description: 'Adaptive air suspension system' },
-      { id: 'limited_slip', name: 'Limited Slip Differential', valueImpact: 2, description: 'Performance differential' },
-      { id: 'tow_package', name: 'Towing Package', valueImpact: 2.5, description: 'Heavy duty towing equipment' },
-      { id: 'performance_tires', name: 'Performance Tires', valueImpact: 1.5, description: 'High-performance tire package' }
-    ]
-  }
+const vehicleFeatures = [
+  { id: 'leather_seats', name: 'Leather Seats', category: 'Interior', value: 1200 },
+  { id: 'sunroof', name: 'Sunroof/Moonroof', category: 'Exterior', value: 800 },
+  { id: 'navigation', name: 'Navigation System', category: 'Technology', value: 600 },
+  { id: 'heated_seats', name: 'Heated Seats', category: 'Comfort', value: 500 },
+  { id: 'bluetooth', name: 'Bluetooth', category: 'Technology', value: 200 },
+  { id: 'backup_camera', name: 'Backup Camera', category: 'Safety', value: 400 },
+  { id: 'remote_start', name: 'Remote Start', category: 'Convenience', value: 300 },
+  { id: 'third_row', name: 'Third Row Seating', category: 'Capacity', value: 1000 },
+  { id: 'blind_spot', name: 'Blind Spot Monitoring', category: 'Safety', value: 600 },
+  { id: 'carplay', name: 'Apple CarPlay/Android Auto', category: 'Technology', value: 400 },
+  { id: 'lane_departure', name: 'Lane Departure Warning', category: 'Safety', value: 500 },
+  { id: 'keyless_entry', name: 'Keyless Entry', category: 'Convenience', value: 250 },
+  { id: 'adaptive_cruise', name: 'Adaptive Cruise Control', category: 'Safety', value: 800 },
+  { id: 'premium_audio', name: 'Premium Audio System', category: 'Technology', value: 700 },
+  { id: 'parking_sensors', name: 'Parking Sensors', category: 'Safety', value: 350 },
+  { id: 'heads_up_display', name: 'Heads-up Display', category: 'Technology', value: 600 },
+  { id: 'premium_wheels', name: 'Premium Wheels', category: 'Exterior', value: 800 },
+  { id: 'towing_package', name: 'Towing Package', category: 'Utility', value: 600 },
+  { id: 'cooled_seats', name: 'Cooled/Ventilated Seats', category: 'Comfort', value: 700 },
+  { id: 'panoramic_roof', name: 'Panoramic Roof', category: 'Exterior', value: 1200 }
+];
+
+const categories = [
+  'Interior', 'Exterior', 'Technology', 'Safety', 'Comfort', 'Convenience', 'Capacity', 'Utility'
 ];
 
 export function VehicleFeaturesSection({ selectedFeatures, onChange }: VehicleFeaturesSectionProps) {
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(['comfort']);
-
-  const toggleCategory = (categoryId: string) => {
-    setExpandedCategories(prev =>
-      prev.includes(categoryId)
-        ? prev.filter(id => id !== categoryId)
-        : [...prev, categoryId]
-    );
+  const handleFeatureToggle = (featureId: string) => {
+    const isSelected = selectedFeatures.includes(featureId);
+    if (isSelected) {
+      onChange(selectedFeatures.filter(id => id !== featureId));
+    } else {
+      onChange([...selectedFeatures, featureId]);
+    }
   };
 
-  const toggleFeature = (featureId: string) => {
-    onChange(
-      selectedFeatures.includes(featureId)
-        ? selectedFeatures.filter(id => id !== featureId)
-        : [...selectedFeatures, featureId]
-    );
-  };
-
-  const calculateTotalImpact = () => {
-    return featureCategories
-      .flatMap(cat => cat.features)
+  const getTotalValue = () => {
+    return vehicleFeatures
       .filter(feature => selectedFeatures.includes(feature.id))
-      .reduce((total, feature) => total + feature.valueImpact, 0);
+      .reduce((total, feature) => total + feature.value, 0);
   };
 
-  const selectedCount = selectedFeatures.length;
-  const totalImpact = calculateTotalImpact();
+  const getFeaturesByCategory = (category: string) => {
+    return vehicleFeatures.filter(feature => feature.category === category);
+  };
 
   return (
     <Card>
@@ -114,109 +63,60 @@ export function VehicleFeaturesSection({ selectedFeatures, onChange }: VehicleFe
           <div>
             <CardTitle className="text-lg">Vehicle Features</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Select all features your vehicle has
+              Select all features your vehicle has to get accurate valuation
             </p>
           </div>
           <div className="text-right">
-            <Badge variant="default" className="mb-1">
-              {selectedCount} selected
-            </Badge>
-            <div className="text-sm font-medium text-green-600">
-              +{totalImpact.toFixed(1)}% value impact
+            <div className="text-sm text-muted-foreground">Total Added Value</div>
+            <div className="text-2xl font-bold text-green-600">
+              ${getTotalValue().toLocaleString()}
             </div>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {featureCategories.map((category) => {
-          const Icon = category.icon;
-          const isExpanded = expandedCategories.includes(category.id);
-          const categorySelectedCount = category.features.filter(f => selectedFeatures.includes(f.id)).length;
-
+      
+      <CardContent className="space-y-6">
+        {categories.map(category => {
+          const categoryFeatures = getFeaturesByCategory(category);
+          if (categoryFeatures.length === 0) return null;
+          
           return (
-            <div key={category.id} className="border rounded-lg">
-              <button
-                type="button"
-                onClick={() => toggleCategory(category.id)}
-                className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <Icon className="h-5 w-5 text-blue-600" />
-                  <span className="font-medium">{category.name}</span>
-                  {categorySelectedCount > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {categorySelectedCount} selected
-                    </Badge>
-                  )}
-                </div>
-                {isExpanded ? (
-                  <ChevronUp className="h-4 w-4 text-gray-500" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
-                )}
-              </button>
-
-              {isExpanded && (
-                <div className="border-t bg-gray-50/50 p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {category.features.map((feature) => {
-                      const isSelected = selectedFeatures.includes(feature.id);
-                      
-                      return (
-                        <div
-                          key={feature.id}
-                          className={`
-                            flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-all
-                            ${isSelected 
-                              ? 'border-blue-500 bg-blue-50' 
-                              : 'border-gray-200 bg-white hover:border-gray-300'
-                            }
-                          `}
-                          onClick={() => toggleFeature(feature.id)}
-                        >
-                          <Checkbox
-                            checked={isSelected}
-                            onChange={() => toggleFeature(feature.id)}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-medium text-sm">{feature.name}</h4>
-                              <Badge variant="outline" className="text-xs text-green-600">
-                                +{feature.valueImpact}%
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">{feature.description}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+            <div key={category} className="space-y-3">
+              <h3 className="font-medium text-gray-900 border-b pb-2">
+                {category}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {categoryFeatures.map(feature => {
+                  const isSelected = selectedFeatures.includes(feature.id);
+                  return (
+                    <div
+                      key={feature.id}
+                      onClick={() => handleFeatureToggle(feature.id)}
+                      className={`
+                        flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all
+                        ${isSelected 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200 hover:border-gray-300'
+                        }
+                      `}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Checkbox 
+                          checked={isSelected}
+                          onChange={() => handleFeatureToggle(feature.id)}
+                        />
+                        <span className="text-sm font-medium">{feature.name}</span>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        +${feature.value}
+                      </Badge>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           );
         })}
-
-        {selectedCount > 0 && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h4 className="font-medium text-green-800">Features Impact Summary</h4>
-                <p className="text-sm text-green-600">
-                  {selectedCount} features selected • Estimated +{totalImpact.toFixed(1)}% value increase
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => onChange([])}
-              >
-                Clear All
-              </Button>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
