@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { useUserRole } from '@/hooks/useUserRole';
 import { AIChatBubble } from '@/components/chat/AIChatBubble';
@@ -11,8 +10,17 @@ import { PremiumEnrichmentGate } from '@/components/enriched/PremiumEnrichmentGa
 import { getEnrichedVehicleData, type EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
 import PDFDownloadButton from '@/components/common/PDFDownloadButton';
 
+// Premium components
+import { AINSummary } from '@/components/premium/insights/AINSummary';
+import { PremiumBadge } from '@/components/premium/insights/PremiumBadge';
+import { PDFExportButton } from '@/components/premium/insights/PDFExportButton';
+import { CarfaxSummary } from '@/components/premium/insights/CarfaxSummary';
+
 export default function ValuationResultPage() {
   const { valuationId } = useParams<{ valuationId: string }>();
+  const [searchParams] = useSearchParams();
+  const isPremiumFlow = searchParams.get('premium') === 'true';
+  
   const { data: valuationResult, isLoading, error } = useValuationResult(valuationId || '');
   const { userRole, hasPermiumAccess, isLoading: roleLoading } = useUserRole();
   const [enrichedData, setEnrichedData] = useState<EnrichedVehicleData | null>(null);
@@ -48,7 +56,7 @@ export default function ValuationResultPage() {
         typeof valuationResult.model === 'string' &&
         valuationResult.year && 
         typeof valuationResult.year === 'number' &&
-        !roleLoading // Wait for role to load
+        !roleLoading
       ) {
         setIsLoadingEnriched(true);
         try {
@@ -112,9 +120,42 @@ export default function ValuationResultPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="container mx-auto p-4 space-y-6 relative">
+      {/* Premium Badge - Only for premium flows */}
+      {isPremiumFlow && <PremiumBadge />}
+      
       {/* Main Valuation Result */}
-      <PredictionResult valuationId={valuationId || ''} />
+      <div className={isPremiumFlow ? 'premium-highlight' : ''}>
+        <PredictionResult valuationId={valuationId || ''} />
+      </div>
+      
+      {/* Premium-only components */}
+      {isPremiumFlow && (
+        <div className="space-y-6">
+          {/* AIN AI Summary */}
+          <AINSummary 
+            vin={valuationResult.vin || ''} 
+            vehicleData={{
+              year: valuationResult.year,
+              make: valuationResult.make,
+              model: valuationResult.model,
+              mileage: valuationResult.mileage,
+              estimatedValue: valuationResult.estimatedValue || valuationResult.estimated_value
+            }} 
+          />
+          
+          {/* CARFAX Summary */}
+          <CarfaxSummary />
+          
+          {/* Premium PDF Export */}
+          <div className="flex justify-center">
+            <PDFExportButton 
+              vin={valuationResult.vin || ''} 
+              valuationData={valuationResult} 
+            />
+          </div>
+        </div>
+      )}
       
       {/* Premium PDF Download */}
       {hasPermiumAccess && (
@@ -129,7 +170,6 @@ export default function ValuationResultPage() {
       
       {/* Enriched Data Section - Role-based display */}
       {hasPermiumAccess ? (
-        // Premium users see full enriched data
         enrichedData && enrichedData.sources.statVin ? (
           <EnrichedDataCard 
             data={enrichedData} 
@@ -145,7 +185,6 @@ export default function ValuationResultPage() {
           </div>
         ) : null
       ) : (
-        // Free users see upgrade prompt
         <PremiumEnrichmentGate 
           vin={valuationResult.vin || undefined}
           valuationId={valuationId}
