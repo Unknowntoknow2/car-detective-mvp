@@ -3,6 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { FeaturesTab } from './tabs/FeaturesTab';
@@ -85,6 +86,24 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
     { id: 'modifications', label: 'Modifications', color: 'purple' }
   ];
 
+  const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
+  const isFirstTab = currentTabIndex === 0;
+  const isLastTab = currentTabIndex === tabs.length - 1;
+
+  const goToNextTab = () => {
+    if (!isLastTab) {
+      const nextTab = tabs[currentTabIndex + 1];
+      setActiveTab(nextTab.id as TabId);
+    }
+  };
+
+  const goToPreviousTab = () => {
+    if (!isFirstTab) {
+      const prevTab = tabs[currentTabIndex - 1];
+      setActiveTab(prevTab.id as TabId);
+    }
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'basic':
@@ -128,13 +147,42 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
           ))}
         </Tabs>
 
-        <div className="flex justify-between">
-          <Button type="button" variant="secondary" onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Progress'}
-          </Button>
-          <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? 'Submitting...' : 'Submit Follow-Up'}
-          </Button>
+        {/* Navigation Buttons */}
+        <div className="flex justify-between items-center pt-6 border-t border-gray-200">
+          <div className="flex space-x-4">
+            {!isFirstTab && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={goToPreviousTab}
+                className="flex items-center space-x-2"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>Previous</span>
+              </Button>
+            )}
+          </div>
+
+          <div className="flex space-x-4">
+            <Button type="button" variant="secondary" onClick={handleSave} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save Progress'}
+            </Button>
+            
+            {!isLastTab ? (
+              <Button 
+                type="button" 
+                onClick={goToNextTab}
+                className="flex items-center space-x-2"
+              >
+                <span>Next</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting...' : 'Submit Follow-Up'}
+              </Button>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -64,7 +64,7 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
               Number of Previous Owners
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-6">
             <Input
               type="number"
               min="0"
@@ -74,7 +74,7 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
               onChange={(e) => updateFormData({ previous_owners: parseInt(e.target.value) || 0 })}
               className="h-14 text-lg font-semibold bg-white border-2 border-purple-200 hover:border-purple-300 focus:border-purple-500"
             />
-            <p className="text-sm text-purple-600 mt-3 font-medium">Fewer owners typically means better care</p>
+            <p className="text-sm text-purple-600 mt-4 font-medium">Fewer owners typically means better care</p>
           </CardContent>
         </Card>
 
