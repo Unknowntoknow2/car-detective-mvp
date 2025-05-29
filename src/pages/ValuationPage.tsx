@@ -18,7 +18,7 @@ export default function ValuationPage() {
   const [showFollowUp, setShowFollowUp] = useState(false);
 
   // Handle potentially undefined VIN parameter with proper type handling
-  const vin = vinParam || '';
+  const vin: string = vinParam || '';
 
   useEffect(() => {
     if (vin && vin.length === 17) {
@@ -105,7 +105,7 @@ export default function ValuationPage() {
         <div className="space-y-8">
           <FoundCarCard vehicle={vehicle} readonly={false} />
           
-          {showFollowUp && vinParam && vin.length === 17 && (
+          {showFollowUp && vin.length === 17 && (
             <div className="mt-8">
               <UnifiedFollowUpForm 
                 vin={vin}
