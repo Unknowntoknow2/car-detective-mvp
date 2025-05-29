@@ -55,6 +55,9 @@ export interface ManualEntryFormData {
   // File upload properties
   fileType?: string;
   fileName?: string;
+  
+  // ✅ Force re-render helper
+  _modelListVersion?: number;
 }
 
 export interface ManualEntryFormProps {

@@ -27,7 +27,7 @@ export function BasicVehicleForm({
     findModelById,
   } = useMakeModels();
 
-  const handleMakeChange = (makeId: string) => {
+  const handleMakeChange = async (makeId: string) => {
     console.log('🚀 BasicVehicleForm: Make changed to:', {
       makeId,
       makeName: findMakeById(makeId)?.make_name
@@ -46,10 +46,14 @@ export function BasicVehicleForm({
     console.log('📝 BasicVehicleForm: Updating form data with:', updates);
     updateFormData(updates);
     
-    // Load models for the selected make
+    // ✅ Await model fetch and force re-render by setting models
     if (makeId) {
       console.log('🔄 BasicVehicleForm: Calling fetchModelsByMakeId for:', makeId);
-      fetchModelsByMakeId(makeId);
+      const modelsFetched = await fetchModelsByMakeId(makeId);
+
+      // 🛠️ Force state update to trigger rerender
+      updateFormData(prev => ({ ...prev, _modelListVersion: Date.now() }));
+      console.log('✅ BasicVehicleForm: Fetched', modelsFetched.length, 'models for make', makeId);
     }
   };
 
@@ -88,6 +92,9 @@ export function BasicVehicleForm({
     isLoading,
     error
   });
+
+  // ✅ Optional Safety Check - log models before rendering
+  console.log('🔍 Re-rendering MakeModelSelect with models:', models.length);
 
   return (
     <div className="space-y-4">
