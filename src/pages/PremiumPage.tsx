@@ -1,5 +1,6 @@
 
 import React, { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout';
 import { SEO } from '@/components/layout/seo';
 import { PremiumHero } from '@/components/premium/sections/PremiumHero';
@@ -15,13 +16,65 @@ import { ChevronDown } from 'lucide-react';
 import PremiumVinLookupForm from '@/components/premium/forms/PremiumVinLookupForm';
 import PremiumPlateLookupForm from '@/components/premium/forms/PremiumPlateLookupForm';
 import PremiumManualEntryForm from '@/components/premium/forms/PremiumManualEntryForm';
+import { toast } from 'sonner';
 
 export default function PremiumPage() {
   const formRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const [tab, setTab] = useState<'vin' | 'plate' | 'manual'>('vin');
+
+  // State for VIN lookup
+  const [vin, setVin] = useState('');
+
+  // State for plate lookup
+  const [plate, setPlate] = useState('');
+  const [stateCode, setStateCode] = useState('');
+
+  // State for manual entry
+  const [premiumFormData, setPremiumFormData] = useState<any>(null);
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // VIN lookup handler
+  const handleVinSubmit = async () => {
+    if (!vin || vin.length !== 17) {
+      toast.error('Please enter a valid 17-character VIN');
+      return;
+    }
+    
+    console.log('Premium VIN submission:', vin);
+    toast.success('Processing premium VIN lookup...');
+    
+    // Navigate to valuation page with premium flag
+    navigate(`/valuation/${vin}?premium=true`);
+  };
+
+  // Plate lookup handler
+  const handlePlateSubmit = async () => {
+    if (!plate || !stateCode) {
+      toast.error('Please enter both license plate and state');
+      return;
+    }
+    
+    console.log('Premium plate submission:', { plate, stateCode });
+    toast.success('Processing premium plate lookup...');
+    
+    // Navigate to plate valuation page with premium flag
+    navigate(`/valuation/plate/${plate}/${stateCode}?premium=true`);
+  };
+
+  // Manual entry handler
+  const handleManualSubmit = async (formData: any) => {
+    console.log('Premium manual submission:', formData);
+    toast.success('Processing premium manual valuation...');
+    
+    // Store premium form data for valuation
+    setPremiumFormData(formData);
+    
+    // Navigate to manual valuation page with premium flag
+    navigate('/valuation/manual?premium=true', { state: { formData, isPremium: true } });
   };
 
   // Type annotation for valuationId parameter
@@ -71,15 +124,29 @@ export default function PremiumPage() {
             </TabsList>
 
             <TabsContent value="vin">
-              <PremiumVinLookupForm />
+              <PremiumVinLookupForm 
+                vin={vin}
+                setVin={setVin}
+                onSubmit={handleVinSubmit}
+              />
             </TabsContent>
 
             <TabsContent value="plate">
-              <PremiumPlateLookupForm />
+              <PremiumPlateLookupForm 
+                plate={plate}
+                setPlate={setPlate}
+                stateCode={stateCode}
+                setStateCode={setStateCode}
+                onSubmit={handlePlateSubmit}
+              />
             </TabsContent>
 
             <TabsContent value="manual">
-              <PremiumManualEntryForm />
+              <PremiumManualEntryForm 
+                formData={premiumFormData}
+                setFormData={setPremiumFormData}
+                onSubmit={handleManualSubmit}
+              />
             </TabsContent>
           </Tabs>
         </Container>
