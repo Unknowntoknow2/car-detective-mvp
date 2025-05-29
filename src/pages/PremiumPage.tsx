@@ -1,18 +1,24 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { MainLayout } from '@/components/layout';
 import { SEO } from '@/components/layout/seo';
 import { PremiumHero } from '@/components/premium/sections/PremiumHero';
 import { PremiumFeatures } from '@/components/premium/sections/PremiumFeatures';
-import PremiumValuationForm from '@/components/premium/form/PremiumValuationForm';
 import { PremiumTestimonials } from '@/components/premium/sections/PremiumTestimonials';
 import { PremiumPricing } from '@/components/premium/sections/PremiumPricing';
 import { PremiumFaq } from '@/components/premium/sections/PremiumFaq';
+import { Container } from '@/components/ui/container';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
 import { Button } from '@/components/ui/button';
 import { ChevronDown } from 'lucide-react';
+import PremiumVinLookupForm from '@/components/premium/forms/PremiumVinLookupForm';
+import PremiumPlateLookupForm from '@/components/premium/forms/PremiumPlateLookupForm';
+import PremiumManualEntryForm from '@/components/premium/forms/PremiumManualEntryForm';
 
 export default function PremiumPage() {
   const formRef = useRef<HTMLDivElement>(null);
+  const [tab, setTab] = useState<'vin' | 'plate' | 'manual'>('vin');
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -45,7 +51,38 @@ export default function PremiumPage() {
       <PremiumFeatures />
       
       <div ref={formRef}>
-        <PremiumValuationForm />
+        <Container className="max-w-6xl py-10">
+          <CarFinderQaherHeader />
+
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+              Premium Valuation
+            </h1>
+            <p className="mt-4 text-lg text-gray-600">
+              Unlock AI-powered insights, CARFAX data, and auction comparisons.
+            </p>
+          </div>
+
+          <Tabs value={tab} onValueChange={(value) => setTab(value as 'vin' | 'plate' | 'manual')} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="vin">VIN Lookup</TabsTrigger>
+              <TabsTrigger value="plate">License Plate</TabsTrigger>
+              <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="vin">
+              <PremiumVinLookupForm />
+            </TabsContent>
+
+            <TabsContent value="plate">
+              <PremiumPlateLookupForm />
+            </TabsContent>
+
+            <TabsContent value="manual">
+              <PremiumManualEntryForm />
+            </TabsContent>
+          </Tabs>
+        </Container>
       </div>
       
       <PremiumTestimonials />
