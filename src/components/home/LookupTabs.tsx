@@ -10,7 +10,11 @@ import { Car, FileText, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usStates } from '@/data/states';
 
-export function LookupTabs() {
+interface LookupTabsProps {
+  defaultTab?: string;
+}
+
+export function LookupTabs({ defaultTab = "vin" }: LookupTabsProps) {
   const navigate = useNavigate();
   const [vin, setVin] = useState('');
   const [plate, setPlate] = useState('');
@@ -26,7 +30,7 @@ export function LookupTabs() {
   const handlePlateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (plate.trim() && state) {
-      navigate('/valuation/plate');
+      navigate(`/valuation/plate/${plate.trim().toUpperCase()}/${state}`);
     }
   };
 
@@ -35,7 +39,7 @@ export function LookupTabs() {
   };
 
   return (
-    <Tabs defaultValue="vin" className="w-full max-w-md mx-auto">
+    <Tabs defaultValue={defaultTab} className="w-full max-w-md mx-auto">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="vin">VIN</TabsTrigger>
         <TabsTrigger value="plate">Plate</TabsTrigger>
