@@ -93,8 +93,7 @@ export function transformForValuation(formData: FollowUpAnswers) {
     },
     modifications: {
       hasModifications: formData.modifications?.modified || false,
-      types: formData.modifications?.types || [],
-      reversible: formData.modifications?.reversible || true
+      types: formData.modifications?.types || []
     },
     features: formData.features || [],
     zipCode: formData.zip_code

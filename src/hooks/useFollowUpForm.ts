@@ -21,22 +21,20 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     accidents: {
       hadAccident: false,
       count: 0,
-      location: { _type: 'undefined', value: 'undefined' },
+      location: '',
       severity: 'minor',
       repaired: false,
       frameDamage: false,
-      description: { _type: 'undefined', value: 'undefined' }
+      description: ''
     },
     modifications: {
       modified: false,
-      types: [],
-      reversible: true
+      types: []
     },
     features: [],
     completion_percentage: 0,
     is_complete: false,
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
     ...initialData
   });
 
@@ -86,8 +84,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     setFormData(prev => {
       const updated = {
         ...prev,
-        ...updates,
-        updated_at: new Date().toISOString()
+        ...updates
       };
       
       // Auto-save after updates
@@ -107,8 +104,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
         .from('follow_up_answers')
         .upsert({
           ...dataToSave,
-          vin,
-          updated_at: new Date().toISOString()
+          vin
         }, {
           onConflict: 'vin'
         });
@@ -144,8 +140,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     const success = await saveFormData({
       ...formData,
       is_complete: true,
-      completion_percentage: 100,
-      updated_at: new Date().toISOString()
+      completion_percentage: 100
     });
 
     if (success) {
