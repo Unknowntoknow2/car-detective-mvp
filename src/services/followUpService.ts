@@ -1,62 +1,124 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { calculateCompletionPercentage, validateFormData, transformForValuation } from '@/utils/followUpDataHelpers';
 
-export const saveFollowUpAnswers = async (answers: FollowUpAnswers): Promise<void> => {
-  console.log('💾 Saving follow-up answers:', answers);
+export class FollowUpService {
+  /**
+   * Save or update follow-up answers
+   */
+  static async saveAnswers(formData: FollowUpAnswers): Promise<{ success: boolean; error?: string }> {
+    try {
+      const completion = calculateCompletionPercentage(formData);
+      
+      const { error } = await supabase
+        .from('follow_up_answers')
+        .upsert({
+          ...formData,
+          completion_percentage: completion,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'vin'
+        });
 
-  const { error } = await supabase
-    .from('follow_up_answers')
-    .upsert({
-      vin: answers.vin,
-      valuation_id: answers.valuation_id,
-      user_id: answers.user_id,
-      mileage: answers.mileage,
-      zip_code: answers.zip_code,
-      condition: answers.condition,
-      accidents: answers.accidents,
-      service_history: answers.service_history,
-      maintenance_status: answers.maintenance_status,
-      last_service_date: answers.last_service_date,
-      title_status: answers.title_status,
-      previous_owners: answers.previous_owners,
-      previous_use: answers.previous_use,
-      tire_condition: answers.tire_condition,
-      dashboard_lights: answers.dashboard_lights,
-      frame_damage: answers.frame_damage,
-      modifications: answers.modifications,
-      completion_percentage: answers.completion_percentage,
-      is_complete: answers.is_complete,
-      updated_at: new Date().toISOString()
-    }, {
-      onConflict: 'vin'
-    });
+      if (error) {
+        console.error('Error saving follow-up answers:', error);
+        return { success: false, error: error.message };
+      }
 
-  if (error) {
-    console.error('❌ Error saving follow-up answers:', error);
-    throw new Error('Failed to save follow-up answers');
-  }
-
-  console.log('✅ Follow-up answers saved successfully');
-};
-
-export const loadFollowUpAnswers = async (vin: string): Promise<FollowUpAnswers | null> => {
-  console.log('📥 Loading follow-up answers for VIN:', vin);
-
-  const { data, error } = await supabase
-    .from('follow_up_answers')
-    .select('*')
-    .eq('vin', vin)
-    .single();
-
-  if (error) {
-    if (error.code === 'PGRST116') {
-      // No data found, return null
-      return null;
+      return { success: true };
+    } catch (error) {
+      console.error('Error in saveAnswers:', error);
+      return { success: false, error: 'Failed to save answers' };
     }
-    console.error('❌ Error loading follow-up answers:', error);
-    throw new Error('Failed to load follow-up answers');
   }
 
-  return data as FollowUpAnswers;
-};
+  /**
+   * Get follow-up answers by VIN
+   */
+  static async getAnswersByVin(vin: string): Promise<{ data?: FollowUpAnswers; error?: string }> {
+    try {
+      const { data, error } = await supabase
+        .from('follow_up_answers')
+        .select('*')
+        .eq('vin', vin)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching follow-up answers:', error);
+        return { error: error.message };
+      }
+
+      return { data: data || undefined };
+    } catch (error) {
+      console.error('Error in getAnswersByVin:', error);
+      return { error: 'Failed to fetch answers' };
+    }
+  }
+
+  /**
+   * Submit completed follow-up for valuation
+   */
+  static async submitForValuation(formData: FollowUpAnswers): Promise<{ success: boolean; valuationId?: string; error?: string }> {
+    try {
+      // Validate form data
+      const validation = validateFormData(formData);
+      if (!validation.isValid) {
+        return { success: false, error: validation.errors.join(', ') };
+      }
+
+      // Mark as complete and save
+      const completedData = {
+        ...formData,
+        is_complete: true,
+        completion_percentage: 100,
+        updated_at: new Date().toISOString()
+      };
+
+      const saveResult = await this.saveAnswers(completedData);
+      if (!saveResult.success) {
+        return saveResult;
+      }
+
+      // Transform data for valuation calculation
+      const valuationData = transformForValuation(completedData);
+
+      // Here you would typically call the valuation calculation service
+      // For now, we'll just return success
+      console.log('Submitting for valuation:', valuationData);
+
+      return { success: true, valuationId: `val_${Date.now()}` };
+    } catch (error) {
+      console.error('Error in submitForValuation:', error);
+      return { success: false, error: 'Failed to submit for valuation' };
+    }
+  }
+
+  /**
+   * Get user's follow-up history
+   */
+  static async getUserHistory(userId?: string): Promise<{ data: FollowUpAnswers[]; error?: string }> {
+    try {
+      let query = supabase
+        .from('follow_up_answers')
+        .select('*')
+        .order('updated_at', { ascending: false });
+
+      if (userId) {
+        query = query.eq('user_id', userId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error fetching user history:', error);
+        return { data: [], error: error.message };
+      }
+
+      return { data: data || [] };
+    } catch (error) {
+      console.error('Error in getUserHistory:', error);
+      return { data: [], error: 'Failed to fetch history' };
+    }
+  }
+}
