@@ -45,7 +45,11 @@ export function useMakeModels() {
 
   // Fetch models by make ID
   const fetchModelsByMakeId = useCallback(async (makeId: string) => {
-    if (!makeId) {
+    console.log('🔄 fetchModelsByMakeId called with makeId:', makeId);
+    
+    // Only clear models if makeId is actually empty/undefined
+    if (!makeId || makeId.trim() === '') {
+      console.log('🧹 Clearing models - no makeId provided');
       setModels([]);
       return;
     }
@@ -90,9 +94,13 @@ export function useMakeModels() {
       console.log('📊 Total count from query:', count);
       
       if (data && data.length > 0) {
-        console.log('📋 All models found:', data.map(m => `${m.model_name} (${m.id})`));
+        console.log('📋 First 10 models found:', data.slice(0, 10).map(m => `${m.model_name} (${m.id})`));
+        console.log('🎯 Setting models state with', data.length, 'models');
+        setModels(data);
+        console.log('✅ Models state updated successfully');
       } else {
-        console.log('⚠️ No models found - checking if any models exist for this make');
+        console.log('⚠️ No models found for this make');
+        setModels([]);
         
         // Debug query - let's see what's actually in the models table for this make
         const { data: debugData } = await supabase
@@ -111,7 +119,6 @@ export function useMakeModels() {
         console.log('🔍 Debug - sample of all models:', allModels);
       }
 
-      setModels(data || []);
     } catch (err: any) {
       console.error('❌ Error fetching models:', err);
       setError('Failed to load vehicle models');
