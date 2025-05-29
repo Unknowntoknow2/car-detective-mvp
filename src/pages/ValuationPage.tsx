@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
@@ -17,7 +16,7 @@ export default function ValuationPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showFollowUp, setShowFollowUp] = useState(false);
 
-  // Ensure VIN is defined before proceeding
+  // Ensure VIN is defined before proceeding - handle undefined case
   const vin = vinParam || '';
 
   useEffect(() => {
