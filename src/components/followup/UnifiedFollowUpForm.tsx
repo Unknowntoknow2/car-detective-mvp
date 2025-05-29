@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { 
   FollowUpAnswers, 
-  CONDITION_OPTIONS, 
+  CONDITION_OPTIONS,
   SERVICE_HISTORY_OPTIONS,
   MAINTENANCE_STATUS_OPTIONS,
   TITLE_STATUS_OPTIONS,
@@ -19,695 +21,499 @@ import {
   DASHBOARD_LIGHTS,
   MODIFICATION_TYPES
 } from '@/types/follow-up-answers';
-import { saveFollowUpAnswers, loadFollowUpAnswers } from '@/services/followUpService';
+import { Car, Wrench, Shield, Gauge, AlertTriangle, Star } from 'lucide-react';
 import { toast } from 'sonner';
-import { Car, AlertTriangle, Wrench, FileText, Settings, Gauge } from 'lucide-react';
 
-export interface UnifiedFollowUpFormProps {
+interface UnifiedFollowUpFormProps {
   vin: string;
-  onComplete: (formData: FollowUpAnswers) => void | Promise<void>;
+  onComplete: (formData: FollowUpAnswers) => void;
 }
 
-export const UnifiedFollowUpForm: React.FC<UnifiedFollowUpFormProps> = ({ vin, onComplete }) => {
+export function UnifiedFollowUpForm({ vin, onComplete }: UnifiedFollowUpFormProps) {
   const [formData, setFormData] = useState<FollowUpAnswers>({
-    vin: vin,
-    mileage: undefined,
+    vin,
+    mileage: 0,
     zip_code: '',
-    condition: undefined,
-    exterior_condition: undefined,
-    interior_condition: undefined,
+    condition: 'good',
+    exterior_condition: 'good',
+    interior_condition: 'good',
     accidents: {
-      hadAccident: false,
-      count: undefined,
-      location: undefined,
-      severity: undefined,
-      repaired: undefined,
-      frameDamage: undefined,
-      description: undefined
+      hadAccident: false, // Provide default value
     },
-    service_history: undefined,
-    maintenance_status: undefined,
-    last_service_date: undefined,
-    title_status: undefined,
-    previous_owners: undefined,
-    previous_use: undefined,
-    tire_condition: undefined,
+    service_history: 'unknown',
+    maintenance_status: 'Unknown',
+    title_status: 'clean',
+    previous_owners: 1,
+    previous_use: 'personal',
+    tire_condition: 'good',
     dashboard_lights: [],
-    frame_damage: undefined,
+    frame_damage: false,
     modifications: {
-      modified: false,
+      modified: false, // Provide default value
       types: [],
-      reversible: undefined
+      reversible: true,
     },
     features: [],
     completion_percentage: 0,
-    is_complete: false
+    is_complete: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   });
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Load existing answers on component mount
   useEffect(() => {
-    const loadExistingAnswers = async () => {
-      try {
-        const existingAnswers = await loadFollowUpAnswers(vin);
-        if (existingAnswers) {
-          setFormData(prev => ({
-            ...prev,
-            ...existingAnswers,
-            vin: vin // Ensure VIN is set correctly
-          }));
-          console.log('✅ Loaded existing follow-up answers:', existingAnswers);
-        }
-      } catch (error) {
-        console.error('❌ Error loading existing answers:', error);
-      }
-    };
+    // Calculate completion percentage
+    const totalFields = 17; // Total number of fields to consider
+    let completedFields = 0;
 
-    if (vin) {
-      loadExistingAnswers();
+    if (formData.mileage) completedFields++;
+    if (formData.zip_code) completedFields++;
+    if (formData.condition) completedFields++;
+    if (formData.exterior_condition) completedFields++;
+    if (formData.interior_condition) completedFields++;
+    if (formData.accidents) {
+      if (formData.accidents.hadAccident !== undefined) completedFields++;
     }
-  }, [vin]);
-
-  // Auto-save functionality
-  const autoSave = async (updatedData: FollowUpAnswers) => {
-    if (!isSaving) {
-      setIsSaving(true);
-      try {
-        await saveFollowUpAnswers(updatedData);
-        console.log('💾 Auto-saved follow-up answers');
-      } catch (error) {
-        console.error('❌ Auto-save failed:', error);
-      } finally {
-        setIsSaving(false);
-      }
+    if (formData.service_history) completedFields++;
+    if (formData.maintenance_status) completedFields++;
+    if (formData.title_status) completedFields++;
+    if (formData.previous_owners) completedFields++;
+    if (formData.previous_use) completedFields++;
+    if (formData.tire_condition) completedFields++;
+    if (formData.dashboard_lights && formData.dashboard_lights.length > 0) completedFields++;
+    if (formData.frame_damage !== undefined) completedFields++;
+    if (formData.modifications) {
+      if (formData.modifications.modified !== undefined) completedFields++;
     }
+    if (formData.features && formData.features.length > 0) completedFields++;
+
+    const percentage = Math.round((completedFields / totalFields) * 100);
+    setFormData(prev => ({ ...prev, completion_percentage: percentage }));
+  }, [formData]);
+
+  const handleSubmit = () => {
+    // Validate required fields
+    if (!formData.mileage || !formData.zip_code || !formData.condition) {
+      toast.error('Please fill in all required fields.');
+      return;
+    }
+
+    // Mark as complete and submit
+    setFormData(prev => ({ ...prev, is_complete: true }));
+    toast.success('Follow-up data submitted successfully!');
+    onComplete(formData);
   };
 
-  // Calculate completion percentage
-  const calculateCompletionPercentage = (data: FollowUpAnswers): number => {
-    const fields = [
-      data.mileage,
-      data.zip_code,
-      data.condition,
-      data.exterior_condition,
-      data.interior_condition,
-      data.accidents?.hadAccident !== undefined,
-      data.service_history,
-      data.maintenance_status,
-      data.title_status,
-      data.previous_owners,
-      data.previous_use,
-      data.tire_condition,
-      data.dashboard_lights && data.dashboard_lights.length > 0,
-      data.frame_damage !== undefined,
-      data.modifications?.modified !== undefined
-    ];
-    
-    const completedFields = fields.filter(field => 
-      field !== undefined && field !== null && field !== ''
-    ).length;
-    
-    return Math.round((completedFields / fields.length) * 100);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+      updated_at: new Date().toISOString(),
+    }));
   };
 
-  // Update form data with auto-save and completion tracking
-  const updateFormData = (updates: Partial<FollowUpAnswers>) => {
-    setFormData(prev => {
-      const newData = { ...prev, ...updates, updated_at: new Date().toISOString() };
-      const completionPercentage = calculateCompletionPercentage(newData);
-      const finalData = {
-        ...newData,
-        completion_percentage: completionPercentage,
-        is_complete: completionPercentage >= 80
-      };
-      
-      // Auto-save after a short delay
-      setTimeout(() => autoSave(finalData), 1000);
-      
-      return finalData;
-    });
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+      updated_at: new Date().toISOString(),
+    }));
   };
 
-  // Handle accident details
   const handleAccidentChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       accidents: {
         ...prev.accidents,
         [field]: value,
-        // Reset dependent fields when hadAccident changes
-        ...(field === 'hadAccident' && !value ? {
-          count: undefined,
-          location: undefined,
-          severity: undefined,
-          repaired: undefined,
-          frameDamage: undefined,
-          description: undefined
-        } : {})
+        hadAccident: field === 'hadAccident' ? value : (prev.accidents?.hadAccident ?? false), // Ensure boolean
       },
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     }));
   };
 
-  // Handle modifications
   const handleModificationChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       modifications: {
         ...prev.modifications,
         [field]: value,
-        // Reset types when modified changes to false
-        ...(field === 'modified' && !value ? { types: [] } : {})
+        modified: field === 'modified' ? value : (prev.modifications?.modified ?? false), // Ensure boolean
       },
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     }));
   };
 
-  // Handle modification types
-  const handleModificationTypeChange = (type: string, checked: boolean) => {
+  const handleModificationTypeToggle = (type: string) => {
     setFormData(prev => ({
       ...prev,
       modifications: {
         ...prev.modifications,
-        types: checked 
-          ? [...(prev.modifications?.types || []), type]
-          : (prev.modifications?.types || []).filter(t => t !== type)
+        types: prev.modifications?.types?.includes(type) 
+          ? prev.modifications.types.filter(t => t !== type)
+          : [...(prev.modifications?.types || []), type],
+        modified: prev.modifications?.modified ?? false, // Ensure boolean
       },
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     }));
   };
 
-  // Handle dashboard lights
-  const handleDashboardLightChange = (light: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      dashboard_lights: checked
-        ? [...(prev.dashboard_lights || []), light]
-        : (prev.dashboard_lights || []).filter(l => l !== light),
-      updated_at: new Date().toISOString()
-    }));
-  };
+  const handleDashboardLightsChange = (light: string) => {
+    setFormData(prev => {
+      const currentLights = prev.dashboard_lights || [];
+      const isSelected = currentLights.includes(light);
 
-  // Handle form submission
-  const handleSubmit = async () => {
-    setIsLoading(true);
-    try {
-      const finalData = {
-        ...formData,
-        is_complete: true,
-        completion_percentage: 100,
-        updated_at: new Date().toISOString()
+      const updatedLights = isSelected
+        ? currentLights.filter(l => l !== light)
+        : [...currentLights, light];
+
+      return {
+        ...prev,
+        dashboard_lights: updatedLights,
+        updated_at: new Date().toISOString(),
       };
+    });
+  };
 
-      await saveFollowUpAnswers(finalData);
-      await onComplete(finalData);
-      
-      toast.success('Follow-up information completed successfully!');
-    } catch (error) {
-      console.error('❌ Error completing follow-up:', error);
-      toast.error('Failed to complete follow-up information');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleFeaturesChange = (feature: string) => {
+    setFormData(prev => {
+      const currentFeatures = prev.features || [];
+      const isSelected = currentFeatures.includes(feature);
+
+      const updatedFeatures = isSelected
+        ? currentFeatures.filter(f => f !== feature)
+        : [...currentFeatures, feature];
+
+      return {
+        ...prev,
+        features: updatedFeatures,
+        updated_at: new Date().toISOString(),
+      };
+    });
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Progress Bar */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Completion Progress</span>
-            <span className="text-sm text-muted-foreground">{formData.completion_percentage || 0}%</span>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Vehicle Details</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-6">
+        {/* Progress Indicator */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <Label>Completion</Label>
+            <span className="text-sm text-muted-foreground">{formData.completion_percentage}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-primary h-2 rounded-full transition-all duration-300"
-              style={{ width: `${formData.completion_percentage || 0}%` }}
-            />
-          </div>
-          {isSaving && (
-            <p className="text-xs text-muted-foreground mt-2">Saving...</p>
-          )}
-        </CardContent>
-      </Card>
+          <Progress value={formData.completion_percentage} />
+        </div>
 
-      {/* Basic Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Car className="h-5 w-5" />
-            Basic Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="mileage">Mileage</Label>
-              <Input
-                id="mileage"
-                type="number"
-                value={formData.mileage || ''}
-                onChange={(e) => updateFormData({ mileage: parseInt(e.target.value) || undefined })}
-                placeholder="Enter vehicle mileage"
-              />
-            </div>
-            <div>
-              <Label htmlFor="zip_code">ZIP Code</Label>
-              <Input
-                id="zip_code"
-                value={formData.zip_code || ''}
-                onChange={(e) => updateFormData({ zip_code: e.target.value })}
-                placeholder="Enter ZIP code"
-              />
-            </div>
-          </div>
+        {/* VIN Display */}
+        <div className="space-y-2">
+          <Label htmlFor="vin">VIN</Label>
+          <Input id="vin" name="vin" value={formData.vin} readOnly />
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="condition">Overall Condition</Label>
-              <Select 
-                value={formData.condition || ''} 
-                onValueChange={(value) => updateFormData({ condition: value as any })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select overall condition" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONDITION_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div>
-                        <div className="font-medium">{option.label}</div>
-                        <div className="text-xs text-muted-foreground">{option.impact}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        {/* Mileage Input */}
+        <div className="space-y-2">
+          <Label htmlFor="mileage">Mileage</Label>
+          <Input
+            id="mileage"
+            name="mileage"
+            type="number"
+            placeholder="Enter mileage"
+            value={String(formData.mileage)}
+            onChange={handleChange}
+          />
+        </div>
 
-            <div>
-              <Label htmlFor="exterior_condition">Exterior Condition</Label>
-              <Select 
-                value={formData.exterior_condition || ''} 
-                onValueChange={(value) => updateFormData({ exterior_condition: value as any })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select exterior condition" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONDITION_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        {/* Zip Code Input */}
+        <div className="space-y-2">
+          <Label htmlFor="zip_code">Zip Code</Label>
+          <Input
+            id="zip_code"
+            name="zip_code"
+            type="text"
+            placeholder="Enter zip code"
+            value={formData.zip_code}
+            onChange={handleChange}
+          />
+        </div>
 
-            <div>
-              <Label htmlFor="interior_condition">Interior Condition</Label>
-              <Select 
-                value={formData.interior_condition || ''} 
-                onValueChange={(value) => updateFormData({ interior_condition: value as any })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select interior condition" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONDITION_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Accident History */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
-            Accident History
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="hadAccident"
-              checked={formData.accidents?.hadAccident || false}
-              onCheckedChange={(checked) => handleAccidentChange('hadAccident', checked)}
-            />
-            <Label htmlFor="hadAccident">Has this vehicle been in an accident?</Label>
-          </div>
-
-          {formData.accidents?.hadAccident && (
-            <div className="space-y-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="accidentCount">Number of Accidents</Label>
-                  <Input
-                    id="accidentCount"
-                    type="number"
-                    min="1"
-                    value={formData.accidents?.count || ''}
-                    onChange={(e) => handleAccidentChange('count', parseInt(e.target.value) || undefined)}
-                    placeholder="Enter number of accidents"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="accidentLocation">Location of Damage</Label>
-                  <Select 
-                    value={formData.accidents?.location || ''} 
-                    onValueChange={(value) => handleAccidentChange('location', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select damage location" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="front">Front</SelectItem>
-                      <SelectItem value="rear">Rear</SelectItem>
-                      <SelectItem value="side">Side</SelectItem>
-                      <SelectItem value="multiple">Multiple Areas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="accidentSeverity">Severity</Label>
-                  <Select 
-                    value={formData.accidents?.severity || ''} 
-                    onValueChange={(value) => handleAccidentChange('severity', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select severity" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="minor">Minor</SelectItem>
-                      <SelectItem value="moderate">Moderate</SelectItem>
-                      <SelectItem value="major">Major</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="repaired"
-                    checked={formData.accidents?.repaired || false}
-                    onCheckedChange={(checked) => handleAccidentChange('repaired', checked)}
-                  />
-                  <Label htmlFor="repaired">Repaired professionally?</Label>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="frameDamage"
-                  checked={formData.accidents?.frameDamage || false}
-                  onCheckedChange={(checked) => handleAccidentChange('frameDamage', checked)}
-                />
-                <Label htmlFor="frameDamage">Frame damage?</Label>
-              </div>
-
-              <div>
-                <Label htmlFor="accidentDescription">Description (Optional)</Label>
-                <Textarea
-                  id="accidentDescription"
-                  value={formData.accidents?.description || ''}
-                  onChange={(e) => handleAccidentChange('description', e.target.value)}
-                  placeholder="Describe the accident and any other relevant details..."
-                  rows={3}
-                />
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Service & Maintenance */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wrench className="h-5 w-5" />
-            Service & Maintenance
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="service_history">Service History</Label>
-              <Select 
-                value={formData.service_history || ''} 
-                onValueChange={(value) => updateFormData({ service_history: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select service history" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SERVICE_HISTORY_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div>
-                        <div className="font-medium">{option.label}</div>
-                        <div className="text-xs text-muted-foreground">{option.impact}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="maintenance_status">Maintenance Status</Label>
-              <Select 
-                value={formData.maintenance_status || ''} 
-                onValueChange={(value) => updateFormData({ maintenance_status: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select maintenance status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {MAINTENANCE_STATUS_OPTIONS.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div>
-            <Label htmlFor="last_service_date">Last Service Date (Optional)</Label>
-            <Input
-              id="last_service_date"
-              type="date"
-              value={formData.last_service_date || ''}
-              onChange={(e) => updateFormData({ last_service_date: e.target.value })}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Title & Ownership */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Title & Ownership
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="title_status">Title Status</Label>
-              <Select 
-                value={formData.title_status || ''} 
-                onValueChange={(value) => updateFormData({ title_status: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select title status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TITLE_STATUS_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div>
-                        <div className="font-medium">{option.label}</div>
-                        <div className="text-xs text-muted-foreground">{option.impact}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="previous_owners">Previous Owners</Label>
-              <Input
-                id="previous_owners"
-                type="number"
-                min="0"
-                value={formData.previous_owners || ''}
-                onChange={(e) => updateFormData({ previous_owners: parseInt(e.target.value) || undefined })}
-                placeholder="Number of previous owners"
-              />
-            </div>
-            <div>
-              <Label htmlFor="previous_use">Previous Use</Label>
-              <Select 
-                value={formData.previous_use || ''} 
-                onValueChange={(value) => updateFormData({ previous_use: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select previous use" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PREVIOUS_USE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div>
-                        <div className="font-medium">{option.label}</div>
-                        <div className="text-xs text-muted-foreground">{option.impact}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Physical Condition */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Gauge className="h-5 w-5" />
-            Physical Condition
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="tire_condition">Tire Condition</Label>
-            <Select 
-              value={formData.tire_condition || ''} 
-              onValueChange={(value) => updateFormData({ tire_condition: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select tire condition" />
-              </SelectTrigger>
-              <SelectContent>
-                {TIRE_CONDITION_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div>
-                      <div className="font-medium">{option.label}</div>
-                      <div className="text-xs text-muted-foreground">{option.impact}</div>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label>Dashboard Warning Lights</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-              {DASHBOARD_LIGHTS.map((light) => (
-                <div key={light.value} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={light.value}
-                    checked={formData.dashboard_lights?.includes(light.value) || false}
-                    onCheckedChange={(checked) => handleDashboardLightChange(light.value, checked as boolean)}
-                  />
-                  <Label htmlFor={light.value} className="text-sm">
-                    {light.icon} {light.label}
-                  </Label>
-                </div>
+        {/* Condition Select */}
+        <div className="space-y-2">
+          <Label htmlFor="condition">Condition</Label>
+          <Select onValueChange={(value) => handleSelectChange('condition', value)}>
+            <SelectTrigger id="condition">
+              <SelectValue placeholder="Select condition" />
+            </SelectTrigger>
+            <SelectContent>
+              {CONDITION_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Exterior Condition Select */}
+        <div className="space-y-2">
+          <Label htmlFor="exterior_condition">Exterior Condition</Label>
+          <Select onValueChange={(value) => handleSelectChange('exterior_condition', value)}>
+            <SelectTrigger id="exterior_condition">
+              <SelectValue placeholder="Select exterior condition" />
+            </SelectTrigger>
+            <SelectContent>
+              {CONDITION_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Interior Condition Select */}
+        <div className="space-y-2">
+          <Label htmlFor="interior_condition">Interior Condition</Label>
+          <Select onValueChange={(value) => handleSelectChange('interior_condition', value)}>
+            <SelectTrigger id="interior_condition">
+              <SelectValue placeholder="Select interior condition" />
+            </SelectTrigger>
+            <SelectContent>
+              {CONDITION_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Accident History */}
+        <div className="space-y-3 border rounded-md p-4">
+          <Label className="flex items-center space-x-2">
+            <Shield className="h-4 w-4" />
+            <span>Accident History</span>
+          </Label>
+          <RadioGroup onValueChange={(value) => handleAccidentChange('hadAccident', value === 'true')} defaultValue={String(formData.accidents?.hadAccident)}>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="true" id="accident-yes" />
+              <Label htmlFor="accident-yes">Yes</Label>
             </div>
-          </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="false" id="accident-no" />
+              <Label htmlFor="accident-no">No</Label>
+            </div>
+          </RadioGroup>
+          {formData.accidents?.hadAccident && (
+            <div className="mt-2">
+              <Label htmlFor="accident-description">Accident Description</Label>
+              <Textarea
+                id="accident-description"
+                placeholder="Describe the accident"
+                value={formData.accidents?.description || ''}
+                onChange={(e) => handleAccidentChange('description', e.target.value)}
+              />
+            </div>
+          )}
+        </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="frame_damage"
-              checked={formData.frame_damage || false}
-              onCheckedChange={(checked) => updateFormData({ frame_damage: checked as boolean })}
-            />
-            <Label htmlFor="frame_damage">Frame damage present?</Label>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Service History */}
+        <div className="space-y-2">
+          <Label htmlFor="service_history">Service History</Label>
+          <Select onValueChange={(value) => handleSelectChange('service_history', value)}>
+            <SelectTrigger id="service_history">
+              <SelectValue placeholder="Select service history" />
+            </SelectTrigger>
+            <SelectContent>
+              {SERVICE_HISTORY_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      {/* Modifications */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Modifications
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="modified"
-              checked={formData.modifications?.modified || false}
-              onCheckedChange={(checked) => handleModificationChange('modified', checked)}
-            />
-            <Label htmlFor="modified">Has this vehicle been modified?</Label>
+        {/* Maintenance Status */}
+        <div className="space-y-2">
+          <Label htmlFor="maintenance_status">Maintenance Status</Label>
+          <Select onValueChange={(value) => handleSelectChange('maintenance_status', value)}>
+            <SelectTrigger id="maintenance_status">
+              <SelectValue placeholder="Select maintenance status" />
+            </SelectTrigger>
+            <SelectContent>
+              {MAINTENANCE_STATUS_OPTIONS.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Title Status */}
+        <div className="space-y-2">
+          <Label htmlFor="title_status">Title Status</Label>
+          <Select onValueChange={(value) => handleSelectChange('title_status', value)}>
+            <SelectTrigger id="title_status">
+              <SelectValue placeholder="Select title status" />
+            </SelectTrigger>
+            <SelectContent>
+              {TITLE_STATUS_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Previous Owners */}
+        <div className="space-y-2">
+          <Label htmlFor="previous_owners">Previous Owners</Label>
+          <Input
+            id="previous_owners"
+            name="previous_owners"
+            type="number"
+            placeholder="Enter number of previous owners"
+            value={String(formData.previous_owners)}
+            onChange={handleChange}
+          />
+        </div>
+
+        {/* Previous Use */}
+        <div className="space-y-2">
+          <Label htmlFor="previous_use">Previous Use</Label>
+          <Select onValueChange={(value) => handleSelectChange('previous_use', value)}>
+            <SelectTrigger id="previous_use">
+              <SelectValue placeholder="Select previous use" />
+            </SelectTrigger>
+            <SelectContent>
+              {PREVIOUS_USE_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Tire Condition */}
+        <div className="space-y-2">
+          <Label htmlFor="tire_condition">Tire Condition</Label>
+          <Select onValueChange={(value) => handleSelectChange('tire_condition', value)}>
+            <SelectTrigger id="tire_condition">
+              <SelectValue placeholder="Select tire condition" />
+            </SelectTrigger>
+            <SelectContent>
+              {TIRE_CONDITION_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Dashboard Lights */}
+        <div className="space-y-3 border rounded-md p-4">
+          <Label className="flex items-center space-x-2">
+            <AlertTriangle className="h-4 w-4" />
+            <span>Dashboard Lights</span>
+          </Label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {DASHBOARD_LIGHTS.map((light) => (
+              <div key={light.value} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`dashboard-light-${light.value}`}
+                  checked={formData.dashboard_lights?.includes(light.value)}
+                  onCheckedChange={() => handleDashboardLightsChange(light.value)}
+                />
+                <Label htmlFor={`dashboard-light-${light.value}`}>{light.label}</Label>
+              </div>
+            ))}
           </div>
+        </div>
+
+        {/* Frame Damage */}
+        <div className="space-y-3 border rounded-md p-4">
+          <Label className="flex items-center space-x-2">
+            <Wrench className="h-4 w-4" />
+            <span>Frame Damage</span>
+          </Label>
+          <RadioGroup onValueChange={(value) => setFormData(prev => ({ ...prev, frame_damage: value === 'true' }))} defaultValue={String(formData.frame_damage)}>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="true" id="frame-damage-yes" />
+              <Label htmlFor="frame-damage-yes">Yes</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="false" id="frame-damage-no" />
+              <Label htmlFor="frame-damage-no">No</Label>
+            </div>
+          </RadioGroup>
+        </div>
+
+        {/* Modifications */}
+        <div className="space-y-3 border rounded-md p-4">
+          <Label className="flex items-center space-x-2">
+            <Car className="h-4 w-4" />
+            <span>Modifications</span>
+          </Label>
+          <RadioGroup onValueChange={(value) => handleModificationChange('modified', value === 'true')} defaultValue={String(formData.modifications?.modified)}>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="true" id="modifications-yes" />
+              <Label htmlFor="modifications-yes">Yes</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="false" id="modifications-no" />
+              <Label htmlFor="modifications-no">No</Label>
+            </div>
+          </RadioGroup>
 
           {formData.modifications?.modified && (
-            <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div>
-                <Label>Types of Modifications</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                  {MODIFICATION_TYPES.map((type) => (
-                    <div key={type} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`mod-${type}`}
-                        checked={formData.modifications?.types?.includes(type) || false}
-                        onCheckedChange={(checked) => handleModificationTypeChange(type, checked as boolean)}
-                      />
-                      <Label htmlFor={`mod-${type}`} className="text-sm">
-                        {type}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="reversible"
-                  checked={formData.modifications?.reversible || false}
-                  disabled={!formData.modifications?.modified}
-                  onCheckedChange={(checked) => handleModificationChange('reversible', checked)}
-                />
-                <Label htmlFor="reversible">Are modifications reversible?</Label>
+            <div className="mt-2 space-y-2">
+              <Label>Modification Types</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {MODIFICATION_TYPES.map((type) => (
+                  <div key={type} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`modification-type-${type}`}
+                      checked={formData.modifications?.types?.includes(type)}
+                      onCheckedChange={() => handleModificationTypeToggle(type)}
+                    />
+                    <Label htmlFor={`modification-type-${type}`}>{type}</Label>
+                  </div>
+                ))}
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Submit Button */}
-      <div className="flex justify-end space-x-4">
-        <Button
-          onClick={handleSubmit}
-          disabled={isLoading || (formData.completion_percentage || 0) < 50}
-          className="px-8"
-        >
-          {isLoading ? 'Completing...' : 'Complete Valuation'}
-        </Button>
-      </div>
+        {/* Features */}
+        <div className="space-y-3 border rounded-md p-4">
+          <Label className="flex items-center space-x-2">
+            <Star className="h-4 w-4" />
+            <span>Features</span>
+          </Label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {["Sunroof", "Leather Seats", "Navigation System", "Premium Audio", "Heated Seats", "Cooled Seats"].map((feature) => (
+              <div key={feature} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`feature-${feature}`}
+                  checked={formData.features?.includes(feature)}
+                  onCheckedChange={() => handleFeaturesChange(feature)}
+                />
+                <Label htmlFor={`feature-${feature}`}>{feature}</Label>
+              </div>
+            ))}
+          </div>
+        </div>
 
-      {(formData.completion_percentage || 0) < 50 && (
-        <p className="text-sm text-muted-foreground text-center">
-          Complete at least 50% of the form to proceed with valuation
-        </p>
-      )}
-    </div>
+        {/* Submit Button */}
+        <Button onClick={handleSubmit}>Submit</Button>
+      </CardContent>
+    </Card>
   );
-};
+}

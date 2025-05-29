@@ -1,6 +1,6 @@
 
 export interface AccidentDetails {
-  hadAccident: boolean;
+  hadAccident?: boolean; // Made optional to match usage
   count?: number;
   location?: 'front' | 'rear' | 'side' | 'multiple';
   severity?: 'minor' | 'moderate' | 'major';
@@ -10,7 +10,7 @@ export interface AccidentDetails {
 }
 
 export interface ModificationDetails {
-  modified: boolean;
+  modified?: boolean; // Made optional to match usage
   types?: string[];
   reversible?: boolean;
 }
