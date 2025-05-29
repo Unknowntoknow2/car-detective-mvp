@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 export interface Make {
@@ -16,7 +16,6 @@ export interface Model {
 export function useMakeModels() {
   const [makes, setMakes] = useState<Make[]>([]);
   const [models, setModels] = useState<Model[]>([]);
-  const [modelListVersion, setModelListVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,26 +32,28 @@ export function useMakeModels() {
 
       if (error) throw error;
 
+      console.log('✅ Fetched makes:', data?.length || 0);
       setMakes(data || []);
     } catch (err: any) {
-      console.error('Error fetching makes:', err);
+      console.error('❌ Error fetching makes:', err);
       setError('Failed to load vehicle makes');
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Fetch models by make ID - now guaranteed to work with foreign key constraint
+  // Fetch models by make ID
   const fetchModelsByMakeId = useCallback(async (makeId: string) => {
     if (!makeId) {
       setModels([]);
-      setModelListVersion(prev => prev + 1);
       return;
     }
 
     try {
       setIsLoading(true);
       setError(null);
+
+      console.log('🔍 Fetching models for make_id:', makeId);
 
       const { data, error } = await supabase
         .from('models')
@@ -62,10 +63,14 @@ export function useMakeModels() {
 
       if (error) throw error;
 
+      console.log('✅ Fetched models for make:', data?.length || 0, 'models');
+      if (data && data.length > 0) {
+        console.log('📋 Sample models:', data.slice(0, 3).map(m => m.model_name));
+      }
+
       setModels(data || []);
-      setModelListVersion(prev => prev + 1);
     } catch (err: any) {
-      console.error('Error fetching models:', err);
+      console.error('❌ Error fetching models:', err);
       setError('Failed to load vehicle models');
       setModels([]);
     } finally {
@@ -74,9 +79,9 @@ export function useMakeModels() {
   }, []);
 
   // Initialize makes on first load
-  useState(() => {
+  useEffect(() => {
     fetchMakes();
-  });
+  }, [fetchMakes]);
 
   // Helper functions for finding records by ID
   const findMakeById = useCallback((makeId: string): Make | undefined => {
@@ -90,7 +95,6 @@ export function useMakeModels() {
   return {
     makes,
     models,
-    modelListVersion,
     isLoading,
     error,
     fetchMakes,
