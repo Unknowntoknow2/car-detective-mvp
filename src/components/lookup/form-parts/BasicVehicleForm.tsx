@@ -33,6 +33,7 @@ export function BasicVehicleForm({
     const selectedMake = findMakeById(makeId);
     console.log('🏭 Selected make:', selectedMake);
     
+    // Clear model selection BEFORE fetching new models
     const updates = {
       make: makeId,
       makeName: selectedMake?.make_name || '',
@@ -44,7 +45,7 @@ export function BasicVehicleForm({
     
     updateFormData(updates);
     
-    // Fetch models for the selected make
+    // Fetch models for the selected make AFTER clearing model selection
     if (makeId) {
       console.log('📞 Calling fetchModelsByMakeId for:', makeId);
       await fetchModelsByMakeId(makeId);
