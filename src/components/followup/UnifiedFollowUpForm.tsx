@@ -1,255 +1,235 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { VehicleConditionTab } from './tabs/VehicleConditionTab';
+import { ChevronLeft, ChevronRight, Car, Wrench, FileText, Eye, Star, AlertTriangle } from 'lucide-react';
+import { FollowUpAnswers, AccidentDetails } from '@/types/follow-up-answers';
+import { toast } from 'sonner';
+
+// Import all tab components
+import { BasicConditionTab } from './tabs/BasicConditionTab';
 import { AccidentHistoryTab } from './tabs/AccidentHistoryTab';
 import { ServiceMaintenanceTab } from './tabs/ServiceMaintenanceTab';
 import { TitleOwnershipTab } from './tabs/TitleOwnershipTab';
 import { PhysicalFeaturesTab } from './tabs/PhysicalFeaturesTab';
-import { ModificationsTab } from './tabs/ModificationsTab';
+import { FeaturesTab } from './tabs/FeaturesTab';
 
-export interface UnifiedFollowUpFormProps {
+interface UnifiedFollowUpFormProps {
   vin: string;
-  initialData: FollowUpAnswers;
+  initialData?: Partial<FollowUpAnswers>;
   onSubmit: (formData: FollowUpAnswers) => void;
-  onSave: (formData: FollowUpAnswers) => void;
+  onSave?: (formData: FollowUpAnswers) => void;
 }
 
-const TABS = [
-  { id: 'condition', label: 'Vehicle Condition', icon: '🚗', color: 'emerald' },
-  { id: 'accidents', label: 'Accident History', icon: '⚠️', color: 'red' },
-  { id: 'service', label: 'Service & Maintenance', icon: '🔧', color: 'blue' },
-  { id: 'title', label: 'Title & Ownership', icon: '📄', color: 'purple' },
-  { id: 'physical', label: 'Physical Features', icon: '🔍', color: 'orange' },
-  { id: 'modifications', label: 'Modifications', icon: '⚙️', color: 'gray' }
+const tabs = [
+  {
+    id: 'condition',
+    name: 'Condition',
+    icon: Car,
+    color: 'bg-green-500',
+    component: BasicConditionTab
+  },
+  {
+    id: 'accidents',
+    name: 'Accidents',
+    icon: AlertTriangle,
+    color: 'bg-red-500',
+    component: AccidentHistoryTab
+  },
+  {
+    id: 'service',
+    name: 'Service',
+    icon: Wrench,
+    color: 'bg-blue-500',
+    component: ServiceMaintenanceTab
+  },
+  {
+    id: 'title',
+    name: 'Title',
+    icon: FileText,
+    color: 'bg-purple-500',
+    component: TitleOwnershipTab
+  },
+  {
+    id: 'physical',
+    name: 'Physical',
+    icon: Eye,
+    color: 'bg-orange-500',
+    component: PhysicalFeaturesTab
+  },
+  {
+    id: 'features',
+    name: 'Features',
+    icon: Star,
+    color: 'bg-emerald-500',
+    component: FeaturesTab
+  }
 ];
 
-export function UnifiedFollowUpForm({ 
-  vin, 
-  initialData, 
-  onSubmit, 
-  onSave 
-}: UnifiedFollowUpFormProps) {
-  const [activeTab, setActiveTab] = useState('condition');
+export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: UnifiedFollowUpFormProps) {
+  const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState<FollowUpAnswers>({
     vin,
-    accidents: { hadAccident: false },
-    modifications: { modified: false },
-    updated_at: new Date().toISOString()
+    ...initialData
   });
 
-  useEffect(() => {
-    setFormData(initialData);
-  }, [initialData]);
-
-  const currentTabIndex = TABS.findIndex(tab => tab.id === activeTab);
-  const progress = ((currentTabIndex + 1) / TABS.length) * 100;
-
   const updateFormData = (updates: Partial<FollowUpAnswers>) => {
-    setFormData(prev => ({
-      ...prev,
-      ...updates,
-      updated_at: new Date().toISOString()
-    }));
+    setFormData(prev => ({ ...prev, ...updates }));
   };
 
-  const handleAccidentChange = (hadAccident: boolean, details?: any) => {
-    setFormData(prev => ({
-      ...prev,
-      accidents: {
-        ...prev.accidents,
-        hadAccident: hadAccident,
-        ...details
-      },
-      updated_at: new Date().toISOString()
-    }));
-  };
-
-  const handleModificationChange = (modified: boolean, types?: string[]) => {
-    setFormData(prev => ({
-      ...prev,
-      modifications: {
-        ...prev.modifications,
-        modified: modified,
-        types: types
-      },
-      updated_at: new Date().toISOString()
-    }));
-  };
-
-  const goToNextTab = () => {
-    if (currentTabIndex < TABS.length - 1) {
-      setActiveTab(TABS[currentTabIndex + 1].id);
-    }
-  };
-
-  const goToPreviousTab = () => {
-    if (currentTabIndex > 0) {
-      setActiveTab(TABS[currentTabIndex - 1].id);
-    }
-  };
-
-  const handleComplete = () => {
-    onSubmit({
-      ...formData,
-      completion_percentage: 100,
-      is_complete: true
-    });
-  };
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'condition':
-        return (
-          <VehicleConditionTab
-            formData={formData}
-            updateFormData={updateFormData}
-          />
-        );
-      case 'accidents':
-        return (
-          <AccidentHistoryTab
-            formData={formData}
-            onAccidentsChange={handleAccidentChange}
-          />
-        );
-      case 'service':
-        return (
-          <ServiceMaintenanceTab
-            formData={formData}
-            updateFormData={updateFormData}
-          />
-        );
-      case 'title':
-        return (
-          <TitleOwnershipTab
-            formData={formData}
-            updateFormData={updateFormData}
-          />
-        );
-      case 'physical':
-        return (
-          <PhysicalFeaturesTab
-            formData={formData}
-            updateFormData={updateFormData}
-          />
-        );
-      case 'modifications':
-        return (
-          <ModificationsTab
-            formData={formData}
-            onModificationsChange={handleModificationChange}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  const getTabColorClasses = (color: string, isActive: boolean) => {
-    const colorMap = {
-      emerald: isActive ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100',
-      red: isActive ? 'bg-red-500 text-white border-red-500' : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100',
-      blue: isActive ? 'bg-blue-500 text-white border-blue-500' : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100',
-      purple: isActive ? 'bg-purple-500 text-white border-purple-500' : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100',
-      orange: isActive ? 'bg-orange-500 text-white border-orange-500' : 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100',
-      gray: isActive ? 'bg-gray-500 text-white border-gray-500' : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+  const handleAccidentsChange = (hadAccident: boolean, details?: any) => {
+    const accidentDetails: AccidentDetails = hadAccident ? {
+      hadAccident: true,
+      ...details
+    } : {
+      hadAccident: false
     };
-    return colorMap[color as keyof typeof colorMap] || colorMap.gray;
+    
+    updateFormData({ accidents: accidentDetails });
   };
+
+  const handleNext = () => {
+    if (activeTab < tabs.length - 1) {
+      setActiveTab(activeTab + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (activeTab > 0) {
+      setActiveTab(activeTab - 1);
+    }
+  };
+
+  const handleSave = () => {
+    if (onSave) {
+      onSave(formData);
+      toast.success('Progress saved successfully!');
+    }
+  };
+
+  const handleSubmit = () => {
+    onSubmit(formData);
+  };
+
+  const currentTab = tabs[activeTab];
+  const TabComponent = currentTab.component;
+  const progress = ((activeTab + 1) / tabs.length) * 100;
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold text-gray-900">Vehicle Assessment</h1>
-        <p className="text-gray-600 text-lg">Help us provide the most accurate valuation for your vehicle</p>
-        
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <Progress value={progress} className="h-3" />
-          <p className="text-sm text-gray-500">
-            Step {currentTabIndex + 1} of {TABS.length} - {Math.round(progress)}% Complete
-          </p>
-        </div>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {TABS.map((tab, index) => {
-          const isActive = activeTab === tab.id;
-          const isCompleted = index < currentTabIndex;
-          
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`
-                relative p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer
-                ${getTabColorClasses(tab.color, isActive)}
-                ${isCompleted ? 'ring-2 ring-green-400' : ''}
-              `}
-            >
-              <div className="text-center space-y-2">
-                <div className="text-2xl">{tab.icon}</div>
-                <div className="font-medium text-sm leading-tight">{tab.label}</div>
-                {isCompleted && (
-                  <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1">
-                    <Check className="h-3 w-3" />
-                  </div>
-                )}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Tab Content */}
-      <Card className="border-2 shadow-lg">
+    <div className="space-y-6">
+      {/* Header with Progress */}
+      <Card className="bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600 text-white">
         <CardContent className="p-8">
-          {renderTabContent()}
+          <div className="space-y-4">
+            <h1 className="text-3xl font-bold">Vehicle Valuation Follow-up</h1>
+            <p className="text-blue-100 text-lg">
+              Complete these sections to get your most accurate vehicle valuation
+            </p>
+            
+            {/* Progress Bar */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-blue-100">
+                  Step {activeTab + 1} of {tabs.length}
+                </span>
+                <span className="text-sm font-medium text-blue-100">
+                  {Math.round(progress)}% Complete
+                </span>
+              </div>
+              <Progress value={progress} className="h-3 bg-blue-800/30" />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between items-center pt-6 border-t">
-        <Button
-          variant="outline"
-          onClick={goToPreviousTab}
-          disabled={currentTabIndex === 0}
-          className="flex items-center space-x-2 px-6 py-3"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          <span>Previous</span>
-        </Button>
+      {/* Tab Navigation */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+            {tabs.map((tab, index) => {
+              const IconComponent = tab.icon;
+              const isActive = index === activeTab;
+              const isCompleted = index < activeTab;
+              
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(index)}
+                  className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-semibold transition-all duration-200 min-w-[120px] justify-center
+                    ${isActive 
+                      ? `${tab.color} text-white shadow-lg transform scale-105` 
+                      : isCompleted
+                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                    }`}
+                >
+                  <IconComponent className={`h-5 w-5 ${isActive ? 'text-white' : ''}`} />
+                  <span className="text-sm">{tab.name}</span>
+                  {isCompleted && !isActive && (
+                    <div className="w-2 h-2 bg-green-500 rounded-full ml-1"></div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="text-center">
-          <p className="text-sm text-gray-500">
-            {currentTabIndex + 1} of {TABS.length}
-          </p>
-        </div>
+      {/* Tab Content */}
+      <Card className="min-h-[600px]">
+        <CardContent className="p-8">
+          <TabComponent 
+            formData={formData} 
+            updateFormData={updateFormData}
+            onAccidentsChange={activeTab === 1 ? handleAccidentsChange : undefined}
+          />
+        </CardContent>
+      </Card>
 
-        {currentTabIndex === TABS.length - 1 ? (
-          <Button
-            onClick={handleComplete}
-            className="flex items-center space-x-2 px-6 py-3 bg-green-600 hover:bg-green-700"
-          >
-            <Check className="h-4 w-4" />
-            <span>Complete Assessment</span>
-          </Button>
-        ) : (
-          <Button
-            onClick={goToNextTab}
-            className="flex items-center space-x-2 px-6 py-3"
-          >
-            <span>Next</span>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
+      {/* Navigation Controls */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={activeTab === 0}
+              className="w-full sm:w-auto"
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={handleSave}
+                className="px-6"
+              >
+                Save Progress
+              </Button>
+              
+              {activeTab === tabs.length - 1 ? (
+                <Button
+                  onClick={handleSubmit}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
+                >
+                  Complete Valuation
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleNext}
+                  className="px-8"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-2" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
