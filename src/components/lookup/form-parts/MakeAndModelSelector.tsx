@@ -47,6 +47,8 @@ const MakeAndModelSelector: React.FC<Props> = ({ makeId, setMakeId, modelId, set
       }
       
       console.log('🔍 Fetching models for makeId:', makeId);
+      console.log('🔍 makeId type:', typeof makeId);
+      console.log('🔍 makeId length:', makeId.length);
       
       const { data, error } = await supabase
         .from("models")
@@ -64,6 +66,7 @@ const MakeAndModelSelector: React.FC<Props> = ({ makeId, setMakeId, modelId, set
   }, [makeId]);
 
   const handleMakeChange = (value: string) => {
+    console.log('🎯 Make changed to UUID:', value);
     setMakeId(value);
     setModelId(''); // Reset model when make changes
   };
