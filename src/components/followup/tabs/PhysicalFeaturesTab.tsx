@@ -103,6 +103,7 @@ export function PhysicalFeaturesTab({ formData, updateFormData }: PhysicalFeatur
               <Eye className="h-6 w-6 mr-3" />
               Dashboard Warning Lights
             </CardTitle>
+            <p className="text-gray-600 mt-2">Select any warning lights that are currently active on your dashboard</p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
