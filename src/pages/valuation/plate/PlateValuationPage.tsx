@@ -17,10 +17,15 @@ export default function PlateValuationPage() {
     setShowFollowUp(true);
   };
 
-  const handleFollowUpComplete = async (followUpAnswers: FollowUpAnswers) => {
-    console.log('✅ Plate follow-up completed:', followUpAnswers);
+  const handleFollowUpSubmit = async (followUpAnswers: FollowUpAnswers) => {
+    console.log('✅ Plate follow-up submitted:', followUpAnswers);
     toast.success('Plate valuation completed successfully!');
     // Handle final valuation here
+  };
+
+  const handleFollowUpSave = async (followUpAnswers: FollowUpAnswers) => {
+    console.log('📝 Plate follow-up saved:', followUpAnswers);
+    // Handle saving progress here
   };
 
   return (
@@ -45,7 +50,9 @@ export default function PlateValuationPage() {
           
           <UnifiedFollowUpForm 
             vin={vehicleData?.vin || `PLATE_${vehicleData?.plate || 'LOOKUP'}`}
-            onComplete={handleFollowUpComplete}
+            initialData={{ vin: vehicleData?.vin || `PLATE_${vehicleData?.plate || 'LOOKUP'}` }}
+            onSubmit={handleFollowUpSubmit}
+            onSave={handleFollowUpSave}
           />
         </div>
       )}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Container } from '@/components/ui/container';
 import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
@@ -17,10 +16,15 @@ export default function ManualValuationPage() {
     setShowFollowUp(true);
   };
 
-  const handleFollowUpComplete = async (followUpAnswers: FollowUpAnswers) => {
-    console.log('✅ Manual follow-up completed:', followUpAnswers);
+  const handleFollowUpSubmit = async (followUpAnswers: FollowUpAnswers) => {
+    console.log('✅ Manual follow-up submitted:', followUpAnswers);
     toast.success('Manual valuation completed successfully!');
     // Handle final valuation here
+  };
+
+  const handleFollowUpSave = async (followUpAnswers: FollowUpAnswers) => {
+    console.log('📝 Manual follow-up saved:', followUpAnswers);
+    // Handle saving progress here
   };
 
   return (
@@ -45,7 +49,9 @@ export default function ManualValuationPage() {
           
           <UnifiedFollowUpForm 
             vin={vehicleData?.vin || 'MANUAL_ENTRY'}
-            onComplete={handleFollowUpComplete}
+            initialData={{ vin: vehicleData?.vin || 'MANUAL_ENTRY' }}
+            onSubmit={handleFollowUpSubmit}
+            onSave={handleFollowUpSave}
           />
         </div>
       )}

@@ -52,10 +52,15 @@ export default function ValuationPage() {
     }
   };
 
-  const handleFollowUpComplete = (formData: FollowUpAnswers) => {
-    console.log('✅ ValuationPage: Follow-up completed:', formData);
+  const handleFollowUpSubmit = (formData: FollowUpAnswers) => {
+    console.log('✅ ValuationPage: Follow-up submitted:', formData);
     toast.success('Valuation completed successfully!');
     // Handle final valuation here
+  };
+
+  const handleFollowUpSave = (formData: FollowUpAnswers) => {
+    console.log('📝 ValuationPage: Follow-up saved:', formData);
+    // Handle saving progress here
   };
 
   // If no VIN parameter at all, show error message
@@ -110,7 +115,9 @@ export default function ValuationPage() {
             <div className="mt-8">
               <UnifiedFollowUpForm 
                 vin={safeVin}
-                onComplete={handleFollowUpComplete}
+                initialData={{ vin: safeVin }}
+                onSubmit={handleFollowUpSubmit}
+                onSave={handleFollowUpSave}
               />
             </div>
           )}
