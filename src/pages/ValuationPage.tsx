@@ -17,7 +17,7 @@ export default function ValuationPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showFollowUp, setShowFollowUp] = useState(false);
 
-  // Handle potentially undefined VIN parameter
+  // Handle potentially undefined VIN parameter with proper type handling
   const vin = vinParam || '';
 
   useEffect(() => {
