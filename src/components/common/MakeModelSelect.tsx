@@ -31,7 +31,6 @@ export function MakeModelSelect({
 }: MakeModelSelectProps) {
   const handleMakeChange = (makeId: string) => {
     console.log('🎯 MakeModelSelect: Make changed to:', makeId);
-    // Only notify parent of make change - let parent handle model clearing and fetching
     setSelectedMakeId(makeId);
   };
 

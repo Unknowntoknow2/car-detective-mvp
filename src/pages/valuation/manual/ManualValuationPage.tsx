@@ -22,7 +22,7 @@ export default function ManualValuationPage() {
       model: '',
       year: new Date().getFullYear(),
       mileage: 0,
-      condition: 'good' as any,
+      condition: 'good',
       zipCode: '',
       fuelType: 'gasoline',
       transmission: 'automatic'
