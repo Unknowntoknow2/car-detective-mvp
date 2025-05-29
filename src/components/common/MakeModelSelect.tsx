@@ -16,6 +16,7 @@ interface MakeModelSelectProps {
   isLoading?: boolean;
   error?: string | null;
   onMakeChange?: (makeId: string) => void;
+  isDisabled?: boolean;
 }
 
 export function MakeModelSelect({
@@ -27,7 +28,8 @@ export function MakeModelSelect({
   setSelectedModelId,
   isLoading = false,
   error = null,
-  onMakeChange
+  onMakeChange,
+  isDisabled = false
 }: MakeModelSelectProps) {
   const handleMakeChange = (makeId: string) => {
     setSelectedMakeId(makeId);
@@ -74,6 +76,7 @@ export function MakeModelSelect({
         <Select
           value={selectedMakeId}
           onValueChange={handleMakeChange}
+          disabled={isDisabled}
         >
           <SelectTrigger id="make" className="h-10">
             <SelectValue placeholder="Select make" />
@@ -96,7 +99,7 @@ export function MakeModelSelect({
         <Select
           value={selectedModelId}
           onValueChange={setSelectedModelId}
-          disabled={!selectedMakeId}
+          disabled={isDisabled || !selectedMakeId}
         >
           <SelectTrigger id="model" className="h-10">
             <SelectValue placeholder={
