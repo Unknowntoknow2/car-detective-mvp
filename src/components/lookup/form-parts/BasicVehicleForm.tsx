@@ -20,7 +20,7 @@ export function BasicVehicleForm({
   const {
     makes,
     models,
-    modelListVersion, // 🔁 Track model updates
+    modelListVersion,
     isLoading,
     error,
     fetchModelsByMakeId,
@@ -50,8 +50,7 @@ export function BasicVehicleForm({
     // ✅ Fetch models for the selected make
     if (makeId) {
       console.log('🔄 BasicVehicleForm: Calling fetchModelsByMakeId for:', makeId);
-      const modelsFetched = await fetchModelsByMakeId(makeId);
-      console.log('✅ BasicVehicleForm: Fetched', modelsFetched.length, 'models for make', makeId);
+      await fetchModelsByMakeId(makeId);
     }
   };
 
@@ -75,15 +74,15 @@ export function BasicVehicleForm({
 
   // Load models when component mounts if make is already selected
   useEffect(() => {
-    if (formData.make) {
+    if (formData.make && makes.length > 0) {
       console.log('🔄 BasicVehicleForm: Component mounted with existing make, fetching models for:', formData.make);
       fetchModelsByMakeId(formData.make);
     }
-  }, [formData.make, fetchModelsByMakeId]);
+  }, [formData.make, makes.length, fetchModelsByMakeId]);
 
   // 🔁 React to model list updates
   useEffect(() => {
-    console.log('🔁 React detected modelListVersion change:', modelListVersion);
+    console.log('🔁 React detected modelListVersion change:', modelListVersion, 'Models count:', models.length);
   }, [modelListVersion]);
 
   // Debug log for component state
@@ -94,11 +93,10 @@ export function BasicVehicleForm({
     modelsCount: models.length,
     modelListVersion,
     isLoading,
-    error
+    error,
+    sampleMakes: makes.slice(0, 3),
+    sampleModels: models.slice(0, 3)
   });
-
-  // ✅ Optional Safety Check - log models before rendering
-  console.log('🔍 Re-rendering MakeModelSelect with models:', models.length);
 
   return (
     <div className="space-y-4">
