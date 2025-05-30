@@ -5,11 +5,11 @@ export interface AuctionResult {
   auction_source: string
   price: string
   sold_date: string
-  odometer: string
+  odometer?: string
   mileage?: number
   condition_grade?: string
   location?: string
-  photo_urls: string[]
+  photo_urls?: string[]
   photos?: string[]
   fetched_at?: string
   source_priority?: number
