@@ -8,14 +8,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Car, AlertCircle, CheckCircle } from 'lucide-react';
 import { TabbedFollowUpForm } from '@/components/followup/TabbedFollowUpForm';
-import { useVinLookup } from '@/hooks/useVinLookup';
+import { useVehicleLookup } from '@/hooks/useVehicleLookup';
 import { useValuation } from '@/hooks/useValuation';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { validateVIN } from '@/utils/validation/vin-validation';
 
 export default function ValuationPage() {
   const { vin } = useParams<{ vin: string }>();
-  const { lookupVin, isLoading: vinLoading, error: vinError, vehicleData } = useVinLookup();
+  const { lookupByVin, isLoading: vinLoading, error: vinError, vehicleData } = useVehicleLookup();
   const { saveValuation, isLoading: valuationLoading } = useValuation();
   
   const [followUpData, setFollowUpData] = useState<FollowUpAnswers>({
@@ -38,7 +38,7 @@ export default function ValuationPage() {
     if (!vin) return;
     
     try {
-      await lookupVin(vin);
+      await lookupByVin(vin);
       setHasLookedUp(true);
     } catch (error) {
       console.error('VIN lookup failed:', error);
