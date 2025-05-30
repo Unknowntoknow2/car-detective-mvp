@@ -1,18 +1,26 @@
 
 import { ReportData, ReportOptions } from './types';
 import { generatePremiumReport } from './generators/premiumReportGenerator';
+import { fetchAuctionResultsByVin } from '@/services/auction';
 
 /**
- * Generate a PDF for the valuation report
- * @param data The report data
- * @param options Additional options for PDF generation
- * @returns Promise resolving to PDF document as Uint8Array
+ * Generate a PDF for the valuation report with auction data
  */
 export async function generateValuationPdf(
   data: ReportData, 
   options: Partial<ReportOptions> = {}
 ): Promise<Uint8Array> {
-  // Always use the premium generator, but customize based on options
+  // Fetch auction data if VIN is available and not already included
+  if (data.vin && !data.auctionResults && options.includeAuctionData !== false) {
+    try {
+      const auctionResults = await fetchAuctionResultsByVin(data.vin);
+      data.auctionResults = auctionResults;
+    } catch (error) {
+      console.warn('Failed to fetch auction data for PDF:', error);
+      data.auctionResults = [];
+    }
+  }
+
   return await generatePremiumReport(data, options);
 }
 

@@ -72,10 +72,11 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
         vin: valuationResult.vin
       };
       
-      // Generate the PDF with enriched data
+      // Generate the PDF with auction data included
       const pdfBytes = await generateValuationPdf(formData, {
         isPremium: true,
         includeExplanation: true,
+        includeAuctionData: true,
         enrichedData: enrichedData || undefined
       });
       
@@ -92,7 +93,7 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
       
       toast({
         title: "Success",
-        description: "Premium PDF report with STAT.vin data downloaded successfully",
+        description: "Premium PDF report with auction data downloaded successfully",
       });
     } catch (error) {
       console.error("Error generating PDF:", error);
