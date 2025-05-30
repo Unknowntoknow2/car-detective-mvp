@@ -1,13 +1,16 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Clock, ArrowRight, ArrowLeft } from 'lucide-react';
+import { CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { useFollowUpForm } from '@/hooks/useFollowUpForm';
+import { getCompletionPercentage } from '@/utils/followUpDataHelpers';
+
+// Import all the tab components
 import { BasicInfoTab } from './tabs/BasicInfoTab';
 import { TitleOwnershipTab } from './tabs/TitleOwnershipTab';
 import { VehicleConditionTab } from './tabs/VehicleConditionTab';
@@ -19,48 +22,25 @@ import { FinalReviewTab } from './tabs/FinalReviewTab';
 interface TabbedFollowUpFormProps {
   vin: string;
   initialData?: Partial<FollowUpAnswers>;
-  onSubmit: (data: FollowUpAnswers) => Promise<void>;
-  onSave?: (data: FollowUpAnswers) => Promise<void>;
+  onSubmit: (formData: FollowUpAnswers) => Promise<void>;
+  onSave?: (formData: FollowUpAnswers) => Promise<void>;
 }
 
 export function TabbedFollowUpForm({ vin, initialData, onSubmit, onSave }: TabbedFollowUpFormProps) {
   const { formData, updateFormData, submitForm, isLoading, isSaving } = useFollowUpForm(vin, initialData);
   const [activeTab, setActiveTab] = useState('basic-info');
 
+  const completionPercentage = getCompletionPercentage(formData);
+
   const tabs = [
-    { id: 'basic-info', label: 'Basic Info', component: BasicInfoTab },
-    { id: 'title-ownership', label: 'Title & Ownership', component: TitleOwnershipTab },
-    { id: 'vehicle-condition', label: 'Vehicle Condition', component: VehicleConditionTab },
-    { id: 'accident-history', label: 'Accident History', component: AccidentHistoryTab },
-    { id: 'service-history', label: 'Service History', component: ServiceHistoryTab },
-    { id: 'features', label: 'Features', component: FeaturesTab },
-    { id: 'final-review', label: 'Final Review', component: FinalReviewTab }
+    { id: 'basic-info', label: 'Basic Info', icon: '🏠' },
+    { id: 'title-ownership', label: 'Title & Ownership', icon: '📋' },
+    { id: 'vehicle-condition', label: 'Vehicle Condition', icon: '🚗' },
+    { id: 'accident-history', label: 'Accident History', icon: '⚠️' },
+    { id: 'service-history', label: 'Service History', icon: '🔧' },
+    { id: 'features', label: 'Features', icon: '⭐' },
+    { id: 'review', label: 'Review & Submit', icon: '✅' }
   ];
-
-  const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
-  const isLastTab = currentTabIndex === tabs.length - 1;
-  const isFirstTab = currentTabIndex === 0;
-
-  const handleNext = () => {
-    if (!isLastTab) {
-      setActiveTab(tabs[currentTabIndex + 1].id);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (!isFirstTab) {
-      setActiveTab(tabs[currentTabIndex - 1].id);
-    }
-  };
-
-  const handleSubmit = async () => {
-    try {
-      await submitForm();
-      await onSubmit(formData);
-    } catch (error) {
-      console.error('Error submitting form:', error);
-    }
-  };
 
   const getTabStatus = (tabId: string) => {
     switch (tabId) {
@@ -69,15 +49,27 @@ export function TabbedFollowUpForm({ vin, initialData, onSubmit, onSave }: Tabbe
       case 'title-ownership':
         return formData.title_status ? 'complete' : 'incomplete';
       case 'vehicle-condition':
-        return formData.condition ? 'complete' : 'incomplete';
+        return formData.condition && formData.exterior_condition && formData.interior_condition ? 'complete' : 'incomplete';
+      case 'accident-history':
+        return formData.accident_history ? 'complete' : 'incomplete';
+      case 'service-history':
+        return formData.serviceHistory ? 'complete' : 'incomplete';
+      case 'features':
+        return 'optional';
+      case 'review':
+        return completionPercentage >= 70 ? 'complete' : 'incomplete';
       default:
         return 'incomplete';
     }
   };
 
-  const calculateProgress = () => {
-    const completedTabs = tabs.filter(tab => getTabStatus(tab.id) === 'complete').length;
-    return (completedTabs / tabs.length) * 100;
+  const handleSubmit = async () => {
+    try {
+      await submitForm();
+      await onSubmit(formData);
+    } catch (error) {
+      console.error('Failed to submit follow-up form:', error);
+    }
   };
 
   const handleFeaturesChange = (features: Array<{value: string; label: string; icon?: string; impact?: number}>) => {
@@ -85,108 +77,110 @@ export function TabbedFollowUpForm({ vin, initialData, onSubmit, onSave }: Tabbe
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* Progress Header */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Vehicle Valuation Details</span>
-            <Badge variant="secondary" className="text-sm">
-              {Math.round(calculateProgress())}% Complete
-            </Badge>
-          </CardTitle>
-          <Progress value={calculateProgress()} className="w-full" />
-        </CardHeader>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Vehicle Follow-up Questions</h2>
+              <p className="text-gray-600">Help us provide a more accurate valuation</p>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-gray-500 mb-1">Completion</div>
+              <div className="text-2xl font-bold text-blue-600">{completionPercentage}%</div>
+            </div>
+          </div>
+          <Progress value={completionPercentage} className="h-2" />
+          {isSaving && (
+            <div className="flex items-center text-sm text-blue-600 mt-2">
+              <Clock className="h-4 w-4 mr-1 animate-spin" />
+              Saving...
+            </div>
+          )}
+        </CardContent>
       </Card>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
-          {tabs.map((tab) => (
-            <TabsTrigger
-              key={tab.id}
-              value={tab.id}
-              className="flex items-center space-x-2 text-xs"
-            >
-              {getTabStatus(tab.id) === 'complete' ? (
-                <CheckCircle className="h-4 w-4 text-green-500" />
-              ) : (
-                <Clock className="h-4 w-4" />
-              )}
-              <span className="hidden sm:inline">{tab.label}</span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
+      {/* Tabbed Form */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Tab Navigation Sidebar */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardContent className="p-4">
+                <TabsList className="flex flex-col w-full h-auto bg-transparent space-y-2">
+                  {tabs.map((tab) => {
+                    const status = getTabStatus(tab.id);
+                    return (
+                      <TabsTrigger
+                        key={tab.id}
+                        value={tab.id}
+                        className="w-full justify-start text-left h-auto p-3 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+                      >
+                        <div className="flex items-center space-x-3 w-full">
+                          <span className="text-lg">{tab.icon}</span>
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">{tab.label}</div>
+                          </div>
+                          <div className="flex-shrink-0">
+                            {status === 'complete' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                            {status === 'incomplete' && <AlertCircle className="h-4 w-4 text-red-500" />}
+                            {status === 'optional' && <Badge variant="secondary" className="text-xs">Optional</Badge>}
+                          </div>
+                        </div>
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+              </CardContent>
+            </Card>
+          </div>
 
-        {tabs.map((tab) => {
-          const TabComponent = tab.component;
-          return (
-            <TabsContent key={tab.id} value={tab.id} className="mt-6">
-              <Card>
-                <CardContent className="p-6">
-                  {tab.id === 'features' ? (
-                    <FeaturesTab
-                      formData={formData}
-                      onFeaturesChange={handleFeaturesChange}
-                    />
-                  ) : tab.id === 'final-review' ? (
-                    <FinalReviewTab
-                      formData={formData}
-                      onSubmit={handleSubmit}
-                      isLoading={isLoading}
-                    />
-                  ) : (
-                    <TabComponent
-                      formData={formData}
-                      updateFormData={updateFormData}
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          );
-        })}
-      </Tabs>
+          {/* Tab Content */}
+          <div className="lg:col-span-3">
+            <Card>
+              <CardContent className="p-6">
+                <TabsContent value="basic-info" className="mt-0">
+                  <BasicInfoTab formData={formData} updateFormData={updateFormData} />
+                </TabsContent>
 
-      <div className="flex justify-between items-center">
-        <Button
-          variant="outline"
-          onClick={handlePrevious}
-          disabled={isFirstTab}
-          className="flex items-center space-x-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Previous</span>
-        </Button>
+                <TabsContent value="title-ownership" className="mt-0">
+                  <TitleOwnershipTab formData={formData} updateFormData={updateFormData} />
+                </TabsContent>
 
-        <div className="flex items-center space-x-4">
-          {onSave && (
-            <Button
-              variant="secondary"
-              onClick={() => onSave(formData)}
-              disabled={isSaving}
-            >
-              {isSaving ? 'Saving...' : 'Save Progress'}
-            </Button>
-          )}
+                <TabsContent value="vehicle-condition" className="mt-0">
+                  <VehicleConditionTab formData={formData} updateFormData={updateFormData} />
+                </TabsContent>
 
-          {!isLastTab ? (
-            <Button
-              onClick={handleNext}
-              className="flex items-center space-x-2"
-            >
-              <span>Next</span>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button
-              onClick={handleSubmit}
-              disabled={isLoading}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {isLoading ? 'Submitting...' : 'Complete Valuation'}
-            </Button>
-          )}
+                <TabsContent value="accident-history" className="mt-0">
+                  <AccidentHistoryTab formData={formData} updateFormData={updateFormData} />
+                </TabsContent>
+
+                <TabsContent value="service-history" className="mt-0">
+                  <ServiceHistoryTab formData={formData} updateFormData={updateFormData} />
+                </TabsContent>
+
+                <TabsContent value="features" className="mt-0">
+                  <FeaturesTab 
+                    formData={formData} 
+                    updateFormData={updateFormData}
+                    onFeaturesChange={handleFeaturesChange}
+                  />
+                </TabsContent>
+
+                <TabsContent value="review" className="mt-0">
+                  <FinalReviewTab 
+                    formData={formData} 
+                    updateFormData={updateFormData}
+                    onSubmit={handleSubmit} 
+                    isLoading={isLoading} 
+                  />
+                </TabsContent>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
+      </Tabs>
     </div>
   );
 }
