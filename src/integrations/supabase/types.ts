@@ -9,6 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      accepted_offers: {
+        Row: {
+          accepted_at: string
+          created_at: string
+          dealer_id: string
+          dealer_offer_id: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+          valuation_id: string
+        }
+        Insert: {
+          accepted_at?: string
+          created_at?: string
+          dealer_id: string
+          dealer_offer_id: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          valuation_id: string
+        }
+        Update: {
+          accepted_at?: string
+          created_at?: string
+          dealer_id?: string
+          dealer_offer_id?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          valuation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accepted_offers_dealer_offer_id_fkey"
+            columns: ["dealer_offer_id"]
+            isOneToOne: false
+            referencedRelation: "dealer_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auction_enrichment_by_vin: {
         Row: {
           created_at: string | null
@@ -1185,6 +1229,47 @@ export type Database = {
           nhtsa_model_id?: string | null
         }
         Relationships: []
+      }
+      offer_acceptance_log: {
+        Row: {
+          accepted_offer_id: string
+          accepted_price: number | null
+          created_at: string
+          id: string
+          price_delta: number | null
+          time_to_response_hours: number | null
+          user_zip_code: string | null
+          valuation_price: number | null
+        }
+        Insert: {
+          accepted_offer_id: string
+          accepted_price?: number | null
+          created_at?: string
+          id?: string
+          price_delta?: number | null
+          time_to_response_hours?: number | null
+          user_zip_code?: string | null
+          valuation_price?: number | null
+        }
+        Update: {
+          accepted_offer_id?: string
+          accepted_price?: number | null
+          created_at?: string
+          id?: string
+          price_delta?: number | null
+          time_to_response_hours?: number | null
+          user_zip_code?: string | null
+          valuation_price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_acceptance_log_accepted_offer_id_fkey"
+            columns: ["accepted_offer_id"]
+            isOneToOne: false
+            referencedRelation: "accepted_offers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {

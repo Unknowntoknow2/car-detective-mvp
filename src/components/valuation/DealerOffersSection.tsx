@@ -1,95 +1,122 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useDealerOfferComparison } from '@/hooks/useDealerOfferComparison';
-import { OfferScoreBadge } from '@/components/dealer/OfferScoreBadge';
-import { useDealerOfferActions } from '@/hooks/useDealerOfferActions';
 import { formatDistanceToNow } from 'date-fns';
-import { DollarSign, MessageSquare, TrendingUp, Users, CheckCircle, X } from 'lucide-react';
+import { MessageSquare, User, DollarSign, Clock, TrendingUp, Award } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { scoreDealerOffers, getOfferInsights } from '@/utils/ain/scoreDealerOffers';
+import { useDealerOffers } from '@/hooks/useDealerOffers';
+import { useDealerOfferActions } from '@/hooks/useDealerOfferActions';
+import { scoreDealerOffers, getBestOffer } from '@/utils/ain/scoreDealerOffers';
+import { OfferScoreBadge } from '@/components/dealer/OfferScoreBadge';
+import { OfferAcceptanceModal } from '@/components/dealer/OfferAcceptanceModal';
+import { AcceptedOfferCard } from '@/components/dealer/AcceptedOfferCard';
 
 interface DealerOffersSectionProps {
   valuationId: string;
-  estimatedValue?: number;
+  estimatedValue: number;
+  vehicleInfo?: {
+    year?: number;
+    make?: string;
+    model?: string;
+    vin?: string;
+  };
 }
 
-export function DealerOffersSection({ valuationId, estimatedValue }: DealerOffersSectionProps) {
-  const { offers, isLoading } = useDealerOfferComparison(valuationId);
-  const { acceptOffer, rejectOffer, isProcessing } = useDealerOfferActions();
-  
-  // Apply AIN scoring to offers
-  const scoredOffers = estimatedValue ? scoreDealerOffers({
-    valuationPrice: estimatedValue,
-    offers: offers.map(offer => ({
-      id: offer.id,
-      offer_amount: offer.offer_amount,
-      message: offer.message,
-      dealer_id: offer.dealer_id,
-      created_at: offer.created_at
-    })),
-    userZip: undefined // Could be passed from parent component if available
-  }) : [];
+export function DealerOffersSection({ 
+  valuationId, 
+  estimatedValue, 
+  vehicleInfo 
+}: DealerOffersSectionProps) {
+  const { offers, isLoading, refetch } = useDealerOffers(valuationId);
+  const { acceptOffer, isProcessing } = useDealerOfferActions();
+  const [selectedOffer, setSelectedOffer] = useState<any>(null);
+  const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [acceptedOffers, setAcceptedOffers] = useState<any[]>([]);
 
-  const insights = estimatedValue ? getOfferInsights(scoredOffers, estimatedValue) : null;
-  const bestOffer = insights?.bestOffer;
-
-  const handleAcceptOffer = async (offerId: string, offerAmount: number) => {
-    await acceptOffer({
-      offerId,
-      offerAmount,
-      // Note: In a real implementation, you'd get these from user context or the offer data
-      // dealerEmail: 'dealer@example.com',
-      // userEmail: 'user@example.com',
-      // vin: 'SAMPLE-VIN'
+  // Score the offers using AIN
+  const scoredOffers = React.useMemo(() => {
+    if (!offers.length) return [];
+    
+    return scoreDealerOffers({
+      valuationPrice: estimatedValue,
+      offers: offers.map(offer => ({
+        id: offer.id,
+        offer_amount: offer.offer_amount,
+        message: offer.message,
+        dealer_id: offer.dealer_id,
+        status: offer.status,
+        created_at: offer.created_at
+      })),
+      userZip: vehicleInfo?.vin?.substring(0, 5) || ''
     });
+  }, [offers, estimatedValue, vehicleInfo?.vin]);
+
+  const bestOffer = getBestOffer(scoredOffers);
+
+  const handleAcceptOffer = (offer: any) => {
+    setSelectedOffer(offer);
+    setShowAcceptModal(true);
   };
 
-  const handleRejectOffer = async (offerId: string) => {
-    await rejectOffer(offerId);
+  const handleConfirmAccept = async () => {
+    if (!selectedOffer) return;
+
+    const result = await acceptOffer({
+      offerId: selectedOffer.id,
+      offerAmount: selectedOffer.offer_amount,
+      valuationId,
+      dealerId: selectedOffer.dealer_id,
+      vin: vehicleInfo?.vin
+    });
+
+    if (result.success) {
+      setShowAcceptModal(false);
+      setSelectedOffer(null);
+      refetch();
+      
+      // Add to accepted offers list
+      if (result.acceptedOffer) {
+        setAcceptedOffers(prev => [...prev, {
+          ...result.acceptedOffer,
+          offer: selectedOffer
+        }]);
+      }
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'sent':
+        return <Badge variant="outline">Pending</Badge>;
+      case 'accepted':
+        return <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200">Accepted</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive">Rejected</Badge>;
+      default:
+        return null;
+    }
   };
 
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Dealer Offers
-          </CardTitle>
+          <CardTitle>Dealer Offers</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {[1, 2].map((i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-6 w-24" />
+              <div key={i} className="p-4 border rounded-lg">
+                <div className="flex justify-between items-start mb-2">
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-5 w-16" />
+                </div>
+                <Skeleton className="h-8 w-32 mb-2" />
                 <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
               </div>
             ))}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!offers || offers.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Dealer Offers
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-6">
-            <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 text-sm">
-              No dealer offers yet. Dealers will be notified about your valuation.
-            </p>
           </div>
         </CardContent>
       </Card>
@@ -100,124 +127,132 @@ export function DealerOffersSection({ valuationId, estimatedValue }: DealerOffer
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Dealer Offers ({offers.length})
-          {bestOffer && bestOffer.recommendation === 'excellent' && (
-            <Badge className="bg-green-100 text-green-800">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              Excellent Deal Available
-            </Badge>
+          <DollarSign className="h-5 w-5" />
+          Dealer Offers
+          {offers.length > 0 && (
+            <Badge variant="secondary">{offers.length}</Badge>
           )}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* AIN Insights Summary */}
-        {insights && (
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h4 className="font-semibold text-blue-900 mb-2">🧠 AIN Market Analysis</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <span className="text-blue-700 font-medium">Best Offer:</span>
-                <div className="text-blue-900">${insights.bestOffer?.offer_amount.toLocaleString()}</div>
-              </div>
-              <div>
-                <span className="text-blue-700 font-medium">Average Offer:</span>
-                <div className="text-blue-900">${insights.averageOffer.toLocaleString()}</div>
-              </div>
-              <div>
-                <span className="text-blue-700 font-medium">Your Valuation:</span>
-                <div className="text-blue-900">${insights.valuationPrice.toLocaleString()}</div>
-              </div>
-              <div>
-                <span className="text-blue-700 font-medium">Market Position:</span>
-                <div className="text-blue-900 capitalize">{insights.marketPosition?.replace('_', ' ')}</div>
-              </div>
-            </div>
+        {/* Show accepted offers first */}
+        {acceptedOffers.map((acceptedOffer) => (
+          <div key={acceptedOffer.id} className="mb-4">
+            <AcceptedOfferCard
+              acceptedOffer={acceptedOffer}
+              offer={acceptedOffer.offer}
+              onCancelled={() => {
+                setAcceptedOffers(prev => prev.filter(o => o.id !== acceptedOffer.id));
+                refetch();
+              }}
+            />
           </div>
-        )}
+        ))}
 
-        <div className="space-y-4">
-          {scoredOffers.map((offer, index) => (
-            <div 
-              key={offer.id}
-              className={`p-4 rounded-lg border ${
-                offer.id === bestOffer?.id && offer.recommendation === 'excellent'
-                  ? 'border-green-300 bg-green-50'
-                  : 'border-gray-200 bg-white'
-              }`}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <DollarSign className="h-5 w-5 text-green-600" />
-                  <span className="text-xl font-bold text-green-600">
-                    ${offer.offer_amount.toLocaleString()}
-                  </span>
-                  <OfferScoreBadge 
-                    score={offer.score}
-                    recommendation={offer.recommendation}
-                    isBestOffer={offer.id === bestOffer?.id}
-                  />
-                </div>
-                <Badge variant="outline" className="text-xs">
-                  #{index + 1}
-                </Badge>
-              </div>
-
-              {/* AIN Summary */}
-              <div className="mb-3 p-2 bg-gray-50 rounded text-sm">
-                <strong>AIN Analysis:</strong> {offer.summary}
-              </div>
-              
-              {offer.message && (
-                <div className="mb-3 p-3 bg-gray-50 rounded-md">
-                  <div className="flex items-start gap-2">
-                    <MessageSquare className="h-4 w-4 text-gray-500 mt-0.5" />
-                    <p className="text-sm text-gray-700">{offer.message}</p>
+        {scoredOffers.length === 0 ? (
+          <div className="bg-slate-50 rounded-lg p-8 text-center">
+            <MessageSquare className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+            <p className="text-slate-600 mb-2">No offers yet</p>
+            <p className="text-sm text-slate-500">
+              When dealers make offers on your vehicle, they will appear here with AI-powered insights.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {scoredOffers.map((offer) => (
+              <div
+                key={offer.id}
+                className={`p-4 border rounded-lg ${
+                  offer.id === bestOffer?.id ? 'border-green-300 bg-green-50' : 'border-slate-200'
+                } ${offer.status === 'accepted' ? 'opacity-75' : ''}`}
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-slate-500" />
+                    <span className="font-medium">Dealer Offer</span>
+                    {offer.id === bestOffer?.id && (
+                      <Badge className="bg-amber-100 text-amber-800 border-amber-200 flex items-center gap-1">
+                        <Award className="h-3 w-3" />
+                        Best Offer
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-3 w-3 text-slate-500" />
+                    <span className="text-xs text-slate-500">
+                      {formatDistanceToNow(new Date(offer.created_at), { addSuffix: true })}
+                    </span>
                   </div>
                 </div>
-              )}
-              
-              {/* Action Buttons */}
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">
-                  Submitted {formatDistanceToNow(new Date(offer.created_at), { addSuffix: true })}
-                </span>
-                
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleRejectOffer(offer.id)}
-                    disabled={isProcessing}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <X className="h-4 w-4 mr-1" />
-                    Reject
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => handleAcceptOffer(offer.id, offer.offer_amount)}
-                    disabled={isProcessing}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Accept Offer
-                  </Button>
+
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5 text-green-600" />
+                    <span className="text-2xl font-bold">${offer.offer_amount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(offer.status)}
+                    <OfferScoreBadge
+                      score={offer.score}
+                      recommendation={offer.recommendation}
+                      isBestOffer={offer.id === bestOffer?.id}
+                    />
+                  </div>
                 </div>
+
+                {offer.summary && (
+                  <div className="mb-3 p-3 bg-blue-50 rounded border border-blue-200">
+                    <div className="flex items-start gap-2">
+                      <TrendingUp className="h-4 w-4 text-blue-600 mt-0.5" />
+                      <p className="text-sm text-blue-800 font-medium">{offer.summary}</p>
+                    </div>
+                  </div>
+                )}
+
+                {offer.message && (
+                  <div className="mb-3 p-3 bg-slate-50 rounded border">
+                    <div className="flex items-start gap-2">
+                      <MessageSquare className="h-4 w-4 text-slate-500 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-slate-700">Message from dealer:</p>
+                        <p className="text-sm text-slate-600">{offer.message}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {offer.status === 'sent' && (
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleAcceptOffer(offer)}
+                      disabled={isProcessing}
+                      className="bg-green-600 hover:bg-green-700"
+                      size="sm"
+                    >
+                      Accept Offer
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isProcessing}
+                    >
+                      Decline
+                    </Button>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
-        </div>
-        
-        {estimatedValue && offers.length > 0 && (
-          <div className="mt-4 pt-4 border-t">
-            <div className="text-sm text-gray-600">
-              <p>Estimated Value: ${estimatedValue.toLocaleString()}</p>
-              <p>Best Offer: ${Math.max(...offers.map(o => o.offer_amount)).toLocaleString()}</p>
-              <p>Average Offer: ${Math.round(offers.reduce((sum, o) => sum + o.offer_amount, 0) / offers.length).toLocaleString()}</p>
-            </div>
+            ))}
           </div>
         )}
+
+        <OfferAcceptanceModal
+          isOpen={showAcceptModal}
+          onClose={() => setShowAcceptModal(false)}
+          onConfirm={handleConfirmAccept}
+          offer={selectedOffer}
+          vehicleInfo={vehicleInfo}
+          isProcessing={isProcessing}
+        />
       </CardContent>
     </Card>
   );
