@@ -2,11 +2,14 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, AlertTriangle, Download } from 'lucide-react';
+import { CheckCircle, AlertTriangle } from 'lucide-react';
 import { PremiumDownloadButton } from '@/components/premium/PremiumDownloadButton';
 import { DealerOffersSection } from './DealerOffersSection';
 import { DealerOfferCard } from '@/components/dealer/DealerOfferCard';
 import { useAuth } from '@/contexts/AuthContext';
+import { downloadValuationPdf } from '@/utils/generateValuationPdf';
+import { ReportData } from '@/utils/pdf/types';
+import { toast } from 'sonner';
 
 interface ValuationResultProps {
   valuationId?: string;
@@ -31,6 +34,30 @@ export function ValuationResult({ valuationId, data, isPremium }: ValuationResul
   const { user } = useAuth();
   
   const actualValuationId = valuationId || data.valuationId;
+
+  const handleDownload = async () => {
+    try {
+      const reportData: ReportData = {
+        make: data.make || 'Unknown',
+        model: data.model || 'Unknown',
+        year: data.year || 2020,
+        mileage: data.mileage || 0,
+        condition: data.condition || 'Good',
+        estimatedValue: data.estimatedValue,
+        confidenceScore: data.confidenceScore || 75,
+        zipCode: data.zipCode || '',
+        adjustments: [],
+        generatedAt: new Date().toISOString(),
+        vin: data.vin
+      };
+
+      await downloadValuationPdf(reportData);
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      console.error('PDF download failed:', error);
+      toast.error('Failed to download PDF');
+    }
+  };
   
   if (!data.success) {
     return (
@@ -105,7 +132,8 @@ export function ValuationResult({ valuationId, data, isPremium }: ValuationResul
           {isPremium && (
             <div className="flex justify-center">
               <PremiumDownloadButton 
-                valuationData={data}
+                valuationId={actualValuationId}
+                onDownload={handleDownload}
                 className="w-full md:w-auto"
               />
             </div>
