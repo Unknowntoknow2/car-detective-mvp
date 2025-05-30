@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
 import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
 import { CarFinderQaherCard } from '@/components/valuation/CarFinderQaherCard';
@@ -10,25 +10,30 @@ import { DecodedVehicleInfo } from '@/types/vehicle';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
 import { toast } from 'sonner';
+import { PremiumBadge } from '@/components/premium/insights/PremiumBadge';
 
 export default function ValuationPage() {
   const { vin: vinParam } = useParams<{ vin: string }>();
+  const [searchParams] = useSearchParams();
   const [vehicle, setVehicle] = useState<DecodedVehicleInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showFollowUp, setShowFollowUp] = useState(false);
+
+  // Check if this is a premium valuation
+  const isPremium = searchParams.get('premium') === 'true';
 
   // Handle potentially undefined VIN parameter with proper type handling
   const safeVin: string = vinParam ?? '';
 
   useEffect(() => {
     if (safeVin && safeVin.length === 17) {
-      console.log('🔍 ValuationPage: Loading vehicle data for VIN:', safeVin);
+      console.log('🔍 ValuationPage: Loading vehicle data for VIN:', safeVin, 'Premium:', isPremium);
       loadVehicleData(safeVin);
     } else if (vinParam) {
       // VIN is present but invalid length
       toast.error('Invalid VIN format. VIN must be 17 characters long.');
     }
-  }, [safeVin, vinParam]);
+  }, [safeVin, vinParam, isPremium]);
 
   const loadVehicleData = async (vinCode: string) => {
     setIsLoading(true);
@@ -52,13 +57,13 @@ export default function ValuationPage() {
     }
   };
 
-  const handleFollowUpSubmit = (formData: FollowUpAnswers) => {
-    console.log('✅ ValuationPage: Follow-up submitted:', formData);
+  const handleFollowUpSubmit = async (formData: FollowUpAnswers): Promise<void> => {
+    console.log('✅ ValuationPage: Follow-up submitted:', formData, 'Premium:', isPremium);
     toast.success('Valuation completed successfully!');
     // Handle final valuation here
   };
 
-  const handleFollowUpSave = (formData: FollowUpAnswers) => {
+  const handleFollowUpSave = async (formData: FollowUpAnswers): Promise<void> => {
     console.log('📝 ValuationPage: Follow-up saved:', formData);
     // Handle saving progress here
   };
@@ -97,45 +102,50 @@ export default function ValuationPage() {
 
   return (
     <Container className="max-w-6xl py-10">
-      <CarFinderQaherHeader />
-      
-      {isLoading && (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading vehicle details...</p>
-        </div>
-      )}
-      
-      {vehicle && (
-        <div className="space-y-8">
-          {/* Enhanced Car Finder Qaher Card */}
-          <CarFinderQaherCard vehicle={vehicle} />
-          
-          {showFollowUp && safeVin.length === 17 && (
-            <div className="mt-8">
-              <UnifiedFollowUpForm 
-                vin={safeVin}
-                initialData={{ vin: safeVin }}
-                onSubmit={handleFollowUpSubmit}
-                onSave={handleFollowUpSave}
-              />
-            </div>
-          )}
-        </div>
-      )}
-      
-      {/* Debug info only visible in development mode */}
-      {SHOW_ALL_COMPONENTS && (
-        <div className="fixed bottom-4 right-4 bg-yellow-100 text-black p-3 rounded-lg text-xs z-50 opacity-80">
-          <div className="space-y-1">
-            <div>Debug Mode: ON</div>
-            <div>Component: ValuationPage</div>
-            <div>VIN: {safeVin || 'None'}</div>
-            <div>Vehicle Loaded: {vehicle ? 'Yes' : 'No'}</div>
-            <div>Show Follow-up: {showFollowUp ? 'Yes' : 'No'}</div>
+      <div className="relative">
+        {isPremium && <PremiumBadge />}
+        
+        <CarFinderQaherHeader />
+        
+        {isLoading && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading vehicle details...</p>
           </div>
-        </div>
-      )}
+        )}
+        
+        {vehicle && (
+          <div className="space-y-8">
+            {/* Enhanced Car Finder Qaher Card */}
+            <CarFinderQaherCard vehicle={vehicle} />
+            
+            {showFollowUp && safeVin.length === 17 && (
+              <div className="mt-8">
+                <UnifiedFollowUpForm 
+                  vin={safeVin}
+                  initialData={{ vin: safeVin }}
+                  onSubmit={handleFollowUpSubmit}
+                  onSave={handleFollowUpSave}
+                />
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Debug info only visible in development mode */}
+        {SHOW_ALL_COMPONENTS && (
+          <div className="fixed bottom-4 right-4 bg-yellow-100 text-black p-3 rounded-lg text-xs z-50 opacity-80">
+            <div className="space-y-1">
+              <div>Debug Mode: ON</div>
+              <div>Component: ValuationPage</div>
+              <div>VIN: {safeVin || 'None'}</div>
+              <div>Premium: {isPremium ? 'Yes' : 'No'}</div>
+              <div>Vehicle Loaded: {vehicle ? 'Yes' : 'No'}</div>
+              <div>Show Follow-up: {showFollowUp ? 'Yes' : 'No'}</div>
+            </div>
+          </div>
+        )}
+      </div>
     </Container>
   );
 }
