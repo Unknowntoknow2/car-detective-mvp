@@ -1,4 +1,5 @@
 
+
 export interface AuctionResult {
   vin: string;
   auction_source: string;
@@ -94,6 +95,7 @@ export interface ReportOptions {
   debugInfo?: string;
   footerText?: string;
   trackingId?: string;
+  enrichedData?: any; // Add enrichedData property
   
   // PDF styling options
   colorScheme?: 'light' | 'dark' | 'branded';
@@ -122,3 +124,4 @@ export interface SectionParams {
   textColor?: any;
   primaryColor?: any;
 }
+
