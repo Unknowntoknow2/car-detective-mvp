@@ -1,5 +1,4 @@
 
-
 export interface AuctionResult {
   vin: string;
   auction_source: string;
@@ -45,6 +44,7 @@ export interface ReportData {
   photoUrl?: string;
   auctionResults?: AuctionResult[];
   explanation?: string;
+  basePrice?: number; // Added basePrice property
 }
 
 export interface ReportOptions {
@@ -64,6 +64,10 @@ export interface ReportOptions {
     bodyFont: string;
   };
   enrichedData?: any;
+  watermark?: string; // Added watermark property
+  trackingId?: string; // Added trackingId property
+  ainSummary?: string; // Added ainSummary property
+  debugInfo?: string; // Added debugInfo property
 }
 
 export interface DocumentFonts {
@@ -85,4 +89,3 @@ export interface SectionParams {
   textColor?: any;
   primaryColor?: any;
 }
-
