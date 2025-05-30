@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, FileText, Loader2, Share2, Mail, Shield } from 'lucide-react';
-import { QrCodeDownload } from './QrCodeDownload';
-import { uploadValuationPdf } from '@/utils/pdf/uploadValuationPdf';
-import { convertVehicleInfoToReportData } from '@/utils/pdf/generateValuationPdf';
-import { toast } from '@/hooks/use-toast';
-import { useUser } from '@/hooks/useUser';
+import { Badge } from '@/components/ui/badge';
+import { Download, Mail, Users, FileText } from 'lucide-react';
+import { useDealerNotifications } from '@/hooks/useDealerNotifications';
+import { ReportData } from '@/utils/pdf/types';
+import { downloadValuationPdf } from '@/utils/generateValuationPdf';
+import { toast } from 'sonner';
 
 interface PremiumPdfSectionProps {
   valuationResult: any;
@@ -15,210 +15,134 @@ interface PremiumPdfSectionProps {
 }
 
 export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSectionProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [filename, setFilename] = useState<string | null>(null);
-  const [trackingId, setTrackingId] = useState<string | null>(null);
-  const [emailedToDealers, setEmailedToDealers] = useState(false);
-  const { user } = useUser();
+  const [isDownloading, setIsDownloading] = useState(false);
+  const { isNotifying, notificationStatus, triggerDealerNotifications } = useDealerNotifications();
 
-  const handleGeneratePdf = async (options: { emailToDealers?: boolean } = {}) => {
-    if (!isPremium) {
-      toast({
-        title: "Premium Required",
-        description: "PDF reports are only available for premium users",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!user?.id) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to generate PDF reports",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleDownloadPdf = async () => {
+    setIsDownloading(true);
     try {
-      setIsGenerating(true);
-      
-      // Convert valuation result to report data
-      const reportData = convertVehicleInfoToReportData(valuationResult, valuationResult);
-      
-      // Upload with enhanced features
-      const result = await uploadValuationPdf(reportData, user.id, {
-        emailToDealers: options.emailToDealers,
-        includeAINSummary: true,
-        includeDebugInfo: process.env.NODE_ENV === 'development'
-      });
-      
-      setPdfUrl(result.url);
-      setFilename(result.filename);
-      setTrackingId(result.trackingId);
-      
-      if (options.emailToDealers) {
-        setEmailedToDealers(true);
-      }
-      
-      toast({
-        title: "PDF Generated Successfully",
-        description: options.emailToDealers 
-          ? "Your premium report is ready and has been sent to verified dealers"
-          : "Your premium report is ready for download",
-      });
+      const reportData: ReportData = {
+        make: valuationResult.make || 'Unknown',
+        model: valuationResult.model || 'Unknown',
+        year: valuationResult.year || 2020,
+        mileage: valuationResult.mileage || 0,
+        condition: valuationResult.condition || 'Good',
+        estimatedValue: valuationResult.estimatedValue || 0,
+        confidenceScore: valuationResult.confidenceScore || 75,
+        zipCode: valuationResult.zipCode || '90210',
+        adjustments: valuationResult.adjustments || [],
+        generatedAt: new Date().toISOString(),
+        vin: valuationResult.vin
+      };
+
+      await downloadValuationPdf(reportData);
+      toast.success('PDF downloaded successfully!');
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast({
-        title: "Generation Failed",
-        description: "Failed to generate PDF report. Please try again.",
-        variant: "destructive",
-      });
+      console.error('PDF download failed:', error);
+      toast.error('Failed to download PDF');
     } finally {
-      setIsGenerating(false);
+      setIsDownloading(false);
     }
   };
 
-  const handleDownload = () => {
-    if (pdfUrl) {
-      window.open(pdfUrl, '_blank');
+  const handleNotifyDealers = async () => {
+    if (!valuationResult.zipCode) {
+      toast.error('ZIP code is required to notify dealers');
+      return;
     }
-  };
 
-  const handleShare = async () => {
-    if (!pdfUrl) return;
+    const reportData: ReportData = {
+      make: valuationResult.make || 'Unknown',
+      model: valuationResult.model || 'Unknown',
+      year: valuationResult.year || 2020,
+      mileage: valuationResult.mileage || 0,
+      condition: valuationResult.condition || 'Good',
+      estimatedValue: valuationResult.estimatedValue || 0,
+      confidenceScore: valuationResult.confidenceScore || 75,
+      zipCode: valuationResult.zipCode,
+      adjustments: valuationResult.adjustments || [],
+      generatedAt: new Date().toISOString(),
+      vin: valuationResult.vin
+    };
 
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Vehicle Valuation Report',
-          text: `Vehicle valuation report for ${valuationResult.year} ${valuationResult.make} ${valuationResult.model}`,
-          url: pdfUrl,
-        });
-      } catch (error) {
-        console.error('Error sharing:', error);
-        navigator.clipboard.writeText(pdfUrl);
-        toast({
-          title: "Link Copied",
-          description: "Report link copied to clipboard",
-        });
-      }
-    } else {
-      navigator.clipboard.writeText(pdfUrl);
-      toast({
-        title: "Link Copied",
-        description: "Report link copied to clipboard",
-      });
-    }
+    await triggerDealerNotifications(reportData, valuationResult.zipCode);
   };
 
   if (!isPremium) {
-    return null;
+    return (
+      <Card className="p-6 border border-orange-200 bg-orange-50">
+        <div className="text-center space-y-4">
+          <FileText className="w-12 h-12 text-orange-500 mx-auto" />
+          <h3 className="text-lg font-semibold text-orange-900">Premium PDF Report</h3>
+          <p className="text-orange-700">
+            Upgrade to access detailed PDF reports with market analysis and dealer notifications.
+          </p>
+          <Button variant="outline" className="border-orange-300 text-orange-700">
+            Upgrade to Premium
+          </Button>
+        </div>
+      </Card>
+    );
   }
 
   return (
-    <Card className="mt-6">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          Premium PDF Report
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {!pdfUrl ? (
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Generate a comprehensive PDF report with AIN summary, auction data, watermark protection, and tracking.
+    <Card className="p-6">
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <FileText className="w-5 h-5 text-blue-600" />
+          <h3 className="text-lg font-semibold">Premium Actions</h3>
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+            Premium
+          </Badge>
+        </div>
+
+        <div className="space-y-3">
+          <Button
+            onClick={handleDownloadPdf}
+            disabled={isDownloading}
+            className="w-full flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            {isDownloading ? 'Generating PDF...' : 'Download Detailed Report'}
+          </Button>
+
+          <Button
+            onClick={handleNotifyDealers}
+            disabled={isNotifying || valuationResult.estimatedValue < 8000}
+            variant="outline"
+            className="w-full flex items-center gap-2"
+          >
+            <Users className="w-4 h-4" />
+            {isNotifying ? 'Notifying Dealers...' : 'Notify Local Dealers'}
+          </Button>
+
+          {valuationResult.estimatedValue < 8000 && (
+            <p className="text-sm text-gray-500 text-center">
+              Dealer notifications are available for vehicles valued at $8,000+
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button 
-                onClick={() => handleGeneratePdf()} 
-                disabled={isGenerating}
-                className="flex-1"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating Report...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Generate Premium PDF
-                  </>
-                )}
-              </Button>
+          )}
 
-              <Button 
-                onClick={() => handleGeneratePdf({ emailToDealers: true })} 
-                disabled={isGenerating}
-                variant="outline"
-                className="flex-1"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating & Emailing...
-                  </>
-                ) : (
-                  <>
-                    <Mail className="mr-2 h-4 w-4" />
-                    Generate & Email to Dealers
-                  </>
-                )}
-              </Button>
-            </div>
-
-            <div className="text-xs text-muted-foreground space-y-1">
-              <div className="flex items-center gap-1">
-                <Shield className="h-3 w-3" />
-                <span>Includes watermark protection and tracking ID</span>
-              </div>
-              <div>• AIN-generated summary and insights</div>
-              <div>• Professional dealer-ready format</div>
-              {emailedToDealers && <div>• Automatically sent to verified dealers</div>}
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4 items-start">
-              <div className="flex-1 space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Your premium report is ready! {emailedToDealers && 'It has been sent to verified dealers.'} The download link is valid for 24 hours.
-                </p>
-                
-                <div className="flex flex-wrap gap-2">
-                  <Button onClick={handleDownload} className="flex-1 sm:flex-none">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download PDF
-                  </Button>
-                  
-                  <Button variant="outline" onClick={handleShare} className="flex-1 sm:flex-none">
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Share
-                  </Button>
-                </div>
-
-                <div className="text-xs text-muted-foreground space-y-1">
-                  {filename && <p>File: {filename}</p>}
-                  {trackingId && <p>Tracking ID: {trackingId}</p>}
-                  {emailedToDealers && (
-                    <p className="text-green-600">✓ Sent to verified dealers</p>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex-shrink-0">
-                <QrCodeDownload url={pdfUrl} />
+          {notificationStatus && (
+            <div className={`p-3 rounded-md text-sm ${
+              notificationStatus.success 
+                ? 'bg-green-50 text-green-800 border border-green-200'
+                : 'bg-red-50 text-red-800 border border-red-200'
+            }`}>
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                {notificationStatus.message}
               </div>
             </div>
-          </div>
-        )}
-      </CardContent>
+          )}
+        </div>
+
+        <div className="pt-4 border-t text-xs text-gray-500">
+          <p>• Comprehensive market analysis</p>
+          <p>• Auction intelligence data</p>
+          <p>• Local dealer network alerts</p>
+          <p>• Professional PDF formatting</p>
+        </div>
+      </div>
     </Card>
   );
 }
-
-export default PremiumPdfSection;
