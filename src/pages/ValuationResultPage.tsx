@@ -106,7 +106,7 @@ export default function ValuationResultPage() {
   }
 
   const isPremium = valuationResult.isPremium || valuationResult.premium_unlocked;
-  const isDealer = user?.user_metadata?.role === 'dealer';
+  const isDealer = user?.userMetadata?.role === 'dealer';
   const canViewIntelligence = isPremium || isDealer;
 
   return (
