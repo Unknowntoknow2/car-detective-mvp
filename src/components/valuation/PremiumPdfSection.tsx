@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, FileText, Loader2, Share2 } from 'lucide-react';
+import { Download, FileText, Loader2, Share2, Mail, Shield } from 'lucide-react';
 import { QrCodeDownload } from './QrCodeDownload';
 import { uploadValuationPdf } from '@/utils/pdf/uploadValuationPdf';
 import { convertVehicleInfoToReportData } from '@/utils/pdf/generateValuationPdf';
@@ -18,9 +18,11 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
   const [isGenerating, setIsGenerating] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [filename, setFilename] = useState<string | null>(null);
+  const [trackingId, setTrackingId] = useState<string | null>(null);
+  const [emailedToDealers, setEmailedToDealers] = useState(false);
   const { user } = useUser();
 
-  const handleGeneratePdf = async () => {
+  const handleGeneratePdf = async (options: { emailToDealers?: boolean } = {}) => {
     if (!isPremium) {
       toast({
         title: "Premium Required",
@@ -45,15 +47,26 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
       // Convert valuation result to report data
       const reportData = convertVehicleInfoToReportData(valuationResult, valuationResult);
       
-      // Upload and get signed URL
-      const result = await uploadValuationPdf(reportData, user.id);
+      // Upload with enhanced features
+      const result = await uploadValuationPdf(reportData, user.id, {
+        emailToDealers: options.emailToDealers,
+        includeAINSummary: true,
+        includeDebugInfo: process.env.NODE_ENV === 'development'
+      });
       
       setPdfUrl(result.url);
       setFilename(result.filename);
+      setTrackingId(result.trackingId);
+      
+      if (options.emailToDealers) {
+        setEmailedToDealers(true);
+      }
       
       toast({
         title: "PDF Generated Successfully",
-        description: "Your premium report is ready for download",
+        description: options.emailToDealers 
+          ? "Your premium report is ready and has been sent to verified dealers"
+          : "Your premium report is ready for download",
       });
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -85,7 +98,6 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
         });
       } catch (error) {
         console.error('Error sharing:', error);
-        // Fallback to copying URL
         navigator.clipboard.writeText(pdfUrl);
         toast({
           title: "Link Copied",
@@ -93,7 +105,6 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
         });
       }
     } else {
-      // Fallback for browsers without Web Share API
       navigator.clipboard.writeText(pdfUrl);
       toast({
         title: "Link Copied",
@@ -118,32 +129,64 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
         {!pdfUrl ? (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Generate a comprehensive PDF report with auction data, detailed analysis, and professional formatting.
+              Generate a comprehensive PDF report with AIN summary, auction data, watermark protection, and tracking.
             </p>
-            <Button 
-              onClick={handleGeneratePdf} 
-              disabled={isGenerating}
-              className="w-full sm:w-auto"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating Report...
-                </>
-              ) : (
-                <>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Generate Premium PDF Report
-                </>
-              )}
-            </Button>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button 
+                onClick={() => handleGeneratePdf()} 
+                disabled={isGenerating}
+                className="flex-1"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating Report...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Generate Premium PDF
+                  </>
+                )}
+              </Button>
+
+              <Button 
+                onClick={() => handleGeneratePdf({ emailToDealers: true })} 
+                disabled={isGenerating}
+                variant="outline"
+                className="flex-1"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating & Emailing...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Generate & Email to Dealers
+                  </>
+                )}
+              </Button>
+            </div>
+
+            <div className="text-xs text-muted-foreground space-y-1">
+              <div className="flex items-center gap-1">
+                <Shield className="h-3 w-3" />
+                <span>Includes watermark protection and tracking ID</span>
+              </div>
+              <div>• AIN-generated summary and insights</div>
+              <div>• Professional dealer-ready format</div>
+              {emailedToDealers && <div>• Automatically sent to verified dealers</div>}
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 items-start">
               <div className="flex-1 space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Your premium report is ready! The download link is valid for 24 hours.
+                  Your premium report is ready! {emailedToDealers && 'It has been sent to verified dealers.'} The download link is valid for 24 hours.
                 </p>
                 
                 <div className="flex flex-wrap gap-2">
@@ -158,11 +201,13 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
                   </Button>
                 </div>
 
-                {filename && (
-                  <p className="text-xs text-muted-foreground">
-                    File: {filename}
-                  </p>
-                )}
+                <div className="text-xs text-muted-foreground space-y-1">
+                  {filename && <p>File: {filename}</p>}
+                  {trackingId && <p>Tracking ID: {trackingId}</p>}
+                  {emailedToDealers && (
+                    <p className="text-green-600">✓ Sent to verified dealers</p>
+                  )}
+                </div>
               </div>
               
               <div className="flex-shrink-0">
