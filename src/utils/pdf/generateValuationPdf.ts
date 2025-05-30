@@ -20,7 +20,7 @@ export async function generateValuationPdf(
       const competitorPrices = await getCachedCompetitorPrices(data.vin);
       if (competitorPrices) {
         data.competitorPrices = competitorPrices;
-        data.competitorAverage = calculateAverageCompetitorPrice(competitorPrices);
+        data.competitorAverage = calculateAverageCompetitorPrice(competitorPrices) || undefined;
         console.log(`✅ Found competitor pricing from ${Object.values(competitorPrices).filter(Boolean).length - 6} sources`);
       }
     } catch (error) {
