@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Loader2, Copy, Share2, Check, Twitter, Linkedin } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface ShareableLinkProps {
   valuationId: string;
@@ -119,7 +119,7 @@ export function ShareableLink({ valuationId }: ShareableLinkProps) {
               </div>
               
               <div className="flex justify-center pt-2">
-                <QRCode value={shareUrl} size={150} />
+                <QRCodeSVG value={shareUrl} size={150} />
               </div>
               
               <div className="flex justify-center gap-2 pt-2">
