@@ -11,7 +11,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     condition: 'good',
     title_status: 'clean',
     previous_use: 'personal',
-    service_history: 'good',
+    service_history: { hasRecords: false },
     maintenance_status: 'good',
     tire_condition: 'good',
     exterior_condition: 'good',
@@ -28,7 +28,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       description: ''
     },
     modifications: {
-      modified: false,
+      hasModifications: false,
       types: []
     },
     features: [],

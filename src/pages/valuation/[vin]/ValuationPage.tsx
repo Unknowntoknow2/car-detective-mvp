@@ -57,13 +57,13 @@ export default function ValuationPage() {
     }
   };
 
-  const handleFollowUpSubmit = (formData: FollowUpAnswers) => {
+  const handleFollowUpSubmit = async (formData: FollowUpAnswers): Promise<void> => {
     console.log('✅ ValuationPage: Follow-up submitted:', formData, 'Premium:', isPremium);
     toast.success('Valuation completed successfully!');
     // Handle final valuation here
   };
 
-  const handleFollowUpSave = (formData: FollowUpAnswers) => {
+  const handleFollowUpSave = async (formData: FollowUpAnswers): Promise<void> => {
     console.log('📝 ValuationPage: Follow-up saved:', formData);
     // Handle saving progress here
   };
