@@ -37,6 +37,8 @@ export async function generateValuationPdf(
     includePhotoAssessment?: boolean;
     includeExplanation?: boolean;
     includeAuctionData?: boolean;
+    includeCompetitorPricing?: boolean;
+    includeAINSummary?: boolean;
     enrichedData?: any;
     marketplaceListings?: MarketplaceListing[];
   } = {}
@@ -49,7 +51,9 @@ export async function generateValuationPdf(
     includeTimestamp: true,
     includePhotoAssessment: true,
     includeExplanation: false,
-    includeAuctionData: false
+    includeAuctionData: false,
+    includeCompetitorPricing: false,
+    includeAINSummary: false
   };
   
   const mergedOptions = { ...defaultOptions, ...options };
@@ -79,12 +83,14 @@ export async function generateValuationPdf(
   if (mergedOptions.marketplaceListings && mergedOptions.marketplaceListings.length > 0) {
     console.log('Injecting marketplace listings into PDF:', mergedOptions.marketplaceListings.length);
     try {
-      pdfBytes = await injectMarketplaceListingsToPDF({
+      const injectedPdfBytes = await injectMarketplaceListingsToPDF({
         pdfBytes,
         listings: mergedOptions.marketplaceListings,
         estimatedValue: data.estimatedValue || 0,
         maxListings: 5
       });
+      // Ensure we return the correct Uint8Array type
+      pdfBytes = new Uint8Array(injectedPdfBytes);
     } catch (error) {
       console.error('Failed to inject marketplace listings into PDF:', error);
       // Continue without marketplace data rather than failing completely
