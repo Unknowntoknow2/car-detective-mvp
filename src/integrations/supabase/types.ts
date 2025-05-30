@@ -36,6 +36,39 @@ export type Database = {
         }
         Relationships: []
       }
+      auction_intelligence_by_vin: {
+        Row: {
+          auction_conflict: boolean
+          created_at: string
+          flip_flags: Json
+          latest_sale: Json | null
+          price_trend: Json
+          risk_score: number
+          updated_at: string
+          vin: string
+        }
+        Insert: {
+          auction_conflict?: boolean
+          created_at?: string
+          flip_flags?: Json
+          latest_sale?: Json | null
+          price_trend?: Json
+          risk_score?: number
+          updated_at?: string
+          vin: string
+        }
+        Update: {
+          auction_conflict?: boolean
+          created_at?: string
+          flip_flags?: Json
+          latest_sale?: Json | null
+          price_trend?: Json
+          risk_score?: number
+          updated_at?: string
+          vin?: string
+        }
+        Relationships: []
+      }
       auction_results_by_vin: {
         Row: {
           auction_source: string
