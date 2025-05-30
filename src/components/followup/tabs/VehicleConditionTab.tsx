@@ -2,10 +2,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Star, Gauge, MapPin, Eye, Palette } from 'lucide-react';
-import { FollowUpAnswers, CONDITION_OPTIONS } from '@/types/follow-up-answers';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Car, Palette, Home, AlertTriangle } from 'lucide-react';
+import { FollowUpAnswers, CONDITION_OPTIONS, TIRE_CONDITION_OPTIONS, DASHBOARD_LIGHTS } from '@/types/follow-up-answers';
 
 interface VehicleConditionTabProps {
   formData: FollowUpAnswers;
@@ -13,112 +13,50 @@ interface VehicleConditionTabProps {
 }
 
 export function VehicleConditionTab({ formData, updateFormData }: VehicleConditionTabProps) {
+  const handleDashboardLightChange = (light: string, checked: boolean) => {
+    const currentLights = formData.dashboard_lights || [];
+    if (checked) {
+      updateFormData({ dashboard_lights: [...currentLights, light] });
+    } else {
+      updateFormData({ dashboard_lights: currentLights.filter(l => l !== light) });
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-          <Star className="h-5 w-5 text-white" />
+    <div className="space-y-8">
+      <div className="flex items-center space-x-3 mb-8">
+        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+          <Car className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Vehicle Condition</h2>
-          <p className="text-gray-600">Assess the overall state of your vehicle</p>
+          <h2 className="text-3xl font-bold text-gray-900">Vehicle Condition</h2>
+          <p className="text-gray-600 text-lg">Detailed condition assessment</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Mileage */}
-        <Card className="border-emerald-200 bg-emerald-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-emerald-700">
-              <Gauge className="h-5 w-5 mr-2" />
-              Current Mileage
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Input
-              type="number"
-              placeholder="Enter mileage"
-              value={formData.mileage || ''}
-              onChange={(e) => updateFormData({ mileage: parseInt(e.target.value) || 0 })}
-              className="text-lg font-medium"
-            />
-            <p className="text-xs text-emerald-600 mt-1">Lower mileage typically means higher value</p>
-          </CardContent>
-        </Card>
-
-        {/* ZIP Code */}
-        <Card className="border-emerald-200 bg-emerald-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-emerald-700">
-              <MapPin className="h-5 w-5 mr-2" />
-              Location
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Input
-              type="text"
-              placeholder="ZIP Code"
-              value={formData.zip_code || ''}
-              onChange={(e) => updateFormData({ zip_code: e.target.value })}
-              className="text-lg font-medium"
-              maxLength={5}
-            />
-            <p className="text-xs text-emerald-600 mt-1">Regional market values vary by location</p>
-          </CardContent>
-        </Card>
-
-        {/* Overall Condition */}
-        <Card className="border-emerald-200 bg-emerald-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-emerald-700">
-              <Star className="h-5 w-5 mr-2" />
-              Overall Condition
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Select 
-              value={formData.condition || ''} 
-              onValueChange={(value) => updateFormData({ condition: value as any })}
-            >
-              <SelectTrigger className="text-lg">
-                <SelectValue placeholder="Select condition" />
-              </SelectTrigger>
-              <SelectContent>
-                {CONDITION_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{option.label}</span>
-                      <span className="text-xs text-gray-500">{option.impact}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Exterior Condition */}
-        <Card className="border-emerald-200 bg-emerald-50/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-emerald-700">
-              <Eye className="h-5 w-5 mr-2" />
+        <Card className="border-green-200 bg-green-50/50">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center text-green-700 text-xl">
+              <Palette className="h-6 w-6 mr-3" />
               Exterior Condition
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Select 
               value={formData.exterior_condition || ''} 
-              onValueChange={(value) => updateFormData({ exterior_condition: value as any })}
+              onValueChange={(value: 'excellent' | 'good' | 'fair' | 'poor') => updateFormData({ exterior_condition: value })}
             >
-              <SelectTrigger className="text-lg">
+              <SelectTrigger className="h-14 text-lg bg-white border-2 border-green-200 hover:border-green-300 focus:border-green-500">
                 <SelectValue placeholder="Select exterior condition" />
               </SelectTrigger>
               <SelectContent>
                 {CONDITION_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{option.label}</span>
-                      <span className="text-xs text-gray-500">{option.description}</span>
+                    <div className="flex flex-col space-y-1">
+                      <span className="font-semibold text-base">{option.label}</span>
+                      <span className="text-sm text-gray-600">{option.description}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -128,32 +66,142 @@ export function VehicleConditionTab({ formData, updateFormData }: VehicleConditi
         </Card>
 
         {/* Interior Condition */}
-        <Card className="border-emerald-200 bg-emerald-50/50 md:col-span-2">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-emerald-700">
-              <Palette className="h-5 w-5 mr-2" />
+        <Card className="border-green-200 bg-green-50/50">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center text-green-700 text-xl">
+              <Home className="h-6 w-6 mr-3" />
               Interior Condition
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Select 
               value={formData.interior_condition || ''} 
-              onValueChange={(value) => updateFormData({ interior_condition: value as any })}
+              onValueChange={(value: 'excellent' | 'good' | 'fair' | 'poor') => updateFormData({ interior_condition: value })}
             >
-              <SelectTrigger className="text-lg">
+              <SelectTrigger className="h-14 text-lg bg-white border-2 border-green-200 hover:border-green-300 focus:border-green-500">
                 <SelectValue placeholder="Select interior condition" />
               </SelectTrigger>
               <SelectContent>
                 {CONDITION_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{option.label}</span>
-                      <span className="text-xs text-gray-500">{option.description}</span>
+                    <div className="flex flex-col space-y-1">
+                      <span className="font-semibold text-base">{option.label}</span>
+                      <span className="text-sm text-gray-600">{option.description}</span>
                     </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </CardContent>
+        </Card>
+
+        {/* Tire Condition */}
+        <Card className="border-green-200 bg-green-50/50">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center text-green-700 text-xl">
+              <Car className="h-6 w-6 mr-3" />
+              Tire Condition
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select 
+              value={formData.tire_condition || ''} 
+              onValueChange={(value: 'new' | 'good' | 'worn' | 'bald') => updateFormData({ tire_condition: value })}
+            >
+              <SelectTrigger className="h-14 text-lg bg-white border-2 border-green-200 hover:border-green-300 focus:border-green-500">
+                <SelectValue placeholder="Select tire condition" />
+              </SelectTrigger>
+              <SelectContent>
+                {TIRE_CONDITION_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex flex-col space-y-1">
+                      <span className="font-semibold text-base">{option.label}</span>
+                      <span className="text-sm text-gray-600">{option.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
+        {/* Dashboard Warning Lights */}
+        <Card className="border-orange-200 bg-orange-50/50">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center text-orange-700 text-xl">
+              <AlertTriangle className="h-6 w-6 mr-3" />
+              Dashboard Warning Lights
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-3">
+              {DASHBOARD_LIGHTS.map((light) => (
+                <div key={light} className="flex items-center space-x-3">
+                  <Checkbox
+                    id={light}
+                    checked={formData.dashboard_lights?.includes(light) || false}
+                    onCheckedChange={(checked) => handleDashboardLightChange(light, !!checked)}
+                  />
+                  <Label htmlFor={light} className="text-base cursor-pointer">
+                    {light}
+                  </Label>
+                </div>
+              ))}
+            </div>
+            {formData.dashboard_lights && formData.dashboard_lights.length === 0 && (
+              <p className="text-sm text-green-600 mt-4 font-medium">
+                No warning lights selected - Great!
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Additional Condition Issues */}
+        <Card className="border-red-200 bg-red-50/50 md:col-span-2">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center text-red-700 text-xl">
+              <AlertTriangle className="h-6 w-6 mr-3" />
+              Additional Issues
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="smoking"
+                  checked={formData.smoking || false}
+                  onCheckedChange={(checked) => updateFormData({ smoking: !!checked })}
+                />
+                <Label htmlFor="smoking" className="cursor-pointer">Smoking Odor</Label>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="petDamage"
+                  checked={formData.petDamage || false}
+                  onCheckedChange={(checked) => updateFormData({ petDamage: !!checked })}
+                />
+                <Label htmlFor="petDamage" className="cursor-pointer">Pet Damage</Label>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="rust"
+                  checked={formData.rust || false}
+                  onCheckedChange={(checked) => updateFormData({ rust: !!checked })}
+                />
+                <Label htmlFor="rust" className="cursor-pointer">Rust</Label>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="hailDamage"
+                  checked={formData.hailDamage || false}
+                  onCheckedChange={(checked) => updateFormData({ hailDamage: !!checked })}
+                />
+                <Label htmlFor="hailDamage" className="cursor-pointer">Hail Damage</Label>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
