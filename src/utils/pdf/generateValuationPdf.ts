@@ -41,6 +41,7 @@ export async function generateValuationPdf(
     includeAINSummary?: boolean;
     watermark?: string;
     trackingId?: string;
+    ainSummary?: string;
     enrichedData?: any;
     marketplaceListings?: MarketplaceListing[];
   } = {}
