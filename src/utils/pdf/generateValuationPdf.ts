@@ -1,4 +1,3 @@
-
 import { ReportData } from './types';
 import { injectMarketplaceListingsToPDF } from './injectMarketplaceListingsToPDF';
 
@@ -42,6 +41,7 @@ export async function generateValuationPdf(
     watermark?: string;
     trackingId?: string;
     ainSummary?: string;
+    debugInfo?: string;
     enrichedData?: any;
     marketplaceListings?: MarketplaceListing[];
   } = {}
