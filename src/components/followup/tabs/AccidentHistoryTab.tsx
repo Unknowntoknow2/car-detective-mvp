@@ -2,33 +2,34 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Car, AlertTriangle, FileX, Shield } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { AlertTriangle, FileText, Shield } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface AccidentHistoryTabProps {
   formData: FollowUpAnswers;
-  onUpdate: (updates: Partial<FollowUpAnswers>) => void;
+  updateFormData: (updates: Partial<FollowUpAnswers>) => void;
 }
 
-export function AccidentHistoryTab({ formData, onUpdate }: AccidentHistoryTabProps) {
-  const currentAccidents = formData.accidents || {
-    hadAccident: false,
-    count: undefined,
-    location: undefined,
-    severity: undefined,
-    repaired: undefined,
-    frameDamage: undefined,
-    description: undefined
-  };
+export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistoryTabProps) {
+  const handleAccidentChange = (field: string, value: any) => {
+    const currentAccidents = formData.accident_history || {
+      hadAccident: false,
+      count: 0,
+      location: '',
+      severity: 'minor',
+      repaired: false,
+      frameDamage: false,
+      description: ''
+    };
 
-  const updateAccidents = (updates: Partial<typeof currentAccidents>) => {
-    onUpdate({
-      accidents: {
+    updateFormData({
+      accident_history: {
         ...currentAccidents,
-        ...updates
+        [field]: value
       }
     });
   };
@@ -36,197 +37,178 @@ export function AccidentHistoryTab({ formData, onUpdate }: AccidentHistoryTabPro
   return (
     <div className="space-y-8">
       <div className="flex items-center space-x-3 mb-8">
-        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center">
+        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
           <AlertTriangle className="h-6 w-6 text-white" />
         </div>
         <div>
           <h2 className="text-3xl font-bold text-gray-900">Accident History</h2>
-          <p className="text-gray-600 text-lg">Document any previous accidents or damage</p>
+          <p className="text-gray-600 text-lg">Any accidents or damage history</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Has Accident */}
-        <Card className="border-red-200 bg-red-50/50 md:col-span-2">
-          <CardHeader className="pb-4">
+      <div className="space-y-6">
+        {/* Has Accident Toggle */}
+        <Card className="border-red-200 bg-red-50/50">
+          <CardHeader>
             <CardTitle className="flex items-center text-red-700 text-xl">
-              <Car className="h-6 w-6 mr-3" />
-              Has this vehicle been in any accidents?
+              <AlertTriangle className="h-6 w-6 mr-3" />
+              Accident History
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => updateAccidents({ hadAccident: false })}
-                className={`px-6 py-3 rounded-lg border-2 transition-all ${
-                  currentAccidents.hadAccident === false
-                    ? 'bg-green-100 border-green-300 text-green-800 font-semibold' 
-                    : 'bg-white border-gray-300 hover:border-green-300'
-                }`}
-              >
-                No Accidents
-              </button>
-              <button
-                type="button"
-                onClick={() => updateAccidents({ hadAccident: true })}
-                className={`px-6 py-3 rounded-lg border-2 transition-all ${
-                  currentAccidents.hadAccident === true
-                    ? 'bg-red-100 border-red-300 text-red-800 font-semibold' 
-                    : 'bg-white border-gray-300 hover:border-red-300'
-                }`}
-              >
-                Yes, Has Accidents
-              </button>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="hadAccident" className="text-lg font-medium">
+                  Has this vehicle been in any accidents?
+                </Label>
+                <p className="text-sm text-gray-600 mt-1">
+                  Include any collisions, regardless of severity
+                </p>
+              </div>
+              <Switch
+                id="hadAccident"
+                checked={formData.accident_history?.hadAccident || false}
+                onCheckedChange={(checked) => handleAccidentChange('hadAccident', checked)}
+              />
             </div>
           </CardContent>
         </Card>
 
-        {currentAccidents.hadAccident && (
-          <>
-            {/* Accident Count */}
-            <Card className="border-red-200 bg-red-50/50 h-fit">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center text-red-700 text-xl">
-                  <AlertTriangle className="h-6 w-6 mr-3" />
-                  Number of Accidents
-                </CardTitle>
+        {/* Accident Details */}
+        {formData.accident_history?.hadAccident && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Number of Accidents */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Number of Accidents</CardTitle>
               </CardHeader>
               <CardContent>
-                <Select 
-                  value={currentAccidents.count?.toString() || ''} 
-                  onValueChange={(value) => updateAccidents({ count: parseInt(value) })}
-                >
-                  <SelectTrigger className="h-14 text-lg bg-white border-2 border-red-200 hover:border-red-300 focus:border-red-500">
-                    <SelectValue placeholder="Select number" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1 Accident</SelectItem>
-                    <SelectItem value="2">2 Accidents</SelectItem>
-                    <SelectItem value="3">3 Accidents</SelectItem>
-                    <SelectItem value="4">4+ Accidents</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input
+                  type="number"
+                  min="1"
+                  max="10"
+                  placeholder="Number of accidents"
+                  value={formData.accident_history?.count || ''}
+                  onChange={(e) => handleAccidentChange('count', parseInt(e.target.value) || 1)}
+                />
               </CardContent>
             </Card>
 
-            {/* Accident Location */}
-            <Card className="border-red-200 bg-red-50/50 h-fit">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center text-red-700 text-xl">
-                  <Car className="h-6 w-6 mr-3" />
-                  Primary Damage Area
-                </CardTitle>
+            {/* Severity */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Severity</CardTitle>
               </CardHeader>
               <CardContent>
                 <Select 
-                  value={currentAccidents.location || ''} 
-                  onValueChange={(value) => updateAccidents({ location: value })}
+                  value={formData.accident_history?.severity || ''} 
+                  onValueChange={(value: 'minor' | 'moderate' | 'severe') => handleAccidentChange('severity', value)}
                 >
-                  <SelectTrigger className="h-14 text-lg bg-white border-2 border-red-200 hover:border-red-300 focus:border-red-500">
-                    <SelectValue placeholder="Select damage area" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="front">Front End</SelectItem>
-                    <SelectItem value="rear">Rear End</SelectItem>
-                    <SelectItem value="side">Side Impact</SelectItem>
-                    <SelectItem value="multiple">Multiple Areas</SelectItem>
-                  </SelectContent>
-                </Select>
-              </CardContent>
-            </Card>
-
-            {/* Accident Severity */}
-            <Card className="border-red-200 bg-red-50/50 h-fit">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center text-red-700 text-xl">
-                  <AlertTriangle className="h-6 w-6 mr-3" />
-                  Severity Level
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Select 
-                  value={currentAccidents.severity || ''} 
-                  onValueChange={(value: 'minor' | 'moderate' | 'severe') => updateAccidents({ severity: value })}
-                >
-                  <SelectTrigger className="h-14 text-lg bg-white border-2 border-red-200 hover:border-red-300 focus:border-red-500">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select severity" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="minor">Minor (Cosmetic damage only)</SelectItem>
-                    <SelectItem value="moderate">Moderate (Some structural damage)</SelectItem>
-                    <SelectItem value="severe">Severe (Major structural damage)</SelectItem>
+                    <SelectItem value="minor">Minor (cosmetic damage)</SelectItem>
+                    <SelectItem value="moderate">Moderate (functional damage)</SelectItem>
+                    <SelectItem value="severe">Severe (major structural damage)</SelectItem>
                   </SelectContent>
                 </Select>
               </CardContent>
             </Card>
 
-            {/* Properly Repaired */}
-            <Card className="border-red-200 bg-red-50/50 h-fit">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center text-red-700 text-xl">
-                  <Shield className="h-6 w-6 mr-3" />
-                  Properly Repaired
-                </CardTitle>
+            {/* Location */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Damage Location</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-4 p-4 bg-white rounded-lg border-2 border-red-200">
-                  <Checkbox
-                    id="properly-repaired"
-                    checked={currentAccidents.repaired || false}
-                    onCheckedChange={(checked) => updateAccidents({ repaired: !!checked })}
-                    className="h-5 w-5"
+              <CardContent>
+                <Input
+                  placeholder="e.g., front bumper, rear quarter panel"
+                  value={formData.accident_history?.location || ''}
+                  onChange={(e) => handleAccidentChange('location', e.target.value)}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Repair Status */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Repair Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="repaired">Has the damage been repaired?</Label>
+                  <Switch
+                    id="repaired"
+                    checked={formData.accident_history?.repaired || false}
+                    onCheckedChange={(checked) => handleAccidentChange('repaired', checked)}
                   />
-                  <Label htmlFor="properly-repaired" className="text-lg font-semibold cursor-pointer">
-                    Damage was professionally repaired
-                  </Label>
                 </div>
               </CardContent>
             </Card>
 
             {/* Frame Damage */}
-            <Card className="border-red-200 bg-red-50/50 h-fit">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center text-red-700 text-xl">
-                  <FileX className="h-6 w-6 mr-3" />
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center text-lg">
+                  <Shield className="h-5 w-5 mr-2" />
                   Frame Damage
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-4 p-4 bg-white rounded-lg border-2 border-red-200">
-                  <Checkbox
-                    id="frame-damage"
-                    checked={currentAccidents.frameDamage || false}
-                    onCheckedChange={(checked) => updateAccidents({ frameDamage: !!checked })}
-                    className="h-5 w-5"
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="frameDamage" className="font-medium">
+                      Was there any frame or structural damage?
+                    </Label>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Frame damage significantly affects vehicle value and safety
+                    </p>
+                  </div>
+                  <Switch
+                    id="frameDamage"
+                    checked={formData.accident_history?.frameDamage || false}
+                    onCheckedChange={(checked) => handleAccidentChange('frameDamage', checked)}
                   />
-                  <Label htmlFor="frame-damage" className="text-lg font-semibold cursor-pointer">
-                    Vehicle has frame damage
-                  </Label>
                 </div>
-                <p className="text-sm text-red-600 font-medium">Frame damage significantly affects value</p>
               </CardContent>
             </Card>
 
-            {/* Accident Description */}
-            <Card className="border-red-200 bg-red-50/50 md:col-span-2">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center text-red-700 text-xl">
-                  <FileX className="h-6 w-6 mr-3" />
-                  Additional Details
+            {/* Description */}
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center text-lg">
+                  <FileText className="h-5 w-5 mr-2" />
+                  Accident Description
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <Textarea
-                  placeholder="Describe the accident(s) and any repairs performed..."
-                  value={currentAccidents.description || ''}
-                  onChange={(e) => updateAccidents({ description: e.target.value })}
-                  rows={6}
-                  className="resize-none text-base bg-white border-2 border-red-200 hover:border-red-300 focus:border-red-500 p-4"
+                  placeholder="Please describe the accident(s) and any repairs made..."
+                  value={formData.accident_history?.description || ''}
+                  onChange={(e) => handleAccidentChange('description', e.target.value)}
+                  rows={4}
                 />
               </CardContent>
             </Card>
-          </>
+          </div>
+        )}
+
+        {/* No Accidents Message */}
+        {!formData.accident_history?.hadAccident && (
+          <Card className="border-green-200 bg-green-50">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-3">
+                <Shield className="h-8 w-8 text-green-600" />
+                <div>
+                  <h3 className="text-lg font-semibold text-green-800">Clean Accident History</h3>
+                  <p className="text-green-700">
+                    No reported accidents can positively impact your vehicle's value.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

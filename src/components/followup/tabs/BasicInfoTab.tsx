@@ -1,171 +1,134 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Info, Car, MapPin, User } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MapPin, Gauge, Settings, Star } from 'lucide-react';
 import { FollowUpAnswers, CONDITION_OPTIONS } from '@/types/follow-up-answers';
 
 interface BasicInfoTabProps {
   formData: FollowUpAnswers;
-  onUpdate: (updates: Partial<FollowUpAnswers>) => void;
+  updateFormData: (updates: Partial<FollowUpAnswers>) => void;
 }
 
-export function BasicInfoTab({ formData, onUpdate }: BasicInfoTabProps) {
-  const handleConditionChange = (field: 'condition' | 'exterior_condition' | 'interior_condition', value: string) => {
-    onUpdate({ [field]: value });
-  };
-
-  const ConditionSelector = ({ 
-    title, 
-    field, 
-    icon: Icon 
-  }: { 
-    title: string; 
-    field: 'condition' | 'exterior_condition' | 'interior_condition';
-    icon: any;
-  }) => (
-    <Card className="border-blue-200 bg-blue-50/50">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center text-blue-700 text-xl">
-          <Icon className="h-6 w-6 mr-3" />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <RadioGroup
-          value={formData[field] || ''}
-          onValueChange={(value) => handleConditionChange(field, value)}
-          className="space-y-4"
-        >
-          {CONDITION_OPTIONS.map((option) => (
-            <div key={option.value} className="relative">
-              <div className="flex items-center space-x-4 p-4 bg-white rounded-lg border-2 border-blue-200 hover:border-blue-300 transition-colors">
-                <RadioGroupItem value={option.value} id={`${field}-${option.value}`} className="h-5 w-5" />
-                <Label htmlFor={`${field}-${option.value}`} className="flex-1 cursor-pointer">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <span className="font-semibold text-lg text-gray-900">{option.label}</span>
-                      <p className="text-sm text-gray-600 mt-1">{option.description}</p>
-                    </div>
-                    <div className="ml-4 text-right">
-                      <span className={`font-medium text-sm px-3 py-1 rounded-full ${
-                        option.value === 'excellent' ? 'bg-green-100 text-green-700' :
-                        option.value === 'good' ? 'bg-blue-100 text-blue-700' :
-                        option.value === 'fair' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {option.impact}
-                      </span>
-                    </div>
-                  </div>
-                </Label>
-              </div>
-            </div>
-          ))}
-        </RadioGroup>
-      </CardContent>
-    </Card>
-  );
-
+export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
   return (
-    <div className="space-y-8">
-      <div className="flex items-center space-x-3 mb-8">
-        <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-          <Info className="h-6 w-6 text-white" />
+    <div className="space-y-6">
+      <div className="flex items-center space-x-3 mb-6">
+        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+          <MapPin className="h-5 w-5 text-white" />
         </div>
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Basic Vehicle Information</h2>
-          <p className="text-gray-600 text-lg">Essential details about your vehicle's condition and usage</p>
+          <h2 className="text-2xl font-bold text-gray-900">Basic Information</h2>
+          <p className="text-gray-600">Tell us about your vehicle's location and condition</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Mileage and ZIP Code */}
-        <div className="space-y-6">
-          <Card className="border-blue-200 bg-blue-50/50">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center text-blue-700 text-xl">
-                <Car className="h-6 w-6 mr-3" />
-                Vehicle Usage
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <Label htmlFor="mileage" className="text-base font-semibold text-gray-700 mb-3 block">
-                  Current Mileage
-                </Label>
-                <Input
-                  id="mileage"
-                  type="number"
-                  value={formData.mileage || ''}
-                  onChange={(e) => onUpdate({ mileage: parseInt(e.target.value) || undefined })}
-                  placeholder="Enter current mileage"
-                  className="h-12 text-lg bg-white border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500"
-                />
-                <p className="text-sm text-blue-600 mt-2 font-medium">Lower mileage typically increases value</p>
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Zip Code */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg">
+              <MapPin className="h-5 w-5 mr-2" />
+              Location
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Label htmlFor="zip_code">Zip Code</Label>
+            <Input
+              id="zip_code"
+              placeholder="Enter zip code"
+              value={formData.zip_code}
+              onChange={(e) => updateFormData({ zip_code: e.target.value })}
+              className="mt-2"
+            />
+            <p className="text-sm text-gray-500 mt-2">
+              This helps us determine local market values
+            </p>
+          </CardContent>
+        </Card>
 
-              <div>
-                <Label htmlFor="zip_code" className="text-base font-semibold text-gray-700 mb-3 block">
-                  <MapPin className="h-4 w-4 inline mr-2" />
-                  ZIP Code
-                </Label>
-                <Input
-                  id="zip_code"
-                  type="text"
-                  value={formData.zip_code || ''}
-                  onChange={(e) => onUpdate({ zip_code: e.target.value })}
-                  placeholder="Enter ZIP code"
-                  maxLength={5}
-                  className="h-12 text-lg bg-white border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500"
-                />
-                <p className="text-sm text-blue-600 mt-2 font-medium">Location affects regional market values</p>
-              </div>
+        {/* Mileage */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg">
+              <Gauge className="h-5 w-5 mr-2" />
+              Mileage
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Label htmlFor="mileage">Current Mileage</Label>
+            <Input
+              id="mileage"
+              type="number"
+              placeholder="Enter mileage"
+              value={formData.mileage || ''}
+              onChange={(e) => updateFormData({ mileage: parseInt(e.target.value) || 0 })}
+              className="mt-2"
+            />
+            <p className="text-sm text-gray-500 mt-2">
+              Current odometer reading
+            </p>
+          </CardContent>
+        </Card>
 
-              <div>
-                <Label htmlFor="previous_owners" className="text-base font-semibold text-gray-700 mb-3 block">
-                  <User className="h-4 w-4 inline mr-2" />
-                  Number of Previous Owners
-                </Label>
-                <Input
-                  id="previous_owners"
-                  type="number"
-                  min="0"
-                  max="10"
-                  value={formData.previous_owners || ''}
-                  onChange={(e) => onUpdate({ previous_owners: parseInt(e.target.value) || undefined })}
-                  placeholder="Enter number of owners"
-                  className="h-12 text-lg bg-white border-2 border-blue-200 hover:border-blue-300 focus:border-blue-500"
-                />
-                <p className="text-sm text-blue-600 mt-2 font-medium">Fewer owners typically means higher value</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Overall Condition */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg">
+              <Star className="h-5 w-5 mr-2" />
+              Overall Condition
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Label htmlFor="condition">Vehicle Condition</Label>
+            <Select 
+              value={formData.condition} 
+              onValueChange={(value: 'excellent' | 'good' | 'fair' | 'poor') => updateFormData({ condition: value })}
+            >
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Select overall condition" />
+              </SelectTrigger>
+              <SelectContent>
+                {CONDITION_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{option.label}</span>
+                      <span className="text-sm text-gray-500">{option.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
 
-        {/* Overall Vehicle Condition */}
-        <ConditionSelector 
-          title="Overall Vehicle Condition" 
-          field="condition" 
-          icon={Car}
-        />
-      </div>
-
-      {/* Exterior and Interior Condition */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <ConditionSelector 
-          title="Exterior Condition" 
-          field="exterior_condition" 
-          icon={Car}
-        />
-        
-        <ConditionSelector 
-          title="Interior Condition" 
-          field="interior_condition" 
-          icon={Car}
-        />
+        {/* Transmission */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg">
+              <Settings className="h-5 w-5 mr-2" />
+              Transmission Type
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Label htmlFor="transmission">Transmission</Label>
+            <Select 
+              value={formData.transmission} 
+              onValueChange={(value: 'automatic' | 'manual' | 'unknown') => updateFormData({ transmission: value })}
+            >
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Select transmission type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="automatic">Automatic</SelectItem>
+                <SelectItem value="manual">Manual</SelectItem>
+                <SelectItem value="unknown">Unknown</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
