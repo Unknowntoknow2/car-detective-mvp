@@ -1,4 +1,3 @@
-
 import { ReportData, ReportOptions } from './types';
 import { generatePremiumReport } from './generators/premiumReportGenerator';
 import { fetchAuctionResultsByVin } from '@/services/auction';
@@ -6,6 +5,7 @@ import { generateAINSummaryForPdf, formatAINSummaryForPdf } from '../ain/generat
 import { generateDebugInfo, formatDebugInfoForPdf } from './generateDebugInfo';
 import { getCachedCompetitorPrices, calculateAverageCompetitorPrice } from '@/services/competitorPriceService';
 import { getScrapedListingsByVin, formatListingsForPdf } from '@/services/scrapedListingsService';
+import { notifyDealersOfNewValuation } from '@/lib/notifications/DealerNotification';
 
 /**
  * Generate a PDF for the valuation report with enhanced auction data and AIN summary
@@ -80,7 +80,26 @@ export async function generateValuationPdf(
     }
   }
 
-  return await generatePremiumReport(data, options);
+  // Generate the PDF
+  const pdfBytes = await generatePremiumReport(data, options);
+
+  // Notify dealers if this is a completed valuation (not just a preview)
+  if (options.notifyDealers !== false && data.zipCode && data.estimatedValue > 0) {
+    try {
+      // Only notify for vehicles above a certain value threshold
+      if (data.estimatedValue >= 8000) {
+        console.log('🔔 Triggering dealer notifications...');
+        // Run dealer notification in background (don't await to avoid blocking PDF generation)
+        notifyDealersOfNewValuation(data, data.zipCode).catch(error => {
+          console.error('❌ Dealer notification failed:', error);
+        });
+      }
+    } catch (error) {
+      console.warn('⚠️ Dealer notification trigger failed:', error);
+    }
+  }
+
+  return pdfBytes;
 }
 
 /**
