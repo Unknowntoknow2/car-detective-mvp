@@ -1,101 +1,110 @@
 
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 
-/**
- * Calculate completion percentage based on filled fields
- */
-export function calculateCompletionPercentage(formData: FollowUpAnswers): number {
-  const totalFields = 15; // Adjust based on important fields
-  let completedFields = 0;
-
-  // Basic info
-  if (formData.zip_code) completedFields++;
-  if (formData.condition && formData.condition !== 'good') completedFields++;
+export function getCompletionPercentage(formData: FollowUpAnswers): number {
+  const requiredFields = ['vin', 'zip_code'];
+  const optionalFields = ['mileage', 'condition', 'additional_notes'];
   
-  // Title & Ownership
-  if (formData.title_status && formData.title_status !== 'clean') completedFields++;
-  if (formData.previous_use && formData.previous_use !== 'personal') completedFields++;
+  let completedRequired = 0;
+  let completedOptional = 0;
   
-  // Service History
-  if (formData.service_history && formData.service_history !== 'good') completedFields++;
-  if (formData.maintenance_status && formData.maintenance_status !== 'good') completedFields++;
+  // Check required fields
+  requiredFields.forEach(field => {
+    if (formData[field as keyof FollowUpAnswers]) {
+      completedRequired++;
+    }
+  });
   
-  // Vehicle Condition
-  if (formData.tire_condition && formData.tire_condition !== 'good') completedFields++;
-  if (formData.exterior_condition && formData.exterior_condition !== 'good') completedFields++;
-  if (formData.interior_condition && formData.interior_condition !== 'good') completedFields++;
+  // Check optional fields
+  optionalFields.forEach(field => {
+    if (formData[field as keyof FollowUpAnswers]) {
+      completedOptional++;
+    }
+  });
   
-  // Accidents
-  if (formData.accidents?.hadAccident !== undefined) completedFields++;
-  if (formData.accidents?.hadAccident && formData.accidents?.severity) completedFields++;
+  // Service history check
+  if (formData.service_history && typeof formData.service_history === 'object' && formData.service_history.hasRecords !== undefined) {
+    completedOptional++;
+  }
   
-  // Modifications
-  if (formData.modifications?.modified !== undefined) completedFields++;
-  if (formData.modifications?.modified && formData.modifications?.types?.length > 0) completedFields++;
+  // Modifications check
+  if (formData.modifications && formData.modifications.hasModifications !== undefined) {
+    completedOptional++;
+  }
   
-  // Features
-  if (formData.features && formData.features.length > 0) completedFields++;
+  const requiredWeight = 70; // 70% for required fields
+  const optionalWeight = 30; // 30% for optional fields
   
-  // Dashboard lights
-  if (formData.dashboard_lights !== undefined) completedFields++;
-
-  return Math.round((completedFields / totalFields) * 100);
+  const requiredScore = (completedRequired / requiredFields.length) * requiredWeight;
+  const optionalScore = (completedOptional / (optionalFields.length + 2)) * optionalWeight; // +2 for service_history and modifications
+  
+  return Math.round(requiredScore + optionalScore);
 }
 
-/**
- * Validate form data for submission
- */
-export function validateFormData(formData: FollowUpAnswers): { isValid: boolean; errors: string[] } {
-  const errors: string[] = [];
-
-  if (!formData.vin) {
-    errors.push('VIN is required');
+export function shouldShowNextStep(formData: FollowUpAnswers, currentStep: number): boolean {
+  switch (currentStep) {
+    case 1: // Basic info
+      return !!(formData.vin && formData.zip_code);
+    case 2: // Vehicle condition
+      return !!formData.condition;
+    case 3: // Service history
+      return formData.service_history !== undefined;
+    case 4: // Modifications
+      return formData.modifications !== undefined;
+    default:
+      return true;
   }
+}
 
-  if (!formData.condition) {
-    errors.push('Vehicle condition is required');
-  }
-
-  if (!formData.title_status) {
-    errors.push('Title status is required');
-  }
-
-  // Add more validation rules as needed
-
+export function getStepValidation(formData: FollowUpAnswers): Record<number, boolean> {
   return {
-    isValid: errors.length === 0,
-    errors
+    1: !!(formData.vin && formData.zip_code),
+    2: !!formData.condition,
+    3: formData.service_history !== undefined,
+    4: formData.modifications !== undefined,
+    5: true // Final step is always valid if we reach it
   };
 }
 
-/**
- * Transform form data for valuation calculation
- */
-export function transformForValuation(formData: FollowUpAnswers) {
-  return {
-    vin: formData.vin,
-    condition: formData.condition,
-    titleStatus: formData.title_status,
-    previousUse: formData.previous_use,
-    serviceHistory: formData.service_history,
-    maintenanceStatus: formData.maintenance_status,
-    tireCondition: formData.tire_condition,
-    exteriorCondition: formData.exterior_condition,
-    interiorCondition: formData.interior_condition,
-    frameDamage: formData.frame_damage,
-    dashboardLights: formData.dashboard_lights,
-    accidents: {
-      hasAccidents: formData.accidents?.hadAccident || false,
-      accidentCount: formData.accidents?.count || 0,
-      severity: formData.accidents?.severity || 'minor',
-      repaired: formData.accidents?.repaired || false,
-      frameDamage: formData.accidents?.frameDamage || false
-    },
-    modifications: {
-      hasModifications: formData.modifications?.modified || false,
-      types: formData.modifications?.types || []
-    },
-    features: formData.features || [],
-    zipCode: formData.zip_code
-  };
+export function calculateAdjustments(formData: FollowUpAnswers): Array<{factor: string, impact: number, description: string}> {
+  const adjustments: Array<{factor: string, impact: number, description: string}> = [];
+  
+  // Condition adjustment
+  if (formData.condition) {
+    switch (formData.condition) {
+      case 'excellent':
+        adjustments.push({
+          factor: 'Condition',
+          impact: 1000,
+          description: 'Vehicle is in excellent condition'
+        });
+        break;
+      case 'poor':
+        adjustments.push({
+          factor: 'Condition',
+          impact: -1500,
+          description: 'Vehicle condition affects value negatively'
+        });
+        break;
+    }
+  }
+  
+  // Mileage adjustment
+  if (formData.mileage) {
+    if (formData.mileage < 30000) {
+      adjustments.push({
+        factor: 'Low Mileage',
+        impact: 500,
+        description: 'Below average mileage adds value'
+      });
+    } else if (formData.mileage > 100000) {
+      adjustments.push({
+        factor: 'High Mileage',
+        impact: -800,
+        description: 'High mileage reduces value'
+      });
+    }
+  }
+  
+  return adjustments;
 }

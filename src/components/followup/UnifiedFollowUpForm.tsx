@@ -50,26 +50,6 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
       additional_notes: values.additional_notes || ''
     };
 
-    const reportData: ReportData = {
-      make: 'Toyota',
-      model: 'Test Vehicle',
-      year: 2020,
-      mileage: 50000,
-      condition: 'Good',
-      estimatedValue: 25000,
-      confidenceScore: 85,
-      zipCode: values.zip_code,
-      adjustments: [],
-      generatedAt: new Date().toISOString(),
-      vin: vin,
-      aiCondition: {
-        condition: 'Good',
-        confidenceScore: 85,
-        issuesDetected: [],
-        summary: 'Vehicle appears to be in good condition based on provided information.'
-      }
-    };
-
     try {
       await onSubmit(followUpAnswers);
     } catch (error) {
