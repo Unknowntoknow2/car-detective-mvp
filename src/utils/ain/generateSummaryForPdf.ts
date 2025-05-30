@@ -1,181 +1,221 @@
 
+import { askAIN } from '@/services/ainService';
 import { ReportData } from '../pdf/types';
 
 export interface AINSummaryData {
-  summary: string;
-  keyInsights: string[];
-  riskFactors: string[];
+  vehicleOverview: string;
   marketPosition: string;
-  auctionAnalysis?: string;
-  valueDrivers?: string[];
+  priceJustification: string;
+  competitorComparison?: string;
+  auctionInsights?: string;
+  recommendations: string;
 }
 
-export async function generateAINSummaryForPdf(reportData: ReportData): Promise<AINSummaryData> {
+/**
+ * Generate an AI-powered summary for PDF inclusion
+ */
+export async function generateAINSummaryForPdf(data: ReportData): Promise<AINSummaryData> {
   try {
-    console.log('🧠 Generating enhanced AIN summary for PDF');
-    const prompt = createEnhancedAINPrompt(reportData);
-    
-    const response = await fetch('/api/openai/generate-summary', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt,
-        vehicleData: {
-          year: reportData.year,
-          make: reportData.make,
-          model: reportData.model,
-          vin: reportData.vin,
-          mileage: reportData.mileage,
-          condition: reportData.condition,
-          estimatedValue: reportData.estimatedValue,
-          confidenceScore: reportData.confidenceScore,
-          auctionResults: reportData.auctionResults || [],
-          adjustments: reportData.adjustments || []
-        }
-      })
-    });
+    // Build context for the AI summary
+    const vehicleContext = {
+      vin: data.vin,
+      make: data.make,
+      model: data.model,
+      year: data.year,
+      mileage: data.mileage,
+      condition: data.condition,
+      estimatedValue: data.estimatedValue,
+      confidenceScore: data.confidenceScore
+    };
 
-    if (!response.ok) {
-      throw new Error('Failed to generate AIN summary');
+    // Prepare competitor pricing context
+    let competitorContext = '';
+    if (data.competitorPrices && data.competitorAverage) {
+      const competitorSources = [
+        { name: 'Carvana', price: data.competitorPrices.carvana_value },
+        { name: 'CarMax', price: data.competitorPrices.carmax_value },
+        { name: 'Edmunds', price: data.competitorPrices.edmunds_value },
+        { name: 'Carfax', price: data.competitorPrices.carfax_value },
+        { name: 'Cars.com', price: data.competitorPrices.carsdotcom_value },
+        { name: 'Autotrader', price: data.competitorPrices.autotrader_value },
+      ].filter(source => source.price && source.price !== '0');
+
+      const priceDifference = data.estimatedValue - data.competitorAverage;
+      const percentDifference = Math.abs((priceDifference / data.competitorAverage) * 100);
+
+      competitorContext = `
+        Competitor pricing data from ${competitorSources.length} major platforms:
+        ${competitorSources.map(s => `${s.name}: $${parseInt(s.price!).toLocaleString()}`).join(', ')}
+        
+        Market average: $${data.competitorAverage.toLocaleString()}
+        Our valuation is ${Math.abs(priceDifference).toLocaleString()} ${priceDifference > 0 ? 'above' : 'below'} 
+        the market average (${percentDifference.toFixed(1)}% difference).
+      `;
     }
 
-    const data = await response.json();
-    return data.summary;
+    // Prepare auction context
+    let auctionContext = '';
+    if (data.auctionResults && data.auctionResults.length > 0) {
+      const recentAuctions = data.auctionResults.slice(0, 3);
+      auctionContext = `
+        Recent auction data from ${data.auctionResults.length} sales:
+        ${recentAuctions.map(auction => 
+          `$${parseInt(auction.price).toLocaleString()} (${auction.auction_source}, ${auction.condition_grade || 'condition unknown'})`
+        ).join(', ')}
+      `;
+    }
+
+    const prompt = `
+      Create a professional valuation summary for a ${data.year} ${data.make} ${data.model} with ${data.mileage?.toLocaleString()} miles.
+      
+      Our estimated value: $${data.estimatedValue.toLocaleString()}
+      Vehicle condition: ${data.condition}
+      Confidence score: ${data.confidenceScore}%
+      
+      ${competitorContext}
+      ${auctionContext}
+      
+      Please provide a concise, professional summary that:
+      1. Justifies the valuation based on vehicle condition and market data
+      2. Explains how our price compares to competitor listings
+      3. References auction data if available to support the pricing
+      4. Provides actionable insights for the vehicle owner
+      
+      Keep the response under 200 words and professional in tone.
+    `;
+
+    const response = await askAIN(prompt, vehicleContext);
+    
+    if (response.error) {
+      console.warn('AIN summary generation failed:', response.error);
+      return generateFallbackSummary(data);
+    }
+
+    // Parse the AI response into structured data
+    return parseAINResponse(response.answer, data);
+
   } catch (error) {
-    console.error('❌ Error generating AIN summary:', error);
-    return generateFallbackSummary(reportData);
+    console.error('Error generating AIN summary:', error);
+    return generateFallbackSummary(data);
   }
 }
 
-function createEnhancedAINPrompt(reportData: ReportData): string {
-  const auctionData = reportData.auctionResults || [];
-  const auctionInfo = auctionData.length > 0 
-    ? `Auction History: Found ${auctionData.length} auction records with average price of $${calculateAverageAuctionPrice(auctionData)}`
-    : 'No auction history available';
-
-  return `
-As AIN (Automotive Intelligence Network), analyze this comprehensive vehicle valuation data and provide a professional summary for dealers and consumers:
-
-VEHICLE DETAILS:
-- Vehicle: ${reportData.year} ${reportData.make} ${reportData.model}
-- VIN: ${reportData.vin || 'Not provided'}
-- Mileage: ${reportData.mileage?.toLocaleString() || 'Unknown'} miles
-- Condition: ${reportData.condition}
-- ZIP Code: ${reportData.zipCode || 'Not specified'}
-
-VALUATION RESULTS:
-- Estimated Value: $${reportData.estimatedValue?.toLocaleString() || 'TBD'}
-- Confidence Score: ${reportData.confidenceScore || 'N/A'}%
-- Price Range: $${reportData.priceRange?.[0]?.toLocaleString() || 'TBD'} - $${reportData.priceRange?.[1]?.toLocaleString() || 'TBD'}
-
-MARKET DATA:
-- ${auctionInfo}
-- Condition Impact: ${reportData.aiCondition?.summary || 'Standard condition assessment'}
-
-ADJUSTMENTS APPLIED:
-${(reportData.adjustments || []).map(adj => `- ${adj.factor}: ${adj.impact > 0 ? '+' : ''}$${adj.impact} (${adj.description || 'Market adjustment'})`).join('\n')}
-
-Please provide a comprehensive analysis with:
-1. Executive Summary (2-3 sentences about the vehicle's market position)
-2. Key Value Drivers (3-4 factors that positively impact value)
-3. Risk Factors (2-3 concerns or negative factors)
-4. Market Position Assessment (competitive positioning)
-5. Auction Analysis (if auction data available)
-
-Keep the tone professional, data-driven, and actionable for both dealers and consumers. Focus on transparency and market intelligence.
-  `.trim();
-}
-
-function calculateAverageAuctionPrice(auctionResults: any[]): string {
-  if (!auctionResults || auctionResults.length === 0) return '0';
-  
-  const prices = auctionResults
-    .map(result => parseInt(result.price) || 0)
-    .filter(price => price > 0);
-  
-  if (prices.length === 0) return '0';
-  
-  const average = prices.reduce((sum, price) => sum + price, 0) / prices.length;
-  return average.toLocaleString();
-}
-
-function generateFallbackSummary(reportData: ReportData): AINSummaryData {
-  const avgAuctionPrice = calculateAverageAuctionPrice(reportData.auctionResults || []);
-  
+/**
+ * Parse AIN response into structured summary data
+ */
+function parseAINResponse(aiResponse: string, data: ReportData): AINSummaryData {
+  // For now, return the full response as vehicle overview
+  // In the future, we could parse specific sections
   return {
-    summary: `This ${reportData.year} ${reportData.make} ${reportData.model} is valued at $${reportData.estimatedValue?.toLocaleString()} based on comprehensive market analysis including mileage, condition, and regional demand factors.`,
-    keyInsights: [
-      `Vehicle mileage of ${reportData.mileage?.toLocaleString()} miles is ${getMileageAssessment(reportData.mileage, reportData.year)}`,
-      `Current condition (${reportData.condition}) aligns with market expectations for this year/model`,
-      `Market confidence score of ${reportData.confidenceScore}% indicates ${getConfidenceAssessment(reportData.confidenceScore)}`,
-      reportData.auctionResults?.length ? `${reportData.auctionResults.length} auction records support pricing with average of $${avgAuctionPrice}` : 'Limited auction data available for comparison'
-    ],
-    riskFactors: [
-      reportData.mileage && reportData.mileage > 100000 ? 'High mileage may impact resale value' : 'Mileage within acceptable range',
-      reportData.confidenceScore && reportData.confidenceScore < 80 ? 'Lower confidence due to limited market data' : 'Market data supports valuation confidence'
-    ],
-    marketPosition: `Competitively positioned in the ${reportData.condition.toLowerCase()} condition market segment`,
-    auctionAnalysis: reportData.auctionResults?.length 
-      ? `Analysis of ${reportData.auctionResults.length} auction records shows market alignment with estimated value`
-      : 'No auction data available for direct comparison',
-    valueDrivers: [
-      'Current market demand for this make/model',
-      'Regional pricing factors',
-      'Condition assessment and documentation',
-      'Comprehensive market data analysis'
-    ]
+    vehicleOverview: aiResponse,
+    marketPosition: generateMarketPosition(data),
+    priceJustification: generatePriceJustification(data),
+    competitorComparison: generateCompetitorComparison(data),
+    auctionInsights: generateAuctionInsights(data),
+    recommendations: 'Contact our support team for personalized selling or buying recommendations.'
   };
 }
 
-function getMileageAssessment(mileage?: number, year?: number): string {
-  if (!mileage || !year) return 'within typical range';
-  
-  const currentYear = new Date().getFullYear();
-  const vehicleAge = currentYear - year;
-  const averageMilesPerYear = 12000;
-  const expectedMileage = vehicleAge * averageMilesPerYear;
-  
-  if (mileage < expectedMileage * 0.8) return 'below average (positive)';
-  if (mileage > expectedMileage * 1.3) return 'above average (concern)';
-  return 'within typical range';
+/**
+ * Generate fallback summary when AI is unavailable
+ */
+function generateFallbackSummary(data: ReportData): AINSummaryData {
+  return {
+    vehicleOverview: `This ${data.year} ${data.make} ${data.model} with ${data.mileage?.toLocaleString()} miles has been valued at $${data.estimatedValue.toLocaleString()} based on current market conditions and vehicle condition assessment.`,
+    marketPosition: generateMarketPosition(data),
+    priceJustification: generatePriceJustification(data),
+    competitorComparison: generateCompetitorComparison(data),
+    auctionInsights: generateAuctionInsights(data),
+    recommendations: 'This valuation reflects current market conditions. Consider market trends and local demand when making decisions.'
+  };
 }
 
-function getConfidenceAssessment(score?: number): string {
-  if (!score) return 'moderate data availability';
-  if (score >= 90) return 'high data confidence';
-  if (score >= 80) return 'good data confidence';
-  if (score >= 70) return 'moderate data confidence';
-  return 'limited data availability';
+function generateMarketPosition(data: ReportData): string {
+  if (data.competitorAverage && data.estimatedValue) {
+    const difference = data.estimatedValue - data.competitorAverage;
+    const percent = Math.abs((difference / data.competitorAverage) * 100);
+    
+    if (Math.abs(difference) < data.competitorAverage * 0.05) {
+      return 'This vehicle is priced competitively with the current market average.';
+    } else if (difference > 0) {
+      return `This vehicle is valued ${percent.toFixed(1)}% above the market average, reflecting premium condition or features.`;
+    } else {
+      return `This vehicle is valued ${percent.toFixed(1)}% below the market average, representing a potential value opportunity.`;
+    }
+  }
+  return 'Market positioning analysis requires competitor pricing data.';
 }
 
-export function formatAINSummaryForPdf(summary: AINSummaryData): string {
-  return `
-MARKET INTELLIGENCE SUMMARY
+function generatePriceJustification(data: ReportData): string {
+  const factors = [];
+  
+  if (data.condition) {
+    factors.push(`${data.condition} condition rating`);
+  }
+  
+  if (data.mileage) {
+    const avgMileagePerYear = data.mileage / (new Date().getFullYear() - data.year);
+    if (avgMileagePerYear < 12000) {
+      factors.push('below-average mileage');
+    } else if (avgMileagePerYear > 15000) {
+      factors.push('higher mileage consideration');
+    }
+  }
+  
+  if (data.confidenceScore && data.confidenceScore > 80) {
+    factors.push('high confidence assessment');
+  }
+  
+  return factors.length > 0 
+    ? `Valuation based on ${factors.join(', ')}.`
+    : 'Valuation based on comprehensive market analysis.';
+}
 
-Executive Summary:
-${summary.summary}
+function generateCompetitorComparison(data: ReportData): string | undefined {
+  if (!data.competitorPrices || !data.competitorAverage) return undefined;
+  
+  const sources = [
+    { name: 'Carvana', price: data.competitorPrices.carvana_value },
+    { name: 'CarMax', price: data.competitorPrices.carmax_value },
+    { name: 'Edmunds', price: data.competitorPrices.edmunds_value },
+    { name: 'Carfax', price: data.competitorPrices.carfax_value },
+    { name: 'Cars.com', price: data.competitorPrices.carsdotcom_value },
+    { name: 'Autotrader', price: data.competitorPrices.autotrader_value },
+  ].filter(s => s.price && s.price !== '0');
+  
+  return `Compared against ${sources.length} major platforms with an average of $${data.competitorAverage.toLocaleString()}.`;
+}
 
-Key Value Drivers:
-${summary.keyInsights.map(insight => `• ${insight}`).join('\n')}
+function generateAuctionInsights(data: ReportData): string | undefined {
+  if (!data.auctionResults || data.auctionResults.length === 0) return undefined;
+  
+  const avgAuctionPrice = data.auctionResults.reduce((sum, auction) => 
+    sum + parseInt(auction.price), 0) / data.auctionResults.length;
+    
+  return `${data.auctionResults.length} recent auction sales averaged $${Math.round(avgAuctionPrice).toLocaleString()}, supporting current market valuation.`;
+}
 
-Risk Assessment:
-${summary.riskFactors.map(risk => `• ${risk}`).join('\n')}
-
-Market Position: 
-${summary.marketPosition}
-
-${summary.auctionAnalysis ? `
-Auction Analysis:
-${summary.auctionAnalysis}
-` : ''}
-
-${summary.valueDrivers ? `
-Primary Value Drivers:
-${summary.valueDrivers.map(driver => `• ${driver}`).join('\n')}
-` : ''}
-
-Analysis powered by AIN (Automotive Intelligence Network)
-  `.trim();
+/**
+ * Format AIN summary data for PDF inclusion
+ */
+export function formatAINSummaryForPdf(summaryData: AINSummaryData): string {
+  const sections = [];
+  
+  if (summaryData.vehicleOverview) {
+    sections.push(summaryData.vehicleOverview);
+  }
+  
+  if (summaryData.competitorComparison) {
+    sections.push(summaryData.competitorComparison);
+  }
+  
+  if (summaryData.auctionInsights) {
+    sections.push(summaryData.auctionInsights);
+  }
+  
+  if (summaryData.marketPosition) {
+    sections.push(summaryData.marketPosition);
+  }
+  
+  return sections.join(' ');
 }

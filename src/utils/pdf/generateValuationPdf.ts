@@ -4,6 +4,7 @@ import { generatePremiumReport } from './generators/premiumReportGenerator';
 import { fetchAuctionResultsByVin } from '@/services/auction';
 import { generateAINSummaryForPdf, formatAINSummaryForPdf } from '../ain/generateSummaryForPdf';
 import { generateDebugInfo, formatDebugInfoForPdf } from './generateDebugInfo';
+import { getCachedCompetitorPrices, calculateAverageCompetitorPrice } from '@/services/competitorPriceService';
 
 /**
  * Generate a PDF for the valuation report with enhanced auction data and AIN summary
@@ -12,6 +13,21 @@ export async function generateValuationPdf(
   data: ReportData, 
   options: Partial<ReportOptions> = {}
 ): Promise<Uint8Array> {
+  // Fetch competitor pricing data if VIN is available
+  if (data.vin && !data.competitorPrices) {
+    try {
+      console.log('💰 Fetching competitor pricing data for VIN:', data.vin);
+      const competitorPrices = await getCachedCompetitorPrices(data.vin);
+      if (competitorPrices) {
+        data.competitorPrices = competitorPrices;
+        data.competitorAverage = calculateAverageCompetitorPrice(competitorPrices);
+        console.log(`✅ Found competitor pricing from ${Object.values(competitorPrices).filter(Boolean).length - 6} sources`);
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to fetch competitor pricing for PDF:', error);
+    }
+  }
+
   // Fetch auction data if VIN is available and not already included
   if (data.vin && !data.auctionResults && options.includeAuctionData !== false) {
     try {
