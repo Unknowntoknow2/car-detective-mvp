@@ -13,6 +13,19 @@ interface AuctionResult {
   photo_urls: string[];
 }
 
+interface BidCarsRecord {
+  vin: string;
+  price: string;
+  odometer: string;
+  year?: string;
+  make?: string;
+  model?: string;
+  condition?: string;
+  auction_date?: string;
+  image?: string;
+  source: string;
+}
+
 // Function to fetch auction data from the database
 export async function getAuctionResultsByVin(vin: string): Promise<AuctionResult[]> {
   const { data, error } = await supabase
@@ -68,5 +81,26 @@ export async function triggerAuctionDataFetch(vin: string): Promise<void> {
     }
   } catch (error) {
     console.error('Error in triggerAuctionDataFetch:', error);
+  }
+}
+
+// Function to fetch Bid.Cars data
+export async function fetchBidCarsByVin(vin: string): Promise<BidCarsRecord[]> {
+  try {
+    console.log('Fetching Bid.Cars data for VIN:', vin);
+    
+    const { data, error } = await supabase.functions.invoke('fetch-bidcars-data', {
+      body: { vin }
+    });
+
+    if (error) {
+      console.error('Error calling Bid.Cars Edge Function:', error);
+      return [];
+    }
+
+    return data?.records || [];
+  } catch (error) {
+    console.error('Error fetching Bid.Cars data:', error);
+    return [];
   }
 }
