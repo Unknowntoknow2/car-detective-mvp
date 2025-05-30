@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 import { ValuationResponse } from '@/types/vehicle';
@@ -40,7 +39,13 @@ export function useValuationSubmit() {
         zipCode: formData.zipCode,
         adjustments: [],
         generatedAt: new Date().toISOString(),
-        vin: formData.vin
+        vin: formData.vin,
+        aiCondition: {
+          condition: formData.condition.toString(),
+          confidenceScore: 80,
+          issuesDetected: [],
+          summary: 'Vehicle condition based on form input.'
+        }
       };
 
       // Submit valuation with dealer notifications

@@ -1,6 +1,5 @@
 
 import { ReportData } from '../pdf/types';
-import { generateMarketplaceAnalysisText } from '@/services/scrapedListingsService';
 
 export async function generateAINSummaryForPdf(data: ReportData): Promise<string> {
   try {
@@ -31,9 +30,16 @@ export async function generateAINSummaryForPdf(data: ReportData): Promise<string
       summary += '.\n\n';
     }
 
-    // Marketplace analysis
+    // Marketplace analysis - convert MarketplaceListing to compatible format
     if (data.marketplaceListings && data.marketplaceListings.length > 0) {
-      const marketplaceAnalysis = generateMarketplaceAnalysisText(data.marketplaceListings, estimatedValue);
+      // Convert MarketplaceListing to the format expected by generateMarketplaceAnalysisText
+      const compatibleListings = data.marketplaceListings.map(listing => ({
+        ...listing,
+        vin: listing.vin || null,
+        updated_at: listing.updated_at || null
+      }));
+      
+      const marketplaceAnalysis = generateMarketplaceAnalysisText(compatibleListings, estimatedValue);
       summary += `Marketplace Analysis: ${marketplaceAnalysis}\n\n`;
     }
 
@@ -76,6 +82,37 @@ export async function generateAINSummaryForPdf(data: ReportData): Promise<string
     console.error('Error generating AIN summary:', error);
     return 'Unable to generate detailed market analysis at this time.';
   }
+}
+
+// Helper function to match the expected signature
+function generateMarketplaceAnalysisText(listings: any[], estimatedValue: number): string {
+  if (!listings.length) {
+    return 'No public marketplace listings found to compare against for this vehicle.';
+  }
+
+  const validListings = listings.filter(listing => listing.price && listing.price > 0);
+  
+  if (!validListings.length) {
+    return 'Marketplace listings found but no valid pricing data available for comparison.';
+  }
+
+  const averagePrice = Math.round(validListings.reduce((sum, listing) => sum + listing.price, 0) / validListings.length);
+  const platforms = [...new Set(validListings.map(l => l.platform))].join(', ');
+  const difference = estimatedValue - averagePrice;
+  const percentDiff = Math.abs((difference / averagePrice) * 100);
+  
+  let comparisonText = '';
+  if (Math.abs(difference) > averagePrice * 0.05) {
+    if (difference > 0) {
+      comparisonText = `, suggesting a premium valuation ${percentDiff.toFixed(1)}% above current market listings`;
+    } else {
+      comparisonText = `, indicating a competitive price ${percentDiff.toFixed(1)}% below current market listings`;
+    }
+  } else {
+    comparisonText = ', aligning closely with current market pricing';
+  }
+
+  return `Based on ${validListings.length} recent public listings from ${platforms}, the average marketplace price is $${averagePrice.toLocaleString()}${comparisonText}.`;
 }
 
 export function formatAINSummaryForPdf(summary: string): string {
