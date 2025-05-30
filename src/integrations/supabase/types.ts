@@ -1230,6 +1230,30 @@ export type Database = {
           },
         ]
       }
+      pdf_audit_logs: {
+        Row: {
+          created_at: string
+          id: string
+          tracking_id: string
+          user_id: string
+          vin: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tracking_id: string
+          user_id: string
+          vin: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tracking_id?: string
+          user_id?: string
+          vin?: string
+        }
+        Relationships: []
+      }
       photo_condition_scores: {
         Row: {
           condition_score: number

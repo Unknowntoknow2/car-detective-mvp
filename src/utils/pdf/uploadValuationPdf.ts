@@ -4,7 +4,13 @@ import { generateValuationPdf } from './generateValuationPdf';
 import { ReportData } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import { generateAINSummaryForPdf, formatAINSummaryForPdf } from '../ain/generateSummaryForPdf';
-import { generateTrackingId, createWatermarkConfig, createTrackingConfig } from './addWatermarkAndTracking';
+import { 
+  generateTrackingId, 
+  createWatermarkConfig, 
+  createTrackingConfig,
+  addWatermarkToPdf,
+  logPdfGeneration
+} from './addWatermarkAndTracking';
 import { generateDebugInfo, formatDebugInfoForPdf } from './generateDebugInfo';
 import { sendPdfToVerifiedDealers } from '../../emails/sendValuationPdfToDealer';
 
