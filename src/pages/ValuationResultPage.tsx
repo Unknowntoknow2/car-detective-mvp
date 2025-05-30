@@ -69,7 +69,8 @@ const ValuationResultPage = () => {
               ...valuationResult,
               success: true,
               valuationId: id || valuationResult.id,
-              condition: valuationResult.condition || 'Good'
+              condition: valuationResult.condition || 'Good',
+              estimatedValue: valuationResult.estimatedValue || 0
             }}
             isPremium={isPremium || false}
           />
