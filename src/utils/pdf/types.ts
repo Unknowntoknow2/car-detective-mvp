@@ -51,6 +51,8 @@ export interface ReportOptions {
   isPremium?: boolean;
   includeExplanation?: boolean;
   includeAuctionData?: boolean;
+  includeAINSummary?: boolean; // Added includeAINSummary property
+  includeDebugInfo?: boolean; // Added includeDebugInfo property
   includeFooter?: boolean;
   includeBranding?: boolean;
   includeAIScore?: boolean;
