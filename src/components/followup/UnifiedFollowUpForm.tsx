@@ -8,13 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { ReportData } from '@/utils/pdf/types';
 
 const formSchema = z.object({
   vin: z.string().optional(),
   zip_code: z.string().min(5, {
     message: 'Zip code must be at least 5 characters.'
   }),
+  mileage: z.number().optional(),
+  condition: z.enum(['excellent', 'good', 'fair', 'poor']).optional(),
+  transmission: z.enum(['automatic', 'manual', 'unknown']).optional(),
   additional_notes: z.string().optional()
 });
 
@@ -33,6 +35,9 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
     defaultValues: {
       vin: vin || '',
       zip_code: initialData?.zip_code || '',
+      mileage: initialData?.mileage || undefined,
+      condition: initialData?.condition || 'good',
+      transmission: initialData?.transmission || 'automatic',
       additional_notes: initialData?.additional_notes || ''
     },
     mode: 'onChange'
@@ -47,6 +52,9 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
     const followUpAnswers: FollowUpAnswers = {
       vin: vin,
       zip_code: values.zip_code,
+      mileage: values.mileage,
+      condition: values.condition,
+      transmission: values.transmission,
       additional_notes: values.additional_notes || ''
     };
 
@@ -63,6 +71,9 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
     const followUpAnswers: FollowUpAnswers = {
       vin: vin,
       zip_code: values.zip_code,
+      mileage: values.mileage,
+      condition: values.condition,
+      transmission: values.transmission,
       additional_notes: values.additional_notes || ''
     };
 
@@ -92,6 +103,29 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
             </FormItem>
           )}
         />
+        
+        <FormField
+          control={form.control}
+          name="mileage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Mileage</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  placeholder="Enter mileage" 
+                  {...field}
+                  onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                />
+              </FormControl>
+              <FormDescription>
+                Current mileage on the vehicle.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
         <FormField
           control={form.control}
           name="additional_notes"

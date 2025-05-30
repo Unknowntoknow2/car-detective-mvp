@@ -23,7 +23,7 @@ export function getCompletionPercentage(formData: FollowUpAnswers): number {
   });
   
   // Service history check
-  if (formData.service_history && typeof formData.service_history === 'object' && formData.service_history.hasRecords !== undefined) {
+  if (formData.serviceHistory && typeof formData.serviceHistory === 'object' && formData.serviceHistory.hasRecords !== undefined) {
     completedOptional++;
   }
   
@@ -36,7 +36,7 @@ export function getCompletionPercentage(formData: FollowUpAnswers): number {
   const optionalWeight = 30; // 30% for optional fields
   
   const requiredScore = (completedRequired / requiredFields.length) * requiredWeight;
-  const optionalScore = (completedOptional / (optionalFields.length + 2)) * optionalWeight; // +2 for service_history and modifications
+  const optionalScore = (completedOptional / (optionalFields.length + 2)) * optionalWeight; // +2 for serviceHistory and modifications
   
   return Math.round(requiredScore + optionalScore);
 }
@@ -48,7 +48,7 @@ export function shouldShowNextStep(formData: FollowUpAnswers, currentStep: numbe
     case 2: // Vehicle condition
       return !!formData.condition;
     case 3: // Service history
-      return formData.service_history !== undefined;
+      return formData.serviceHistory !== undefined;
     case 4: // Modifications
       return formData.modifications !== undefined;
     default:
@@ -60,7 +60,7 @@ export function getStepValidation(formData: FollowUpAnswers): Record<number, boo
   return {
     1: !!(formData.vin && formData.zip_code),
     2: !!formData.condition,
-    3: formData.service_history !== undefined,
+    3: formData.serviceHistory !== undefined,
     4: formData.modifications !== undefined,
     5: true // Final step is always valid if we reach it
   };
@@ -123,7 +123,7 @@ export function transformForValuation(formData: FollowUpAnswers): any {
     zipCode: formData.zip_code,
     mileage: formData.mileage,
     condition: formData.condition,
-    serviceHistory: formData.service_history,
+    serviceHistory: formData.serviceHistory,
     modifications: formData.modifications,
     additionalNotes: formData.additional_notes
   };

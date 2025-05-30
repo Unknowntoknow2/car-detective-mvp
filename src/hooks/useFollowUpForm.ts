@@ -11,6 +11,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     condition: 'good',
     title_status: 'clean',
     previous_use: 'personal',
+    serviceHistory: { hasRecords: false },
     service_history: { hasRecords: false },
     maintenance_status: 'good',
     tire_condition: 'good',
@@ -19,6 +20,15 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     frame_damage: false,
     dashboard_lights: [],
     accidents: {
+      hadAccident: false,
+      count: 0,
+      location: '',
+      severity: 'minor',
+      repaired: false,
+      frameDamage: false,
+      description: ''
+    },
+    accident_history: {
       hadAccident: false,
       count: 0,
       location: '',
@@ -67,6 +77,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
           ...data,
           // Ensure proper structure for complex fields
           accidents: data.accidents || prev.accidents,
+          accident_history: data.accident_history || prev.accident_history,
           modifications: data.modifications || prev.modifications,
           features: data.features || prev.features,
           dashboard_lights: data.dashboard_lights || prev.dashboard_lights
