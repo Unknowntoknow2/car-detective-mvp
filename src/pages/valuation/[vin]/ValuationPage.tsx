@@ -1,201 +1,156 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
-import { Container } from '@/components/ui/container';
-import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
-import { CarFinderQaherCard } from '@/components/valuation/CarFinderQaherCard';
+import { useParams } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Loader2 } from 'lucide-react';
 import { UnifiedFollowUpQuestions } from '@/components/lookup/form-parts/UnifiedFollowUpQuestions';
-import { decodeVin } from '@/services/vinService';
-import { DecodedVehicleInfo } from '@/types/vehicle';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
-import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
+import { ManualEntryFormData, ConditionLevel } from '@/components/lookup/types/manualEntry';
+import { useVinLookup } from '@/hooks/useVinLookup';
 import { toast } from 'sonner';
-import { PremiumBadge } from '@/components/premium/insights/PremiumBadge';
 
-export default function ValuationPage() {
-  const { vin: vinParam } = useParams<{ vin: string }>();
-  const [searchParams] = useSearchParams();
-  const [vehicle, setVehicle] = useState<DecodedVehicleInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState<ManualEntryFormData>({
-    vin: vinParam || '',
-    make: '',
-    model: '',
-    year: '',
-    mileage: '',
-    condition: 'good' as any,
+export function ValuationPage() {
+  const { vin } = useParams<{ vin: string }>();
+  const { data: vehicleData, isLoading, error } = useVinLookup(vin || '');
+  
+  const [followUpData, setFollowUpData] = useState<ManualEntryFormData>({
+    make: vehicleData?.make || '',
+    model: vehicleData?.model || '',
+    year: vehicleData?.year ? parseInt(vehicleData.year.toString()) : new Date().getFullYear(),
+    mileage: vehicleData?.mileage ? parseInt(vehicleData.mileage.toString()) : 50000,
+    condition: ConditionLevel.Good,
     zipCode: '',
-    trim: '',
-    fuelType: 'Gasoline',
-    transmission: 'Automatic',
-    color: '',
-    titleStatus: 'clean',
-    previousOwners: 1,
-    previousUse: 'personal',
-    serviceHistory: 'unknown',
-    hasRegularMaintenance: null,
-    maintenanceNotes: '',
-    accidentDetails: {
-      hasAccident: false,
-      severity: 'minor',
-      repaired: false,
-      description: ''
-    },
-    tireCondition: 'good',
-    dashboardLights: [],
-    hasModifications: false,
-    modificationTypes: []
+    fuelType: vehicleData?.fuelType || 'gasoline',
+    transmission: vehicleData?.transmission || 'automatic',
+    vin: vin || '',
   });
 
-  // Check if this is a premium valuation
-  const isPremium = searchParams.get('premium') === 'true';
-
-  // Handle potentially undefined VIN parameter with proper type handling
-  const safeVin: string = vinParam ?? '';
-
+  // Update form data when vehicle data loads
   useEffect(() => {
-    if (safeVin && safeVin.length === 17) {
-      console.log('🔍 ValuationPage: Loading vehicle data for VIN:', safeVin, 'Premium:', isPremium);
-      loadVehicleData(safeVin);
-    } else if (vinParam) {
-      // VIN is present but invalid length
-      toast.error('Invalid VIN format. VIN must be 17 characters long.');
+    if (vehicleData) {
+      setFollowUpData(prev => ({
+        ...prev,
+        vin: vin || '',
+        make: vehicleData.make || '',
+        model: vehicleData.model || '',
+        year: vehicleData.year ? parseInt(vehicleData.year.toString()) : prev.year,
+        trim: vehicleData.trim || '',
+        makeName: vehicleData.make || '',
+        modelName: vehicleData.model || '',
+        trimName: vehicleData.trim || '',
+        fuelType: vehicleData.fuelType || prev.fuelType,
+        transmission: vehicleData.transmission || prev.transmission,
+        bodyType: vehicleData.bodyType || '',
+        color: vehicleData.color || '',
+      }));
     }
-  }, [safeVin, vinParam, isPremium]);
+  }, [vehicleData, vin]);
 
-  const loadVehicleData = async (vinCode: string) => {
-    setIsLoading(true);
+  const handleFollowUpSubmit = async (data: ManualEntryFormData) => {
     try {
-      const result = await decodeVin(vinCode);
+      console.log('Follow-up data submitted:', data);
+      toast.success('Vehicle information updated successfully!');
       
-      if (result.success && result.data) {
-        console.log('✅ ValuationPage: Vehicle data loaded:', result.data);
-        setVehicle(result.data);
-        
-        // Update form data with vehicle info
-        setFormData(prev => ({
-          ...prev,
-          vin: vinCode,
-          make: result.data?.make || '',
-          model: result.data?.model || '',
-          year: result.data?.year?.toString() || '',
-          trim: result.data?.trim || ''
-        }));
-        
-        toast.success('Vehicle details loaded successfully!');
-      } else {
-        console.error('❌ ValuationPage: Failed to load vehicle data:', result.error);
-        toast.error('Failed to load vehicle details');
-      }
+      // Here you would typically submit to your valuation API
+      // navigate to results page or update the UI accordingly
     } catch (error) {
-      console.error('❌ ValuationPage: Error loading vehicle data:', error);
-      toast.error('Error loading vehicle details');
-    } finally {
-      setIsLoading(false);
+      console.error('Error submitting follow-up data:', error);
+      toast.error('Failed to update vehicle information');
     }
   };
 
-  const updateFormData = (updates: Partial<ManualEntryFormData>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
-  };
-
-  const handleFollowUpSubmit = async (): Promise<void> => {
-    console.log('✅ ValuationPage: Follow-up submitted:', formData, 'Premium:', isPremium);
-    toast.success('Valuation completed successfully!');
-    // Handle final valuation here
-  };
-
-  // If no VIN parameter at all, show error message
-  if (!vinParam) {
+  if (isLoading) {
     return (
-      <Container className="max-w-6xl py-10">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
-            Vehicle Valuation
-          </h1>
-          <p className="mt-4 text-lg text-gray-600">
-            Please enter a VIN to get started with your valuation.
-          </p>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-lg">Looking up vehicle information...</p>
+          </div>
         </div>
-      </Container>
+      </div>
     );
   }
 
-  // If VIN is present but invalid length
-  if (safeVin.length !== 17) {
+  if (error) {
     return (
-      <Container className="max-w-6xl py-10">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
-            Invalid VIN
-          </h1>
-          <p className="mt-4 text-lg text-gray-600">
-            The provided VIN "{safeVin}" is not valid. VINs must be exactly 17 characters long.
-          </p>
-        </div>
-      </Container>
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-2xl mx-auto">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-red-600 mb-4">Failed to load vehicle information</p>
+              <p className="text-gray-600">{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <Container className="max-w-6xl py-10">
-      <div className="relative">
-        {isPremium && <PremiumBadge />}
-        
-        <CarFinderQaherHeader />
-        
-        {isLoading && (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading vehicle details...</p>
-          </div>
-        )}
-        
-        {vehicle && (
-          <div className="space-y-8">
-            {/* Enhanced Car Finder Qaher Card */}
-            <CarFinderQaherCard vehicle={vehicle} />
-            
-            {/* Follow-up Questions */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Vehicle Details</h2>
-                <p className="text-gray-600 mt-2">
-                  Please provide additional information about your vehicle to get the most accurate valuation.
-                </p>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Vehicle Header */}
+        {vehicleData && (
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl">
+                  {vehicleData.year} {vehicleData.make} {vehicleData.model}
+                </CardTitle>
+                <Badge variant="outline">VIN: {vin}</Badge>
               </div>
-              
-              <UnifiedFollowUpQuestions
-                formData={formData}
-                updateFormData={updateFormData}
-              />
-              
-              <div className="mt-8 pt-6 border-t">
-                <button
-                  onClick={handleFollowUpSubmit}
-                  className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
-                >
-                  Get My Vehicle Valuation
-                </button>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                {vehicleData.trim && (
+                  <div>
+                    <span className="font-medium">Trim:</span>
+                    <p className="text-gray-600">{vehicleData.trim}</p>
+                  </div>
+                )}
+                {vehicleData.fuelType && (
+                  <div>
+                    <span className="font-medium">Fuel Type:</span>
+                    <p className="text-gray-600">{vehicleData.fuelType}</p>
+                  </div>
+                )}
+                {vehicleData.transmission && (
+                  <div>
+                    <span className="font-medium">Transmission:</span>
+                    <p className="text-gray-600">{vehicleData.transmission}</p>
+                  </div>
+                )}
+                {vehicleData.bodyType && (
+                  <div>
+                    <span className="font-medium">Body Type:</span>
+                    <p className="text-gray-600">{vehicleData.bodyType}</p>
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         )}
-        
-        {/* Debug info only visible in development mode */}
-        {SHOW_ALL_COMPONENTS && (
-          <div className="fixed bottom-4 right-4 bg-yellow-100 text-black p-3 rounded-lg text-xs z-50 opacity-80">
-            <div className="space-y-1">
-              <div>Debug Mode: ON</div>
-              <div>Component: ValuationPage</div>
-              <div>VIN: {safeVin || 'None'}</div>
-              <div>Premium: {isPremium ? 'Yes' : 'No'}</div>
-              <div>Vehicle Loaded: {vehicle ? 'Yes' : 'No'}</div>
-              <div>Loading: {isLoading ? 'Yes' : 'No'}</div>
-            </div>
-          </div>
-        )}
+
+        {/* Follow-up Questions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Vehicle Details</CardTitle>
+            <p className="text-gray-600">
+              Please provide additional information to get a more accurate valuation.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <UnifiedFollowUpQuestions
+              initialData={followUpData}
+              onSubmit={handleFollowUpSubmit}
+              isLoading={false}
+            />
+          </CardContent>
+        </Card>
       </div>
-    </Container>
+    </div>
   );
 }
+
+export default ValuationPage;
