@@ -8,8 +8,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useValuationResult } from '@/hooks/useValuationResult';
-import { Loading } from '@/components/ui/Loading';
-import { ErrorMessage } from '@/components/ui/ErrorMessage';
+import Loading from '@/components/ui/Loading';
+import ErrorMessage from '@/components/ui/ErrorMessage';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 
 const ValuationResultPage = () => {
@@ -32,8 +32,7 @@ const ValuationResultPage = () => {
       <MainLayout>
         <div className="container mx-auto py-8">
           <ErrorMessage 
-            title="Valuation Not Found"
-            description="The valuation result you're looking for doesn't exist or has been removed."
+            message="The valuation result you're looking for doesn't exist or has been removed."
           />
           <Button 
             onClick={() => window.history.back()} 
@@ -69,7 +68,8 @@ const ValuationResultPage = () => {
             data={{
               ...valuationResult,
               success: true,
-              valuationId: id || valuationResult.id
+              valuationId: id || valuationResult.id,
+              condition: valuationResult.condition || 'Good'
             }}
             isPremium={isPremium || false}
           />
