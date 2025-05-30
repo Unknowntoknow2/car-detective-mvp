@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -17,6 +18,8 @@ const formSchema = z.object({
   additional_notes: z.string().optional()
 });
 
+type FormData = z.infer<typeof formSchema>;
+
 interface UnifiedFollowUpFormProps {
   vin: string;
   initialData?: Partial<FollowUpAnswers>;
@@ -25,10 +28,10 @@ interface UnifiedFollowUpFormProps {
 }
 
 export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: UnifiedFollowUpFormProps) {
-  const form = useForm<FollowUpAnswers>({
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      vin: vin,
+      vin: vin || '',
       zip_code: initialData?.zip_code || '',
       additional_notes: initialData?.additional_notes || ''
     },
@@ -37,9 +40,16 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
 
   const isLoading = form.formState.isSubmitting;
 
-  const handleSubmit = async (values: FollowUpAnswers) => {
+  const handleSubmit = async (values: FormData) => {
     console.log('📝 Form submitted with values:', values);
     
+    // Convert FormData to FollowUpAnswers
+    const followUpAnswers: FollowUpAnswers = {
+      vin: vin,
+      zip_code: values.zip_code,
+      additional_notes: values.additional_notes || ''
+    };
+
     const reportData: ReportData = {
       make: 'Toyota',
       model: 'Test Vehicle',
@@ -61,16 +71,23 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
     };
 
     try {
-      await onSubmit(values);
+      await onSubmit(followUpAnswers);
     } catch (error) {
       console.error('Error submitting form:', error);
     }
   };
 
-  const handleSave = async (values: FollowUpAnswers) => {
+  const handleSave = async (values: FormData) => {
     console.log('💾 Form saved with values:', values);
+    
+    const followUpAnswers: FollowUpAnswers = {
+      vin: vin,
+      zip_code: values.zip_code,
+      additional_notes: values.additional_notes || ''
+    };
+
     try {
-      await onSave?.(values);
+      await onSave?.(followUpAnswers);
     } catch (error) {
       console.error('Error saving form:', error);
     }
@@ -105,7 +122,9 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
                 <Textarea
                   placeholder="Any additional notes about the vehicle?"
                   className="resize-none"
-                  {...field}
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
                 />
               </FormControl>
               <FormDescription>
