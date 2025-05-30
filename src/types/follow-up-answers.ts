@@ -1,78 +1,73 @@
 
-export interface FollowUpAnswers {
-  vin: string;
-  valuation_id?: string;
-  user_id?: string;
-  zip_code: string;
-  mileage?: number;
-  condition?: string;
-  transmission?: string;
-  exterior_condition?: string;
-  interior_condition?: string;
-  previous_owners?: number;
-  dashboard_lights?: string[];
-  engine_issues?: boolean;
-  transmission_issues?: boolean;
-  accident_history?: {
-    hadAccident: boolean;
-    count?: number;
-    location?: string;
-    severity?: 'minor' | 'moderate' | 'severe';
-    repaired?: boolean;
-    frameDamage?: boolean;
-    description?: string;
-  };
-  service_history?: {
-    hasRecords: boolean;
-    lastService?: string;
-    frequency?: string;
-    dealerMaintained?: boolean;
-    description?: string;
-  };
-  title_status?: string;
-  modifications?: {
-    hasModifications: boolean;
-    modified?: boolean;
-    types?: string[];
-    description?: string;
-  };
-  additional_notes?: string;
-  completion_percentage?: number;
-  is_complete?: boolean;
-  created_at?: string;
-  updated_at?: string;
-  
-  // Additional fields for compatibility with existing components
-  accidents?: {
-    hadAccident: boolean;
-    count?: number;
-    location?: string;
-    severity?: 'minor' | 'moderate' | 'severe';
-    repaired?: boolean;
-    frameDamage?: boolean;
-    description?: string;
-  };
-  features?: Array<{
-    value: string;
-    label: string;
-    icon?: string;
-    impact?: number;
-  }>;
-  tire_condition?: string;
-  frame_damage?: boolean;
-  previous_use?: string;
-  maintenance_status?: string;
-  last_service_date?: string;
-  service_notes?: string;
+export type AccidentDetails = {
+  hadAccident: boolean
+  count?: number
+  location?: string
+  severity?: 'minor' | 'moderate' | 'severe'
+  repaired?: boolean
+  frameDamage?: boolean
+  description?: string
 }
 
-// Export constants for form options with enhanced properties
+export type ModificationDetails = {
+  hasModifications: boolean
+  types?: string[]
+  description?: string
+}
+
+export type ServiceHistoryDetails = {
+  hasRecords: boolean
+  lastService?: string
+  frequency?: string
+  dealerMaintained?: boolean
+  description?: string
+}
+
+export type FollowUpAnswers = {
+  vin: string
+  user_id?: string
+  valuation_id?: string
+
+  mileage: number
+  zip_code: string
+  condition: 'excellent' | 'good' | 'fair' | 'poor'
+  transmission: 'automatic' | 'manual' | 'unknown'
+
+  previous_owners?: number
+  title_status?: 'clean' | 'salvage' | 'rebuilt' | 'lien' | 'unknown'
+  dashboard_lights?: string[] // E.g., ['Check Engine', 'ABS']
+  tire_condition?: 'new' | 'good' | 'worn' | 'bald'
+  accident_history?: AccidentDetails
+  modifications?: ModificationDetails
+  serviceHistory?: ServiceHistoryDetails
+
+  exterior_condition?: 'excellent' | 'good' | 'fair' | 'poor'
+  interior_condition?: 'excellent' | 'good' | 'fair' | 'poor'
+
+  smoking?: boolean
+  petDamage?: boolean
+  rust?: boolean
+  hailDamage?: boolean
+
+  loan_balance?: number
+  has_active_loan?: boolean
+  payoffAmount?: number
+
+  additional_notes?: string
+
+  is_complete?: boolean
+  completion_percentage?: number
+  created_at?: string
+  updated_at?: string
+}
+
+// Export constants for form options
 export const CONDITION_OPTIONS = [
   { value: 'excellent', label: 'Excellent', description: 'Like new condition', impact: 1000 },
   { value: 'good', label: 'Good', description: 'Minor wear and tear', impact: 0 },
   { value: 'fair', label: 'Fair', description: 'Some visible wear', impact: -500 },
   { value: 'poor', label: 'Poor', description: 'Significant wear or damage', impact: -1500 }
-];
+] as const;
 
 export const MODIFICATION_TYPES = [
   'Performance',
@@ -82,14 +77,14 @@ export const MODIFICATION_TYPES = [
   'Wheels',
   'Interior',
   'Other'
-];
+] as const;
 
 export const TIRE_CONDITION_OPTIONS = [
-  { value: 'excellent', label: 'Excellent', description: 'New or like-new tires', impact: 300 },
+  { value: 'new', label: 'New', description: 'New or like-new tires', impact: 300 },
   { value: 'good', label: 'Good', description: 'Good tread remaining', impact: 0 },
-  { value: 'fair', label: 'Fair', description: 'Some wear but safe', impact: -200 },
-  { value: 'poor', label: 'Poor', description: 'Need replacement soon', impact: -500 }
-];
+  { value: 'worn', label: 'Worn', description: 'Some wear but safe', impact: -200 },
+  { value: 'bald', label: 'Bald', description: 'Need replacement soon', impact: -500 }
+] as const;
 
 export const DASHBOARD_LIGHTS = [
   'Check Engine',
@@ -100,36 +95,15 @@ export const DASHBOARD_LIGHTS = [
   'Temperature',
   'Brake',
   'Tire Pressure'
-];
-
-export const SERVICE_HISTORY_OPTIONS = [
-  { value: 'excellent', label: 'Excellent', description: 'Complete service records' },
-  { value: 'good', label: 'Good', description: 'Most services documented' },
-  { value: 'fair', label: 'Fair', description: 'Some service records' },
-  { value: 'poor', label: 'Poor', description: 'Limited or no records' }
-];
-
-export const MAINTENANCE_STATUS_OPTIONS = [
-  { value: 'excellent', label: 'Excellent', description: 'Recently serviced' },
-  { value: 'good', label: 'Good', description: 'Up to date maintenance' },
-  { value: 'fair', label: 'Fair', description: 'Some maintenance needed' },
-  { value: 'poor', label: 'Poor', description: 'Overdue maintenance' }
-];
+] as const;
 
 export const TITLE_STATUS_OPTIONS = [
   { value: 'clean', label: 'Clean', description: 'No title issues' },
   { value: 'salvage', label: 'Salvage', description: 'Previously totaled' },
   { value: 'rebuilt', label: 'Rebuilt', description: 'Rebuilt from salvage' },
-  { value: 'flood', label: 'Flood', description: 'Flood damage history' },
-  { value: 'lemon', label: 'Lemon', description: 'Manufacturer buyback' }
-];
-
-export const PREVIOUS_USE_OPTIONS = [
-  { value: 'personal', label: 'Personal', description: 'Personal use only' },
-  { value: 'commercial', label: 'Commercial', description: 'Commercial use' },
-  { value: 'rental', label: 'Rental', description: 'Former rental vehicle' },
-  { value: 'fleet', label: 'Fleet', description: 'Fleet vehicle' }
-];
+  { value: 'lien', label: 'Lien', description: 'Has outstanding loan' },
+  { value: 'unknown', label: 'Unknown', description: 'Title status unclear' }
+] as const;
 
 // Enhanced features list with properties
 export const VEHICLE_FEATURES = [
@@ -141,4 +115,4 @@ export const VEHICLE_FEATURES = [
   { value: 'bluetooth', label: 'Bluetooth', icon: '📶', impact: 200 },
   { value: 'premium_audio', label: 'Premium Audio', icon: '🔊', impact: 700 },
   { value: 'alloy_wheels', label: 'Alloy Wheels', icon: '⚙️', impact: 400 }
-];
+] as const;
