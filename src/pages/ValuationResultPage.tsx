@@ -69,15 +69,8 @@ const ValuationResultPage = () => {
           <div className="lg:col-span-2">
             <Card className="p-6">
               <ValuationResult 
-                valuationId={id} 
-                data={{
-                  ...valuationResult,
-                  success: true,
-                  valuationId: id || valuationResult.id,
-                  condition: valuationResult.condition || 'Good',
-                  estimatedValue: valuationResult.estimatedValue || 0
-                }}
-                isPremium={isPremium || false}
+                valuationId={id}
+                isManualValuation={false}
               />
             </Card>
           </div>
