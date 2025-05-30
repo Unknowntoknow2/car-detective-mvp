@@ -1,198 +1,190 @@
 
-import { ReportData, AuctionResult } from './types';
+import { ReportData } from './types';
+import { AuctionResult } from '@/types/auction';
 
-export function getValuationReportHTML(data: ReportData): string {
+export function generateValuationReportHtml(reportData: ReportData): string {
   const { 
     make, 
     model, 
     year, 
+    mileage, 
+    condition, 
     estimatedValue, 
-    confidenceScore, 
-    priceRange,
-    auctionResults = [],
-    isPremium = false,
-    mileage,
-    condition,
-    zipCode
-  } = data;
+    confidenceScore,
+    adjustments = [],
+    generatedAt,
+    vin
+  } = reportData;
 
-  const auctionHTML = auctionResults.length > 0 
-    ? auctionResults
-        .slice(0, 5) // Limit to 5 most recent
-        .map((result) => {
-          const price = parseInt(result.price || '0');
-          const odometer = parseInt(result.odometer || '0');
-          const photoUrl = result.photo_urls?.[0] || '';
-          
-          return `
-            <div style="margin-top:12px;border:1px solid #e5e7eb;padding:12px;border-radius:8px;background:#f9fafb;">
-              <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
-                <strong style="color:#1f2937;font-size:14px;">${result.auction_source}</strong>
-                <span style="color:#6b7280;font-size:12px;">${new Date(result.sold_date).toLocaleDateString()}</span>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
-                <div><span style="color:#6b7280;">Sold Price:</span> <strong style="color:#059669;">$${price.toLocaleString()}</strong></div>
-                <div><span style="color:#6b7280;">Mileage:</span> ${odometer.toLocaleString()} mi</div>
-                ${result.condition_grade ? `<div><span style="color:#6b7280;">Condition:</span> ${result.condition_grade}</div>` : ''}
-                ${result.location ? `<div><span style="color:#6b7280;">Location:</span> ${result.location}</div>` : ''}
-              </div>
-              ${photoUrl ? `<img src="${photoUrl}" alt="Auction Photo" style="width:150px;height:auto;margin-top:8px;border-radius:4px;" />` : ''}
-            </div>
-          `;
-        })
-        .join('')
-    : '<p style="color:#6b7280;font-style:italic;">No recent auction data available for this VIN.</p>';
+  // Helper function to format auction data
+  const formatAuctionData = (auctionResults: AuctionResult[] = []) => {
+    if (!auctionResults.length) return '<p>No auction data available</p>';
+    
+    return auctionResults.map(result => `
+      <div class="auction-result">
+        <p><strong>Price:</strong> ${result.price}</p>
+        <p><strong>Date:</strong> ${result.sold_date}</p>
+        <p><strong>Mileage:</strong> ${result.mileage || 'N/A'}</p>
+        <p><strong>Source:</strong> ${result.auction_source}</p>
+        ${result.photos && result.photos.length > 0 ? `
+          <div class="photos">
+            ${result.photos.slice(0, 3).map(photo => `<img src="${photo}" alt="Auction photo" style="width: 100px; height: 75px; object-fit: cover; margin: 5px;" />`).join('')}
+          </div>
+        ` : ''}
+      </div>
+    `).join('');
+  };
 
-  const priceRangeDisplay = priceRange 
-    ? `$${priceRange[0].toLocaleString()} - $${priceRange[1].toLocaleString()}`
-    : `$${Math.floor(estimatedValue * 0.9).toLocaleString()} - $${Math.ceil(estimatedValue * 1.1).toLocaleString()}`;
+  // Helper function to format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  // Helper function to format date
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   return `
     <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>CarDetective Valuation Report</title>
-        <style>
-          * { box-sizing: border-box; }
-          body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            padding: 40px;
-            background: white;
-            color: #1f2937;
-            line-height: 1.6;
-          }
-          .header {
-            text-align: center;
-            margin-bottom: 40px;
-            border-bottom: 2px solid #3b82f6;
-            padding-bottom: 20px;
-          }
-          .header h1 {
-            color: #1f2937;
-            margin: 0;
-            font-size: 28px;
-            font-weight: 700;
-          }
-          .header .subtitle {
-            color: #6b7280;
-            margin-top: 8px;
-            font-size: 14px;
-          }
-          .section {
-            margin-bottom: 32px;
-            page-break-inside: avoid;
-          }
-          .section h2 {
-            color: #1f2937;
-            font-size: 20px;
-            margin-bottom: 16px;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 8px;
-          }
-          .vehicle-info {
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-          }
-          .valuation-highlight {
-            text-align: center;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
-            padding: 24px;
-            border-radius: 12px;
-            margin: 20px 0;
-          }
-          .valuation-highlight .price {
-            font-size: 36px;
-            font-weight: 800;
-            margin-bottom: 8px;
-          }
-          .confidence-score {
-            display: inline-block;
-            background: rgba(255,255,255,0.2);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            margin-top: 12px;
-          }
-          .premium-badge {
-            background: linear-gradient(45deg, #fbbf24, #f59e0b);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-block;
-            margin-left: 12px;
-          }
-          .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-          }
-          .auction-section {
-            background: #f9fafb;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-          }
-          .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-            text-align: center;
-            color: #6b7280;
-            font-size: 12px;
-          }
-          @media print {
-            .page-break { page-break-before: always; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>CarDetective Valuation Report${isPremium ? '<span class="premium-badge">PREMIUM</span>' : ''}</h1>
-          <div class="subtitle">Generated on ${new Date().toLocaleDateString()}</div>
-        </div>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Vehicle Valuation Report</title>
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .header {
+          text-align: center;
+          border-bottom: 3px solid #2563eb;
+          padding-bottom: 20px;
+          margin-bottom: 30px;
+        }
+        .vehicle-info {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+          margin-bottom: 30px;
+        }
+        .value-section {
+          background: linear-gradient(135deg, #2563eb, #1d4ed8);
+          color: white;
+          padding: 30px;
+          border-radius: 12px;
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .adjustments {
+          background: #f8fafc;
+          padding: 20px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+        }
+        .adjustment-item {
+          display: flex;
+          justify-content: between;
+          margin-bottom: 10px;
+          padding: 8px 0;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        .auction-result {
+          border: 1px solid #e2e8f0;
+          padding: 15px;
+          margin-bottom: 15px;
+          border-radius: 8px;
+        }
+        .footer {
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 1px solid #e2e8f0;
+          text-align: center;
+          color: #64748b;
+          font-size: 0.9em;
+        }
+        h1, h2, h3 {
+          color: #1e293b;
+        }
+        .confidence-score {
+          background: #10b981;
+          color: white;
+          padding: 8px 16px;
+          border-radius: 20px;
+          display: inline-block;
+          font-weight: bold;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>Vehicle Valuation Report</h1>
+        <p>Professional vehicle assessment and market analysis</p>
+      </div>
 
-        <div class="section">
-          <h2>Vehicle Information</h2>
-          <div class="vehicle-info">
-            <div class="grid">
-              <div><strong>Vehicle:</strong> ${year} ${make} ${model}</div>
-              <div><strong>Mileage:</strong> ${mileage.toLocaleString()} miles</div>
-              <div><strong>Condition:</strong> ${condition}</div>
-              <div><strong>Location:</strong> ${zipCode}</div>
+      <div class="vehicle-info">
+        <div>
+          <h3>Vehicle Details</h3>
+          <p><strong>Make:</strong> ${make}</p>
+          <p><strong>Model:</strong> ${model}</p>
+          <p><strong>Year:</strong> ${year}</p>
+          <p><strong>Mileage:</strong> ${mileage?.toLocaleString() || 'N/A'} miles</p>
+          <p><strong>Condition:</strong> ${condition || 'Not specified'}</p>
+          ${vin ? `<p><strong>VIN:</strong> ${vin}</p>` : ''}
+        </div>
+        <div>
+          <h3>Report Details</h3>
+          <p><strong>Generated:</strong> ${formatDate(generatedAt)}</p>
+          <p><strong>Confidence Score:</strong> 
+            <span class="confidence-score">${Math.round(confidenceScore)}%</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="value-section">
+        <h2>Estimated Market Value</h2>
+        <div style="font-size: 3em; font-weight: bold; margin: 20px 0;">
+          ${formatCurrency(estimatedValue)}
+        </div>
+        <p>Based on current market conditions and vehicle specifics</p>
+      </div>
+
+      ${adjustments.length > 0 ? `
+        <div class="adjustments">
+          <h3>Value Adjustments</h3>
+          ${adjustments.map(adj => `
+            <div class="adjustment-item">
+              <span>${adj.factor}</span>
+              <span style="font-weight: bold; color: ${adj.impact >= 0 ? '#10b981' : '#ef4444'}">
+                ${adj.impact >= 0 ? '+' : ''}${formatCurrency(adj.impact)}
+              </span>
             </div>
-          </div>
+            <div style="font-size: 0.9em; color: #64748b; margin-top: 4px;">
+              ${adj.description}
+            </div>
+          `).join('')}
         </div>
+      ` : ''}
 
-        <div class="section">
-          <div class="valuation-highlight">
-            <div class="price">$${estimatedValue.toLocaleString()}</div>
-            <div>Estimated Market Value</div>
-            <div style="font-size: 14px; margin-top: 8px;">Range: ${priceRangeDisplay}</div>
-            <div class="confidence-score">Confidence: ${confidenceScore}%</div>
-          </div>
-        </div>
-
-        ${isPremium && auctionResults.length > 0 ? `
-        <div class="section page-break">
-          <h2>Real Auction Comparables</h2>
-          <div class="auction-section">
-            <p style="margin-bottom:16px;color:#4b5563;">Recent auction sales for similar vehicles help validate this valuation:</p>
-            ${auctionHTML}
-          </div>
-        </div>
-        ` : ''}
-
-        <div class="footer">
-          <p>This report was generated by CarDetective's AI-powered valuation engine.</p>
-          <p>Report ID: CD-${Date.now()}</p>
-        </div>
-      </body>
+      <div class="footer">
+        <p>This report is generated based on market data and vehicle condition assessment.</p>
+        <p>Report generated on ${formatDate(generatedAt)}</p>
+      </div>
+    </body>
     </html>
   `;
 }

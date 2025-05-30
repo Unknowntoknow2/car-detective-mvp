@@ -62,9 +62,9 @@ export class FollowUpService {
   static async submitForValuation(formData: FollowUpAnswers): Promise<{ success: boolean; valuationId?: string; error?: string }> {
     try {
       // Validate form data
-      const validation = validateFormData(formData);
-      if (!validation.isValid) {
-        return { success: false, error: validation.errors.join(', ') };
+      const isValid = validateFormData(formData);
+      if (!isValid) {
+        return { success: false, error: 'Form validation failed' };
       }
 
       // Mark as complete and save
