@@ -60,11 +60,11 @@ export const AuctionInsightCard: React.FC<Props> = ({ results, ainSummary }) => 
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm text-muted-foreground mb-3">
                 <div>
-                  <span className="font-medium">Price:</span> ${auction.price?.toLocaleString()}
+                  <span className="font-medium">Price:</span> ${parseFloat(auction.price || '0').toLocaleString()}
                 </div>
                 {auction.odometer && (
                   <div>
-                    <span className="font-medium">Mileage:</span> {auction.odometer.toLocaleString()} mi
+                    <span className="font-medium">Mileage:</span> {parseInt(auction.odometer).toLocaleString()} mi
                   </div>
                 )}
                 {auction.location && (
