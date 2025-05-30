@@ -39,6 +39,7 @@ export async function generateValuationPdf(
     includeAuctionData?: boolean;
     includeCompetitorPricing?: boolean;
     includeAINSummary?: boolean;
+    watermark?: string;
     enrichedData?: any;
     marketplaceListings?: MarketplaceListing[];
   } = {}
