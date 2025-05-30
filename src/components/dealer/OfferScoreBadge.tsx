@@ -37,15 +37,20 @@ export function OfferScoreBadge({
       }
     }
 
-    if (score >= 80) {
-      return { color: 'bg-green-100 text-green-800 border-green-200', icon: TrendingUp };
-    } else if (score >= 60) {
-      return { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: TrendingUp };
-    } else if (score >= 40) {
-      return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: Minus };
-    } else {
-      return { color: 'bg-red-100 text-red-800 border-red-200', icon: TrendingDown };
+    if (score !== undefined) {
+      if (score >= 80) {
+        return { color: 'bg-green-100 text-green-800 border-green-200', icon: TrendingUp };
+      } else if (score >= 60) {
+        return { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: TrendingUp };
+      } else if (score >= 40) {
+        return { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: Minus };
+      } else {
+        return { color: 'bg-red-100 text-red-800 border-red-200', icon: TrendingDown };
+      }
     }
+
+    // Default fallback
+    return { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: Minus };
   };
 
   const { color, icon: Icon } = getBadgeVariant();
@@ -56,7 +61,7 @@ export function OfferScoreBadge({
       <Badge className={`${color} flex items-center gap-1 text-xs`}>
         <Icon className="h-3 w-3" />
         {displayLabel}
-        {score && ` (${score})`}
+        {score !== undefined && ` (${score})`}
       </Badge>
       {isBestOffer && (
         <Badge className="bg-amber-100 text-amber-800 border-amber-200 flex items-center gap-1">
