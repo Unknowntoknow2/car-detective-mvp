@@ -1,259 +1,287 @@
 
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, User, DollarSign, Clock, TrendingUp, Award } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useDealerOffers } from '@/hooks/useDealerOffers';
-import { useDealerOfferActions } from '@/hooks/useDealerOfferActions';
-import { scoreDealerOffers, getBestOffer } from '@/utils/ain/scoreDealerOffers';
+import { TrendingUp, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { OfferScoreBadge } from '@/components/dealer/OfferScoreBadge';
 import { OfferAcceptanceModal } from '@/components/dealer/OfferAcceptanceModal';
 import { AcceptedOfferCard } from '@/components/dealer/AcceptedOfferCard';
+import { useDealerOfferActions } from '@/hooks/useDealerOfferActions';
+import { scoreDealerOffers, getBestOffer, getOfferInsights, type ScoredOffer } from '@/utils/ain/scoreDealerOffers';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DealerOffersSectionProps {
   valuationId: string;
   estimatedValue: number;
-  vehicleInfo?: {
-    year?: number;
-    make?: string;
-    model?: string;
-    vin?: string;
-  };
 }
 
-export function DealerOffersSection({ 
-  valuationId, 
-  estimatedValue, 
-  vehicleInfo 
-}: DealerOffersSectionProps) {
-  const { offers, isLoading, refetch } = useDealerOffers(valuationId);
-  const { acceptOffer, isProcessing } = useDealerOfferActions();
-  const [selectedOffer, setSelectedOffer] = useState<any>(null);
-  const [showAcceptModal, setShowAcceptModal] = useState(false);
-  const [acceptedOffers, setAcceptedOffers] = useState<any[]>([]);
+interface AcceptedOffer {
+  id: string;
+  accepted_at: string;
+  status: 'pending' | 'completed' | 'cancelled';
+}
+
+interface DealerOfferWithAcceptance extends ScoredOffer {
+  acceptedOffer?: AcceptedOffer;
+}
+
+export function DealerOffersSection({ valuationId, estimatedValue }: DealerOffersSectionProps) {
+  const { user } = useAuth();
+  const [selectedOffer, setSelectedOffer] = useState<ScoredOffer | null>(null);
+  const [showAcceptanceModal, setShowAcceptanceModal] = useState(false);
+  const { acceptOffer, rejectOffer, isProcessing } = useDealerOfferActions();
+
+  // Fetch dealer offers for this valuation
+  const { data: rawOffers = [], isLoading, refetch } = useQuery({
+    queryKey: ['dealer-offers', valuationId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('dealer_offers')
+        .select(`
+          *,
+          dealers:dealer_id (
+            business_name,
+            contact_name,
+            email
+          )
+        `)
+        .eq('report_id', valuationId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!valuationId,
+    refetchInterval: 30000,
+  });
+
+  // Fetch accepted offers for this valuation
+  const { data: acceptedOffers = [] } = useQuery({
+    queryKey: ['accepted-offers', valuationId],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('accepted_offers')
+        .select('*')
+        .eq('valuation_id', valuationId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!valuationId && !!user,
+  });
 
   // Score the offers using AIN
-  const scoredOffers = React.useMemo(() => {
-    if (!offers.length) return [];
-    
-    return scoreDealerOffers({
-      valuationPrice: estimatedValue,
-      offers: offers.map(offer => ({
-        id: offer.id,
-        offer_amount: offer.offer_amount,
-        message: offer.message,
-        dealer_id: offer.dealer_id,
-        status: offer.status,
-        created_at: offer.created_at
-      })),
-      userZip: vehicleInfo?.vin?.substring(0, 5) || ''
-    });
-  }, [offers, estimatedValue, vehicleInfo?.vin]);
+  const scoredOffers = scoreDealerOffers({
+    valuationPrice: estimatedValue,
+    offers: rawOffers,
+  });
+
+  // Combine offers with acceptance status
+  const offersWithAcceptance: DealerOfferWithAcceptance[] = scoredOffers.map(offer => {
+    const acceptedOffer = acceptedOffers.find(ao => ao.dealer_offer_id === offer.id);
+    return {
+      ...offer,
+      acceptedOffer
+    };
+  });
 
   const bestOffer = getBestOffer(scoredOffers);
+  const insights = getOfferInsights(scoredOffers, estimatedValue);
 
-  const handleAcceptOffer = (offer: any) => {
+  const handleAcceptOffer = async (offer: ScoredOffer) => {
     setSelectedOffer(offer);
-    setShowAcceptModal(true);
+    setShowAcceptanceModal(true);
   };
 
-  const handleConfirmAccept = async () => {
-    if (!selectedOffer) return;
+  const handleConfirmAcceptance = async () => {
+    if (!selectedOffer || !user) return;
 
+    const dealerInfo = rawOffers.find(o => o.id === selectedOffer.id)?.dealers;
+    
     const result = await acceptOffer({
       offerId: selectedOffer.id,
       offerAmount: selectedOffer.offer_amount,
+      dealerEmail: dealerInfo?.email,
+      userEmail: user.email,
+      vin: '', // You might want to pass this from the parent component
       valuationId,
       dealerId: selectedOffer.dealer_id,
-      vin: vehicleInfo?.vin
     });
 
     if (result.success) {
-      setShowAcceptModal(false);
+      setShowAcceptanceModal(false);
       setSelectedOffer(null);
       refetch();
-      
-      // Add to accepted offers list
-      if (result.acceptedOffer) {
-        setAcceptedOffers(prev => [...prev, {
-          ...result.acceptedOffer,
-          offer: selectedOffer
-        }]);
-      }
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'sent':
-        return <Badge variant="outline">Pending</Badge>;
-      case 'accepted':
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200">Accepted</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive">Rejected</Badge>;
-      default:
-        return null;
-    }
+  const handleRejectOffer = async (offerId: string) => {
+    await rejectOffer(offerId);
+    refetch();
+  };
+
+  const handleCancelAcceptance = () => {
+    refetch();
   };
 
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Dealer Offers</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Dealer Offers
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {[1, 2].map((i) => (
-              <div key={i} className="p-4 border rounded-lg">
-                <div className="flex justify-between items-start mb-2">
-                  <Skeleton className="h-5 w-24" />
-                  <Skeleton className="h-5 w-16" />
-                </div>
-                <Skeleton className="h-8 w-32 mb-2" />
-                <Skeleton className="h-4 w-full" />
-              </div>
-            ))}
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         </CardContent>
       </Card>
     );
   }
 
+  const acceptedOffersList = offersWithAcceptance.filter(offer => offer.acceptedOffer);
+  const availableOffers = offersWithAcceptance.filter(offer => 
+    !offer.acceptedOffer && offer.status !== 'rejected'
+  );
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5" />
-          Dealer Offers
-          {offers.length > 0 && (
-            <Badge variant="secondary">{offers.length}</Badge>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {/* Show accepted offers first */}
-        {acceptedOffers.map((acceptedOffer) => (
-          <div key={acceptedOffer.id} className="mb-4">
+    <div className="space-y-6">
+      {/* Accepted Offers Section */}
+      {acceptedOffersList.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-green-800">Accepted Offers</h3>
+          {acceptedOffersList.map((offer) => (
             <AcceptedOfferCard
-              acceptedOffer={acceptedOffer}
-              offer={acceptedOffer.offer}
-              onCancelled={() => {
-                setAcceptedOffers(prev => prev.filter(o => o.id !== acceptedOffer.id));
-                refetch();
-              }}
+              key={offer.id}
+              acceptedOffer={offer.acceptedOffer!}
+              offer={offer}
+              onCancelled={handleCancelAcceptance}
             />
-          </div>
-        ))}
+          ))}
+        </div>
+      )}
 
-        {scoredOffers.length === 0 ? (
-          <div className="bg-slate-50 rounded-lg p-8 text-center">
-            <MessageSquare className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-            <p className="text-slate-600 mb-2">No offers yet</p>
-            <p className="text-sm text-slate-500">
-              When dealers make offers on your vehicle, they will appear here with AI-powered insights.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {scoredOffers.map((offer) => (
-              <div
-                key={offer.id}
-                className={`p-4 border rounded-lg ${
-                  offer.id === bestOffer?.id ? 'border-green-300 bg-green-50' : 'border-slate-200'
-                } ${offer.status === 'accepted' ? 'opacity-75' : ''}`}
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-slate-500" />
-                    <span className="font-medium">Dealer Offer</span>
-                    {offer.id === bestOffer?.id && (
-                      <Badge className="bg-amber-100 text-amber-800 border-amber-200 flex items-center gap-1">
-                        <Award className="h-3 w-3" />
-                        Best Offer
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-3 w-3 text-slate-500" />
-                    <span className="text-xs text-slate-500">
-                      {formatDistanceToNow(new Date(offer.created_at), { addSuffix: true })}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-green-600" />
-                    <span className="text-2xl font-bold">${offer.offer_amount.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {getStatusBadge(offer.status)}
-                    <OfferScoreBadge
-                      score={offer.score}
-                      recommendation={offer.recommendation}
-                      isBestOffer={offer.id === bestOffer?.id}
-                    />
-                  </div>
-                </div>
-
-                {offer.summary && (
-                  <div className="mb-3 p-3 bg-blue-50 rounded border border-blue-200">
-                    <div className="flex items-start gap-2">
-                      <TrendingUp className="h-4 w-4 text-blue-600 mt-0.5" />
-                      <p className="text-sm text-blue-800 font-medium">{offer.summary}</p>
-                    </div>
-                  </div>
-                )}
-
-                {offer.message && (
-                  <div className="mb-3 p-3 bg-slate-50 rounded border">
-                    <div className="flex items-start gap-2">
-                      <MessageSquare className="h-4 w-4 text-slate-500 mt-0.5" />
+      {/* Available Offers Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Dealer Offers ({availableOffers.length})
+          </CardTitle>
+          {insights && (
+            <div className="text-sm text-slate-600">
+              {insights.totalOffers} total offers • Best offer: ${insights.bestOffer?.offer_amount.toLocaleString()}
+            </div>
+          )}
+        </CardHeader>
+        <CardContent>
+          {availableOffers.length === 0 ? (
+            <div className="text-center py-8">
+              <AlertCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-slate-700 mb-2">No Offers Yet</h3>
+              <p className="text-slate-500">
+                Dealers will submit offers for your vehicle. Check back soon!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {availableOffers.map((offer) => {
+                const dealerInfo = rawOffers.find(o => o.id === offer.id)?.dealers;
+                const isRejected = offer.status === 'rejected';
+                
+                return (
+                  <div
+                    key={offer.id}
+                    className={`border rounded-lg p-4 ${
+                      offer.id === bestOffer?.id ? 'border-green-300 bg-green-50' : 'border-slate-200'
+                    } ${isRejected ? 'opacity-50 bg-red-50' : ''}`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
                       <div>
-                        <p className="text-sm font-medium text-slate-700">Message from dealer:</p>
-                        <p className="text-sm text-slate-600">{offer.message}</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-semibold text-lg">
+                            ${offer.offer_amount.toLocaleString()}
+                          </h4>
+                          <OfferScoreBadge
+                            score={offer.score}
+                            recommendation={offer.recommendation}
+                            isBestOffer={offer.id === bestOffer?.id}
+                          />
+                          {isRejected && (
+                            <Badge variant="destructive">Rejected</Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-600">
+                          {dealerInfo?.business_name || 'Dealer'} • {dealerInfo?.contact_name}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs text-slate-500">
+                          {new Date(offer.created_at).toLocaleDateString()}
+                        </div>
+                        {offer.id === bestOffer?.id && (
+                          <Badge className="bg-amber-100 text-amber-800 border-amber-200 mt-1">
+                            Best Offer
+                          </Badge>
+                        )}
                       </div>
                     </div>
-                  </div>
-                )}
 
-                {offer.status === 'sent' && (
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => handleAcceptOffer(offer)}
-                      disabled={isProcessing}
-                      className="bg-green-600 hover:bg-green-700"
-                      size="sm"
-                    >
-                      Accept Offer
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={isProcessing}
-                    >
-                      Decline
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+                    <div className="mb-3">
+                      <p className="text-sm text-slate-700">{offer.summary}</p>
+                    </div>
 
-        <OfferAcceptanceModal
-          isOpen={showAcceptModal}
-          onClose={() => setShowAcceptModal(false)}
-          onConfirm={handleConfirmAccept}
-          offer={selectedOffer}
-          vehicleInfo={vehicleInfo}
-          isProcessing={isProcessing}
-        />
-      </CardContent>
-    </Card>
+                    {offer.message && (
+                      <div className="bg-slate-50 p-3 rounded mb-3">
+                        <p className="text-sm text-slate-700">{offer.message}</p>
+                      </div>
+                    )}
+
+                    {!isRejected && (
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => handleAcceptOffer(offer)}
+                          disabled={isProcessing}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Accept Offer
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleRejectOffer(offer.id)}
+                          disabled={isProcessing}
+                          className="text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                          Decline
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Acceptance Modal */}
+      <OfferAcceptanceModal
+        isOpen={showAcceptanceModal}
+        onClose={() => setShowAcceptanceModal(false)}
+        onConfirm={handleConfirmAcceptance}
+        offer={selectedOffer!}
+        isProcessing={isProcessing}
+      />
+    </div>
   );
 }

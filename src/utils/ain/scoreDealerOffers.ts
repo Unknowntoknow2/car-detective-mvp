@@ -5,6 +5,7 @@ export interface DealerOffer {
   message?: string;
   dealer_id: string;
   created_at: string;
+  status: 'sent' | 'viewed' | 'accepted' | 'rejected';
 }
 
 export interface ScoredOffer extends DealerOffer {
