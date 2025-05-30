@@ -1,4 +1,5 @@
 
+
 export interface AuctionResult {
   vin: string;
   auction_source: string;
@@ -10,6 +11,12 @@ export interface AuctionResult {
   photo_urls: string[];
 }
 
+export interface AdjustmentItem {
+  factor: string;
+  impact: number;
+  description?: string;
+}
+
 export interface ReportData {
   make: string;
   model: string;
@@ -18,11 +25,7 @@ export interface ReportData {
   zipCode: string;
   condition: string;
   estimatedValue: number;
-  adjustments: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
+  adjustments: AdjustmentItem[];
   generatedAt: string;
   confidenceScore: number;
   aiCondition?: {
@@ -41,11 +44,45 @@ export interface ReportData {
   bodyStyle?: string;
   photoUrl?: string;
   auctionResults?: AuctionResult[];
+  explanation?: string;
 }
 
 export interface ReportOptions {
   isPremium?: boolean;
   includeExplanation?: boolean;
   includeAuctionData?: boolean;
+  includeFooter?: boolean;
+  includeBranding?: boolean;
+  includeAIScore?: boolean;
+  includeTimestamp?: boolean;
+  includePhotoAssessment?: boolean;
+  footerText?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  fonts?: {
+    titleFont: string;
+    bodyFont: string;
+  };
   enrichedData?: any;
 }
+
+export interface DocumentFonts {
+  regular: any;
+  bold: any;
+  italic?: any;
+}
+
+export interface SectionParams {
+  page: any;
+  fonts: DocumentFonts;
+  data: ReportData;
+  options: ReportOptions;
+  margin: number;
+  width: number;
+  pageWidth: number;
+  startY: number;
+  y?: number;
+  textColor?: any;
+  primaryColor?: any;
+}
+

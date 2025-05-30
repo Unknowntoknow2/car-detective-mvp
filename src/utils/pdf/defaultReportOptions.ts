@@ -4,7 +4,6 @@ import { ReportOptions } from './types';
 export const defaultReportOptions: ReportOptions = {
   isPremium: false,
   includeExplanation: false,
-  includeComparables: false,
   includeFooter: true,
   includeBranding: true,
   includeAIScore: true,
@@ -18,3 +17,4 @@ export const defaultReportOptions: ReportOptions = {
     bodyFont: 'Helvetica',
   }
 };
+
