@@ -1,274 +1,241 @@
 
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 
-// Set up CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE'
+}
+
+// Helper functions for each auction source
+async function fetchBidCarsData(vin: string): Promise<any[]> {
+  try {
+    console.log(`🚗 Fetching Bid.Cars data for VIN: ${vin}`)
+    const response = await fetch(`https://api.bid.cars/api/v1/search?q=${vin}`)
+    
+    if (!response.ok) {
+      console.warn(`Bid.Cars API error: ${response.status}`)
+      return []
+    }
+
+    const data = await response.json()
+    const records = (data.results || []).map((item: any) => ({
+      vin: item.vin || vin,
+      auction_source: 'Bid.Cars',
+      price: item.price || '0',
+      sold_date: item.auctionDate || new Date().toISOString().split('T')[0],
+      odometer: item.odometer || '0',
+      condition_grade: item.condition || null,
+      location: item.location || null,
+      photo_urls: item.images ? [item.images[0]] : [],
+      source_priority: 1
+    }))
+
+    console.log(`✅ Found ${records.length} Bid.Cars records`)
+    return records
+  } catch (error) {
+    console.error('❌ Bid.Cars fetch failed:', error)
+    return []
+  }
+}
+
+async function fetchSTATVinData(vin: string): Promise<any[]> {
+  try {
+    console.log(`📊 Fetching STAT.vin data for VIN: ${vin}`)
+    
+    // Call our existing STAT.vin Edge Function
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    )
+    
+    const { data, error } = await supabase.functions.invoke('fetch-statvin-data', {
+      body: { vin: vin.toUpperCase() }
+    })
+
+    if (error || !data || data.error) {
+      console.warn('STAT.vin fetch failed:', error || data?.error)
+      return []
+    }
+
+    // Transform STAT.vin data to our standard format
+    const record = {
+      vin: data.vin || vin,
+      auction_source: 'STAT.vin',
+      price: data.salePrice || data.sale_price || '0',
+      sold_date: data.auctionDate || data.auction_date || data.sale_date || new Date().toISOString().split('T')[0],
+      odometer: data.mileage || data.odometer || '0',
+      condition_grade: data.condition || null,
+      location: data.location || data.sale_location || null,
+      photo_urls: data.images || data.photos || [],
+      source_priority: 2
+    }
+
+    console.log(`✅ Found STAT.vin record`)
+    return [record]
+  } catch (error) {
+    console.error('❌ STAT.vin fetch failed:', error)
+    return []
+  }
+}
+
+async function fetchAutoAuctionsData(vin: string): Promise<any[]> {
+  try {
+    console.log(`🏛️ Fetching AutoAuctions.io data for VIN: ${vin}`)
+    
+    // Currently returns empty array - can be upgraded to real scraping
+    // TODO: Implement real AutoAuctions.io scraping when ready
+    console.log(`ℹ️ AutoAuctions.io integration is scaffolded for future implementation`)
+    return []
+  } catch (error) {
+    console.error('❌ AutoAuctions.io fetch failed:', error)
+    return []
+  }
+}
+
+async function fetchCopartData(vin: string): Promise<any[]> {
+  try {
+    console.log(`🔧 Fetching Copart data for VIN: ${vin}`)
+    
+    // Scaffolded for future implementation
+    // TODO: Implement Copart scraping/API integration
+    console.log(`ℹ️ Copart integration is scaffolded for future implementation`)
+    return []
+  } catch (error) {
+    console.error('❌ Copart fetch failed:', error)
+    return []
+  }
+}
+
+async function fetchIAAIData(vin: string): Promise<any[]> {
+  try {
+    console.log(`🏭 Fetching IAAI data for VIN: ${vin}`)
+    
+    // Scaffolded for future implementation
+    // TODO: Implement IAAI scraping/API integration
+    console.log(`ℹ️ IAAI integration is scaffolded for future implementation`)
+    return []
+  } catch (error) {
+    console.error('❌ IAAI fetch failed:', error)
+    return []
+  }
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    let vin: string;
-    
-    // Handle both URL params and JSON body for flexibility
-    if (req.method === 'GET') {
-      const url = new URL(req.url);
-      vin = url.searchParams.get('vin') || '';
-    } else {
-      const body = await req.json();
-      vin = body.vin || '';
-    }
-    
-    if (!vin) {
+    const { vin } = await req.json()
+
+    if (!vin || typeof vin !== 'string') {
       return new Response(
-        JSON.stringify({ error: "Missing VIN parameter" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+        JSON.stringify({ error: 'VIN is required and must be a string' }), 
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
-    console.log(`🚗 Automated auction fetch triggered for VIN: ${vin}`);
+    console.log(`🎯 Starting auction data aggregation for VIN: ${vin}`)
 
-    // Create a Supabase client with service role for database operations
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-    
-    // Check if we already have recent auction data for this VIN (within 7 days)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
-    const { data: existingData } = await supabaseClient
-      .from('auction_results_by_vin')
-      .select('*')
-      .eq('vin', vin)
-      .gt('fetched_at', sevenDaysAgo.toISOString());
-      
-    if (existingData && existingData.length > 0) {
-      console.log(`✅ Recent auction data exists for VIN ${vin}, skipping fetch`);
-      return new Response(
-        JSON.stringify({ 
-          status: "skipped",
-          reason: "Recent data exists",
-          existing_records: existingData.length
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    
-    // FANGS-grade auction data fetching
-    // In production, replace this with real auction APIs (Copart, IAAI, Manheim, etc.)
-    const auctionResults = await fetchRealAuctionData(vin);
-    
-    // Store the results in the database
-    if (auctionResults.length > 0) {
-      const { error: insertError } = await supabaseClient
-        .from('auction_results_by_vin')
-        .upsert(auctionResults, { 
-          onConflict: 'vin,auction_source,sold_date',
-          ignoreDuplicates: true 
-        });
-        
-      if (insertError) {
-        console.error("❌ Error storing auction results:", insertError);
-        return new Response(
-          JSON.stringify({ error: "Failed to store auction data", details: insertError.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    )
+
+    // Fetch from all auction sources in parallel
+    const sources = await Promise.allSettled([
+      fetchBidCarsData(vin),
+      fetchSTATVinData(vin),
+      fetchAutoAuctionsData(vin),
+      fetchCopartData(vin),
+      fetchIAAIData(vin)
+    ])
+
+    // Collect all successful results
+    const auctionResults = sources
+      .filter((result): result is PromiseFulfilledResult<any[]> => 
+        result.status === 'fulfilled' && Array.isArray(result.value)
+      )
+      .flatMap(result => result.value)
+      .filter(record => record && record.vin) // Filter out invalid records
+
+    console.log(`📊 Collected ${auctionResults.length} total auction records`)
+
+    // Insert/update records in database
+    let successCount = 0
+    let errorCount = 0
+
+    for (const result of auctionResults) {
+      try {
+        const { error } = await supabase
+          .from('auction_results_by_vin')
+          .upsert({
+            vin: result.vin,
+            auction_source: result.auction_source,
+            price: result.price,
+            sold_date: result.sold_date,
+            odometer: result.odometer,
+            condition_grade: result.condition_grade,
+            location: result.location,
+            photo_urls: result.photo_urls || [],
+            source_priority: result.source_priority || 5,
+            fetched_at: new Date().toISOString()
+          }, {
+            onConflict: 'vin,auction_source,sold_date'
+          })
+
+        if (error) {
+          console.error(`❌ Failed to upsert auction record:`, error)
+          errorCount++
+        } else {
+          successCount++
+        }
+      } catch (insertError) {
+        console.error(`❌ Insert error for auction record:`, insertError)
+        errorCount++
       }
     }
-    
-    console.log(`✅ Successfully processed ${auctionResults.length} auction records for VIN ${vin}`);
-    
-    return new Response(
-      JSON.stringify({
-        status: "completed",
-        vin: vin,
-        records_processed: auctionResults.length,
-        sources: [...new Set(auctionResults.map(r => r.auction_source))]
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-    
-  } catch (error) {
-    console.error("❌ Error in automated auction fetch:", error);
+
+    console.log(`✅ Auction data aggregation complete: ${successCount} inserted, ${errorCount} errors`)
+
     return new Response(
       JSON.stringify({ 
-        error: "Internal server error", 
-        details: error.message,
-        status: "failed"
-      }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-});
-
-// FANGS-grade auction data fetching function
-async function fetchRealAuctionData(vin: string) {
-  const results = [];
-  const now = new Date().toISOString();
-  
-  // TODO: Replace with real auction API calls
-  // Example implementations:
-  
-  // 1. Copart API integration
-  try {
-    const copartData = await fetchCopartData(vin);
-    if (copartData) {
-      results.push(...copartData.map(item => ({
-        id: crypto.randomUUID(),
-        vin: vin,
-        auction_source: 'copart',
-        price: item.price?.toString() || '0',
-        sold_date: item.soldDate || new Date().toISOString().split('T')[0],
-        odometer: item.odometer?.toString() || '0',
-        condition_grade: item.condition || 'Unknown',
-        location: item.location || 'Unknown',
-        photo_urls: item.images || [],
-        fetched_at: now,
-        source_priority: 1
-      })));
-    }
-  } catch (error) {
-    console.log(`⚠️ Copart fetch failed for ${vin}:`, error.message);
-  }
-  
-  // 2. IAAI API integration
-  try {
-    const iaaiData = await fetchIAAIData(vin);
-    if (iaaiData) {
-      results.push(...iaaiData.map(item => ({
-        id: crypto.randomUUID(),
-        vin: vin,
-        auction_source: 'iaai',
-        price: item.price?.toString() || '0',
-        sold_date: item.saleDate || new Date().toISOString().split('T')[0],
-        odometer: item.mileage?.toString() || '0',
-        condition_grade: item.grade || 'Unknown',
-        location: item.saleLocation || 'Unknown',
-        photo_urls: item.photos || [],
-        fetched_at: now,
-        source_priority: 2
-      })));
-    }
-  } catch (error) {
-    console.log(`⚠️ IAAI fetch failed for ${vin}:`, error.message);
-  }
-  
-  // 3. Manheim API integration
-  try {
-    const manheimData = await fetchManheimData(vin);
-    if (manheimData) {
-      results.push(...manheimData.map(item => ({
-        id: crypto.randomUUID(),
-        vin: vin,
-        auction_source: 'manheim',
-        price: item.finalBid?.toString() || '0',
-        sold_date: item.auctionDate || new Date().toISOString().split('T')[0],
-        odometer: item.odometer?.toString() || '0',
-        condition_grade: item.conditionReport || 'Unknown',
-        location: item.auctionLocation || 'Unknown',
-        photo_urls: item.vehicleImages || [],
-        fetched_at: now,
-        source_priority: 3
-      })));
-    }
-  } catch (error) {
-    console.log(`⚠️ Manheim fetch failed for ${vin}:`, error.message);
-  }
-  
-  // If no real data is available, generate realistic mock data for demo
-  if (results.length === 0) {
-    console.log(`📝 Generating mock auction data for VIN ${vin}`);
-    results.push(...generateMockAuctionData(vin, now));
-  }
-  
-  return results;
-}
-
-// Placeholder functions for real auction API integrations
-async function fetchCopartData(vin: string) {
-  // TODO: Implement real Copart API call
-  // Example: const response = await fetch(`https://api.copart.com/vehicles/${vin}`);
-  return null;
-}
-
-async function fetchIAAIData(vin: string) {
-  // TODO: Implement real IAAI API call
-  // Example: const response = await fetch(`https://api.iaai.com/search?vin=${vin}`);
-  return null;
-}
-
-async function fetchManheimData(vin: string) {
-  // TODO: Implement real Manheim API call
-  // Example: const response = await fetch(`https://api.manheim.com/vehicles/${vin}`);
-  return null;
-}
-
-// Generate realistic mock data for demonstration
-function generateMockAuctionData(vin: string, fetchedAt: string) {
-  const mockData = [];
-  const sources = ['copart', 'iaai', 'manheim'];
-  const locations = [
-    'Copart - Sacramento, CA',
-    'IAAI - Houston, TX', 
-    'Manheim - Atlanta, GA',
-    'Copart - Phoenix, AZ',
-    'IAAI - Chicago, IL'
-  ];
-  
-  // Generate 1-3 records per source
-  sources.forEach((source, sourceIndex) => {
-    const recordCount = Math.floor(Math.random() * 3) + 1;
-    
-    for (let i = 0; i < recordCount; i++) {
-      // Generate date within the last 2 years
-      const daysAgo = Math.floor(Math.random() * 730);
-      const saleDate = new Date();
-      saleDate.setDate(saleDate.getDate() - daysAgo);
-      
-      // Generate realistic pricing
-      const basePrice = 8000 + Math.floor(Math.random() * 25000);
-      const conditionMultiplier = 0.7 + Math.random() * 0.6; // 0.7 to 1.3
-      const finalPrice = Math.floor(basePrice * conditionMultiplier);
-      
-      // Generate realistic mileage
-      const baseMileage = 50000 + Math.floor(Math.random() * 100000);
-      
-      // Generate condition grades based on source
-      let conditionGrade;
-      if (source === 'manheim') {
-        conditionGrade = (3.0 + Math.random() * 2.0).toFixed(1); // 3.0-5.0 for Manheim
-      } else {
-        const conditions = ['Run and Drive', 'Enhanced Vehicle', 'Stationary', 'Unknown'];
-        conditionGrade = conditions[Math.floor(Math.random() * conditions.length)];
+        success: true, 
+        totalRecords: auctionResults.length,
+        inserted: successCount,
+        errors: errorCount,
+        sources: {
+          'Bid.Cars': auctionResults.filter(r => r.auction_source === 'Bid.Cars').length,
+          'STAT.vin': auctionResults.filter(r => r.auction_source === 'STAT.vin').length,
+          'AutoAuctions.io': auctionResults.filter(r => r.auction_source === 'AutoAuctions.io').length,
+          'Copart': auctionResults.filter(r => r.auction_source === 'Copart').length,
+          'IAAI': auctionResults.filter(r => r.auction_source === 'IAAI').length
+        }
+      }), 
+      { 
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
-      
-      mockData.push({
-        id: crypto.randomUUID(),
-        vin: vin,
-        auction_source: source,
-        price: finalPrice.toString(),
-        sold_date: saleDate.toISOString().split('T')[0],
-        odometer: baseMileage.toString(),
-        condition_grade: conditionGrade,
-        location: locations[Math.floor(Math.random() * locations.length)],
-        photo_urls: [
-          `https://example.com/${source}-${vin}-1.jpg`,
-          `https://example.com/${source}-${vin}-2.jpg`
-        ],
-        fetched_at: fetchedAt,
-        source_priority: sourceIndex + 1
-      });
-    }
-  });
-  
-  return mockData;
-}
+    )
+
+  } catch (error) {
+    console.error('🚨 Master auction fetch failed:', error)
+    
+    return new Response(
+      JSON.stringify({ 
+        error: 'Internal server error during auction data aggregation',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }), 
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
+  }
+})
