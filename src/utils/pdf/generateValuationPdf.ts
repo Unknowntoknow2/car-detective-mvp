@@ -5,6 +5,7 @@ import { fetchAuctionResultsByVin } from '@/services/auction';
 import { generateAINSummaryForPdf, formatAINSummaryForPdf } from '../ain/generateSummaryForPdf';
 import { generateDebugInfo, formatDebugInfoForPdf } from './generateDebugInfo';
 import { getCachedCompetitorPrices, calculateAverageCompetitorPrice } from '@/services/competitorPriceService';
+import { getScrapedListingsByVin, formatListingsForPdf } from '@/services/scrapedListingsService';
 
 /**
  * Generate a PDF for the valuation report with enhanced auction data and AIN summary
@@ -25,6 +26,21 @@ export async function generateValuationPdf(
       }
     } catch (error) {
       console.warn('⚠️ Failed to fetch competitor pricing for PDF:', error);
+    }
+  }
+
+  // Fetch marketplace listings data if VIN is available
+  if (data.vin && !data.marketplaceListings) {
+    try {
+      console.log('🏪 Fetching marketplace listings for VIN:', data.vin);
+      const listings = await getScrapedListingsByVin(data.vin);
+      if (listings.length > 0) {
+        data.marketplaceListings = listings;
+        options.marketplaceListingsText = formatListingsForPdf(listings);
+        console.log(`✅ Found ${listings.length} marketplace listings`);
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to fetch marketplace listings for PDF:', error);
     }
   }
 

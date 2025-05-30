@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { MainLayout } from '@/components/layout';
 import { ValuationResult } from '@/components/valuation/ValuationResult';
 import { CompetitorPriceCard } from '@/components/valuation/CompetitorPriceCard';
+import { MarketplaceInsightCard } from '@/components/valuation/MarketplaceInsightCard';
 import { PremiumPdfSection } from '@/components/valuation/PremiumPdfSection';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -81,11 +82,19 @@ const ValuationResultPage = () => {
             </Card>
           </div>
 
-          {/* Competitor pricing sidebar */}
+          {/* Market insights sidebar */}
           <div className="space-y-6">
             {/* Competitor Price Card */}
             {valuationResult.vin && (
               <CompetitorPriceCard 
+                vin={valuationResult.vin}
+                estimatedValue={valuationResult.estimatedValue}
+              />
+            )}
+
+            {/* Marketplace Insight Card */}
+            {valuationResult.vin && (
+              <MarketplaceInsightCard 
                 vin={valuationResult.vin}
                 estimatedValue={valuationResult.estimatedValue}
               />
