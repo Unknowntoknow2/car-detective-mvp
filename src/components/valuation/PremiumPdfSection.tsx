@@ -32,7 +32,13 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
         zipCode: valuationResult.zipCode || '90210',
         adjustments: valuationResult.adjustments || [],
         generatedAt: new Date().toISOString(),
-        vin: valuationResult.vin
+        vin: valuationResult.vin,
+        aiCondition: {
+          condition: valuationResult.condition || 'Good',
+          confidenceScore: valuationResult.confidenceScore || 75,
+          issuesDetected: [],
+          summary: `AI assessment of ${valuationResult.condition || 'Good'} condition`
+        }
       };
 
       await downloadValuationPdf(reportData);
@@ -62,7 +68,13 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
       zipCode: valuationResult.zipCode,
       adjustments: valuationResult.adjustments || [],
       generatedAt: new Date().toISOString(),
-      vin: valuationResult.vin
+      vin: valuationResult.vin,
+      aiCondition: {
+        condition: valuationResult.condition || 'Good',
+        confidenceScore: valuationResult.confidenceScore || 75,
+        issuesDetected: [],
+        summary: `AI assessment of ${valuationResult.condition || 'Good'} condition`
+      }
     };
 
     await triggerDealerNotifications(reportData, valuationResult.zipCode);

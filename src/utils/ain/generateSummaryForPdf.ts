@@ -1,3 +1,4 @@
+
 import { ReportData } from '../pdf/types';
 import { generateMarketplaceAnalysisText } from '@/services/scrapedListingsService';
 
@@ -38,13 +39,13 @@ export async function generateAINSummaryForPdf(data: ReportData): Promise<string
 
     // Auction data analysis
     if (data.auctionResults && data.auctionResults.length > 0) {
-      const validAuctions = data.auctionResults.filter(auction => 
+      const validAuctions = data.auctionResults.filter((auction: any) => 
         auction.price && !isNaN(parseInt(auction.price))
       );
       
       if (validAuctions.length > 0) {
-        const auctionPrices = validAuctions.map(auction => parseInt(auction.price));
-        const avgAuctionPrice = Math.round(auctionPrices.reduce((sum, price) => sum + price, 0) / auctionPrices.length);
+        const auctionPrices = validAuctions.map((auction: any) => parseInt(auction.price));
+        const avgAuctionPrice = Math.round(auctionPrices.reduce((sum: number, price: number) => sum + price, 0) / auctionPrices.length);
         
         summary += `Auction Intelligence: Based on ${validAuctions.length} recent auction records, `;
         summary += `similar vehicles averaged $${avgAuctionPrice.toLocaleString()} at wholesale. `;
