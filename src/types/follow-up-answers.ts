@@ -32,6 +32,7 @@ export interface FollowUpAnswers {
   title_status?: string;
   modifications?: {
     hasModifications: boolean;
+    modified?: boolean;
     types?: string[];
     description?: string;
   };
@@ -51,7 +52,12 @@ export interface FollowUpAnswers {
     frameDamage?: boolean;
     description?: string;
   };
-  features?: string[];
+  features?: Array<{
+    value: string;
+    label: string;
+    icon?: string;
+    impact?: number;
+  }>;
   tire_condition?: string;
   frame_damage?: boolean;
   previous_use?: string;

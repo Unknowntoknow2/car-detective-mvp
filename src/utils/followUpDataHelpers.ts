@@ -108,3 +108,23 @@ export function calculateAdjustments(formData: FollowUpAnswers): Array<{factor: 
   
   return adjustments;
 }
+
+export function calculateCompletionPercentage(formData: FollowUpAnswers): number {
+  return getCompletionPercentage(formData);
+}
+
+export function validateFormData(formData: FollowUpAnswers): boolean {
+  return !!(formData.vin && formData.zip_code);
+}
+
+export function transformForValuation(formData: FollowUpAnswers): any {
+  return {
+    vin: formData.vin,
+    zipCode: formData.zip_code,
+    mileage: formData.mileage,
+    condition: formData.condition,
+    serviceHistory: formData.service_history,
+    modifications: formData.modifications,
+    additionalNotes: formData.additional_notes
+  };
+}
