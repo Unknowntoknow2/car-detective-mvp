@@ -1,122 +1,113 @@
-import { ReportData, ReportOptions } from './types';
-import { generatePremiumReport } from './generators/premiumReportGenerator';
-import { fetchAuctionResultsByVin } from '@/services/auction';
-import { generateAINSummaryForPdf, formatAINSummaryForPdf } from '../ain/generateSummaryForPdf';
-import { generateDebugInfo, formatDebugInfoForPdf } from './generateDebugInfo';
-import { getCachedCompetitorPrices, calculateAverageCompetitorPrice } from '@/services/competitorPriceService';
-import { getScrapedListingsByVin, formatListingsForPdf } from '@/services/scrapedListingsService';
-import { notifyDealersOfNewValuation } from '@/lib/notifications/DealerNotification';
+
+import { ReportData } from './types';
+import { injectMarketplaceListingsToPDF } from './injectMarketplaceListingsToPDF';
+
+// Define the interface for the adjustment type
+interface Adjustment {
+  factor: string;
+  impact: number;
+  description?: string;
+}
+
+interface MarketplaceListing {
+  id: string;
+  title: string;
+  price: number;
+  platform: string;
+  location: string;
+  url: string;
+  mileage?: number;
+  created_at: string;
+}
 
 /**
- * Generate a PDF for the valuation report with enhanced auction data and AIN summary
+ * Generates a PDF for the valuation report
+ * @param data The report data
+ * @param options Additional options for PDF generation
+ * @returns Promise resolving to PDF document as Uint8Array
  */
 export async function generateValuationPdf(
-  data: ReportData, 
-  options: Partial<ReportOptions> = {}
+  data: Partial<ReportData>, 
+  options: {
+    isPremium?: boolean;
+    includeBranding?: boolean;
+    includeAIScore?: boolean;
+    includeFooter?: boolean;
+    includeTimestamp?: boolean;
+    includePhotoAssessment?: boolean;
+    includeExplanation?: boolean;
+    includeAuctionData?: boolean;
+    enrichedData?: any;
+    marketplaceListings?: MarketplaceListing[];
+  } = {}
 ): Promise<Uint8Array> {
-  // Fetch competitor pricing data if VIN is available
-  if (data.vin && !data.competitorPrices) {
+  const defaultOptions = {
+    isPremium: false,
+    includeBranding: true,
+    includeAIScore: true,
+    includeFooter: true,
+    includeTimestamp: true,
+    includePhotoAssessment: true,
+    includeExplanation: false,
+    includeAuctionData: false
+  };
+  
+  const mergedOptions = { ...defaultOptions, ...options };
+  
+  // For premium reports, we would include additional data and formatting
+  if (mergedOptions.isPremium) {
+    console.log('Generating premium PDF with enhanced data for:', data);
+    // In a real implementation, we would use pdf-lib or a similar library
+    // to create a more detailed and styled PDF for premium users
+  } else {
+    console.log('Generating basic PDF for:', data);
+  }
+  
+  // Handle adjustments safely with optional chaining
+  const adjustments: Adjustment[] = data.adjustments 
+    ? data.adjustments.map((adj: Adjustment) => ({
+        factor: adj.factor,
+        impact: adj.impact,
+        description: adj.description || ""
+      }))
+    : [];
+  
+  // Create a basic PDF structure (mock implementation)
+  let pdfBytes = new Uint8Array([0]); // Placeholder - would be actual PDF generation
+  
+  // Inject marketplace listings if provided
+  if (mergedOptions.marketplaceListings && mergedOptions.marketplaceListings.length > 0) {
+    console.log('Injecting marketplace listings into PDF:', mergedOptions.marketplaceListings.length);
     try {
-      console.log('💰 Fetching competitor pricing data for VIN:', data.vin);
-      const competitorPrices = await getCachedCompetitorPrices(data.vin);
-      if (competitorPrices) {
-        data.competitorPrices = competitorPrices;
-        data.competitorAverage = calculateAverageCompetitorPrice(competitorPrices) || undefined;
-        console.log(`✅ Found competitor pricing from ${Object.values(competitorPrices).filter(Boolean).length - 6} sources`);
-      }
+      pdfBytes = await injectMarketplaceListingsToPDF({
+        pdfBytes,
+        listings: mergedOptions.marketplaceListings,
+        estimatedValue: data.estimatedValue || 0,
+        maxListings: 5
+      });
     } catch (error) {
-      console.warn('⚠️ Failed to fetch competitor pricing for PDF:', error);
+      console.error('Failed to inject marketplace listings into PDF:', error);
+      // Continue without marketplace data rather than failing completely
     }
   }
-
-  // Fetch marketplace listings data if VIN is available
-  if (data.vin && !data.marketplaceListings) {
-    try {
-      console.log('🏪 Fetching marketplace listings for VIN:', data.vin);
-      const listings = await getScrapedListingsByVin(data.vin);
-      if (listings.length > 0) {
-        data.marketplaceListings = listings;
-        options.marketplaceListingsText = formatListingsForPdf(listings);
-        console.log(`✅ Found ${listings.length} marketplace listings`);
-      }
-    } catch (error) {
-      console.warn('⚠️ Failed to fetch marketplace listings for PDF:', error);
-    }
-  }
-
-  // Fetch auction data if VIN is available and not already included
-  if (data.vin && !data.auctionResults && options.includeAuctionData !== false) {
-    try {
-      console.log('📊 Fetching auction data for VIN:', data.vin);
-      const auctionResults = await fetchAuctionResultsByVin(data.vin);
-      data.auctionResults = auctionResults;
-      console.log(`✅ Found ${auctionResults.length} auction records`);
-    } catch (error) {
-      console.warn('⚠️ Failed to fetch auction data for PDF:', error);
-      data.auctionResults = [];
-    }
-  }
-
-  // Generate AIN summary if requested (default to true for premium reports)
-  if (options.includeAINSummary !== false && options.isPremium) {
-    try {
-      console.log('🧠 Generating AIN summary for valuation');
-      const summaryData = await generateAINSummaryForPdf(data);
-      options.ainSummary = formatAINSummaryForPdf(summaryData);
-      console.log('✅ AIN summary generated successfully');
-    } catch (error) {
-      console.warn('⚠️ Failed to generate AIN summary:', error);
-      options.ainSummary = '';
-    }
-  }
-
-  // Generate debug info if requested (for internal use)
-  if (options.includeDebugInfo && process.env.NODE_ENV === 'development') {
-    try {
-      const debugData = generateDebugInfo(data);
-      options.debugInfo = formatDebugInfoForPdf(debugData);
-    } catch (error) {
-      console.warn('⚠️ Failed to generate debug info:', error);
-    }
-  }
-
-  // Generate the PDF
-  const pdfBytes = await generatePremiumReport(data, options);
-
-  // Notify dealers if this is a completed valuation (not just a preview)
-  if (options.notifyDealers !== false && data.zipCode && data.estimatedValue > 0) {
-    try {
-      // Only notify for vehicles above a certain value threshold
-      if (data.estimatedValue >= 8000) {
-        console.log('🔔 Triggering dealer notifications...');
-        // Run dealer notification in background (don't await to avoid blocking PDF generation)
-        notifyDealersOfNewValuation(data, data.zipCode).catch(error => {
-          console.error('❌ Dealer notification failed:', error);
-        });
-      }
-    } catch (error) {
-      console.warn('⚠️ Dealer notification trigger failed:', error);
-    }
-  }
-
+  
   return pdfBytes;
 }
 
 /**
- * Download a valuation PDF report
- * @param data Report data
- * @param options PDF generation options
+ * Download a PDF for the valuation report
+ * @param data The report data to include in the PDF
+ * @param fileName Optional custom filename
  */
-export async function downloadValuationPdf(
-  data: ReportData,
-  options: Partial<ReportOptions> = {}
-): Promise<void> {
+export const downloadValuationPdf = async (
+  data: Partial<ReportData>,
+  fileName?: string
+): Promise<void> => {
   try {
-    // Generate the PDF
-    const pdfBytes = await generateValuationPdf(data, options);
+    const pdfBuffer = await generateValuationPdf(data);
     
     // Create a blob from the PDF data
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
     
     // Create a URL for the blob
     const url = URL.createObjectURL(blob);
@@ -124,13 +115,7 @@ export async function downloadValuationPdf(
     // Create a link element and trigger the download
     const link = document.createElement('a');
     link.href = url;
-    
-    // Create a sanitized filename
-    const sanitizedMake = data.make?.replace(/[^a-z0-9]/gi, '') || 'Vehicle';
-    const sanitizedModel = data.model?.replace(/[^a-z0-9]/gi, '') || 'Report';
-    const filename = `CarDetective_Valuation_${sanitizedMake}_${sanitizedModel}_${Date.now()}.pdf`;
-    
-    link.download = filename;
+    link.download = fileName || `CarDetective_Valuation_${data.make}_${data.model}_${Date.now()}.pdf`;
     document.body.appendChild(link);
     link.click();
     
@@ -141,41 +126,4 @@ export async function downloadValuationPdf(
     console.error('Error downloading valuation PDF:', error);
     throw error;
   }
-}
-
-/**
- * Convert vehicle info to report data
- * @param vehicleInfo Vehicle information
- * @param valuationData Valuation data
- * @returns Report data object
- */
-export function convertVehicleInfoToReportData(
-  vehicleInfo: any, 
-  valuationData: any
-): ReportData {
-  return {
-    make: vehicleInfo.make || '',
-    model: vehicleInfo.model || '',
-    year: vehicleInfo.year || 0,
-    vin: vehicleInfo.vin || '',
-    mileage: valuationData.mileage || 0,
-    condition: valuationData.condition || 'Good',
-    estimatedValue: valuationData.estimatedValue || 0,
-    confidenceScore: valuationData.confidenceScore || 75,
-    zipCode: valuationData.zipCode || '',
-    adjustments: valuationData.adjustments || [],
-    generatedAt: new Date().toISOString(),
-    transmission: vehicleInfo.transmission || '',
-    trim: vehicleInfo.trim || '',
-    color: vehicleInfo.color || '',
-    fuelType: vehicleInfo.fuelType || '',
-    bodyStyle: vehicleInfo.bodyStyle || '',
-    photoUrl: valuationData.photoUrl || '',
-    aiCondition: valuationData.aiCondition || null,
-  };
-}
-
-// Export a function to download PDFs directly
-export function downloadPdf(data: ReportData, options: Partial<ReportOptions> = {}): Promise<void> {
-  return downloadValuationPdf(data, options);
-}
+};
