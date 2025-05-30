@@ -47,6 +47,12 @@ export function UnifiedFollowUpForm({
     setIsSubmitting(true);
     
     try {
+      // Validate required fields
+      if (!data.vin || !data.zip_code) {
+        toast.error('VIN and ZIP code are required');
+        return;
+      }
+
       // Save follow-up answers to database
       const { error: saveError } = await supabase
         .from('follow_up_answers')
