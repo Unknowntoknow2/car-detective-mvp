@@ -109,6 +109,12 @@ export default function ValuationResultPage() {
   const isDealer = user?.userMetadata?.role === 'dealer';
   const canViewIntelligence = isPremium || isDealer;
 
+  // Transform ValuationResult to ensure created_at is always defined for AIChatBubble
+  const valuationData = {
+    ...valuationResult,
+    created_at: valuationResult.created_at || new Date().toISOString()
+  };
+
   return (
     <MainLayout>
       <Container className="py-8 space-y-8">
@@ -137,7 +143,7 @@ export default function ValuationResultPage() {
         />
 
         {/* AI Chat Bubble */}
-        <AIChatBubble valuation={valuationResult} />
+        <AIChatBubble valuation={valuationData} />
 
         {/* Dealer Offers */}
         <DealerOffersList reportId={valuationId || ''} />
