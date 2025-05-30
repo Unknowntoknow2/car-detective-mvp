@@ -17,7 +17,6 @@ export default function ValuationPage() {
   const [searchParams] = useSearchParams();
   const [vehicle, setVehicle] = useState<DecodedVehicleInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showFollowUp, setShowFollowUp] = useState(false);
 
   // Check if this is a premium valuation
   const isPremium = searchParams.get('premium') === 'true';
@@ -43,7 +42,6 @@ export default function ValuationPage() {
       if (result.success && result.data) {
         console.log('✅ ValuationPage: Vehicle data loaded:', result.data);
         setVehicle(result.data);
-        setShowFollowUp(true);
         toast.success('Vehicle details loaded successfully!');
       } else {
         console.error('❌ ValuationPage: Failed to load vehicle data:', result.error);
@@ -119,8 +117,12 @@ export default function ValuationPage() {
             {/* Enhanced Car Finder Qaher Card */}
             <CarFinderQaherCard vehicle={vehicle} />
             
-            {showFollowUp && safeVin.length === 17 && (
-              <div className="mt-8">
+            {/* Always show follow-up form when vehicle data is loaded */}
+            <div className="mt-8">
+              <div className="bg-white rounded-lg shadow-sm border p-6">
+                <h2 className="text-xl font-semibold mb-4">Additional Vehicle Information</h2>
+                <p className="text-gray-600 mb-6">Please provide some additional details to get a more accurate valuation.</p>
+                
                 <UnifiedFollowUpForm 
                   vin={safeVin}
                   initialData={{ vin: safeVin }}
@@ -128,7 +130,7 @@ export default function ValuationPage() {
                   onSave={handleFollowUpSave}
                 />
               </div>
-            )}
+            </div>
           </div>
         )}
         
@@ -141,7 +143,7 @@ export default function ValuationPage() {
               <div>VIN: {safeVin || 'None'}</div>
               <div>Premium: {isPremium ? 'Yes' : 'No'}</div>
               <div>Vehicle Loaded: {vehicle ? 'Yes' : 'No'}</div>
-              <div>Show Follow-up: {showFollowUp ? 'Yes' : 'No'}</div>
+              <div>Loading: {isLoading ? 'Yes' : 'No'}</div>
             </div>
           </div>
         )}
