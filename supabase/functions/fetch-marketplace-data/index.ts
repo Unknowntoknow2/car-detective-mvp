@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { corsHeaders } from '../_shared/cors.ts'
 import { fetchCraigslistListings } from './scrapers/craigslist.ts'
 import { fetchFacebookMarketplaceListings } from './scrapers/facebook.ts'
+import { fetchEbayMotorsListings } from './scrapers/ebay.ts'
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -31,6 +32,9 @@ serve(async (req) => {
         break
       case 'facebook':
         listings = await fetchFacebookMarketplaceListings(query, zipCode)
+        break
+      case 'ebay':
+        listings = await fetchEbayMotorsListings(query, zipCode)
         break
       default:
         throw new Error(`Platform ${platform} not implemented yet`)
