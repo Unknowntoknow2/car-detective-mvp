@@ -1,4 +1,6 @@
 
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+
 interface MarketplaceListing {
   id: string;
   title: string;
@@ -8,6 +10,7 @@ interface MarketplaceListing {
   url: string;
   mileage?: number;
   created_at: string;
+  source?: string;
 }
 
 interface InjectParams {
@@ -15,6 +18,18 @@ interface InjectParams {
   listings: MarketplaceListing[];
   estimatedValue: number;
   maxListings?: number;
+}
+
+/**
+ * Formats a price value into a currency string
+ */
+function formatPrice(price: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(price);
 }
 
 /**
@@ -31,24 +46,69 @@ export async function injectMarketplaceListingsToPDF({
   try {
     console.log('Starting PDF injection with', listings.length, 'listings');
     
-    // For now, we'll mock the PDF injection process
-    // In a real implementation, this would use pdf-lib to:
-    // 1. Load the existing PDF
-    // 2. Add a new page or section
-    // 3. Add marketplace listings data
-    // 4. Return the modified PDF
-    
-    // Mock implementation: return original PDF with a small modification
-    const modifiedBytes = new Uint8Array(pdfBytes.length + 1);
-    modifiedBytes.set(pdfBytes);
-    modifiedBytes[pdfBytes.length] = 1; // Small modification to indicate injection
-    
+    if (!listings || listings.length === 0) {
+      console.log('No listings to inject, returning original PDF');
+      return pdfBytes;
+    }
+
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const page = pdfDoc.getPages()[0];
+    const { height } = page.getSize();
+
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontSize = 12;
+    const titleFontSize = 16;
+    const xStart = 50;
+    let y = height - 400;
+
+    // Section Title
+    page.drawText('📊 Public Listings (Craigslist, Facebook, etc.)', {
+      x: xStart,
+      y,
+      size: titleFontSize,
+      font,
+      color: rgb(0.2, 0.2, 0.2),
+    });
+    y -= 30;
+
+    // Inject up to maxListings
+    const listingsToShow = listings.slice(0, maxListings);
+    listingsToShow.forEach((listing, index) => {
+      const source = listing.source || listing.platform || 'Unknown';
+      const line = `${index + 1}. ${source} — ${listing.title} — ${formatPrice(listing.price)} — ${listing.location}`;
+      
+      page.drawText(line, {
+        x: xStart,
+        y,
+        size: fontSize,
+        font,
+        color: rgb(0.1, 0.1, 0.1),
+      });
+      y -= 22;
+    });
+
+    // Add summary if we have listings
+    if (listingsToShow.length > 0) {
+      const averagePrice = listingsToShow.reduce((sum, listing) => sum + listing.price, 0) / listingsToShow.length;
+      const summaryText = `Average marketplace price: ${formatPrice(averagePrice)} (based on ${listingsToShow.length} listings)`;
+      
+      y -= 10;
+      page.drawText(summaryText, {
+        x: xStart,
+        y,
+        size: fontSize - 1,
+        font,
+        color: rgb(0.3, 0.3, 0.3),
+      });
+    }
+
+    const modifiedPdfBytes = await pdfDoc.save();
     console.log('PDF injection completed successfully');
-    return modifiedBytes;
+    return modifiedPdfBytes;
     
   } catch (error) {
     console.error('Error injecting marketplace listings into PDF:', error);
     // Return original PDF if injection fails
-    return new Uint8Array(pdfBytes);
+    return pdfBytes;
   }
 }
