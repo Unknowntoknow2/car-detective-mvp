@@ -1,141 +1,43 @@
 
-export interface AuctionResult {
-  vin: string;
-  auction_source: string;
-  price: string;
-  sold_date: string;
-  odometer: string;
-  condition_grade?: string;
-  location?: string;
-  photo_urls: string[];
-}
-
-export interface AdjustmentItem {
-  factor: string;
-  impact: number;
-  description?: string;
-}
-
 export interface ReportData {
+  // Vehicle information
   make: string;
   model: string;
   year: number;
   vin?: string;
   mileage: number;
   condition: string;
+  
+  // Valuation information
   estimatedValue: number;
   confidenceScore: number;
+  
+  // Location information
   zipCode: string;
-  adjustments: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
-  generatedAt: string;
   
-  // Added missing properties
-  priceRange?: [number, number];
-  basePrice?: number;
-  explanation?: string;
-  isPremium?: boolean;
-  
-  // Optional enhanced data
-  transmission?: string;
-  trim?: string;
-  color?: string;
-  fuelType?: string;
-  bodyStyle?: string;
-  photoUrl?: string;
-  aiCondition?: {
+  // Condition information
+  aiCondition: {
     condition: string;
     confidenceScore: number;
     issuesDetected: string[];
     summary?: string;
   };
   
-  // Auction data
-  auctionResults?: Array<{
-    price: string;
-    sold_date: string;
-    auction_source: string;
-    condition_grade?: string;
-    location?: string;
-    odometer?: string;
-    photo_urls?: string[];
-  }>;
+  // Additional information
+  adjustments: AdjustmentItem[];
+  generatedAt: string;
   
-  // Competitor pricing data
-  competitorPrices?: {
-    vin: string;
-    carvana_value?: string;
-    carmax_value?: string;
-    edmunds_value?: string;
-    carfax_value?: string;
-    carsdotcom_value?: string;
-    autotrader_value?: string;
-    fetched_at: string;
-  };
-  competitorAverage?: number;
-
-  // Marketplace listings data - Updated to match ScrapedListing interface
-  marketplaceListings?: Array<{
-    id: string;
-    title: string;
-    price: number | null;
-    url: string;
-    platform: string;
-    location: string | null;
-    mileage: number | null;
-    vin: string | null;
-    created_at: string;
-    updated_at: string | null;
-  }>;
-}
-
-export interface ReportOptions {
-  isPremium?: boolean;
-  includeBranding?: boolean;
-  includeAIScore?: boolean;
-  includeFooter?: boolean;
-  includeTimestamp?: boolean;
-  includePhotoAssessment?: boolean;
-  includeAuctionData?: boolean;
-  includeCompetitorPricing?: boolean;
-  includeAINSummary?: boolean;
-  includeDebugInfo?: boolean;
-  includeExplanation?: boolean;
-  notifyDealers?: boolean; // Added missing property
+  // Extended properties for corrected valuations
   ainSummary?: string;
-  debugInfo?: string;
-  footerText?: string;
-  trackingId?: string;
-  enrichedData?: any;
-  marketplaceListingsText?: string; // Add marketplace listings text for PDF
-  
-  // PDF styling options
-  colorScheme?: 'light' | 'dark' | 'branded';
-  logoUrl?: string;
-  watermark?: string;
-  customHeader?: string;
-  customFooter?: string;
+  marketConditions?: {
+    demand: string;
+    supply: string;
+    priceDirection: string;
+  };
 }
 
-export interface DocumentFonts {
-  regular: any;
-  bold: any;
-  italic?: any;
-}
-
-export interface SectionParams {
-  page: any;
-  fonts: DocumentFonts;
-  data: ReportData;
-  options: ReportOptions;
-  margin: number;
-  width: number;
-  pageWidth: number;
-  startY: number;
-  y?: number;
-  textColor?: any;
-  primaryColor?: any;
+export interface AdjustmentItem {
+  factor: string;
+  impact: number;
+  description: string;
 }

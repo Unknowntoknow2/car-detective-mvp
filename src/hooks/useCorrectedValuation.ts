@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { runCorrectedValuationPipeline } from '@/utils/valuation/correctedValuationPipeline';
 import { toast } from 'sonner';
+import { CorrectedValuationResults } from '@/types/correctedValuation';
 
 interface CorrectedValuationParams {
   vin: string;
@@ -16,7 +17,7 @@ interface CorrectedValuationParams {
 
 export function useCorrectedValuation() {
   const [isRunning, setIsRunning] = useState(false);
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState<CorrectedValuationResults | null>(null);
 
   const runCorrection = async (params: CorrectedValuationParams) => {
     setIsRunning(true);
