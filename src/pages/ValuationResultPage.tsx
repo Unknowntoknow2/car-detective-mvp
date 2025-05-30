@@ -11,6 +11,7 @@ import { PDFDownloadButton } from '@/components/common/PDFDownloadButton';
 import { AuctionInsightCard } from '@/components/valuation/AuctionInsightCard';
 import { BidCarsResults } from '@/components/valuation/BidCarsResults';
 import { AutoAuctionsResults } from '@/components/valuation/AutoAuctionsResults';
+import { AuctionIntelligenceCard } from '@/components/valuation/AuctionIntelligenceCard';
 import { AuctionResult } from '@/types/auction';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@/hooks/useUser';
@@ -120,6 +121,11 @@ export default function ValuationResultPage() {
         {/* AutoAuctions.io Auction History */}
         {valuationResult.vin && (
           <AutoAuctionsResults vin={valuationResult.vin} />
+        )}
+
+        {/* Auction Intelligence Card - NEW */}
+        {valuationResult.vin && (
+          <AuctionIntelligenceCard vin={valuationResult.vin} />
         )}
 
         {/* Auction History Card - Only for Premium/Dealer users */}
