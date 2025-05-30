@@ -2,9 +2,11 @@
 import { ReportData, ReportOptions } from './types';
 import { generatePremiumReport } from './generators/premiumReportGenerator';
 import { fetchAuctionResultsByVin } from '@/services/auction';
+import { generateAINSummaryForPdf, formatAINSummaryForPdf } from '../ain/generateSummaryForPdf';
+import { generateDebugInfo, formatDebugInfoForPdf } from './generateDebugInfo';
 
 /**
- * Generate a PDF for the valuation report with auction data
+ * Generate a PDF for the valuation report with enhanced auction data and AIN summary
  */
 export async function generateValuationPdf(
   data: ReportData, 
@@ -13,11 +15,36 @@ export async function generateValuationPdf(
   // Fetch auction data if VIN is available and not already included
   if (data.vin && !data.auctionResults && options.includeAuctionData !== false) {
     try {
+      console.log('📊 Fetching auction data for VIN:', data.vin);
       const auctionResults = await fetchAuctionResultsByVin(data.vin);
       data.auctionResults = auctionResults;
+      console.log(`✅ Found ${auctionResults.length} auction records`);
     } catch (error) {
-      console.warn('Failed to fetch auction data for PDF:', error);
+      console.warn('⚠️ Failed to fetch auction data for PDF:', error);
       data.auctionResults = [];
+    }
+  }
+
+  // Generate AIN summary if requested (default to true for premium reports)
+  if (options.includeAINSummary !== false && options.isPremium) {
+    try {
+      console.log('🧠 Generating AIN summary for valuation');
+      const summaryData = await generateAINSummaryForPdf(data);
+      options.ainSummary = formatAINSummaryForPdf(summaryData);
+      console.log('✅ AIN summary generated successfully');
+    } catch (error) {
+      console.warn('⚠️ Failed to generate AIN summary:', error);
+      options.ainSummary = '';
+    }
+  }
+
+  // Generate debug info if requested (for internal use)
+  if (options.includeDebugInfo && process.env.NODE_ENV === 'development') {
+    try {
+      const debugData = generateDebugInfo(data);
+      options.debugInfo = formatDebugInfoForPdf(debugData);
+    } catch (error) {
+      console.warn('⚠️ Failed to generate debug info:', error);
     }
   }
 
