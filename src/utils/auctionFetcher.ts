@@ -26,6 +26,20 @@ interface BidCarsRecord {
   source: string;
 }
 
+interface AutoAuctionsRecord {
+  vin: string;
+  price: string;
+  odometer: string;
+  year?: string;
+  make?: string;
+  model?: string;
+  condition?: string;
+  auction_date?: string;
+  location?: string;
+  image?: string;
+  source: string;
+}
+
 // Function to fetch auction data from the database
 export async function getAuctionResultsByVin(vin: string): Promise<AuctionResult[]> {
   const { data, error } = await supabase
@@ -101,6 +115,27 @@ export async function fetchBidCarsByVin(vin: string): Promise<BidCarsRecord[]> {
     return data?.records || [];
   } catch (error) {
     console.error('Error fetching Bid.Cars data:', error);
+    return [];
+  }
+}
+
+// Function to fetch AutoAuctions.io data
+export async function fetchAutoAuctionsByVin(vin: string): Promise<AutoAuctionsRecord[]> {
+  try {
+    console.log('Fetching AutoAuctions.io data for VIN:', vin);
+    
+    const { data, error } = await supabase.functions.invoke('fetch-autoauctions-data', {
+      body: { vin }
+    });
+
+    if (error) {
+      console.error('Error calling AutoAuctions.io Edge Function:', error);
+      return [];
+    }
+
+    return data?.records || [];
+  } catch (error) {
+    console.error('Error fetching AutoAuctions.io data:', error);
     return [];
   }
 }
