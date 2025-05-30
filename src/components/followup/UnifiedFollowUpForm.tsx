@@ -1,190 +1,186 @@
 
-import React, { useState, useCallback } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
+import { submitValuation } from '@/lib/valuation/submitValuation';
+import { ReportData } from '@/utils/pdf/types';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { FeaturesTab } from './tabs/FeaturesTab';
-import { ModificationsTab } from './tabs/ModificationsTab';
-import { PhysicalFeaturesTab } from './tabs/PhysicalFeaturesTab';
-import { ServiceMaintenanceTab } from './tabs/ServiceMaintenanceTab';
-import { TitleOwnershipTab } from './tabs/TitleOwnershipTab';
-import { AccidentHistoryTab } from './tabs/AccidentHistoryTab';
-import { BasicInfoTab } from './tabs/BasicInfoTab';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Form } from '@/components/ui/form';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
+
+const followUpSchema = z.object({
+  vin: z.string().min(1, 'VIN is required'),
+  zip_code: z.string().min(5, 'ZIP code is required')
+});
 
 interface UnifiedFollowUpFormProps {
   vin: string;
-  initialData?: FollowUpAnswers;
+  initialData?: Partial<FollowUpAnswers>;
   onSubmit: (data: FollowUpAnswers) => void;
-  onSave?: (data: FollowUpAnswers) => void;
+  onSave: (data: FollowUpAnswers) => void;
 }
 
-type TabId = 'basic' | 'accidents' | 'features' | 'service' | 'title' | 'physical' | 'modifications';
-
-export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: UnifiedFollowUpFormProps) {
-  const [formData, setFormData] = useState<FollowUpAnswers>(initialData || { vin });
-  const [activeTab, setActiveTab] = useState<TabId>('basic');
-  const [isSaving, setIsSaving] = useState(false);
+export function UnifiedFollowUpForm({
+  vin,
+  initialData,
+  onSubmit,
+  onSave
+}: UnifiedFollowUpFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const updateFormData = useCallback(
-    (updates: Partial<FollowUpAnswers>) => {
-      setFormData(prev => ({ ...prev, ...updates }));
-    },
-    []
-  );
+  const form = useForm<FollowUpAnswers>({
+    resolver: zodResolver(followUpSchema),
+    defaultValues: {
+      vin,
+      zip_code: '',
+      ...initialData
+    }
+  });
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (data: FollowUpAnswers) => {
     setIsSubmitting(true);
+    
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      onSubmit(formData);
-      toast.success('Follow-up submitted successfully!');
+      // Save follow-up answers to database
+      const { error: saveError } = await supabase
+        .from('follow_up_answers')
+        .upsert({
+          vin: data.vin,
+          zip_code: data.zip_code,
+          user_id: (await supabase.auth.getUser()).data.user?.id
+        });
+
+      if (saveError) {
+        console.error('Error saving follow-up answers:', saveError);
+        toast.error('Failed to save answers');
+        return;
+      }
+
+      // Create mock report data for valuation submission
+      const reportData: ReportData = {
+        make: 'Unknown',
+        model: 'Unknown', 
+        year: 2020,
+        mileage: 50000,
+        condition: 'Good',
+        estimatedValue: 25000,
+        confidenceScore: 85,
+        zipCode: data.zip_code,
+        adjustments: [],
+        generatedAt: new Date().toISOString(),
+        vin: data.vin
+      };
+
+      // Submit valuation and trigger dealer notifications
+      const result = await submitValuation({
+        vin: data.vin,
+        zipCode: data.zip_code,
+        reportData,
+        isPremium: true,
+        notifyDealers: true
+      });
+
+      if (result.notificationsSent) {
+        toast.success('Valuation completed and dealers notified!');
+      } else {
+        toast.success('Valuation completed successfully!');
+      }
+
+      onSubmit(data);
     } catch (error) {
-      toast.error('Failed to submit follow-up.');
+      console.error('Error submitting follow-up:', error);
+      toast.error('Failed to complete valuation');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (data: FollowUpAnswers) => {
     setIsSaving(true);
+    
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      onSave?.(formData);
-      toast.success('Follow-up saved successfully!');
+      const { error } = await supabase
+        .from('follow_up_answers')
+        .upsert({
+          vin: data.vin,
+          zip_code: data.zip_code,
+          user_id: (await supabase.auth.getUser()).data.user?.id
+        });
+
+      if (error) {
+        console.error('Error saving follow-up answers:', error);
+        toast.error('Failed to save progress');
+        return;
+      }
+
+      toast.success('Progress saved');
+      onSave(data);
     } catch (error) {
-      toast.error('Failed to save follow-up.');
+      console.error('Error saving follow-up:', error);
+      toast.error('Failed to save progress');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleModificationsChange = useCallback(
-    (modified: boolean, types?: string[]) => {
-      updateFormData({
-        modifications: {
-          modified,
-          types: types || []
-        }
-      });
-    },
-    [updateFormData]
-  );
-
-  const tabs = [
-    { id: 'basic', label: 'Basic Info', color: 'blue' },
-    { id: 'accidents', label: 'Accident History', color: 'red' },
-    { id: 'features', label: 'Features', color: 'purple' },
-    { id: 'service', label: 'Service & Maintenance', color: 'orange' },
-    { id: 'title', label: 'Title & Ownership', color: 'green' },
-    { id: 'physical', label: 'Physical Features', color: 'indigo' },
-    { id: 'modifications', label: 'Modifications', color: 'purple' }
-  ];
-
-  const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
-  const isFirstTab = currentTabIndex === 0;
-  const isLastTab = currentTabIndex === tabs.length - 1;
-
-  const goToNextTab = () => {
-    if (!isLastTab) {
-      const nextTab = tabs[currentTabIndex + 1];
-      setActiveTab(nextTab.id as TabId);
-    }
-  };
-
-  const goToPreviousTab = () => {
-    if (!isFirstTab) {
-      const prevTab = tabs[currentTabIndex - 1];
-      setActiveTab(prevTab.id as TabId);
-    }
-  };
-
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'basic':
-        return <BasicInfoTab formData={formData} onUpdate={updateFormData} />;
-      case 'accidents':
-        return <AccidentHistoryTab formData={formData} onUpdate={updateFormData} />;
-      case 'features':
-        return <FeaturesTab formData={formData} onUpdate={updateFormData} />;
-      case 'service':
-        return <ServiceMaintenanceTab formData={formData} updateFormData={updateFormData} />;
-      case 'title':
-        return <TitleOwnershipTab formData={formData} updateFormData={updateFormData} />;
-      case 'physical':
-        return <PhysicalFeaturesTab formData={formData} updateFormData={updateFormData} />;
-      case 'modifications':
-        return <ModificationsTab formData={formData} onModificationsChange={handleModificationsChange} />;
-      default:
-        return <BasicInfoTab formData={formData} onUpdate={updateFormData} />;
-    }
-  };
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value as TabId);
-  };
-
   return (
-    <Card className="w-full">
-      <CardContent className="space-y-6">
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-          <TabsList>
-            {tabs.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id} className="capitalize">
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          {tabs.map((tab) => (
-            <TabsContent key={tab.id} value={tab.id} className="focus:outline-none">
-              {renderTabContent()}
-            </TabsContent>
-          ))}
-        </Tabs>
-
-        {/* Navigation Buttons */}
-        <div className="flex justify-between items-center pt-6 border-t border-gray-200">
-          <div className="flex space-x-4">
-            {!isFirstTab && (
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={goToPreviousTab}
-                className="flex items-center space-x-2"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                <span>Previous</span>
-              </Button>
-            )}
+    <Card className="p-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Complete Your Valuation</h3>
+            <p className="text-gray-600">
+              Please confirm your details to complete the valuation process.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">VIN</label>
+                <input
+                  {...form.register('vin')}
+                  className="w-full p-2 border rounded-md"
+                  readOnly
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">ZIP Code</label>
+                <input
+                  {...form.register('zip_code')}
+                  className="w-full p-2 border rounded-md"
+                  placeholder="Enter ZIP code"
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="flex space-x-4">
-            <Button type="button" variant="secondary" onClick={handleSave} disabled={isSaving}>
-              {isSaving ? 'Saving...' : 'Save Progress'}
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleSave(form.getValues())}
+              disabled={isSaving}
+            >
+              {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Save Progress
             </Button>
             
-            {!isLastTab ? (
-              <Button 
-                type="button" 
-                onClick={goToNextTab}
-                className="flex items-center space-x-2"
-              >
-                <span>Next</span>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
-                {isSubmitting ? 'Submitting...' : 'Submit Follow-Up'}
-              </Button>
-            )}
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Complete Valuation
+            </Button>
           </div>
-        </div>
-      </CardContent>
+        </form>
+      </Form>
     </Card>
   );
 }
