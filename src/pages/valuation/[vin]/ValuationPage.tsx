@@ -11,17 +11,17 @@ import { toast } from 'sonner';
 
 export function ValuationPage() {
   const { vin } = useParams<{ vin: string }>();
-  const { data: vehicleData, isLoading, error } = useVinLookup(vin || '');
+  const { vehicle: vehicleData, isLoading, error } = useVinLookup();
   
   const [followUpData, setFollowUpData] = useState<ManualEntryFormData>({
-    make: vehicleData?.make || '',
-    model: vehicleData?.model || '',
-    year: vehicleData?.year ? parseInt(vehicleData.year.toString()) : new Date().getFullYear(),
-    mileage: vehicleData?.mileage ? parseInt(vehicleData.mileage.toString()) : 50000,
+    make: '',
+    model: '',
+    year: new Date().getFullYear(),
+    mileage: 50000,
     condition: ConditionLevel.Good,
     zipCode: '',
-    fuelType: vehicleData?.fuelType || 'gasoline',
-    transmission: vehicleData?.transmission || 'automatic',
+    fuelType: 'gasoline',
+    transmission: 'automatic',
     vin: vin || '',
   });
 
@@ -33,7 +33,7 @@ export function ValuationPage() {
         vin: vin || '',
         make: vehicleData.make || '',
         model: vehicleData.model || '',
-        year: vehicleData.year ? parseInt(vehicleData.year.toString()) : prev.year,
+        year: vehicleData.year ? (typeof vehicleData.year === 'string' ? parseInt(vehicleData.year) : vehicleData.year) : prev.year,
         trim: vehicleData.trim || '',
         makeName: vehicleData.make || '',
         modelName: vehicleData.model || '',
@@ -41,14 +41,26 @@ export function ValuationPage() {
         fuelType: vehicleData.fuelType || prev.fuelType,
         transmission: vehicleData.transmission || prev.transmission,
         bodyType: vehicleData.bodyType || '',
-        color: vehicleData.color || '',
+        color: vehicleData.exteriorColor || vehicleData.color || '',
+        mileage: vehicleData.mileage ? (typeof vehicleData.mileage === 'string' ? parseInt(vehicleData.mileage) : vehicleData.mileage) : prev.mileage,
       }));
     }
   }, [vehicleData, vin]);
 
-  const handleFollowUpSubmit = async (data: ManualEntryFormData) => {
+  // Load vehicle data on mount
+  useEffect(() => {
+    if (vin && useVinLookup().lookupByVin) {
+      useVinLookup().lookupByVin(vin);
+    }
+  }, [vin]);
+
+  const updateFormData = (updates: Partial<ManualEntryFormData>) => {
+    setFollowUpData(prev => ({ ...prev, ...updates }));
+  };
+
+  const handleFollowUpSubmit = async () => {
     try {
-      console.log('Follow-up data submitted:', data);
+      console.log('Follow-up data submitted:', followUpData);
       toast.success('Vehicle information updated successfully!');
       
       // Here you would typically submit to your valuation API
@@ -142,10 +154,17 @@ export function ValuationPage() {
           </CardHeader>
           <CardContent>
             <UnifiedFollowUpQuestions
-              initialData={followUpData}
-              onSubmit={handleFollowUpSubmit}
-              isLoading={false}
+              formData={followUpData}
+              updateFormData={updateFormData}
             />
+            <div className="mt-6">
+              <button
+                onClick={handleFollowUpSubmit}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Submit Valuation Request
+              </button>
+            </div>
           </CardContent>
         </Card>
       </div>
