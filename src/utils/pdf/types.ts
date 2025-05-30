@@ -1,5 +1,4 @@
 
-
 export interface AuctionResult {
   vin: string;
   auction_source: string;
@@ -105,6 +104,7 @@ export interface ReportOptions {
   includeAINSummary?: boolean;
   includeDebugInfo?: boolean;
   includeExplanation?: boolean;
+  notifyDealers?: boolean; // Added missing property
   ainSummary?: string;
   debugInfo?: string;
   footerText?: string;
@@ -139,4 +139,3 @@ export interface SectionParams {
   textColor?: any;
   primaryColor?: any;
 }
-
