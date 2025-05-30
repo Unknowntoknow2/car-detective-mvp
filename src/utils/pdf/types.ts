@@ -77,6 +77,18 @@ export interface ReportData {
     fetched_at: string;
   };
   competitorAverage?: number;
+
+  // Marketplace listings data
+  marketplaceListings?: Array<{
+    id: string;
+    title: string;
+    price: number | null;
+    url: string;
+    platform: string;
+    location: string | null;
+    mileage: number | null;
+    created_at: string;
+  }>;
 }
 
 export interface ReportOptions {
@@ -95,7 +107,8 @@ export interface ReportOptions {
   debugInfo?: string;
   footerText?: string;
   trackingId?: string;
-  enrichedData?: any; // Add enrichedData property
+  enrichedData?: any;
+  marketplaceListingsText?: string; // Add marketplace listings text for PDF
   
   // PDF styling options
   colorScheme?: 'light' | 'dark' | 'branded';
