@@ -2436,6 +2436,48 @@ export type Database = {
         }
         Relationships: []
       }
+      vin_forecasts: {
+        Row: {
+          confidence: number
+          created_at: string
+          expires_at: string
+          forecast_trend: string
+          id: string
+          market_factors: Json | null
+          predicted_delta: number
+          reasoning: string | null
+          timeframe_days: number
+          updated_at: string
+          vin: string
+        }
+        Insert: {
+          confidence: number
+          created_at?: string
+          expires_at?: string
+          forecast_trend: string
+          id?: string
+          market_factors?: Json | null
+          predicted_delta: number
+          reasoning?: string | null
+          timeframe_days?: number
+          updated_at?: string
+          vin: string
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          expires_at?: string
+          forecast_trend?: string
+          id?: string
+          market_factors?: Json | null
+          predicted_delta?: number
+          reasoning?: string | null
+          timeframe_days?: number
+          updated_at?: string
+          vin?: string
+        }
+        Relationships: []
+      }
       vin_lookup_requests: {
         Row: {
           id: string
@@ -2555,6 +2597,10 @@ export type Database = {
         Returns: boolean
       }
       clean_old_zip_validations: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_forecasts: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }

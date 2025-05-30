@@ -1,5 +1,7 @@
 import { ReportData } from './types';
 import { injectMarketplaceListingsToPDF } from './injectMarketplaceListingsToPDF';
+import { injectForecastToPDF } from './injectForecastToPDF';
+import { getOrCreateVinForecast } from '@/services/vinForecastService';
 
 // Define the interface for the adjustment type
 interface Adjustment {
@@ -38,6 +40,7 @@ export async function generateValuationPdf(
     includeAuctionData?: boolean;
     includeCompetitorPricing?: boolean;
     includeAINSummary?: boolean;
+    includeForecast?: boolean;
     watermark?: string;
     trackingId?: string;
     ainSummary?: string;
@@ -56,7 +59,8 @@ export async function generateValuationPdf(
     includeExplanation: false,
     includeAuctionData: false,
     includeCompetitorPricing: false,
-    includeAINSummary: false
+    includeAINSummary: false,
+    includeForecast: false
   };
   
   const mergedOptions = { ...defaultOptions, ...options };
@@ -97,6 +101,25 @@ export async function generateValuationPdf(
     } catch (error) {
       console.error('Failed to inject marketplace listings into PDF:', error);
       // Continue without marketplace data rather than failing completely
+    }
+  }
+
+  // Inject forecast for premium reports
+  if (mergedOptions.isPremium && mergedOptions.includeForecast && data.vin) {
+    console.log('🔮 Injecting AIN forecast into PDF for VIN:', data.vin);
+    try {
+      const forecast = await getOrCreateVinForecast(data.vin);
+      if (forecast) {
+        const forecastPdfBytes = await injectForecastToPDF({
+          pdfBytes,
+          forecast,
+          estimatedValue: data.estimatedValue || 0
+        });
+        pdfBytes = new Uint8Array(forecastPdfBytes);
+      }
+    } catch (error) {
+      console.error('Failed to inject forecast into PDF:', error);
+      // Continue without forecast data
     }
   }
   

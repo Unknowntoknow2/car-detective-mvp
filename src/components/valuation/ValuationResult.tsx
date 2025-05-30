@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -5,6 +6,7 @@ import { CheckCircle, AlertTriangle } from 'lucide-react';
 import { PremiumDownloadButton } from '@/components/premium/PremiumDownloadButton';
 import { DealerOffersSection } from './DealerOffersSection';
 import { DealerOfferCard } from '@/components/dealer/DealerOfferCard';
+import { MarketForecastCard } from './MarketForecastCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { downloadValuationPdf } from '@/utils/generateValuationPdf';
 import { ReportData } from '@/utils/pdf/types';
@@ -139,6 +141,14 @@ export function ValuationResult({ valuationId, data, isPremium }: ValuationResul
           )}
         </CardContent>
       </Card>
+
+      {/* AIN Market Forecast Card - Premium Feature */}
+      {isPremium && data.vin && (
+        <MarketForecastCard 
+          vin={data.vin}
+          estimatedValue={data.estimatedValue}
+        />
+      )}
 
       {/* Enhanced Dealer Offers Section with Marketplace Comparison */}
       {actualValuationId && (
