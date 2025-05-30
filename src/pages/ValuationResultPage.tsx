@@ -1,211 +1,137 @@
+
 import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { Container } from '@/components/ui/container';
 import { useValuationResult } from '@/hooks/useValuationResult';
-import { useUserRole } from '@/hooks/useUserRole';
 import { AIChatBubble } from '@/components/chat/AIChatBubble';
 import { DealerOffersList } from '@/components/dealer/DealerOffersList';
 import PredictionResult from '@/components/valuation/PredictionResult';
-import { EnrichedDataCard } from '@/components/enriched/EnrichedDataCard';
-import { PremiumEnrichmentGate } from '@/components/enriched/PremiumEnrichmentGate';
-import { getEnrichedVehicleData, type EnrichedVehicleData } from '@/enrichment/getEnrichedVehicleData';
-import PDFDownloadButton from '@/components/common/PDFDownloadButton';
-
-// Premium components
-import { AINSummary } from '@/components/premium/insights/AINSummary';
-import { PremiumBadge } from '@/components/premium/insights/PremiumBadge';
-import { PDFExportButton } from '@/components/premium/insights/PDFExportButton';
-import { CarfaxSummary } from '@/components/premium/insights/CarfaxSummary';
+import { PDFDownloadButton } from '@/components/common/PDFDownloadButton';
+import { AuctionInsightCard } from '@/components/valuation/AuctionInsightCard';
+import { AuctionResult } from '@/types/auction';
+import { supabase } from '@/integrations/supabase/client';
+import { useUser } from '@/hooks/useUser';
 
 export default function ValuationResultPage() {
   const { valuationId } = useParams<{ valuationId: string }>();
-  const [searchParams] = useSearchParams();
-  const isPremiumFlow = searchParams.get('premium') === 'true';
-  
   const { data: valuationResult, isLoading, error } = useValuationResult(valuationId || '');
-  const { userRole, hasPermiumAccess, isLoading: roleLoading } = useUserRole();
-  const [enrichedData, setEnrichedData] = useState<EnrichedVehicleData | null>(null);
-  const [isLoadingEnriched, setIsLoadingEnriched] = useState(false);
+  const { user } = useUser();
+  const [auctionResults, setAuctionResults] = useState<AuctionResult[]>([]);
+  const [auctionAINSummary, setAuctionAINSummary] = useState<string>('');
 
-  const refreshEnrichedData = async () => {
-    if (!valuationResult?.vin || !hasPermiumAccess) return;
-    
-    setIsLoadingEnriched(true);
-    try {
-      const enriched = await getEnrichedVehicleData(
-        valuationResult.vin,
-        valuationResult.make || undefined,
-        valuationResult.model || undefined,
-        valuationResult.year || undefined
-      );
-      setEnrichedData(enriched);
-    } catch (error) {
-      console.error('Failed to refresh enriched data:', error);
-    } finally {
-      setIsLoadingEnriched(false);
-    }
-  };
-
+  // Fetch auction data when valuation is loaded
   useEffect(() => {
-    async function loadEnrichedData() {
-      if (
-        valuationResult?.vin && 
-        typeof valuationResult.vin === 'string' && 
-        valuationResult.make && 
-        typeof valuationResult.make === 'string' &&
-        valuationResult.model && 
-        typeof valuationResult.model === 'string' &&
-        valuationResult.year && 
-        typeof valuationResult.year === 'number' &&
-        !roleLoading
-      ) {
-        setIsLoadingEnriched(true);
-        try {
-          const enriched = await getEnrichedVehicleData(
-            valuationResult.vin,
-            valuationResult.make,
-            valuationResult.model,
-            valuationResult.year
-          );
-          setEnrichedData(enriched);
-        } catch (error) {
-          console.error('Failed to load enriched data:', error);
-        } finally {
-          setIsLoadingEnriched(false);
+    const fetchAuctionData = async () => {
+      if (!valuationResult?.vin) return;
+
+      try {
+        const { data: auctionData, error } = await supabase
+          .from('auction_results_by_vin')
+          .select('*')
+          .eq('vin', valuationResult.vin)
+          .order('sold_date', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching auction data:', error);
+          return;
         }
+
+        if (auctionData && auctionData.length > 0) {
+          // Transform the data to match our AuctionResult type
+          const transformedResults: AuctionResult[] = auctionData.map(item => ({
+            vin: item.vin,
+            price: parseFloat(item.price) || 0,
+            sold_date: item.sold_date,
+            odometer: parseInt(item.odometer) || undefined,
+            condition_grade: item.condition_grade,
+            location: item.location,
+            auction_source: item.auction_source,
+            photo_urls: item.photo_urls || [],
+            fetched_at: item.fetched_at,
+            source_priority: item.source_priority
+          }));
+
+          setAuctionResults(transformedResults);
+
+          // Fetch enrichment data for AIN summary if available
+          const { data: enrichmentData } = await supabase
+            .from('auction_enrichment_by_vin')
+            .select('data')
+            .eq('vin', valuationResult.vin)
+            .eq('source', 'ain_summary')
+            .maybeSingle();
+
+          if (enrichmentData?.data?.summary) {
+            setAuctionAINSummary(enrichmentData.data.summary);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching auction data:', error);
       }
-    }
+    };
 
-    loadEnrichedData();
-  }, [valuationResult?.vin, valuationResult?.make, valuationResult?.model, valuationResult?.year, roleLoading]);
+    fetchAuctionData();
+  }, [valuationResult?.vin]);
 
-  if (isLoading || roleLoading) {
+  if (isLoading) {
     return (
-      <div className="container mx-auto p-4 space-y-6">
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-          <p className="text-muted-foreground">Loading valuation data...</p>
-        </div>
-      </div>
+      <MainLayout>
+        <Container className="py-12">
+          <div className="flex justify-center items-center min-h-[50vh]" role="status" aria-label="Loading">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <span className="ml-4 text-lg">Loading valuation details...</span>
+          </div>
+        </Container>
+      </MainLayout>
     );
   }
 
-  if (error) {
+  if (error || !valuationResult) {
     return (
-      <div className="container mx-auto p-4 space-y-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <h2 className="text-xl font-bold text-red-700 mb-2">
-            Error Loading Valuation
-          </h2>
-          <p className="text-red-600">
-            {typeof error === 'string' ? error : "Could not load the valuation details. Please try again or contact support."}
-          </p>
-        </div>
-      </div>
+      <MainLayout>
+        <Container className="py-12">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Valuation</h1>
+            <p className="text-gray-600 mb-4">
+              Could not load the valuation details. Please try again later.
+            </p>
+          </div>
+        </Container>
+      </MainLayout>
     );
   }
 
-  if (!valuationResult) {
-    return (
-      <div className="container mx-auto p-4 space-y-6">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <h2 className="text-xl font-bold text-yellow-700 mb-2">
-            No Valuation Found
-          </h2>
-          <p className="text-yellow-600">
-            The requested valuation could not be found. It may have been deleted or the link is invalid.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const isPremium = valuationResult.is_premium || valuationResult.isPremium;
 
   return (
-    <div className="container mx-auto p-4 space-y-6 relative">
-      {/* Premium Badge - Only for premium flows */}
-      {isPremiumFlow && <PremiumBadge />}
-      
-      {/* Main Valuation Result */}
-      <div className={isPremiumFlow ? 'premium-highlight' : ''}>
+    <MainLayout>
+      <Container className="py-8 space-y-8">
+        {/* Main Valuation Result */}
         <PredictionResult valuationId={valuationId || ''} />
-      </div>
-      
-      {/* Premium-only components */}
-      {isPremiumFlow && (
-        <div className="space-y-6">
-          {/* AIN AI Summary */}
-          <AINSummary 
-            vin={valuationResult.vin || ''} 
-            vehicleData={{
-              year: valuationResult.year,
-              make: valuationResult.make,
-              model: valuationResult.model,
-              mileage: valuationResult.mileage,
-              estimatedValue: valuationResult.estimatedValue || valuationResult.estimated_value
-            }} 
-          />
-          
-          {/* CARFAX Summary */}
-          <CarfaxSummary />
-          
-          {/* Premium PDF Export */}
-          <div className="flex justify-center">
-            <PDFExportButton 
-              vin={valuationResult.vin || ''} 
-              valuationData={valuationResult} 
+
+        {/* Auction History Card - Only for Premium/Dealer users */}
+        <AuctionInsightCard 
+          results={auctionResults} 
+          ainSummary={auctionAINSummary} 
+        />
+
+        {/* AI Chat Bubble */}
+        <AIChatBubble valuation={valuationResult} />
+
+        {/* Dealer Offers */}
+        <DealerOffersList reportId={valuationId || ''} />
+
+        {/* PDF Download for Premium */}
+        {isPremium && (
+          <div className="flex justify-center mt-8">
+            <PDFDownloadButton 
+              valuationResult={valuationResult}
+              isPremium={isPremium}
             />
           </div>
-        </div>
-      )}
-      
-      {/* Premium PDF Download */}
-      {hasPermiumAccess && (
-        <div className="flex justify-center">
-          <PDFDownloadButton 
-            valuationResult={valuationResult}
-            enrichedData={enrichedData}
-            isPremium={hasPermiumAccess}
-          />
-        </div>
-      )}
-      
-      {/* Enriched Data Section - Role-based display */}
-      {hasPermiumAccess ? (
-        enrichedData && enrichedData.sources.statVin ? (
-          <EnrichedDataCard 
-            data={enrichedData} 
-            userRole={(userRole as "individual" | "dealer" | "admin") || 'individual'}
-            onRefresh={refreshEnrichedData}
-            isRefreshing={isLoadingEnriched}
-            lastUpdated={enrichedData.lastUpdated}
-          />
-        ) : isLoadingEnriched ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mr-3"></div>
-            <span className="text-muted-foreground">Loading market intelligence...</span>
-          </div>
-        ) : null
-      ) : (
-        <PremiumEnrichmentGate 
-          vin={valuationResult.vin || undefined}
-          valuationId={valuationId}
-        />
-      )}
-
-      {/* AI Chat Bubble with enriched context */}
-      {valuationResult && (
-        <AIChatBubble 
-          valuation={{
-            ...valuationResult,
-            created_at: valuationResult.created_at || new Date().toISOString()
-          }}
-          enrichedData={hasPermiumAccess ? enrichedData : null}
-        />
-      )}
-
-      {/* Dealer Offers */}
-      {valuationId && (
-        <DealerOffersList reportId={valuationId} />
-      )}
-    </div>
+        )}
+      </Container>
+    </MainLayout>
   );
 }
