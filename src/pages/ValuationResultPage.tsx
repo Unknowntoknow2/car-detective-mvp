@@ -12,6 +12,7 @@ import { AuctionInsightCard } from '@/components/valuation/AuctionInsightCard';
 import { BidCarsResults } from '@/components/valuation/BidCarsResults';
 import { AutoAuctionsResults } from '@/components/valuation/AutoAuctionsResults';
 import { AuctionIntelligenceCard } from '@/components/valuation/AuctionIntelligenceCard';
+import { AuctionResults } from '@/components/valuation/AuctionResults';
 import { AuctionResult } from '@/types/auction';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@/hooks/useUser';
@@ -120,6 +121,11 @@ export default function ValuationResultPage() {
       <Container className="py-8 space-y-8">
         {/* Main Valuation Result */}
         <PredictionResult valuationId={valuationId || ''} />
+
+        {/* Auction Results - Available to all users */}
+        {valuationResult.vin && (
+          <AuctionResults vin={valuationResult.vin} />
+        )}
 
         {/* Bid.Cars Auction History */}
         {valuationResult.vin && (
