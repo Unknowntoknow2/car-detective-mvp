@@ -28,37 +28,55 @@ export async function uploadValuationPdf(
     emailToDealers?: boolean;
     includeDebugInfo?: boolean;
     includeAINSummary?: boolean;
+    includeAuctionData?: boolean;
   } = {}
 ): Promise<UploadPdfResult> {
   try {
+    console.log('🚀 Starting enhanced PDF generation with auction data and AIN summary');
+    
     // Generate tracking ID and watermark config
     const trackingId = generateTrackingId(userId, reportData.vin);
     const watermarkConfig = createWatermarkConfig(true);
     const trackingConfig = createTrackingConfig(userId, reportData.vin);
 
-    // Generate AIN summary if requested
+    // Generate AIN summary if requested (default true for premium)
     let ainSummary = '';
     if (options.includeAINSummary !== false) {
       try {
+        console.log('🧠 Generating AIN summary for PDF');
         const summaryData = await generateAINSummaryForPdf(reportData);
         ainSummary = formatAINSummaryForPdf(summaryData);
+        console.log('✅ AIN summary generated successfully');
       } catch (error) {
-        console.error('Failed to generate AIN summary:', error);
+        console.error('❌ Failed to generate AIN summary:', error);
       }
     }
 
     // Generate debug info if requested (typically for internal use)
     let debugInfo = '';
     if (options.includeDebugInfo && process.env.NODE_ENV === 'development') {
-      const debugData = generateDebugInfo(reportData);
-      debugInfo = formatDebugInfoForPdf(debugData);
+      try {
+        const debugData = generateDebugInfo(reportData);
+        debugInfo = formatDebugInfoForPdf(debugData);
+        console.log('🔧 Debug info generated');
+      } catch (error) {
+        console.error('❌ Failed to generate debug info:', error);
+      }
     }
 
     // Generate the PDF with enhanced features
+    console.log('📄 Generating PDF with enhanced data:', {
+      hasAuctionData: !!(reportData.auctionResults && reportData.auctionResults.length > 0),
+      hasAINSummary: !!ainSummary,
+      hasDebugInfo: !!debugInfo,
+      trackingId
+    });
+
     const pdfBytes = await generateValuationPdf(reportData, {
       isPremium: true,
-      includeAuctionData: true,
+      includeAuctionData: options.includeAuctionData !== false,
       includeExplanation: true,
+      includeAINSummary: options.includeAINSummary !== false,
       watermark: watermarkConfig.enabled ? watermarkConfig.text : undefined,
       trackingId,
       ainSummary,
@@ -85,12 +103,14 @@ export async function uploadValuationPdf(
           estimated_value: reportData.estimatedValue.toString(),
           includes_ain_summary: String(!!ainSummary),
           includes_debug_info: String(!!debugInfo),
-          watermarked: String(watermarkConfig.enabled)
+          includes_auction_data: String(!!(reportData.auctionResults && reportData.auctionResults.length > 0)),
+          watermarked: String(watermarkConfig.enabled),
+          auction_records_count: String(reportData.auctionResults?.length || 0)
         }
       });
 
     if (error) {
-      console.error('Error uploading PDF:', error);
+      console.error('❌ Error uploading PDF:', error);
       throw new Error(`Failed to upload PDF: ${error.message}`);
     }
 
@@ -100,12 +120,23 @@ export async function uploadValuationPdf(
       .createSignedUrl(filename, 24 * 60 * 60); // 24 hours
 
     if (signedUrlError) {
-      console.error('Error creating signed URL:', signedUrlError);
+      console.error('❌ Error creating signed URL:', signedUrlError);
       throw new Error(`Failed to create download URL: ${signedUrlError.message}`);
     }
 
     if (!signedUrlData?.signedUrl) {
       throw new Error('No signed URL returned from Supabase');
+    }
+
+    // Log PDF generation for audit trail
+    if (reportData.vin) {
+      try {
+        await logPdfGeneration(trackingId, reportData.vin, userId);
+        console.log('✅ PDF generation logged successfully');
+      } catch (logError) {
+        console.error('⚠️ Failed to log PDF generation:', logError);
+        // Don't fail the upload if logging fails
+      }
     }
 
     const result: UploadPdfResult = {
@@ -117,6 +148,7 @@ export async function uploadValuationPdf(
     // Email to verified dealers if requested
     if (options.emailToDealers !== false) {
       try {
+        console.log('📧 Sending PDF to verified dealers');
         await sendPdfToVerifiedDealers(
           trackingId,
           signedUrlData.signedUrl,
@@ -128,15 +160,17 @@ export async function uploadValuationPdf(
           },
           reportData.estimatedValue
         );
+        console.log('✅ PDF emailed to dealers successfully');
       } catch (emailError) {
-        console.error('Failed to email PDF to dealers:', emailError);
+        console.error('❌ Failed to email PDF to dealers:', emailError);
         // Don't fail the upload if email fails
       }
     }
 
+    console.log('🎉 Enhanced PDF generation completed successfully');
     return result;
   } catch (error) {
-    console.error('Error in uploadValuationPdf:', error);
+    console.error('❌ Error in uploadValuationPdf:', error);
     throw error;
   }
 }
