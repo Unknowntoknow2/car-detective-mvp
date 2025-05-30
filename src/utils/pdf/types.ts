@@ -1,3 +1,4 @@
+
 export interface AuctionResult {
   vin: string;
   auction_source: string;
@@ -32,6 +33,12 @@ export interface ReportData {
   }>;
   generatedAt: string;
   
+  // Added missing properties
+  priceRange?: [number, number];
+  basePrice?: number;
+  explanation?: string;
+  isPremium?: boolean;
+  
   // Optional enhanced data
   transmission?: string;
   trim?: string;
@@ -53,6 +60,8 @@ export interface ReportData {
     auction_source: string;
     condition_grade?: string;
     location?: string;
+    odometer?: string;
+    photo_urls?: string[];
   }>;
   
   // Competitor pricing data
@@ -80,8 +89,11 @@ export interface ReportOptions {
   includeCompetitorPricing?: boolean;
   includeAINSummary?: boolean;
   includeDebugInfo?: boolean;
+  includeExplanation?: boolean;
   ainSummary?: string;
   debugInfo?: string;
+  footerText?: string;
+  trackingId?: string;
   
   // PDF styling options
   colorScheme?: 'light' | 'dark' | 'branded';
