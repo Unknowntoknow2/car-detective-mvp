@@ -23,6 +23,10 @@ export async function generateValuationPdf(
     includeFooter?: boolean;
     includeTimestamp?: boolean;
     includePhotoAssessment?: boolean;
+    includeExplanation?: boolean;
+    includeAuctionData?: boolean;
+    includeCompetitorPricing?: boolean;
+    includeAINSummary?: boolean;
   } = {}
 ): Promise<Uint8Array> {
   const defaultOptions = {
@@ -31,7 +35,11 @@ export async function generateValuationPdf(
     includeAIScore: true,
     includeFooter: true,
     includeTimestamp: true,
-    includePhotoAssessment: true
+    includePhotoAssessment: true,
+    includeExplanation: false,
+    includeAuctionData: false,
+    includeCompetitorPricing: false,
+    includeAINSummary: false
   };
   
   const mergedOptions = { ...defaultOptions, ...options };
