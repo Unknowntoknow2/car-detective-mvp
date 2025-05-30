@@ -106,6 +106,8 @@ export default function ValuationResultPage() {
   }
 
   const isPremium = valuationResult.isPremium || valuationResult.premium_unlocked;
+  const isDealer = user?.user_metadata?.role === 'dealer';
+  const canViewIntelligence = isPremium || isDealer;
 
   return (
     <MainLayout>
@@ -123,8 +125,8 @@ export default function ValuationResultPage() {
           <AutoAuctionsResults vin={valuationResult.vin} />
         )}
 
-        {/* Auction Intelligence Card - NEW */}
-        {valuationResult.vin && (
+        {/* Auction Intelligence Card - Only for Premium/Dealer users */}
+        {valuationResult.vin && canViewIntelligence && (
           <AuctionIntelligenceCard vin={valuationResult.vin} />
         )}
 
