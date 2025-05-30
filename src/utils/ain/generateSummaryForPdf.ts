@@ -1,4 +1,3 @@
-
 import { ReportData } from '../pdf/types';
 import { generateMarketplaceAnalysisText } from '@/services/scrapedListingsService';
 
