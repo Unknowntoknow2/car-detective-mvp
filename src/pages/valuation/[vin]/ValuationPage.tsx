@@ -4,10 +4,10 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
 import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
 import { CarFinderQaherCard } from '@/components/valuation/CarFinderQaherCard';
-import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
+import { UnifiedFollowUpQuestions } from '@/components/lookup/form-parts/UnifiedFollowUpQuestions';
 import { decodeVin } from '@/services/vinService';
 import { DecodedVehicleInfo } from '@/types/vehicle';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
 import { toast } from 'sonner';
 import { PremiumBadge } from '@/components/premium/insights/PremiumBadge';
@@ -17,7 +17,35 @@ export default function ValuationPage() {
   const [searchParams] = useSearchParams();
   const [vehicle, setVehicle] = useState<DecodedVehicleInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showFollowUp, setShowFollowUp] = useState(false);
+  const [formData, setFormData] = useState<ManualEntryFormData>({
+    vin: vinParam || '',
+    make: '',
+    model: '',
+    year: '',
+    mileage: '',
+    condition: 'good' as any,
+    zipCode: '',
+    trim: '',
+    fuelType: 'Gasoline',
+    transmission: 'Automatic',
+    color: '',
+    titleStatus: 'clean',
+    previousOwners: 1,
+    previousUse: 'personal',
+    serviceHistory: 'unknown',
+    hasRegularMaintenance: null,
+    maintenanceNotes: '',
+    accidentDetails: {
+      hasAccident: false,
+      severity: 'minor',
+      repaired: false,
+      description: ''
+    },
+    tireCondition: 'good',
+    dashboardLights: [],
+    hasModifications: false,
+    modificationTypes: []
+  });
 
   // Check if this is a premium valuation
   const isPremium = searchParams.get('premium') === 'true';
@@ -43,7 +71,17 @@ export default function ValuationPage() {
       if (result.success && result.data) {
         console.log('✅ ValuationPage: Vehicle data loaded:', result.data);
         setVehicle(result.data);
-        setShowFollowUp(true);
+        
+        // Update form data with vehicle info
+        setFormData(prev => ({
+          ...prev,
+          vin: vinCode,
+          make: result.data?.make || '',
+          model: result.data?.model || '',
+          year: result.data?.year?.toString() || '',
+          trim: result.data?.trim || ''
+        }));
+        
         toast.success('Vehicle details loaded successfully!');
       } else {
         console.error('❌ ValuationPage: Failed to load vehicle data:', result.error);
@@ -57,15 +95,14 @@ export default function ValuationPage() {
     }
   };
 
-  const handleFollowUpSubmit = async (formData: FollowUpAnswers): Promise<void> => {
+  const updateFormData = (updates: Partial<ManualEntryFormData>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
+  };
+
+  const handleFollowUpSubmit = async (): Promise<void> => {
     console.log('✅ ValuationPage: Follow-up submitted:', formData, 'Premium:', isPremium);
     toast.success('Valuation completed successfully!');
     // Handle final valuation here
-  };
-
-  const handleFollowUpSave = async (formData: FollowUpAnswers): Promise<void> => {
-    console.log('📝 ValuationPage: Follow-up saved:', formData);
-    // Handle saving progress here
   };
 
   // If no VIN parameter at all, show error message
@@ -119,16 +156,29 @@ export default function ValuationPage() {
             {/* Enhanced Car Finder Qaher Card */}
             <CarFinderQaherCard vehicle={vehicle} />
             
-            {showFollowUp && safeVin.length === 17 && (
-              <div className="mt-8">
-                <UnifiedFollowUpForm 
-                  vin={safeVin}
-                  initialData={{ vin: safeVin }}
-                  onSubmit={handleFollowUpSubmit}
-                  onSave={handleFollowUpSave}
-                />
+            {/* Follow-up Questions */}
+            <div className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Vehicle Details</h2>
+                <p className="text-gray-600 mt-2">
+                  Please provide additional information about your vehicle to get the most accurate valuation.
+                </p>
               </div>
-            )}
+              
+              <UnifiedFollowUpQuestions
+                formData={formData}
+                updateFormData={updateFormData}
+              />
+              
+              <div className="mt-8 pt-6 border-t">
+                <button
+                  onClick={handleFollowUpSubmit}
+                  className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+                >
+                  Get My Vehicle Valuation
+                </button>
+              </div>
+            </div>
           </div>
         )}
         
@@ -141,7 +191,7 @@ export default function ValuationPage() {
               <div>VIN: {safeVin || 'None'}</div>
               <div>Premium: {isPremium ? 'Yes' : 'No'}</div>
               <div>Vehicle Loaded: {vehicle ? 'Yes' : 'No'}</div>
-              <div>Show Follow-up: {showFollowUp ? 'Yes' : 'No'}</div>
+              <div>Loading: {isLoading ? 'Yes' : 'No'}</div>
             </div>
           </div>
         )}
