@@ -3,6 +3,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { corsHeaders } from '../_shared/cors.ts'
 import { fetchCraigslistListings } from './scrapers/craigslist.ts'
+import { fetchFacebookMarketplaceListings } from './scrapers/facebook.ts'
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -27,6 +28,9 @@ serve(async (req) => {
     switch (platform.toLowerCase()) {
       case 'craigslist':
         listings = await fetchCraigslistListings(query, zipCode)
+        break
+      case 'facebook':
+        listings = await fetchFacebookMarketplaceListings(query, zipCode)
         break
       default:
         throw new Error(`Platform ${platform} not implemented yet`)
