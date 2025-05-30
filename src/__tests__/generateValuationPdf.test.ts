@@ -21,10 +21,10 @@ describe('generateValuationPdf', () => {
       summary: 'The vehicle is in good condition overall.'
     },
     generatedAt: new Date().toISOString(),
-    // Add required adjustments property
+    // Add required adjustments property with descriptions
     adjustments: [
-      { factor: 'Mileage', impact: -500 },
-      { factor: 'Condition', impact: 300 }
+      { factor: 'Mileage', impact: -500, description: 'Higher than average mileage adjustment' },
+      { factor: 'Condition', impact: 300, description: 'Good condition premium' }
     ]
   };
 
@@ -61,7 +61,7 @@ describe('generateValuationPdf', () => {
         summary: 'The vehicle is in fair condition.'
       },
       generatedAt: new Date().toISOString(),
-      // Add required adjustments property
+      // Add required adjustments property with descriptions
       adjustments: []
     };
 
