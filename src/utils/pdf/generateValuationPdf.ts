@@ -40,6 +40,7 @@ export async function generateValuationPdf(
     includeCompetitorPricing?: boolean;
     includeAINSummary?: boolean;
     watermark?: string;
+    trackingId?: string;
     enrichedData?: any;
     marketplaceListings?: MarketplaceListing[];
   } = {}
