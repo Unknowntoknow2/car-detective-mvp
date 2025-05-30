@@ -40,36 +40,73 @@ serve(async (req) => {
     }: DealerEmailRequest = await req.json();
 
     const emailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2563eb;">New Premium Valuation Report</h2>
-        
-        <p>Dear ${dealerName},</p>
-        
-        <p>A new premium valuation report has been generated that may be of interest to your dealership:</p>
-        
-        <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="margin-top: 0; color: #1e40af;">Vehicle Details</h3>
-          <p><strong>Vehicle:</strong> ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}</p>
-          ${vehicleInfo.vin ? `<p><strong>VIN:</strong> ${vehicleInfo.vin}</p>` : ''}
-          <p><strong>Estimated Value:</strong> $${valuationAmount.toLocaleString()}</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #2563eb; margin: 0;">CarPerfector</h1>
+          <p style="color: #6b7280; margin: 5px 0;">Premium Vehicle Valuations</p>
         </div>
         
-        <p>
+        <h2 style="color: #1f2937; margin-bottom: 20px;">New Premium Valuation Report Available</h2>
+        
+        <p style="color: #374151; font-size: 16px;">Dear ${dealerName},</p>
+        
+        <p style="color: #374151; font-size: 16px;">
+          A new premium valuation report has been generated that may be of interest to your dealership. 
+          This comprehensive report includes market analysis, condition assessment, and pricing insights.
+        </p>
+        
+        <div style="background-color: #f8fafc; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #2563eb;">
+          <h3 style="margin-top: 0; color: #1e40af; font-size: 18px;">Vehicle Details</h3>
+          <table style="width: 100%; border-spacing: 0;">
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Vehicle:</td>
+              <td style="padding: 8px 0; color: #1f2937; font-weight: 700;">${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}</td>
+            </tr>
+            ${vehicleInfo.vin ? `
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">VIN:</td>
+              <td style="padding: 8px 0; color: #1f2937; font-family: monospace;">${vehicleInfo.vin}</td>
+            </tr>
+            ` : ''}
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Estimated Value:</td>
+              <td style="padding: 8px 0; color: #059669; font-weight: 700; font-size: 18px;">$${valuationAmount.toLocaleString()}</td>
+            </tr>
+          </table>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
           <a href="${pdfUrl}" 
-             style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-            Download Premium Report
+             style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+            📄 Download Premium Report
           </a>
-        </p>
+        </div>
         
-        <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-          This report contains comprehensive valuation data, market analysis, and AI-generated insights.
-          The download link is valid for 24 hours.
-        </p>
+        <div style="background-color: #fef3c7; padding: 15px; border-radius: 6px; margin: 20px 0;">
+          <p style="margin: 0; color: #92400e; font-size: 14px;">
+            <strong>📋 Report Features:</strong> Comprehensive market analysis, AI-powered condition assessment, 
+            auction data insights, and professional valuation breakdown.
+          </p>
+        </div>
         
-        <p style="color: #6b7280; font-size: 14px;">
-          Best regards,<br>
-          The CarPerfector Team
-        </p>
+        <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 30px;">
+          <p style="color: #6b7280; font-size: 14px; margin: 5px 0;">
+            This report contains comprehensive valuation data, market analysis, and AI-generated insights.
+            The download link is valid for 24 hours.
+          </p>
+          
+          <p style="color: #6b7280; font-size: 14px; margin: 20px 0 5px 0;">
+            Best regards,<br>
+            <strong>The CarPerfector Team</strong><br>
+            <a href="https://carperfector.com" style="color: #2563eb;">CarPerfector.com</a>
+          </p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+          <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+            This email was sent to verified dealers. If you received this in error, please contact support.
+          </p>
+        </div>
       </div>
     `;
 
@@ -81,7 +118,11 @@ serve(async (req) => {
     });
 
     return new Response(
-      JSON.stringify({ success: true, emailId: emailResponse.data?.id }),
+      JSON.stringify({ 
+        success: true, 
+        emailId: emailResponse.data?.id,
+        message: 'Email sent successfully'
+      }),
       { 
         status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -91,7 +132,11 @@ serve(async (req) => {
     console.error('Error sending dealer email:', error);
     
     return new Response(
-      JSON.stringify({ error: 'Failed to send email' }),
+      JSON.stringify({ 
+        success: false,
+        error: 'Failed to send email',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
