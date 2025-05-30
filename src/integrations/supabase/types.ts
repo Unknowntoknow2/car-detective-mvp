@@ -1700,6 +1700,45 @@ export type Database = {
         }
         Relationships: []
       }
+      scraped_listings: {
+        Row: {
+          created_at: string | null
+          id: string
+          location: string | null
+          mileage: number | null
+          platform: string
+          price: number | null
+          title: string
+          updated_at: string | null
+          url: string
+          vin: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          location?: string | null
+          mileage?: number | null
+          platform: string
+          price?: number | null
+          title: string
+          updated_at?: string | null
+          url: string
+          vin?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          location?: string | null
+          mileage?: number | null
+          platform?: string
+          price?: number | null
+          title?: string
+          updated_at?: string | null
+          url?: string
+          vin?: string | null
+        }
+        Relationships: []
+      }
       seasonal_index: {
         Row: {
           convertible: number

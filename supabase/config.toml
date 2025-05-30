@@ -42,5 +42,8 @@ verify_jwt = false
 [functions.fetch-autoauctions-data]
 verify_jwt = false
 
+[functions.fetch-marketplace-data]
+verify_jwt = false
+
 [functions.generate-auction-intelligence]
 verify_jwt = false
