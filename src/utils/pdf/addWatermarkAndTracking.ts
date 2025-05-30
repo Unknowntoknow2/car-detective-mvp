@@ -1,5 +1,5 @@
 
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import { v4 as uuidv4 } from 'uuid';
 import { ReportData } from './types';
 import { supabase } from '@/integrations/supabase/client';
@@ -88,7 +88,7 @@ export async function addWatermarkToPdf(
           font,
           color: rgb(0.9, 0.9, 0.9),
           opacity: watermarkConfig.opacity || 0.1,
-          rotate: { angle: Math.PI / 4 }, // 45 degree rotation
+          rotate: degrees(45), // Use degrees() helper function
         });
       }
     }
