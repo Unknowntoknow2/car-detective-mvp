@@ -78,7 +78,7 @@ export interface ReportData {
   };
   competitorAverage?: number;
 
-  // Marketplace listings data
+  // Marketplace listings data - Updated to match ScrapedListing interface
   marketplaceListings?: Array<{
     id: string;
     title: string;
@@ -87,7 +87,9 @@ export interface ReportData {
     platform: string;
     location: string | null;
     mileage: number | null;
+    vin: string | null;
     created_at: string;
+    updated_at: string | null;
   }>;
 }
 
