@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -141,11 +140,16 @@ export function ValuationResult({ valuationId, data, isPremium }: ValuationResul
         </CardContent>
       </Card>
 
-      {/* Dealer Offers Section - Always show for users to see offers */}
+      {/* Enhanced Dealer Offers Section with Marketplace Comparison */}
       {actualValuationId && (
         <DealerOffersSection 
           valuationId={actualValuationId}
           estimatedValue={data.estimatedValue}
+          vin={data.vin}
+          make={data.make}
+          model={data.model}
+          year={data.year}
+          zipCode={data.zipCode}
         />
       )}
 
