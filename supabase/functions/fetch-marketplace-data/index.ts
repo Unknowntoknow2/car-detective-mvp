@@ -5,6 +5,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 import { fetchCraigslistListings } from './scrapers/craigslist.ts'
 import { fetchFacebookMarketplaceListings } from './scrapers/facebook.ts'
 import { fetchEbayMotorsListings } from './scrapers/ebay.ts'
+import { fetchOfferUpListings } from './scrapers/offerup.ts'
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -35,6 +36,9 @@ serve(async (req) => {
         break
       case 'ebay':
         listings = await fetchEbayMotorsListings(query, zipCode)
+        break
+      case 'offerup':
+        listings = await fetchOfferUpListings(query, zipCode)
         break
       default:
         throw new Error(`Platform ${platform} not implemented yet`)
