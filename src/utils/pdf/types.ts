@@ -42,6 +42,12 @@ export interface ReportData {
   competitorAverage?: number;
   marketplaceListings?: MarketplaceListing[];
   auctionResults?: AuctionResult[];
+  
+  // Additional vehicle properties
+  transmission?: string;
+  fuelType?: string;
+  explanation?: string;
+  isPremium?: boolean;
 }
 
 export interface AdjustmentItem {
@@ -59,6 +65,8 @@ export interface MarketplaceListing {
   url: string;
   mileage?: number;
   created_at: string;
+  vin?: string | null;
+  updated_at?: string | null;
 }
 
 export interface AuctionResult {
@@ -101,6 +109,11 @@ export interface SectionParams {
   y: number;
   width: number;
   height: number;
+  margin: number;
+  pageWidth: number;
+  startY: number;
+  textColor: any;
+  primaryColor: any;
 }
 
 export interface DocumentFonts {

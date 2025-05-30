@@ -1,192 +1,136 @@
-
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { supabase } from '@/integrations/supabase/client';
-import { submitValuation } from '@/lib/valuation/submitValuation';
-import { ReportData } from '@/utils/pdf/types';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Form } from '@/components/ui/form';
-import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { ReportData } from '@/utils/pdf/types';
 
-const followUpSchema = z.object({
-  vin: z.string().min(1, 'VIN is required'),
-  zip_code: z.string().min(5, 'ZIP code is required')
+const formSchema = z.object({
+  vin: z.string().optional(),
+  zip_code: z.string().min(5, {
+    message: 'Zip code must be at least 5 characters.'
+  }),
+  additional_notes: z.string().optional()
 });
 
 interface UnifiedFollowUpFormProps {
   vin: string;
   initialData?: Partial<FollowUpAnswers>;
-  onSubmit: (data: FollowUpAnswers) => void;
-  onSave: (data: FollowUpAnswers) => void;
+  onSubmit: (values: FollowUpAnswers) => Promise<void>;
+  onSave?: (values: FollowUpAnswers) => Promise<void>;
 }
 
-export function UnifiedFollowUpForm({
-  vin,
-  initialData,
-  onSubmit,
-  onSave
-}: UnifiedFollowUpFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
+export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: UnifiedFollowUpFormProps) {
   const form = useForm<FollowUpAnswers>({
-    resolver: zodResolver(followUpSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      vin,
-      zip_code: '',
-      ...initialData
-    }
+      vin: vin,
+      zip_code: initialData?.zip_code || '',
+      additional_notes: initialData?.additional_notes || ''
+    },
+    mode: 'onChange'
   });
 
-  const handleSubmit = async (data: FollowUpAnswers) => {
-    setIsSubmitting(true);
+  const isLoading = form.formState.isSubmitting;
+
+  const handleSubmit = async (values: FollowUpAnswers) => {
+    console.log('📝 Form submitted with values:', values);
     
-    try {
-      // Validate required fields
-      if (!data.vin || !data.zip_code) {
-        toast.error('VIN and ZIP code are required');
-        return;
-      }
-
-      // Save follow-up answers to database
-      const { error: saveError } = await supabase
-        .from('follow_up_answers')
-        .upsert({
-          vin: data.vin,
-          zip_code: data.zip_code,
-          user_id: (await supabase.auth.getUser()).data.user?.id
-        });
-
-      if (saveError) {
-        console.error('Error saving follow-up answers:', saveError);
-        toast.error('Failed to save answers');
-        return;
-      }
-
-      // Create mock report data for valuation submission
-      const reportData: ReportData = {
-        make: 'Unknown',
-        model: 'Unknown', 
-        year: 2020,
-        mileage: 50000,
+    const reportData: ReportData = {
+      make: 'Toyota',
+      model: 'Test Vehicle',
+      year: 2020,
+      mileage: 50000,
+      condition: 'Good',
+      estimatedValue: 25000,
+      confidenceScore: 85,
+      zipCode: values.zip_code,
+      adjustments: [],
+      generatedAt: new Date().toISOString(),
+      vin: vin,
+      aiCondition: {
         condition: 'Good',
-        estimatedValue: 25000,
         confidenceScore: 85,
-        zipCode: data.zip_code,
-        adjustments: [],
-        generatedAt: new Date().toISOString(),
-        vin: data.vin
-      };
-
-      // Submit valuation and trigger dealer notifications
-      const result = await submitValuation({
-        vin: data.vin,
-        zipCode: data.zip_code,
-        reportData,
-        isPremium: true,
-        notifyDealers: true
-      });
-
-      if (result.notificationsSent) {
-        toast.success('Valuation completed and dealers notified!');
-      } else {
-        toast.success('Valuation completed successfully!');
+        issuesDetected: [],
+        summary: 'Vehicle appears to be in good condition based on provided information.'
       }
+    };
 
-      onSubmit(data);
+    try {
+      await onSubmit(values);
     } catch (error) {
-      console.error('Error submitting follow-up:', error);
-      toast.error('Failed to complete valuation');
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error submitting form:', error);
     }
   };
 
-  const handleSave = async (data: FollowUpAnswers) => {
-    setIsSaving(true);
-    
+  const handleSave = async (values: FollowUpAnswers) => {
+    console.log('💾 Form saved with values:', values);
     try {
-      const { error } = await supabase
-        .from('follow_up_answers')
-        .upsert({
-          vin: data.vin,
-          zip_code: data.zip_code,
-          user_id: (await supabase.auth.getUser()).data.user?.id
-        });
-
-      if (error) {
-        console.error('Error saving follow-up answers:', error);
-        toast.error('Failed to save progress');
-        return;
-      }
-
-      toast.success('Progress saved');
-      onSave(data);
+      await onSave?.(values);
     } catch (error) {
-      console.error('Error saving follow-up:', error);
-      toast.error('Failed to save progress');
-    } finally {
-      setIsSaving(false);
+      console.error('Error saving form:', error);
     }
   };
 
   return (
-    <Card className="p-6">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Complete Your Valuation</h3>
-            <p className="text-gray-600">
-              Please confirm your details to complete the valuation process.
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">VIN</label>
-                <input
-                  {...form.register('vin')}
-                  className="w-full p-2 border rounded-md"
-                  readOnly
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="zip_code"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Zip Code</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter zip code" {...field} />
+              </FormControl>
+              <FormDescription>
+                Please enter the zip code where the vehicle is located.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="additional_notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Additional Notes</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Any additional notes about the vehicle?"
+                  className="resize-none"
+                  {...field}
                 />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">ZIP Code</label>
-                <input
-                  {...form.register('zip_code')}
-                  className="w-full p-2 border rounded-md"
-                  placeholder="Enter ZIP code"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-3">
+              </FormControl>
+              <FormDescription>
+                Please provide any additional information that may be relevant to the valuation.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex justify-between">
+          {onSave && (
             <Button
               type="button"
-              variant="outline"
-              onClick={() => handleSave(form.getValues())}
-              disabled={isSaving}
+              variant="secondary"
+              onClick={form.handleSubmit(handleSave)}
+              disabled={isLoading}
             >
-              {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Progress
             </Button>
-            
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Complete Valuation
-            </Button>
-          </div>
-        </form>
-      </Form>
-    </Card>
+          )}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? 'Submitting...' : 'Submit Valuation'}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }
