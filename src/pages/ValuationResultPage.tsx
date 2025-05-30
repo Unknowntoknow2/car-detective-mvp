@@ -41,9 +41,9 @@ export default function ValuationResultPage() {
           // Transform the data to match our AuctionResult type
           const transformedResults: AuctionResult[] = auctionData.map(item => ({
             vin: item.vin,
-            price: parseFloat(item.price) || 0,
+            price: item.price || '0',
             sold_date: item.sold_date,
-            odometer: parseInt(item.odometer) || undefined,
+            odometer: item.odometer || '0',
             condition_grade: item.condition_grade,
             location: item.location,
             auction_source: item.auction_source,
@@ -102,7 +102,7 @@ export default function ValuationResultPage() {
     );
   }
 
-  const isPremium = valuationResult.is_premium || valuationResult.isPremium;
+  const isPremium = valuationResult.isPremium || valuationResult.premium_unlocked;
 
   return (
     <MainLayout>
