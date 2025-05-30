@@ -2,7 +2,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ValuationResult from '@/components/valuation/ValuationResult';
+import { ValuationResult } from '@/components/valuation/ValuationResult';
 import { generateValuationExplanation } from '@/utils/generateValuationExplanation';
 
 // Import directly from @testing-library/dom
@@ -29,6 +29,7 @@ jest.mock('sonner', () => ({
 describe('ValuationResult component', () => {
   const defaultProps = {
     data: {
+      success: true,
       make: 'Toyota',
       model: 'Camry',
       year: 2018,
@@ -37,7 +38,7 @@ describe('ValuationResult component', () => {
       zipCode: '90210',
       estimatedValue: 15000,
       confidenceScore: 85,
-      valuationId: 'test-valuation-id' // Add missing valuationId property
+      valuationId: 'test-valuation-id'
     },
     valuationId: 'test-valuation-id',
     isPremium: false
