@@ -37,7 +37,7 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
           <CardContent>
             <Select 
               value={formData.title_status || ''} 
-              onValueChange={(value: 'clean' | 'salvage' | 'flood' | 'lemon') => updateFormData({ title_status: value })}
+              onValueChange={(value: 'clean' | 'salvage' | 'rebuilt' | 'lien' | 'unknown') => updateFormData({ title_status: value })}
             >
               <SelectTrigger className="h-14 text-lg bg-white border-2 border-purple-200 hover:border-purple-300 focus:border-purple-500">
                 <SelectValue placeholder="Select title status" className="text-lg" />
@@ -89,7 +89,7 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
           <CardContent>
             <Select 
               value={formData.previous_use || ''} 
-              onValueChange={(value: 'personal' | 'rental' | 'fleet' | 'commercial' | 'taxi') => updateFormData({ previous_use: value })}
+              onValueChange={(value: 'personal' | 'commercial' | 'rental' | 'emergency') => updateFormData({ previous_use: value })}
             >
               <SelectTrigger className="h-14 text-lg bg-white border-2 border-purple-200 hover:border-purple-300 focus:border-purple-500">
                 <SelectValue placeholder="Select previous use" className="text-lg" />

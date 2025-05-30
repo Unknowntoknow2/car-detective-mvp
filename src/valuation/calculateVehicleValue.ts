@@ -41,8 +41,8 @@ export function calculateVehicleValue(
   }
   
   // Service history adjustment
-  if (formData.service_history) {
-    if (typeof formData.service_history === 'object' && formData.service_history.hasRecords) {
+  if (formData.serviceHistory) {
+    if (typeof formData.serviceHistory === 'object' && formData.serviceHistory.hasRecords) {
       adjustedValue *= 1.05; // 5% bonus for good service history
     }
   }

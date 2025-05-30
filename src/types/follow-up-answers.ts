@@ -11,6 +11,7 @@ export type AccidentDetails = {
 
 export type ModificationDetails = {
   hasModifications: boolean
+  modified?: boolean
   types?: string[]
   description?: string
 }
@@ -28,30 +29,37 @@ export type FollowUpAnswers = {
   user_id?: string
   valuation_id?: string
 
-  mileage: number
+  mileage?: number
   zip_code: string
-  condition: 'excellent' | 'good' | 'fair' | 'poor'
-  transmission: 'automatic' | 'manual' | 'unknown'
+  condition?: 'excellent' | 'good' | 'fair' | 'poor'
+  transmission?: 'automatic' | 'manual' | 'unknown'
 
   previous_owners?: number
+  previous_use?: 'personal' | 'commercial' | 'rental' | 'emergency'
   title_status?: 'clean' | 'salvage' | 'rebuilt' | 'lien' | 'unknown'
-  dashboard_lights?: string[] // E.g., ['Check Engine', 'ABS']
+  dashboard_lights?: string[]
   tire_condition?: 'new' | 'good' | 'worn' | 'bald'
+  
   accident_history?: AccidentDetails
+  accidents?: AccidentDetails
   modifications?: ModificationDetails
   serviceHistory?: ServiceHistoryDetails
-
+  service_history?: ServiceHistoryDetails
+  
   exterior_condition?: 'excellent' | 'good' | 'fair' | 'poor'
   interior_condition?: 'excellent' | 'good' | 'fair' | 'poor'
-
+  
   smoking?: boolean
   petDamage?: boolean
   rust?: boolean
   hailDamage?: boolean
+  frame_damage?: boolean
 
   loan_balance?: number
   has_active_loan?: boolean
   payoffAmount?: number
+
+  features?: Array<{value: string; label: string; icon?: string; impact?: number}>
 
   additional_notes?: string
 
@@ -103,6 +111,13 @@ export const TITLE_STATUS_OPTIONS = [
   { value: 'rebuilt', label: 'Rebuilt', description: 'Rebuilt from salvage' },
   { value: 'lien', label: 'Lien', description: 'Has outstanding loan' },
   { value: 'unknown', label: 'Unknown', description: 'Title status unclear' }
+] as const;
+
+export const PREVIOUS_USE_OPTIONS = [
+  { value: 'personal', label: 'Personal', description: 'Personal use vehicle' },
+  { value: 'commercial', label: 'Commercial', description: 'Commercial use vehicle' },
+  { value: 'rental', label: 'Rental', description: 'Former rental vehicle' },
+  { value: 'emergency', label: 'Emergency', description: 'Emergency services vehicle' }
 ] as const;
 
 // Enhanced features list with properties
