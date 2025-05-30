@@ -65,6 +65,10 @@ export function TabbedFollowUpForm({
     await onSubmit();
   };
 
+  const handleFeaturesChange = (features: Array<{value: string; label: string; icon?: string; impact?: number}>) => {
+    updateFormData({ features });
+  };
+
   const isLastTab = activeTab === tabs[tabs.length - 1].id;
   const isFirstTab = activeTab === tabs[0].id;
 
@@ -101,10 +105,17 @@ export function TabbedFollowUpForm({
             const TabComponent = tab.component;
             return (
               <TabsContent key={tab.id} value={tab.id} className="mt-6">
-                <TabComponent
-                  formData={formData}
-                  updateFormData={updateFormData}
-                />
+                {tab.id === 'features' ? (
+                  <FeaturesTab
+                    formData={formData}
+                    onFeaturesChange={handleFeaturesChange}
+                  />
+                ) : (
+                  <TabComponent
+                    formData={formData}
+                    updateFormData={updateFormData}
+                  />
+                )}
               </TabsContent>
             );
           })}

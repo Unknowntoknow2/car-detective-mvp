@@ -2,168 +2,162 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { LoadingButton } from '@/components/ui/loading-button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
+import { Car, AlertCircle, CheckCircle } from 'lucide-react';
 import { TabbedFollowUpForm } from '@/components/followup/TabbedFollowUpForm';
 import { useVinLookup } from '@/hooks/useVinLookup';
+import { useValuation } from '@/hooks/useValuation';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { validateVIN } from '@/utils/validation/vin-validation';
 
-export function ValuationPage() {
+export default function ValuationPage() {
   const { vin } = useParams<{ vin: string }>();
-  const { vehicle: vehicleData, isLoading, error, lookupByVin } = useVinLookup();
+  const { lookupVin, isLoading: vinLoading, error: vinError, vehicleData } = useVinLookup();
+  const { saveValuation, isLoading: valuationLoading } = useValuation();
   
   const [followUpData, setFollowUpData] = useState<FollowUpAnswers>({
     vin: vin || '',
     zip_code: '',
-    mileage: 50000,
-    condition: 'good',
-    transmission: 'automatic',
-    title_status: 'clean',
-    serviceHistory: { hasRecords: false },
-    tire_condition: 'good',
-    exterior_condition: 'good',
-    interior_condition: 'good',
-    dashboard_lights: [],
-    accident_history: {
-      hadAccident: false,
-      count: 0,
-      location: '',
-      severity: 'minor',
-      repaired: false,
-      frameDamage: false,
-      description: ''
-    },
-    modifications: {
-      hasModifications: false,
-      types: []
-    },
-    completion_percentage: 0,
-    is_complete: false,
+    mileage: undefined,
+    condition: undefined,
+    transmission: undefined,
   });
 
-  // Load vehicle data when VIN is available
+  const [hasLookedUp, setHasLookedUp] = useState(false);
+
   useEffect(() => {
-    if (vin && lookupByVin) {
-      lookupByVin(vin);
+    if (vin && validateVIN(vin).isValid && !hasLookedUp) {
+      handleVinLookup();
     }
-  }, [vin, lookupByVin]);
+  }, [vin]);
 
-  // Update form data when vehicle data is loaded
-  useEffect(() => {
-    if (vehicleData && vin) {
-      setFollowUpData(prev => ({
-        ...prev,
-        vin: vin,
-        mileage: vehicleData.mileage ? (typeof vehicleData.mileage === 'string' ? parseInt(vehicleData.mileage) : vehicleData.mileage) : prev.mileage,
-        transmission: vehicleData.transmission || prev.transmission,
-      }));
-    }
-  }, [vehicleData, vin]);
-
-  const updateFormData = (updates: Partial<FollowUpAnswers>) => {
-    setFollowUpData(prev => ({ ...prev, ...updates }));
-  };
-
-  const handleFollowUpSubmit = async () => {
+  const handleVinLookup = async () => {
+    if (!vin) return;
+    
     try {
-      console.log('Follow-up data submitted:', followUpData);
-      toast.success('Vehicle information updated successfully!');
-      
-      // Here you would typically submit to your valuation API
-      // navigate('/valuation-result', { state: { formData: followUpData } });
+      await lookupVin(vin);
+      setHasLookedUp(true);
     } catch (error) {
-      console.error('Error submitting follow-up:', error);
-      toast.error('Failed to submit vehicle information');
+      console.error('VIN lookup failed:', error);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading vehicle information...</p>
-        </div>
-      </div>
-    );
-  }
+  const updateFollowUpData = (updates: Partial<FollowUpAnswers>) => {
+    setFollowUpData(prev => {
+      // Ensure transmission values match the expected literal types
+      const updatedData = { ...prev, ...updates };
+      if (updates.transmission !== undefined) {
+        // Validate transmission value
+        const validTransmissions: Array<'automatic' | 'manual' | 'unknown'> = ['automatic', 'manual', 'unknown'];
+        if (typeof updates.transmission === 'string' && !validTransmissions.includes(updates.transmission as any)) {
+          updatedData.transmission = 'unknown';
+        }
+      }
+      return updatedData;
+    });
+  };
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="max-w-md w-full">
-          <CardContent className="text-center py-8">
-            <div className="text-red-500 mb-4">
-              <svg className="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Vehicle</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-            >
-              Try Again
-            </button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const handleSubmitValuation = async () => {
+    try {
+      const valuationData = {
+        vin: followUpData.vin,
+        make: vehicleData?.make || 'Unknown',
+        model: vehicleData?.model || 'Unknown',
+        year: vehicleData?.year || new Date().getFullYear(),
+        mileage: followUpData.mileage || 0,
+        condition: followUpData.condition || 'good',
+        zip_code: followUpData.zip_code,
+        transmission: followUpData.transmission,
+        follow_up_answers: followUpData
+      };
+
+      await saveValuation(valuationData);
+      console.log('Valuation submitted successfully');
+    } catch (error) {
+      console.error('Failed to submit valuation:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Vehicle Header */}
-        {vehicleData && (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Vehicle Valuation
+          </h1>
+          <p className="text-gray-600">
+            Get an accurate valuation for your vehicle
+          </p>
+        </div>
+
+        {/* VIN Display and Status */}
+        {vin && (
           <Card className="mb-8">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-xl">
-                    {vehicleData.year} {vehicleData.make} {vehicleData.model}
-                  </CardTitle>
-                  {vehicleData.trim && (
-                    <p className="text-gray-600 mt-1">{vehicleData.trim}</p>
-                  )}
-                </div>
-                <Badge variant="outline">VIN: {vin}</Badge>
-              </div>
+              <CardTitle className="flex items-center gap-2">
+                <Car className="h-5 w-5" />
+                VIN: {vin}
+              </CardTitle>
             </CardHeader>
-            {(vehicleData.mileage || vehicleData.transmission || vehicleData.fuelType) && (
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  {vehicleData.mileage && (
-                    <div>
-                      <span className="text-gray-500">Mileage:</span>
-                      <span className="ml-2 font-medium">{vehicleData.mileage.toLocaleString()}</span>
-                    </div>
-                  )}
-                  {vehicleData.transmission && (
-                    <div>
-                      <span className="text-gray-500">Transmission:</span>
-                      <span className="ml-2 font-medium capitalize">{vehicleData.transmission}</span>
-                    </div>
-                  )}
-                  {vehicleData.fuelType && (
-                    <div>
-                      <span className="text-gray-500">Fuel Type:</span>
-                      <span className="ml-2 font-medium capitalize">{vehicleData.fuelType}</span>
-                    </div>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  {vehicleData ? (
+                    <>
+                      <Badge variant="default" className="bg-green-100 text-green-800">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Vehicle Found
+                      </Badge>
+                      <span className="text-sm text-gray-600">
+                        {vehicleData.year} {vehicleData.make} {vehicleData.model}
+                        {vehicleData.trim && ` ${vehicleData.trim}`}
+                      </span>
+                    </>
+                  ) : vinError ? (
+                    <Badge variant="destructive">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      Lookup Failed
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary">
+                      Ready for Lookup
+                    </Badge>
                   )}
                 </div>
-              </CardContent>
-            )}
+                
+                {!hasLookedUp && (
+                  <LoadingButton
+                    onClick={handleVinLookup}
+                    isLoading={vinLoading}
+                    loadingText="Looking up..."
+                  >
+                    Lookup VIN
+                  </LoadingButton>
+                )}
+              </div>
+              
+              {vinError && (
+                <Alert className="mt-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {vinError}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
           </Card>
         )}
 
-        {/* Tabbed Follow-up Form */}
+        {/* Follow-up Form */}
         <TabbedFollowUpForm
           formData={followUpData}
-          updateFormData={updateFormData}
-          onSubmit={handleFollowUpSubmit}
-          isLoading={false}
+          updateFormData={updateFollowUpData}
+          onSubmit={handleSubmitValuation}
+          isLoading={valuationLoading}
         />
       </div>
     </div>
