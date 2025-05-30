@@ -1,4 +1,3 @@
-
 export interface AuctionResult {
   vin: string;
   auction_source: string;
@@ -20,56 +19,76 @@ export interface ReportData {
   make: string;
   model: string;
   year: number;
+  vin?: string;
   mileage: number;
-  zipCode: string;
   condition: string;
   estimatedValue: number;
-  adjustments: AdjustmentItem[];
-  generatedAt: string;
   confidenceScore: number;
-  aiCondition?: {
-    condition: string;
-    confidenceScore: number;
-    issuesDetected: string[];
-    summary: string;
-  };
-  vin?: string;
-  priceRange?: [number, number];
-  isPremium?: boolean;
+  zipCode: string;
+  adjustments: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
+  generatedAt: string;
+  
+  // Optional enhanced data
   transmission?: string;
   trim?: string;
   color?: string;
   fuelType?: string;
   bodyStyle?: string;
   photoUrl?: string;
-  auctionResults?: AuctionResult[];
-  explanation?: string;
-  basePrice?: number; // Added basePrice property
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected: string[];
+    summary?: string;
+  };
+  
+  // Auction data
+  auctionResults?: Array<{
+    price: string;
+    sold_date: string;
+    auction_source: string;
+    condition_grade?: string;
+    location?: string;
+  }>;
+  
+  // Competitor pricing data
+  competitorPrices?: {
+    vin: string;
+    carvana_value?: string;
+    carmax_value?: string;
+    edmunds_value?: string;
+    carfax_value?: string;
+    carsdotcom_value?: string;
+    autotrader_value?: string;
+    fetched_at: string;
+  };
+  competitorAverage?: number;
 }
 
 export interface ReportOptions {
   isPremium?: boolean;
-  includeExplanation?: boolean;
-  includeAuctionData?: boolean;
-  includeAINSummary?: boolean; // Added includeAINSummary property
-  includeDebugInfo?: boolean; // Added includeDebugInfo property
-  includeFooter?: boolean;
   includeBranding?: boolean;
   includeAIScore?: boolean;
+  includeFooter?: boolean;
   includeTimestamp?: boolean;
   includePhotoAssessment?: boolean;
-  footerText?: string;
-  primaryColor?: string;
-  secondaryColor?: string;
-  fonts?: {
-    titleFont: string;
-    bodyFont: string;
-  };
-  enrichedData?: any;
-  watermark?: string; // Added watermark property
-  trackingId?: string; // Added trackingId property
-  ainSummary?: string; // Added ainSummary property
-  debugInfo?: string; // Added debugInfo property
+  includeAuctionData?: boolean;
+  includeCompetitorPricing?: boolean;
+  includeAINSummary?: boolean;
+  includeDebugInfo?: boolean;
+  ainSummary?: string;
+  debugInfo?: string;
+  
+  // PDF styling options
+  colorScheme?: 'light' | 'dark' | 'branded';
+  logoUrl?: string;
+  watermark?: string;
+  customHeader?: string;
+  customFooter?: string;
 }
 
 export interface DocumentFonts {

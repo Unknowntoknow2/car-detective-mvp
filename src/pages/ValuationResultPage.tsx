@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { MainLayout } from '@/components/layout';
 import { ValuationResult } from '@/components/valuation/ValuationResult';
+import { CompetitorPriceCard } from '@/components/valuation/CompetitorPriceCard';
 import { PremiumPdfSection } from '@/components/valuation/PremiumPdfSection';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -62,27 +63,43 @@ const ValuationResultPage = () => {
           <h1 className="text-2xl font-bold">Valuation Results</h1>
         </div>
 
-        <Card className="p-6">
-          <ValuationResult 
-            valuationId={id} 
-            data={{
-              ...valuationResult,
-              success: true,
-              valuationId: id || valuationResult.id,
-              condition: valuationResult.condition || 'Good',
-              estimatedValue: valuationResult.estimatedValue || 0
-            }}
-            isPremium={isPremium || false}
-          />
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main valuation result */}
+          <div className="lg:col-span-2">
+            <Card className="p-6">
+              <ValuationResult 
+                valuationId={id} 
+                data={{
+                  ...valuationResult,
+                  success: true,
+                  valuationId: id || valuationResult.id,
+                  condition: valuationResult.condition || 'Good',
+                  estimatedValue: valuationResult.estimatedValue || 0
+                }}
+                isPremium={isPremium || false}
+              />
+            </Card>
+          </div>
 
-        {/* Premium PDF Section - only show for premium users */}
-        {(isPremium || false) && (
-          <PremiumPdfSection 
-            valuationResult={valuationResult}
-            isPremium={isPremium || false}
-          />
-        )}
+          {/* Competitor pricing sidebar */}
+          <div className="space-y-6">
+            {/* Competitor Price Card */}
+            {valuationResult.vin && (
+              <CompetitorPriceCard 
+                vin={valuationResult.vin}
+                estimatedValue={valuationResult.estimatedValue}
+              />
+            )}
+
+            {/* Premium PDF Section - only show for premium users */}
+            {(isPremium || false) && (
+              <PremiumPdfSection 
+                valuationResult={valuationResult}
+                isPremium={isPremium || false}
+              />
+            )}
+          </div>
+        </div>
       </div>
     </MainLayout>
   );
