@@ -13,6 +13,7 @@ import { BidCarsResults } from '@/components/valuation/BidCarsResults';
 import { AutoAuctionsResults } from '@/components/valuation/AutoAuctionsResults';
 import { AuctionIntelligenceCard } from '@/components/valuation/AuctionIntelligenceCard';
 import { AuctionResults } from '@/components/valuation/AuctionResults';
+import { PremiumPdfSection } from '@/components/valuation/PremiumPdfSection';
 import { AuctionResult } from '@/types/auction';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@/hooks/useUser';
@@ -122,6 +123,12 @@ export default function ValuationResultPage() {
         {/* Main Valuation Result */}
         <PredictionResult valuationId={valuationId || ''} />
 
+        {/* Premium PDF Section - New secure upload system */}
+        <PremiumPdfSection 
+          valuationResult={valuationResult}
+          isPremium={isPremium}
+        />
+
         {/* Auction Results - Available to all users */}
         {valuationResult.vin && (
           <AuctionResults vin={valuationResult.vin} />
@@ -154,7 +161,7 @@ export default function ValuationResultPage() {
         {/* Dealer Offers */}
         <DealerOffersList reportId={valuationId || ''} />
 
-        {/* PDF Download for Premium */}
+        {/* Legacy PDF Download for backward compatibility */}
         {isPremium && (
           <div className="flex justify-center mt-8">
             <PDFDownloadButton 
