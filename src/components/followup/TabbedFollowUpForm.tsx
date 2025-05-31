@@ -102,7 +102,6 @@ export function TabbedFollowUpForm({
           </TabsList>
 
           {tabs.map((tab) => {
-            const TabComponent = tab.component;
             return (
               <TabsContent key={tab.id} value={tab.id} className="mt-6">
                 {tab.id === 'features' ? (
@@ -110,12 +109,42 @@ export function TabbedFollowUpForm({
                     formData={formData}
                     onFeaturesChange={handleFeaturesChange}
                   />
-                ) : (
-                  <TabComponent
+                ) : tab.id === 'basic' ? (
+                  <BasicInfoTab
                     formData={formData}
                     updateFormData={updateFormData}
                   />
-                )}
+                ) : tab.id === 'accident' ? (
+                  <AccidentHistoryTab
+                    formData={formData}
+                    updateFormData={updateFormData}
+                  />
+                ) : tab.id === 'service' ? (
+                  <ServiceHistoryTab
+                    formData={formData}
+                    updateFormData={updateFormData}
+                  />
+                ) : tab.id === 'title' ? (
+                  <TitleOwnershipTab
+                    formData={formData}
+                    updateFormData={updateFormData}
+                  />
+                ) : tab.id === 'modifications' ? (
+                  <ModificationsTab
+                    formData={formData}
+                    updateFormData={updateFormData}
+                  />
+                ) : tab.id === 'condition' ? (
+                  <ConditionTab
+                    formData={formData}
+                    updateFormData={updateFormData}
+                  />
+                ) : tab.id === 'review' ? (
+                  <ReviewTab
+                    formData={formData}
+                    updateFormData={updateFormData}
+                  />
+                ) : null}
               </TabsContent>
             );
           })}
