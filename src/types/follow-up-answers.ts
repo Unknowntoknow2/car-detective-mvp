@@ -39,6 +39,7 @@ export type FollowUpAnswers = {
   title_status?: 'clean' | 'salvage' | 'rebuilt' | 'lien' | 'unknown'
   dashboard_lights?: string[]
   tire_condition?: 'new' | 'good' | 'worn' | 'bald'
+  brake_condition?: 'new' | 'good' | 'fair' | 'poor'
   
   accident_history?: AccidentDetails
   accidents?: AccidentDetails
