@@ -79,20 +79,20 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
   };
 
   const handleSubmit = async () => {
-    // Calculate final completion percentage
-    const completionFields = [
+    // Calculate final completion percentage based on filled fields
+    const requiredFields = [
       formData.zip_code,
       formData.mileage,
       formData.condition,
       formData.transmission,
       formData.title_status,
-      formData.previous_owners !== undefined,
-      formData.accident_history?.hadAccident !== undefined,
-      formData.serviceHistory?.hasRecords !== undefined
+      formData.tire_condition,
+      formData.exterior_condition,
+      formData.interior_condition
     ];
     
-    const completedFields = completionFields.filter(Boolean).length;
-    const completionPercentage = Math.round((completedFields / completionFields.length) * 100);
+    const completedFields = requiredFields.filter(field => field !== undefined && field !== null && field !== '').length;
+    const completionPercentage = Math.round((completedFields / requiredFields.length) * 100);
     
     const completeFormData = {
       ...formData,
