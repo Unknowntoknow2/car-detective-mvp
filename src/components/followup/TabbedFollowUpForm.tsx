@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -154,7 +153,7 @@ export function TabbedFollowUpForm({
           <TabsContent value="modifications">
             <ModificationsTab
               formData={formData}
-              onModificationsChange={handleModificationsChange}
+              updateFormData={updateFormData}
             />
           </TabsContent>
 
