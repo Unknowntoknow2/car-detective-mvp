@@ -5,8 +5,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface BasicInfoTabProps {
@@ -15,25 +13,6 @@ interface BasicInfoTabProps {
 }
 
 export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
-  const dashboardLights = [
-    'Check Engine',
-    'ABS',
-    'Airbag',
-    'Oil Pressure',
-    'Battery',
-    'Temperature',
-    'Brake',
-    'Tire Pressure'
-  ];
-
-  const handleDashboardLightChange = (light: string, checked: boolean) => {
-    const currentLights = formData.dashboard_lights || [];
-    const updatedLights = checked
-      ? [...currentLights, light]
-      : currentLights.filter(l => l !== light);
-    updateFormData({ dashboard_lights: updatedLights });
-  };
-
   return (
     <div className="space-y-6">
       <Card>
@@ -46,29 +25,54 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
               <Label htmlFor="zip-code">ZIP Code</Label>
               <Input
                 id="zip-code"
-                type="text"
-                maxLength={5}
-                value={formData.zip_code}
+                value={formData.zip_code || ''}
                 onChange={(e) => updateFormData({ zip_code: e.target.value })}
-                placeholder="12345"
+                placeholder="Enter ZIP code"
               />
             </div>
             
             <div>
-              <Label htmlFor="mileage">Current Mileage</Label>
+              <Label htmlFor="mileage">Mileage</Label>
               <Input
                 id="mileage"
                 type="number"
-                min="0"
                 value={formData.mileage || ''}
                 onChange={(e) => updateFormData({ mileage: parseInt(e.target.value) || 0 })}
-                placeholder="e.g., 50000"
+                placeholder="Enter mileage"
               />
             </div>
           </div>
 
           <div>
-            <Label htmlFor="transmission">Transmission Type</Label>
+            <Label>Overall Condition</Label>
+            <div className="space-y-2 mt-2">
+              <Slider
+                value={[formData.condition === 'excellent' ? 90 : formData.condition === 'good' ? 75 : formData.condition === 'fair' ? 50 : 25]}
+                onValueChange={([value]) => {
+                  const condition = value >= 85 ? 'excellent' : value >= 65 ? 'good' : value >= 40 ? 'fair' : 'poor';
+                  updateFormData({ condition: condition as any });
+                }}
+                max={100}
+                min={0}
+                step={25}
+                className="w-full"
+              />
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Poor</span>
+                <span>Fair</span>
+                <span>Good</span>
+                <span>Excellent</span>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              Current: {formData.condition === 'excellent' ? 'Excellent (90%)' : 
+                       formData.condition === 'good' ? 'Good (75%)' : 
+                       formData.condition === 'fair' ? 'Fair (50%)' : 'Poor (25%)'}
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="transmission">Transmission</Label>
             <Select
               value={formData.transmission || 'automatic'}
               onValueChange={(value) => updateFormData({ transmission: value as any })}
@@ -83,31 +87,6 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Vehicle Condition</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="overall-condition">Overall Condition</Label>
-            <Select
-              value={formData.condition || 'good'}
-              onValueChange={(value) => updateFormData({ condition: value as any })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select condition" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="excellent">Excellent</SelectItem>
-                <SelectItem value="good">Good</SelectItem>
-                <SelectItem value="fair">Fair</SelectItem>
-                <SelectItem value="poor">Poor</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -117,7 +96,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
                 onValueChange={(value) => updateFormData({ exterior_condition: value as any })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select exterior condition" />
+                  <SelectValue placeholder="Select condition" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="excellent">Excellent</SelectItem>
@@ -135,7 +114,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
                 onValueChange={(value) => updateFormData({ interior_condition: value as any })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select interior condition" />
+                  <SelectValue placeholder="Select condition" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="excellent">Excellent</SelectItem>
@@ -144,85 +123,6 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
                   <SelectItem value="poor">Poor</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="tire-condition">Tire Condition</Label>
-            <Select
-              value={formData.tire_condition || 'good'}
-              onValueChange={(value) => updateFormData({ tire_condition: value as any })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select tire condition" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="new">New</SelectItem>
-                <SelectItem value="good">Good</SelectItem>
-                <SelectItem value="worn">Worn</SelectItem>
-                <SelectItem value="bald">Need Replacement</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Vehicle Issues</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label className="text-sm font-medium mb-3 block">Dashboard Warning Lights</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {dashboardLights.map((light) => (
-                <div key={light} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`light-${light}`}
-                    checked={(formData.dashboard_lights || []).includes(light)}
-                    onCheckedChange={(checked) => handleDashboardLightChange(light, checked as boolean)}
-                  />
-                  <Label htmlFor={`light-${light}`} className="text-sm">{light}</Label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="smoking-toggle"
-                checked={formData.smoking || false}
-                onCheckedChange={(checked) => updateFormData({ smoking: checked })}
-              />
-              <Label htmlFor="smoking-toggle">Smoking History</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="pet-damage-toggle"
-                checked={formData.petDamage || false}
-                onCheckedChange={(checked) => updateFormData({ petDamage: checked })}
-              />
-              <Label htmlFor="pet-damage-toggle">Pet Damage</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="rust-toggle"
-                checked={formData.rust || false}
-                onCheckedChange={(checked) => updateFormData({ rust: checked })}
-              />
-              <Label htmlFor="rust-toggle">Rust Present</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="hail-damage-toggle"
-                checked={formData.hailDamage || false}
-                onCheckedChange={(checked) => updateFormData({ hailDamage: checked })}
-              />
-              <Label htmlFor="hail-damage-toggle">Hail Damage</Label>
             </div>
           </div>
         </CardContent>
