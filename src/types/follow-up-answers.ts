@@ -60,7 +60,7 @@ export type FollowUpAnswers = {
   has_active_loan?: boolean
   payoffAmount?: number
 
-  features?: Array<{value: string; label: string; icon?: string; impact?: number}>
+  features?: string[]
 
   additional_notes?: string
 
@@ -121,14 +121,93 @@ export const PREVIOUS_USE_OPTIONS = [
   { value: 'emergency', label: 'Emergency', description: 'Emergency services vehicle' }
 ] as const;
 
-// Enhanced features list with properties
-export const VEHICLE_FEATURES = [
-  { value: 'leather_seats', label: 'Leather Seats', icon: '🪑', impact: 800 },
-  { value: 'sunroof', label: 'Sunroof', icon: '☀️', impact: 600 },
-  { value: 'navigation', label: 'Navigation System', icon: '🗺️', impact: 500 },
-  { value: 'backup_camera', label: 'Backup Camera', icon: '📹', impact: 400 },
-  { value: 'heated_seats', label: 'Heated Seats', icon: '🔥', impact: 300 },
-  { value: 'bluetooth', label: 'Bluetooth', icon: '📶', impact: 200 },
-  { value: 'premium_audio', label: 'Premium Audio', icon: '🔊', impact: 700 },
-  { value: 'alloy_wheels', label: 'Alloy Wheels', icon: '⚙️', impact: 400 }
-] as const;
+// Enhanced features list - organized by categories
+export const VEHICLE_FEATURE_CATEGORIES = {
+  'safety': {
+    label: 'Safety & Driver Assistance',
+    icon: '🔒',
+    color: 'red',
+    features: [
+      { id: 'blind_spot_monitor', label: 'Blind Spot Monitor', impact: 400 },
+      { id: 'adaptive_cruise_control', label: 'Adaptive Cruise Control', impact: 600 },
+      { id: 'lane_keep_assist', label: 'Lane Keep Assist', impact: 500 },
+      { id: 'rear_cross_traffic_alert', label: 'Rear Cross Traffic Alert', impact: 350 },
+      { id: 'automatic_emergency_braking', label: 'Automatic Emergency Braking', impact: 700 },
+      { id: 'backup_camera', label: 'Backup Camera', impact: 300 },
+      { id: 'parking_sensors', label: 'Parking Sensors', impact: 250 },
+      { id: 'collision_warning', label: 'Collision Warning', impact: 400 },
+      { id: 'electronic_stability_control', label: 'Electronic Stability Control', impact: 300 },
+      { id: 'auto_high_beams', label: 'Auto High Beams', impact: 200 }
+    ]
+  },
+  'tech': {
+    label: 'Tech & Connectivity',
+    icon: '📱',
+    color: 'blue',
+    features: [
+      { id: 'apple_carplay', label: 'Apple CarPlay', impact: 400 },
+      { id: 'android_auto', label: 'Android Auto', impact: 400 },
+      { id: 'navigation_system', label: 'Navigation System', impact: 500 },
+      { id: 'touchscreen_display', label: 'Touchscreen Display', impact: 350 },
+      { id: 'bluetooth', label: 'Bluetooth', impact: 200 },
+      { id: 'usb_ports', label: 'USB Ports', impact: 150 },
+      { id: 'wifi_hotspot', label: 'Wi-Fi Hotspot', impact: 300 },
+      { id: 'wireless_charging', label: 'Wireless Charging', impact: 250 },
+      { id: 'voice_control', label: 'Voice Control', impact: 200 }
+    ]
+  },
+  'luxury': {
+    label: 'Luxury & Comfort',
+    icon: '🛋',
+    color: 'purple',
+    features: [
+      { id: 'leather_seats', label: 'Leather Seats', impact: 800 },
+      { id: 'heated_front_seats', label: 'Heated Front Seats', impact: 400 },
+      { id: 'heated_rear_seats', label: 'Heated Rear Seats', impact: 350 },
+      { id: 'ventilated_seats', label: 'Ventilated Seats', impact: 500 },
+      { id: 'dual_zone_climate', label: 'Dual Zone Climate Control', impact: 300 },
+      { id: 'power_liftgate', label: 'Power Liftgate', impact: 400 },
+      { id: 'remote_start', label: 'Remote Start', impact: 350 },
+      { id: 'keyless_entry', label: 'Keyless Entry', impact: 250 },
+      { id: 'push_button_start', label: 'Push Button Start', impact: 200 },
+      { id: 'power_adjustable_seats', label: 'Power Adjustable Seats', impact: 300 },
+      { id: 'ambient_lighting', label: 'Ambient Lighting', impact: 200 }
+    ]
+  },
+  'exterior': {
+    label: 'Wheels & Exterior',
+    icon: '🚘',
+    color: 'green',
+    features: [
+      { id: 'alloy_wheels', label: 'Alloy Wheels', impact: 400 },
+      { id: 'premium_wheels', label: 'Premium Wheels', impact: 600 },
+      { id: 'sunroof', label: 'Sunroof', impact: 600 },
+      { id: 'moonroof', label: 'Moonroof', impact: 700 },
+      { id: 'fog_lights', label: 'Fog Lights', impact: 200 },
+      { id: 'roof_rack', label: 'Roof Rack', impact: 300 },
+      { id: 'running_boards', label: 'Running Boards', impact: 350 },
+      { id: 'led_headlights', label: 'LED Headlights', impact: 400 },
+      { id: 'tinted_windows', label: 'Tinted Windows', impact: 250 }
+    ]
+  },
+  'utility': {
+    label: 'Utility & Towing',
+    icon: '🚚',
+    color: 'orange',
+    features: [
+      { id: 'tow_package', label: 'Tow Package', impact: 800 },
+      { id: 'trailer_hitch', label: 'Trailer Hitch', impact: 400 },
+      { id: 'bed_liner', label: 'Bed Liner', impact: 300 },
+      { id: 'four_wheel_drive', label: '4WD / AWD', impact: 1200 },
+      { id: 'off_road_package', label: 'Off-Road Package', impact: 1000 },
+      { id: 'skid_plates', label: 'Skid Plates', impact: 250 }
+    ]
+  }
+} as const;
+
+// Flatten all features for easy access
+export const ALL_VEHICLE_FEATURES = Object.values(VEHICLE_FEATURE_CATEGORIES)
+  .flatMap(category => category.features.map(feature => ({
+    ...feature,
+    category: category.label
+  })));
