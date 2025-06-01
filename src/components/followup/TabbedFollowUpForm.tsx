@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { FollowUpAnswers, ServiceHistoryDetails } from '@/types/follow-up-answers';
 
 // Import all tab components
 import { BasicInfoTab } from './tabs/BasicInfoTab';
@@ -89,6 +89,11 @@ export function TabbedFollowUpForm({
     }
   ];
 
+  // Handle service history updates
+  const handleServiceHistoryChange = (serviceData: ServiceHistoryDetails) => {
+    updateFormData({ serviceHistory: serviceData });
+  };
+
   // Calculate completion percentage based on filled fields
   const calculateCompletion = () => {
     let completed = 0;
@@ -146,10 +151,17 @@ export function TabbedFollowUpForm({
           const TabComponent = tab.component;
           return (
             <TabsContent key={tab.id} value={tab.id} className="mt-6">
-              <TabComponent 
-                formData={formData} 
-                updateFormData={updateFormData} 
-              />
+              {tab.id === 'service' ? (
+                <TabComponent 
+                  formData={formData} 
+                  onServiceHistoryChange={handleServiceHistoryChange}
+                />
+              ) : (
+                <TabComponent 
+                  formData={formData} 
+                  updateFormData={updateFormData} 
+                />
+              )}
             </TabsContent>
           );
         })}
