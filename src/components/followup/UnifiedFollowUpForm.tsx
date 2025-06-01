@@ -1,26 +1,7 @@
 
-import React from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import React, { useState } from 'react';
+import { TabbedFollowUpForm } from './TabbedFollowUpForm';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
-
-const formSchema = z.object({
-  vin: z.string().optional(),
-  zip_code: z.string().min(5, {
-    message: 'Zip code must be at least 5 characters.'
-  }),
-  mileage: z.number().optional(),
-  condition: z.enum(['excellent', 'good', 'fair', 'poor']).optional(),
-  transmission: z.enum(['automatic', 'manual', 'unknown']).optional(),
-  additional_notes: z.string().optional()
-});
-
-type FormData = z.infer<typeof formSchema>;
 
 interface UnifiedFollowUpFormProps {
   vin: string;
@@ -30,140 +11,76 @@ interface UnifiedFollowUpFormProps {
 }
 
 export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: UnifiedFollowUpFormProps) {
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      vin: vin || '',
-      zip_code: initialData?.zip_code || '',
-      mileage: initialData?.mileage || undefined,
-      condition: initialData?.condition || 'good',
-      transmission: initialData?.transmission || 'automatic',
-      additional_notes: initialData?.additional_notes || ''
+  const [formData, setFormData] = useState<FollowUpAnswers>({
+    vin: vin,
+    zip_code: initialData?.zip_code || '',
+    mileage: initialData?.mileage,
+    condition: initialData?.condition || 'good',
+    transmission: initialData?.transmission || 'automatic',
+    previous_owners: initialData?.previous_owners,
+    previous_use: initialData?.previous_use,
+    title_status: initialData?.title_status,
+    dashboard_lights: initialData?.dashboard_lights || [],
+    tire_condition: initialData?.tire_condition,
+    accident_history: initialData?.accident_history || {
+      hadAccident: false,
+      count: 0,
+      location: '',
+      severity: 'minor',
+      repaired: false,
+      frameDamage: false,
+      description: ''
     },
-    mode: 'onChange'
+    accidents: initialData?.accidents,
+    modifications: initialData?.modifications || {
+      hasModifications: false,
+      modified: false,
+      types: []
+    },
+    serviceHistory: initialData?.serviceHistory || {
+      hasRecords: false,
+      lastService: '',
+      frequency: '',
+      dealerMaintained: false,
+      description: ''
+    },
+    service_history: initialData?.service_history,
+    exterior_condition: initialData?.exterior_condition,
+    interior_condition: initialData?.interior_condition,
+    smoking: initialData?.smoking,
+    petDamage: initialData?.petDamage,
+    rust: initialData?.rust,
+    hailDamage: initialData?.hailDamage,
+    frame_damage: initialData?.frame_damage,
+    loan_balance: initialData?.loan_balance,
+    has_active_loan: initialData?.has_active_loan,
+    payoffAmount: initialData?.payoffAmount,
+    features: initialData?.features || [],
+    additional_notes: initialData?.additional_notes || '',
+    is_complete: false,
+    completion_percentage: 0
   });
 
-  const isLoading = form.formState.isSubmitting;
-
-  const handleSubmit = async (values: FormData) => {
-    console.log('📝 Form submitted with values:', values);
-    
-    // Convert FormData to FollowUpAnswers
-    const followUpAnswers: FollowUpAnswers = {
-      vin: vin,
-      zip_code: values.zip_code,
-      mileage: values.mileage,
-      condition: values.condition,
-      transmission: values.transmission,
-      additional_notes: values.additional_notes || ''
-    };
-
-    try {
-      await onSubmit(followUpAnswers);
-    } catch (error) {
-      console.error('Error submitting form:', error);
-    }
+  const updateFormData = (updates: Partial<FollowUpAnswers>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
   };
 
-  const handleSave = async (values: FormData) => {
-    console.log('💾 Form saved with values:', values);
-    
-    const followUpAnswers: FollowUpAnswers = {
-      vin: vin,
-      zip_code: values.zip_code,
-      mileage: values.mileage,
-      condition: values.condition,
-      transmission: values.transmission,
-      additional_notes: values.additional_notes || ''
+  const handleSubmit = async () => {
+    const completeFormData = {
+      ...formData,
+      is_complete: true,
+      completion_percentage: 100
     };
-
-    try {
-      await onSave?.(followUpAnswers);
-    } catch (error) {
-      console.error('Error saving form:', error);
-    }
+    
+    await onSubmit(completeFormData);
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="zip_code"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Zip Code</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter zip code" {...field} />
-              </FormControl>
-              <FormDescription>
-                Please enter the zip code where the vehicle is located.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="mileage"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Mileage</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  placeholder="Enter mileage" 
-                  {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
-                />
-              </FormControl>
-              <FormDescription>
-                Current mileage on the vehicle.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="additional_notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Additional Notes</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Any additional notes about the vehicle?"
-                  className="resize-none"
-                  value={field.value || ''}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                />
-              </FormControl>
-              <FormDescription>
-                Please provide any additional information that may be relevant to the valuation.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="flex justify-between">
-          {onSave && (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={form.handleSubmit(handleSave)}
-              disabled={isLoading}
-            >
-              Save Progress
-            </Button>
-          )}
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Submitting...' : 'Submit Valuation'}
-          </Button>
-        </div>
-      </form>
-    </Form>
+    <TabbedFollowUpForm
+      formData={formData}
+      updateFormData={updateFormData}
+      onSubmit={handleSubmit}
+      isLoading={false}
+    />
   );
 }
