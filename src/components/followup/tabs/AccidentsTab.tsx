@@ -86,7 +86,7 @@ export function AccidentsTab({ formData, onAccidentsChange }: AccidentsTabProps)
                 <Label htmlFor="accident-severity">Severity</Label>
                 <Select
                   value={accidentData.severity}
-                  onValueChange={(value) => handleFieldChange('severity', value)}
+                  onValueChange={(value: 'minor' | 'moderate' | 'severe') => handleFieldChange('severity', value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select severity" />

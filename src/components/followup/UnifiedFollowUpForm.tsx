@@ -47,7 +47,7 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
     serviceHistory: initialData?.serviceHistory || {
       hasRecords: false,
       lastService: '',
-      frequency: '',
+      frequency: undefined,
       dealerMaintained: false,
       description: ''
     },
