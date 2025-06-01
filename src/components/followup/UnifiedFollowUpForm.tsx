@@ -18,10 +18,17 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
     condition: initialData?.condition || 'good',
     transmission: initialData?.transmission || 'automatic',
     previous_owners: initialData?.previous_owners,
-    previous_use: initialData?.previous_use,
-    title_status: initialData?.title_status,
+    previous_use: initialData?.previous_use || 'personal',
+    title_status: initialData?.title_status || 'clean',
     dashboard_lights: initialData?.dashboard_lights || [],
-    tire_condition: initialData?.tire_condition,
+    tire_condition: initialData?.tire_condition || 'good',
+    exterior_condition: initialData?.exterior_condition || 'good',
+    interior_condition: initialData?.interior_condition || 'good',
+    smoking: initialData?.smoking || false,
+    petDamage: initialData?.petDamage || false,
+    rust: initialData?.rust || false,
+    hailDamage: initialData?.hailDamage || false,
+    frame_damage: initialData?.frame_damage || false,
     accident_history: initialData?.accident_history || {
       hadAccident: false,
       count: 0,
@@ -45,15 +52,8 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
       description: ''
     },
     service_history: initialData?.service_history,
-    exterior_condition: initialData?.exterior_condition,
-    interior_condition: initialData?.interior_condition,
-    smoking: initialData?.smoking,
-    petDamage: initialData?.petDamage,
-    rust: initialData?.rust,
-    hailDamage: initialData?.hailDamage,
-    frame_damage: initialData?.frame_damage,
     loan_balance: initialData?.loan_balance,
-    has_active_loan: initialData?.has_active_loan,
+    has_active_loan: initialData?.has_active_loan || false,
     payoffAmount: initialData?.payoffAmount,
     features: initialData?.features || [],
     additional_notes: initialData?.additional_notes || '',
@@ -62,14 +62,42 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
   });
 
   const updateFormData = (updates: Partial<FollowUpAnswers>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
+    setFormData(prev => {
+      const updated = { ...prev, ...updates };
+      
+      // Auto-save if onSave is provided
+      if (onSave) {
+        const saveTimeout = setTimeout(() => {
+          onSave(updated);
+        }, 1000);
+        
+        return updated;
+      }
+      
+      return updated;
+    });
   };
 
   const handleSubmit = async () => {
+    // Calculate final completion percentage
+    const completionFields = [
+      formData.zip_code,
+      formData.mileage,
+      formData.condition,
+      formData.transmission,
+      formData.title_status,
+      formData.previous_owners !== undefined,
+      formData.accident_history?.hadAccident !== undefined,
+      formData.serviceHistory?.hasRecords !== undefined
+    ];
+    
+    const completedFields = completionFields.filter(Boolean).length;
+    const completionPercentage = Math.round((completedFields / completionFields.length) * 100);
+    
     const completeFormData = {
       ...formData,
       is_complete: true,
-      completion_percentage: 100
+      completion_percentage: completionPercentage
     };
     
     await onSubmit(completeFormData);
