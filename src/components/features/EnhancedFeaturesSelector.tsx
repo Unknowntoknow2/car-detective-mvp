@@ -5,13 +5,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp } from 'lucide-react';
-import { 
-  EnhancedFeature, 
-  ENHANCED_FEATURES_DATABASE, 
-  FEATURE_CATEGORIES 
+import { Settings } from 'lucide-react';
+import {
+  ENHANCED_FEATURES,
+  FEATURE_CATEGORIES,
+  type EnhancedFeature
 } from '@/data/enhanced-features-database';
-import { calculateEnhancedFeatureValue, getImpactColor, getRarityColor } from '@/utils/enhanced-features-calculator';
+import { calculateEnhancedFeatureValue } from '@/utils/enhanced-features-calculator';
 
 interface EnhancedFeaturesSelectorProps {
   selectedFeatures: string[];
@@ -28,14 +28,7 @@ export function EnhancedFeaturesSelector({
   showPricing = true,
   overrideDetected = false
 }: EnhancedFeaturesSelectorProps) {
-  const [expandedCategories, setExpandedCategories] = React.useState<Record<string, boolean>>({});
-
-  const toggleCategory = (categoryId: string) => {
-    setExpandedCategories(prev => ({
-      ...prev,
-      [categoryId]: !prev[categoryId]
-    }));
-  };
+  const [showOverride, setShowOverride] = React.useState(overrideDetected);
 
   const handleFeatureToggle = (featureId: string) => {
     const updatedFeatures = selectedFeatures.includes(featureId)
@@ -45,35 +38,44 @@ export function EnhancedFeaturesSelector({
     onFeaturesChange(updatedFeatures);
   };
 
-  const calculateTotalValue = () => {
-    const selectedFeatureObjects = ENHANCED_FEATURES_DATABASE.filter(f => 
-      selectedFeatures.includes(f.id)
-    );
-    return calculateEnhancedFeatureValue(selectedFeatureObjects, baseValue);
+  const getCategoryFeatures = (categoryId: string) => {
+    return ENHANCED_FEATURES.filter((f: EnhancedFeature) => f.category === categoryId);
   };
 
-  const totalValue = calculateTotalValue();
+  const calculateCategoryValue = (categoryId: string) => {
+    const categoryFeatures = getCategoryFeatures(categoryId);
+    const selectedCategoryFeatures = selectedFeatures.filter(id => 
+      categoryFeatures.some((f: EnhancedFeature) => f.id === id)
+    );
+    return calculateEnhancedFeatureValue(selectedCategoryFeatures, baseValue);
+  };
 
-  // Show override toggle if detected features exist
-  if (overrideDetected) {
+  const totalValue = calculateEnhancedFeatureValue(selectedFeatures, baseValue);
+
+  // Smart UX: Show override toggle if AI/VIN detection found features
+  if (overrideDetected && !showOverride) {
     return (
-      <Card className="border-blue-200 bg-blue-50">
-        <CardContent className="p-6">
-          <div className="text-center space-y-4">
-            <div className="text-lg font-medium text-blue-900">
-              🤖 AI detected vehicle features automatically
-            </div>
-            <p className="text-blue-700">
-              Our AI has identified your vehicle's features. You can review and edit them if needed.
-            </p>
-            <Button 
-              variant="outline" 
-              onClick={() => {/* Handle override */}}
-              className="border-blue-300 text-blue-700 hover:bg-blue-100"
-            >
-              Review & Edit Features
-            </Button>
-          </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            Vehicle Features Detected
+            <Badge variant="secondary" className="bg-green-100 text-green-800">
+              Auto-Detected
+            </Badge>
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            We've automatically detected your vehicle's features from VIN data and photos.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="outline"
+            onClick={() => setShowOverride(true)}
+            className="flex items-center gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            Edit or Override Detected Features
+          </Button>
         </CardContent>
       </Card>
     );
@@ -83,93 +85,105 @@ export function EnhancedFeaturesSelector({
     <div className="space-y-6">
       {showPricing && totalValue.totalAdjustment > 0 && (
         <Card className="border-green-200 bg-green-50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-green-800">Total Feature Value:</span>
-              <span className="text-lg font-bold text-green-600">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-green-800">
+                Total Features Value
+              </h3>
+              <p className="text-2xl font-bold text-green-900">
                 +${totalValue.totalAdjustment.toLocaleString()}
-              </span>
-            </div>
-            <div className="text-sm text-green-600 mt-1">
-              {selectedFeatures.length} feature{selectedFeatures.length !== 1 ? 's' : ''} selected
+              </p>
+              <p className="text-sm text-green-700">
+                {selectedFeatures.length} features selected
+              </p>
             </div>
           </CardContent>
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {Object.entries(FEATURE_CATEGORIES).map(([categoryId, categoryInfo]) => {
-          const categoryFeatures = ENHANCED_FEATURES_DATABASE.filter(f => f.category === categoryId);
-          const isExpanded = expandedCategories[categoryId] ?? false;
-          const selectedInCategory = categoryFeatures.filter(f => selectedFeatures.includes(f.id)).length;
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {FEATURE_CATEGORIES.map(category => {
+          const categoryFeatures = getCategoryFeatures(category.id);
+          const categoryValue = calculateCategoryValue(category.id);
+          const selectedCount = selectedFeatures.filter(id => 
+            categoryFeatures.some((f: EnhancedFeature) => f.id === id)
+          ).length;
 
           return (
-            <Card key={categoryId} className="hover:shadow-md transition-shadow">
-              <CardHeader 
-                className="cursor-pointer"
-                onClick={() => toggleCategory(categoryId)}
-              >
+            <Card key={category.id} className="h-fit">
+              <CardHeader className="pb-4">
                 <CardTitle className="flex items-center justify-between text-base">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">{categoryInfo.icon}</span>
-                    <span>{categoryInfo.name}</span>
-                    {selectedInCategory > 0 && (
+                    <span className="text-xl">{category.icon}</span>
+                    {category.name}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {selectedCount > 0 && (
                       <Badge variant="secondary" className="text-xs">
-                        {selectedInCategory}
+                        {selectedCount}
+                      </Badge>
+                    )}
+                    {showPricing && categoryValue.totalAdjustment > 0 && (
+                      <Badge variant="outline" className="text-xs text-green-600">
+                        +${categoryValue.totalAdjustment.toLocaleString()}
                       </Badge>
                     )}
                   </div>
-                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </CardTitle>
               </CardHeader>
-              
-              {isExpanded && (
-                <CardContent className="pt-0">
-                  <div className="space-y-3">
-                    {categoryFeatures.map((feature) => {
-                      const isSelected = selectedFeatures.includes(feature.id);
-                      const featureValue = calculateEnhancedFeatureValue([feature], baseValue);
-                      
-                      return (
-                        <div
-                          key={feature.id}
-                          className={`p-3 rounded-lg border transition-all cursor-pointer ${
-                            isSelected
-                              ? 'border-blue-300 bg-blue-50'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                          onClick={() => handleFeatureToggle(feature.id)}
-                        >
-                          <div className="flex items-start space-x-3">
-                            <Checkbox
-                              checked={isSelected}
-                              onChange={() => handleFeatureToggle(feature.id)}
-                            />
-                            <div className="flex-1">
-                              <Label className="font-medium cursor-pointer">
-                                {feature.name}
-                              </Label>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge 
-                                  variant={feature.impact === 'high' ? 'default' : feature.impact === 'medium' ? 'secondary' : 'outline'}
-                                  className="text-xs"
-                                >
-                                  {feature.impact}
-                                </Badge>
-                                {showPricing && (
-                                  <span className="text-sm text-green-600 font-medium">
-                                    +${featureValue.totalAdjustment.toLocaleString()}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
+              <CardContent className="space-y-3">
+                {categoryFeatures.map((feature: EnhancedFeature) => {
+                  const isSelected = selectedFeatures.includes(feature.id);
+                  const featureValue = calculateEnhancedFeatureValue([feature.id], baseValue);
+                  
+                  return (
+                    <div
+                      key={feature.id}
+                      className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => handleFeatureToggle(feature.id)}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <Checkbox
+                          checked={isSelected}
+                          onChange={() => handleFeatureToggle(feature.id)}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <Label className="font-medium cursor-pointer text-sm">
+                            {feature.name}
+                          </Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge 
+                              variant={feature.impact === 'high' ? 'default' : feature.impact === 'medium' ? 'secondary' : 'outline'}
+                              className="text-xs"
+                            >
+                              {feature.impact}
+                            </Badge>
+                            <Badge 
+                              variant="outline" 
+                              className={`text-xs ${
+                                feature.rarity === 'luxury' ? 'border-purple-300 text-purple-700' :
+                                feature.rarity === 'premium' ? 'border-amber-300 text-amber-700' :
+                                'border-gray-300 text-gray-700'
+                              }`}
+                            >
+                              {feature.rarity}
+                            </Badge>
+                            {showPricing && (
+                              <span className="text-xs text-green-600 font-medium">
+                                +${featureValue.totalAdjustment.toLocaleString()}
+                              </span>
+                            )}
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </CardContent>
             </Card>
           );
         })}
