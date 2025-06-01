@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
@@ -11,6 +12,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     condition: 'good',
     transmission: 'automatic',
     title_status: 'clean',
+    previous_use: 'personal',
     serviceHistory: { hasRecords: false },
     tire_condition: 'good',
     exterior_condition: 'good',
