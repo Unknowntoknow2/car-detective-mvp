@@ -1,3 +1,4 @@
+
 export interface FollowUpAnswers {
   vin: string;
   zip_code?: string;
@@ -43,7 +44,7 @@ export interface ConditionOption {
   label: string;
   color: string;
   description: string;
-  impact: number;
+  impact?: number;
 }
 
 export interface TireConditionOption {
@@ -51,7 +52,7 @@ export interface TireConditionOption {
   label: string;
   color: string;
   description: string;
-  impact: number;
+  impact?: number;
 }
 
 export interface ExteriorConditionOption {
@@ -59,7 +60,7 @@ export interface ExteriorConditionOption {
   label: string;
   color: string;
   description: string;
-  impact: number;
+  impact?: number;
 }
 
 export interface InteriorConditionOption {
@@ -67,7 +68,7 @@ export interface InteriorConditionOption {
   label: string;
   color: string;
   description: string;
-  impact: number;
+  impact?: number;
 }
 
 export interface ServiceHistoryDetails {
@@ -93,6 +94,20 @@ export interface ModificationDetails {
   modified?: boolean;
   types: string[];
 }
+
+export const CONDITION_OPTIONS: ConditionOption[] = [
+  { value: 'excellent', label: 'Excellent', color: 'bg-green-100 border-green-500 text-green-800', description: 'Like new condition' },
+  { value: 'good', label: 'Good', color: 'bg-blue-100 border-blue-500 text-blue-800', description: 'Minor wear and tear' },
+  { value: 'fair', label: 'Fair', color: 'bg-yellow-100 border-yellow-500 text-yellow-800', description: 'Noticeable wear' },
+  { value: 'poor', label: 'Poor', color: 'bg-red-100 border-red-500 text-red-800', description: 'Significant issues' },
+];
+
+export const TIRE_CONDITION_OPTIONS: TireConditionOption[] = [
+  { value: 'excellent', label: 'Like New', color: 'bg-green-100 border-green-500 text-green-800', description: 'Minimal wear, plenty of tread' },
+  { value: 'good', label: 'Good Tread', color: 'bg-blue-100 border-blue-500 text-blue-800', description: 'Normal wear, good condition' },
+  { value: 'fair', label: 'Worn', color: 'bg-yellow-100 border-yellow-500 text-yellow-800', description: 'Moderate wear, may need replacement soon' },
+  { value: 'poor', label: 'Needs Replacement', color: 'bg-red-100 border-red-500 text-red-800', description: 'Worn out, needs immediate replacement' },
+];
 
 export const DASHBOARD_LIGHTS = [
   'Check Engine',

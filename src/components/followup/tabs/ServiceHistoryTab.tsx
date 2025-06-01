@@ -17,7 +17,7 @@ export function ServiceHistoryTab({ formData, onServiceHistoryChange }: ServiceH
   const serviceData = formData.serviceHistory || {
     hasRecords: false,
     lastService: '',
-    frequency: '',
+    frequency: undefined,
     dealerMaintained: false,
     description: ''
   };
@@ -25,12 +25,12 @@ export function ServiceHistoryTab({ formData, onServiceHistoryChange }: ServiceH
   const hasRecords = serviceData.hasRecords;
 
   const handleServiceToggle = (checked: boolean) => {
-    const updatedData = {
+    const updatedData: ServiceHistoryDetails = {
       ...serviceData,
       hasRecords: checked,
       ...(checked ? {} : {
         lastService: '',
-        frequency: '',
+        frequency: undefined,
         dealerMaintained: false,
         description: ''
       })
@@ -39,7 +39,7 @@ export function ServiceHistoryTab({ formData, onServiceHistoryChange }: ServiceH
   };
 
   const handleFieldChange = (field: keyof ServiceHistoryDetails, value: any) => {
-    const updatedData = {
+    const updatedData: ServiceHistoryDetails = {
       ...serviceData,
       [field]: value
     };
@@ -80,7 +80,7 @@ export function ServiceHistoryTab({ formData, onServiceHistoryChange }: ServiceH
                 <Label htmlFor="service-frequency">Service Frequency</Label>
                 <Select
                   value={serviceData.frequency || ''}
-                  onValueChange={(value) => handleFieldChange('frequency', value)}
+                  onValueChange={(value: 'regular' | 'occasional' | 'rare' | 'unknown') => handleFieldChange('frequency', value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select frequency" />
