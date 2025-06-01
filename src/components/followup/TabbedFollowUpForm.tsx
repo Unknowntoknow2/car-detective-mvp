@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { FollowUpAnswers, ServiceHistoryDetails } from '@/types/follow-up-answers';
+import { FollowUpAnswers, ServiceHistoryDetails, AccidentDetails } from '@/types/follow-up-answers';
 
 // Import all tab components
 import { BasicInfoTab } from './tabs/BasicInfoTab';
@@ -89,9 +88,89 @@ export function TabbedFollowUpForm({
     }
   ];
 
-  // Handle service history updates
   const handleServiceHistoryChange = (serviceData: ServiceHistoryDetails) => {
     updateFormData({ serviceHistory: serviceData });
+  };
+
+  const handleAccidentChange = (accidentData: AccidentDetails) => {
+    updateFormData({ accident_history: accidentData });
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'basic':
+        return (
+          <BasicInfoTab 
+            formData={formData} 
+            updateFormData={updateFormData}
+          />
+        );
+      case 'condition':
+        return (
+          <VehicleConditionTab 
+            formData={formData} 
+            updateFormData={updateFormData}
+          />
+        );
+      case 'accidents':
+        return (
+          <AccidentsTab 
+            formData={formData} 
+            onAccidentsChange={handleAccidentChange}
+          />
+        );
+      case 'service':
+        return (
+          <ServiceHistoryTab 
+            formData={formData} 
+            onServiceHistoryChange={handleServiceHistoryChange}
+          />
+        );
+      case 'modifications':
+        return (
+          <ModificationsTab 
+            formData={formData} 
+            updateFormData={updateFormData}
+          />
+        );
+      case 'features':
+        return (
+          <FeaturesTab 
+            formData={formData} 
+            updateFormData={updateFormData}
+          />
+        );
+      case 'dashboard':
+        return (
+          <DashboardLightsTab 
+            formData={formData} 
+            updateFormData={updateFormData}
+          />
+        );
+      case 'tires':
+        return (
+          <TiresBrakesTab 
+            formData={formData} 
+            updateFormData={updateFormData}
+          />
+        );
+      case 'issues':
+        return (
+          <VehicleIssuesTab 
+            formData={formData} 
+            updateFormData={updateFormData}
+          />
+        );
+      case 'title':
+        return (
+          <TitleOwnershipTab 
+            formData={formData} 
+            updateFormData={updateFormData}
+          />
+        );
+      default:
+        return null;
+    }
   };
 
   // Calculate completion percentage based on filled fields
