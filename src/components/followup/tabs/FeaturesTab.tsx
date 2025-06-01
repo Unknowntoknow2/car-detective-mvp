@@ -4,29 +4,86 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Star, Zap, Shield, Car } from 'lucide-react';
+import { Star, Zap, Shield, Car, Smartphone, Home } from 'lucide-react';
 import { FollowUpAnswers, VEHICLE_FEATURES } from '@/types/follow-up-answers';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown } from 'lucide-react';
 
 interface FeaturesTabProps {
   formData: FollowUpAnswers;
-  onFeaturesChange: (features: Array<{value: string; label: string; icon?: string; impact?: number}>) => void;
+  updateFormData: (updates: Partial<FollowUpAnswers>) => void;
 }
 
-export function FeaturesTab({ formData, onFeaturesChange }: FeaturesTabProps) {
+const featureCategories = {
+  comfort: {
+    icon: Home,
+    name: 'Comfort & Convenience',
+    features: [
+      { value: 'leather_seats', label: 'Leather Seats', impact: 800 },
+      { value: 'heated_seats', label: 'Heated Seats', impact: 300 },
+      { value: 'cooled_seats', label: 'Cooled/Ventilated Seats', impact: 500 },
+      { value: 'power_seats', label: 'Power Driver Seat', impact: 200 },
+      { value: 'memory_seats', label: 'Memory Seats', impact: 400 },
+      { value: 'keyless_entry', label: 'Keyless Entry', impact: 150 }
+    ]
+  },
+  technology: {
+    icon: Smartphone,
+    name: 'Technology & Infotainment',
+    features: [
+      { value: 'navigation', label: 'Navigation System', impact: 500 },
+      { value: 'bluetooth', label: 'Bluetooth Connectivity', impact: 100 },
+      { value: 'premium_audio', label: 'Premium Audio System', impact: 700 },
+      { value: 'apple_carplay', label: 'Apple CarPlay/Android Auto', impact: 300 },
+      { value: 'wireless_charging', label: 'Wireless Phone Charging', impact: 200 },
+      { value: 'wifi_hotspot', label: 'Wi-Fi Hotspot', impact: 250 }
+    ]
+  },
+  safety: {
+    icon: Shield,
+    name: 'Safety & Driver Assistance',
+    features: [
+      { value: 'backup_camera', label: 'Backup Camera', impact: 400 },
+      { value: 'blind_spot_monitor', label: 'Blind Spot Monitoring', impact: 600 },
+      { value: 'lane_keep_assist', label: 'Lane Keep Assist', impact: 500 },
+      { value: 'adaptive_cruise', label: 'Adaptive Cruise Control', impact: 800 },
+      { value: 'automatic_emergency_braking', label: 'Automatic Emergency Braking', impact: 700 },
+      { value: 'parking_sensors', label: 'Parking Sensors', impact: 300 }
+    ]
+  },
+  exterior: {
+    icon: Car,
+    name: 'Exterior Features',
+    features: [
+      { value: 'sunroof', label: 'Sunroof/Moonroof', impact: 600 },
+      { value: 'alloy_wheels', label: 'Alloy Wheels', impact: 400 },
+      { value: 'roof_rails', label: 'Roof Rails/Rack', impact: 200 },
+      { value: 'tow_package', label: 'Towing Package', impact: 500 },
+      { value: 'running_boards', label: 'Running Boards/Side Steps', impact: 300 },
+      { value: 'premium_paint', label: 'Premium Paint/Metallic', impact: 250 }
+    ]
+  }
+};
+
+export function FeaturesTab({ formData, updateFormData }: FeaturesTabProps) {
   const selectedFeatures = formData.features || [];
 
-  const handleFeatureToggle = (feature: {value: string; label: string; icon?: string; impact?: number}, checked: boolean) => {
+  const handleFeatureToggle = (feature: {value: string; label: string; impact: number}, checked: boolean) => {
     if (checked) {
       const newFeatures = [...selectedFeatures, feature];
-      onFeaturesChange(newFeatures);
+      updateFormData({ features: newFeatures });
     } else {
       const newFeatures = selectedFeatures.filter(f => f.value !== feature.value);
-      onFeaturesChange(newFeatures);
+      updateFormData({ features: newFeatures });
     }
   };
 
   const calculateTotalImpact = () => {
     return selectedFeatures.reduce((total, feature) => total + (feature.impact || 0), 0);
+  };
+
+  const isFeatureSelected = (featureValue: string) => {
+    return selectedFeatures.some(f => f.value === featureValue);
   };
 
   return (
@@ -41,42 +98,59 @@ export function FeaturesTab({ formData, onFeaturesChange }: FeaturesTabProps) {
         </div>
       </div>
 
-      {/* Features Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {VEHICLE_FEATURES.map((feature) => {
-          const isSelected = selectedFeatures.some(f => f.value === feature.value);
-          
+      {/* Feature Categories */}
+      <div className="space-y-4">
+        {Object.entries(featureCategories).map(([categoryKey, category]) => {
+          const Icon = category.icon;
           return (
-            <Card 
-              key={feature.value} 
-              className={`cursor-pointer transition-all hover:shadow-md ${
-                isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-              }`}
-              onClick={() => handleFeatureToggle(feature, !isSelected)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    id={feature.value}
-                    checked={isSelected}
-                    onCheckedChange={(checked) => handleFeatureToggle(feature, !!checked)}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      {feature.icon && <span className="text-lg">{feature.icon}</span>}
-                      <Label htmlFor={feature.value} className="cursor-pointer font-medium">
-                        {feature.label}
-                      </Label>
+            <Collapsible key={categoryKey} defaultOpen>
+              <Card className="border-gray-200">
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <Icon className="h-5 w-5 text-blue-600" />
+                        <span>{category.name}</span>
+                      </div>
+                      <ChevronDown className="h-4 w-4 text-gray-500" />
+                    </CardTitle>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent className="pt-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {category.features.map((feature) => {
+                        const isSelected = isFeatureSelected(feature.value);
+                        
+                        return (
+                          <div 
+                            key={feature.value} 
+                            className={`flex items-center justify-between p-3 rounded-lg border transition-colors cursor-pointer ${
+                              isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'
+                            }`}
+                            onClick={() => handleFeatureToggle(feature, !isSelected)}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <Checkbox
+                                id={feature.value}
+                                checked={isSelected}
+                                onCheckedChange={(checked) => handleFeatureToggle(feature, !!checked)}
+                              />
+                              <Label htmlFor={feature.value} className="cursor-pointer font-medium">
+                                {feature.label}
+                              </Label>
+                            </div>
+                            <Badge variant={isSelected ? "default" : "secondary"} className="text-xs">
+                              +${feature.impact}
+                            </Badge>
+                          </div>
+                        );
+                      })}
                     </div>
-                    {feature.impact && (
-                      <Badge variant="secondary" className="mt-1 text-xs">
-                        +${feature.impact}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
           );
         })}
       </div>
@@ -91,42 +165,26 @@ export function FeaturesTab({ formData, onFeaturesChange }: FeaturesTabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex flex-wrap gap-2">
                 {selectedFeatures.map((feature) => (
                   <Badge key={feature.value} variant="outline" className="bg-white">
-                    {feature.icon && <span className="mr-1">{feature.icon}</span>}
                     {feature.label}
-                    {feature.impact && <span className="ml-1 text-green-600">+${feature.impact}</span>}
+                    <span className="ml-1 text-green-600">+${feature.impact}</span>
                   </Badge>
                 ))}
               </div>
               
-              <div className="pt-2 border-t border-green-200">
-                <p className="text-sm text-green-700 font-medium">
-                  Total Estimated Value Impact: +${calculateTotalImpact()}
-                </p>
+              <div className="pt-3 border-t border-green-200">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold text-green-700">Total Estimated Value Impact:</span>
+                  <span className="text-2xl font-bold text-green-600">+${calculateTotalImpact().toLocaleString()}</span>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
-
-      {/* Information Card */}
-      <Card className="border-gray-200 bg-gray-50">
-        <CardContent className="p-4">
-          <div className="flex items-start space-x-3">
-            <Shield className="h-5 w-5 text-blue-500 mt-0.5" />
-            <div>
-              <h4 className="font-medium text-gray-700">Feature Value Impact</h4>
-              <p className="text-sm text-gray-600 mt-1">
-                Premium features and options can significantly increase your vehicle's market value. 
-                The impact varies based on vehicle type, market demand, and feature popularity.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

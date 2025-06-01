@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
+import { CheckCircle, AlertCircle } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 // Import all tab components
@@ -25,43 +25,118 @@ interface TabbedFollowUpFormProps {
   isLoading: boolean;
 }
 
-const TABS = [
-  { id: 'basic', label: 'Basic Info', component: BasicInfoTab },
-  { id: 'title', label: 'Title & Ownership', component: TitleOwnershipTab },
-  { id: 'accidents', label: 'Accident History', component: AccidentsTab },
-  { id: 'service', label: 'Service History', component: ServiceHistoryTab },
-  { id: 'tires', label: 'Tires & Brakes', component: TiresBrakesTab },
-  { id: 'dashboard', label: 'Dashboard Lights', component: DashboardLightsTab },
-  { id: 'issues', label: 'Vehicle Issues', component: VehicleIssuesTab },
-  { id: 'features', label: 'Features', component: FeaturesTab },
-  { id: 'modifications', label: 'Modifications', component: ModificationsTab }
+const tabs = [
+  {
+    id: 'basic-info',
+    label: 'Basic Info',
+    component: BasicInfoTab,
+    icon: '🚗',
+    requiredFields: ['zip_code', 'mileage', 'condition', 'transmission']
+  },
+  {
+    id: 'title-ownership',
+    label: 'Title & Ownership',
+    component: TitleOwnershipTab,
+    icon: '📋',
+    requiredFields: ['title_status']
+  },
+  {
+    id: 'accidents',
+    label: 'Accident History',
+    component: AccidentsTab,
+    icon: '⚠️',
+    requiredFields: []
+  },
+  {
+    id: 'service-history',
+    label: 'Service History',
+    component: ServiceHistoryTab,
+    icon: '🔧',
+    requiredFields: []
+  },
+  {
+    id: 'tires-brakes',
+    label: 'Tires & Brakes',
+    component: TiresBrakesTab,
+    icon: '🛞',
+    requiredFields: ['tire_condition']
+  },
+  {
+    id: 'dashboard-lights',
+    label: 'Dashboard Lights',
+    component: DashboardLightsTab,
+    icon: '💡',
+    requiredFields: []
+  },
+  {
+    id: 'vehicle-issues',
+    label: 'Vehicle Issues',
+    component: VehicleIssuesTab,
+    icon: '🔍',
+    requiredFields: []
+  },
+  {
+    id: 'features',
+    label: 'Features',
+    component: FeaturesTab,
+    icon: '⭐',
+    requiredFields: []
+  },
+  {
+    id: 'modifications',
+    label: 'Modifications',
+    component: ModificationsTab,
+    icon: '⚙️',
+    requiredFields: []
+  }
 ];
 
 export function TabbedFollowUpForm({ formData, updateFormData, onSubmit, isLoading }: TabbedFollowUpFormProps) {
-  const [currentTab, setCurrentTab] = useState(0);
+  const [activeTab, setActiveTab] = useState('basic-info');
 
-  const calculateProgress = () => {
-    const totalTabs = TABS.length;
-    return Math.round(((currentTab + 1) / totalTabs) * 100);
+  // Calculate completion percentage
+  const calculateCompletion = () => {
+    const totalRequiredFields = tabs.reduce((total, tab) => total + tab.requiredFields.length, 0);
+    let completedFields = 0;
+
+    tabs.forEach(tab => {
+      tab.requiredFields.forEach(field => {
+        const value = formData[field as keyof FollowUpAnswers];
+        if (value !== undefined && value !== null && value !== '') {
+          completedFields++;
+        }
+      });
+    });
+
+    return totalRequiredFields > 0 ? Math.round((completedFields / totalRequiredFields) * 100) : 0;
   };
 
+  const getTabStatus = (tab: typeof tabs[0]) => {
+    const completedFields = tab.requiredFields.filter(field => {
+      const value = formData[field as keyof FollowUpAnswers];
+      return value !== undefined && value !== null && value !== '';
+    });
+    
+    if (tab.requiredFields.length === 0) return 'optional';
+    return completedFields.length === tab.requiredFields.length ? 'complete' : 'incomplete';
+  };
+
+  const completionPercentage = calculateCompletion();
+  const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
+
   const handleNext = () => {
-    if (currentTab < TABS.length - 1) {
-      setCurrentTab(currentTab + 1);
+    if (currentTabIndex < tabs.length - 1) {
+      setActiveTab(tabs[currentTabIndex + 1].id);
     }
   };
 
   const handlePrevious = () => {
-    if (currentTab > 0) {
-      setCurrentTab(currentTab - 1);
+    if (currentTabIndex > 0) {
+      setActiveTab(tabs[currentTabIndex - 1].id);
     }
   };
 
-  const handleSubmit = async () => {
-    await onSubmit();
-  };
-
-  const handleAccidentsChange = (accidentData: any) => {
+  const handleAccidentChange = (accidentData: any) => {
     updateFormData({ accident_history: accidentData });
   };
 
@@ -69,124 +144,114 @@ export function TabbedFollowUpForm({ formData, updateFormData, onSubmit, isLoadi
     updateFormData({ serviceHistory: serviceData });
   };
 
-  const handleFeaturesChange = (features: any) => {
-    updateFormData({ features });
-  };
-
-  const handleModificationsChange = (modified: boolean, types?: string[]) => {
-    updateFormData({ 
-      modifications: { 
-        hasModifications: modified,
-        modified,
-        types: types || []
-      }
-    });
-  };
-
-  const CurrentTabComponent = TABS[currentTab].component;
-
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Progress Header */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle>Vehicle Follow-Up Questions</CardTitle>
-            <Badge variant="outline">
-              Step {currentTab + 1} of {TABS.length}
-            </Badge>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>{TABS[currentTab].label}</span>
-              <span>{calculateProgress()}% Complete</span>
+      <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Vehicle Details</h2>
+              <p className="text-gray-600">Complete your vehicle information for an accurate valuation</p>
             </div>
-            <Progress value={calculateProgress()} className="w-full" />
+            <div className="text-right">
+              <div className="text-3xl font-bold text-blue-600">{completionPercentage}%</div>
+              <div className="text-sm text-gray-500">Complete</div>
+            </div>
           </div>
-        </CardHeader>
-      </Card>
-
-      {/* Tab Navigation */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap gap-2">
-            {TABS.map((tab, index) => (
-              <Button
-                key={tab.id}
-                variant={index === currentTab ? "default" : index < currentTab ? "secondary" : "outline"}
-                size="sm"
-                onClick={() => setCurrentTab(index)}
-                className="flex items-center gap-2"
-              >
-                {index < currentTab && <CheckCircle className="h-4 w-4" />}
-                {tab.label}
-              </Button>
-            ))}
-          </div>
+          <Progress value={completionPercentage} className="h-3 bg-white" />
         </CardContent>
       </Card>
 
-      {/* Current Tab Content */}
-      <div className="min-h-[400px]">
-        {currentTab === 0 && (
-          <BasicInfoTab formData={formData} updateFormData={updateFormData} />
-        )}
-        {currentTab === 1 && (
-          <TitleOwnershipTab formData={formData} updateFormData={updateFormData} />
-        )}
-        {currentTab === 2 && (
-          <AccidentsTab formData={formData} onAccidentsChange={handleAccidentsChange} />
-        )}
-        {currentTab === 3 && (
-          <ServiceHistoryTab formData={formData} onServiceHistoryChange={handleServiceHistoryChange} />
-        )}
-        {currentTab === 4 && (
-          <TiresBrakesTab formData={formData} updateFormData={updateFormData} />
-        )}
-        {currentTab === 5 && (
-          <DashboardLightsTab formData={formData} updateFormData={updateFormData} />
-        )}
-        {currentTab === 6 && (
-          <VehicleIssuesTab formData={formData} updateFormData={updateFormData} />
-        )}
-        {currentTab === 7 && (
-          <FeaturesTab formData={formData} onFeaturesChange={handleFeaturesChange} />
-        )}
-        {currentTab === 8 && (
-          <ModificationsTab formData={formData} onModificationsChange={handleModificationsChange} />
-        )}
-      </div>
+      {/* Tab Navigation */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="sticky top-0 bg-white z-10 border-b border-gray-200 pb-4 mb-6">
+          <TabsList className="grid w-full grid-cols-5 lg:grid-cols-9 bg-gray-100 p-1 h-auto">
+            {tabs.map((tab) => {
+              const status = getTabStatus(tab);
+              return (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className="relative flex flex-col items-center p-3 text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm min-h-[60px]"
+                >
+                  <div className="flex items-center space-x-1 mb-1">
+                    <span className="text-lg">{tab.icon}</span>
+                    {status === 'complete' && (
+                      <CheckCircle className="h-3 w-3 text-green-500" />
+                    )}
+                    {status === 'incomplete' && (
+                      <AlertCircle className="h-3 w-3 text-orange-500" />
+                    )}
+                  </div>
+                  <span className="text-center leading-tight">{tab.label}</span>
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
+        </div>
+
+        {/* Tab Content */}
+        {tabs.map((tab) => {
+          const TabComponent = tab.component;
+          return (
+            <TabsContent key={tab.id} value={tab.id} className="mt-0">
+              <Card className="border-gray-200 shadow-sm">
+                <CardContent className="p-6">
+                  {tab.id === 'accidents' ? (
+                    <TabComponent
+                      formData={formData}
+                      onAccidentsChange={handleAccidentChange}
+                    />
+                  ) : tab.id === 'service-history' ? (
+                    <TabComponent
+                      formData={formData}
+                      onServiceHistoryChange={handleServiceHistoryChange}
+                    />
+                  ) : (
+                    <TabComponent
+                      formData={formData}
+                      updateFormData={updateFormData}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          );
+        })}
+      </Tabs>
 
       {/* Navigation Controls */}
-      <Card>
+      <Card className="border-gray-200 bg-gray-50">
         <CardContent className="p-4">
-          <div className="flex justify-between">
-            <Button 
-              variant="outline" 
+          <div className="flex justify-between items-center">
+            <Button
+              variant="outline"
               onClick={handlePrevious}
-              disabled={currentTab === 0}
-              className="flex items-center gap-2"
+              disabled={currentTabIndex === 0}
+              className="min-w-[100px]"
             >
-              <ChevronLeft className="h-4 w-4" />
               Previous
             </Button>
+            
+            <div className="text-sm text-gray-500">
+              Step {currentTabIndex + 1} of {tabs.length}
+            </div>
 
-            {currentTab === TABS.length - 1 ? (
-              <Button 
-                onClick={handleSubmit}
+            {currentTabIndex === tabs.length - 1 ? (
+              <Button
+                onClick={onSubmit}
                 disabled={isLoading}
-                className="flex items-center gap-2"
+                className="min-w-[100px] bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
-                {isLoading ? 'Submitting...' : 'Complete Follow-Up'}
-                <CheckCircle className="h-4 w-4" />
+                {isLoading ? 'Submitting...' : 'Complete Valuation'}
               </Button>
             ) : (
-              <Button 
+              <Button
                 onClick={handleNext}
-                className="flex items-center gap-2"
+                className="min-w-[100px]"
               >
                 Next
-                <ChevronRight className="h-4 w-4" />
               </Button>
             )}
           </div>
