@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { CDTabs, TabItem } from '@/components/ui-kit/CDTabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { LoadingButton } from '@/components/ui/loading-button';
-import { MapPin, FileText, Star, Settings, AlertTriangle, Wrench } from 'lucide-react';
+import { MapPin, FileText, Star, Settings, AlertTriangle, Wrench, Car, Shield } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { BasicInfoTab } from './tabs/BasicInfoTab';
 import { TitleOwnershipTab } from './tabs/TitleOwnershipTab';
@@ -59,7 +59,7 @@ export function TabbedFollowUpForm({
     {
       label: 'Basic Info',
       value: 'basic',
-      icon: <MapPin className="h-4 w-4" />,
+      icon: <Car className="h-4 w-4" />,
       content: (
         <BasicInfoTab
           formData={formData}
@@ -124,6 +124,47 @@ export function TabbedFollowUpForm({
     }
   ];
 
+  // Calculate completion percentage
+  const calculateCompletion = () => {
+    let completed = 0;
+    let total = 0;
+
+    // Basic info fields
+    total += 6;
+    if (formData.zip_code) completed++;
+    if (formData.mileage) completed++;
+    if (formData.condition) completed++;
+    if (formData.transmission) completed++;
+    if (formData.exterior_condition) completed++;
+    if (formData.interior_condition) completed++;
+
+    // Title & ownership
+    total += 3;
+    if (formData.title_status) completed++;
+    if (formData.previous_owners !== undefined) completed++;
+    if (formData.previous_use) completed++;
+
+    // Accident history
+    total += 1;
+    if (formData.accident_history?.hadAccident !== undefined) completed++;
+
+    // Service history
+    total += 1;
+    if (formData.serviceHistory?.hasRecords !== undefined) completed++;
+
+    // Features
+    total += 1;
+    if (formData.features && formData.features.length > 0) completed++;
+
+    // Modifications
+    total += 1;
+    if (formData.modifications?.hasModifications !== undefined) completed++;
+
+    return Math.round((completed / total) * 100);
+  };
+
+  const completionPercentage = calculateCompletion();
+
   return (
     <Card className="w-full">
       <CardContent className="p-6">
@@ -131,9 +172,22 @@ export function TabbedFollowUpForm({
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Vehicle Details & Follow-up Questions
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mb-4">
             Please provide additional information to get the most accurate valuation
           </p>
+          
+          <div className="bg-gray-100 rounded-lg p-3">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium text-gray-700">Completion Progress</span>
+              <span className="text-sm font-medium text-gray-700">{completionPercentage}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${completionPercentage}%` }}
+              />
+            </div>
+          </div>
         </div>
 
         <CDTabs
@@ -146,7 +200,10 @@ export function TabbedFollowUpForm({
         />
 
         <div className="mt-8 pt-6 border-t border-gray-200">
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-600">
+              Complete more sections for a more accurate valuation
+            </div>
             <LoadingButton
               onClick={onSubmit}
               isLoading={isLoading}

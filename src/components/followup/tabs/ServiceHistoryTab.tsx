@@ -6,7 +6,6 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Wrench, CheckCircle, Clock, Building } from 'lucide-react';
 import { FollowUpAnswers, ServiceHistoryDetails } from '@/types/follow-up-answers';
 
 interface ServiceHistoryTabProps {
@@ -15,7 +14,7 @@ interface ServiceHistoryTabProps {
 }
 
 export function ServiceHistoryTab({ formData, onServiceHistoryChange }: ServiceHistoryTabProps) {
-  const serviceData = formData.service_history || formData.serviceHistory || {
+  const serviceData = formData.serviceHistory || {
     hasRecords: false,
     lastService: '',
     frequency: '',
@@ -48,122 +47,76 @@ export function ServiceHistoryTab({ formData, onServiceHistoryChange }: ServiceH
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
-          <Wrench className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Service History</h2>
-          <p className="text-gray-600">Maintenance records and service information</p>
-        </div>
-      </div>
-
-      {/* Primary Question */}
-      <Card className="border-gray-200 bg-gray-50/50">
-        <CardHeader>
-          <CardTitle className="flex items-center text-gray-700">
-            <Wrench className="h-5 w-5 mr-2" />
+    <Card>
+      <CardHeader>
+        <CardTitle>Service & Maintenance History</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="service-records-toggle"
+            checked={hasRecords}
+            onCheckedChange={handleServiceToggle}
+          />
+          <Label htmlFor="service-records-toggle">
             Do you have service records for this vehicle?
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="service-records-toggle"
-              checked={hasRecords}
-              onCheckedChange={handleServiceToggle}
-            />
-            <Label htmlFor="service-records-toggle">
-              {hasRecords ? 'Yes, I have service records' : 'No service records available'}
-            </Label>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Service Details */}
-      {hasRecords && (
-        <div className="space-y-4">
-          <Card className="border-gray-200 bg-gray-50/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center text-gray-700">
-                <Clock className="h-5 w-5 mr-2" />
-                Service Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="last-service">Last Service Date</Label>
-                  <Input
-                    id="last-service"
-                    type="date"
-                    value={serviceData.lastService || ''}
-                    onChange={(e) => handleFieldChange('lastService', e.target.value)}
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="service-frequency">Service Frequency</Label>
-                  <Select
-                    value={serviceData.frequency || ''}
-                    onValueChange={(value) => handleFieldChange('frequency', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="How often is it serviced?" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="every-3-months">Every 3 months</SelectItem>
-                      <SelectItem value="every-6-months">Every 6 months</SelectItem>
-                      <SelectItem value="annually">Annually</SelectItem>
-                      <SelectItem value="as-needed">As needed</SelectItem>
-                      <SelectItem value="rarely">Rarely</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="dealer-maintained-toggle"
-                  checked={serviceData.dealerMaintained || false}
-                  onCheckedChange={(checked) => handleFieldChange('dealerMaintained', checked)}
-                />
-                <Label htmlFor="dealer-maintained-toggle" className="flex items-center">
-                  <Building className="h-4 w-4 mr-1" />
-                  Dealer maintained
-                </Label>
-              </div>
-
-              <div>
-                <Label htmlFor="service-description">Service Notes</Label>
-                <Textarea
-                  id="service-description"
-                  value={serviceData.description || ''}
-                  onChange={(e) => handleFieldChange('description', e.target.value)}
-                  placeholder="Describe the maintenance history, recent services, or any issues..."
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-green-200 bg-green-50">
-            <CardContent className="p-4">
-              <div className="flex items-start space-x-3">
-                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-green-800">Well-Maintained Vehicles</h4>
-                  <p className="text-sm text-green-600 mt-1">
-                    Regular maintenance and dealer service records can significantly increase your vehicle's value. 
-                    Complete service history demonstrates proper care and can add substantial value to your appraisal.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          </Label>
         </div>
-      )}
-    </div>
+
+        {hasRecords && (
+          <div className="space-y-4 pl-6 border-l-2 border-gray-200">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="last-service">Last Service Date</Label>
+                <Input
+                  id="last-service"
+                  type="date"
+                  value={serviceData.lastService || ''}
+                  onChange={(e) => handleFieldChange('lastService', e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="service-frequency">Service Frequency</Label>
+                <Select
+                  value={serviceData.frequency || ''}
+                  onValueChange={(value) => handleFieldChange('frequency', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select frequency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="regular">Regular (Every 3-6 months)</SelectItem>
+                    <SelectItem value="occasional">Occasional (6-12 months)</SelectItem>
+                    <SelectItem value="rare">Rare (12+ months)</SelectItem>
+                    <SelectItem value="unknown">Unknown</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="dealer-maintained-toggle"
+                checked={serviceData.dealerMaintained || false}
+                onCheckedChange={(checked) => handleFieldChange('dealerMaintained', checked)}
+              />
+              <Label htmlFor="dealer-maintained-toggle">Dealer Maintained</Label>
+            </div>
+
+            <div>
+              <Label htmlFor="service-description">Service History Details</Label>
+              <Textarea
+                id="service-description"
+                value={serviceData.description || ''}
+                onChange={(e) => handleFieldChange('description', e.target.value)}
+                placeholder="Describe the service history, major repairs, maintenance schedules..."
+                rows={3}
+              />
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
