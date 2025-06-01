@@ -16,7 +16,7 @@ export interface FollowUpAnswers {
   dashboard_lights?: string[];
   accident_history?: AccidentDetails;
   modifications?: ModificationDetails;
-  features?: string[];
+  features?: string[]; // Enhanced features system - array of feature IDs
   additional_notes?: string;
   service_history?: string;
   loan_balance?: number;
