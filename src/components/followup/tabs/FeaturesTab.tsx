@@ -6,23 +6,28 @@ import { EnhancedFeaturesSelector } from '@/components/features/EnhancedFeatures
 interface FeaturesTabProps {
   formData: FollowUpAnswers;
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
+  baseValue?: number;
+  overrideDetected?: boolean;
 }
 
-export function FeaturesTab({ formData, updateFormData }: FeaturesTabProps) {
+export function FeaturesTab({ 
+  formData, 
+  updateFormData, 
+  baseValue = 25000,
+  overrideDetected = false 
+}: FeaturesTabProps) {
   const handleFeaturesChange = (features: string[]) => {
     updateFormData({ features });
   };
-
-  // Estimate base value for feature calculations (this could come from initial valuation)
-  const estimatedBaseValue = 25000; // This should ideally come from props or context
 
   return (
     <div>
       <EnhancedFeaturesSelector
         selectedFeatures={formData.features || []}
         onFeaturesChange={handleFeaturesChange}
-        baseValue={estimatedBaseValue}
+        baseValue={baseValue}
         showPricing={true}
+        overrideDetected={overrideDetected}
       />
     </div>
   );

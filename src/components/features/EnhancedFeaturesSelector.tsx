@@ -1,143 +1,206 @@
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
-import { ENHANCED_FEATURES, FEATURE_CATEGORIES, type EnhancedFeature } from '@/data/enhanced-features-database';
-import { calculateEnhancedFeatureValue, getImpactColor, getRarityColor } from '@/utils/enhanced-features-calculator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { 
+  ENHANCED_FEATURES, 
+  FEATURE_CATEGORIES, 
+  type EnhancedFeature, 
+  type FeatureCategory 
+} from '@/data/enhanced-features-database';
+import { 
+  calculateEnhancedFeatureValue, 
+  getImpactColor, 
+  getRarityColor 
+} from '@/utils/enhanced-features-calculator';
 
 interface EnhancedFeaturesSelectorProps {
   selectedFeatures: string[];
   onFeaturesChange: (features: string[]) => void;
   baseValue: number;
   showPricing?: boolean;
+  overrideDetected?: boolean;
 }
 
-export function EnhancedFeaturesSelector({ 
-  selectedFeatures, 
-  onFeaturesChange, 
+export function EnhancedFeaturesSelector({
+  selectedFeatures,
+  onFeaturesChange,
   baseValue,
-  showPricing = true 
+  showPricing = true,
+  overrideDetected = false
 }: EnhancedFeaturesSelectorProps) {
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(['safety', 'technology']);
+  const [showAllCategories, setShowAllCategories] = useState(false);
+
+  // Group features by category
+  const groupedFeatures = useMemo(() => {
+    const groups: Record<string, EnhancedFeature[]> = {};
+    ENHANCED_FEATURES.forEach(feature => {
+      if (!groups[feature.category]) {
+        groups[feature.category] = [];
+      }
+      groups[feature.category].push(feature);
+    });
+    return groups;
+  }, []);
+
+  // Calculate total value adjustment
+  const totalCalculation = useMemo(() => {
+    return calculateEnhancedFeatureValue(selectedFeatures, baseValue);
+  }, [selectedFeatures, baseValue]);
+
   const handleFeatureToggle = (featureId: string) => {
-    const isSelected = selectedFeatures.includes(featureId);
-    if (isSelected) {
-      onFeaturesChange(selectedFeatures.filter(id => id !== featureId));
-    } else {
-      onFeaturesChange([...selectedFeatures, featureId]);
-    }
+    const updatedFeatures = selectedFeatures.includes(featureId)
+      ? selectedFeatures.filter(id => id !== featureId)
+      : [...selectedFeatures, featureId];
+    
+    onFeaturesChange(updatedFeatures);
   };
 
-  const calculation = calculateEnhancedFeatureValue(selectedFeatures, baseValue);
-  
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatPercentage = (decimal: number) => {
-    return `${(decimal * 100).toFixed(1)}%`;
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories(prev =>
+      prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
   };
 
   const renderFeatureCard = (feature: EnhancedFeature) => {
     const isSelected = selectedFeatures.includes(feature.id);
-    const percentValue = baseValue * feature.percentValue;
-    const totalValue = percentValue + feature.fixedValue;
+    const featureCalculation = calculateEnhancedFeatureValue([feature.id], baseValue);
+    const impactColorClass = getImpactColor(feature.impact);
+    const rarityColorClass = getRarityColor(feature.rarity);
 
     return (
       <div
         key={feature.id}
-        className={`relative p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-          isSelected 
-            ? 'border-primary bg-primary/5 shadow-sm' 
-            : 'border-gray-200 hover:border-gray-300'
+        className={`p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer hover:shadow-md ${
+          isSelected
+            ? 'border-blue-500 bg-blue-50 shadow-sm'
+            : 'border-gray-200 hover:border-blue-300'
         }`}
         onClick={() => handleFeatureToggle(feature.id)}
       >
-        {/* Selection indicator */}
-        <div className={`absolute top-2 right-2 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-          isSelected 
-            ? 'bg-primary border-primary text-white' 
-            : 'border-gray-300'
-        }`}>
-          {isSelected && <Check className="w-3 h-3" />}
-        </div>
-
-        {/* Feature name */}
-        <h4 className="font-medium text-sm mb-2 pr-8">{feature.name}</h4>
-
-        {/* Impact and rarity badges */}
-        <div className="flex items-center gap-2 mb-2">
-          <Badge 
-            variant="outline" 
-            className={`text-xs px-2 py-0 ${getImpactColor(feature.impact)}`}
-          >
-            {feature.impact} impact
-          </Badge>
-          <Badge 
-            variant="outline" 
-            className={`text-xs px-2 py-0 border ${getRarityColor(feature.rarity)}`}
-          >
-            {feature.rarity}
-          </Badge>
-        </div>
-
-        {/* Pricing information */}
-        {showPricing && (
-          <div className="text-xs text-gray-600 space-y-1">
-            <div className="flex justify-between">
-              <span>Percentage:</span>
-              <span className="font-medium">+{formatPercentage(feature.percentValue)}</span>
+        <div className="flex items-start space-x-3">
+          <Checkbox
+            checked={isSelected}
+            onChange={() => handleFeatureToggle(feature.id)}
+            className="mt-1"
+          />
+          <div className="flex-1 min-w-0">
+            <Label className="font-medium text-sm cursor-pointer block">
+              {feature.name}
+            </Label>
+            
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <Badge className={impactColorClass}>
+                {feature.impact}
+              </Badge>
+              
+              <Badge variant="outline" className={rarityColorClass}>
+                {feature.rarity}
+              </Badge>
+              
+              {showPricing && (
+                <div className="text-sm font-medium text-green-600">
+                  +${featureCalculation.totalAdjustment.toLocaleString()}
+                </div>
+              )}
             </div>
-            <div className="flex justify-between">
-              <span>Fixed:</span>
-              <span className="font-medium">+{formatCurrency(feature.fixedValue)}</span>
-            </div>
-            <div className="flex justify-between border-t pt-1 font-medium">
-              <span>Total Value:</span>
-              <span className="text-green-600">+{formatCurrency(totalValue)}</span>
-            </div>
+
+            {showPricing && (
+              <div className="text-xs text-gray-500 mt-1">
+                {feature.percentValue > 0 && `${(feature.percentValue * 100).toFixed(1)}%`}
+                {feature.percentValue > 0 && feature.fixedValue > 0 && ' + '}
+                {feature.fixedValue > 0 && `$${feature.fixedValue.toLocaleString()}`}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     );
   };
 
+  const renderCategory = (category: FeatureCategory) => {
+    const categoryFeatures = groupedFeatures[category.id] || [];
+    const isExpanded = expandedCategories.includes(category.id);
+    const selectedInCategory = categoryFeatures.filter(f => selectedFeatures.includes(f.id)).length;
+
+    if (categoryFeatures.length === 0) return null;
+
+    return (
+      <Card key={category.id} className="overflow-hidden">
+        <Collapsible
+          open={isExpanded}
+          onOpenChange={() => toggleCategory(category.id)}
+        >
+          <CollapsibleTrigger asChild>
+            <CardHeader className="hover:bg-gray-50 cursor-pointer transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <span className="text-2xl">{category.icon}</span>
+                  <div>
+                    <CardTitle className="text-lg">{category.name}</CardTitle>
+                    <p className="text-sm text-gray-600">{category.description}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {selectedInCategory > 0 && (
+                    <Badge variant="secondary">
+                      {selectedInCategory} selected
+                    </Badge>
+                  )}
+                  {isExpanded ? (
+                    <ChevronUp className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {categoryFeatures.map(renderFeatureCard)}
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
+    );
+  };
+
+  // Determine which categories to show
+  const categoriesToShow = showAllCategories 
+    ? FEATURE_CATEGORIES 
+    : FEATURE_CATEGORIES.slice(0, 6);
+
   return (
     <div className="space-y-6">
-      {/* Summary Card */}
-      {showPricing && selectedFeatures.length > 0 && (
-        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-blue-900">Features Value Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+      {/* Total Value Summary */}
+      {showPricing && totalCalculation.totalAdjustment > 0 && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
               <div>
-                <div className="text-gray-600">Selected Features</div>
-                <div className="font-bold text-lg">{selectedFeatures.length}</div>
+                <h3 className="text-lg font-semibold">Total Feature Value</h3>
+                <p className="text-sm text-gray-600">
+                  {totalCalculation.featureBreakdown.length} features selected
+                </p>
               </div>
-              <div>
-                <div className="text-gray-600">Percentage Boost</div>
-                <div className="font-bold text-lg text-blue-600">
-                  +{formatPercentage(calculation.percentageAdjustment / baseValue)}
+              <div className="text-right">
+                <div className="text-2xl font-bold text-green-600">
+                  +${totalCalculation.totalAdjustment.toLocaleString()}
                 </div>
-              </div>
-              <div>
-                <div className="text-gray-600">Fixed Value</div>
-                <div className="font-bold text-lg text-green-600">
-                  +{formatCurrency(calculation.fixedAdjustment)}
-                </div>
-              </div>
-              <div>
-                <div className="text-gray-600">Total Adjustment</div>
-                <div className="font-bold text-xl text-green-700">
-                  +{formatCurrency(calculation.cappedAdjustment)}
+                <div className="text-sm text-gray-500">
+                  {((totalCalculation.totalAdjustment / baseValue) * 100).toFixed(1)}% of base value
                 </div>
               </div>
             </div>
@@ -145,46 +208,46 @@ export function EnhancedFeaturesSelector({
         </Card>
       )}
 
-      {/* Feature Categories */}
-      <div className="space-y-6">
-        {FEATURE_CATEGORIES.map(category => {
-          const categoryFeatures = ENHANCED_FEATURES.filter(f => f.category === category.id);
-          const selectedInCategory = categoryFeatures.filter(f => selectedFeatures.includes(f.id)).length;
+      {/* Override Detection Notice */}
+      {overrideDetected && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-amber-800">
+              <span>⚠️</span>
+              <span className="text-sm font-medium">
+                Override mode: You can modify features that were detected automatically
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-          return (
-            <Card key={category.id} className="overflow-hidden">
-              <CardHeader className="bg-gray-50 border-b">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <span className="text-xl">{category.icon}</span>
-                    {category.name}
-                  </CardTitle>
-                  {selectedInCategory > 0 && (
-                    <Badge variant="secondary" className="bg-primary/10 text-primary">
-                      {selectedInCategory} selected
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {categoryFeatures.map(renderFeatureCard)}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+      {/* Feature Categories */}
+      <div className="space-y-4">
+        {categoriesToShow.map(renderCategory)}
       </div>
 
-      {/* Clear Selection Button */}
-      {selectedFeatures.length > 0 && (
-        <div className="flex justify-center pt-4">
-          <Button 
-            variant="outline" 
-            onClick={() => onFeaturesChange([])}
-            className="text-gray-600 hover:text-gray-800"
+      {/* Show More/Less Categories */}
+      {!showAllCategories && FEATURE_CATEGORIES.length > 6 && (
+        <div className="text-center">
+          <Button
+            variant="outline"
+            onClick={() => setShowAllCategories(true)}
+            className="w-full"
           >
-            Clear All Selections ({selectedFeatures.length})
+            Show All Categories ({FEATURE_CATEGORIES.length - 6} more)
+          </Button>
+        </div>
+      )}
+
+      {showAllCategories && (
+        <div className="text-center">
+          <Button
+            variant="outline"
+            onClick={() => setShowAllCategories(false)}
+            className="w-full"
+          >
+            Show Fewer Categories
           </Button>
         </div>
       )}
