@@ -1,179 +1,271 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Settings, Zap, CheckCircle, AlertCircle, Wrench } from 'lucide-react';
-import { FollowUpAnswers, MODIFICATION_TYPES, ModificationDetails } from '@/types/follow-up-answers';
+import { Switch } from '@/components/ui/switch';
+import { Settings, Zap, Music, Palette, Wheel, Sofa, Wrench, Plus } from 'lucide-react';
+import { FollowUpAnswers, ModificationDetails } from '@/types/follow-up-answers';
 
 interface ModificationsTabProps {
   formData: FollowUpAnswers;
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
 }
 
+interface Modification {
+  label: string;
+  value: string;
+  impact: string;
+}
+
+interface ModificationGroup {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: Modification[];
+}
+
+const MODIFICATIONS: ModificationGroup[] = [
+  {
+    title: "Performance Mods",
+    icon: Zap,
+    items: [
+      { label: "Cold Air Intake", value: "cold_air_intake", impact: "±$150" },
+      { label: "Turbo Upgrade", value: "turbo_upgrade", impact: "±$400" },
+      { label: "ECU Tuning", value: "ecu_tuning", impact: "±$300" },
+      { label: "Exhaust System", value: "exhaust_system", impact: "±$250" },
+      { label: "Nitrous Kit", value: "nitrous_kit", impact: "±$500" },
+      { label: "Supercharger", value: "supercharger", impact: "±$600" },
+    ],
+  },
+  {
+    title: "Audio Mods",
+    icon: Music,
+    items: [
+      { label: "Aftermarket Head Unit", value: "head_unit", impact: "+$100" },
+      { label: "Subwoofer System", value: "subwoofer", impact: "+$150" },
+      { label: "Amplifier", value: "amplifier", impact: "+$120" },
+      { label: "Premium Speakers", value: "premium_speakers", impact: "+$200" },
+      { label: "Sound Dampening", value: "sound_dampening", impact: "+$80" },
+    ],
+  },
+  {
+    title: "Aesthetic Mods",
+    icon: Palette,
+    items: [
+      { label: "Custom Paint", value: "custom_paint", impact: "±$500" },
+      { label: "Tinted Windows", value: "window_tint", impact: "+$100" },
+      { label: "Body Kit", value: "body_kit", impact: "±$300" },
+      { label: "Vinyl Wrap", value: "vinyl_wrap", impact: "±$400" },
+      { label: "LED Underglow", value: "underglow", impact: "±$100" },
+      { label: "Custom Graphics", value: "custom_graphics", impact: "±$200" },
+    ],
+  },
+  {
+    title: "Wheels & Tires",
+    icon: Wheel,
+    items: [
+      { label: "Aftermarket Rims", value: "rims", impact: "+$250" },
+      { label: "Low-Profile Tires", value: "low_profile_tires", impact: "±$150" },
+      { label: "Lift Kit", value: "lift_kit", impact: "±$300" },
+      { label: "Lowering Kit", value: "lowering_kit", impact: "±$200" },
+      { label: "Custom Wheel Spacers", value: "wheel_spacers", impact: "±$50" },
+    ],
+  },
+  {
+    title: "Suspension Mods",
+    icon: Wrench,
+    items: [
+      { label: "Coilovers", value: "coilovers", impact: "±$300" },
+      { label: "Air Suspension", value: "air_suspension", impact: "±$500" },
+      { label: "Strut Bars", value: "strut_bars", impact: "+$100" },
+      { label: "Sway Bars", value: "sway_bars", impact: "+$150" },
+      { label: "Performance Shocks", value: "performance_shocks", impact: "+$200" },
+    ],
+  },
+  {
+    title: "Interior Mods",
+    icon: Sofa,
+    items: [
+      { label: "Racing Seats", value: "racing_seats", impact: "±$200" },
+      { label: "Custom Steering Wheel", value: "steering_wheel", impact: "±$150" },
+      { label: "LED Cabin Lights", value: "led_lights", impact: "+$50" },
+      { label: "Custom Floor Mats", value: "custom_floor_mats", impact: "+$75" },
+      { label: "Shift Knob", value: "shift_knob", impact: "+$40" },
+      { label: "Gauge Cluster", value: "gauge_cluster", impact: "±$200" },
+    ],
+  },
+];
+
 export function ModificationsTab({ formData, updateFormData }: ModificationsTabProps) {
+  const [showDetails, setShowDetails] = useState(false);
+  
   const modificationData = formData.modifications || {
     hasModifications: false,
     modified: false,
     types: []
   };
 
-  const hasModifications = modificationData.hasModifications || modificationData.modified;
-
   const handleModificationToggle = (checked: boolean) => {
-    const updatedData = {
+    const updated = {
       ...modificationData,
       hasModifications: checked,
       modified: checked,
-      ...(checked ? {} : {
-        types: [],
-        description: ''
-      })
+      ...(checked ? {} : { types: [], description: '' })
     };
-    updateFormData({ modifications: updatedData });
+    updateFormData({ modifications: updated });
   };
 
-  const handleModificationTypeToggle = (type: string, checked: boolean) => {
+  const toggleMod = (value: string) => {
     const currentTypes = modificationData.types || [];
+    const updated = currentTypes.includes(value)
+      ? currentTypes.filter((v: string) => v !== value)
+      : [...currentTypes, value];
     
-    const updatedTypes = checked 
-      ? [...currentTypes, type]
-      : currentTypes.filter(t => t !== type);
-    
-    const updatedData = {
-      ...modificationData,
-      types: updatedTypes
-    };
-    updateFormData({ modifications: updatedData });
+    updateFormData({ 
+      modifications: {
+        ...modificationData,
+        types: updated
+      }
+    });
   };
 
   const handleDescriptionChange = (description: string) => {
-    const updatedData = {
-      ...modificationData,
-      description
-    };
-    updateFormData({ modifications: updatedData });
+    updateFormData({
+      modifications: {
+        ...modificationData,
+        description
+      }
+    });
   };
+
+  const selectedCount = modificationData.types?.length || 0;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
-          <Settings className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Vehicle Modifications</h2>
-          <p className="text-gray-600">Aftermarket changes and upgrades to your vehicle</p>
-        </div>
-      </div>
-
-      {/* Primary Question */}
-      <Card className="border-gray-200">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center text-gray-700">
-            <Wrench className="h-5 w-5 mr-2" />
-            Has this vehicle been modified?
+          <CardTitle className="flex items-center">
+            <Settings className="h-5 w-5 mr-2 text-blue-500" />
+            Vehicle Modifications
           </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Have you made any modifications to this vehicle? Some mods can increase value while others may decrease it.
+          </p>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-3">
+        <CardContent className="space-y-6">
+          {/* Main Toggle */}
+          <div className="flex items-center space-x-3 p-4 border rounded-lg">
             <Switch
-              id="modifications-toggle"
-              checked={hasModifications}
+              id="has-modifications"
+              checked={modificationData.hasModifications}
               onCheckedChange={handleModificationToggle}
             />
-            <Label htmlFor="modifications-toggle" className="flex items-center cursor-pointer">
-              {hasModifications ? (
-                <>
-                  <Zap className="h-4 w-4 mr-1 text-blue-500" />
-                  Yes, this vehicle has modifications
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="h-4 w-4 mr-1 text-green-500" />
-                  No modifications
-                </>
-              )}
+            <Label htmlFor="has-modifications" className="text-base font-medium">
+              This vehicle has been modified
             </Label>
           </div>
+
+          {/* Modification Categories */}
+          {modificationData.hasModifications && (
+            <div className="space-y-4">
+              {MODIFICATIONS.map((group) => {
+                const Icon = group.icon;
+                const groupSelectedCount = group.items.filter(item => 
+                  modificationData.types?.includes(item.value)
+                ).length;
+
+                return (
+                  <div key={group.title} className="border rounded-lg">
+                    <div className="p-4 bg-muted/50">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <Icon className="h-5 w-5 text-primary" />
+                          <h3 className="text-md font-semibold">{group.title}</h3>
+                        </div>
+                        {groupSelectedCount > 0 && (
+                          <Badge variant="secondary">
+                            {groupSelectedCount} selected
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="p-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {group.items.map((mod) => (
+                          <div key={mod.value} className="flex items-center justify-between p-3 border rounded hover:bg-muted/50">
+                            <div className="flex items-center space-x-3">
+                              <Checkbox
+                                checked={modificationData.types?.includes(mod.value) || false}
+                                onCheckedChange={() => toggleMod(mod.value)}
+                              />
+                              <span className="font-medium">{mod.label}</span>
+                            </div>
+                            <Badge 
+                              variant="outline" 
+                              className={mod.impact.startsWith('+') ? 'text-green-600 border-green-600' : 'text-orange-600 border-orange-600'}
+                            >
+                              {mod.impact}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Modification Details */}
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="show-details"
+                    checked={showDetails}
+                    onCheckedChange={setShowDetails}
+                  />
+                  <Label htmlFor="show-details">Add modification details</Label>
+                </div>
+
+                {showDetails && (
+                  <div>
+                    <Label htmlFor="modification-details" className="text-sm font-medium">
+                      Modification Details
+                    </Label>
+                    <Textarea
+                      id="modification-details"
+                      value={modificationData.description || ""}
+                      onChange={(e) => handleDescriptionChange(e.target.value)}
+                      placeholder="Provide details about your modifications (brand, installer, year, cost, etc.)"
+                      rows={4}
+                      className="mt-1"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Summary */}
+              {selectedCount > 0 && (
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-orange-800">
+                      Total Modifications Selected:
+                    </span>
+                    <Badge variant="outline" className="text-orange-600 border-orange-600">
+                      {selectedCount} modification{selectedCount !== 1 ? 's' : ''}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-orange-700 mt-2">
+                    <strong>⚠️ Valuation Impact:</strong> Performance mods may reduce value unless professionally installed. 
+                    Quality upgrades and professional installation typically preserve or increase value.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {/* Modification Types */}
-      {hasModifications && (
-        <Card className="border-blue-200 bg-blue-50/30">
-          <CardHeader>
-            <CardTitle className="flex items-center text-blue-700">
-              <Zap className="h-5 w-5 mr-2" />
-              Types of Modifications
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {MODIFICATION_TYPES.map((type) => (
-                <div key={type} className="flex items-center space-x-3 p-3 rounded-lg border border-blue-200 bg-white">
-                  <Checkbox
-                    id={type}
-                    checked={(modificationData.types || []).includes(type)}
-                    onCheckedChange={(checked) => handleModificationTypeToggle(type, !!checked)}
-                  />
-                  <Label htmlFor={type} className="cursor-pointer font-medium">
-                    {type}
-                  </Label>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="modification-description">Modification Details</Label>
-              <Textarea
-                id="modification-description"
-                value={modificationData.description || ''}
-                onChange={(e) => handleDescriptionChange(e.target.value)}
-                placeholder="Describe the modifications made to your vehicle (brands, installation quality, etc.)"
-                rows={3}
-                className="resize-none"
-              />
-            </div>
-            
-            <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-              <div className="flex items-start space-x-3">
-                <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-medium text-amber-800">Impact on Vehicle Value</h4>
-                  <p className="text-sm text-amber-700 mt-1">
-                    Modifications can either increase or decrease vehicle value depending on:
-                  </p>
-                  <ul className="text-sm text-amber-700 mt-2 ml-4 list-disc">
-                    <li>Quality of parts and installation</li>
-                    <li>Reversibility of modifications</li>
-                    <li>Market demand for specific modifications</li>
-                    <li>Professional vs. DIY installation</li>
-                  </ul>
-                  <p className="text-sm text-amber-700 mt-2">
-                    <strong>Generally:</strong> Performance modifications may decrease value, while comfort/convenience upgrades may increase value.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* No Modifications State */}
-      {!hasModifications && (
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="p-6 text-center">
-            <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
-            <h3 className="text-lg font-medium text-green-800 mb-2">No Modifications</h3>
-            <p className="text-green-600">
-              Stock vehicles typically have more predictable resale values and broader market appeal.
-            </p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
