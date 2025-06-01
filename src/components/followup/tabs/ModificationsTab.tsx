@@ -1,146 +1,101 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Settings, Zap, Music, Palette, Wheel, Sofa, Wrench, Plus } from 'lucide-react';
-import { FollowUpAnswers, ModificationDetails } from '@/types/follow-up-answers';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown, Settings, Zap, Volume2, Palette, Car } from 'lucide-react';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface ModificationsTabProps {
   formData: FollowUpAnswers;
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
 }
 
-interface Modification {
-  label: string;
-  value: string;
-  impact: string;
-}
-
-interface ModificationGroup {
-  title: string;
-  icon: React.ComponentType<{ className?: string }>;
-  items: Modification[];
-}
-
-const MODIFICATIONS: ModificationGroup[] = [
+const MODIFICATION_CATEGORIES = [
   {
-    title: "Performance Mods",
+    name: 'Performance',
     icon: Zap,
-    items: [
-      { label: "Cold Air Intake", value: "cold_air_intake", impact: "±$150" },
-      { label: "Turbo Upgrade", value: "turbo_upgrade", impact: "±$400" },
-      { label: "ECU Tuning", value: "ecu_tuning", impact: "±$300" },
-      { label: "Exhaust System", value: "exhaust_system", impact: "±$250" },
-      { label: "Nitrous Kit", value: "nitrous_kit", impact: "±$500" },
-      { label: "Supercharger", value: "supercharger", impact: "±$600" },
-    ],
+    color: 'text-red-500',
+    modifications: [
+      { id: 'cold_air_intake', name: 'Cold Air Intake', impact: 150 },
+      { id: 'turbo_upgrade', name: 'Turbo/Supercharger', impact: 800 },
+      { id: 'exhaust_system', name: 'Performance Exhaust', impact: 300 },
+      { id: 'ecu_tune', name: 'ECU Tune/Chip', impact: 400 },
+      { id: 'suspension_upgrade', name: 'Performance Suspension', impact: 500 }
+    ]
   },
   {
-    title: "Audio Mods",
-    icon: Music,
-    items: [
-      { label: "Aftermarket Head Unit", value: "head_unit", impact: "+$100" },
-      { label: "Subwoofer System", value: "subwoofer", impact: "+$150" },
-      { label: "Amplifier", value: "amplifier", impact: "+$120" },
-      { label: "Premium Speakers", value: "premium_speakers", impact: "+$200" },
-      { label: "Sound Dampening", value: "sound_dampening", impact: "+$80" },
-    ],
+    name: 'Audio & Electronics',
+    icon: Volume2,
+    color: 'text-blue-500',
+    modifications: [
+      { id: 'premium_sound', name: 'Premium Sound System', impact: 400 },
+      { id: 'subwoofer', name: 'Subwoofer', impact: 200 },
+      { id: 'amplifier', name: 'Amplifier', impact: 150 },
+      { id: 'aftermarket_head_unit', name: 'Aftermarket Head Unit', impact: 250 }
+    ]
   },
   {
-    title: "Aesthetic Mods",
+    name: 'Appearance',
     icon: Palette,
-    items: [
-      { label: "Custom Paint", value: "custom_paint", impact: "±$500" },
-      { label: "Tinted Windows", value: "window_tint", impact: "+$100" },
-      { label: "Body Kit", value: "body_kit", impact: "±$300" },
-      { label: "Vinyl Wrap", value: "vinyl_wrap", impact: "±$400" },
-      { label: "LED Underglow", value: "underglow", impact: "±$100" },
-      { label: "Custom Graphics", value: "custom_graphics", impact: "±$200" },
-    ],
+    color: 'text-purple-500',
+    modifications: [
+      { id: 'custom_paint', name: 'Custom Paint Job', impact: -200 },
+      { id: 'window_tint', name: 'Window Tinting', impact: 100 },
+      { id: 'body_kit', name: 'Body Kit', impact: -300 },
+      { id: 'custom_wheels', name: 'Custom Wheels', impact: 200 }
+    ]
   },
   {
-    title: "Wheels & Tires",
-    icon: Wheel,
-    items: [
-      { label: "Aftermarket Rims", value: "rims", impact: "+$250" },
-      { label: "Low-Profile Tires", value: "low_profile_tires", impact: "±$150" },
-      { label: "Lift Kit", value: "lift_kit", impact: "±$300" },
-      { label: "Lowering Kit", value: "lowering_kit", impact: "±$200" },
-      { label: "Custom Wheel Spacers", value: "wheel_spacers", impact: "±$50" },
-    ],
-  },
-  {
-    title: "Suspension Mods",
-    icon: Wrench,
-    items: [
-      { label: "Coilovers", value: "coilovers", impact: "±$300" },
-      { label: "Air Suspension", value: "air_suspension", impact: "±$500" },
-      { label: "Strut Bars", value: "strut_bars", impact: "+$100" },
-      { label: "Sway Bars", value: "sway_bars", impact: "+$150" },
-      { label: "Performance Shocks", value: "performance_shocks", impact: "+$200" },
-    ],
-  },
-  {
-    title: "Interior Mods",
-    icon: Sofa,
-    items: [
-      { label: "Racing Seats", value: "racing_seats", impact: "±$200" },
-      { label: "Custom Steering Wheel", value: "steering_wheel", impact: "±$150" },
-      { label: "LED Cabin Lights", value: "led_lights", impact: "+$50" },
-      { label: "Custom Floor Mats", value: "custom_floor_mats", impact: "+$75" },
-      { label: "Shift Knob", value: "shift_knob", impact: "+$40" },
-      { label: "Gauge Cluster", value: "gauge_cluster", impact: "±$200" },
-    ],
-  },
+    name: 'Interior',
+    icon: Settings,
+    color: 'text-green-500',
+    modifications: [
+      { id: 'seat_covers', name: 'Custom Seat Covers', impact: 50 },
+      { id: 'racing_seats', name: 'Racing Seats', impact: 100 },
+      { id: 'steering_wheel', name: 'Aftermarket Steering Wheel', impact: -50 },
+      { id: 'shift_knob', name: 'Custom Shift Knob', impact: 25 }
+    ]
+  }
 ];
 
 export function ModificationsTab({ formData, updateFormData }: ModificationsTabProps) {
-  const [showDetails, setShowDetails] = useState(false);
-  
-  const modificationData = formData.modifications || {
-    hasModifications: false,
-    modified: false,
-    types: []
-  };
+  const hasModifications = formData.modifications?.hasModifications || false;
+  const selectedTypes = formData.modifications?.types || [];
 
-  const handleModificationToggle = (checked: boolean) => {
-    const updated = {
-      ...modificationData,
-      hasModifications: checked,
-      modified: checked,
-      ...(checked ? {} : { types: [], description: '' })
-    };
-    updateFormData({ modifications: updated });
-  };
-
-  const toggleMod = (value: string) => {
-    const currentTypes = modificationData.types || [];
-    const updated = currentTypes.includes(value)
-      ? currentTypes.filter((v: string) => v !== value)
-      : [...currentTypes, value];
-    
-    updateFormData({ 
-      modifications: {
-        ...modificationData,
-        types: updated
-      }
-    });
-  };
-
-  const handleDescriptionChange = (description: string) => {
+  const handleToggleModifications = (checked: boolean) => {
     updateFormData({
       modifications: {
-        ...modificationData,
-        description
+        ...formData.modifications,
+        hasModifications: checked,
+        types: checked ? selectedTypes : []
       }
     });
   };
 
-  const selectedCount = modificationData.types?.length || 0;
+  const handleModificationToggle = (modId: string, checked: boolean) => {
+    const updatedTypes = checked
+      ? [...selectedTypes, modId]
+      : selectedTypes.filter(id => id !== modId);
+    
+    updateFormData({
+      modifications: {
+        ...formData.modifications,
+        hasModifications: updatedTypes.length > 0,
+        types: updatedTypes
+      }
+    });
+  };
+
+  const calculateTotalImpact = () => {
+    return MODIFICATION_CATEGORIES.reduce((total, category) => {
+      return total + category.modifications.reduce((catTotal, mod) => {
+        return selectedTypes.includes(mod.id) ? catTotal + mod.impact : catTotal;
+      }, 0);
+    }, 0);
+  };
 
   return (
     <div className="space-y-6">
@@ -150,118 +105,69 @@ export function ModificationsTab({ formData, updateFormData }: ModificationsTabP
             <Settings className="h-5 w-5 mr-2 text-blue-500" />
             Vehicle Modifications
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Have you made any modifications to this vehicle? Some mods can increase value while others may decrease it.
-          </p>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Main Toggle */}
-          <div className="flex items-center space-x-3 p-4 border rounded-lg">
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="has-modifications" className="text-base font-medium">
+              Does your vehicle have any modifications?
+            </Label>
             <Switch
               id="has-modifications"
-              checked={modificationData.hasModifications}
-              onCheckedChange={handleModificationToggle}
+              checked={hasModifications}
+              onCheckedChange={handleToggleModifications}
             />
-            <Label htmlFor="has-modifications" className="text-base font-medium">
-              This vehicle has been modified
-            </Label>
           </div>
 
-          {/* Modification Categories */}
-          {modificationData.hasModifications && (
-            <div className="space-y-4">
-              {MODIFICATIONS.map((group) => {
-                const Icon = group.icon;
-                const groupSelectedCount = group.items.filter(item => 
-                  modificationData.types?.includes(item.value)
-                ).length;
-
-                return (
-                  <div key={group.title} className="border rounded-lg">
-                    <div className="p-4 bg-muted/50">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <Icon className="h-5 w-5 text-primary" />
-                          <h3 className="text-md font-semibold">{group.title}</h3>
-                        </div>
-                        {groupSelectedCount > 0 && (
-                          <Badge variant="secondary">
-                            {groupSelectedCount} selected
-                          </Badge>
-                        )}
-                      </div>
+          {hasModifications && (
+            <div className="space-y-4 mt-6">
+              {MODIFICATION_CATEGORIES.map((category) => (
+                <Collapsible key={category.name} defaultOpen>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-2">
+                      <category.icon className={`h-5 w-5 ${category.color}`} />
+                      <span className="font-medium">{category.name}</span>
                     </div>
-                    
-                    <div className="p-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {group.items.map((mod) => (
-                          <div key={mod.value} className="flex items-center justify-between p-3 border rounded hover:bg-muted/50">
-                            <div className="flex items-center space-x-3">
-                              <Checkbox
-                                checked={modificationData.types?.includes(mod.value) || false}
-                                onCheckedChange={() => toggleMod(mod.value)}
-                              />
-                              <span className="font-medium">{mod.label}</span>
-                            </div>
-                            <Badge 
-                              variant="outline" 
-                              className={mod.impact.startsWith('+') ? 'text-green-600 border-green-600' : 'text-orange-600 border-orange-600'}
-                            >
-                              {mod.impact}
-                            </Badge>
+                    <ChevronDown className="h-4 w-4" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2 p-3 border rounded-lg bg-white">
+                    <div className="grid grid-cols-1 gap-3">
+                      {category.modifications.map((mod) => (
+                        <div key={mod.id} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <Checkbox
+                              id={mod.id}
+                              checked={selectedTypes.includes(mod.id)}
+                              onCheckedChange={(checked) => handleModificationToggle(mod.id, !!checked)}
+                            />
+                            <Label htmlFor={mod.id} className="cursor-pointer">
+                              {mod.name}
+                            </Label>
                           </div>
-                        ))}
-                      </div>
+                          <span className={`text-sm font-medium ${mod.impact >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {mod.impact >= 0 ? '+' : ''}${mod.impact}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                );
-              })}
+                  </CollapsibleContent>
+                </Collapsible>
+              ))}
 
-              {/* Modification Details */}
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="show-details"
-                    checked={showDetails}
-                    onCheckedChange={setShowDetails}
-                  />
-                  <Label htmlFor="show-details">Add modification details</Label>
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-blue-800">Total Modification Impact:</span>
+                  <span className={`font-semibold text-lg ${calculateTotalImpact() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {calculateTotalImpact() >= 0 ? '+' : ''}${calculateTotalImpact()}
+                  </span>
                 </div>
-
-                {showDetails && (
-                  <div>
-                    <Label htmlFor="modification-details" className="text-sm font-medium">
-                      Modification Details
-                    </Label>
-                    <Textarea
-                      id="modification-details"
-                      value={modificationData.description || ""}
-                      onChange={(e) => handleDescriptionChange(e.target.value)}
-                      placeholder="Provide details about your modifications (brand, installer, year, cost, etc.)"
-                      rows={4}
-                      className="mt-1"
-                    />
-                  </div>
-                )}
               </div>
 
-              {/* Summary */}
-              {selectedCount > 0 && (
-                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-orange-800">
-                      Total Modifications Selected:
-                    </span>
-                    <Badge variant="outline" className="text-orange-600 border-orange-600">
-                      {selectedCount} modification{selectedCount !== 1 ? 's' : ''}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-orange-700 mt-2">
-                    <strong>⚠️ Valuation Impact:</strong> Performance mods may reduce value unless professionally installed. 
-                    Quality upgrades and professional installation typically preserve or increase value.
-                  </p>
-                </div>
-              )}
+              <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <p className="text-sm text-yellow-800">
+                  <strong>Note:</strong> Performance modifications may reduce value if not professionally installed. 
+                  Some modifications may void warranties or affect insurance coverage.
+                </p>
+              </div>
             </div>
           )}
         </CardContent>
