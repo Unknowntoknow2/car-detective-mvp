@@ -1,17 +1,17 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FollowUpAnswers, ServiceHistoryDetails, AccidentDetails, ModificationDetails } from '@/types/follow-up-answers';
-import { BasicInfoTab } from './tabs/BasicInfoTab';
-import { VehicleConditionTab } from './tabs/VehicleConditionTab';
-import { TiresBrakesTab } from './tabs/TiresBrakesTab';
-import { AccidentsTab } from './tabs/AccidentsTab';
-import { ServiceHistoryTab } from './tabs/ServiceHistoryTab';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { VehicleBasicsTab } from './tabs/VehicleBasicsTab';
+import { ConditionTab } from './tabs/ConditionTab';
 import { FeaturesTab } from './tabs/FeaturesTab';
-import { ModificationsTab } from './tabs/ModificationsTab';
-import { DashboardLightsTab } from './tabs/DashboardLightsTab';
-import { VehicleIssuesTab } from './tabs/VehicleIssuesTab';
+import { AccidentHistoryTab } from './tabs/AccidentHistoryTab';
+import { ServiceMaintenanceTab } from './tabs/ServiceMaintenanceTab';
+import { Loader2 } from 'lucide-react';
 
 interface TabbedFollowUpFormProps {
   formData: FollowUpAnswers;
@@ -20,54 +20,34 @@ interface TabbedFollowUpFormProps {
   isLoading: boolean;
 }
 
-export function TabbedFollowUpForm({
-  formData,
-  updateFormData,
-  onSubmit,
-  isLoading
-}: TabbedFollowUpFormProps) {
-  const [activeTab, setActiveTab] = useState('basic');
+export function TabbedFollowUpForm({ formData, updateFormData, onSubmit, isLoading }: TabbedFollowUpFormProps) {
+  const [activeTab, setActiveTab] = useState('basics');
 
   const tabs = [
-    { id: 'basic', label: '📝 Basic Info', icon: '📝' },
-    { id: 'condition', label: '🚗 Condition', icon: '🚗' },
-    { id: 'tires', label: '🛞 Tires & Brakes', icon: '🛞' },
-    { id: 'accidents', label: '⚠️ Accidents', icon: '⚠️' },
-    { id: 'service', label: '🔧 Service History', icon: '🔧' },
-    { id: 'features', label: '✨ Features', icon: '✨' },
-    { id: 'modifications', label: '🛠️ Modifications', icon: '🛠️' },
-    { id: 'dashboard', label: '⚡ Dashboard', icon: '⚡' },
-    { id: 'issues', label: '🔍 Issues', icon: '🔍' }
+    { id: 'basics', label: 'Vehicle Basics', icon: '🚗' },
+    { id: 'condition', label: 'Condition', icon: '✨' },
+    { id: 'features', label: 'Features', icon: '⚙️' },
+    { id: 'accidents', label: 'History', icon: '📋' },
+    { id: 'maintenance', label: 'Maintenance', icon: '🔧' }
   ];
 
-  const handleServiceHistoryChange = (serviceData: ServiceHistoryDetails) => {
-    updateFormData({ serviceHistory: serviceData });
-  };
-
-  const handleAccidentsChange = (accidentData: AccidentDetails) => {
-    updateFormData({ accident_history: accidentData });
-  };
-
-  const handleModificationsChange = (modificationData: ModificationDetails) => {
-    updateFormData({ modifications: modificationData });
-  };
-
   const calculateProgress = () => {
-    const totalFields = 10;
-    let filledFields = 0;
-
-    if (formData.zip_code) filledFields++;
-    if (formData.mileage) filledFields++;
-    if (formData.condition) filledFields++;
-    if (formData.transmission) filledFields++;
-    if (formData.tire_condition) filledFields++;
-    if (formData.exterior_condition) filledFields++;
-    if (formData.interior_condition) filledFields++;
-    if (formData.serviceHistory?.hasRecords !== undefined) filledFields++;
-    if (formData.accident_history?.hadAccident !== undefined) filledFields++;
-    if (formData.modifications?.hasModifications !== undefined) filledFields++;
-
-    return Math.round((filledFields / totalFields) * 100);
+    const requiredFields = [
+      formData.zip_code,
+      formData.mileage,
+      formData.condition,
+      formData.transmission,
+      formData.title_status,
+      formData.tire_condition,
+      formData.exterior_condition,
+      formData.interior_condition
+    ];
+    
+    const completedFields = requiredFields.filter(field => 
+      field !== undefined && field !== null && field !== ''
+    ).length;
+    
+    return Math.round((completedFields / requiredFields.length) * 100);
   };
 
   const progress = calculateProgress();
@@ -76,116 +56,76 @@ export function TabbedFollowUpForm({
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Progress Header */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Vehicle Follow-Up Questions</span>
-            <span className="text-sm font-normal text-muted-foreground">
-              Progress: {progress}%
-            </span>
-          </CardTitle>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle>Vehicle Valuation Details</CardTitle>
+            <Badge variant={progress === 100 ? "default" : "secondary"}>
+              {progress}% Complete
+            </Badge>
           </div>
+          <Progress value={progress} className="mt-2" />
         </CardHeader>
       </Card>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-5 lg:grid-cols-9 gap-1 h-auto p-1">
-          {tabs.map((tab) => (
-            <TabsTrigger
-              key={tab.id}
+        <TabsList className="grid w-full grid-cols-5">
+          {tabs.map(tab => (
+            <TabsTrigger 
+              key={tab.id} 
               value={tab.id}
-              className="flex flex-col items-center gap-1 p-2 text-xs"
+              className="flex items-center gap-1 text-xs"
             >
-              <span className="text-lg">{tab.icon}</span>
-              <span className="hidden lg:block">{tab.label.split(' ')[1] || tab.label}</span>
+              <span>{tab.icon}</span>
+              <span className="hidden sm:inline">{tab.label}</span>
             </TabsTrigger>
           ))}
         </TabsList>
 
-        <div className="mt-6">
-          <TabsContent value="basic">
-            <BasicInfoTab
-              formData={formData}
-              updateFormData={updateFormData}
-            />
-          </TabsContent>
+        <TabsContent value="basics" className="mt-6">
+          <VehicleBasicsTab formData={formData} updateFormData={updateFormData} />
+        </TabsContent>
 
-          <TabsContent value="condition">
-            <VehicleConditionTab
-              formData={formData}
-              updateFormData={updateFormData}
-            />
-          </TabsContent>
+        <TabsContent value="condition" className="mt-6">
+          <ConditionTab formData={formData} updateFormData={updateFormData} />
+        </TabsContent>
 
-          <TabsContent value="tires">
-            <TiresBrakesTab
-              formData={formData}
-              updateFormData={updateFormData}
-            />
-          </TabsContent>
+        <TabsContent value="features" className="mt-6">
+          <FeaturesTab formData={formData} updateFormData={updateFormData} />
+        </TabsContent>
 
-          <TabsContent value="accidents">
-            <AccidentsTab
-              formData={formData}
-              onAccidentsChange={handleAccidentsChange}
-            />
-          </TabsContent>
+        <TabsContent value="accidents" className="mt-6">
+          <AccidentHistoryTab 
+            formData={formData} 
+            onAccidentsChange={(accidentData) => updateFormData({ accident_history: accidentData })}
+          />
+        </TabsContent>
 
-          <TabsContent value="service">
-            <ServiceHistoryTab
-              formData={formData}
-              onServiceHistoryChange={handleServiceHistoryChange}
-            />
-          </TabsContent>
-
-          <TabsContent value="features">
-            <FeaturesTab
-              formData={formData}
-              updateFormData={updateFormData}
-            />
-          </TabsContent>
-
-          <TabsContent value="modifications">
-            <ModificationsTab
-              formData={formData}
-              updateFormData={updateFormData}
-            />
-          </TabsContent>
-
-          <TabsContent value="dashboard">
-            <DashboardLightsTab
-              formData={formData}
-              updateFormData={updateFormData}
-            />
-          </TabsContent>
-
-          <TabsContent value="issues">
-            <VehicleIssuesTab
-              formData={formData}
-              updateFormData={updateFormData}
-            />
-          </TabsContent>
-        </div>
+        <TabsContent value="maintenance" className="mt-6">
+          <ServiceMaintenanceTab formData={formData} updateFormData={updateFormData} />
+        </TabsContent>
       </Tabs>
 
       {/* Submit Button */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              Complete at least {Math.max(0, 70 - progress)}% more to submit
+              Complete all sections to get your accurate valuation
             </div>
-            <Button
+            <Button 
               onClick={onSubmit}
-              disabled={isLoading || progress < 70}
-              className="min-w-32"
+              disabled={isLoading || progress < 80}
+              size="lg"
             >
-              {isLoading ? 'Submitting...' : 'Submit Follow-Up'}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Get My Valuation'
+              )}
             </Button>
           </div>
         </CardContent>
