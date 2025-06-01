@@ -2,10 +2,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Gauge, Disc } from 'lucide-react';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { Wrench, AlertTriangle } from 'lucide-react';
+import { FollowUpAnswers, TIRE_CONDITION_OPTIONS } from '@/types/follow-up-answers';
 
 interface TiresBrakesTabProps {
   formData: FollowUpAnswers;
@@ -13,175 +11,188 @@ interface TiresBrakesTabProps {
 }
 
 export function TiresBrakesTab({ formData, updateFormData }: TiresBrakesTabProps) {
-  const getTireConditionImpact = (condition: string) => {
+  const tireCondition = formData.tire_condition || 'good';
+  const brakeCondition = formData.brake_condition || 'good';
+
+  const conditionOptions = [
+    { 
+      value: 'excellent' as const, 
+      label: 'Like New', 
+      description: 'Recently replaced or minimal wear',
+      color: 'bg-green-100 border-green-500 text-green-800',
+      impact: '+$200'
+    },
+    { 
+      value: 'good' as const, 
+      label: 'Good Condition', 
+      description: 'Normal wear, good tread remaining',
+      color: 'bg-blue-100 border-blue-500 text-blue-800',
+      impact: 'No impact'
+    },
+    { 
+      value: 'fair' as const, 
+      label: 'Some Wear', 
+      description: 'Noticeable wear, may need replacement soon',
+      color: 'bg-yellow-100 border-yellow-500 text-yellow-800',
+      impact: '-$300'
+    },
+    { 
+      value: 'poor' as const, 
+      label: 'Need Replacement', 
+      description: 'Worn out, unsafe, or damaged',
+      color: 'bg-red-100 border-red-500 text-red-800',
+      impact: '-$600'
+    }
+  ];
+
+  const getConditionIcon = (condition: string) => {
     switch (condition) {
-      case 'new': return { amount: 300, color: 'text-green-600' };
-      case 'good': return { amount: 0, color: 'text-gray-600' };
-      case 'worn': return { amount: -200, color: 'text-orange-600' };
-      case 'bald': return { amount: -500, color: 'text-red-600' };
-      default: return { amount: 0, color: 'text-gray-600' };
+      case 'excellent': return '🟢';
+      case 'good': return '🔵';
+      case 'fair': return '🟡';
+      case 'poor': return '🔴';
+      default: return '⚪';
     }
   };
-
-  const getBrakeConditionImpact = (condition: string) => {
-    switch (condition) {
-      case 'new': return { amount: 200, color: 'text-green-600' };
-      case 'good': return { amount: 0, color: 'text-gray-600' };
-      case 'fair': return { amount: -150, color: 'text-orange-600' };
-      case 'poor': return { amount: -400, color: 'text-red-600' };
-      default: return { amount: 0, color: 'text-gray-600' };
-    }
-  };
-
-  const tireImpact = getTireConditionImpact(formData.tire_condition || 'good');
-  const brakeImpact = getBrakeConditionImpact(formData.brake_condition || 'good');
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
-          <Gauge className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Tires & Brakes</h2>
-          <p className="text-gray-600">Condition of your vehicle's tires and braking system</p>
-        </div>
-      </div>
-
       {/* Tire Condition */}
-      <Card className="border-gray-200">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <Gauge className="h-5 w-5 mr-2 text-orange-500" />
+            <Wrench className="h-5 w-5 mr-2 text-blue-500" />
             Tire Condition
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="tire-condition">Overall Tire Condition</Label>
-            <Select
-              value={formData.tire_condition || 'good'}
-              onValueChange={(value) => updateFormData({ tire_condition: value as any })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select tire condition" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="new">
-                  <div className="flex items-center justify-between w-full">
-                    <span>New (Less than 6 months old)</span>
+          <p className="text-sm text-gray-600">
+            Select the current condition of your tires. This affects vehicle safety and value.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {conditionOptions.map((option) => (
+              <div
+                key={option.value}
+                onClick={() => updateFormData({ tire_condition: option.value })}
+                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                  tireCondition === option.value
+                    ? option.color
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg">{getConditionIcon(option.value)}</span>
+                      <span className="font-medium">{option.label}</span>
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">{option.description}</div>
                   </div>
-                </SelectItem>
-                <SelectItem value="good">
-                  <div className="flex items-center justify-between w-full">
-                    <span>Good (Good tread remaining)</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="worn">
-                  <div className="flex items-center justify-between w-full">
-                    <span>Worn (Some wear but safe)</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="bald">
-                  <div className="flex items-center justify-between w-full">
-                    <span>Bald (Need replacement soon)</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="flex items-center justify-between mt-2">
-              <p className="text-sm text-muted-foreground">
-                {formData.tire_condition === 'new' && 'Adds significant value - new tires are a major selling point'}
-                {formData.tire_condition === 'good' && 'No impact on value - expected condition'}
-                {formData.tire_condition === 'worn' && 'Minor negative impact - buyers may negotiate'}
-                {formData.tire_condition === 'bald' && 'Significant negative impact - immediate replacement needed'}
-              </p>
-              <Badge variant={tireImpact.amount >= 0 ? "default" : "destructive"}>
-                <span className={tireImpact.color}>
-                  {tireImpact.amount >= 0 ? '+' : ''}${tireImpact.amount}
-                </span>
-              </Badge>
-            </div>
+                  <div className="text-sm font-medium text-gray-700">{option.impact}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Tire Details */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <h4 className="font-medium text-gray-900 mb-2">Tire Assessment Tips</h4>
+            <ul className="text-sm text-gray-700 space-y-1">
+              <li>• Check tread depth - new tires have 10/32" to 12/32" tread</li>
+              <li>• Look for uneven wear patterns</li>
+              <li>• Check for cracks, bulges, or damage</li>
+              <li>• Consider age - tires over 6 years may need replacement</li>
+            </ul>
           </div>
         </CardContent>
       </Card>
 
       {/* Brake Condition */}
-      <Card className="border-gray-200">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <Disc className="h-5 w-5 mr-2 text-red-500" />
+            <AlertTriangle className="h-5 w-5 mr-2 text-red-500" />
             Brake Condition
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="brake-condition">Brake System Condition</Label>
-            <Select
-              value={formData.brake_condition || 'good'}
-              onValueChange={(value) => updateFormData({ brake_condition: value as any })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select brake condition" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="new">
-                  <div className="flex items-center justify-between w-full">
-                    <span>New/Recently Serviced</span>
+          <p className="text-sm text-gray-600">
+            Assess your brake system condition. This is critical for safety and vehicle value.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {conditionOptions.map((option) => (
+              <div
+                key={option.value}
+                onClick={() => updateFormData({ brake_condition: option.value })}
+                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                  brakeCondition === option.value
+                    ? option.color
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg">{getConditionIcon(option.value)}</span>
+                      <span className="font-medium">{option.label}</span>
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">{option.description}</div>
                   </div>
-                </SelectItem>
-                <SelectItem value="good">
-                  <div className="flex items-center justify-between w-full">
-                    <span>Good (No issues, good pad life)</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="fair">
-                  <div className="flex items-center justify-between w-full">
-                    <span>Fair (Some wear, service soon)</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="poor">
-                  <div className="flex items-center justify-between w-full">
-                    <span>Poor (Needs immediate service)</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="flex items-center justify-between mt-2">
-              <p className="text-sm text-muted-foreground">
-                {formData.brake_condition === 'new' && 'Adds value - recent brake service is appealing to buyers'}
-                {formData.brake_condition === 'good' && 'No impact on value - expected condition'}
-                {formData.brake_condition === 'fair' && 'Minor negative impact - buyers factor in upcoming service'}
-                {formData.brake_condition === 'poor' && 'Significant negative impact - safety concern for buyers'}
-              </p>
-              <Badge variant={brakeImpact.amount >= 0 ? "default" : "destructive"}>
-                <span className={brakeImpact.color}>
-                  {brakeImpact.amount >= 0 ? '+' : ''}${brakeImpact.amount}
-                </span>
-              </Badge>
+                  <div className="text-sm font-medium text-gray-700">{option.impact}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Brake Assessment Info */}
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h4 className="font-medium text-red-900 mb-2">Brake System Signs</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h5 className="font-medium text-red-800 mb-1">Good Brakes:</h5>
+                <ul className="text-sm text-red-700 space-y-1">
+                  <li>• Smooth, quiet operation</li>
+                  <li>• Firm pedal feel</li>
+                  <li>• No grinding or squealing</li>
+                </ul>
+              </div>
+              <div>
+                <h5 className="font-medium text-red-800 mb-1">Warning Signs:</h5>
+                <ul className="text-sm text-red-700 space-y-1">
+                  <li>• Squealing or grinding noise</li>
+                  <li>• Soft or spongy pedal</li>
+                  <li>• Vibration when braking</li>
+                </ul>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Combined Impact Summary */}
-      {(formData.tire_condition !== 'good' || formData.brake_condition !== 'good') && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+      {/* Summary */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-medium text-blue-900 mb-2">Current Assessment</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
-                <h4 className="font-medium text-blue-800">Total Tires & Brakes Impact</h4>
-                <p className="text-sm text-blue-600">Combined effect on vehicle value</p>
-              </div>
-              <Badge variant="outline" className="bg-white">
-                <span className={tireImpact.amount + brakeImpact.amount >= 0 ? 'text-green-600' : 'text-red-600'}>
-                  {tireImpact.amount + brakeImpact.amount >= 0 ? '+' : ''}${tireImpact.amount + brakeImpact.amount}
+                <span className="font-medium text-blue-800">Tires:</span>
+                <span className="ml-2 text-blue-700">
+                  {getConditionIcon(tireCondition)} {conditionOptions.find(opt => opt.value === tireCondition)?.label}
                 </span>
-              </Badge>
+              </div>
+              <div>
+                <span className="font-medium text-blue-800">Brakes:</span>
+                <span className="ml-2 text-blue-700">
+                  {getConditionIcon(brakeCondition)} {conditionOptions.find(opt => opt.value === brakeCondition)?.label}
+                </span>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
