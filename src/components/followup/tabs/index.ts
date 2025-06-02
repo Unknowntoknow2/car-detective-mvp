@@ -1,11 +1,11 @@
 
 export { BasicInfoTab } from './BasicInfoTab';
 export { ConditionTab } from './ConditionTab';
-export { FeaturesTab } from './FeaturesTab';
-export { ServiceHistoryTab } from './ServiceHistoryTab';
-export { AccidentHistoryTab } from './AccidentHistoryTab';
 export { VehicleIssuesTab } from './VehicleIssuesTab';
+export { DashboardLightsTab } from './DashboardLightsTab';
 export { TitleOwnershipTab } from './TitleOwnershipTab';
+export { ServiceMaintenanceTab } from './ServiceMaintenanceTab';
+export { AccidentHistoryTab } from './AccidentHistoryTab';
 export { ModificationsTab } from './ModificationsTab';
 
 // Feature category tabs
