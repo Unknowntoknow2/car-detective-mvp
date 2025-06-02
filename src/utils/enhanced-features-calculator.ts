@@ -1,127 +1,156 @@
 
-interface FeatureDefinition {
+export interface FeatureDefinition {
   id: string;
   name: string;
   category: string;
   impact: 'low' | 'medium' | 'high';
   baseValue: number;
-  description?: string;
+  multiplier: number;
 }
 
-// Comprehensive feature definitions for all categories
-const FEATURE_DEFINITIONS: FeatureDefinition[] = [
+export interface FeatureCalculationResult {
+  totalAdjustment: number;
+  percentageOfBase: number;
+  featuresCount: number;
+}
+
+// Enhanced feature definitions organized by category
+const ENHANCED_FEATURES: FeatureDefinition[] = [
   // Technology Features
-  { id: 'tech_navigation', name: 'GPS Navigation System', category: 'technology', impact: 'medium', baseValue: 800 },
-  { id: 'tech_bluetooth', name: 'Bluetooth Connectivity', category: 'technology', impact: 'low', baseValue: 300 },
-  { id: 'tech_smartphone', name: 'Apple CarPlay/Android Auto', category: 'technology', impact: 'medium', baseValue: 600 },
-  { id: 'tech_wireless_charging', name: 'Wireless Phone Charging', category: 'technology', impact: 'low', baseValue: 400 },
-  { id: 'tech_wifi', name: 'Built-in WiFi Hotspot', category: 'technology', impact: 'medium', baseValue: 500 },
-  { id: 'tech_heads_up', name: 'Head-Up Display', category: 'technology', impact: 'high', baseValue: 1200 },
+  { id: 'navigation_system', name: 'GPS Navigation System', category: 'technology', impact: 'medium', baseValue: 800, multiplier: 1.0 },
+  { id: 'apple_carplay', name: 'Apple CarPlay', category: 'technology', impact: 'high', baseValue: 600, multiplier: 1.2 },
+  { id: 'android_auto', name: 'Android Auto', category: 'technology', impact: 'high', baseValue: 600, multiplier: 1.2 },
+  { id: 'wireless_charging', name: 'Wireless Phone Charging', category: 'technology', impact: 'medium', baseValue: 400, multiplier: 1.0 },
+  { id: 'heads_up_display', name: 'Head-Up Display', category: 'technology', impact: 'high', baseValue: 1200, multiplier: 1.3 },
+  { id: 'digital_instrument_cluster', name: 'Digital Instrument Cluster', category: 'technology', impact: 'medium', baseValue: 800, multiplier: 1.1 },
 
   // Safety & Security Features
-  { id: 'safety_alarm', name: 'Security Alarm System', category: 'safety', impact: 'low', baseValue: 300 },
-  { id: 'safety_remote_start', name: 'Remote Engine Start', category: 'safety', impact: 'medium', baseValue: 500 },
-  { id: 'safety_keyless', name: 'Keyless Entry/Start', category: 'safety', impact: 'medium', baseValue: 600 },
-  { id: 'safety_backup_camera', name: 'Backup Camera', category: 'safety', impact: 'medium', baseValue: 400 },
-  { id: 'safety_parking_sensors', name: 'Parking Sensors', category: 'safety', impact: 'low', baseValue: 350 },
-  { id: 'safety_blind_spot', name: 'Blind Spot Monitoring', category: 'safety', impact: 'high', baseValue: 800 },
+  { id: 'backup_camera', name: 'Backup Camera', category: 'safety', impact: 'high', baseValue: 500, multiplier: 1.2 },
+  { id: 'blind_spot_monitoring', name: 'Blind Spot Monitoring', category: 'safety', impact: 'high', baseValue: 800, multiplier: 1.3 },
+  { id: 'lane_departure_warning', name: 'Lane Departure Warning', category: 'safety', impact: 'medium', baseValue: 600, multiplier: 1.1 },
+  { id: 'collision_avoidance', name: 'Collision Avoidance System', category: 'safety', impact: 'high', baseValue: 1000, multiplier: 1.4 },
+  { id: 'parking_sensors', name: 'Parking Sensors', category: 'safety', impact: 'medium', baseValue: 400, multiplier: 1.0 },
+  { id: 'adaptive_cruise_control', name: 'Adaptive Cruise Control', category: 'safety', impact: 'high', baseValue: 1200, multiplier: 1.3 },
 
   // Climate Control Features
-  { id: 'climate_auto', name: 'Automatic Climate Control', category: 'climate', impact: 'medium', baseValue: 400 },
-  { id: 'climate_dual_zone', name: 'Dual Zone Climate', category: 'climate', impact: 'medium', baseValue: 600 },
-  { id: 'climate_tri_zone', name: 'Tri-Zone Climate Control', category: 'climate', impact: 'high', baseValue: 900 },
-  { id: 'climate_heated_seats', name: 'Heated Front Seats', category: 'climate', impact: 'medium', baseValue: 500 },
-  { id: 'climate_cooled_seats', name: 'Cooled/Ventilated Seats', category: 'climate', impact: 'high', baseValue: 800 },
-  { id: 'climate_heated_steering', name: 'Heated Steering Wheel', category: 'climate', impact: 'low', baseValue: 300 },
+  { id: 'dual_zone_climate', name: 'Dual Zone Climate Control', category: 'climate', impact: 'medium', baseValue: 600, multiplier: 1.1 },
+  { id: 'tri_zone_climate', name: 'Tri-Zone Climate Control', category: 'climate', impact: 'high', baseValue: 900, multiplier: 1.2 },
+  { id: 'heated_seats', name: 'Heated Front Seats', category: 'climate', impact: 'medium', baseValue: 500, multiplier: 1.0 },
+  { id: 'cooled_seats', name: 'Ventilated/Cooled Seats', category: 'climate', impact: 'high', baseValue: 800, multiplier: 1.2 },
+  { id: 'heated_steering_wheel', name: 'Heated Steering Wheel', category: 'climate', impact: 'low', baseValue: 200, multiplier: 0.8 },
+  { id: 'remote_start', name: 'Remote Engine Start', category: 'climate', impact: 'medium', baseValue: 400, multiplier: 1.0 },
 
   // Audio & Entertainment Features
-  { id: 'audio_premium', name: 'Premium Audio System', category: 'audio', impact: 'medium', baseValue: 700 },
-  { id: 'audio_bose', name: 'Bose Audio System', category: 'audio', impact: 'high', baseValue: 1200 },
-  { id: 'audio_harman_kardon', name: 'Harman Kardon Audio', category: 'audio', impact: 'high', baseValue: 1100 },
-  { id: 'audio_satellite', name: 'Satellite Radio', category: 'audio', impact: 'low', baseValue: 200 },
-  { id: 'audio_rear_entertainment', name: 'Rear Entertainment System', category: 'audio', impact: 'medium', baseValue: 800 },
-  { id: 'audio_subwoofer', name: 'Premium Subwoofer', category: 'audio', impact: 'low', baseValue: 400 },
+  { id: 'premium_audio', name: 'Premium Audio System', category: 'audio', impact: 'medium', baseValue: 800, multiplier: 1.1 },
+  { id: 'bose_audio', name: 'Bose Audio System', category: 'audio', impact: 'high', baseValue: 1200, multiplier: 1.3 },
+  { id: 'harman_kardon', name: 'Harman Kardon Audio', category: 'audio', impact: 'high', baseValue: 1100, multiplier: 1.25 },
+  { id: 'satellite_radio', name: 'Satellite Radio', category: 'audio', impact: 'low', baseValue: 300, multiplier: 0.9 },
+  { id: 'rear_entertainment', name: 'Rear Seat Entertainment', category: 'audio', impact: 'medium', baseValue: 1000, multiplier: 1.1 },
 
   // Interior Materials Features
-  { id: 'interior_leather', name: 'Leather Seating', category: 'interior', impact: 'high', baseValue: 1500 },
-  { id: 'interior_heated_leather', name: 'Heated Leather Seats', category: 'interior', impact: 'high', baseValue: 2000 },
-  { id: 'interior_memory_seats', name: 'Memory Seats', category: 'interior', impact: 'medium', baseValue: 600 },
-  { id: 'interior_power_seats', name: 'Power Adjustable Seats', category: 'interior', impact: 'medium', baseValue: 500 },
-  { id: 'interior_alcantara', name: 'Alcantara Trim', category: 'interior', impact: 'high', baseValue: 800 },
-  { id: 'interior_carbon_fiber', name: 'Carbon Fiber Interior', category: 'interior', impact: 'high', baseValue: 1200 },
+  { id: 'leather_seats', name: 'Leather Seats', category: 'interior', impact: 'high', baseValue: 1500, multiplier: 1.3 },
+  { id: 'memory_seats', name: 'Memory Seats', category: 'interior', impact: 'medium', baseValue: 600, multiplier: 1.1 },
+  { id: 'power_seats', name: 'Power Adjustable Seats', category: 'interior', impact: 'medium', baseValue: 500, multiplier: 1.0 },
+  { id: 'wood_trim', name: 'Wood Grain Trim', category: 'interior', impact: 'medium', baseValue: 400, multiplier: 1.0 },
+  { id: 'carbon_fiber_trim', name: 'Carbon Fiber Trim', category: 'interior', impact: 'high', baseValue: 800, multiplier: 1.2 },
 
   // Exterior Features
-  { id: 'exterior_sunroof', name: 'Sunroof/Moonroof', category: 'exterior', impact: 'high', baseValue: 1000 },
-  { id: 'exterior_panoramic', name: 'Panoramic Sunroof', category: 'exterior', impact: 'high', baseValue: 1500 },
-  { id: 'exterior_alloy_wheels', name: 'Alloy Wheels', category: 'exterior', impact: 'medium', baseValue: 600 },
-  { id: 'exterior_premium_wheels', name: 'Premium Alloy Wheels', category: 'exterior', impact: 'medium', baseValue: 900 },
-  { id: 'exterior_led_headlights', name: 'LED Headlights', category: 'exterior', impact: 'medium', baseValue: 500 },
-  { id: 'exterior_fog_lights', name: 'Fog Lights', category: 'exterior', impact: 'low', baseValue: 200 },
+  { id: 'sunroof', name: 'Sunroof/Moonroof', category: 'exterior', impact: 'high', baseValue: 1200, multiplier: 1.2 },
+  { id: 'panoramic_sunroof', name: 'Panoramic Sunroof', category: 'exterior', impact: 'high', baseValue: 1800, multiplier: 1.4 },
+  { id: 'led_headlights', name: 'LED Headlights', category: 'exterior', impact: 'medium', baseValue: 600, multiplier: 1.1 },
+  { id: 'fog_lights', name: 'Fog Lights', category: 'exterior', impact: 'low', baseValue: 200, multiplier: 0.8 },
+  { id: 'power_liftgate', name: 'Power Liftgate', category: 'exterior', impact: 'medium', baseValue: 800, multiplier: 1.1 },
 
   // Luxury Materials Features
-  { id: 'luxury_wood_trim', name: 'Wood Grain Trim', category: 'luxury_materials', impact: 'medium', baseValue: 600 },
-  { id: 'luxury_piano_black', name: 'Piano Black Trim', category: 'luxury_materials', impact: 'low', baseValue: 300 },
-  { id: 'luxury_metal_trim', name: 'Brushed Metal Trim', category: 'luxury_materials', impact: 'low', baseValue: 400 },
-  { id: 'luxury_ambient_lighting', name: 'Ambient Interior Lighting', category: 'luxury_materials', impact: 'medium', baseValue: 500 },
-  { id: 'luxury_premium_carpet', name: 'Premium Carpet/Mats', category: 'luxury_materials', impact: 'low', baseValue: 200 },
-  { id: 'luxury_soft_touch', name: 'Soft-Touch Materials', category: 'luxury_materials', impact: 'medium', baseValue: 400 },
+  { id: 'premium_leather', name: 'Premium Leather Package', category: 'luxury_materials', impact: 'high', baseValue: 2000, multiplier: 1.4 },
+  { id: 'alcantara', name: 'Alcantara Upholstery', category: 'luxury_materials', impact: 'high', baseValue: 1500, multiplier: 1.3 },
+  { id: 'nappa_leather', name: 'Nappa Leather', category: 'luxury_materials', impact: 'high', baseValue: 2500, multiplier: 1.5 },
+  { id: 'real_wood_trim', name: 'Real Wood Trim', category: 'luxury_materials', impact: 'medium', baseValue: 800, multiplier: 1.2 },
 
-  // Driver Assistance Features
-  { id: 'adas_cruise_control', name: 'Adaptive Cruise Control', category: 'adas', impact: 'high', baseValue: 1000 },
-  { id: 'adas_lane_keeping', name: 'Lane Keeping Assist', category: 'adas', impact: 'high', baseValue: 800 },
-  { id: 'adas_emergency_braking', name: 'Emergency Braking', category: 'adas', impact: 'high', baseValue: 900 },
-  { id: 'adas_lane_departure', name: 'Lane Departure Warning', category: 'adas', impact: 'medium', baseValue: 400 },
-  { id: 'adas_traffic_sign', name: 'Traffic Sign Recognition', category: 'adas', impact: 'medium', baseValue: 300 },
-  { id: 'adas_driver_attention', name: 'Driver Attention Monitor', category: 'adas', impact: 'medium', baseValue: 350 },
+  // Driver Assistance Features (ADAS)
+  { id: 'auto_parking', name: 'Automatic Parking Assist', category: 'adas', impact: 'high', baseValue: 1000, multiplier: 1.3 },
+  { id: 'lane_keeping_assist', name: 'Lane Keeping Assist', category: 'adas', impact: 'high', baseValue: 800, multiplier: 1.2 },
+  { id: 'traffic_sign_recognition', name: 'Traffic Sign Recognition', category: 'adas', impact: 'medium', baseValue: 400, multiplier: 1.0 },
+  { id: 'driver_attention_monitor', name: 'Driver Attention Monitor', category: 'adas', impact: 'medium', baseValue: 500, multiplier: 1.1 },
+  { id: 'night_vision', name: 'Night Vision System', category: 'adas', impact: 'high', baseValue: 2000, multiplier: 1.5 },
 
-  // Performance Packages Features
-  { id: 'perf_sport_package', name: 'Sport Package', category: 'performance_packages', impact: 'high', baseValue: 2500 },
-  { id: 'perf_performance_tires', name: 'Performance Tires', category: 'performance_packages', impact: 'medium', baseValue: 800 },
-  { id: 'perf_sport_suspension', name: 'Sport Suspension', category: 'performance_packages', impact: 'high', baseValue: 1200 },
-  { id: 'perf_limited_slip', name: 'Limited Slip Differential', category: 'performance_packages', impact: 'high', baseValue: 1000 },
-  { id: 'perf_performance_brakes', name: 'Performance Brakes', category: 'performance_packages', impact: 'medium', baseValue: 900 },
-  { id: 'perf_exhaust_system', name: 'Performance Exhaust', category: 'performance_packages', impact: 'medium', baseValue: 700 }
+  // Performance Packages
+  { id: 'sport_package', name: 'Sport Package', category: 'performance_packages', impact: 'high', baseValue: 2500, multiplier: 1.4 },
+  { id: 'performance_exhaust', name: 'Performance Exhaust', category: 'performance_packages', impact: 'medium', baseValue: 1200, multiplier: 1.2 },
+  { id: 'sport_suspension', name: 'Sport Suspension', category: 'performance_packages', impact: 'high', baseValue: 1500, multiplier: 1.3 },
+  { id: 'limited_slip_diff', name: 'Limited Slip Differential', category: 'performance_packages', impact: 'high', baseValue: 1000, multiplier: 1.3 },
+  { id: 'turbo_engine', name: 'Turbocharged Engine', category: 'performance_packages', impact: 'high', baseValue: 3000, multiplier: 1.5 }
 ];
 
 export function getFeaturesByCategory(category: string): FeatureDefinition[] {
-  return FEATURE_DEFINITIONS.filter(feature => feature.category === category);
-}
-
-export function getFeatureById(id: string): FeatureDefinition | undefined {
-  return FEATURE_DEFINITIONS.find(feature => feature.id === id);
-}
-
-export function calculateEnhancedFeatureValue(featureIds: string[], baseVehicleValue: number = 25000) {
-  let totalAdjustment = 0;
-  const adjustments: Array<{ feature: string; value: number }> = [];
-
-  featureIds.forEach(id => {
-    const feature = getFeatureById(id);
-    if (feature) {
-      // Calculate percentage-based adjustment with diminishing returns
-      const baseAdjustment = feature.baseValue;
-      const percentageAdjustment = (baseAdjustment / baseVehicleValue) * 100;
-      
-      // Apply diminishing returns for multiple features
-      const diminishingFactor = Math.max(0.5, 1 - (featureIds.length * 0.05));
-      const finalAdjustment = Math.round(baseAdjustment * diminishingFactor);
-      
-      totalAdjustment += finalAdjustment;
-      adjustments.push({ feature: feature.name, value: finalAdjustment });
-    }
-  });
-
-  return {
-    totalAdjustment,
-    adjustments,
-    featureCount: featureIds.length
-  };
+  return ENHANCED_FEATURES.filter(feature => feature.category === category);
 }
 
 export function getAllFeatures(): FeatureDefinition[] {
-  return FEATURE_DEFINITIONS;
+  return ENHANCED_FEATURES;
+}
+
+export function getFeatureById(id: string): FeatureDefinition | undefined {
+  return ENHANCED_FEATURES.find(feature => feature.id === id);
+}
+
+export function calculateEnhancedFeatureValue(
+  selectedFeatureIds: string[],
+  baseVehicleValue: number = 25000
+): FeatureCalculationResult {
+  if (!selectedFeatureIds || selectedFeatureIds.length === 0) {
+    return {
+      totalAdjustment: 0,
+      percentageOfBase: 0,
+      featuresCount: 0
+    };
+  }
+
+  let totalAdjustment = 0;
+  
+  selectedFeatureIds.forEach(featureId => {
+    const feature = getFeatureById(featureId);
+    if (feature) {
+      // Calculate feature value based on base value and vehicle value
+      const featureValue = feature.baseValue * feature.multiplier;
+      
+      // Apply a scaling factor based on vehicle value
+      const scalingFactor = Math.min(baseVehicleValue / 25000, 2.0); // Cap at 2x for luxury vehicles
+      const adjustedValue = featureValue * scalingFactor;
+      
+      totalAdjustment += Math.round(adjustedValue);
+    }
+  });
+
+  // Cap total feature adjustment to prevent unrealistic values (max 25% of base value)
+  const maxAdjustment = Math.round(baseVehicleValue * 0.25);
+  totalAdjustment = Math.min(totalAdjustment, maxAdjustment);
+
+  const percentageOfBase = baseVehicleValue > 0 ? (totalAdjustment / baseVehicleValue) * 100 : 0;
+
+  return {
+    totalAdjustment,
+    percentageOfBase: Math.round(percentageOfBase * 100) / 100, // Round to 2 decimal places
+    featuresCount: selectedFeatureIds.length
+  };
 }
 
 export function getFeatureCategories(): string[] {
-  return [...new Set(FEATURE_DEFINITIONS.map(feature => feature.category))];
+  return [...new Set(ENHANCED_FEATURES.map(feature => feature.category))];
+}
+
+export function getCategoryDisplayName(category: string): string {
+  const categoryNames: Record<string, string> = {
+    technology: 'Technology',
+    safety: 'Safety & Security',
+    climate: 'Climate Control',
+    audio: 'Audio & Entertainment',
+    interior: 'Interior Materials',
+    exterior: 'Exterior Features',
+    luxury_materials: 'Luxury Materials',
+    adas: 'Driver Assistance',
+    performance_packages: 'Performance Packages'
+  };
+  
+  return categoryNames[category] || category;
 }
