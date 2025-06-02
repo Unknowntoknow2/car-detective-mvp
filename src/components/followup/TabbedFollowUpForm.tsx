@@ -1,14 +1,9 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { CDTabs } from '@/components/ui-kit/CDTabs';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { calculateEnhancedFeatureValue } from '@/utils/enhanced-features-calculator';
-
-// Import all tab components
-import { VehicleBasicsTab } from './tabs/VehicleBasicsTab';
-import { VehicleConditionTab } from './tabs/VehicleConditionTab';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FollowUpAnswers, AccidentDetails } from '@/types/follow-up-answers';
+import { BasicInfoTab } from './tabs/BasicInfoTab';
+import { ConditionTab } from './tabs/ConditionTab';
 import { FeaturesTab } from './tabs/FeaturesTab';
 import { TechnologyTab } from './tabs/TechnologyTab';
 import { SafetySecurityTab } from './tabs/SafetySecurityTab';
@@ -29,269 +24,218 @@ import { AccidentsTab } from './tabs/AccidentsTab';
 interface TabbedFollowUpFormProps {
   formData: FollowUpAnswers;
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
-  onSubmit: () => void;
-  isLoading: boolean;
+  baseValue?: number;
 }
 
 export function TabbedFollowUpForm({ 
   formData, 
   updateFormData, 
-  onSubmit, 
-  isLoading 
+  baseValue = 25000 
 }: TabbedFollowUpFormProps) {
   const [activeTab, setActiveTab] = useState('basics');
-  
-  // Calculate base value for features (simplified - in real app would come from VIN lookup)
-  const baseValue = 25000;
-  
-  // Calculate total feature value
-  const featureValue = calculateEnhancedFeatureValue(formData.features || [], baseValue);
 
-  // Check if we have detected features (simulated - would come from VIN/AI detection)
-  const overrideDetected = false; // This would be based on actual detection logic
-
-  const tabs = [
-    {
-      label: '🚗 Basics',
-      value: 'basics',
-      content: (
-        <VehicleBasicsTab 
-          formData={formData} 
-          updateFormData={updateFormData} 
-        />
-      )
-    },
-    {
-      label: '🎯 Condition',
-      value: 'condition',
-      content: (
-        <VehicleConditionTab 
-          formData={formData} 
-          updateFormData={updateFormData} 
-        />
-      )
-    },
-    {
-      label: '⭐ Features',
-      value: 'features',
-      content: (
-        <FeaturesTab 
-          formData={formData} 
-          updateFormData={updateFormData}
-          baseValue={baseValue}
-          overrideDetected={overrideDetected}
-        />
-      )
-    },
-    {
-      label: '📱 Technology',
-      value: 'technology',
-      content: (
-        <TechnologyTab 
-          formData={formData} 
-          updateFormData={updateFormData}
-          baseValue={baseValue}
-        />
-      )
-    },
-    {
-      label: '🛡️ Safety & Security',
-      value: 'safety',
-      content: (
-        <SafetySecurityTab 
-          formData={formData} 
-          updateFormData={updateFormData}
-          baseValue={baseValue}
-        />
-      )
-    },
-    {
-      label: '🤖 Driver Assistance',
-      value: 'adas',
-      content: (
-        <DriverAssistanceTab 
-          formData={formData} 
-          updateFormData={updateFormData}
-          baseValue={baseValue}
-        />
-      )
-    },
-    {
-      label: '❄️ Climate Control',
-      value: 'climate',
-      content: (
-        <ClimateControlTab 
-          formData={formData} 
-          updateFormData={updateFormData}
-          baseValue={baseValue}
-        />
-      )
-    },
-    {
-      label: '🎵 Audio & Entertainment',
-      value: 'audio',
-      content: (
-        <AudioEntertainmentTab 
-          formData={formData} 
-          updateFormData={updateFormData}
-          baseValue={baseValue}
-        />
-      )
-    },
-    {
-      label: '💎 Luxury Materials',
-      value: 'luxury',
-      content: (
-        <LuxuryMaterialsTab 
-          formData={formData} 
-          updateFormData={updateFormData}
-          baseValue={baseValue}
-        />
-      )
-    },
-    {
-      label: '🏎️ Performance Packages',
-      value: 'performance',
-      content: (
-        <PerformancePackagesTab 
-          formData={formData} 
-          updateFormData={updateFormData}
-          baseValue={baseValue}
-        />
-      )
-    },
-    {
-      label: '🚪 Exterior Features',
-      value: 'exterior',
-      content: (
-        <ExteriorFeaturesTab 
-          formData={formData} 
-          updateFormData={updateFormData}
-          baseValue={baseValue}
-        />
-      )
-    },
-    {
-      label: '🪑 Interior Materials',
-      value: 'interior',
-      content: (
-        <InteriorMaterialsTab 
-          formData={formData} 
-          updateFormData={updateFormData}
-          baseValue={baseValue}
-        />
-      )
-    },
-    {
-      label: '🛞 Tires & Brakes',
-      value: 'tires',
-      content: (
-        <TiresBrakesTab 
-          formData={formData} 
-          updateFormData={updateFormData} 
-        />
-      )
-    },
-    {
-      label: '⚠️ Dashboard Lights',
-      value: 'dashboard',
-      content: (
-        <DashboardLightsTab 
-          formData={formData} 
-          updateFormData={updateFormData} 
-        />
-      )
-    },
-    {
-      label: '🔧 Vehicle Issues',
-      value: 'issues',
-      content: (
-        <VehicleIssuesTab 
-          formData={formData} 
-          updateFormData={updateFormData} 
-        />
-      )
-    },
-    {
-      label: '📄 Title & Ownership',
-      value: 'title',
-      content: (
-        <TitleOwnershipTab 
-          formData={formData} 
-          updateFormData={updateFormData} 
-        />
-      )
-    },
-    {
-      label: '🔧 Service & Maintenance',
-      value: 'service',
-      content: (
-        <ServiceMaintenanceTab 
-          formData={formData} 
-          updateFormData={updateFormData} 
-        />
-      )
-    },
-    {
-      label: '💥 Accidents',
-      value: 'accidents',
-      content: (
-        <AccidentsTab 
-          formData={formData} 
-          updateFormData={updateFormData} 
-        />
-      )
-    }
-  ];
+  const handleAccidentsChange = (accidentData: AccidentDetails) => {
+    updateFormData({ accident_history: accidentData });
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Summary Card */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold">Vehicle Valuation Details</h2>
-              <p className="text-muted-foreground">
-                Complete the information below for an accurate valuation
-              </p>
-            </div>
-            {featureValue.totalAdjustment > 0 && (
-              <div className="text-right">
-                <div className="text-2xl font-bold text-green-600">
-                  +${featureValue.totalAdjustment.toLocaleString()}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Feature Value Added
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+    <div className="w-full max-w-6xl mx-auto">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-6 lg:grid-cols-9 gap-1 h-auto p-1">
+          <TabsTrigger value="basics" className="text-xs p-2">
+            🚗 Basics
+          </TabsTrigger>
+          <TabsTrigger value="condition" className="text-xs p-2">
+            🎯 Condition
+          </TabsTrigger>
+          <TabsTrigger value="features" className="text-xs p-2">
+            ⭐ Features
+          </TabsTrigger>
+          <TabsTrigger value="technology" className="text-xs p-2">
+            📱 Technology
+          </TabsTrigger>
+          <TabsTrigger value="safety" className="text-xs p-2">
+            🛡️ Safety
+          </TabsTrigger>
+          <TabsTrigger value="adas" className="text-xs p-2">
+            🤖 Driver Assist
+          </TabsTrigger>
+          <TabsTrigger value="climate" className="text-xs p-2">
+            ❄️ Climate
+          </TabsTrigger>
+          <TabsTrigger value="audio" className="text-xs p-2">
+            🎵 Audio
+          </TabsTrigger>
+          <TabsTrigger value="luxury" className="text-xs p-2">
+            💎 Luxury
+          </TabsTrigger>
+          <TabsTrigger value="performance" className="text-xs p-2">
+            🏎️ Performance
+          </TabsTrigger>
+          <TabsTrigger value="exterior" className="text-xs p-2">
+            🚪 Exterior
+          </TabsTrigger>
+          <TabsTrigger value="interior" className="text-xs p-2">
+            🪑 Interior
+          </TabsTrigger>
+          <TabsTrigger value="tires" className="text-xs p-2">
+            🛞 Tires
+          </TabsTrigger>
+          <TabsTrigger value="dashboard" className="text-xs p-2">
+            ⚠️ Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="issues" className="text-xs p-2">
+            🔧 Issues
+          </TabsTrigger>
+          <TabsTrigger value="title" className="text-xs p-2">
+            📄 Title
+          </TabsTrigger>
+          <TabsTrigger value="service" className="text-xs p-2">
+            🔧 Service
+          </TabsTrigger>
+          <TabsTrigger value="accidents" className="text-xs p-2">
+            💥 Accidents
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Tabbed Interface */}
-      <CDTabs
-        items={tabs}
-        value={activeTab}
-        onChange={setActiveTab}
-        variant="underline"
-        className="w-full"
-        tabsClassName="overflow-x-auto"
-        fullWidth={false}
-      />
+        <div className="mt-6">
+          <TabsContent value="basics" className="space-y-4">
+            <BasicInfoTab 
+              formData={formData}
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
 
-      {/* Submit Button */}
-      <div className="flex justify-end pt-6">
-        <Button 
-          onClick={onSubmit}
-          disabled={isLoading}
-          size="lg"
-          className="min-w-[200px]"
-        >
-          {isLoading ? 'Processing...' : 'Get My Valuation'}
-        </Button>
-      </div>
+          <TabsContent value="condition" className="space-y-4">
+            <ConditionTab 
+              formData={formData}
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+
+          <TabsContent value="features" className="space-y-4">
+            <FeaturesTab 
+              formData={formData}
+              updateFormData={updateFormData}
+              baseValue={baseValue}
+            />
+          </TabsContent>
+
+          <TabsContent value="technology" className="space-y-4">
+            <TechnologyTab 
+              formData={formData}
+              updateFormData={updateFormData}
+              baseValue={baseValue}
+            />
+          </TabsContent>
+
+          <TabsContent value="safety" className="space-y-4">
+            <SafetySecurityTab 
+              formData={formData}
+              updateFormData={updateFormData}
+              baseValue={baseValue}
+            />
+          </TabsContent>
+
+          <TabsContent value="adas" className="space-y-4">
+            <DriverAssistanceTab 
+              formData={formData}
+              updateFormData={updateFormData}
+              baseValue={baseValue}
+            />
+          </TabsContent>
+
+          <TabsContent value="climate" className="space-y-4">
+            <ClimateControlTab 
+              formData={formData}
+              updateFormData={updateFormData}
+              baseValue={baseValue}
+            />
+          </TabsContent>
+
+          <TabsContent value="audio" className="space-y-4">
+            <AudioEntertainmentTab 
+              formData={formData}
+              updateFormData={updateFormData}
+              baseValue={baseValue}
+            />
+          </TabsContent>
+
+          <TabsContent value="luxury" className="space-y-4">
+            <LuxuryMaterialsTab 
+              formData={formData}
+              updateFormData={updateFormData}
+              baseValue={baseValue}
+            />
+          </TabsContent>
+
+          <TabsContent value="performance" className="space-y-4">
+            <PerformancePackagesTab 
+              formData={formData}
+              updateFormData={updateFormData}
+              baseValue={baseValue}
+            />
+          </TabsContent>
+
+          <TabsContent value="exterior" className="space-y-4">
+            <ExteriorFeaturesTab 
+              formData={formData}
+              updateFormData={updateFormData}
+              baseValue={baseValue}
+            />
+          </TabsContent>
+
+          <TabsContent value="interior" className="space-y-4">
+            <InteriorMaterialsTab 
+              formData={formData}
+              updateFormData={updateFormData}
+              baseValue={baseValue}
+            />
+          </TabsContent>
+
+          <TabsContent value="tires" className="space-y-4">
+            <TiresBrakesTab 
+              formData={formData}
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+
+          <TabsContent value="dashboard" className="space-y-4">
+            <DashboardLightsTab 
+              formData={formData}
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+
+          <TabsContent value="issues" className="space-y-4">
+            <VehicleIssuesTab 
+              formData={formData}
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+
+          <TabsContent value="title" className="space-y-4">
+            <TitleOwnershipTab 
+              formData={formData}
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+
+          <TabsContent value="service" className="space-y-4">
+            <ServiceMaintenanceTab 
+              formData={formData}
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+
+          <TabsContent value="accidents" className="space-y-4">
+            <AccidentsTab 
+              formData={formData}
+              onAccidentsChange={handleAccidentsChange}
+            />
+          </TabsContent>
+        </div>
+      </Tabs>
     </div>
   );
 }
