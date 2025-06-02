@@ -1,115 +1,96 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FollowUpAnswers, CONDITION_OPTIONS, TIRE_CONDITION_OPTIONS, ConditionOption, TireConditionOption } from '@/types/follow-up-answers';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { Car, Palette, Sofa, Gauge } from 'lucide-react';
 
 interface VehicleConditionTabProps {
   formData: FollowUpAnswers;
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
 }
 
+const CONDITION_OPTIONS = [
+  { value: 'excellent' as const, label: 'Excellent', description: 'Like new condition', color: 'bg-green-50 border-green-200 text-green-700' },
+  { value: 'good' as const, label: 'Good', description: 'Minor wear and tear', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+  { value: 'fair' as const, label: 'Fair', description: 'Noticeable wear', color: 'bg-yellow-50 border-yellow-200 text-yellow-700' },
+  { value: 'poor' as const, label: 'Poor', description: 'Significant issues', color: 'bg-red-50 border-red-200 text-red-700' },
+];
+
 export function VehicleConditionTab({ formData, updateFormData }: VehicleConditionTabProps) {
-  const handleConditionChange = (condition: 'excellent' | 'good' | 'fair' | 'poor') => {
-    updateFormData({ condition });
-  };
-
-  const handleExteriorConditionChange = (condition: 'excellent' | 'good' | 'fair' | 'poor') => {
-    updateFormData({ exterior_condition: condition });
-  };
-
-  const handleInteriorConditionChange = (condition: 'excellent' | 'good' | 'fair' | 'poor') => {
-    updateFormData({ interior_condition: condition });
-  };
-
-  const handleTireConditionChange = (condition: 'excellent' | 'good' | 'fair' | 'poor') => {
-    updateFormData({ tire_condition: condition });
-  };
+  const ConditionSelector = ({ 
+    title, 
+    icon: Icon, 
+    value, 
+    onChange,
+    bgColor 
+  }: { 
+    title: string; 
+    icon: any; 
+    value: string; 
+    onChange: (value: 'excellent' | 'good' | 'fair' | 'poor') => void;
+    bgColor: string;
+  }) => (
+    <Card className={`${bgColor}`}>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Icon className="h-5 w-5" />
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-2">
+          {CONDITION_OPTIONS.map((option) => (
+            <div
+              key={option.value}
+              onClick={() => onChange(option.value)}
+              className={`cursor-pointer p-3 rounded-lg border-2 transition-all text-center ${
+                value === option.value
+                  ? option.color + ' font-medium'
+                  : 'bg-white border-gray-200 hover:border-gray-300 text-gray-600'
+              }`}
+            >
+              <div className="font-medium text-sm">{option.label}</div>
+              <div className="text-xs mt-1 opacity-75">{option.description}</div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-6">
-      {/* Overall Condition */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <span className="mr-2">🚗</span>
-            Overall Vehicle Condition
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {CONDITION_OPTIONS.map((option: ConditionOption) => (
-              <div
-                key={option.value}
-                onClick={() => handleConditionChange(option.value)}
-                className={`cursor-pointer p-4 rounded-lg border-2 transition-all ${
-                  formData.condition === option.value
-                    ? option.color
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="font-medium">{option.label}</div>
-                <div className="text-sm text-gray-600">{option.description}</div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <ConditionSelector
+        title="Overall Vehicle Condition"
+        icon={Car}
+        value={formData.condition || ''}
+        onChange={(condition) => updateFormData({ condition })}
+        bgColor="bg-blue-50 border-blue-200"
+      />
 
-      {/* Exterior Condition */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <span className="mr-2">🎨</span>
-            Exterior Condition
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {CONDITION_OPTIONS.map((option: ConditionOption) => (
-              <div
-                key={option.value}
-                onClick={() => handleExteriorConditionChange(option.value)}
-                className={`cursor-pointer p-4 rounded-lg border-2 transition-all ${
-                  formData.exterior_condition === option.value
-                    ? option.color
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="font-medium">{option.label}</div>
-                <div className="text-sm text-gray-600">{option.description}</div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <ConditionSelector
+        title="Exterior Condition"
+        icon={Palette}
+        value={formData.exterior_condition || ''}
+        onChange={(condition) => updateFormData({ exterior_condition: condition })}
+        bgColor="bg-green-50 border-green-200"
+      />
 
-      {/* Interior Condition */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <span className="mr-2">🪑</span>
-            Interior Condition
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {TIRE_CONDITION_OPTIONS.map((option: TireConditionOption) => (
-              <div
-                key={option.value}
-                onClick={() => handleTireConditionChange(option.value)}
-                className={`cursor-pointer p-4 rounded-lg border-2 transition-all ${
-                  formData.tire_condition === option.value
-                    ? option.color
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="font-medium">{option.label}</div>
-                <div className="text-sm text-gray-600">{option.description}</div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <ConditionSelector
+        title="Interior Condition"
+        icon={Sofa}
+        value={formData.interior_condition || ''}
+        onChange={(condition) => updateFormData({ interior_condition: condition })}
+        bgColor="bg-purple-50 border-purple-200"
+      />
+
+      <ConditionSelector
+        title="Tire Condition"
+        icon={Gauge}
+        value={formData.tire_condition || ''}
+        onChange={(condition) => updateFormData({ tire_condition: condition })}
+        bgColor="bg-orange-50 border-orange-200"
+      />
     </div>
   );
 }
