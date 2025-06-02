@@ -94,7 +94,7 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
       data.previous_owners,
       data.serviceHistory?.hasRecords,
       data.accident_history?.hadAccident,
-      data.features?.length > 0,
+      data.features && data.features.length > 0,
       data.additional_notes
     ];
     
