@@ -11,6 +11,7 @@ import { AccidentHistoryTab } from './tabs/AccidentHistoryTab';
 import { VehicleIssuesTab } from './tabs/VehicleIssuesTab';
 import { TitleOwnershipTab } from './tabs/TitleOwnershipTab';
 import { FollowUpAnswers, AccidentDetails, ServiceHistoryDetails } from '@/types/follow-up-answers';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface TabbedFollowUpFormProps {
   formData: FollowUpAnswers;
@@ -42,12 +43,28 @@ const TabbedFollowUpForm: React.FC<TabbedFollowUpFormProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('basics');
 
+  const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
+  const isFirstTab = currentTabIndex === 0;
+  const isLastTab = currentTabIndex === tabs.length - 1;
+
+  const goToNextTab = () => {
+    if (!isLastTab) {
+      setActiveTab(tabs[currentTabIndex + 1].id);
+    }
+  };
+
+  const goToPreviousTab = () => {
+    if (!isFirstTab) {
+      setActiveTab(tabs[currentTabIndex - 1].id);
+    }
+  };
+
   const renderTab = () => {
     switch (activeTab) {
       case 'basics':
         return <BasicInfoTab formData={formData} updateFormData={updateFormData} />;
       case 'condition':
-        return <VehicleConditionTab formData={formData} updateFormData={updateFormData} />;
+        return <ConditionTab formData={formData} updateFormData={updateFormData} />;
       case 'features':
         return <FeaturesTab 
           formData={formData} 
@@ -71,6 +88,7 @@ const TabbedFollowUpForm: React.FC<TabbedFollowUpFormProps> = ({
 
   return (
     <div className="w-full">
+      {/* Tab Navigation */}
       <div className="flex flex-wrap gap-2 mb-6">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -81,8 +99,8 @@ const TabbedFollowUpForm: React.FC<TabbedFollowUpFormProps> = ({
               className={cn(
                 'px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200',
                 isActive
-                  ? `text-white bg-gradient-to-r ${tab.color}`
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? `text-white bg-gradient-to-r ${tab.color} shadow-lg transform scale-105`
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-102'
               )}
             >
               {tab.label}
@@ -90,7 +108,47 @@ const TabbedFollowUpForm: React.FC<TabbedFollowUpFormProps> = ({
           );
         })}
       </div>
-      <div className="w-full">{renderTab()}</div>
+
+      {/* Tab Content */}
+      <div className="w-full min-h-[500px] bg-white rounded-lg border border-gray-200 p-6">
+        {renderTab()}
+      </div>
+
+      {/* Tab Navigation Buttons */}
+      <div className="flex justify-between items-center mt-6">
+        <button
+          onClick={goToPreviousTab}
+          disabled={isFirstTab}
+          className={cn(
+            'flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all',
+            isFirstTab 
+              ? 'opacity-40 cursor-not-allowed bg-gray-100 text-gray-500'
+              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+          )}
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span>Previous</span>
+        </button>
+
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-600">
+            {currentTabIndex + 1} of {tabs.length}
+          </span>
+        </div>
+
+        <button
+          onClick={isLastTab ? onSubmit : goToNextTab}
+          className={cn(
+            'flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all',
+            isLastTab
+              ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'
+              : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700'
+          )}
+        >
+          <span>{isLastTab ? 'Complete Valuation' : 'Next'}</span>
+          {!isLastTab && <ChevronRight className="h-4 w-4" />}
+        </button>
+      </div>
     </div>
   );
 };
