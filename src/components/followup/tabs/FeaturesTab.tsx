@@ -45,14 +45,14 @@ export const FeaturesTab: React.FC<FeaturesTabProps> = ({
   return (
     <div className="w-full">
       {/* Feature Sections */}
-      <div ref={containerRef} className="space-y-8">
+      <div ref={containerRef} className="space-y-10">
         {FEATURE_CATEGORIES.map((category) => {
           const features: EnhancedFeature[] = ENHANCED_FEATURES[category] || [];
 
           return (
             <div key={category} id={`feature-${category}`}>
-              <h3 className="text-xl font-semibold mb-4 text-gray-900">{category}</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <h3 className="text-2xl font-bold mb-6 text-gray-900">{category}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {features.map((feature) => {
                   const isSelected = selectedFeatures.has(feature.name);
                   const valueImpact = Math.round(
@@ -77,18 +77,20 @@ export const FeaturesTab: React.FC<FeaturesTabProps> = ({
       </div>
 
       {/* Feature Total Summary */}
-      <div className="sticky bottom-0 bg-white border-t pt-4 pb-6 mt-6">
-        <div className="flex items-center justify-between px-4">
-          <div className="text-sm text-gray-600">
-            {selectedFeatures.size > 0
-              ? `You've selected ${selectedFeatures.size} feature${selectedFeatures.size > 1 ? 's' : ''}`
-              : 'No features selected yet'}
-          </div>
-          {totalValue > 0 && (
-            <div className="text-green-700 font-semibold text-sm">
-              +${totalValue.toLocaleString()} estimated value added
+      <div className="sticky bottom-0 bg-white border-t-2 border-gray-200 pt-6 pb-6 mt-8">
+        <div className="bg-gray-50 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div className="text-gray-700">
+              {selectedFeatures.size > 0
+                ? `You've selected ${selectedFeatures.size} feature${selectedFeatures.size > 1 ? 's' : ''}`
+                : 'Select features to see estimated value'}
             </div>
-          )}
+            {totalValue > 0 && (
+              <div className="text-green-700 font-bold text-xl">
+                +${totalValue.toLocaleString()} estimated value added
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
