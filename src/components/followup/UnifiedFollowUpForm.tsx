@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { TabbedFollowUpForm } from './TabbedFollowUpForm';
+import TabbedFollowUpForm from './TabbedFollowUpForm';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { debounce } from 'lodash';
 
