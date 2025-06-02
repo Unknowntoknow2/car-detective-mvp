@@ -54,11 +54,11 @@ const TabbedFollowUpForm: React.FC<TabbedFollowUpFormProps> = ({
           baseValue={30000}
         />;
       case 'modifications':
-        return <ModificationsTab data={formData.modifications} onChange={onModificationsChange} />;
+        return <ModificationsTab formData={formData} updateFormData={updateFormData} />;
       case 'service':
-        return <ServiceHistoryTab data={formData.serviceHistory} onChange={onServiceHistoryChange} />;
+        return <ServiceHistoryTab formData={formData} onServiceHistoryChange={onServiceHistoryChange} />;
       case 'accidents':
-        return <AccidentHistoryTab data={formData.accident_history} onChange={onAccidentsChange} />;
+        return <AccidentHistoryTab formData={formData} onAccidentsChange={onAccidentsChange} />;
       case 'issues':
         return <VehicleIssuesTab formData={formData} updateFormData={updateFormData} />;
       case 'title':

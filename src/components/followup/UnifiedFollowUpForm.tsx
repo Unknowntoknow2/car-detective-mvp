@@ -156,8 +156,10 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
     <TabbedFollowUpForm
       formData={formData}
       updateFormData={updateFormData}
+      onAccidentsChange={(accidents) => updateFormData({ accident_history: accidents })}
+      onServiceHistoryChange={(history) => updateFormData({ serviceHistory: history })}
+      onModificationsChange={(mods) => updateFormData({ modifications: mods })}
       onSubmit={handleSubmit}
-      isLoading={false}
     />
   );
 }
