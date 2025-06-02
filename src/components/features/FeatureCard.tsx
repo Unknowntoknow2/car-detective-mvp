@@ -12,7 +12,7 @@ interface FeatureCardProps {
 }
 
 const getCategoryColors = (category: string) => {
-  const colorSchemes = {
+  const colorSchemes: Record<string, { default: string; selected: string; accent: string }> = {
     'Technology': {
       default: 'border-blue-200 bg-blue-50/30 hover:bg-blue-50',
       selected: 'bg-gradient-to-br from-blue-100 to-blue-200 border-blue-500',
