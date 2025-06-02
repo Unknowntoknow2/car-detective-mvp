@@ -1,33 +1,34 @@
 
 import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, Circle } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { calculateEnhancedFeatureValue } from '@/utils/enhanced-features-calculator';
 
 // Import all tab components
-import { BasicInfoTab } from './tabs/BasicInfoTab';
-import { ConditionTab } from './tabs/ConditionTab';
-import { VehicleIssuesTab } from './tabs/VehicleIssuesTab';
-import { DashboardLightsTab } from './tabs/DashboardLightsTab';
-import { TitleOwnershipTab } from './tabs/TitleOwnershipTab';
-import { ServiceMaintenanceTab } from './tabs/ServiceMaintenanceTab';
-import { AccidentHistoryTab } from './tabs/AccidentHistoryTab';
-import { ModificationsTab } from './tabs/ModificationsTab';
-
-// Feature category tabs
-import { TechnologyTab } from './tabs/TechnologyTab';
-import { SafetySecurityTab } from './tabs/SafetySecurityTab';
-import { ClimateControlTab } from './tabs/ClimateControlTab';
-import { AudioEntertainmentTab } from './tabs/AudioEntertainmentTab';
-import { InteriorMaterialsTab } from './tabs/InteriorMaterialsTab';
-import { ExteriorFeaturesTab } from './tabs/ExteriorFeaturesTab';
-import { LuxuryMaterialsTab } from './tabs/LuxuryMaterialsTab';
-import { DriverAssistanceTab } from './tabs/DriverAssistanceTab';
-import { PerformancePackagesTab } from './tabs/PerformancePackagesTab';
+import {
+  BasicInfoTab,
+  ConditionTab,
+  VehicleIssuesTab,
+  DashboardLightsTab,
+  TitleOwnershipTab,
+  ServiceMaintenanceTab,
+  AccidentHistoryTab,
+  ModificationsTab,
+  // Feature category tabs
+  TechnologyTab,
+  SafetySecurityTab,
+  ClimateControlTab,
+  AudioEntertainmentTab,
+  InteriorMaterialsTab,
+  ExteriorFeaturesTab,
+  LuxuryMaterialsTab,
+  DriverAssistanceTab,
+  PerformancePackagesTab,
+} from './tabs';
 
 interface TabbedFollowUpFormProps {
   formData: FollowUpAnswers;
@@ -42,173 +43,202 @@ export function TabbedFollowUpForm({
   onSubmit,
   isLoading
 }: TabbedFollowUpFormProps) {
-  const [activeTab, setActiveTab] = useState('basic');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState('basics');
+  const baseValue = 25000; // This should come from vehicle valuation data
 
-  // Calculate base vehicle value for feature calculations (placeholder - would come from valuation)
-  const baseVehicleValue = 25000; // This would typically come from initial VIN lookup
-
-  // Calculate total feature value
-  const featureValue = calculateEnhancedFeatureValue(formData.features || [], baseVehicleValue);
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      await onSubmit();
-    } finally {
-      setIsSubmitting(false);
+  // Define the 8 main tabs in correct order
+  const mainTabs = [
+    {
+      id: 'basics',
+      label: '🚗 Basics',
+      component: BasicInfoTab,
+      gradient: 'from-blue-400 to-blue-600'
+    },
+    {
+      id: 'condition',
+      label: '🎯 Condition',
+      component: ConditionTab,
+      gradient: 'from-green-400 to-green-600'
+    },
+    {
+      id: 'features',
+      label: '⭐ Features',
+      component: null, // Special handling for features
+      gradient: 'from-purple-400 to-purple-600'
+    },
+    {
+      id: 'modifications',
+      label: '🛠 Modifications',
+      component: ModificationsTab,
+      gradient: 'from-orange-400 to-orange-600'
+    },
+    {
+      id: 'service',
+      label: '🔧 Service History',
+      component: ServiceMaintenanceTab,
+      gradient: 'from-teal-400 to-teal-600'
+    },
+    {
+      id: 'accidents',
+      label: '💥 Accidents',
+      component: AccidentHistoryTab,
+      gradient: 'from-red-400 to-red-600'
+    },
+    {
+      id: 'issues',
+      label: '⚠️ Vehicle Issues',
+      component: VehicleIssuesTab,
+      gradient: 'from-yellow-400 to-yellow-600'
+    },
+    {
+      id: 'title',
+      label: '📄 Title & Ownership',
+      component: TitleOwnershipTab,
+      gradient: 'from-indigo-400 to-indigo-600'
     }
-  };
-
-  const tabs = [
-    { id: 'basic', label: 'Basic Info', icon: '📋' },
-    { id: 'condition', label: 'Condition', icon: '⭐' },
-    { id: 'issues', label: 'Issues', icon: '⚠️' },
-    { id: 'lights', label: 'Warning Lights', icon: '💡' },
-    { id: 'title', label: 'Title & Ownership', icon: '📄' },
-    { id: 'service', label: 'Service History', icon: '🔧' },
-    { id: 'accidents', label: 'Accident History', icon: '🚗' },
-    { id: 'modifications', label: 'Modifications', icon: '⚙️' },
-    { id: 'features', label: 'Features', icon: '✨' }
   ];
 
+  // Feature category sub-tabs for the Features tab
   const featureTabs = [
-    { id: 'technology', label: 'Technology', icon: '📱' },
-    { id: 'safety', label: 'Safety', icon: '🛡️' },
-    { id: 'climate', label: 'Climate', icon: '❄️' },
-    { id: 'audio', label: 'Audio', icon: '🎵' },
-    { id: 'interior', label: 'Interior', icon: '🪑' },
-    { id: 'exterior', label: 'Exterior', icon: '🚪' },
-    { id: 'luxury', label: 'Luxury', icon: '💎' },
-    { id: 'adas', label: 'Driver Assist', icon: '🤖' },
-    { id: 'performance', label: 'Performance', icon: '🏎️' }
+    { id: 'technology', label: '📱 Technology', component: TechnologyTab },
+    { id: 'safety', label: '🛡️ Safety & Security', component: SafetySecurityTab },
+    { id: 'climate', label: '❄️ Climate Control', component: ClimateControlTab },
+    { id: 'audio', label: '🎵 Audio & Entertainment', component: AudioEntertainmentTab },
+    { id: 'interior', label: '🪑 Interior Materials', component: InteriorMaterialsTab },
+    { id: 'exterior', label: '🚪 Exterior Features', component: ExteriorFeaturesTab },
+    { id: 'luxury', label: '💎 Luxury Materials', component: LuxuryMaterialsTab },
+    { id: 'adas', label: '🤖 Driver Assistance', component: DriverAssistanceTab },
+    { id: 'performance', label: '🏎️ Performance Packages', component: PerformancePackagesTab }
   ];
 
-  const renderTabContent = (tabId: string) => {
+  const [activeFeatureTab, setActiveFeatureTab] = useState('technology');
+
+  // Calculate completion status for each tab
+  const getTabCompletion = (tabId: string): boolean => {
     switch (tabId) {
-      case 'basic':
-        return <BasicInfoTab formData={formData} updateFormData={updateFormData} />;
+      case 'basics':
+        return !!(formData.zip_code && formData.mileage && formData.transmission);
       case 'condition':
-        return <ConditionTab formData={formData} updateFormData={updateFormData} />;
-      case 'issues':
-        return <VehicleIssuesTab formData={formData} updateFormData={updateFormData} />;
-      case 'lights':
-        return <DashboardLightsTab formData={formData} updateFormData={updateFormData} />;
-      case 'title':
-        return <TitleOwnershipTab formData={formData} updateFormData={updateFormData} />;
-      case 'service':
-        return <ServiceMaintenanceTab formData={formData} updateFormData={updateFormData} />;
-      case 'accidents':
-        return <AccidentHistoryTab formData={formData} updateFormData={updateFormData} />;
-      case 'modifications':
-        return <ModificationsTab formData={formData} updateFormData={updateFormData} />;
+        return !!(formData.condition && formData.tire_condition && formData.exterior_condition && formData.interior_condition);
       case 'features':
-        return (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Vehicle Features</span>
-                  {featureValue.totalAdjustment > 0 && (
-                    <Badge variant="secondary" className="text-lg">
-                      +${featureValue.totalAdjustment.toLocaleString()}
-                    </Badge>
-                  )}
-                </CardTitle>
-                {featureValue.featuresCount > 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    {featureValue.featuresCount} features selected • 
-                    {featureValue.percentageOfBase.toFixed(1)}% of base value
-                  </p>
-                )}
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="technology" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9">
-                    {featureTabs.map((tab) => (
-                      <TabsTrigger key={tab.id} value={tab.id} className="text-xs">
-                        <span className="mr-1">{tab.icon}</span>
-                        <span className="hidden lg:inline">{tab.label}</span>
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                  {featureTabs.map((tab) => (
-                    <TabsContent key={tab.id} value={tab.id}>
-                      {renderFeatureTabContent(tab.id)}
-                    </TabsContent>
-                  ))}
-                </Tabs>
-              </CardContent>
-            </Card>
-          </div>
-        );
+        return (formData.features && formData.features.length > 0) || false;
+      case 'modifications':
+        return formData.modifications?.hasModifications !== undefined;
+      case 'service':
+        return formData.serviceHistory?.hasRecords !== undefined;
+      case 'accidents':
+        return formData.accident_history?.hadAccident !== undefined;
+      case 'issues':
+        return true; // Optional tab
+      case 'title':
+        return !!(formData.title_status && formData.previous_use);
       default:
-        return <div>Tab content not found</div>;
+        return false;
     }
   };
 
-  const renderFeatureTabContent = (tabId: string) => {
-    switch (tabId) {
-      case 'technology':
-        return <TechnologyTab formData={formData} updateFormData={updateFormData} baseValue={baseVehicleValue} />;
-      case 'safety':
-        return <SafetySecurityTab formData={formData} updateFormData={updateFormData} baseValue={baseVehicleValue} />;
-      case 'climate':
-        return <ClimateControlTab formData={formData} updateFormData={updateFormData} baseValue={baseVehicleValue} />;
-      case 'audio':
-        return <AudioEntertainmentTab formData={formData} updateFormData={updateFormData} baseValue={baseVehicleValue} />;
-      case 'interior':
-        return <InteriorMaterialsTab formData={formData} updateFormData={updateFormData} baseValue={baseVehicleValue} />;
-      case 'exterior':
-        return <ExteriorFeaturesTab formData={formData} updateFormData={updateFormData} baseValue={baseVehicleValue} />;
-      case 'luxury':
-        return <LuxuryMaterialsTab formData={formData} updateFormData={updateFormData} baseValue={baseVehicleValue} />;
-      case 'adas':
-        return <DriverAssistanceTab formData={formData} updateFormData={updateFormData} baseValue={baseVehicleValue} />;
-      case 'performance':
-        return <PerformancePackagesTab formData={formData} updateFormData={updateFormData} baseValue={baseVehicleValue} />;
-      default:
-        return <div>Feature tab content not found</div>;
-    }
+  const renderTabContent = (tab: any) => {
+    if (!tab.component) return null;
+    
+    const TabComponent = tab.component;
+    return (
+      <TabComponent
+        formData={formData}
+        updateFormData={updateFormData}
+        baseValue={baseValue}
+      />
+    );
+  };
+
+  const renderFeaturesContent = () => {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-2xl">⭐</span>
+              Vehicle Features
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Select the features your vehicle has. Each feature may impact the vehicle's value.
+            </p>
+            
+            <Tabs value={activeFeatureTab} onValueChange={setActiveFeatureTab}>
+              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5 gap-1 h-auto p-1">
+                {featureTabs.map((tab) => (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className="text-xs p-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              
+              {featureTabs.map((tab) => (
+                <TabsContent key={tab.id} value={tab.id} className="mt-4">
+                  <tab.component
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    baseValue={baseValue}
+                  />
+                </TabsContent>
+              ))}
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+    );
   };
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full max-w-6xl mx-auto space-y-6">
       {/* Progress Header */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Vehicle Information</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Complete the form to get an accurate valuation
-              </p>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-primary">
-                {formData.completion_percentage}%
-              </div>
-              <p className="text-xs text-muted-foreground">Complete</p>
+            <CardTitle>Vehicle Valuation Follow-up</CardTitle>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                {formData.completion_percentage}% Complete
+              </span>
+              <Progress value={formData.completion_percentage} className="w-24" />
             </div>
           </div>
-          <Progress value={formData.completion_percentage} className="w-full" />
         </CardHeader>
       </Card>
 
       {/* Main Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9">
-          {tabs.map((tab) => (
-            <TabsTrigger key={tab.id} value={tab.id} className="text-xs">
-              <span className="mr-1">{tab.icon}</span>
-              <span className="hidden lg:inline">{tab.label}</span>
-            </TabsTrigger>
-          ))}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-1 h-auto p-1">
+          {mainTabs.map((tab) => {
+            const isCompleted = getTabCompletion(tab.id);
+            return (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.id}
+                className={`relative flex flex-col items-center gap-1 p-3 text-xs bg-gradient-to-r ${tab.gradient} text-white data-[state=active]:ring-2 data-[state=active]:ring-offset-2 data-[state=active]:ring-primary`}
+              >
+                <div className="flex items-center gap-1">
+                  {isCompleted ? (
+                    <CheckCircle className="h-3 w-3" />
+                  ) : (
+                    <Circle className="h-3 w-3" />
+                  )}
+                  <span>{tab.label}</span>
+                </div>
+              </TabsTrigger>
+            );
+          })}
         </TabsList>
 
-        {tabs.map((tab) => (
+        {/* Tab Content */}
+        {mainTabs.map((tab) => (
           <TabsContent key={tab.id} value={tab.id} className="space-y-6">
-            {renderTabContent(tab.id)}
+            {tab.id === 'features' ? renderFeaturesContent() : renderTabContent(tab)}
           </TabsContent>
         ))}
       </Tabs>
@@ -217,23 +247,20 @@ export function TabbedFollowUpForm({
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-sm font-medium">
-                Form Completion: {formData.completion_percentage}%
-              </p>
-              {featureValue.totalAdjustment > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Feature Value: +${featureValue.totalAdjustment.toLocaleString()}
-                </p>
-              )}
+            <div className="flex items-center gap-4">
+              <Badge variant="secondary">
+                {mainTabs.filter(tab => getTabCompletion(tab.id)).length} of {mainTabs.length} sections completed
+              </Badge>
+              <span className="text-sm text-muted-foreground">
+                Auto-saving progress...
+              </span>
             </div>
             <Button 
-              onClick={handleSubmit}
-              disabled={isSubmitting || isLoading}
+              onClick={onSubmit}
+              disabled={isLoading || formData.completion_percentage < 80}
               size="lg"
-              className="min-w-[140px]"
             >
-              {isSubmitting ? 'Submitting...' : 'Get Valuation'}
+              {isLoading ? 'Submitting...' : 'Get Vehicle Valuation'}
             </Button>
           </div>
         </CardContent>

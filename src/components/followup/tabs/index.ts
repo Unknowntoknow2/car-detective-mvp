@@ -7,6 +7,7 @@ export { TitleOwnershipTab } from './TitleOwnershipTab';
 export { ServiceMaintenanceTab } from './ServiceMaintenanceTab';
 export { AccidentHistoryTab } from './AccidentHistoryTab';
 export { ModificationsTab } from './ModificationsTab';
+export { FeaturesTab } from './FeaturesTab';
 
 // Feature category tabs
 export { TechnologyTab } from './TechnologyTab';
