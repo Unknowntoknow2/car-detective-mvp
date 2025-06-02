@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,48 +13,42 @@ interface TitleOwnershipTabProps {
 
 export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTabProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Title Status */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <FileText className="h-5 w-5 text-blue-600" />
-            Title Status
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div>
-            <Label htmlFor="title-status" className="text-sm font-medium text-gray-700">Title Status</Label>
-            <Select
-              value={formData.title_status || 'clean'}
-              onValueChange={(value) => updateFormData({ title_status: value as any })}
-            >
-              <SelectTrigger className="mt-1 bg-white">
-                <SelectValue placeholder="Select title status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="clean">Clean Title</SelectItem>
-                <SelectItem value="salvage">Salvage Title</SelectItem>
-                <SelectItem value="rebuilt">Rebuilt Title</SelectItem>
-                <SelectItem value="lien">Lien Title</SelectItem>
-                <SelectItem value="unknown">Unknown</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="p-3 rounded-lg border bg-blue-50 border-blue-200">
+        <div className="flex items-center gap-2 mb-3">
+          <FileText className="h-4 w-4 text-blue-600" />
+          <h3 className="font-medium text-sm">Title Status</h3>
+        </div>
+        <div>
+          <Label htmlFor="title-status" className="text-xs font-medium text-gray-700">Title Status</Label>
+          <Select
+            value={formData.title_status || 'clean'}
+            onValueChange={(value) => updateFormData({ title_status: value as any })}
+          >
+            <SelectTrigger className="mt-1 bg-white h-8 text-xs">
+              <SelectValue placeholder="Select title status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="clean">Clean Title</SelectItem>
+              <SelectItem value="salvage">Salvage Title</SelectItem>
+              <SelectItem value="rebuilt">Rebuilt Title</SelectItem>
+              <SelectItem value="lien">Lien Title</SelectItem>
+              <SelectItem value="unknown">Unknown</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       {/* Ownership History */}
-      <Card className="bg-green-50 border-green-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Users className="h-5 w-5 text-green-600" />
-            Ownership History
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="p-3 rounded-lg border bg-green-50 border-green-200">
+        <div className="flex items-center gap-2 mb-3">
+          <Users className="h-4 w-4 text-green-600" />
+          <h3 className="font-medium text-sm">Ownership History</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="previous-owners" className="text-sm font-medium text-gray-700">Number of Previous Owners</Label>
+            <Label htmlFor="previous-owners" className="text-xs font-medium text-gray-700">Previous Owners</Label>
             <Input
               id="previous-owners"
               type="number"
@@ -64,17 +57,17 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
               value={formData.previous_owners || ''}
               onChange={(e) => updateFormData({ previous_owners: parseInt(e.target.value) || 0 })}
               placeholder="e.g., 1"
-              className="mt-1 bg-white"
+              className="mt-1 bg-white h-8 text-xs"
             />
           </div>
 
           <div>
-            <Label htmlFor="previous-use" className="text-sm font-medium text-gray-700">Previous Use</Label>
+            <Label htmlFor="previous-use" className="text-xs font-medium text-gray-700">Previous Use</Label>
             <Select
               value={formData.previous_use || 'personal'}
               onValueChange={(value) => updateFormData({ previous_use: value as any })}
             >
-              <SelectTrigger className="mt-1 bg-white">
+              <SelectTrigger className="mt-1 bg-white h-8 text-xs">
                 <SelectValue placeholder="Select previous use" />
               </SelectTrigger>
               <SelectContent>
@@ -85,20 +78,18 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Loan Information */}
-      <Card className="bg-amber-50 border-amber-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <DollarSign className="h-5 w-5 text-amber-600" />
-            Loan Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="p-3 rounded-lg border bg-amber-50 border-amber-200">
+        <div className="flex items-center gap-2 mb-3">
+          <DollarSign className="h-4 w-4 text-amber-600" />
+          <h3 className="font-medium text-sm">Loan Information</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="loan-balance" className="text-sm font-medium text-gray-700">Outstanding Loan Balance (Optional)</Label>
+            <Label htmlFor="loan-balance" className="text-xs font-medium text-gray-700">Outstanding Loan Balance</Label>
             <Input
               id="loan-balance"
               type="number"
@@ -106,12 +97,12 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
               value={formData.loan_balance || ''}
               onChange={(e) => updateFormData({ loan_balance: parseFloat(e.target.value) || 0 })}
               placeholder="e.g., 15000"
-              className="mt-1 bg-white"
+              className="mt-1 bg-white h-8 text-xs"
             />
           </div>
 
           <div>
-            <Label htmlFor="payoff-amount" className="text-sm font-medium text-gray-700">Payoff Amount (Optional)</Label>
+            <Label htmlFor="payoff-amount" className="text-xs font-medium text-gray-700">Payoff Amount</Label>
             <Input
               id="payoff-amount"
               type="number"
@@ -119,11 +110,11 @@ export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTa
               value={formData.payoffAmount || ''}
               onChange={(e) => updateFormData({ payoffAmount: parseFloat(e.target.value) || 0 })}
               placeholder="e.g., 14500"
-              className="mt-1 bg-white"
+              className="mt-1 bg-white h-8 text-xs"
             />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
