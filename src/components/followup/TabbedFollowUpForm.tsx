@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/cn';
 import { BasicInfoTab } from './tabs/BasicInfoTab';
 import { ConditionTab } from './tabs/ConditionTab';
+import { VehicleConditionTab } from './tabs/VehicleConditionTab';
 import { FeaturesTab } from './tabs/FeaturesTab';
 import { ModificationsTab } from './tabs/ModificationsTab';
-import { ServiceHistoryTab } from './tabs/ServiceHistoryTab';
+import { ServiceMaintenanceTab } from './tabs/ServiceMaintenanceTab';
 import { AccidentHistoryTab } from './tabs/AccidentHistoryTab';
 import { VehicleIssuesTab } from './tabs/VehicleIssuesTab';
 import { TitleOwnershipTab } from './tabs/TitleOwnershipTab';
@@ -46,7 +47,7 @@ const TabbedFollowUpForm: React.FC<TabbedFollowUpFormProps> = ({
       case 'basics':
         return <BasicInfoTab formData={formData} updateFormData={updateFormData} />;
       case 'condition':
-        return <ConditionTab formData={formData} updateFormData={updateFormData} />;
+        return <VehicleConditionTab formData={formData} updateFormData={updateFormData} />;
       case 'features':
         return <FeaturesTab 
           formData={formData} 
@@ -56,9 +57,9 @@ const TabbedFollowUpForm: React.FC<TabbedFollowUpFormProps> = ({
       case 'modifications':
         return <ModificationsTab formData={formData} updateFormData={updateFormData} />;
       case 'service':
-        return <ServiceHistoryTab formData={formData} onServiceHistoryChange={onServiceHistoryChange} />;
+        return <ServiceMaintenanceTab formData={formData} updateFormData={updateFormData} />;
       case 'accidents':
-        return <AccidentHistoryTab formData={formData} onAccidentsChange={onAccidentsChange} />;
+        return <AccidentHistoryTab formData={formData} updateFormData={updateFormData} />;
       case 'issues':
         return <VehicleIssuesTab formData={formData} updateFormData={updateFormData} />;
       case 'title':
