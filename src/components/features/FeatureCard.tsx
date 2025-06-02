@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { EnhancedFeature } from '@/data/enhanced-features-database';
 
 interface FeatureCardProps {
@@ -12,66 +12,66 @@ interface FeatureCardProps {
 }
 
 const getCategoryColors = (category: string) => {
-  const colorSchemes: Record<string, { default: string; selected: string; accent: string }> = {
+  const colorSchemes: Record<string, { bg: string; border: string; text: string }> = {
     'Technology': {
-      default: 'border-blue-200 bg-blue-50/30 hover:bg-blue-50',
-      selected: 'bg-gradient-to-br from-blue-100 to-blue-200 border-blue-500',
-      accent: 'text-blue-700'
+      bg: 'bg-blue-50',
+      border: 'border-blue-200',
+      text: 'text-blue-800'
     },
     'Safety & Security': {
-      default: 'border-emerald-200 bg-emerald-50/30 hover:bg-emerald-50',
-      selected: 'bg-gradient-to-br from-emerald-100 to-emerald-200 border-emerald-500',
-      accent: 'text-emerald-700'
+      bg: 'bg-emerald-50',
+      border: 'border-emerald-200',
+      text: 'text-emerald-800'
     },
     'Climate Control': {
-      default: 'border-cyan-200 bg-cyan-50/30 hover:bg-cyan-50',
-      selected: 'bg-gradient-to-br from-cyan-100 to-cyan-200 border-cyan-500',
-      accent: 'text-cyan-700'
+      bg: 'bg-cyan-50',
+      border: 'border-cyan-200',
+      text: 'text-cyan-800'
     },
     'Audio & Entertainment': {
-      default: 'border-purple-200 bg-purple-50/30 hover:bg-purple-50',
-      selected: 'bg-gradient-to-br from-purple-100 to-purple-200 border-purple-500',
-      accent: 'text-purple-700'
+      bg: 'bg-purple-50',
+      border: 'border-purple-200',
+      text: 'text-purple-800'
     },
     'Interior Materials': {
-      default: 'border-amber-200 bg-amber-50/30 hover:bg-amber-50',
-      selected: 'bg-gradient-to-br from-amber-100 to-amber-200 border-amber-500',
-      accent: 'text-amber-700'
+      bg: 'bg-amber-50',
+      border: 'border-amber-200',
+      text: 'text-amber-800'
     },
     'Exterior Features': {
-      default: 'border-indigo-200 bg-indigo-50/30 hover:bg-indigo-50',
-      selected: 'bg-gradient-to-br from-indigo-100 to-indigo-200 border-indigo-500',
-      accent: 'text-indigo-700'
+      bg: 'bg-indigo-50',
+      border: 'border-indigo-200',
+      text: 'text-indigo-800'
     },
     'Performance Packages': {
-      default: 'border-red-200 bg-red-50/30 hover:bg-red-50',
-      selected: 'bg-gradient-to-br from-red-100 to-red-200 border-red-500',
-      accent: 'text-red-700'
+      bg: 'bg-red-50',
+      border: 'border-red-200',
+      text: 'text-red-800'
     },
     'Driver Assistance': {
-      default: 'border-teal-200 bg-teal-50/30 hover:bg-teal-50',
-      selected: 'bg-gradient-to-br from-teal-100 to-teal-200 border-teal-500',
-      accent: 'text-teal-700'
+      bg: 'bg-teal-50',
+      border: 'border-teal-200',
+      text: 'text-teal-800'
     },
     'Luxury Materials': {
-      default: 'border-violet-200 bg-violet-50/30 hover:bg-violet-50',
-      selected: 'bg-gradient-to-br from-violet-100 to-violet-200 border-violet-500',
-      accent: 'text-violet-700'
+      bg: 'bg-violet-50',
+      border: 'border-violet-200',
+      text: 'text-violet-800'
     },
     'Service & Maintenance': {
-      default: 'border-slate-200 bg-slate-50/30 hover:bg-slate-50',
-      selected: 'bg-gradient-to-br from-slate-100 to-slate-200 border-slate-500',
-      accent: 'text-slate-700'
+      bg: 'bg-slate-50',
+      border: 'border-slate-200',
+      text: 'text-slate-800'
     },
     'Tires & Brakes': {
-      default: 'border-orange-200 bg-orange-50/30 hover:bg-orange-50',
-      selected: 'bg-gradient-to-br from-orange-100 to-orange-200 border-orange-500',
-      accent: 'text-orange-700'
+      bg: 'bg-orange-50',
+      border: 'border-orange-200',
+      text: 'text-orange-800'
     },
     'Vehicle Basics': {
-      default: 'border-gray-200 bg-gray-50/30 hover:bg-gray-50',
-      selected: 'bg-gradient-to-br from-gray-100 to-gray-200 border-gray-500',
-      accent: 'text-gray-700'
+      bg: 'bg-gray-50',
+      border: 'border-gray-200',
+      text: 'text-gray-800'
     }
   };
 
@@ -94,42 +94,45 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
   return (
     <div
       onClick={handleClick}
-      className={`p-4 rounded-xl border shadow-sm cursor-pointer transition-all duration-200 ${
-        isSelected ? colors.selected : colors.default
-      }`}
+      className={`
+        relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
+        ${colors.bg} ${colors.border}
+        hover:shadow-md hover:scale-[1.02]
+        ${isSelected ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}
+      `}
     >
-      <div className="flex justify-between items-center mb-3">
-        <h4 className="text-sm font-semibold text-gray-900 leading-tight">{feature.name}</h4>
-        {isSelected && (
-          <span className={`text-sm font-bold ${colors.accent}`}>
-            +${valueImpact.toLocaleString()}
-          </span>
-        )}
+      {/* Checkbox */}
+      <div className="absolute top-3 right-3">
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={() => onToggle(feature.name)}
+          className="pointer-events-none h-5 w-5"
+        />
       </div>
 
-      <div className="flex flex-wrap gap-2 items-center justify-between">
-        <div className="flex gap-2">
-          <Badge 
-            variant="outline" 
-            className="text-xs border-current"
-            title={`Impact: ${feature.impact}. Affects price by importance.`}
-          >
+      {/* Feature Name */}
+      <div className="pr-8 mb-3">
+        <h4 className={`font-semibold text-lg ${colors.text} leading-tight`}>
+          {feature.name}
+        </h4>
+      </div>
+
+      {/* Value Display */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <span className={`text-sm font-medium ${colors.text} opacity-70`}>
             {feature.impact}
-          </Badge>
-          <Badge 
-            variant="secondary" 
-            className="text-xs"
-            title={`Rarity: ${feature.rarity}. More rare = more value.`}
-          >
+          </span>
+          <span className={`text-xs px-2 py-1 rounded-full ${colors.bg} ${colors.text} border ${colors.border}`}>
             {feature.rarity}
-          </Badge>
+          </span>
         </div>
         
-        {!isSelected && valueImpact > 0 && (
-          <Badge className={`text-xs font-medium border ${colors.accent.replace('text-', 'bg-').replace('-700', '-50')} ${colors.accent} border-current`}>
+        <div className="text-right">
+          <span className="text-green-700 font-bold text-lg">
             +${valueImpact.toLocaleString()}
-          </Badge>
-        )}
+          </span>
+        </div>
       </div>
     </div>
   );
