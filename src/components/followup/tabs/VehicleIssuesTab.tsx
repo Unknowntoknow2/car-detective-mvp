@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AlertCircle } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
@@ -11,76 +10,59 @@ interface VehicleIssuesTabProps {
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
 }
 
+const VEHICLE_ISSUES = [
+  { key: 'smoking', label: 'Smoking odor or evidence of smoking', description: 'Can reduce value by $500-$1500' },
+  { key: 'petDamage', label: 'Pet damage (scratches, odors, hair)', description: 'Can reduce value by $200-$800' },
+  { key: 'rust', label: 'Visible rust or corrosion', description: 'Can reduce value by $300-$2000' },
+  { key: 'hailDamage', label: 'Hail damage (dents, dimples)', description: 'Can reduce value by $500-$3000' },
+  { key: 'frame_damage', label: 'Frame or structural damage', description: 'Can reduce value by $2000-$8000' },
+];
+
 export function VehicleIssuesTab({ formData, updateFormData }: VehicleIssuesTabProps) {
+  const hasAnyIssues = VEHICLE_ISSUES.some(issue => formData[issue.key as keyof FollowUpAnswers]);
+
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <AlertCircle className="h-5 w-5 mr-2 text-red-500" />
+      <Card className="bg-red-50 border-red-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <AlertCircle className="h-5 w-5 text-red-600" />
             Vehicle Issues
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4">
-            <div className="flex items-center space-x-3">
-              <Checkbox
-                id="smoking"
-                checked={formData.smoking || false}
-                onCheckedChange={(checked) => updateFormData({ smoking: !!checked })}
-              />
-              <Label htmlFor="smoking" className="cursor-pointer">
-                Smoking odor or evidence of smoking
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <Checkbox
-                id="pet-damage"
-                checked={formData.petDamage || false}
-                onCheckedChange={(checked) => updateFormData({ petDamage: !!checked })}
-              />
-              <Label htmlFor="pet-damage" className="cursor-pointer">
-                Pet damage (scratches, odors, hair)
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <Checkbox
-                id="rust"
-                checked={formData.rust || false}
-                onCheckedChange={(checked) => updateFormData({ rust: !!checked })}
-              />
-              <Label htmlFor="rust" className="cursor-pointer">
-                Visible rust or corrosion
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <Checkbox
-                id="hail-damage"
-                checked={formData.hailDamage || false}
-                onCheckedChange={(checked) => updateFormData({ hailDamage: !!checked })}
-              />
-              <Label htmlFor="hail-damage" className="cursor-pointer">
-                Hail damage (dents, dimples)
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <Checkbox
-                id="frame-damage"
-                checked={formData.frame_damage || false}
-                onCheckedChange={(checked) => updateFormData({ frame_damage: !!checked })}
-              />
-              <Label htmlFor="frame-damage" className="cursor-pointer">
-                Frame or structural damage
-              </Label>
-            </div>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 gap-3">
+            {VEHICLE_ISSUES.map((issue) => {
+              const isSelected = formData[issue.key as keyof FollowUpAnswers] as boolean;
+              
+              return (
+                <div
+                  key={issue.key}
+                  className={`p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-red-100 border-red-300'
+                      : 'bg-white border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => updateFormData({ [issue.key]: !isSelected })}
+                >
+                  <div className="flex items-start space-x-3">
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={(checked) => updateFormData({ [issue.key]: !!checked })}
+                      className="pointer-events-none mt-0.5"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">{issue.label}</div>
+                      <div className="text-xs text-red-600 mt-1">{issue.description}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          {(formData.smoking || formData.petDamage || formData.rust || formData.hailDamage || formData.frame_damage) && (
-            <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
+          {hasAnyIssues && (
+            <div className="mt-4 p-3 bg-red-100 rounded-lg border border-red-300">
               <p className="text-sm text-red-800">
                 <strong>Impact on Value:</strong> These issues can significantly reduce your vehicle's value. 
                 Frame damage and smoking odors have the largest negative impact.

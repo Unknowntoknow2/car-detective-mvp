@@ -1,87 +1,81 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { CircleDot, StopCircle } from 'lucide-react';
 
 interface TiresBrakesTabProps {
   formData: FollowUpAnswers;
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
 }
 
+const TIRE_CONDITIONS = [
+  { value: 'excellent' as const, label: 'Excellent', description: 'Like new, minimal wear', color: 'bg-green-50 border-green-200 text-green-700' },
+  { value: 'good' as const, label: 'Good', description: 'Normal wear, plenty of tread', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+  { value: 'fair' as const, label: 'Fair', description: 'Moderate wear, replacement soon', color: 'bg-yellow-50 border-yellow-200 text-yellow-700' },
+  { value: 'poor' as const, label: 'Poor', description: 'Worn out, needs replacement', color: 'bg-red-50 border-red-200 text-red-700' },
+];
+
+const BRAKE_CONDITIONS = [
+  { value: 'excellent' as const, label: 'Excellent', description: 'Like new, no wear', color: 'bg-green-50 border-green-200 text-green-700' },
+  { value: 'good' as const, label: 'Good', description: 'Normal wear, good stopping', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+  { value: 'fair' as const, label: 'Fair', description: 'Some wear, service soon', color: 'bg-yellow-50 border-yellow-200 text-yellow-700' },
+  { value: 'poor' as const, label: 'Poor', description: 'Significant wear, needs replacement', color: 'bg-red-50 border-red-200 text-red-700' },
+];
+
 export function TiresBrakesTab({ formData, updateFormData }: TiresBrakesTabProps) {
-  const TIRE_CONDITION_OPTIONS = [
-    { value: 'excellent' as const, label: 'Excellent', color: 'bg-green-100 border-green-500 text-green-800', description: 'Like new, minimal wear' },
-    { value: 'good' as const, label: 'Good', color: 'bg-blue-100 border-blue-500 text-blue-800', description: 'Normal wear, plenty of tread' },
-    { value: 'fair' as const, label: 'Fair', color: 'bg-yellow-100 border-yellow-500 text-yellow-800', description: 'Moderate wear, may need replacement soon' },
-    { value: 'poor' as const, label: 'Poor', color: 'bg-red-100 border-red-500 text-red-800', description: 'Worn out, needs immediate replacement' },
-  ];
-
-  const handleTireConditionChange = (condition: 'excellent' | 'good' | 'fair' | 'poor') => {
-    updateFormData({ tire_condition: condition });
-  };
-
-  const BRAKE_CONDITION_OPTIONS = [
-    { value: 'excellent' as const, label: 'Excellent', color: 'bg-green-100 border-green-500 text-green-800', description: 'Like new, no wear' },
-    { value: 'good' as const, label: 'Good', color: 'bg-blue-100 border-blue-500 text-blue-800', description: 'Normal wear, good stopping' },
-    { value: 'fair' as const, label: 'Fair', color: 'bg-yellow-100 border-yellow-500 text-yellow-800', description: 'Some wear, may need service soon' },
-    { value: 'poor' as const, label: 'Poor', color: 'bg-red-100 border-red-500 text-red-800', description: 'Significant wear, needs replacement' },
-  ];
-
-  const handleBrakeConditionChange = (condition: 'excellent' | 'good' | 'fair' | 'poor') => {
-    updateFormData({ brake_condition: condition });
-  };
-
   return (
     <div className="space-y-6">
-      {/* Tire Condition Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <span className="mr-2">🛞</span>
+      {/* Tire Condition */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <CircleDot className="h-5 w-5 text-blue-600" />
             Tire Condition
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {TIRE_CONDITION_OPTIONS.map((option) => (
+        <CardContent>
+          <div className="grid grid-cols-2 gap-2">
+            {TIRE_CONDITIONS.map((option) => (
               <div
                 key={option.value}
-                onClick={() => handleTireConditionChange(option.value)}
-                className={`cursor-pointer p-4 rounded-lg border-2 transition-all ${
+                onClick={() => updateFormData({ tire_condition: option.value })}
+                className={`cursor-pointer p-3 rounded-lg border-2 transition-all text-center ${
                   formData.tire_condition === option.value
-                    ? option.color
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? option.color + ' font-medium'
+                    : 'bg-white border-gray-200 hover:border-gray-300 text-gray-600'
                 }`}
               >
-                <div className="font-medium">{option.label}</div>
-                <div className="text-sm text-gray-600">{option.description}</div>
+                <div className="font-medium text-sm">{option.label}</div>
+                <div className="text-xs mt-1 opacity-75">{option.description}</div>
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Brake Condition Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <span className="mr-2">🛑</span>
+      {/* Brake Condition */}
+      <Card className="bg-red-50 border-red-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <StopCircle className="h-5 w-5 text-red-600" />
             Brake Condition
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {BRAKE_CONDITION_OPTIONS.map((option) => (
+        <CardContent>
+          <div className="grid grid-cols-2 gap-2">
+            {BRAKE_CONDITIONS.map((option) => (
               <div
                 key={option.value}
-                onClick={() => handleBrakeConditionChange(option.value)}
-                className={`cursor-pointer p-4 rounded-lg border-2 transition-all ${
+                onClick={() => updateFormData({ brake_condition: option.value })}
+                className={`cursor-pointer p-3 rounded-lg border-2 transition-all text-center ${
                   formData.brake_condition === option.value
-                    ? option.color
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? option.color + ' font-medium'
+                    : 'bg-white border-gray-200 hover:border-gray-300 text-gray-600'
                 }`}
               >
-                <div className="font-medium">{option.label}</div>
-                <div className="text-sm text-gray-600">{option.description}</div>
+                <div className="font-medium text-sm">{option.label}</div>
+                <div className="text-xs mt-1 opacity-75">{option.description}</div>
               </div>
             ))}
           </div>
