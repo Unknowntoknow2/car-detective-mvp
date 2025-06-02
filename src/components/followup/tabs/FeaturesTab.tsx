@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { EnhancedFeature, FEATURE_CATEGORIES, ENHANCED_FEATURES } from '@/data/enhanced-features-database';
-import { Badge } from '@/components/ui/badge';
+import { FeatureCard } from '@/components/features/FeatureCard';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface FeaturesTabProps {
@@ -34,6 +34,20 @@ export const FeaturesTab: React.FC<FeaturesTabProps> = ({
   };
 
   const selectedFeatures = new Set(formData.features || []);
+  const allSelectedFeatures: EnhancedFeature[] = [];
+
+  FEATURE_CATEGORIES.forEach((category) => {
+    (ENHANCED_FEATURES[category] || []).forEach((f) => {
+      if (selectedFeatures.has(f.name)) {
+        allSelectedFeatures.push(f);
+      }
+    });
+  });
+
+  const totalValue = allSelectedFeatures.reduce((sum, f) => {
+    const value = Math.round(baseValue * (f.percentage || 0) + (f.fixed || 0));
+    return sum + value;
+  }, 0);
 
   return (
     <div className="w-full">
@@ -68,35 +82,37 @@ export const FeaturesTab: React.FC<FeaturesTabProps> = ({
                   const valueImpact = Math.round(
                     baseValue * (feature.percentage || 0) + (feature.fixed || 0)
                   );
+                  
                   return (
-                    <div
+                    <FeatureCard
                       key={feature.name}
-                      onClick={() => handleFeatureToggle(feature.name)}
-                      className={`p-4 rounded-xl border shadow-sm cursor-pointer transition-all ${
-                        isSelected
-                          ? 'bg-gradient-to-br from-indigo-100 to-purple-100 border-purple-400'
-                          : 'bg-white hover:bg-gray-100 border-gray-200'
-                      }`}
-                    >
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">{feature.name}</span>
-                        {isSelected && (
-                          <span className="text-green-600 font-semibold">
-                            +${valueImpact}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Badge variant="outline">{feature.impact}</Badge>
-                        <Badge variant="secondary">{feature.rarity}</Badge>
-                      </div>
-                    </div>
+                      feature={feature}
+                      isSelected={isSelected}
+                      onToggle={handleFeatureToggle}
+                      valueImpact={valueImpact}
+                    />
                   );
                 })}
               </div>
             </div>
           );
         })}
+      </div>
+
+      {/* Feature Total Summary */}
+      <div className="sticky bottom-0 bg-white border-t pt-4 pb-6 mt-6">
+        <div className="flex items-center justify-between px-4">
+          <div className="text-sm text-gray-600">
+            {selectedFeatures.size > 0
+              ? `You've selected ${selectedFeatures.size} feature${selectedFeatures.size > 1 ? 's' : ''}`
+              : 'No features selected yet'}
+          </div>
+          {totalValue > 0 && (
+            <div className="text-green-700 font-semibold text-sm">
+              +${totalValue.toLocaleString()} estimated value added
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
