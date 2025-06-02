@@ -95,41 +95,41 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
     <div
       onClick={handleClick}
       className={`
-        relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
+        relative p-3 rounded-lg border cursor-pointer transition-all duration-200
         ${colors.bg} ${colors.border}
-        hover:shadow-md hover:scale-[1.02]
-        ${isSelected ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}
+        hover:shadow-sm hover:scale-[1.01]
+        ${isSelected ? 'ring-2 ring-blue-500 ring-opacity-50 shadow-sm' : ''}
       `}
     >
       {/* Checkbox */}
-      <div className="absolute top-3 right-3">
+      <div className="absolute top-2 right-2">
         <Checkbox
           checked={isSelected}
           onCheckedChange={() => onToggle(feature.name)}
-          className="pointer-events-none h-5 w-5"
+          className="pointer-events-none h-4 w-4"
         />
       </div>
 
       {/* Feature Name */}
-      <div className="pr-8 mb-3">
-        <h4 className={`font-semibold text-lg ${colors.text} leading-tight`}>
+      <div className="pr-6 mb-2">
+        <h4 className={`font-medium text-sm ${colors.text} leading-tight`}>
           {feature.name}
         </h4>
       </div>
 
       {/* Value Display */}
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <span className={`text-sm font-medium ${colors.text} opacity-70`}>
+        <div className="flex items-center gap-1.5">
+          <span className={`text-xs font-medium ${colors.text} opacity-70`}>
             {feature.impact}
           </span>
-          <span className={`text-xs px-2 py-1 rounded-full ${colors.bg} ${colors.text} border ${colors.border}`}>
+          <span className={`text-xs px-1.5 py-0.5 rounded-full ${colors.bg} ${colors.text} border ${colors.border}`}>
             {feature.rarity}
           </span>
         </div>
         
         <div className="text-right">
-          <span className="text-green-700 font-bold text-lg">
+          <span className="text-green-700 font-semibold text-sm">
             +${valueImpact.toLocaleString()}
           </span>
         </div>
