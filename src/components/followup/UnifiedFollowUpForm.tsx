@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TabbedFollowUpForm } from './TabbedFollowUpForm';
+import TabbedFollowUpForm from './TabbedFollowUpForm';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { toast } from 'sonner';
 
@@ -77,9 +76,11 @@ export function UnifiedFollowUpForm({
       // Calculate completion percentage
       const totalFields = Object.keys(defaultFormData).length;
       const completedFields = Object.values(updated).filter(value => 
-        value !== undefined && value !== '' && value !== null
+        value !== undefined && value !== '' && value !== null && 
+        !(Array.isArray(value) && value.length === 0)
       ).length;
-      updated.completion_percentage = Math.round((completedFields / totalFields) * 100);
+      
+      updated.completion_percentage = totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
       updated.is_complete = updated.completion_percentage >= 60;
       
       return updated;
