@@ -1,7 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { TabbedFollowUpForm } from './TabbedFollowUpForm';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { debounce } from 'lodash';
 
 interface UnifiedFollowUpFormProps {
   vin: string;
@@ -61,38 +62,86 @@ export function UnifiedFollowUpForm({ vin, initialData, onSubmit, onSave }: Unif
     completion_percentage: 0
   });
 
+  // Debounced auto-save function
+  const debouncedAutoSave = useCallback(
+    debounce(async (data: FollowUpAnswers) => {
+      if (onSave) {
+        try {
+          await onSave(data);
+          console.log('Auto-saved form data');
+        } catch (error) {
+          console.error('Auto-save failed:', error);
+        }
+      }
+    }, 2000),
+    [onSave]
+  );
+
+  // Calculate completion percentage
+  const calculateCompletionPercentage = (data: FollowUpAnswers): number => {
+    const requiredFields = [
+      data.zip_code,
+      data.mileage,
+      data.condition,
+      data.transmission,
+      data.title_status,
+      data.tire_condition,
+      data.exterior_condition,
+      data.interior_condition
+    ];
+    
+    const optionalFields = [
+      data.previous_owners,
+      data.serviceHistory?.hasRecords,
+      data.accident_history?.hadAccident,
+      data.features?.length > 0,
+      data.additional_notes
+    ];
+    
+    const completedRequired = requiredFields.filter(field => 
+      field !== undefined && field !== null && field !== ''
+    ).length;
+    
+    const completedOptional = optionalFields.filter(field => 
+      field !== undefined && field !== null && field !== false
+    ).length;
+    
+    const requiredScore = (completedRequired / requiredFields.length) * 80; // 80% weight for required
+    const optionalScore = (completedOptional / optionalFields.length) * 20; // 20% weight for optional
+    
+    return Math.round(requiredScore + optionalScore);
+  };
+
   const updateFormData = (updates: Partial<FollowUpAnswers>) => {
     setFormData(prev => {
       const updated = { ...prev, ...updates };
+      const completionPercentage = calculateCompletionPercentage(updated);
       
-      // Auto-save if onSave is provided
-      if (onSave) {
-        const saveTimeout = setTimeout(() => {
-          onSave(updated);
-        }, 1000);
-        
-        return updated;
-      }
+      const finalData = {
+        ...updated,
+        completion_percentage: completionPercentage
+      };
       
-      return updated;
+      // Trigger auto-save
+      debouncedAutoSave(finalData);
+      
+      return finalData;
     });
   };
 
+  // Initial completion calculation
+  useEffect(() => {
+    const completionPercentage = calculateCompletionPercentage(formData);
+    if (formData.completion_percentage !== completionPercentage) {
+      setFormData(prev => ({
+        ...prev,
+        completion_percentage: completionPercentage
+      }));
+    }
+  }, []);
+
   const handleSubmit = async () => {
-    // Calculate final completion percentage based on filled fields
-    const requiredFields = [
-      formData.zip_code,
-      formData.mileage,
-      formData.condition,
-      formData.transmission,
-      formData.title_status,
-      formData.tire_condition,
-      formData.exterior_condition,
-      formData.interior_condition
-    ];
-    
-    const completedFields = requiredFields.filter(field => field !== undefined && field !== null && field !== '').length;
-    const completionPercentage = Math.round((completedFields / requiredFields.length) * 100);
+    const completionPercentage = calculateCompletionPercentage(formData);
     
     const completeFormData = {
       ...formData,
