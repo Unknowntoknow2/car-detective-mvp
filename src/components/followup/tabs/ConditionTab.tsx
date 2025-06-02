@@ -81,7 +81,7 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
         const currentValue = formData[category.key] as string || '';
         
         return (
-          <div key={category.key} className="p-3 rounded-lg border border-gray-200 bg-white">
+          <div key={category.key} className={`p-3 rounded-lg border bg-${category.color}-50 border-${category.color}-200`}>
             <div className="flex items-center gap-2 mb-3">
               <category.icon className={`h-4 w-4 text-${category.color}-600`} />
               <h3 className="font-medium text-sm text-gray-900">{category.title}</h3>
