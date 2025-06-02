@@ -15,10 +15,9 @@ const CONDITION_OPTIONS = [
     description: 'Like new condition',
     details: 'Perfect or near-perfect condition with no visible defects',
     impact: '+10% Value',
-    selectedBg: 'bg-green-100',
-    selectedBorder: 'border-green-300',
-    selectedIndicator: 'bg-green-500',
-    badge: 'bg-green-500 text-white'
+    selectedBg: 'bg-green-500',
+    selectedText: 'text-white',
+    badge: 'bg-white text-green-600'
   },
   { 
     value: 'good' as const, 
@@ -26,10 +25,9 @@ const CONDITION_OPTIONS = [
     description: 'Minor wear and tear',
     details: 'Well-maintained with only minor cosmetic imperfections',
     impact: 'Base Value',
-    selectedBg: 'bg-blue-100',
-    selectedBorder: 'border-blue-300',
-    selectedIndicator: 'bg-blue-500',
-    badge: 'bg-blue-500 text-white'
+    selectedBg: 'bg-blue-500',
+    selectedText: 'text-white',
+    badge: 'bg-white text-blue-600'
   },
   { 
     value: 'fair' as const, 
@@ -37,10 +35,9 @@ const CONDITION_OPTIONS = [
     description: 'Noticeable wear',
     details: 'Visible wear and tear, may need minor repairs or maintenance',
     impact: '-15% Value',
-    selectedBg: 'bg-yellow-100',
-    selectedBorder: 'border-yellow-300',
-    selectedIndicator: 'bg-yellow-500',
-    badge: 'bg-yellow-500 text-white'
+    selectedBg: 'bg-yellow-500',
+    selectedText: 'text-white',
+    badge: 'bg-white text-yellow-600'
   },
   { 
     value: 'poor' as const, 
@@ -48,10 +45,9 @@ const CONDITION_OPTIONS = [
     description: 'Significant issues',
     details: 'Major mechanical or cosmetic problems requiring attention',
     impact: '-25% Value',
-    selectedBg: 'bg-red-100',
-    selectedBorder: 'border-red-300',
-    selectedIndicator: 'bg-red-500',
-    badge: 'bg-red-500 text-white'
+    selectedBg: 'bg-red-500',
+    selectedText: 'text-white',
+    badge: 'bg-white text-red-600'
   },
 ];
 
@@ -120,30 +116,41 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
                     onClick={() => handleConditionChange(category.key, option.value)}
                     className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                       isSelected
-                        ? `${option.selectedBg} ${option.selectedBorder}`
+                        ? `${option.selectedBg} border-transparent`
                         : 'bg-white border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-4 h-4 rounded-full ${
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                           isSelected 
-                            ? option.selectedIndicator
-                            : 'bg-gray-300'
-                        }`} />
+                            ? 'bg-white border-white'
+                            : 'border-gray-300 bg-transparent'
+                        }`}>
+                          {isSelected && (
+                            <div className={`w-2 h-2 rounded-full ${
+                              option.value === 'excellent' ? 'bg-green-500' :
+                              option.value === 'good' ? 'bg-blue-500' :
+                              option.value === 'fair' ? 'bg-yellow-500' :
+                              'bg-red-500'
+                            }`} />
+                          )}
+                        </div>
                         <span className={`font-semibold text-base ${
-                          isSelected ? 'text-gray-900' : 'text-gray-700'
+                          isSelected ? option.selectedText : 'text-gray-700'
                         }`}>{option.label}</span>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${option.badge}`}>
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                        isSelected ? option.badge : 'bg-gray-100 text-gray-600'
+                      }`}>
                         {option.impact}
                       </span>
                     </div>
                     <div className={`text-sm mb-2 ${
-                      isSelected ? 'text-gray-700' : 'text-gray-600'
+                      isSelected ? option.selectedText : 'text-gray-600'
                     }`}>{option.description}</div>
                     <div className={`text-sm ${
-                      isSelected ? 'text-gray-600' : 'text-gray-500'
+                      isSelected ? option.selectedText : 'text-gray-500'
                     }`}>{option.details}</div>
                   </div>
                 );
