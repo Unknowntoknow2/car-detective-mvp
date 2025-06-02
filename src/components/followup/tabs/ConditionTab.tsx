@@ -76,15 +76,15 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {CONDITION_CATEGORIES.map((category) => {
         const currentValue = formData[category.key] as string || '';
         
         return (
-          <div key={category.key} className={`p-3 rounded-lg border bg-${category.color}-50 border-${category.color}-200`}>
+          <div key={category.key} className="p-3 rounded-lg border border-gray-200 bg-white">
             <div className="flex items-center gap-2 mb-3">
               <category.icon className={`h-4 w-4 text-${category.color}-600`} />
-              <h3 className="font-semibold text-sm text-gray-900">{category.title}</h3>
+              <h3 className="font-medium text-sm text-gray-900">{category.title}</h3>
             </div>
             
             <div className="grid grid-cols-2 gap-2">
@@ -95,22 +95,22 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
                   <div
                     key={option.value}
                     onClick={() => handleConditionChange(category.key, option.value)}
-                    className={`p-2 rounded-md border cursor-pointer transition-all ${
+                    className={`p-2 rounded-lg border cursor-pointer transition-all ${
                       isSelected
-                        ? `bg-${option.color}-100 border-${option.color}-300`
-                        : 'bg-white border-gray-200 hover:border-gray-300'
+                        ? `bg-${option.color}-50 border-${option.color}-300 ring-1 ring-${option.color}-200`
+                        : 'bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-gray-100'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
-                        <div className={`w-3 h-3 rounded-full border-2 ${
+                        <div className={`w-2 h-2 rounded-full ${
                           isSelected 
-                            ? `bg-${option.color}-500 border-${option.color}-500` 
-                            : 'border-gray-300'
+                            ? `bg-${option.color}-500` 
+                            : 'bg-gray-300'
                         }`} />
-                        <span className="font-medium text-xs">{option.label}</span>
+                        <span className="font-medium text-xs text-gray-900">{option.label}</span>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded ${
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                         option.value === 'excellent' ? 'bg-green-100 text-green-700' :
                         option.value === 'good' ? 'bg-blue-100 text-blue-700' :
                         option.value === 'fair' ? 'bg-yellow-100 text-yellow-700' :
