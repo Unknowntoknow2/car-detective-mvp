@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { EnhancedFeature, FEATURE_CATEGORIES, ENHANCED_FEATURES } from '@/data/enhanced-features-database';
 import { FeatureCard } from '@/components/features/FeatureCard';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
@@ -15,7 +15,6 @@ export const FeaturesTab: React.FC<FeaturesTabProps> = ({
   updateFormData,
   baseValue,
 }) => {
-  const [activeCategory, setActiveCategory] = useState(FEATURE_CATEGORIES[0]);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleFeatureToggle = (featureName: string) => {
@@ -25,12 +24,6 @@ export const FeaturesTab: React.FC<FeaturesTabProps> = ({
       : [...features, featureName];
 
     updateFormData({ features: updated });
-  };
-
-  const scrollToCategory = (category: string) => {
-    const section = document.getElementById(`feature-${category}`);
-    section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setActiveCategory(category);
   };
 
   const selectedFeatures = new Set(formData.features || []);
@@ -51,23 +44,6 @@ export const FeaturesTab: React.FC<FeaturesTabProps> = ({
 
   return (
     <div className="w-full">
-      {/* Pill Selector */}
-      <div className="flex overflow-x-auto gap-2 pb-4 sticky top-0 z-10 bg-white">
-        {FEATURE_CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => scrollToCategory(cat)}
-            className={`px-4 py-2 rounded-full whitespace-nowrap font-medium text-sm transition-all duration-150 ${
-              activeCategory === cat
-                ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white'
-                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
       {/* Feature Sections */}
       <div ref={containerRef} className="space-y-8">
         {FEATURE_CATEGORIES.map((category) => {
