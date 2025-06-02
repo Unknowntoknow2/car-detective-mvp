@@ -51,7 +51,7 @@ export const FeaturesTab: React.FC<FeaturesTabProps> = ({
 
           return (
             <div key={category} id={`feature-${category}`}>
-              <h3 className="text-xl font-semibold mb-4">{category}</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">{category}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {features.map((feature) => {
                   const isSelected = selectedFeatures.has(feature.name);
@@ -66,6 +66,7 @@ export const FeaturesTab: React.FC<FeaturesTabProps> = ({
                       isSelected={isSelected}
                       onToggle={handleFeatureToggle}
                       valueImpact={valueImpact}
+                      category={category}
                     />
                   );
                 })}
