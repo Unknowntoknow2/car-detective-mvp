@@ -6,6 +6,7 @@ export { ServiceHistoryTab } from './ServiceHistoryTab';
 export { AccidentHistoryTab } from './AccidentHistoryTab';
 export { VehicleIssuesTab } from './VehicleIssuesTab';
 export { TitleOwnershipTab } from './TitleOwnershipTab';
+export { ModificationsTab } from './ModificationsTab';
 
 // Feature category tabs
 export { TechnologyTab } from './TechnologyTab';
@@ -16,3 +17,4 @@ export { InteriorMaterialsTab } from './InteriorMaterialsTab';
 export { ExteriorFeaturesTab } from './ExteriorFeaturesTab';
 export { LuxuryMaterialsTab } from './LuxuryMaterialsTab';
 export { DriverAssistanceTab } from './DriverAssistanceTab';
+export { PerformancePackagesTab } from './PerformancePackagesTab';
