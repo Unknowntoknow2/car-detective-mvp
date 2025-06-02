@@ -1,34 +1,35 @@
 
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Circle } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Save, CheckCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 
-// Import all tab components
+// Tab components
 import {
   BasicInfoTab,
   ConditionTab,
-  VehicleIssuesTab,
-  DashboardLightsTab,
-  TitleOwnershipTab,
+  FeaturesTab,
+  ModificationsTab,
   ServiceMaintenanceTab,
   AccidentHistoryTab,
-  ModificationsTab,
-  // Feature category tabs
-  TechnologyTab,
-  SafetySecurityTab,
-  ClimateControlTab,
-  AudioEntertainmentTab,
-  InteriorMaterialsTab,
-  ExteriorFeaturesTab,
-  LuxuryMaterialsTab,
-  DriverAssistanceTab,
-  PerformancePackagesTab,
+  VehicleIssuesTab,
+  TitleOwnershipTab,
 } from './tabs';
+
+const TABS = [
+  { id: 'basics', label: '🚗 Basics', color: 'from-blue-400 to-blue-600', component: BasicInfoTab },
+  { id: 'condition', label: '🎯 Condition', color: 'from-green-400 to-green-600', component: ConditionTab },
+  { id: 'features', label: '⭐ Features', color: 'from-purple-400 to-purple-600', component: FeaturesTab },
+  { id: 'modifications', label: '🛠 Modifications', color: 'from-pink-400 to-pink-600', component: ModificationsTab },
+  { id: 'service', label: '🔧 Service History', color: 'from-orange-400 to-orange-600', component: ServiceMaintenanceTab },
+  { id: 'accidents', label: '💥 Accidents', color: 'from-red-400 to-red-600', component: AccidentHistoryTab },
+  { id: 'issues', label: '⚠️ Vehicle Issues', color: 'from-yellow-400 to-yellow-600', component: VehicleIssuesTab },
+  { id: 'title', label: '📄 Title & Ownership', color: 'from-gray-400 to-gray-600', component: TitleOwnershipTab },
+];
 
 interface TabbedFollowUpFormProps {
   formData: FollowUpAnswers;
@@ -37,91 +38,41 @@ interface TabbedFollowUpFormProps {
   isLoading: boolean;
 }
 
-export function TabbedFollowUpForm({
-  formData,
-  updateFormData,
-  onSubmit,
-  isLoading
+export function TabbedFollowUpForm({ 
+  formData, 
+  updateFormData, 
+  onSubmit, 
+  isLoading 
 }: TabbedFollowUpFormProps) {
   const [activeTab, setActiveTab] = useState('basics');
-  const baseValue = 25000; // This should come from vehicle valuation data
+  const [lastSaved, setLastSaved] = useState<Date>(new Date());
 
-  // Define the 8 main tabs in correct order
-  const mainTabs = [
-    {
-      id: 'basics',
-      label: '🚗 Basics',
-      component: BasicInfoTab,
-      gradient: 'from-blue-400 to-blue-600'
-    },
-    {
-      id: 'condition',
-      label: '🎯 Condition',
-      component: ConditionTab,
-      gradient: 'from-green-400 to-green-600'
-    },
-    {
-      id: 'features',
-      label: '⭐ Features',
-      component: null, // Special handling for features
-      gradient: 'from-purple-400 to-purple-600'
-    },
-    {
-      id: 'modifications',
-      label: '🛠 Modifications',
-      component: ModificationsTab,
-      gradient: 'from-orange-400 to-orange-600'
-    },
-    {
-      id: 'service',
-      label: '🔧 Service History',
-      component: ServiceMaintenanceTab,
-      gradient: 'from-teal-400 to-teal-600'
-    },
-    {
-      id: 'accidents',
-      label: '💥 Accidents',
-      component: AccidentHistoryTab,
-      gradient: 'from-red-400 to-red-600'
-    },
-    {
-      id: 'issues',
-      label: '⚠️ Vehicle Issues',
-      component: VehicleIssuesTab,
-      gradient: 'from-yellow-400 to-yellow-600'
-    },
-    {
-      id: 'title',
-      label: '📄 Title & Ownership',
-      component: TitleOwnershipTab,
-      gradient: 'from-indigo-400 to-indigo-600'
-    }
-  ];
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+  };
 
-  // Feature category sub-tabs for the Features tab
-  const featureTabs = [
-    { id: 'technology', label: '📱 Technology', component: TechnologyTab },
-    { id: 'safety', label: '🛡️ Safety & Security', component: SafetySecurityTab },
-    { id: 'climate', label: '❄️ Climate Control', component: ClimateControlTab },
-    { id: 'audio', label: '🎵 Audio & Entertainment', component: AudioEntertainmentTab },
-    { id: 'interior', label: '🪑 Interior Materials', component: InteriorMaterialsTab },
-    { id: 'exterior', label: '🚪 Exterior Features', component: ExteriorFeaturesTab },
-    { id: 'luxury', label: '💎 Luxury Materials', component: LuxuryMaterialsTab },
-    { id: 'adas', label: '🤖 Driver Assistance', component: DriverAssistanceTab },
-    { id: 'performance', label: '🏎️ Performance Packages', component: PerformancePackagesTab }
-  ];
+  const getCurrentTabComponent = () => {
+    const currentTab = TABS.find(tab => tab.id === activeTab);
+    if (!currentTab) return null;
+    
+    const TabComponent = currentTab.component;
+    return (
+      <TabComponent
+        formData={formData}
+        updateFormData={updateFormData}
+        baseValue={25000} // This should come from your valuation data
+      />
+    );
+  };
 
-  const [activeFeatureTab, setActiveFeatureTab] = useState('technology');
-
-  // Calculate completion status for each tab
-  const getTabCompletion = (tabId: string): boolean => {
+  const getTabCompletionStatus = (tabId: string) => {
     switch (tabId) {
       case 'basics':
         return !!(formData.zip_code && formData.mileage && formData.transmission);
       case 'condition':
         return !!(formData.condition && formData.tire_condition && formData.exterior_condition && formData.interior_condition);
       case 'features':
-        return (formData.features && formData.features.length > 0) || false;
+        return formData.features && formData.features.length > 0;
       case 'modifications':
         return formData.modifications?.hasModifications !== undefined;
       case 'service':
@@ -129,142 +80,132 @@ export function TabbedFollowUpForm({
       case 'accidents':
         return formData.accident_history?.hadAccident !== undefined;
       case 'issues':
-        return true; // Optional tab
+        return !!(formData.dashboard_lights !== undefined && formData.rust !== undefined);
       case 'title':
-        return !!(formData.title_status && formData.previous_use);
+        return !!(formData.title_status && formData.previous_owners !== undefined);
       default:
         return false;
     }
   };
 
-  const renderTabContent = (tab: any) => {
-    if (!tab.component) return null;
-    
-    const TabComponent = tab.component;
-    return (
-      <TabComponent
-        formData={formData}
-        updateFormData={updateFormData}
-        baseValue={baseValue}
-      />
-    );
-  };
-
-  const renderFeaturesContent = () => {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="text-2xl">⭐</span>
-              Vehicle Features
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Select the features your vehicle has. Each feature may impact the vehicle's value.
-            </p>
-            
-            <Tabs value={activeFeatureTab} onValueChange={setActiveFeatureTab}>
-              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5 gap-1 h-auto p-1">
-                {featureTabs.map((tab) => (
-                  <TabsTrigger
-                    key={tab.id}
-                    value={tab.id}
-                    className="text-xs p-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                  >
-                    {tab.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              
-              {featureTabs.map((tab) => (
-                <TabsContent key={tab.id} value={tab.id} className="mt-4">
-                  <tab.component
-                    formData={formData}
-                    updateFormData={updateFormData}
-                    baseValue={baseValue}
-                  />
-                </TabsContent>
-              ))}
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  };
+  const completedTabs = TABS.filter(tab => getTabCompletionStatus(tab.id)).length;
+  const completionPercentage = (completedTabs / TABS.length) * 100;
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6">
-      {/* Progress Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Vehicle Valuation Follow-up</CardTitle>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                {formData.completion_percentage}% Complete
-              </span>
-              <Progress value={formData.completion_percentage} className="w-24" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="container mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Vehicle Assessment</h1>
+          <p className="text-gray-600">Complete your vehicle details for an accurate valuation</p>
+          
+          {/* Progress Section */}
+          <div className="mt-4 bg-white rounded-xl p-4 shadow-sm border">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span className="text-sm font-medium text-gray-700">
+                  {completedTabs} of {TABS.length} sections completed
+                </span>
+              </div>
+              <Badge variant="secondary" className="text-green-600">
+                {Math.round(completionPercentage)}% Complete
+              </Badge>
+            </div>
+            <Progress value={completionPercentage} className="h-2" />
+            <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+              <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
+              <div className="flex items-center gap-1">
+                <Save className="h-3 w-3" />
+                <span>Auto-saving</span>
+              </div>
             </div>
           </div>
-        </CardHeader>
-      </Card>
+        </div>
 
-      {/* Main Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-1 h-auto p-1">
-          {mainTabs.map((tab) => {
-            const isCompleted = getTabCompletion(tab.id);
-            return (
-              <TabsTrigger
-                key={tab.id}
-                value={tab.id}
-                className={`relative flex flex-col items-center gap-1 p-3 text-xs bg-gradient-to-r ${tab.gradient} text-white data-[state=active]:ring-2 data-[state=active]:ring-offset-2 data-[state=active]:ring-primary`}
-              >
-                <div className="flex items-center gap-1">
-                  {isCompleted ? (
-                    <CheckCircle className="h-3 w-3" />
-                  ) : (
-                    <Circle className="h-3 w-3" />
-                  )}
-                  <span>{tab.label}</span>
-                </div>
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
+        {/* Tab Navigation */}
+        <div className="mb-6">
+          <div className="bg-white rounded-xl p-2 shadow-sm border overflow-x-auto">
+            <div className="flex gap-2 min-w-max">
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab.id;
+                const isCompleted = getTabCompletionStatus(tab.id);
+                
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={cn(
+                      "relative px-4 py-3 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap",
+                      "hover:scale-105 transform",
+                      isActive
+                        ? `bg-gradient-to-r ${tab.color} text-white shadow-lg`
+                        : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      {tab.label}
+                      {isCompleted && (
+                        <CheckCircle className="h-4 w-4 text-green-400" />
+                      )}
+                    </div>
+                    {isActive && (
+                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
         {/* Tab Content */}
-        {mainTabs.map((tab) => (
-          <TabsContent key={tab.id} value={tab.id} className="space-y-6">
-            {tab.id === 'features' ? renderFeaturesContent() : renderTabContent(tab)}
-          </TabsContent>
-        ))}
-      </Tabs>
+        <div className="mb-6">
+          {getCurrentTabComponent()}
+        </div>
 
-      {/* Submit Section */}
-      <Card>
-        <CardContent className="pt-6">
+        {/* Action Buttons */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Badge variant="secondary">
-                {mainTabs.filter(tab => getTabCompletion(tab.id)).length} of {mainTabs.length} sections completed
-              </Badge>
-              <span className="text-sm text-muted-foreground">
-                Auto-saving progress...
-              </span>
+            <div className="text-sm text-gray-600">
+              Complete all sections for the most accurate valuation
             </div>
-            <Button 
-              onClick={onSubmit}
-              disabled={isLoading || formData.completion_percentage < 80}
-              size="lg"
-            >
-              {isLoading ? 'Submitting...' : 'Get Vehicle Valuation'}
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const currentIndex = TABS.findIndex(tab => tab.id === activeTab);
+                  if (currentIndex > 0) {
+                    setActiveTab(TABS[currentIndex - 1].id);
+                  }
+                }}
+                disabled={TABS.findIndex(tab => tab.id === activeTab) === 0}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const currentIndex = TABS.findIndex(tab => tab.id === activeTab);
+                  if (currentIndex < TABS.length - 1) {
+                    setActiveTab(TABS[currentIndex + 1].id);
+                  }
+                }}
+                disabled={TABS.findIndex(tab => tab.id === activeTab) === TABS.length - 1}
+              >
+                Next
+              </Button>
+              <Button
+                onClick={onSubmit}
+                disabled={isLoading || completionPercentage < 75}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+              >
+                {isLoading ? 'Processing...' : 'Get Valuation'}
+              </Button>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
