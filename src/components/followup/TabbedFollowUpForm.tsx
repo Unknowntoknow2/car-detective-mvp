@@ -1,14 +1,14 @@
 
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import BasicInfoTab from './tabs/BasicInfoTab';
-import ConditionTab from './tabs/ConditionTab';
-import FeaturesTab from './tabs/FeaturesTab';
-import ModificationsTab from './tabs/ModificationsTab';
-import ServiceHistoryTab from './tabs/ServiceHistoryTab';
-import AccidentHistoryTab from './tabs/AccidentHistoryTab';
-import VehicleIssuesTab from './tabs/VehicleIssuesTab';
-import TitleOwnershipTab from './tabs/TitleOwnershipTab';
+import { BasicInfoTab } from './tabs/BasicInfoTab';
+import { ConditionTab } from './tabs/ConditionTab';
+import { FeaturesTab } from './tabs/FeaturesTab';
+import { ModificationsTab } from './tabs/ModificationsTab';
+import { ServiceHistoryTab } from './tabs/ServiceHistoryTab';
+import { AccidentHistoryTab } from './tabs/AccidentHistoryTab';
+import { VehicleIssuesTab } from './tabs/VehicleIssuesTab';
+import { TitleOwnershipTab } from './tabs/TitleOwnershipTab';
 import { FollowUpAnswers, AccidentDetails, ServiceHistoryDetails } from '@/types/follow-up-answers';
 
 interface TabbedFollowUpFormProps {
@@ -51,7 +51,7 @@ const TabbedFollowUpForm: React.FC<TabbedFollowUpFormProps> = ({
         return <FeaturesTab 
           formData={formData} 
           updateFormData={updateFormData} 
-          baseValue={formData.baseValue ?? 30000}
+          baseValue={30000}
         />;
       case 'modifications':
         return <ModificationsTab data={formData.modifications} onChange={onModificationsChange} />;
