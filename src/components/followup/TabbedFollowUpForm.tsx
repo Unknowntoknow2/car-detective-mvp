@@ -37,6 +37,43 @@ export function TabbedFollowUpForm({
     { id: 'title', label: '📄 Title & Ownership', icon: '📄' }
   ];
 
+  // Handler for service history updates
+  const handleServiceHistoryChange = (serviceHistory: any) => {
+    updateFormData({ 
+      serviceHistory,
+      service_history: serviceHistory.description || ''
+    });
+  };
+
+  // Handler for accident history updates
+  const handleAccidentsChange = (accidents: any) => {
+    updateFormData({ 
+      accident_history: accidents,
+      accidents: accidents.count || 0,
+      frame_damage: accidents.frameDamage || false
+    });
+  };
+
+  // Calculate completion percentage
+  const calculateCompletion = () => {
+    const requiredFields = [
+      formData.zip_code,
+      formData.mileage,
+      formData.condition,
+      formData.transmission,
+      formData.title_status,
+      formData.tire_condition,
+      formData.exterior_condition,
+      formData.interior_condition
+    ];
+    
+    const completedFields = requiredFields.filter(field => 
+      field !== undefined && field !== null && field !== ''
+    ).length;
+    
+    return Math.round((completedFields / requiredFields.length) * 100);
+  };
+
   const handleSubmit = async () => {
     await onSubmit();
   };
@@ -50,6 +87,9 @@ export function TabbedFollowUpForm({
         <p className="text-gray-600">
           Complete these sections to get the most accurate valuation for your vehicle
         </p>
+        <div className="text-sm text-gray-500">
+          Completion: {calculateCompletion()}%
+        </div>
       </div>
 
       <Card>
@@ -96,14 +136,14 @@ export function TabbedFollowUpForm({
               <TabsContent value="service" className="space-y-6">
                 <ServiceHistoryTab
                   formData={formData}
-                  updateFormData={updateFormData}
+                  onServiceHistoryChange={handleServiceHistoryChange}
                 />
               </TabsContent>
 
               <TabsContent value="accidents" className="space-y-6">
                 <AccidentHistoryTab
                   formData={formData}
-                  updateFormData={updateFormData}
+                  onAccidentsChange={handleAccidentsChange}
                 />
               </TabsContent>
 
