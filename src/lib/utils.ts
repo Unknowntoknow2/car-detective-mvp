@@ -31,5 +31,3 @@ export function formatDate(date: Date | string): string {
 export function generateId(prefix: string = ''): string {
   return `${prefix}${Math.random().toString(36).substring(2, 11)}`;
 }
-
-export const vinRegex = /^[A-HJ-NPR-Z0-9]{17}$/;

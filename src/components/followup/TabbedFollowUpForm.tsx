@@ -1,92 +1,154 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { Save, CheckCircle } from 'lucide-react';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { ConditionForm } from './ConditionForm';
-import { AdditionalDetailsForm } from './AdditionalDetailsForm';
-import { LoanDetailsForm } from './LoanDetailsForm';
+import { cn } from '@/utils/cn';
+import { BasicInfoTab } from './tabs/BasicInfoTab';
+import { ConditionTab } from './tabs/ConditionTab';
+import { VehicleConditionTab } from './tabs/VehicleConditionTab';
+import { FeaturesTab } from './tabs/FeaturesTab';
+import { ModificationsTab } from './tabs/ModificationsTab';
+import { ServiceMaintenanceTab } from './tabs/ServiceMaintenanceTab';
+import { AccidentHistoryTab } from './tabs/AccidentHistoryTab';
+import { VehicleIssuesTab } from './tabs/VehicleIssuesTab';
+import { TitleOwnershipTab } from './tabs/TitleOwnershipTab';
+import { FollowUpAnswers, AccidentDetails, ServiceHistoryDetails } from '@/types/follow-up-answers';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-export interface TabbedFollowUpFormProps {
+interface TabbedFollowUpFormProps {
   formData: FollowUpAnswers;
-  updateFormData: (updates: Partial<FollowUpAnswers>) => void;
-  onSubmit: () => Promise<void>;
-  isLoading: boolean;
-  onSave: () => void;
+  updateFormData: (data: Partial<FollowUpAnswers>) => void;
+  onAccidentsChange: (accidents: AccidentDetails) => void;
+  onServiceHistoryChange: (history: ServiceHistoryDetails) => void;
+  onModificationsChange: (mods: FollowUpAnswers['modifications']) => void;
+  onSubmit: () => void;
 }
+
+const tabs = [
+  { id: 'basics', label: '🚗 Basics', color: 'from-blue-400 to-blue-600' },
+  { id: 'condition', label: '🎯 Condition', color: 'from-green-400 to-green-600' },
+  { id: 'features', label: '⭐ Features', color: 'from-purple-400 to-purple-600' },
+  { id: 'modifications', label: '🛠 Modifications', color: 'from-pink-400 to-pink-600' },
+  { id: 'service', label: '🔧 Service History', color: 'from-orange-400 to-orange-600' },
+  { id: 'accidents', label: '💥 Accidents', color: 'from-red-400 to-red-600' },
+  { id: 'issues', label: '⚠️ Vehicle Issues', color: 'from-yellow-400 to-yellow-600' },
+  { id: 'title', label: '📄 Title & Ownership', color: 'from-gray-400 to-gray-600' },
+];
 
 const TabbedFollowUpForm: React.FC<TabbedFollowUpFormProps> = ({
   formData,
   updateFormData,
+  onAccidentsChange,
+  onServiceHistoryChange,
+  onModificationsChange,
   onSubmit,
-  isLoading,
-  onSave,
 }) => {
-  const [activeTab, setActiveTab] = useState('condition');
+  const [activeTab, setActiveTab] = useState('basics');
 
-  const tabs = [
-    { id: 'condition', label: 'Condition', component: ConditionForm },
-    { id: 'details', label: 'Additional Details', component: AdditionalDetailsForm },
-    { id: 'loan', label: 'Loan Information', component: LoanDetailsForm },
-  ];
+  const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
+  const isFirstTab = currentTabIndex === 0;
+  const isLastTab = currentTabIndex === tabs.length - 1;
+
+  const goToNextTab = () => {
+    if (!isLastTab) {
+      setActiveTab(tabs[currentTabIndex + 1].id);
+    }
+  };
+
+  const goToPreviousTab = () => {
+    if (!isFirstTab) {
+      setActiveTab(tabs[currentTabIndex - 1].id);
+    }
+  };
+
+  const renderTab = () => {
+    switch (activeTab) {
+      case 'basics':
+        return <BasicInfoTab formData={formData} updateFormData={updateFormData} />;
+      case 'condition':
+        return <ConditionTab formData={formData} updateFormData={updateFormData} />;
+      case 'features':
+        return <FeaturesTab 
+          formData={formData} 
+          updateFormData={updateFormData} 
+          baseValue={30000}
+        />;
+      case 'modifications':
+        return <ModificationsTab formData={formData} updateFormData={updateFormData} />;
+      case 'service':
+        return <ServiceMaintenanceTab formData={formData} updateFormData={updateFormData} />;
+      case 'accidents':
+        return <AccidentHistoryTab formData={formData} updateFormData={updateFormData} />;
+      case 'issues':
+        return <VehicleIssuesTab formData={formData} updateFormData={updateFormData} />;
+      case 'title':
+        return <TitleOwnershipTab formData={formData} updateFormData={updateFormData} />;
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            Follow-Up Questions
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Progress value={formData.completion_percentage} className="w-32" />
-              <span>{formData.completion_percentage}% complete</span>
-              {formData.is_complete && <CheckCircle className="h-4 w-4 text-green-500" />}
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3">
-              {tabs.map((tab) => (
-                <TabsTrigger key={tab.id} value={tab.id}>
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            
-            {tabs.map((tab) => {
-              const Component = tab.component;
-              return (
-                <TabsContent key={tab.id} value={tab.id} className="mt-6">
-                  <Component formData={formData} updateFormData={updateFormData} />
-                </TabsContent>
-              );
-            })}
-          </Tabs>
-
-          <div className="flex justify-between mt-8 pt-6 border-t">
-            <Button
-              variant="outline"
-              onClick={onSave}
-              className="flex items-center gap-2"
+    <div className="w-full">
+      {/* Tab Navigation */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                'px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200',
+                isActive
+                  ? `text-white bg-gradient-to-r ${tab.color} shadow-lg transform scale-105`
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-102'
+              )}
             >
-              <Save className="h-4 w-4" />
-              Save Progress
-            </Button>
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
 
-            <Button
-              onClick={onSubmit}
-              disabled={!formData.is_complete || isLoading}
-              className="flex items-center gap-2"
-            >
-              {isLoading ? 'Submitting...' : 'Submit Valuation'}
-              {formData.is_complete && <CheckCircle className="h-4 w-4" />}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Tab Content */}
+      <div className="w-full min-h-[500px] bg-white rounded-lg border border-gray-200 p-6">
+        {renderTab()}
+      </div>
+
+      {/* Tab Navigation Buttons */}
+      <div className="flex justify-between items-center mt-6">
+        <button
+          onClick={goToPreviousTab}
+          disabled={isFirstTab}
+          className={cn(
+            'flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all',
+            isFirstTab 
+              ? 'opacity-40 cursor-not-allowed bg-gray-100 text-gray-500'
+              : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+          )}
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span>Previous</span>
+        </button>
+
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-600">
+            {currentTabIndex + 1} of {tabs.length}
+          </span>
+        </div>
+
+        <button
+          onClick={isLastTab ? onSubmit : goToNextTab}
+          className={cn(
+            'flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all',
+            isLastTab
+              ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'
+              : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700'
+          )}
+        >
+          <span>{isLastTab ? 'Complete Valuation' : 'Next'}</span>
+          {!isLastTab && <ChevronRight className="h-4 w-4" />}
+        </button>
+      </div>
     </div>
   );
 };

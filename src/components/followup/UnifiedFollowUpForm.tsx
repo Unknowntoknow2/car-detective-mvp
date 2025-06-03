@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TabbedFollowUpForm from './TabbedFollowUpForm';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 interface UnifiedFollowUpFormProps {
   vin?: string;
@@ -46,8 +44,6 @@ const defaultFormData: FollowUpAnswers = {
   is_complete: false,
 };
 
-const STORAGE_KEY = 'followupDraft';
-
 export function UnifiedFollowUpForm({ 
   vin, 
   initialData, 
@@ -55,45 +51,12 @@ export function UnifiedFollowUpForm({
   onSave 
 }: UnifiedFollowUpFormProps) {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<FollowUpAnswers>(() => {
-    // Try to restore from localStorage first
-    if (typeof window !== 'undefined') {
-      try {
-        const savedData = localStorage.getItem(STORAGE_KEY);
-        if (savedData) {
-          const parsed = JSON.parse(savedData);
-          toast.success('Draft restored from previous session');
-          return {
-            ...defaultFormData,
-            ...parsed,
-            vin: vin || parsed.vin || '',
-            ...initialData,
-          };
-        }
-      } catch (error) {
-        console.warn('Failed to parse saved form data:', error);
-        localStorage.removeItem(STORAGE_KEY);
-      }
-    }
-    
-    return {
-      ...defaultFormData,
-      vin: vin || '',
-      ...initialData,
-    };
-  });
+  const [formData, setFormData] = useState<FollowUpAnswers>(() => ({
+    ...defaultFormData,
+    vin: vin || '',
+    ...initialData,
+  }));
   const [isLoading, setIsLoading] = useState(false);
-
-  // Auto-save to localStorage whenever form data changes
-  useEffect(() => {
-    if (typeof window !== 'undefined' && formData.vin) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-      } catch (error) {
-        console.warn('Failed to save form data to localStorage:', error);
-      }
-    }
-  }, [formData]);
 
   // Update form data when props change
   useEffect(() => {
@@ -128,18 +91,10 @@ export function UnifiedFollowUpForm({
     if (onSave) {
       onSave(formData);
     }
-    
-    // Manual save to localStorage with feedback
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
-      toast.success('Progress saved');
-    } catch (error) {
-      console.error('Failed to save progress:', error);
-      toast.error('Failed to save progress');
-    }
+    toast.success('Progress saved');
   };
 
-  const handleFinalSubmit = async () => {
+  const handleSubmit = async () => {
     if (!formData.is_complete) {
       toast.error('Please complete at least 60% of the form before submitting');
       return;
@@ -150,28 +105,23 @@ export function UnifiedFollowUpForm({
       if (onSubmit) {
         await onSubmit(formData);
       } else {
-        // Submit to our Supabase edge function
-        const { data, error } = await supabase.functions.invoke('submit-followup', {
-          body: formData
+        // Default submission logic
+        const response = await fetch('/api/valuation/submit-followup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
         });
 
-        if (error) {
-          throw new Error(error.message || 'Submission failed');
+        if (!response.ok) {
+          throw new Error('Submission failed');
         }
 
-        const result = data;
-        
-        // Clear the saved draft on successful submission
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem(STORAGE_KEY);
-        }
-        
-        toast.success('Valuation submitted successfully!');
+        const result = await response.json();
         navigate(`/valuation/result/${result.id}`);
       }
     } catch (error) {
       console.error('Error submitting follow-up:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to submit valuation. Please try again.');
+      toast.error('Failed to submit valuation. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -181,7 +131,7 @@ export function UnifiedFollowUpForm({
     <TabbedFollowUpForm
       formData={formData}
       updateFormData={updateFormData}
-      onSubmit={handleFinalSubmit}
+      onSubmit={handleSubmit}
       onSave={handleSaveProgress}
       isLoading={isLoading}
     />
