@@ -139,7 +139,7 @@ export function UnifiedFollowUpForm({
     }
   };
 
-  const handleSubmit = async () => {
+  const handleFinalSubmit = async () => {
     if (!formData.is_complete) {
       toast.error('Please complete at least 60% of the form before submitting');
       return;
@@ -181,7 +181,7 @@ export function UnifiedFollowUpForm({
     <TabbedFollowUpForm
       formData={formData}
       updateFormData={updateFormData}
-      onSubmit={handleSubmit}
+      onSubmit={handleFinalSubmit}
       onSave={handleSaveProgress}
       isLoading={isLoading}
     />
