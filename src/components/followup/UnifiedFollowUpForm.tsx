@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TabbedFollowUpForm from './TabbedFollowUpForm';
@@ -58,6 +59,29 @@ export function UnifiedFollowUpForm({
   }));
   const [isLoading, setIsLoading] = useState(false);
 
+  // Auto-save to localStorage
+  useEffect(() => {
+    if (formData.vin) {
+      localStorage.setItem(`followUpDraft_${formData.vin}`, JSON.stringify(formData));
+    }
+  }, [formData]);
+
+  // Load saved draft on mount
+  useEffect(() => {
+    if (vin) {
+      const saved = localStorage.getItem(`followUpDraft_${vin}`);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setFormData(prev => ({ ...prev, ...parsed }));
+          toast.success('Draft restored');
+        } catch (error) {
+          console.warn('Failed to load draft:', error);
+        }
+      }
+    }
+  }, [vin]);
+
   // Update form data when props change
   useEffect(() => {
     if (vin || initialData) {
@@ -117,7 +141,15 @@ export function UnifiedFollowUpForm({
         }
 
         const result = await response.json();
+        
+        // Clear the draft after successful submission
+        if (formData.vin) {
+          localStorage.removeItem(`followUpDraft_${formData.vin}`);
+        }
+        
+        // Navigate to the result page
         navigate(`/valuation/result/${result.id}`);
+        toast.success('Valuation completed successfully!');
       }
     } catch (error) {
       console.error('Error submitting follow-up:', error);
