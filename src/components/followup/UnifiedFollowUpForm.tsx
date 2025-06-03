@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import TabbedFollowUpForm from './TabbedFollowUpForm';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UnifiedFollowUpFormProps {
   vin?: string;
@@ -149,19 +150,16 @@ export function UnifiedFollowUpForm({
       if (onSubmit) {
         await onSubmit(formData);
       } else {
-        // Submit to our API endpoint
-        const response = await fetch('/api/valuation/submit-followup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
+        // Submit to our Supabase edge function
+        const { data, error } = await supabase.functions.invoke('submit-followup', {
+          body: formData
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Submission failed');
+        if (error) {
+          throw new Error(error.message || 'Submission failed');
         }
 
-        const result = await response.json();
+        const result = data;
         
         // Clear the saved draft on successful submission
         if (typeof window !== 'undefined') {

@@ -14,12 +14,15 @@ interface LoanDetailsFormProps {
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
 }
 
-// Zod validation schema for this tab
-export const loanDetailsSchema = z.object({
+// Create a base schema without refinement for validation
+const baseLoanDetailsSchema = z.object({
   has_active_loan: z.boolean().optional(),
   loan_balance: z.number().min(0, 'Loan balance must be positive').optional(),
   payoffAmount: z.number().min(0, 'Payoff amount must be positive').optional(),
-}).refine((data) => {
+});
+
+// Use the base schema for field validation
+export const loanDetailsSchema = baseLoanDetailsSchema.refine((data) => {
   // If has_active_loan is true, either loan_balance or payoffAmount should be provided
   if (data.has_active_loan && !data.loan_balance && !data.payoffAmount) {
     return false;
@@ -35,7 +38,9 @@ export const LoanDetailsForm: React.FC<LoanDetailsFormProps> = ({ formData, upda
 
   const validateField = (field: string, value: any) => {
     try {
-      loanDetailsSchema.pick({ [field]: true } as any).parse({ [field]: value });
+      // Use the base schema for individual field validation
+      const fieldSchema = z.object({ [field]: baseLoanDetailsSchema.shape[field as keyof typeof baseLoanDetailsSchema.shape] });
+      fieldSchema.parse({ [field]: value });
       setErrors(prev => ({ ...prev, [field]: '' }));
       return true;
     } catch (error) {
