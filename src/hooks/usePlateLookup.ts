@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { PlateLookupInfo } from '@/types/lookup';
-import { lookupPlate } from '@/services/plateService';
+import { ApiResponse } from '@/types/api';
 
 export interface UsePlateLookupOptions {
   tier?: 'free' | 'premium';
@@ -20,26 +20,41 @@ export const usePlateLookup = (options: UsePlateLookupOptions = {}) => {
     setError(null);
     
     try {
-      const response = await lookupPlate(plate, state);
+      // Simulate API delay based on tier
+      const delay = tier === 'premium' ? 1500 : 1000;
+      await new Promise(resolve => setTimeout(resolve, delay));
       
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to lookup plate');
-      }
-      
-      let vehicleData = response.data;
-      
+      // Base mock data
+      const baseData: PlateLookupInfo = {
+        plate,
+        state,
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2019,
+        vin: 'JT2BF22K1W0123456',
+        color: 'Silver',
+        mileage: 45000,
+        transmission: 'Automatic',
+        fuelType: 'Gasoline',
+        bodyType: 'Sedan',
+        estimatedValue: 18500,
+        zipCode: '90210',
+        condition: 'Good'
+      };
+
+      let vehicleData = baseData;
+
       // Enhanced data for premium tier
       if (tier === 'premium' || includePremiumData) {
         vehicleData = {
           ...vehicleData,
-          // Add premium-specific fields
           detailedHistory: true,
           marketInsights: {
             averagePrice: vehicleData.estimatedValue || 0,
             priceRange: [
               (vehicleData.estimatedValue || 0) * 0.9,
               (vehicleData.estimatedValue || 0) * 1.1
-            ],
+            ] as [number, number],
             marketTrend: 'stable'
           },
           serviceRecords: [],
