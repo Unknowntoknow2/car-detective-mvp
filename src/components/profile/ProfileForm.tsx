@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 // Add a simple implementation or mock for this component
 import React, { useState, useEffect } from 'react';
@@ -9,16 +10,45 @@ import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+=======
+import { useForm } from "react-hook-form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Profile } from "@/types/profile";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface ProfileFormProps {
   className?: string;
 }
 
+<<<<<<< HEAD
 const ProfileForm: React.FC<ProfileFormProps> = ({ className }) => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const { user, isLoading } = useAuth();
+=======
+export const ProfileForm = (
+  { profile, onSubmit, isLoading }: ProfileFormProps,
+) => {
+  const form = useForm<Partial<Profile>>({
+    defaultValues: {
+      username: profile?.username || "",
+      full_name: profile?.full_name || "",
+      bio: profile?.bio || "",
+      website: profile?.website || "",
+    },
+  });
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
   useEffect(() => {
     if (user) {
@@ -78,6 +108,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ className }) => {
   };
 
   return (
+<<<<<<< HEAD
     <Card className={className}>
       <CardHeader>
         <CardTitle>Profile Information</CardTitle>
@@ -130,6 +161,71 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ className }) => {
         )}
       </CardContent>
     </Card>
+=======
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="username"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Username</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Username" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="full_name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Full Name</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Full Name" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="bio"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Bio</FormLabel>
+              <FormControl>
+                <Textarea {...field} placeholder="Tell us about yourself" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="website"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Website</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Your website URL" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Saving..." : "Save Changes"}
+        </Button>
+      </form>
+    </Form>
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   );
 };
 

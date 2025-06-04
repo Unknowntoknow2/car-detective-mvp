@@ -1,5 +1,4 @@
-
-import { Loader2 } from 'lucide-react';
+import { Loader2 } from "lucide-react";
 
 export const LoadingMessage = () => (
   <div className="space-y-2">

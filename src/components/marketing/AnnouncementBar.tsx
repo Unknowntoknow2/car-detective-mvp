@@ -1,13 +1,12 @@
-
-import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { X } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function AnnouncementBar() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const dismissed = localStorage.getItem('announcementDismissed');
+    const dismissed = localStorage.getItem("announcementDismissed");
     if (!dismissed) {
       setIsVisible(true);
     }
@@ -15,7 +14,7 @@ export function AnnouncementBar() {
 
   const handleDismiss = () => {
     setIsVisible(false);
-    localStorage.setItem('announcementDismissed', 'true');
+    localStorage.setItem("announcementDismissed", "true");
   };
 
   if (!isVisible) return null;
@@ -23,11 +22,12 @@ export function AnnouncementBar() {
   return (
     <div className="bg-slate-900 text-white animate-fade-in">
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-between">
-        <Link 
-          to="/premium" 
+        <Link
+          to="/premium"
           className="text-sm hover:text-primary-light transition-colors flex-1"
         >
-          New! Dealer-beat Offers & Marketplace Price Averages now live in Premium Valuation.
+          New! Dealer-beat Offers & Marketplace Price Averages now live in
+          Premium Valuation.
         </Link>
         <button
           onClick={handleDismiss}

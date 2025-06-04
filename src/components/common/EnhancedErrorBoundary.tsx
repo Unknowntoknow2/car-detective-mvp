@@ -1,8 +1,8 @@
-
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { errorHandler } from '@/utils/error-handling';
+import React, { Component, ErrorInfo, ReactNode } from "react";
+import { AlertTriangle, Home, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { errorHandler } from "@/utils/error-handling";
+import process from "node:process";
 
 interface Props {
   children: ReactNode;
@@ -24,7 +24,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,
-    errorInfo: null
+    errorInfo: null,
   };
 
   public static getDerivedStateFromError(error: Error): Partial<State> {
@@ -33,37 +33,37 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Handle the error using our centralized error handler
-    const context = this.props.context || 'ErrorBoundary';
+    const context = this.props.context || "ErrorBoundary";
     errorHandler.handle(error, context);
-    
+
     this.setState({ errorInfo });
-    
+
     // Report to error monitoring service
     errorHandler.report({
       message: error.message,
       context,
-      severity: error.name === 'SyntaxError' 
-        ? 'critical' as any 
-        : 'error' as any,
-      timestamp: new Date()
+      severity: error.name === "SyntaxError"
+        ? "critical" as any
+        : "error" as any,
+      timestamp: new Date(),
     });
   }
 
   private resetError = () => {
-    this.setState({ 
-      hasError: false, 
+    this.setState({
+      hasError: false,
       error: null,
-      errorInfo: null 
+      errorInfo: null,
     });
-    
+
     if (this.props.onReset) {
       this.props.onReset();
     }
-  }
+  };
 
   private goHome = () => {
-    window.location.href = '/';
-  }
+    globalThis.location.href = "/";
+  };
 
   public render() {
     if (this.state.hasError) {
@@ -77,17 +77,18 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
         <div className="p-6 border border-red-200 rounded-lg bg-red-50 shadow-sm">
           <div className="flex flex-col items-center sm:items-start sm:flex-row gap-4">
             <AlertTriangle className="h-10 w-10 text-red-600 flex-shrink-0" />
-            
+
             <div className="flex-1 text-center sm:text-left">
               <h2 className="text-xl font-semibold text-red-800 mb-2">
                 Something went wrong
               </h2>
-              
+
               <div className="mb-4 space-y-2">
                 <p className="text-red-700">
-                  We encountered an unexpected error while rendering this component.
+                  We encountered an unexpected error while rendering this
+                  component.
                 </p>
-                {process.env.NODE_ENV !== 'production' && this.state.error && (
+                {process.env.NODE_ENV !== "production" && this.state.error && (
                   <details className="mt-2 text-sm">
                     <summary className="text-red-700 cursor-pointer font-medium">
                       Error Details
@@ -99,9 +100,9 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
                   </details>
                 )}
               </div>
-              
+
               <div className="flex gap-3 justify-center sm:justify-start">
-                <Button 
+                <Button
                   onClick={this.resetError}
                   variant="outline"
                   className="border-red-300 hover:bg-red-100 inline-flex items-center"
@@ -110,8 +111,8 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Try Again
                 </Button>
-                
-                <Button 
+
+                <Button
                   onClick={this.goHome}
                   variant="outline"
                   className="border-red-300 hover:bg-red-100 inline-flex items-center"

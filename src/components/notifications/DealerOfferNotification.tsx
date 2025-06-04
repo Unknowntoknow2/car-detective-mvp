@@ -1,10 +1,15 @@
-
-import React from 'react';
-import { toast } from 'sonner';
-import { Bell, BellOff, DollarSign } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency } from '@/utils/formatters';
+import React from "react";
+import { toast } from "sonner";
+import { Bell, BellOff, DollarSign } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { formatCurrency } from "@/utils/formatters";
 
 interface DealerOfferNotificationProps {
   offerId: string;
@@ -22,14 +27,14 @@ interface DealerOfferNotificationProps {
 export function DealerOfferNotification({
   offerId,
   amount,
-  dealerName = 'A dealer',
+  dealerName = "A dealer",
   vehicle,
   onViewOffer,
-  onDismiss
+  onDismiss,
 }: DealerOfferNotificationProps) {
-  const vehicleText = vehicle 
-    ? `your ${vehicle.year} ${vehicle.make} ${vehicle.model}` 
-    : 'your vehicle';
+  const vehicleText = vehicle
+    ? `your ${vehicle.year} ${vehicle.make} ${vehicle.model}`
+    : "your vehicle";
 
   const handleDismiss = () => {
     if (onDismiss) {
@@ -49,12 +54,21 @@ export function DealerOfferNotification({
       </CardHeader>
       <CardContent className="pt-4">
         <p className="text-sm">
-          <span className="font-semibold">{dealerName}</span> has submitted an offer of{' '}
-          <span className="font-semibold text-primary">{formatCurrency(amount)}</span> for {vehicleText}.
+          <span className="font-semibold">{dealerName}</span>{" "}
+          has submitted an offer of{" "}
+          <span className="font-semibold text-primary">
+            {formatCurrency(amount)}
+          </span>{" "}
+          for {vehicleText}.
         </p>
       </CardContent>
       <CardFooter className="flex justify-between pt-2 pb-3">
-        <Button variant="outline" size="sm" onClick={handleDismiss} className="gap-1">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDismiss}
+          className="gap-1"
+        >
           <BellOff className="h-4 w-4" />
           Dismiss
         </Button>
@@ -67,7 +81,9 @@ export function DealerOfferNotification({
   );
 }
 
-export function showDealerOfferNotification(props: Omit<DealerOfferNotificationProps, 'onDismiss'>) {
+export function showDealerOfferNotification(
+  props: Omit<DealerOfferNotificationProps, "onDismiss">,
+) {
   return toast.custom((id) => (
     <DealerOfferNotification
       {...props}

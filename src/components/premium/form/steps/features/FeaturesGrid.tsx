@@ -1,6 +1,5 @@
-
-import { FeatureOption } from '@/types/premium-valuation';
-import { FeatureCard } from './FeatureCard';
+import { FeatureOption } from "@/types/premium-valuation";
+import { FeatureCard } from "./FeatureCard";
 
 interface FeaturesGridProps {
   features: FeatureOption[];
@@ -8,10 +7,12 @@ interface FeaturesGridProps {
   onToggleFeature: (featureId: string) => void;
 }
 
-export function FeaturesGrid({ features, selectedFeatures, onToggleFeature }: FeaturesGridProps) {
+export function FeaturesGrid(
+  { features, selectedFeatures, onToggleFeature }: FeaturesGridProps,
+) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {features.map(feature => (
+      {features.map((feature) => (
         <FeatureCard
           key={feature.id}
           feature={feature}

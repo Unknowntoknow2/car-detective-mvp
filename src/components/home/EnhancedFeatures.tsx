@@ -1,29 +1,32 @@
-
 import { motion } from "framer-motion";
-import { Car, ChartBar, Shield, FileBarChart } from "lucide-react";
+import { Car, ChartBar, FileBarChart, Shield } from "lucide-react";
 import { DesignCard, SectionHeader } from "../ui/design-system";
 
 const features = [
   {
     icon: <Car className="h-6 w-6" />,
     title: "Comprehensive Protection",
-    description: "Ensure your property is safeguarded with comprehensive insurance coverage tailored to your specific needs."
+    description:
+      "Ensure your property is safeguarded with comprehensive insurance coverage tailored to your specific needs.",
   },
   {
     icon: <ChartBar className="h-6 w-6" />,
     title: "Advanced Analytics",
-    description: "Get detailed insights into market trends and valuation patterns with our advanced analytics engine."
+    description:
+      "Get detailed insights into market trends and valuation patterns with our advanced analytics engine.",
   },
   {
     icon: <Shield className="h-6 w-6" />,
     title: "Secure Data Storage",
-    description: "Your information is securely stored and protected with state-of-the-art encryption technology."
+    description:
+      "Your information is securely stored and protected with state-of-the-art encryption technology.",
   },
   {
     icon: <FileBarChart className="h-6 w-6" />,
     title: "Real-Time Updates",
-    description: "Stay informed with real-time market data and instant valuations based on current conditions."
-  }
+    description:
+      "Stay informed with real-time market data and instant valuations based on current conditions.",
+  },
 ];
 
 export function EnhancedFeatures() {
@@ -47,7 +50,7 @@ export function EnhancedFeatures() {
               transition={{ duration: 0.5, delay: idx * 0.1 }}
               viewport={{ once: true }}
             >
-              <DesignCard 
+              <DesignCard
                 variant="glass"
                 className="h-full card-3d hover:border-primary/30 transition-all"
               >

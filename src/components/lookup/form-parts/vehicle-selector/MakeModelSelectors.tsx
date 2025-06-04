@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,25 @@ import { Input } from '@/components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+=======
+import React from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface MakeModelSelectorsProps {
   selectedMake: string;
@@ -47,6 +67,7 @@ export const MakeModelSelectors = ({
   setModelSearchTerm,
   disabled = false,
   required = false,
+<<<<<<< HEAD
   loadingModels = false,
   hasModels = true,
   forcedRender = 0
@@ -56,6 +77,9 @@ export const MakeModelSelectors = ({
     // This effect just uses the forcedRender prop to trigger a re-render
   }, [forcedRender]);
 
+=======
+}) => {
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Make Selector */}
@@ -77,9 +101,15 @@ export const MakeModelSelectors = ({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-full p-0" align="start">
+<<<<<<< HEAD
             <Command className="w-full">
               <CommandInput 
                 placeholder="Search makes..." 
+=======
+            <Command>
+              <CommandInput
+                placeholder="Search make..."
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
                 value={searchTerm}
                 onValueChange={setSearchTerm}
                 className="h-9"
@@ -92,16 +122,28 @@ export const MakeModelSelectors = ({
                       <CommandItem
                         key={make}
                         value={make}
+<<<<<<< HEAD
                         onSelect={() => {
                           setSelectedMake(make);
+=======
+                        onSelect={(currentValue) => {
+                          setSelectedMake(
+                            currentValue === selectedMake ? "" : currentValue,
+                          );
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
                           setMakesOpen(false);
                         }}
                         className="flex items-center gap-2"
                       >
                         <Check
                           className={cn(
+<<<<<<< HEAD
                             "h-4 w-4",
                             selectedMake === make ? "opacity-100" : "opacity-0"
+=======
+                            "mr-2 h-4 w-4",
+                            selectedMake === make ? "opacity-100" : "opacity-0",
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
                           )}
                         />
                         {make}
@@ -143,9 +185,15 @@ export const MakeModelSelectors = ({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-full p-0" align="start">
+<<<<<<< HEAD
             <Command className="w-full">
               <CommandInput 
                 placeholder="Search models..." 
+=======
+            <Command>
+              <CommandInput
+                placeholder="Search model..."
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
                 value={modelSearchTerm}
                 onValueChange={setModelSearchTerm}
                 className="h-9"
@@ -160,16 +208,30 @@ export const MakeModelSelectors = ({
                       <CommandItem
                         key={model}
                         value={model}
+<<<<<<< HEAD
                         onSelect={() => {
                           setSelectedModel(model);
+=======
+                        onSelect={(currentValue) => {
+                          setSelectedModel(
+                            currentValue === selectedModel ? "" : currentValue,
+                          );
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
                           setModelsOpen(false);
                         }}
                         className="flex items-center gap-2"
                       >
                         <Check
                           className={cn(
+<<<<<<< HEAD
                             "h-4 w-4",
                             selectedModel === model ? "opacity-100" : "opacity-0"
+=======
+                            "mr-2 h-4 w-4",
+                            selectedModel === model
+                              ? "opacity-100"
+                              : "opacity-0",
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
                           )}
                         />
                         {model}

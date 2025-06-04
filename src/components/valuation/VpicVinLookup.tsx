@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -7,20 +8,40 @@ import { Loader2, AlertCircle, Check, ChevronRight, Database, AlertTriangle, Wif
 import { Badge } from '@/components/ui/badge';
 import { formatRelativeTime } from '@/utils/formatters/formatRelativeTime';
 import { supabase } from '@/integrations/supabase/client';
+=======
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, Check, ChevronRight, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { formatDate, formatRelativeTime } from "@/utils/formatters";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export function VpicVinLookup({ vin }: { vin: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [fetchedAt, setFetchedAt] = useState<string | null>(null);
+<<<<<<< HEAD
   const [isDemoData, setIsDemoData] = useState(false);
   const [apiMessage, setApiMessage] = useState<string | null>(null);
   
+=======
+
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   const handleLookup = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
+<<<<<<< HEAD
       console.log('VpicVinLookup: Calling NHTSA API for VIN:', vin);
       
       const { data: result, error: apiError } = await supabase.functions.invoke('fetch_vpic_data', {
@@ -46,14 +67,37 @@ export function VpicVinLookup({ vin }: { vin: string }) {
     } catch (err: any) {
       console.error('VpicVinLookup: Error fetching NHTSA data:', err);
       setError(err.message || 'Failed to retrieve vehicle data from NHTSA');
+=======
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Mock successful response
+      setData({
+        make: "Toyota",
+        model: "Camry",
+        year: "2019",
+        manufacturer: "TOYOTA MOTOR CORPORATION",
+        plantCountry: "UNITED STATES",
+        bodyClass: "Sedan/Saloon",
+        fuelType: "Gasoline",
+        engineCylinders: "4",
+        engineSize: "2.5",
+        transmissionStyle: "Automatic",
+      });
+      setFetchedAt(new Date().toISOString());
+    } catch (err) {
+      console.error("Error in VIN lookup:", err);
+      setError("Failed to retrieve vehicle data");
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
+<<<<<<< HEAD
         <div className="flex items-center">
           <Database className="h-5 w-5 mr-2" />
           <h2 className="text-lg font-medium">NHTSA vPIC Data</h2>
@@ -92,6 +136,31 @@ export function VpicVinLookup({ vin }: { vin: string }) {
         </Alert>
       )}
       
+=======
+        <h2 className="text-lg font-medium">NHTSA vPIC Data</h2>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleLookup}
+          disabled={isLoading}
+        >
+          {isLoading
+            ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Loading...
+              </>
+            )
+            : (
+              <>
+                Lookup VIN
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </>
+            )}
+        </Button>
+      </div>
+
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -99,17 +168,23 @@ export function VpicVinLookup({ vin }: { vin: string }) {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      
+
       {!data && !error && !isLoading && (
         <Card className="border-dashed">
           <CardContent className="pt-6 text-center text-muted-foreground">
+<<<<<<< HEAD
             <Database className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p>Click "Query NHTSA API" to retrieve official vehicle data</p>
             <p className="text-sm">VIN: {vin}</p>
+=======
+            Click "Lookup VIN" to retrieve official NHTSA vehicle data for VIN:
+            {" "}
+            {vin}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
           </CardContent>
         </Card>
       )}
-      
+
       {data && (
         <Card>
           <CardHeader className="pb-2">
@@ -151,6 +226,7 @@ export function VpicVinLookup({ vin }: { vin: string }) {
             </div>
           </CardHeader>
           <CardContent>
+<<<<<<< HEAD
             <div className="grid grid-cols-2 gap-y-3 text-sm">
               <div>
                 <span className="font-medium text-muted-foreground">VIN:</span>
@@ -193,6 +269,23 @@ export function VpicVinLookup({ vin }: { vin: string }) {
                   <p>{data.trim}</p>
                 </div>
               )}
+=======
+            <div className="grid grid-cols-2 gap-y-2 text-sm">
+              <div className="font-medium">Body Style:</div>
+              <div>{data.bodyClass}</div>
+
+              <div className="font-medium">Fuel Type:</div>
+              <div>{data.fuelType}</div>
+
+              <div className="font-medium">Engine:</div>
+              <div>{data.engineSize}L {data.engineCylinders}-cylinder</div>
+
+              <div className="font-medium">Transmission:</div>
+              <div>{data.transmissionStyle}</div>
+
+              <div className="font-medium">Made in:</div>
+              <div>{data.plantCountry}</div>
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
             </div>
             
             {(data.errorCode || data.note) && (

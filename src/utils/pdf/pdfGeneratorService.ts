@@ -1,13 +1,13 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { ReportData, ReportOptions } from './types';
-import { defaultReportOptions } from './defaultReportOptions';
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { ReportData, ReportOptions } from "./types";
+import { defaultReportOptions } from "./defaultReportOptions";
 
 /**
  * Generate a PDF report with the given data and options
  */
 export async function generateReport(
   data: ReportData,
-  options: Partial<ReportOptions> = {}
+  options: Partial<ReportOptions> = {},
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595, 842]); // A4 size in points
@@ -30,7 +30,7 @@ export async function generateReport(
     `Year: ${data.year}`,
     `Make: ${data.make}`,
     `Model: ${data.model}`,
-    `Trim: ${data.trim ?? 'N/A'}`,
+    `Trim: ${data.trim ?? "N/A"}`,
     `Condition: ${data.condition}`,
     `Mileage: ${data.mileage}`,
     `Estimated Price: $${data.price}`,

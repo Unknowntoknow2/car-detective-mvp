@@ -1,8 +1,17 @@
-
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Label } from 'recharts';
-import { LoadingState } from '@/components/premium/common/LoadingState';
-import { Card, CardContent } from '@/components/ui/card';
-import { useMemo } from 'react';
+import {
+  CartesianGrid,
+  Label,
+  Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { LoadingState } from "@/components/premium/common/LoadingState";
+import { Card, CardContent } from "@/components/ui/card";
+import { useMemo } from "react";
 
 interface ForecastChartProps {
   data: Array<{ month: string; value: number }>;
@@ -10,29 +19,33 @@ interface ForecastChartProps {
   basePrice: number;
 }
 
-export function ForecastChart({ data, isLoading, basePrice }: ForecastChartProps) {
+export function ForecastChart(
+  { data, isLoading, basePrice }: ForecastChartProps,
+) {
   // Add today's marker to chart data
   const chartData = useMemo(() => {
     // Determine if forecast is generally going up or down
-    const trend = data.length > 0 && data[data.length - 1].value > basePrice ? 'up' : 'down';
-    
+    const trend = data.length > 0 && data[data.length - 1].value > basePrice
+      ? "up"
+      : "down";
+
     // Calculate confidence intervals (mock implementation)
     return data.map((point, index) => {
       // Calculate uncertainty that increases with time
       const uncertainty = 0.02 + (index / data.length) * 0.08;
-      
+
       return {
         ...point,
         upper: Math.round(point.value * (1 + uncertainty)),
         lower: Math.round(point.value * (1 - uncertainty)),
         // Add confidence intervals and seasonal adjustments
-        seasonal: trend === 'up' 
+        seasonal: trend === "up"
           ? point.value + Math.sin(index / 3) * 200
-          : point.value + Math.sin(index / 3) * 200
+          : point.value + Math.sin(index / 3) * 200,
       };
     });
   }, [data, basePrice]);
-  
+
   if (isLoading) {
     return (
       <Card>
@@ -42,7 +55,7 @@ export function ForecastChart({ data, isLoading, basePrice }: ForecastChartProps
       </Card>
     );
   }
-  
+
   // Format for large numbers ($10,000 becomes $10K)
   const formatValue = (value: number) => {
     if (value >= 1000000) {
@@ -52,7 +65,7 @@ export function ForecastChart({ data, isLoading, basePrice }: ForecastChartProps
     }
     return `$${value}`;
   };
-  
+
   return (
     <Card>
       <CardContent className="p-6">
@@ -64,46 +77,49 @@ export function ForecastChart({ data, isLoading, basePrice }: ForecastChartProps
               margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis 
-                dataKey="month" 
+              <XAxis
+                dataKey="month"
                 tick={{ fontSize: 12 }}
                 tickMargin={10}
                 stroke="#94a3b8"
               />
-              <YAxis 
+              <YAxis
                 tickFormatter={formatValue}
                 tick={{ fontSize: 12 }}
                 tickMargin={10}
                 stroke="#94a3b8"
                 width={60}
               />
-              <Tooltip 
-                formatter={(value: number) => [`$${value.toLocaleString()}`, 'Estimated Value']}
+              <Tooltip
+                formatter={(
+                  value: number,
+                ) => [`$${value.toLocaleString()}`, "Estimated Value"]}
                 labelFormatter={(month) => `Forecast: ${month}`}
-                contentStyle={{ 
-                  borderRadius: '0.5rem',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                  padding: '0.75rem',
-                  border: '1px solid #e2e8f0'
+                contentStyle={{
+                  borderRadius: "0.5rem",
+                  boxShadow:
+                    "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                  padding: "0.75rem",
+                  border: "1px solid #e2e8f0",
                 }}
               />
-              
+
               {/* Current value marker */}
-              <ReferenceLine 
-                x={chartData[0]?.month} 
-                stroke="#7c3aed" 
+              <ReferenceLine
+                x={chartData[0]?.month}
+                stroke="#7c3aed"
                 strokeWidth={2}
                 strokeDasharray="3 3"
               >
-                <Label 
-                  value="Today" 
-                  position="insideTopLeft" 
+                <Label
+                  value="Today"
+                  position="insideTopLeft"
                   fill="#7c3aed"
                   fontSize={12}
                   offset={10}
                 />
               </ReferenceLine>
-              
+
               {/* Confidence interval area */}
               <Line
                 type="monotone"
@@ -117,7 +133,7 @@ export function ForecastChart({ data, isLoading, basePrice }: ForecastChartProps
                 stroke="transparent"
                 fill="transparent"
               />
-              
+
               {/* Main forecast line */}
               <Line
                 type="monotone"
@@ -127,7 +143,7 @@ export function ForecastChart({ data, isLoading, basePrice }: ForecastChartProps
                 dot={{ r: 4, strokeWidth: 2, fill: "white" }}
                 activeDot={{ r: 6, strokeWidth: 0, fill: "#7c3aed" }}
               />
-              
+
               {/* Seasonal adjusted line (lighter color) */}
               <Line
                 type="monotone"

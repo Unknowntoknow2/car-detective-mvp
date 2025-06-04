@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { MakeModelSelect } from './fields/MakeModelSelect';
@@ -5,14 +6,27 @@ import { YearMileageInputs } from './fields/YearMileageInputs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
+=======
+import React from "react";
+import { MakeModelSelect } from "@/components/premium/lookup/form-parts/fields/MakeModelSelect";
+import { YearMileageInputs } from "@/components/premium/lookup/form-parts/fields/YearMileageInputs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { FormValidationError } from "@/components/premium/common/FormValidationError";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface BasicVehicleInfoProps {
   selectedMakeId: string;
   setSelectedMakeId: (id: string) => void;
   selectedModel: string;
   setSelectedModel: (model: string) => void;
+<<<<<<< HEAD
   selectedYear: number | string | '';
   setSelectedYear: (year: string | number) => void;
+=======
+  selectedYear: number | "";
+  setSelectedYear: (year: number | "") => void;
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   mileage: string;
   setMileage: (mileage: string) => void;
   zipCode: string;
@@ -33,10 +47,10 @@ export function BasicVehicleInfo({
   zipCode,
   setZipCode,
   isDisabled,
-  errors = {}
+  errors = {},
 }: BasicVehicleInfoProps) {
   const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+    const value = e.target.value.replace(/\D/g, "").slice(0, 5);
     setZipCode(value);
   };
 
@@ -52,6 +66,7 @@ export function BasicVehicleInfo({
           errors={errors}
         />
       </div>
+<<<<<<< HEAD
       
       <YearMileageInputs
         selectedYear={selectedYear}
@@ -62,9 +77,26 @@ export function BasicVehicleInfo({
         errors={errors}
       />
       
+=======
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <YearMileageInputs
+          selectedYear={selectedYear}
+          setSelectedYear={setSelectedYear}
+          mileage={mileage}
+          setMileage={setMileage}
+          isDisabled={isDisabled}
+          errors={errors}
+        />
+      </div>
+
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       <div className="sm:w-1/2">
         <div className="space-y-2">
-          <Label htmlFor="zipCode" className="text-sm font-medium text-slate-700">
+          <Label
+            htmlFor="zipCode"
+            className="text-sm font-medium text-slate-700"
+          >
             ZIP Code
           </Label>
           <Input
@@ -74,7 +106,11 @@ export function BasicVehicleInfo({
             onChange={handleZipCodeChange}
             placeholder="Enter ZIP code"
             maxLength={5}
-            className={`h-10 transition-all duration-200 ${errors.zipCode ? 'border-red-300 focus:ring-red-200' : 'focus:ring-primary/20 focus:border-primary hover:border-primary/30'}`}
+            className={`h-10 transition-all duration-200 ${
+              errors.zipCode
+                ? "border-red-300 focus:ring-red-200"
+                : "focus:ring-primary/20 focus:border-primary hover:border-primary/30"
+            }`}
             disabled={isDisabled}
           />
           {errors.zipCode && <FormValidationError error={errors.zipCode} />}

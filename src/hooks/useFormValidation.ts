@@ -1,13 +1,14 @@
-
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from "react";
 
 export function useFormValidation(totalSteps: number) {
-  const [stepValidities, setStepValidities] = useState<Record<number, boolean>>({});
-  
+  const [stepValidities, setStepValidities] = useState<Record<number, boolean>>(
+    {},
+  );
+
   const updateStepValidity = useCallback((step: number, isValid: boolean) => {
-    setStepValidities(prev => ({
+    setStepValidities((prev) => ({
       ...prev,
-      [step]: isValid
+      [step]: isValid,
     }));
   }, []);
 
@@ -25,6 +26,6 @@ export function useFormValidation(totalSteps: number) {
   return {
     stepValidities,
     updateStepValidity,
-    isFormValid
+    isFormValid,
   };
 }

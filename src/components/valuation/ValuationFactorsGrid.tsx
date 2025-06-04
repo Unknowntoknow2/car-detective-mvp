@@ -1,6 +1,6 @@
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import React from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export interface ValuationFactors {
   accidents: number;
@@ -26,7 +26,7 @@ export const ValuationFactorsGrid: React.FC<ValuationFactorsGridProps> = ({
           id="accidents"
           type="number"
           value={values.accidents}
-          onChange={(e) => onChange('accidents', parseInt(e.target.value))}
+          onChange={(e) => onChange("accidents", parseInt(e.target.value))}
         />
       </div>
       <div>
@@ -35,7 +35,7 @@ export const ValuationFactorsGrid: React.FC<ValuationFactorsGridProps> = ({
           id="mileage"
           type="number"
           value={values.mileage}
-          onChange={(e) => onChange('mileage', parseInt(e.target.value))}
+          onChange={(e) => onChange("mileage", parseInt(e.target.value))}
         />
       </div>
       <div>
@@ -44,7 +44,7 @@ export const ValuationFactorsGrid: React.FC<ValuationFactorsGridProps> = ({
           id="year"
           type="number"
           value={values.year}
-          onChange={(e) => onChange('year', parseInt(e.target.value))}
+          onChange={(e) => onChange("year", parseInt(e.target.value))}
         />
       </div>
       <div>
@@ -53,7 +53,7 @@ export const ValuationFactorsGrid: React.FC<ValuationFactorsGridProps> = ({
           id="titleStatus"
           type="text"
           value={values.titleStatus}
-          onChange={(e) => onChange('titleStatus', e.target.value)}
+          onChange={(e) => onChange("titleStatus", e.target.value)}
         />
       </div>
     </div>

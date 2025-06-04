@@ -1,4 +1,3 @@
-
 /**
  * Input parameters for calculating the confidence score
  */
@@ -18,7 +17,9 @@ export interface ConfidenceScoreInputs {
  * @param inputs Vehicle data points used for scoring
  * @returns Confidence score between 0 and 100
  */
-export function calculateConfidenceScore(inputs: ConfidenceScoreInputs): number {
+export function calculateConfidenceScore(
+  inputs: ConfidenceScoreInputs,
+): number {
   let score = 0;
 
   // VIN provides the highest confidence boost as it's a unique identifier
@@ -32,7 +33,7 @@ export function calculateConfidenceScore(inputs: ConfidenceScoreInputs): number 
   }
 
   // Mileage is crucial for accurate valuation
-  if (typeof inputs.mileage === 'number' && inputs.mileage >= 0) {
+  if (typeof inputs.mileage === "number" && inputs.mileage >= 0) {
     score += 15;
   }
 

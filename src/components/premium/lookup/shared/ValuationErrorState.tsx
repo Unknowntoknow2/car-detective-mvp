@@ -1,8 +1,13 @@
-
-import React from 'react';
-import { AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import React from "react";
+import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface ValuationErrorStateProps {
   error: string;
@@ -13,9 +18,9 @@ interface ValuationErrorStateProps {
 
 export const ValuationErrorState: React.FC<ValuationErrorStateProps> = ({
   error,
-  title = 'Valuation Error',
+  title = "Valuation Error",
   onRetry,
-  onManualEntry
+  onManualEntry,
 }) => {
   return (
     <Card className="border-red-200 bg-red-50/50">
@@ -27,7 +32,7 @@ export const ValuationErrorState: React.FC<ValuationErrorStateProps> = ({
       </CardHeader>
       <CardContent>
         <p className="text-red-700">{error}</p>
-        
+
         <div className="mt-4 bg-white p-4 rounded-md border border-red-100">
           <h3 className="font-medium text-gray-900 mb-2">What you can do:</h3>
           <ul className="space-y-2 text-sm text-gray-600">

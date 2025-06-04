@@ -1,13 +1,12 @@
-
-import React from 'react';
+import React from "react";
 import {
-  CommandItem,
+  CommandEmpty,
   CommandGroup,
-  CommandEmpty
-} from '@/components/ui/command';
-import { Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Make } from '@/hooks/types/vehicle';
+  CommandItem,
+} from "@/components/ui/command";
+import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Make } from "@/hooks/types/vehicle";
 
 interface MakeSelectorProps {
   makes: Make[];
@@ -16,13 +15,19 @@ interface MakeSelectorProps {
   disabled?: boolean;
 }
 
-export function MakeSelector({ makes, selectedMake, onSelect, disabled }: MakeSelectorProps) {
+export function MakeSelector(
+  { makes, selectedMake, onSelect, disabled }: MakeSelectorProps,
+) {
   // Ensure makes is always an array, even if it's undefined
   const safeMakes = Array.isArray(makes) ? makes : [];
-  
+
   // Return empty state component if no makes
   if (safeMakes.length === 0) {
-    return <CommandEmpty className="py-6 text-center text-sm">No makes available</CommandEmpty>;
+    return (
+      <CommandEmpty className="py-6 text-center text-sm">
+        No makes available
+      </CommandEmpty>
+    );
   }
 
   return (
@@ -39,7 +44,7 @@ export function MakeSelector({ makes, selectedMake, onSelect, disabled }: MakeSe
           <Check
             className={cn(
               "mr-2 h-4 w-4",
-              selectedMake === make.make_name ? "opacity-100" : "opacity-0"
+              selectedMake === make.make_name ? "opacity-100" : "opacity-0",
             )}
           />
           <div className="flex items-center gap-2">
@@ -50,7 +55,7 @@ export function MakeSelector({ makes, selectedMake, onSelect, disabled }: MakeSe
                 className="w-6 h-6 object-contain"
                 onError={(e) => {
                   console.log("Image load error");
-                  (e.target as HTMLImageElement).style.display = 'none';
+                  (e.target as HTMLImageElement).style.display = "none";
                 }}
               />
             )}

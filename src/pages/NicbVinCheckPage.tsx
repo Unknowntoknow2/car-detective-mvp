@@ -1,7 +1,19 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import NicbVinCheck from '@/components/valuation/NicbVinCheck';
+=======
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { NicbVinCheck } from "@/components/valuation/NicbVinCheck";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 const NicbVinCheckPage: React.FC = () => {
   return (
@@ -10,29 +22,31 @@ const NicbVinCheckPage: React.FC = () => {
       <p className="text-muted-foreground mb-6">
         Check if a vehicle has been reported stolen or has title issues
       </p>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Vehicle Theft & Title Check</CardTitle>
           <CardDescription>
-            Enter a VIN to check the National Insurance Crime Bureau (NICB) database
+            Enter a VIN to check the National Insurance Crime Bureau (NICB)
+            database
           </CardDescription>
         </CardHeader>
         <CardContent>
           <NicbVinCheck />
         </CardContent>
       </Card>
-      
+
       <div className="mt-8">
         <h2 className="text-xl font-semibold mb-4">About NICB VIN Check</h2>
         <div className="prose max-w-none">
           <p>
-            The NICB VIN Check is a free service provided by the National Insurance Crime 
-            Bureau to help consumers identify potentially stolen vehicles or vehicles with 
-            salvage or title issues.
+            The NICB VIN Check is a free service provided by the National
+            Insurance Crime Bureau to help consumers identify potentially stolen
+            vehicles or vehicles with salvage or title issues.
           </p>
           <p>
-            This tool checks against the NICB's database which contains information on:
+            This tool checks against the NICB's database which contains
+            information on:
           </p>
           <ul>
             <li>Vehicles reported as stolen and unrecovered</li>
@@ -40,10 +54,11 @@ const NicbVinCheckPage: React.FC = () => {
             <li>Vehicles with salvage or other title issues</li>
           </ul>
           <p>
-            <strong>Note:</strong> While the NICB VIN Check is a valuable resource, it should not 
-            be your only source of information when purchasing a used vehicle. Always consider 
-            getting a comprehensive vehicle history report and having the vehicle inspected by 
-            a trusted mechanic.
+            <strong>Note:</strong>{" "}
+            While the NICB VIN Check is a valuable resource, it should not be
+            your only source of information when purchasing a used vehicle.
+            Always consider getting a comprehensive vehicle history report and
+            having the vehicle inspected by a trusted mechanic.
           </p>
         </div>
       </div>

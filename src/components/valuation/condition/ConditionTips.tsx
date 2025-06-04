@@ -1,18 +1,28 @@
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { InfoIcon } from "lucide-react";
+import { ConditionTipsProps } from "./types";
 
+<<<<<<< HEAD
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { InfoIcon } from 'lucide-react';
 import { ConditionTipsProps } from './types';
 
 export function ConditionTips({ category, rating, tip, selectedRatings }: Partial<ConditionTipsProps>) {
+=======
+export function ConditionTips(
+  { category, tip, selectedRatings }: Partial<ConditionTipsProps>,
+) {
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   // Use the passed tip or get from selected ratings if available
-  const tipText = tip || 
-    (selectedRatings && 
-     category &&
-     selectedRatings[category.toLowerCase()] && 
-     selectedRatings[category.toLowerCase()].description) || 
+  const tipText = tip ||
+    (selectedRatings &&
+      category &&
+      selectedRatings[category.toLowerCase()] &&
+      selectedRatings[category.toLowerCase()].description) ||
     "Adjust the sliders above to rate your vehicle's condition in each category.";
-  
+
   return (
     <Card className="bg-blue-50 border-blue-200">
       <CardContent className="p-3 text-sm text-blue-800">

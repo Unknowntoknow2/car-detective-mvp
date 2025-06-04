@@ -1,11 +1,19 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { FactorSlider, ConditionOption } from './FactorSlider';
-import { useValuationFactors, CategoryFactors } from '@/hooks/useValuationFactors';
-import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle } from 'lucide-react';
-import { ConditionValues } from './types';
+import React, { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ConditionOption, FactorSlider } from "./FactorSlider";
+import {
+  CategoryFactors,
+  useValuationFactors,
+} from "@/hooks/useValuationFactors";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertCircle } from "lucide-react";
+import { ConditionValues } from "./types";
 
 interface ConditionEvaluationGridProps {
   values: ConditionValues;
@@ -19,43 +27,45 @@ interface CategoryCard {
   factors: CategoryFactors;
 }
 
-export function ConditionEvaluationGrid({ values, onChange }: ConditionEvaluationGridProps) {
+export function ConditionEvaluationGrid(
+  { values, onChange }: ConditionEvaluationGridProps,
+) {
   const { categoryFactors, isLoading, error } = useValuationFactors();
   const [categoryCards, setCategoryCards] = useState<CategoryCard[]>([]);
-  
+
   useEffect(() => {
     if (!isLoading && !error && Object.keys(categoryFactors).length > 0) {
       const cards: CategoryCard[] = [
         {
-          key: 'exterior',
-          title: 'Exterior Condition',
-          description: 'Paint, body, glass, and trim',
-          factors: categoryFactors['exterior'] || {}
+          key: "exterior",
+          title: "Exterior Condition",
+          description: "Paint, body, glass, and trim",
+          factors: categoryFactors["exterior"] || {},
         },
         {
-          key: 'interior',
-          title: 'Interior Condition',
-          description: 'Seats, dashboard, carpet, and electronics',
-          factors: categoryFactors['interior'] || {}
+          key: "interior",
+          title: "Interior Condition",
+          description: "Seats, dashboard, carpet, and electronics",
+          factors: categoryFactors["interior"] || {},
         },
         {
-          key: 'mechanical',
-          title: 'Mechanical Condition',
-          description: 'Engine, transmission, suspension, and brakes',
-          factors: categoryFactors['mechanical'] || {}
+          key: "mechanical",
+          title: "Mechanical Condition",
+          description: "Engine, transmission, suspension, and brakes",
+          factors: categoryFactors["mechanical"] || {},
         },
         {
-          key: 'tires',
-          title: 'Tires & Wheels',
-          description: 'Tread depth, wheel condition, and matching',
-          factors: categoryFactors['tires'] || {}
-        }
+          key: "tires",
+          title: "Tires & Wheels",
+          description: "Tread depth, wheel condition, and matching",
+          factors: categoryFactors["tires"] || {},
+        },
       ];
-      
+
       setCategoryCards(cards);
     }
   }, [categoryFactors, isLoading, error]);
-  
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -81,7 +91,7 @@ export function ConditionEvaluationGrid({ values, onChange }: ConditionEvaluatio
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <Card className="p-6">
@@ -92,29 +102,45 @@ export function ConditionEvaluationGrid({ values, onChange }: ConditionEvaluatio
       </Card>
     );
   }
-  
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {categoryCards.map((category) => (
         <Card key={category.key} className="rounded-2xl shadow overflow-hidden">
           <CardHeader className="pb-3">
-            <CardTitle className="text-xl font-semibold">{category.title}</CardTitle>
+            <CardTitle className="text-xl font-semibold">
+              {category.title}
+            </CardTitle>
             <CardDescription>{category.description}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-8">
               {Object.entries(category.factors).map(([factorName, options]) => {
+<<<<<<< HEAD
                 const id = `${category.key}${factorName.charAt(0).toUpperCase() + factorName.slice(1)}`;
                 
+=======
+                const id = `${category.key}_${factorName}`;
+
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
                 // Format the factor name for display (capitalize, add spaces)
                 const displayName = factorName
-                  .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-                  .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
-                  
+                  .replace(/([A-Z])/g, " $1") // Add space before capital letters
+                  .replace(/^./, (str) =>
+                    str.toUpperCase()); // Capitalize first letter
+
                 // For numeric sliders only - ensure the value is a number with default fallback
+<<<<<<< HEAD
                 const currentValue = values[id as keyof ConditionValues];
                 const numericValue = typeof currentValue === 'number' ? currentValue : 50; // Default to 50 (Good) if not set or not a number
                 
+=======
+                const currentValue = values[id];
+                const numericValue = typeof currentValue === "number"
+                  ? currentValue
+                  : 50; // Default to 50 (Good) if not set or not a number
+
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
                 return (
                   <FactorSlider
                     key={id}

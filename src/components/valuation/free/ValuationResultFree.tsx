@@ -1,49 +1,67 @@
+<<<<<<< HEAD:src/components/valuation/free/ValuationResultFree.tsx
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Share, Download, ArrowRight } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 import { supabase } from '@/utils/supabaseClient';
+=======
+import React, { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Download, Share } from "lucide-react";
+import { formatCurrency } from "@/utils/formatters";
+import { supabase } from "@/utils/supabaseClient";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup):src/components/valuation/free/ValuationResult.tsx
 
 interface ValuationResultFreeProps {
   valuationData: any;
   valuationId: string | null;
 }
 
+<<<<<<< HEAD:src/components/valuation/free/ValuationResultFree.tsx
 export function ValuationResultFree({ valuationData, valuationId }: ValuationResultFreeProps) {
   const [makeDisplay, setMakeDisplay] = useState<string>('');
   const [modelDisplay, setModelDisplay] = useState<string>('');
   
+=======
+export function ValuationResult(
+  { valuationData, valuationId }: ValuationResultProps,
+) {
+  const [makeDisplay, setMakeDisplay] = useState<string>("");
+  const [modelDisplay, setModelDisplay] = useState<string>("");
+
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup):src/components/valuation/free/ValuationResult.tsx
   // Fetch make and model names if we have a valuation ID
   useEffect(() => {
     async function fetchVehicleDetails() {
       if (!valuationId) return;
-      
+
       try {
         const { data, error } = await supabase
-          .from('valuations')
-          .select('make, model, year')
-          .eq('id', valuationId)
+          .from("valuations")
+          .select("make, model, year")
+          .eq("id", valuationId)
           .single();
-        
+
         if (error) throw error;
-        
+
         if (data) {
           setMakeDisplay(data.make);
           setModelDisplay(data.model);
         }
       } catch (err) {
-        console.error('Error fetching valuation details:', err);
+        console.error("Error fetching valuation details:", err);
       }
     }
-    
+
     fetchVehicleDetails();
   }, [valuationId]);
-  
+
   if (!valuationData) return null;
-  
+
   const { finalValue, baseValue, confidenceScore, priceRange } = valuationData;
-  
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-6 rounded-lg shadow-sm">
@@ -53,15 +71,20 @@ export function ValuationResultFree({ valuationData, valuationId }: ValuationRes
             {formatCurrency(finalValue)}
           </span>
           <span className="ml-2 text-sm text-muted-foreground">
-            {confidenceScore >= 80 ? 'High confidence' : 
-             confidenceScore >= 60 ? 'Medium confidence' : 'Low confidence'}
+            {confidenceScore >= 80
+              ? "High confidence"
+              : confidenceScore >= 60
+              ? "Medium confidence"
+              : "Low confidence"}
           </span>
         </div>
-        
+
         <div className="mt-4 text-sm text-muted-foreground">
           <div className="flex justify-between">
             <span>Value Range:</span>
-            <span>{formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}</span>
+            <span>
+              {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
+            </span>
           </div>
           <div className="flex justify-between mt-1">
             <span>Base Value:</span>
@@ -69,7 +92,7 @@ export function ValuationResultFree({ valuationData, valuationId }: ValuationRes
           </div>
         </div>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Your Vehicle</CardTitle>
@@ -99,7 +122,7 @@ export function ValuationResultFree({ valuationData, valuationId }: ValuationRes
           </div>
         </CardContent>
       </Card>
-      
+
       <div className="flex flex-col sm:flex-row gap-3">
         <Button variant="outline" className="flex-1 gap-2">
           <Share className="h-4 w-4" />

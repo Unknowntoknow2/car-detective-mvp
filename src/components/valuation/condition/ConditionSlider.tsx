@@ -1,6 +1,5 @@
-
-import { Slider } from '@/components/ui/slider';
-import { Label } from '@/components/ui/label';
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 
 export interface ConditionSliderProps {
   value: number;
@@ -23,7 +22,7 @@ export function ConditionSlider({
   label,
   description,
   id,
-  name
+  name,
 }: ConditionSliderProps) {
   const handleChange = (values: number[]) => {
     onChange(values[0]);
@@ -32,8 +31,10 @@ export function ConditionSlider({
   return (
     <div className="space-y-2">
       {label && <Label htmlFor={id}>{label}</Label>}
-      {description && <p className="text-sm text-muted-foreground">{description}</p>}
-      
+      {description && (
+        <p className="text-sm text-muted-foreground">{description}</p>
+      )}
+
       <Slider
         id={id}
         value={[value]}
@@ -43,7 +44,7 @@ export function ConditionSlider({
         onValueChange={handleChange}
         className="py-2"
       />
-      
+
       <div className="flex justify-between text-xs text-muted-foreground">
         <span>{min}</span>
         <span>{max}</span>

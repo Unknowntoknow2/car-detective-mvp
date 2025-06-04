@@ -1,7 +1,6 @@
-
-import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from "react";
+import { useAuth } from "./useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 type PremiumDealerStatus = {
   isPremium: boolean;
@@ -27,22 +26,23 @@ export const usePremiumDealer = (): PremiumDealerStatus => {
       try {
         // Get profile data which contains premium information
         const { data, error } = await supabase
-          .from('profiles')
-          .select('is_premium_dealer, premium_expires_at')
-          .eq('id', user.id)
+          .from("profiles")
+          .select("is_premium_dealer, premium_expires_at")
+          .eq("id", user.id)
           .single();
 
         if (error) {
           throw error;
         }
 
-        const isPremiumActive = data.is_premium_dealer && 
-          (!data.premium_expires_at || new Date(data.premium_expires_at) > new Date());
+        const isPremiumActive = data.is_premium_dealer &&
+          (!data.premium_expires_at ||
+            new Date(data.premium_expires_at) > new Date());
 
         setIsPremium(isPremiumActive);
         setExpiryDate(data.premium_expires_at);
       } catch (err) {
-        console.error('Error checking premium status:', err);
+        console.error("Error checking premium status:", err);
         setError(err as Error);
       } finally {
         setIsLoading(false);

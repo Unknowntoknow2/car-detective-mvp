@@ -1,6 +1,5 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface User {
   id: string;
@@ -18,15 +17,15 @@ export function useUser() {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         // For now, return a mock user since auth isn't set up
         setUser({
-          id: '00000000-0000-0000-0000-000000000000',
-          email: 'demo@example.com'
+          id: "00000000-0000-0000-0000-000000000000",
+          email: "demo@example.com",
         });
       } catch (err) {
-        console.error('Error getting user:', err);
-        setError('Failed to get user');
+        console.error("Error getting user:", err);
+        setError("Failed to get user");
       } finally {
         setIsLoading(false);
       }

@@ -1,9 +1,8 @@
-
-import React, { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { SendIcon, Loader2, Mic, MicOff, RefreshCw } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Mic, MicOff, RefreshCw, SendIcon } from "lucide-react";
+import { toast } from "sonner";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -14,15 +13,15 @@ interface ChatInputProps {
   showRegenerate?: boolean;
 }
 
-export function ChatInput({ 
-  onSend, 
-  isLoading, 
-  placeholder = "Type a message...", 
+export function ChatInput({
+  onSend,
+  isLoading,
+  placeholder = "Type a message...",
   disabled = false,
   onRegenerateResponse,
-  showRegenerate = false
+  showRegenerate = false,
 }: ChatInputProps) {
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -31,7 +30,7 @@ export function ChatInput({
     const trimmed = message.trim();
     if (trimmed && !isLoading) {
       onSend(trimmed);
-      setMessage('');
+      setMessage("");
     }
   };
 
@@ -40,14 +39,14 @@ export function ChatInput({
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    textarea.style.height = 'auto';
+    textarea.style.height = "auto";
     const newHeight = Math.min(textarea.scrollHeight, 120); // Max height of 120px
     textarea.style.height = `${newHeight}px`;
   }, [message]);
 
   // Handle Shift+Enter for newline, Enter for submit
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
@@ -56,15 +55,17 @@ export function ChatInput({
   // Speech recognition functionality
   const toggleSpeechRecognition = () => {
     // Check if browser supports speech recognition
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
       setIsRecording(!isRecording);
-      
+
       if (!isRecording) {
         // Start recording
         toast.info("Voice input started - speak clearly");
         // After a moment, simulate receiving voice input
         setTimeout(() => {
-          setMessage(prev => prev + " How can I get a better valuation for my car?");
+          setMessage((prev) =>
+            prev + " How can I get a better valuation for my car?"
+          );
           setIsRecording(false);
           toast.success("Voice input captured");
         }, 2000);
@@ -79,7 +80,10 @@ export function ChatInput({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 p-2 border-t w-full">
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-2 p-2 border-t w-full"
+    >
       {showRegenerate && onRegenerateResponse && (
         <Button
           type="button"
@@ -93,7 +97,7 @@ export function ChatInput({
           Regenerate response
         </Button>
       )}
-      
+
       <div className="flex items-end gap-2">
         <Textarea
           ref={textareaRef}
@@ -106,7 +110,7 @@ export function ChatInput({
           rows={1}
         />
         <div className="flex gap-1">
-          <Button 
+          <Button
             type="button"
             size="icon"
             variant="ghost"
@@ -114,23 +118,19 @@ export function ChatInput({
             className="h-10 w-10 shrink-0 text-muted-foreground"
             onClick={toggleSpeechRecognition}
           >
-            {isRecording ? (
-              <MicOff className="h-5 w-5 text-red-500" />
-            ) : (
-              <Mic className="h-5 w-5" />
-            )}
+            {isRecording
+              ? <MicOff className="h-5 w-5 text-red-500" />
+              : <Mic className="h-5 w-5" />}
           </Button>
-          <Button 
-            type="submit" 
-            size="icon" 
+          <Button
+            type="submit"
+            size="icon"
             disabled={!message.trim() || isLoading || disabled}
             className="h-10 w-10 shrink-0"
           >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <SendIcon className="h-5 w-5" />
-            )}
+            {isLoading
+              ? <Loader2 className="h-5 w-5 animate-spin" />
+              : <SendIcon className="h-5 w-5" />}
           </Button>
         </div>
       </div>

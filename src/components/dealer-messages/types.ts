@@ -1,4 +1,3 @@
-
 export interface Lead {
   id: string;
   buyerName: string;
@@ -37,7 +36,7 @@ export interface Message {
   sentByDealer: boolean;
   isRead: boolean;
   attachments?: {
-    type: 'image' | 'pdf' | 'gif';
+    type: "image" | "pdf" | "gif";
     url: string;
     name: string;
   }[];
@@ -47,9 +46,9 @@ export interface Offer {
   id: string;
   amount: number;
   timestamp: Date;
-  status: 'pending' | 'accepted' | 'rejected' | 'countered';
+  status: "pending" | "accepted" | "rejected" | "countered";
   sentByDealer: boolean;
   counterAmount?: number;
 }
 
-export type TabType = 'all' | 'unread' | 'archived';
+export type TabType = "all" | "unread" | "archived";

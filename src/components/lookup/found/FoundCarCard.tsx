@@ -17,7 +17,14 @@ type FoundCarCardProps = {
 
 const FoundCarCard: React.FC<FoundCarCardProps> = ({ vehicle, readonly = true }) => {
   const {
-    vin, year, make, model, trim, bodyType, fuelType, transmission,
+    vin,
+    year,
+    make,
+    model,
+    trim,
+    bodyType,
+    fuelType,
+    transmission,
   } = vehicle;
   const title = [year, make, model, trim].filter(Boolean).join(" ");
 

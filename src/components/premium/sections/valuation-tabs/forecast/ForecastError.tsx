@@ -1,4 +1,3 @@
-
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,8 +12,8 @@ export function ForecastError({ error, onRetry }: ForecastErrorProps) {
   return (
     <Card>
       <CardContent className="p-6">
-        <ErrorState 
-          title="Forecast Error" 
+        <ErrorState
+          title="Forecast Error"
           message={error}
           onRetry={onRetry}
           icon={<AlertTriangle className="h-12 w-12 text-red-500" />}

@@ -1,8 +1,10 @@
-
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 // Cache for market multipliers to reduce database calls
-const marketMultiplierCache = new Map<string, { value: number, timestamp: number }>();
+const marketMultiplierCache = new Map<
+  string,
+  { value: number; timestamp: number }
+>();
 const CACHE_EXPIRY = 30 * 60 * 1000; // 30 minutes
 
 /**
@@ -15,38 +17,40 @@ export async function getMarketMultiplier(zipCode: string): Promise<number> {
     if (!zipCode) {
       return 0;
     }
-    
+
     // Check cache first
     const now = Date.now();
     const cached = marketMultiplierCache.get(zipCode);
     if (cached && (now - cached.timestamp < CACHE_EXPIRY)) {
-      console.log(`Using cached market multiplier for ${zipCode}: ${cached.value}%`);
+      console.log(
+        `Using cached market multiplier for ${zipCode}: ${cached.value}%`,
+      );
       return cached.value;
     }
-    
+
     const { data, error } = await supabase
-      .from('market_adjustments')
-      .select('market_multiplier')
-      .eq('zip_code', zipCode)
+      .from("market_adjustments")
+      .select("market_multiplier")
+      .eq("zip_code", zipCode)
       .maybeSingle();
-    
+
     if (error) {
-      console.error('Error fetching market multiplier:', error);
+      console.error("Error fetching market multiplier:", error);
       return 0;
     }
-    
+
     const multiplier = data?.market_multiplier || 0;
-    
+
     // Store in cache
-    marketMultiplierCache.set(zipCode, { 
-      value: multiplier, 
-      timestamp: now 
+    marketMultiplierCache.set(zipCode, {
+      value: multiplier,
+      timestamp: now,
     });
-    
+
     console.log(`Fetched market multiplier for ${zipCode}: ${multiplier}%`);
     return multiplier;
   } catch (err) {
-    console.error('Error in getMarketMultiplier:', err);
+    console.error("Error in getMarketMultiplier:", err);
     return 0;
   }
 }

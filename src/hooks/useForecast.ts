@@ -1,7 +1,6 @@
-
-import { useState, useEffect } from 'react';
-import type { ForecastResult } from '@/utils/forecasting/valuation-forecast';
-import { generateValuationForecast } from '@/utils/forecasting/valuation-forecast';
+import { useEffect, useState } from "react";
+import type { ForecastResult } from "@/utils/forecasting/valuation-forecast";
+import { generateValuationForecast } from "@/utils/forecasting/valuation-forecast";
 
 export function useForecast(valuationId: string) {
   const [forecastData, setForecastData] = useState<ForecastResult | null>(null);
@@ -16,7 +15,7 @@ export function useForecast(valuationId: string) {
         const data = await generateValuationForecast(valuationId);
         setForecastData(data);
       } catch (err) {
-        setError('Failed to load forecast data');
+        setError("Failed to load forecast data");
         console.error(err);
       } finally {
         setIsLoading(false);

@@ -1,3 +1,2 @@
-
 // Export navbar components
-export * from '../layout/Navbar';
+export * from "../layout/Navbar";

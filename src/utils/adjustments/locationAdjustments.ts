@@ -1,12 +1,16 @@
-
 /**
  * Location-based adjustment calculator
  * Adjusts vehicle value based on geographic location
  */
 
+<<<<<<< HEAD
 interface ZipAdjustmentMap {
   [zipCode: string]: number;
 }
+=======
+import { supabase } from "@/integrations/supabase/client";
+import { getMarketMultiplier } from "../valuation/marketData";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 // Sample ZIP code adjustments (percentage multipliers)
 // In a real implementation, this would be fetched from a database
@@ -53,6 +57,7 @@ const zipRegions: {[key: string]: string} = {
  * @returns Market multiplier for the region (percentage as decimal)
  */
 export function getRegionalMarketMultiplier(zipCode: string): number {
+<<<<<<< HEAD
   if (!zipCode || zipCode.length < 1) return 0;
   
   // Get the first digit for regional assessment
@@ -73,6 +78,79 @@ export function getRegionalMarketMultiplier(zipCode: string): number {
   };
   
   return regionalDefaults[regionDigit] || 0;
+=======
+  if (!zipCode) return 0;
+
+  // Check our sync cache first
+  if (syncMarketMultiplierCache.has(zipCode)) {
+    return syncMarketMultiplierCache.get(zipCode)! / 100;
+  }
+
+  // Since we can't do async here, return a default value
+  // The async version should be preferred where possible
+  console.log(
+    `Using synchronous version of getRegionalMarketMultiplier for ${zipCode}. Consider using getRegionalMarketMultiplierAsync instead.`,
+  );
+  return 0; // Default value for synchronous contexts
+}
+
+/**
+ * Gets the regional market multiplier asynchronously
+ * @param zipCode The ZIP code where the vehicle is located
+ * @returns A promise resolving to a multiplier to be applied to the base value
+ */
+export async function getRegionalMarketMultiplierAsync(
+  zipCode: string,
+): Promise<number> {
+  if (!zipCode) return 0;
+
+  try {
+    // Use the shared market multiplier function
+    const multiplierPercentage = await getMarketMultiplier(zipCode);
+
+    // Update sync cache for future synchronous lookups
+    syncMarketMultiplierCache.set(zipCode, multiplierPercentage);
+
+    // Return the multiplier as a decimal (divide by 100)
+    return multiplierPercentage / 100;
+  } catch (error) {
+    console.error("Exception fetching market multiplier:", error);
+    return 0;
+  }
+}
+
+/**
+ * Gets the region name from a ZIP code
+ * This is a simplified implementation and would be replaced with a more comprehensive database in production
+ * @param zipCode The ZIP code
+ * @returns The name of the region
+ */
+export function getRegionNameFromZip(zipCode: string): string {
+  // This would be replaced with a ZIP code to region name database
+  const zipRegionMap: Record<string, string> = {
+    "102": "New York City",
+    "900": "Los Angeles",
+    "941": "San Francisco",
+    "981": "Seattle",
+    "331": "Miami",
+    "021": "Boston",
+    "606": "Chicago",
+    "802": "Denver",
+    "303": "Atlanta",
+    "372": "Nashville",
+    "972": "Portland",
+    "787": "Austin",
+    "482": "Detroit",
+    "441": "Cleveland",
+    "152": "Pittsburgh",
+    "711": "Shreveport",
+    "276": "Raleigh",
+  };
+
+  // Try to match the first 3 digits
+  const zipPrefix = zipCode.substring(0, 3);
+  return zipRegionMap[zipPrefix] || "Unknown Region";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }
 
 /**
@@ -116,6 +194,7 @@ export async function getZipMultiplier(zipCode: string): Promise<number> {
  * @param basePrice Base price of the vehicle
  * @returns Dollar amount adjustment
  */
+<<<<<<< HEAD
 export async function getZipAdjustment(zipCode: string, basePrice: number): Promise<number> {
   const multiplier = await getZipMultiplier(zipCode);
   return Math.round(basePrice * multiplier);
@@ -129,4 +208,12 @@ export async function getZipAdjustment(zipCode: string, basePrice: number): Prom
 export function getRegionNameFromZip(zipCode: string): string {
   const firstDigit = zipCode.substring(0, 1);
   return zipRegions[firstDigit] || 'United States';
+=======
+export async function getZipAdjustment(
+  zipCode: string,
+  basePrice: number,
+): Promise<number> {
+  const multiplier = await getRegionalMarketMultiplierAsync(zipCode);
+  return basePrice * multiplier;
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }

@@ -1,20 +1,29 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, AlertCircle, Store } from 'lucide-react';
-import { useDealerOfferComparison } from '@/hooks/useDealerOfferComparison';
-import { DealerOfferCard } from './DealerOfferCard';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { AlertCircle, Loader2, Store } from "lucide-react";
+import { useDealerOfferComparison } from "@/hooks/useDealerOfferComparison";
+import { DealerOfferCard } from "./DealerOfferCard";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface DealerOfferListProps {
   valuationId?: string;
 }
 
-export const DealerOfferList: React.FC<DealerOfferListProps> = ({ valuationId }) => {
-  const { offers, isLoading, error, getBestOffer } = useDealerOfferComparison(valuationId);
-  
+export const DealerOfferList: React.FC<DealerOfferListProps> = (
+  { valuationId },
+) => {
+  const { offers, isLoading, error, getBestOffer } = useDealerOfferComparison(
+    valuationId,
+  );
+
   const bestOffer = getBestOffer();
-  
+
   if (isLoading) {
     return (
       <Card>
@@ -28,7 +37,7 @@ export const DealerOfferList: React.FC<DealerOfferListProps> = ({ valuationId })
       </Card>
     );
   }
-  
+
   if (error) {
     return (
       <Alert variant="destructive">
@@ -40,7 +49,7 @@ export const DealerOfferList: React.FC<DealerOfferListProps> = ({ valuationId })
       </Alert>
     );
   }
-  
+
   if (offers.length === 0) {
     return (
       <Card>
@@ -53,21 +62,22 @@ export const DealerOfferList: React.FC<DealerOfferListProps> = ({ valuationId })
             <Store className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
             <h3 className="font-medium text-lg mb-1">No offers yet</h3>
             <p className="text-muted-foreground text-sm max-w-md mx-auto">
-              Dealers are reviewing your vehicle details. Offers typically arrive within 24-48 hours.
+              Dealers are reviewing your vehicle details. Offers typically
+              arrive within 24-48 hours.
             </p>
           </div>
         </CardContent>
       </Card>
     );
   }
-  
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Dealer Offers</CardTitle>
         <CardDescription>
-          {offers.length === 1 
-            ? "1 offer available" 
+          {offers.length === 1
+            ? "1 offer available"
             : `${offers.length} offers available`}
         </CardDescription>
       </CardHeader>

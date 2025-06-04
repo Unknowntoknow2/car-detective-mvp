@@ -1,9 +1,13 @@
-
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { FileText, Info } from 'lucide-react';
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { Badge } from "@/components/ui/badge";
+import { FileText, Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 
 interface FormHeaderProps {
   title?: string;
@@ -14,12 +18,16 @@ interface FormHeaderProps {
 export function FormHeader({
   title = "Manual Entry",
   subtitle = "Detailed Vehicle Information",
-  tooltipContent = "Enter your vehicle details manually for the most accurate valuation. More details = better results."
+  tooltipContent =
+    "Enter your vehicle details manually for the most accurate valuation. More details = better results.",
 }: FormHeaderProps) {
   return (
     <div className="flex items-center justify-between mb-6">
       <div className="flex items-center gap-3">
-        <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-200 px-3 py-1.5">
+        <Badge
+          variant="outline"
+          className="bg-slate-100 text-slate-700 border-slate-200 px-3 py-1.5"
+        >
           <FileText className="h-4 w-4 mr-2" />
           {title}
         </Badge>

@@ -1,5 +1,7 @@
-
-import { CarDetectiveValidator, VehicleFormData } from "../CarDetectiveValidator";
+import {
+  CarDetectiveValidator,
+  VehicleFormData,
+} from "../CarDetectiveValidator";
 
 describe("CarDetectiveValidator", () => {
   const validFormData: VehicleFormData = {
@@ -10,7 +12,7 @@ describe("CarDetectiveValidator", () => {
     zipCode: "90210",
     condition: "Good",
     fuelType: "Gasoline",
-    transmission: "Automatic"
+    transmission: "Automatic",
   };
 
   describe("isValidForm", () => {
@@ -23,7 +25,7 @@ describe("CarDetectiveValidator", () => {
     it("should validate required fields", () => {
       const result = CarDetectiveValidator.isValidForm({
         ...validFormData,
-        make: ""
+        make: "",
       });
       expect(result.valid).toBe(false);
       expect(result.errors.make).toBeTruthy();
@@ -33,7 +35,7 @@ describe("CarDetectiveValidator", () => {
       const result = CarDetectiveValidator.isValidForm({
         ...validFormData,
         year: 1970,
-        mileage: 350000
+        mileage: 350000,
       });
       expect(result.valid).toBe(false);
       expect(result.errors.year).toBeTruthy();
@@ -44,7 +46,7 @@ describe("CarDetectiveValidator", () => {
       const result = CarDetectiveValidator.isValidForm({
         ...validFormData,
         year: "2020",
-        mileage: "50000"
+        mileage: "50000",
       });
       expect(result.valid).toBe(true);
     });
@@ -65,37 +67,56 @@ describe("CarDetectiveValidator", () => {
 
     it("should validate mileage field", () => {
       expect(CarDetectiveValidator.validateField("mileage", 50000)).toBeNull();
-      expect(CarDetectiveValidator.validateField("mileage", "50000")).toBeNull();
-      expect(CarDetectiveValidator.validateField("mileage", -100)).not.toBeNull();
-      expect(CarDetectiveValidator.validateField("mileage", 350000)).not.toBeNull();
+      expect(CarDetectiveValidator.validateField("mileage", "50000"))
+        .toBeNull();
+      expect(CarDetectiveValidator.validateField("mileage", -100)).not
+        .toBeNull();
+      expect(CarDetectiveValidator.validateField("mileage", 350000)).not
+        .toBeNull();
     });
 
     it("should validate zipCode field", () => {
-      expect(CarDetectiveValidator.validateField("zipCode", "90210")).toBeNull();
-      expect(CarDetectiveValidator.validateField("zipCode", "9021")).not.toBeNull();
-      expect(CarDetectiveValidator.validateField("zipCode", "902100")).not.toBeNull();
-      expect(CarDetectiveValidator.validateField("zipCode", "abcde")).not.toBeNull();
+      expect(CarDetectiveValidator.validateField("zipCode", "90210"))
+        .toBeNull();
+      expect(CarDetectiveValidator.validateField("zipCode", "9021")).not
+        .toBeNull();
+      expect(CarDetectiveValidator.validateField("zipCode", "902100")).not
+        .toBeNull();
+      expect(CarDetectiveValidator.validateField("zipCode", "abcde")).not
+        .toBeNull();
     });
 
     it("should validate condition field", () => {
-      expect(CarDetectiveValidator.validateField("condition", "Good")).toBeNull();
-      expect(CarDetectiveValidator.validateField("condition", "Excellent")).toBeNull();
-      expect(CarDetectiveValidator.validateField("condition", "Fair")).toBeNull();
-      expect(CarDetectiveValidator.validateField("condition", "Poor")).toBeNull();
-      expect(CarDetectiveValidator.validateField("condition", "Average")).not.toBeNull();
+      expect(CarDetectiveValidator.validateField("condition", "Good"))
+        .toBeNull();
+      expect(CarDetectiveValidator.validateField("condition", "Excellent"))
+        .toBeNull();
+      expect(CarDetectiveValidator.validateField("condition", "Fair"))
+        .toBeNull();
+      expect(CarDetectiveValidator.validateField("condition", "Poor"))
+        .toBeNull();
+      expect(CarDetectiveValidator.validateField("condition", "Average")).not
+        .toBeNull();
     });
 
     it("should validate fuelType field", () => {
-      expect(CarDetectiveValidator.validateField("fuelType", "Gasoline")).toBeNull();
-      expect(CarDetectiveValidator.validateField("fuelType", "Diesel")).toBeNull();
-      expect(CarDetectiveValidator.validateField("fuelType", "Electric")).toBeNull();
-      expect(CarDetectiveValidator.validateField("fuelType", "Invalid")).not.toBeNull();
+      expect(CarDetectiveValidator.validateField("fuelType", "Gasoline"))
+        .toBeNull();
+      expect(CarDetectiveValidator.validateField("fuelType", "Diesel"))
+        .toBeNull();
+      expect(CarDetectiveValidator.validateField("fuelType", "Electric"))
+        .toBeNull();
+      expect(CarDetectiveValidator.validateField("fuelType", "Invalid")).not
+        .toBeNull();
     });
 
     it("should validate transmission field", () => {
-      expect(CarDetectiveValidator.validateField("transmission", "Automatic")).toBeNull();
-      expect(CarDetectiveValidator.validateField("transmission", "Manual")).toBeNull();
-      expect(CarDetectiveValidator.validateField("transmission", "Invalid")).not.toBeNull();
+      expect(CarDetectiveValidator.validateField("transmission", "Automatic"))
+        .toBeNull();
+      expect(CarDetectiveValidator.validateField("transmission", "Manual"))
+        .toBeNull();
+      expect(CarDetectiveValidator.validateField("transmission", "Invalid")).not
+        .toBeNull();
     });
   });
 
@@ -107,7 +128,9 @@ describe("CarDetectiveValidator", () => {
 
     it("should reject invalid VINs", () => {
       expect(CarDetectiveValidator.isValidVIN("")).toBe(false);
-      expect(CarDetectiveValidator.isValidVIN("TOOLONG1234567890123")).toBe(false);
+      expect(CarDetectiveValidator.isValidVIN("TOOLONG1234567890123")).toBe(
+        false,
+      );
       expect(CarDetectiveValidator.isValidVIN("TOOSHORT123")).toBe(false);
       expect(CarDetectiveValidator.isValidVIN("1HGCM82633A00435I")).toBe(false); // Contains invalid character I
       expect(CarDetectiveValidator.isValidVIN("1HGCM82633A00435O")).toBe(false); // Contains invalid character O
@@ -115,7 +138,9 @@ describe("CarDetectiveValidator", () => {
     });
 
     it("should handle spaces and case", () => {
-      expect(CarDetectiveValidator.isValidVIN("1HGCM 82633 A004352")).toBe(true);
+      expect(CarDetectiveValidator.isValidVIN("1HGCM 82633 A004352")).toBe(
+        true,
+      );
       expect(CarDetectiveValidator.isValidVIN("1hgcm82633a004352")).toBe(true);
     });
   });
@@ -131,7 +156,9 @@ describe("CarDetectiveValidator", () => {
       expect(CarDetectiveValidator.isValidPlate("", "CA")).toBe(false);
       expect(CarDetectiveValidator.isValidPlate("ABC123", "")).toBe(false);
       expect(CarDetectiveValidator.isValidPlate("AB*123", "NY")).toBe(false);
-      expect(CarDetectiveValidator.isValidPlate("TOOLONG123", "TX")).toBe(false);
+      expect(CarDetectiveValidator.isValidPlate("TOOLONG123", "TX")).toBe(
+        false,
+      );
     });
   });
 });

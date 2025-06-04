@@ -1,8 +1,7 @@
-
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { ServiceHistoryDisplay } from '../service-history/ServiceHistoryDisplay';
-import { ServiceHistoryUploader } from '../service-history/ServiceHistoryUploader';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { ServiceHistoryDisplay } from "../service-history/ServiceHistoryDisplay";
+import { ServiceHistoryUploader } from "../service-history/ServiceHistoryUploader";
 
 interface ServiceHistorySectionProps {
   vin: string;
@@ -11,28 +10,28 @@ interface ServiceHistorySectionProps {
   onUploadComplete: () => void;
 }
 
-export function ServiceHistorySection({ 
-  vin, 
-  showServiceUploader, 
+export function ServiceHistorySection({
+  vin,
+  showServiceUploader,
   onToggleUploader,
-  onUploadComplete
+  onUploadComplete,
 }: ServiceHistorySectionProps) {
   return (
     <div className="space-y-4">
       <ServiceHistoryDisplay vin={vin} />
-      
+
       <div className="flex justify-end">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={onToggleUploader}
         >
-          {showServiceUploader ? 'Hide Upload Form' : 'Add Service Record'}
+          {showServiceUploader ? "Hide Upload Form" : "Add Service Record"}
         </Button>
       </div>
-      
+
       {showServiceUploader && (
-        <ServiceHistoryUploader 
-          initialVin={vin} 
+        <ServiceHistoryUploader
+          initialVin={vin}
           onUploadComplete={() => {
             onUploadComplete();
             onToggleUploader();

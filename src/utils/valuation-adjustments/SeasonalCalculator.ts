@@ -1,124 +1,113 @@
 
-import { AdjustmentBreakdown, RulesEngineInput } from "../rules/types";
+import { AdjustmentBreakdown, RulesEngineInput } from '../rules/types';
+import { Calculator } from '../rules/interfaces/Calculator';
 
-export class SeasonalCalculator {
-  calculate(input: RulesEngineInput): AdjustmentBreakdown {
-    // Get current month (1-12)
-    const currentMonth = new Date().getMonth() + 1;
+interface SeasonalPattern {
+  [month: number]: {
+    label: string;
+    adjustment: number;
+    vehicleTypes: {
+      [type: string]: number;
+    };
+  };
+}
+
+export class SeasonalCalculator implements Calculator {
+  private seasonalPatterns: SeasonalPattern = {
+    // January
+    1: {
+      label: 'Winter',
+      adjustment: -0.02,
+      vehicleTypes: {
+        'suv': 0.01,
+        'truck': 0.01,
+        'convertible': -0.03,
+        'sports': -0.02
+      }
+    },
+    // February
+    2: {
+      label: 'Late Winter',
+      adjustment: -0.01,
+      vehicleTypes: {
+        'suv': 0.005,
+        'truck': 0.005,
+        'convertible': -0.02,
+        'sports': -0.01
+      }
+    },
+    // March
+    3: {
+      label: 'Early Spring',
+      adjustment: 0.01,
+      vehicleTypes: {
+        'convertible': 0.02,
+        'sports': 0.01,
+        'motorcycle': 0.03
+      }
+    },
+    // April - December similar pattern...
+    // This is a simplified version, you'd fill in all months
+    6: {
+      label: 'Summer',
+      adjustment: 0.03,
+      vehicleTypes: {
+        'convertible': 0.04,
+        'sports': 0.02,
+        'suv': -0.01
+      }
+    },
+    12: {
+      label: 'Holiday Season',
+      adjustment: 0.02,
+      vehicleTypes: {
+        'luxury': 0.03
+      }
+    }
+  };
+
+  public async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
+    // Get current month
+    const currentMonth = new Date().getMonth() + 1; // 1-12
     
-    // Get vehicle type
-    const bodyType = input.bodyType || input.bodyStyle || this.guessBodyType(input.make, input.model);
-    const basePrice = input.basePrice || 20000; // Default if not provided
+    // Get seasonal pattern for current month (use default if not defined)
+    const seasonalPattern = this.seasonalPatterns[currentMonth] || {
+      label: 'Mid-Season',
+      adjustment: 0,
+      vehicleTypes: {}
+    };
     
-    // Get seasonal multiplier based on vehicle type and month
-    const multiplier = this.getSeasonalMultiplier(bodyType, currentMonth);
+    // Calculate base seasonal adjustment
+    let totalAdjustment = seasonalPattern.adjustment;
     
-    // Calculate impact
-    const impact = Math.round(basePrice * multiplier);
+    // Add vehicle type specific adjustment if applicable
+    const bodyType = input.bodyType?.toLowerCase() || '';
+    
+    // Check each vehicle type for match
+    for (const [type, adjustment] of Object.entries(seasonalPattern.vehicleTypes)) {
+      if (bodyType.includes(type)) {
+        totalAdjustment += adjustment;
+        break; // Only apply the first matching type
+      }
+    }
+    
+    // Skip if no significant adjustment
+    if (Math.abs(totalAdjustment) < 0.005) {
+      return null;
+    }
+    
+    // Calculate monetary value
+    const adjustmentValue = input.basePrice * totalAdjustment;
+    const factor = 'Seasonal Adjustment';
+    const impact = Math.round(adjustmentValue);
     
     return {
-      factor: "Seasonal Demand",
-      impact,
-      description: this.getSeasonalDescription(bodyType, currentMonth, impact > 0)
+      name: 'Seasonal Adjustment',
+      value: Math.round(adjustmentValue),
+      description: `${seasonalPattern.label} seasonal impact on vehicle value`,
+      percentAdjustment: totalAdjustment * 100,
+      factor,
+      impact
     };
-  }
-  
-  private guessBodyType(make: string, model: string): string {
-    // This is a simplified guess - in a real app, would use a database
-    // of vehicle types or an API
-    const normalizedModel = model.toLowerCase();
-    
-    // Try to guess convertibles
-    if (normalizedModel.includes("convertible") || 
-        normalizedModel.includes("spyder") || 
-        normalizedModel.includes("spider") || 
-        normalizedModel.includes("roadster") ||
-        normalizedModel.includes("cabriolet")) {
-      return "convertible";
-    }
-    
-    // Try to guess SUVs
-    if (normalizedModel.includes("suv") || 
-        normalizedModel.includes("crossover") || 
-        normalizedModel.includes("explorer") || 
-        normalizedModel.includes("highlander") ||
-        normalizedModel.includes("4runner") ||
-        normalizedModel.includes("pilot") ||
-        normalizedModel.includes("rav4") ||
-        normalizedModel.includes("equinox") ||
-        normalizedModel.includes("cherokee") ||
-        normalizedModel.includes("tahoe") ||
-        normalizedModel.includes("yukon")) {
-      return "suv";
-    }
-    
-    // Try to guess trucks
-    if (normalizedModel.includes("truck") || 
-        normalizedModel.includes("pickup") || 
-        normalizedModel.includes("silverado") || 
-        normalizedModel.includes("sierra") ||
-        normalizedModel.includes("f-150") ||
-        normalizedModel.includes("ram") ||
-        normalizedModel.includes("tacoma") ||
-        normalizedModel.includes("tundra") ||
-        normalizedModel.includes("frontier") ||
-        normalizedModel.includes("ridgeline")) {
-      return "truck";
-    }
-    
-    // Try to guess sports cars
-    if (normalizedModel.includes("sport") || 
-        normalizedModel.includes("mustang") || 
-        normalizedModel.includes("camaro") || 
-        normalizedModel.includes("corvette") ||
-        normalizedModel.includes("911") ||
-        normalizedModel.includes("boxster") ||
-        normalizedModel.includes("miata") ||
-        normalizedModel.includes("supra") ||
-        normalizedModel.includes("challenger") ||
-        normalizedModel.includes("charger")) {
-      return "sport";
-    }
-    
-    // Default to sedan/generic if can't determine
-    return "generic";
-  }
-  
-  private getSeasonalMultiplier(bodyType: string, month: number): number {
-    // Normalize body type for comparison
-    const normalizedType = bodyType.toLowerCase();
-    
-    // Seasonal adjustment factors by vehicle type and month
-    const seasonalFactors: Record<string, number[]> = {
-      // Highest demand in spring and summer
-      "convertible": [0, -0.04, -0.02, 0.01, 0.02, 0.03, 0.04, 0.03, 0.01, -0.01, -0.02, -0.03],
-      // Highest demand in winter months
-      "suv": [0, 0.02, 0.01, 0, -0.01, -0.01, -0.02, -0.01, 0, 0.01, 0.01, 0.02],
-      // Similar to SUVs but with stronger effect
-      "truck": [0, 0.03, 0.02, 0.01, -0.01, -0.02, -0.02, -0.01, 0, 0.01, 0.02, 0.03],
-      // Similar to convertibles but less pronounced
-      "sport": [0, -0.02, -0.01, 0, 0.01, 0.02, 0.02, 0.02, 0.01, 0, -0.01, -0.02],
-      // Less affected by seasonality
-      "generic": [0, 0, 0, 0.01, 0.01, 0, 0, 0, 0.01, 0, 0, 0]
-    };
-    
-    // Get the appropriate seasonal factor for this vehicle type
-    // If type not found, use generic
-    const typeFactors = seasonalFactors[normalizedType] || seasonalFactors.generic;
-    
-    // Return the seasonal factor for the current month (adjusting for 0-based array)
-    return typeFactors[month - 1];
-  }
-  
-  private getSeasonalDescription(bodyType: string, month: number, isPositive: boolean): string {
-    const seasons = ["Winter", "Winter", "Spring", "Spring", "Spring", "Summer", 
-                    "Summer", "Summer", "Fall", "Fall", "Fall", "Winter"];
-    const currentSeason = seasons[month - 1];
-    
-    if (isPositive) {
-      return `${currentSeason} is a high-demand season for ${bodyType} vehicles`;
-    } else {
-      return `${currentSeason} typically has lower demand for ${bodyType} vehicles`;
-    }
   }
 }

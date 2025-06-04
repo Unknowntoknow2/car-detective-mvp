@@ -1,9 +1,13 @@
-
-import React from 'react';
-import { Photo } from '@/types/photo';
-import { X, AlertCircle, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import React from "react";
+import { Photo } from "@/types/photo";
+import { AlertCircle, Loader2, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface PhotoUploadListProps {
   photos: Photo[];
@@ -19,12 +23,12 @@ export function PhotoUploadList({ photos, onRemove }: PhotoUploadListProps) {
             {photo.preview && (
               <img
                 src={photo.preview}
-                alt={photo.name || 'Photo'}
+                alt={photo.name || "Photo"}
                 className="w-full h-full object-cover"
               />
             )}
           </div>
-          
+
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 rounded-md">
             <TooltipProvider>
               <Tooltip>
@@ -45,13 +49,13 @@ export function PhotoUploadList({ photos, onRemove }: PhotoUploadListProps) {
               </Tooltip>
             </TooltipProvider>
           </div>
-          
+
           {photo.uploading && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-md">
               <Loader2 className="h-5 w-5 text-white animate-spin" />
             </div>
           )}
-          
+
           {photo.error && (
             <div className="absolute top-1 right-1">
               <TooltipProvider>
@@ -68,7 +72,7 @@ export function PhotoUploadList({ photos, onRemove }: PhotoUploadListProps) {
               </TooltipProvider>
             </div>
           )}
-          
+
           <div className="mt-1 text-xs text-muted-foreground truncate">
             {photo.name}
           </div>

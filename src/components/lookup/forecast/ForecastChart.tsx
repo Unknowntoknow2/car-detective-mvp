@@ -1,20 +1,25 @@
-
-import React from 'react';
+import React from "react";
 import {
-  ResponsiveContainer,
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ReferenceLine,
-  Legend
-} from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useForecast } from '@/hooks/useForecast';
-import { ForecastTrendIndicator } from './ForecastTrendIndicator';
-import { ForecastMetrics } from './ForecastMetrics';
+} from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useForecast } from "@/hooks/useForecast";
+import { ForecastTrendIndicator } from "./ForecastTrendIndicator";
+import { ForecastMetrics } from "./ForecastMetrics";
 
 interface ForecastChartProps {
   valuationId: string;
@@ -31,7 +36,8 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
           <CardTitle>Loading forecast data...</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary">
+          </div>
         </CardContent>
       </Card>
     );
@@ -42,25 +48,31 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Forecast Unavailable</CardTitle>
-          <CardDescription>Unable to generate forecast at this time</CardDescription>
+          <CardDescription>
+            Unable to generate forecast at this time
+          </CardDescription>
         </CardHeader>
       </Card>
     );
   }
 
-  const formatCurrency = (value: number) => 
-    new Intl.NumberFormat('en-US', { 
-      style: 'currency', 
-      currency: 'USD',
-      maximumFractionDigits: 0 
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
     }).format(value);
 
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
-          <CardTitle className="text-xl font-bold">12-Month Value Forecast</CardTitle>
-          <CardDescription>Projected value trend based on market data analysis</CardDescription>
+          <CardTitle className="text-xl font-bold">
+            12-Month Value Forecast
+          </CardTitle>
+          <CardDescription>
+            Projected value trend based on market data analysis
+          </CardDescription>
         </div>
         <ForecastTrendIndicator trend={forecastData.valueTrend} />
       </CardHeader>
@@ -70,26 +82,28 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
             <LineChart data={forecastData.forecast}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="month" className="text-xs" />
-              <YAxis 
-                domain={['auto', 'auto']}
+              <YAxis
+                domain={["auto", "auto"]}
                 tickFormatter={formatCurrency}
                 className="text-xs"
               />
-              <Tooltip 
-                formatter={(value: number) => [formatCurrency(value), 'Estimated Value']}
+              <Tooltip
+                formatter={(
+                  value: number,
+                ) => [formatCurrency(value), "Estimated Value"]}
                 labelFormatter={(label) => `Forecast for ${label}`}
               />
               <Legend />
-              <ReferenceLine 
-                y={basePrice} 
-                stroke="hsl(var(--primary))" 
+              <ReferenceLine
+                y={basePrice}
+                stroke="hsl(var(--primary))"
                 strokeDasharray="3 3"
-                label={{ 
-                  position: 'right',
-                  value: 'Current Value',
-                  fill: 'hsl(var(--primary))',
-                  fontSize: 12
-                }} 
+                label={{
+                  position: "right",
+                  value: "Current Value",
+                  fill: "hsl(var(--primary))",
+                  fontSize: 12,
+                }}
               />
               <Line
                 name="Forecast Value"
@@ -103,7 +117,7 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <ForecastMetrics 
+        <ForecastMetrics
           bestTimeToSell={forecastData.bestTimeToSell}
           percentageChange={forecastData.percentageChange}
           lowestValue={forecastData.lowestValue}

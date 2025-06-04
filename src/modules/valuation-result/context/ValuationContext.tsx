@@ -1,6 +1,5 @@
-
-import React, { createContext, useContext, ReactNode } from 'react';
-import { ValuationResult } from '@/types/valuation';
+import React, { createContext, ReactNode, useContext } from "react";
+import { ValuationResult } from "@/types/valuation";
 
 interface ValuationContextType {
   valuationData: ValuationResult | null;
@@ -15,14 +14,18 @@ interface ValuationContextType {
   isEmailSending: boolean;
 }
 
-const ValuationContext = createContext<ValuationContextType | undefined>(undefined);
+const ValuationContext = createContext<ValuationContextType | undefined>(
+  undefined,
+);
 
 interface ValuationProviderProps {
   children: ReactNode;
   value: ValuationContextType;
 }
 
-export const ValuationProvider: React.FC<ValuationProviderProps> = ({ children, value }) => {
+export const ValuationProvider: React.FC<ValuationProviderProps> = (
+  { children, value },
+) => {
   return (
     <ValuationContext.Provider value={value}>
       {children}
@@ -33,7 +36,7 @@ export const ValuationProvider: React.FC<ValuationProviderProps> = ({ children, 
 export const useValuation = (): ValuationContextType => {
   const context = useContext(ValuationContext);
   if (context === undefined) {
-    throw new Error('useValuation must be used within a ValuationProvider');
+    throw new Error("useValuation must be used within a ValuationProvider");
   }
   return context;
 };

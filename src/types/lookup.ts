@@ -1,4 +1,3 @@
-
 export interface PlateLookupInfo {
   plate: string;
   state: string;

@@ -1,8 +1,7 @@
-
-import { Card } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Plus } from 'lucide-react';
-import { FeatureOption } from '@/types/premium-valuation';
+import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus } from "lucide-react";
+import { FeatureOption } from "@/types/premium-valuation";
 
 interface FeatureCardProps {
   feature: FeatureOption;
@@ -10,11 +9,15 @@ interface FeatureCardProps {
   onToggle: (featureId: string) => void;
 }
 
-export function FeatureCard({ feature, isSelected, onToggle }: FeatureCardProps) {
+export function FeatureCard(
+  { feature, isSelected, onToggle }: FeatureCardProps,
+) {
   return (
     <Card
       className={`p-4 cursor-pointer transition-all ${
-        isSelected ? 'border-primary bg-primary/5' : 'hover:border-gray-300 hover:bg-gray-50'
+        isSelected
+          ? "border-primary bg-primary/5"
+          : "hover:border-gray-300 hover:bg-gray-50"
       }`}
       onClick={() => onToggle(feature.id)}
     >
@@ -28,7 +31,9 @@ export function FeatureCard({ feature, isSelected, onToggle }: FeatureCardProps)
         </div>
         <div className="flex-grow">
           <p className="font-medium text-gray-900">{feature.name}</p>
-          <p className="text-sm text-green-600">+${feature.value.toLocaleString()}</p>
+          <p className="text-sm text-green-600">
+            +${feature.value.toLocaleString()}
+          </p>
         </div>
         {isSelected && (
           <Plus className="h-4 w-4 text-primary transform rotate-45" />

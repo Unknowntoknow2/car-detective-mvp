@@ -1,7 +1,6 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/utils/supabaseClient';
-import { ValuationResult } from '@/types/valuation';
+import { useEffect, useState } from "react";
+import { supabase } from "@/utils/supabaseClient";
+import { ValuationResult } from "@/types/valuation";
 
 interface UseValuationDataReturn {
   data: ValuationResult | null;
@@ -33,8 +32,12 @@ export function useValuationData(valuationId: string): UseValuationDataReturn {
     if (!valuationId || valuationId === ':id' || valuationId === '%3Aid') {
       setIsLoading(false);
       setIsError(true);
+<<<<<<< HEAD
       setError('No valuation ID or VIN provided');
       console.log('Invalid valuationId (placeholder):', valuationId);
+=======
+      setError("No valuation ID provided");
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       return;
     }
 
@@ -43,10 +46,18 @@ export function useValuationData(valuationId: string): UseValuationDataReturn {
     setError(null);
 
     try {
+<<<<<<< HEAD
       console.log('Fetching valuation data for ID/VIN:', valuationId);
       
       let result = null;
       let apiError = null;
+=======
+      const { data: result, error: apiError } = await supabase
+        .from("valuations")
+        .select("*")
+        .eq("id", valuationId)
+        .single();
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
       // First try to fetch by ID if it's a valid UUID
       if (isValidUUID(valuationId)) {
@@ -138,24 +149,29 @@ export function useValuationData(valuationId: string): UseValuationDataReturn {
         console.log('Valuation data fetched successfully:', result);
         
         // Convert adjustments from string to array if needed
-        if (result.adjustments && typeof result.adjustments === 'string') {
+        if (result.adjustments && typeof result.adjustments === "string") {
           try {
             result.adjustments = JSON.parse(result.adjustments);
           } catch (e) {
-            console.error('Failed to parse adjustments:', e);
+            console.error("Failed to parse adjustments:", e);
             result.adjustments = [];
           }
         }
 
         // Convert price range from string to array if needed
-        if (result.price_range && typeof result.price_range === 'string') {
+        if (result.price_range && typeof result.price_range === "string") {
           try {
             result.price_range = JSON.parse(result.price_range);
           } catch (e) {
-            console.error('Failed to parse price range:', e);
+            console.error("Failed to parse price range:", e);
             result.price_range = [
+<<<<<<< HEAD
               Math.round((result.estimated_value || result.estimatedValue || 15000) * 0.9),
               Math.round((result.estimated_value || result.estimatedValue || 15000) * 1.1)
+=======
+              Math.round(result.estimated_value * 0.9),
+              Math.round(result.estimated_value * 1.1),
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
             ];
           }
         }
@@ -171,12 +187,16 @@ export function useValuationData(valuationId: string): UseValuationDataReturn {
 
         setData(result as ValuationResult);
       } else {
+<<<<<<< HEAD
         setError('Valuation not found. The data may not be available or the link may have expired.');
+=======
+        setError("Valuation not found");
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         setIsError(true);
       }
     } catch (err: any) {
-      console.error('Error fetching valuation result:', err);
-      setError(err.message || 'Failed to fetch valuation data');
+      console.error("Error fetching valuation result:", err);
+      setError(err.message || "Failed to fetch valuation data");
       setIsError(true);
     } finally {
       setIsLoading(false);

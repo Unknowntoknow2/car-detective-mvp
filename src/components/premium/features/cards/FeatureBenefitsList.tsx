@@ -1,4 +1,3 @@
-
 import { Check } from "lucide-react";
 import { HoverCardContent } from "@/components/ui/hover-card";
 
@@ -8,8 +7,8 @@ interface FeatureBenefitsListProps {
 
 export function FeatureBenefitsList({ benefits }: FeatureBenefitsListProps) {
   return (
-    <HoverCardContent 
-      align="start" 
+    <HoverCardContent
+      align="start"
       className="w-[320px] p-4"
       sideOffset={5}
     >

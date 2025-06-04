@@ -1,10 +1,9 @@
-
-import { useState, useEffect } from 'react';
-import { Mail, Briefcase } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Briefcase, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { isValidEmail, validatePassword } from './validation';
-import { supabase } from '@/integrations/supabase/client';
+import { isValidEmail, validatePassword } from "./validation";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EmailSignupProps {
   isLoading: boolean;
@@ -13,22 +12,26 @@ interface EmailSignupProps {
   setEmailError: (error: string) => void;
 }
 
-export const EmailSignup = ({ isLoading, onSignup, emailError, setEmailError }: EmailSignupProps) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [confirmError, setConfirmError] = useState('');
-  const [emailCheckTimeout, setEmailCheckTimeout] = useState<NodeJS.Timeout | null>(null);
+export const EmailSignup = (
+  { isLoading, onSignup, emailError, setEmailError }: EmailSignupProps,
+) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmError, setConfirmError] = useState("");
+  const [emailCheckTimeout, setEmailCheckTimeout] = useState<
+    NodeJS.Timeout | null
+  >(null);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [referralToken, setReferralToken] = useState<string | null>(null);
 
   // Check for referral token in localStorage
   useEffect(() => {
-    const token = localStorage.getItem('referralToken');
+    const token = localStorage.getItem("referralToken");
     if (token) {
       setReferralToken(token);
-      console.log('Found referral token:', token);
+      console.log("Found referral token:", token);
     }
   }, []);
 
@@ -39,105 +42,107 @@ export const EmailSignup = ({ isLoading, onSignup, emailError, setEmailError }: 
       if (emailCheckTimeout) {
         clearTimeout(emailCheckTimeout);
       }
-    }
+    };
   }, [emailCheckTimeout]);
 
   const checkEmailExists = (email: string) => {
     if (!isValidEmail(email)) {
-      setEmailError('');
+      setEmailError("");
       return;
     }
-    
+
     if (emailCheckTimeout) {
       clearTimeout(emailCheckTimeout);
     }
-    
+
     const timeout = setTimeout(async () => {
       setIsCheckingEmail(true);
-      
+
       try {
         const { error } = await supabase.auth.signInWithPassword({
           email,
-          password: 'dummy-password-for-checking', // Will fail, but tells us if email exists
+          password: "dummy-password-for-checking", // Will fail, but tells us if email exists
         });
 
-        if (error && error.message.includes('Invalid login')) {
+        if (error && error.message.includes("Invalid login")) {
           // Email exists
-          setEmailError('An account with this email already exists. Try logging in instead.');
-        } else if (error && error.message.includes('record not found')) {
+          setEmailError(
+            "An account with this email already exists. Try logging in instead.",
+          );
+        } else if (error && error.message.includes("record not found")) {
           // Email doesn't exist
-          setEmailError('');
+          setEmailError("");
         } else {
           // Some other error
-          setEmailError('');
+          setEmailError("");
         }
       } catch (error) {
-        console.error('Error checking email:', error);
+        console.error("Error checking email:", error);
       } finally {
         setIsCheckingEmail(false);
       }
     }, 600);
-    
+
     setEmailCheckTimeout(timeout);
   };
 
   const validateForm = () => {
     let isValid = true;
-    
+
     // Validate email
     if (!email) {
-      setEmailError('Email is required');
+      setEmailError("Email is required");
       isValid = false;
     } else if (!isValidEmail(email)) {
-      setEmailError('Please enter a valid email address');
+      setEmailError("Please enter a valid email address");
       isValid = false;
     }
-    
+
     // Validate password
     const passwordValidationError = validatePassword(password);
     if (passwordValidationError) {
       setPasswordError(passwordValidationError);
       isValid = false;
     } else {
-      setPasswordError('');
+      setPasswordError("");
     }
-    
+
     // Check if passwords match
     if (password !== confirmPassword) {
-      setConfirmError('Passwords do not match');
+      setConfirmError("Passwords do not match");
       isValid = false;
     } else {
-      setConfirmError('');
+      setConfirmError("");
     }
-    
+
     return isValid;
   };
 
   const handleSubmit = async () => {
     if (validateForm()) {
       await onSignup(email, password);
-      
+
       // Process referral if token exists
       if (referralToken) {
         try {
           // Get current user
           const { data: { user } } = await supabase.auth.getUser();
-          
+
           if (user) {
             // Process the referral
-            await supabase.functions.invoke('process-referral', {
+            await supabase.functions.invoke("process-referral", {
               body: {
-                action: 'process',
+                action: "process",
                 referralToken,
-                userId: user.id
-              }
+                userId: user.id,
+              },
             });
-            
+
             // Clean up localStorage
-            localStorage.removeItem('referralToken');
+            localStorage.removeItem("referralToken");
           }
         } catch (error) {
-          console.error('Error processing referral:', error);
+          console.error("Error processing referral:", error);
           // Don't fail signup if referral processing fails
         }
       }
@@ -151,7 +156,7 @@ export const EmailSignup = ({ isLoading, onSignup, emailError, setEmailError }: 
           You were referred by a friend! Complete your sign up to get started.
         </div>
       )}
-      
+
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <div className="relative">
@@ -164,18 +169,27 @@ export const EmailSignup = ({ isLoading, onSignup, emailError, setEmailError }: 
               setEmail(e.target.value);
               checkEmailExists(e.target.value);
             }}
-            className={`rounded-xl transition-all duration-200 ${isCheckingEmail ? 'opacity-70' : ''}`}
+            className={`rounded-xl transition-all duration-200 ${
+              isCheckingEmail ? "opacity-70" : ""
+            }`}
             disabled={isLoading || isCheckingEmail}
             required
           />
           {isCheckingEmail && (
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-              <div className="animate-spin h-4 w-4 border-2 border-primary border-opacity-50 border-t-primary rounded-full"></div>
+              <div className="animate-spin h-4 w-4 border-2 border-primary border-opacity-50 border-t-primary rounded-full">
+              </div>
             </div>
           )}
         </div>
         {emailError && (
-          <div className={`text-sm ${emailError.includes('already exists') ? 'text-amber-500' : 'text-destructive'}`}>
+          <div
+            className={`text-sm ${
+              emailError.includes("already exists")
+                ? "text-amber-500"
+                : "text-destructive"
+            }`}
+          >
             {emailError}
           </div>
         )}
@@ -216,4 +230,4 @@ export const EmailSignup = ({ isLoading, onSignup, emailError, setEmailError }: 
       </div>
     </div>
   );
-}
+};

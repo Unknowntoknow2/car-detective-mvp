@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { FactorSlider } from '../FactorSlider';
+import React from "react";
+import { FactorSlider } from "../FactorSlider";
 
 // Define local option type matching the FactorSlider requirements
 interface FactorOption {
@@ -11,11 +10,23 @@ interface FactorOption {
 }
 
 const accidentOptions: FactorOption[] = [
-  { value: 0, label: 'None', tip: 'No accidents or damage reported' },
-  { value: 25, label: '1 Minor', tip: 'One minor accident with cosmetic damage only' },
-  { value: 50, label: '1 Major', tip: 'One major accident with structural or airbag deployment' },
-  { value: 75, label: '2+ Minor', tip: 'Multiple minor accidents or damages' },
-  { value: 100, label: '2+ Major', tip: 'Multiple major accidents, significant impact on value' },
+  { value: 0, label: "None", tip: "No accidents or damage reported" },
+  {
+    value: 25,
+    label: "1 Minor",
+    tip: "One minor accident with cosmetic damage only",
+  },
+  {
+    value: 50,
+    label: "1 Major",
+    tip: "One major accident with structural or airbag deployment",
+  },
+  { value: 75, label: "2+ Minor", tip: "Multiple minor accidents or damages" },
+  {
+    value: 100,
+    label: "2+ Major",
+    tip: "Multiple major accidents, significant impact on value",
+  },
 ];
 
 interface AccidentFactorCardProps {
@@ -23,7 +34,9 @@ interface AccidentFactorCardProps {
   onChange: (value: number) => void;
 }
 
-export function AccidentFactorCard({ value, onChange }: AccidentFactorCardProps) {
+export function AccidentFactorCard(
+  { value, onChange }: AccidentFactorCardProps,
+) {
   // Wrapper function to match the expected signature
   const handleChange = (newValue: number) => {
     onChange(newValue);

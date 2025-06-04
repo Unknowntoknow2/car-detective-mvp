@@ -1,4 +1,5 @@
-// src/pages/ValuationDetailPage.tsx
+// ✅ File: src/pages/ValuationDetailPage.tsx
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,14 +8,18 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, FileText, Mail, Share2 } from 'lucide-react';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { PredictionResult } from '@/components/valuation/PredictionResult';
-import { MainLayout } from '@/components/layout';
+import { DealerOffersList } from '@/components/dealer/DealerOffersList';
+import { AIChatBubble } from '@/components/chat/AIChatBubble';
+import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
+import { NextStepsCard } from '@/components/valuation/valuation-complete/NextStepsCard';
+import FollowUpForm from '@/components/lookup/followup/FollowUpForm';
 
 export default function ValuationDetailPage() {
   const { id } = useParams<{ id?: string }>();
-  const valuationId = id ?? '';
+  const valuationId = id ?? "";
   const result = useValuationResult(valuationId);
 
   const handleDownloadPdf = () => toast.success("Generating PDF report...");
@@ -47,7 +52,9 @@ export default function ValuationDetailPage() {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{typeof result.error === 'string' ? result.error : 'Something went wrong while fetching the valuation.'}</AlertDescription>
+            <AlertDescription>
+              {typeof result.error === 'string' ? result.error : 'Something went wrong while fetching the valuation.'}
+            </AlertDescription>
           </Alert>
         </div>
       </MainLayout>
@@ -70,8 +77,15 @@ export default function ValuationDetailPage() {
 
   const data = result.data;
   const reportId = data.id || data.valuationId;
+  const valuationWithRequiredId = {
+    ...data,
+    id: reportId,
+    created_at: data.created_at || new Date().toISOString()
+  };
+
+  const isPremiumUnlocked = Boolean(data?.premium_unlocked);
   const accidentCount = data.accident_count || 0;
-  const titleStatus = data.titleStatus || 'Clean';
+  const titleStatus = data.titleStatus || "Clean";
 
   return (
     <MainLayout>

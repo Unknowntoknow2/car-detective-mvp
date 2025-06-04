@@ -1,9 +1,8 @@
-
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { FileText, Loader2 } from 'lucide-react';
-import { TitleStatusSelector } from './TitleStatusSelector';
-import { OwnershipHistory } from './OwnershipHistory';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { FileText, Loader2 } from "lucide-react";
+import { TitleStatusSelector } from "./TitleStatusSelector";
+import { OwnershipHistory } from "./OwnershipHistory";
 
 interface VehicleHistoryFormProps {
   titleStatus: string;
@@ -14,13 +13,13 @@ interface VehicleHistoryFormProps {
   onSaveHistory: () => void;
 }
 
-export function VehicleHistoryForm({ 
-  titleStatus, 
-  numberOfOwners, 
-  isLoading, 
-  onTitleStatusChange, 
-  onNumberOfOwnersChange, 
-  onSaveHistory 
+export function VehicleHistoryForm({
+  titleStatus,
+  numberOfOwners,
+  isLoading,
+  onTitleStatusChange,
+  onNumberOfOwnersChange,
+  onSaveHistory,
 }: VehicleHistoryFormProps) {
   return (
     <>
@@ -28,9 +27,9 @@ export function VehicleHistoryForm({
         <TitleStatusSelector
           value={titleStatus}
           onChange={onTitleStatusChange}
-          required={true}
+          required
         />
-        
+
         <OwnershipHistory
           numberOfOwners={numberOfOwners}
           onChange={onNumberOfOwnersChange}
@@ -43,11 +42,9 @@ export function VehicleHistoryForm({
           onClick={onSaveHistory}
           disabled={isLoading}
         >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <FileText className="h-4 w-4 mr-2" />
-          )}
+          {isLoading
+            ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            : <FileText className="h-4 w-4 mr-2" />}
           Save Vehicle History
         </Button>
       </div>

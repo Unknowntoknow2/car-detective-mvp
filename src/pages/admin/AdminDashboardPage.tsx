@@ -1,6 +1,17 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { Container } from '@/components/ui/container';
+=======
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { useAuth } from "@/components/auth/AuthContext";
+import { Loader2 } from "lucide-react";
+import { useAdminRole } from "@/hooks/useAdminRole";
+import { AdminAnalyticsDashboard } from "@/components/admin/dashboard/AdminAnalyticsDashboard";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export default function AdminDashboardPage() {
   return (

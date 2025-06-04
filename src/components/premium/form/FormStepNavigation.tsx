@@ -1,7 +1,6 @@
-
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface FormStepNavigationProps {
   currentStep: number;
@@ -16,7 +15,7 @@ export function FormStepNavigation({
   totalSteps,
   goToNextStep,
   goToPreviousStep,
-  isStepValid
+  isStepValid,
 }: FormStepNavigationProps) {
   return (
     <div className="flex justify-between mt-6">
@@ -46,16 +45,16 @@ export function FormStepNavigation({
             onClick={goToNextStep}
             disabled={!isStepValid}
             className={`flex items-center gap-2 transition-all duration-300 relative overflow-hidden group
-              ${!isStepValid ? 'opacity-70' : 'hover:shadow-md'}`}
+              ${!isStepValid ? "opacity-70" : "hover:shadow-md"}`}
           >
             <span>Next</span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:transform group-hover:translate-x-0.5" />
-            
+
             {/* Animated indicator when the button becomes enabled */}
             {isStepValid && (
-              <motion.span 
+              <motion.span
                 initial={{ width: 0 }}
-                animate={{ width: '100%' }}
+                animate={{ width: "100%" }}
                 transition={{ duration: 0.5 }}
                 className="absolute bottom-0 left-0 h-0.5 bg-white/30"
               />

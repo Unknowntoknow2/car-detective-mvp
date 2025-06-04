@@ -1,4 +1,16 @@
+<<<<<<< HEAD
 
 // This file is deprecated - import from src/lib/supabaseClient.ts instead
 import { supabase } from '@/lib/supabaseClient';
 export { supabase };
+=======
+import { createClient } from "@supabase/supabase-js";
+
+// Initialize Supabase client with hardcoded values for browser environments
+// In a production environment, you'd want to use environment variables securely
+const supabaseUrl = "https://xltxqqzattxogxtqrggt.supabase.co";
+const supabaseAnonKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsdHhxcXphdHR4b2d4dHFyZ2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NTYxMjYsImV4cCI6MjA2MTAzMjEyNn0.kUPmsyUdpcpnPLHWlnP7vODQiRgzCrWjOBfLib3lpvY";
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)

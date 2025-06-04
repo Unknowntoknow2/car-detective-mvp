@@ -1,7 +1,6 @@
-
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface RecallRecord {
   NHTSACampaignNumber: string;
@@ -23,14 +22,14 @@ export interface UseNhtsaRecallsResult {
 export function useNhtsaRecalls(
   make: string,
   model: string,
-  year: number
+  year: number,
 ): UseNhtsaRecallsResult {
   const {
     data,
     isLoading,
-    error
+    error,
   } = useQuery({
-    queryKey: ['nhtsaRecalls', make, model, year],
+    queryKey: ["nhtsaRecalls", make, model, year],
     queryFn: async () => {
       // Only run the query if we have all the necessary parameters
       if (!make || !model || !year) {
@@ -38,19 +37,24 @@ export function useNhtsaRecalls(
       }
 
       try {
-        const { data, error } = await supabase.functions.invoke('fetch_nhtsa_recalls', {
-          body: { make, model, year },
-        });
+        const { data, error } = await supabase.functions.invoke(
+          "fetch_nhtsa_recalls",
+          {
+            body: { make, model, year },
+          },
+        );
 
         if (error) {
-          console.error('NHTSA recalls fetch error:', error);
-          throw new Error(error.message || 'Failed to fetch recall data');
+          console.error("NHTSA recalls fetch error:", error);
+          throw new Error(error.message || "Failed to fetch recall data");
         }
 
         return data;
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Failed to fetch recall data';
-        console.error('NHTSA recalls error:', err);
+        const errorMsg = err instanceof Error
+          ? err.message
+          : "Failed to fetch recall data";
+        console.error("NHTSA recalls error:", err);
         toast.error(errorMsg);
         throw err;
       }

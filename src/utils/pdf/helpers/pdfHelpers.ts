@@ -1,5 +1,4 @@
-
-import { PDFPage, rgb, Color } from 'pdf-lib';
+import { Color, PDFPage, rgb } from "pdf-lib";
 
 /**
  * Draw a text pair (label and value) on a PDF
@@ -17,7 +16,7 @@ export function drawTextPair(
     labelColor?: Color;
     valueColor?: Color;
     fontSize?: number;
-  }
+  },
 ) {
   const {
     font,
@@ -27,7 +26,7 @@ export function drawTextPair(
     width,
     labelColor = rgb(0.4, 0.4, 0.4),
     valueColor = rgb(0, 0, 0),
-    fontSize = 12
+    fontSize = 12,
   } = options;
 
   // Draw label
@@ -36,7 +35,7 @@ export function drawTextPair(
     y: yPosition,
     size: fontSize,
     font: boldFont,
-    color: labelColor
+    color: labelColor,
   });
 
   // Draw value
@@ -45,7 +44,7 @@ export function drawTextPair(
     y: yPosition,
     size: fontSize,
     font,
-    color: valueColor
+    color: valueColor,
   });
 }
 
@@ -59,16 +58,16 @@ export function drawSectionHeading(
   margin: number,
   font: any,
   fontSize: number = 14,
-  color: Color = rgb(0.1, 0.1, 0.1)
+  color: Color = rgb(0.1, 0.1, 0.1),
 ) {
   page.drawText(text, {
     x: margin,
     y: yPosition,
     size: fontSize,
     font: font,
-    color: color
+    color: color,
   });
-  
+
   return yPosition - 20; // Return the new Y position after the heading
 }
 
@@ -76,12 +75,12 @@ export function drawSectionHeading(
  * Draws a horizontal line on a PDF
  */
 export function drawHorizontalLine(
-  page: PDFPage, 
-  startX: number, 
-  endX: number, 
-  y: number, 
+  page: PDFPage,
+  startX: number,
+  endX: number,
+  y: number,
   lineWidth: number = 1,
-  lineColor: Color = rgb(0.8, 0.8, 0.8)
+  lineColor: Color = rgb(0.8, 0.8, 0.8),
 ) {
   page.drawLine({
     start: { x: startX, y },

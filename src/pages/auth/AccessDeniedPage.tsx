@@ -1,9 +1,17 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ShieldX } from 'lucide-react';
+=======
+import React from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import MainLayout from "@/components/layout/MainLayout";
+import { ShieldX } from "lucide-react";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 const AccessDeniedPage: React.FC = () => {
   return (
@@ -15,12 +23,13 @@ const AccessDeniedPage: React.FC = () => {
               <ShieldX className="h-10 w-10 text-red-600" />
             </div>
           </div>
-          
+
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p className="text-muted-foreground mb-6">
-            You don't have permission to access this page. This area may require specific access rights or a premium account.
+            You don't have permission to access this page. This area may require
+            specific access rights or a premium account.
           </p>
-          
+
           <div className="space-y-4">
             <Button asChild className="w-full">
               <Link to="/">Return to Home</Link>

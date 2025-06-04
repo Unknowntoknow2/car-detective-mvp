@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Info } from 'lucide-react';
+import React from "react";
+import { Info } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -14,10 +13,10 @@ interface VehicleScoreInfoProps {
   tooltipContent: React.ReactNode;
 }
 
-export const VehicleScoreInfo = ({ 
-  label, 
-  value, 
-  tooltipContent
+export const VehicleScoreInfo = ({
+  label,
+  value,
+  tooltipContent,
 }: VehicleScoreInfoProps) => (
   <div className="space-y-1">
     <div className="flex items-center gap-2">
@@ -33,8 +32,12 @@ export const VehicleScoreInfo = ({
         </Tooltip>
       </TooltipProvider>
     </div>
-    <p className={`text-lg font-semibold ${label === "Confidence Score" ? "text-primary" : ""}`}>
-      {typeof value === 'number' && label !== "Confidence Score" 
+    <p
+      className={`text-lg font-semibold ${
+        label === "Confidence Score" ? "text-primary" : ""
+      }`}
+    >
+      {typeof value === "number" && label !== "Confidence Score"
         ? `$${value.toLocaleString()}`
         : value}
     </p>

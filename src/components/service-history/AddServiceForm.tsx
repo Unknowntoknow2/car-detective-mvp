@@ -1,9 +1,14 @@
-
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface AddServiceFormProps {
   onSave: (data: any) => void;
@@ -14,19 +19,21 @@ interface AddServiceFormProps {
 export const AddServiceForm: React.FC<AddServiceFormProps> = ({
   onSave,
   onCancel,
-  isSubmitting
+  isSubmitting,
 }) => {
   const [formData, setFormData] = React.useState({
-    serviceType: '',
-    date: new Date().toISOString().split('T')[0],
-    mileage: '',
-    description: '',
-    cost: ''
+    serviceType: "",
+    date: new Date().toISOString().split("T")[0],
+    mileage: "",
+    description: "",
+    cost: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -113,18 +120,18 @@ export const AddServiceForm: React.FC<AddServiceFormProps> = ({
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button 
-            type="button" 
-            variant="outline" 
+          <Button
+            type="button"
+            variant="outline"
             onClick={onCancel}
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Saving...' : 'Save Record'}
+            {isSubmitting ? "Saving..." : "Save Record"}
           </Button>
         </CardFooter>
       </form>

@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { SearchX } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { SearchX } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface NoResultsProps {
   title?: string;
@@ -27,7 +26,9 @@ export const NoResults: React.FC<NoResultsProps> = ({
     : "No items match your filter criteria.";
 
   return (
-    <div className={`flex flex-col items-center justify-center py-16 px-4 text-center border rounded-lg bg-muted/30 ${className}`}>
+    <div
+      className={`flex flex-col items-center justify-center py-16 px-4 text-center border rounded-lg bg-muted/30 ${className}`}
+    >
       {icon}
       <h3 className="text-lg font-medium mb-2">{title}</h3>
       <p className="text-muted-foreground mb-6 max-w-md">

@@ -1,11 +1,11 @@
-
-import { useState } from 'react';
-import { useVehicleUpload } from './useVehicleUpload';
-import { DealerVehicleFormData } from '@/types/dealerVehicle';
+import { useState } from "react";
+import { useVehicleUpload } from "./useVehicleUpload";
+import { DealerVehicleFormData } from "@/types/dealerVehicle";
 
 export function useVehicleUploadModal() {
   const [isOpen, setIsOpen] = useState(false);
-  const { uploadVehicle, isUploading, uploadProgress, uploadError } = useVehicleUpload();
+  const { uploadVehicle, isUploading, uploadProgress, uploadError } =
+    useVehicleUpload();
 
   const openModal = () => {
     setIsOpen(true);
@@ -31,6 +31,6 @@ export function useVehicleUploadModal() {
     isUploading,
     uploadProgress,
     uploadError,
-    handleSubmit
+    handleSubmit,
   };
 }

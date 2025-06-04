@@ -1,4 +1,3 @@
-
 export function getMileageDescription(mileage: number): string {
   if (mileage < 30000) {
     return "Vehicle has low mileage (below 30,000 miles)";

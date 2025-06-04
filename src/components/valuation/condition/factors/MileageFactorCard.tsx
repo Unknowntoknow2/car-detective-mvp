@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { FactorSlider } from '../FactorSlider';
+import React from "react";
+import { FactorSlider } from "../FactorSlider";
 
 // Define local option type matching the FactorSlider requirements
 interface FactorOption {
@@ -11,11 +10,11 @@ interface FactorOption {
 }
 
 const mileageOptions: FactorOption[] = [
-  { value: 0, label: '<20k', tip: 'Up to 20k miles – extra value' },
-  { value: 25, label: '20–40k', tip: '20–40k miles – slight depreciation' },
-  { value: 50, label: '40–60k', tip: '40–60k miles – moderate depreciation' },
-  { value: 75, label: '60–80k', tip: '60–80k miles – higher depreciation' },
-  { value: 100, label: '80k+', tip: '80k+ miles – significant depreciation' },
+  { value: 0, label: "<20k", tip: "Up to 20k miles – extra value" },
+  { value: 25, label: "20–40k", tip: "20–40k miles – slight depreciation" },
+  { value: 50, label: "40–60k", tip: "40–60k miles – moderate depreciation" },
+  { value: 75, label: "60–80k", tip: "60–80k miles – higher depreciation" },
+  { value: 100, label: "80k+", tip: "80k+ miles – significant depreciation" },
 ];
 
 interface MileageFactorCardProps {

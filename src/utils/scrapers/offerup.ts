@@ -55,8 +55,8 @@ export async function scrapeOfferUpListings({
       const location = $el.find(".WhlbhA").text().trim() || null;
 
       // Image URL
-      const imageUrl =
-        $el.find("img").attr("src") || $el.find("img").attr("data-src") || undefined;
+      const imageUrl = $el.find("img").attr("src") ||
+        $el.find("img").attr("data-src") || undefined;
 
       // Detail page URL
       let detailUrl = $el.find("a").attr("href") || "";

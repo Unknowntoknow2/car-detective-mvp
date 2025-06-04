@@ -1,12 +1,11 @@
-
-import React from 'react';
-import { 
-  PremiumLockSection,
-  LoadingState,
+import React from "react";
+import {
   ErrorState,
+  LoadingState,
   MarketTrendContent,
-  useForecastData
-} from './market-trend';
+  PremiumLockSection,
+  useForecastData,
+} from "./market-trend";
 
 interface MarketTrendSectionProps {
   valuationId: string;
@@ -25,7 +24,7 @@ export function MarketTrendSection({
   year,
   estimatedValue,
   isPremium,
-  onUpgrade
+  onUpgrade,
 }: MarketTrendSectionProps) {
   const { forecastData, loading, error, trend } = useForecastData({
     valuationId,
@@ -33,7 +32,7 @@ export function MarketTrendSection({
     model,
     year,
     estimatedValue,
-    isPremium
+    isPremium,
   });
 
   if (!isPremium) {
@@ -45,7 +44,11 @@ export function MarketTrendSection({
   }
 
   if (error || !forecastData) {
-    return <ErrorState errorMessage={error || "Unable to load market forecast data"} />;
+    return (
+      <ErrorState
+        errorMessage={error || "Unable to load market forecast data"}
+      />
+    );
   }
 
   return (

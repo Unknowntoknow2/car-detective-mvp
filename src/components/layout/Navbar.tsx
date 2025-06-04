@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -32,6 +33,16 @@ const navLinks = [
   { path: '/premium', label: 'Premium', icon: <FileText className="h-4 w-4" /> },
   { path: '/dealer', label: 'For Dealers', icon: <Store className="h-4 w-4" /> },
 ];
+=======
+import React, { useState } from "react";
+import { CDNavbar } from "@/components/ui-kit/CDNavbar";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { Menu, Sparkles } from "lucide-react";
+import MobileMenu from "./MobileMenu";
+import Logo from "./Logo";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export function Navbar() {
   const location = useLocation();
@@ -45,6 +56,7 @@ export function Navbar() {
     return location.pathname.startsWith(path);
   };
 
+<<<<<<< HEAD
   const closeMenu = () => setIsMenuOpen(false);
 
   const handleSignOut = async () => {
@@ -78,6 +90,31 @@ export function Navbar() {
       </Link>
     ));
   };
+=======
+  // Navigation items
+  const navItems = [
+    { label: "Home", href: "/", isActive: globalThis.location.pathname === "/" },
+    {
+      label: "Valuations",
+      href: "/valuation",
+      isActive: globalThis.location.pathname.startsWith("/valuation"),
+    },
+    {
+      label: "VIN Decoder",
+      href: "/decoder",
+      isActive: globalThis.location.pathname.startsWith("/decoder"),
+    },
+    {
+      label: (
+        <div className="flex items-center">
+          <Sparkles className="mr-1 h-4 w-4" />Premium
+        </div>
+      ),
+      href: "/premium",
+      isActive: globalThis.location.pathname.startsWith("/premium"),
+    },
+  ];
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
   return (
     <nav className="container flex h-16 items-center justify-between">

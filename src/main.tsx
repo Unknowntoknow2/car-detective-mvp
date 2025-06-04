@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -55,3 +56,21 @@ const renderApp = () => {
 };
 
 renderApp();
+=======
+// ✅ src/main.tsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+import { BrowserRouter } from "react-router-dom";
+import { AuthProvider } from "@/components/auth/AuthContext";
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </BrowserRouter>
+  </React.StrictMode>
+);
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)

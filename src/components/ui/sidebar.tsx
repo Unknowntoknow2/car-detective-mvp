@@ -1,9 +1,8 @@
-
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from "react-router-dom";
 
 interface NavItem {
   name: string;
@@ -30,9 +29,9 @@ export function Sidebar({ items, isMobile }: SidebarProps) {
         key={index}
         to={item.href}
         className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all ${
-          isActive(item.href) 
-            ? 'bg-primary/10 text-primary font-medium' 
-            : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+          isActive(item.href)
+            ? "bg-primary/10 text-primary font-medium"
+            : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         }`}
         onClick={() => isMobile && setOpen(false)}
       >

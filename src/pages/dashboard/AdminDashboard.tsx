@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { Container } from '@/components/ui/container';
+=======
+import React from "react";
+import { AdminAnalyticsDashboard } from "@/components/admin/AdminAnalyticsDashboard";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export default function AdminDashboard() {
   return (

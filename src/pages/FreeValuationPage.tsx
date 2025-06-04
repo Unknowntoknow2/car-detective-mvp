@@ -1,45 +1,44 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
-import { Button } from '@/components/ui/button';
-import { ChevronRight, ArrowRight } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { 
+import React, { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, ChevronRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
-import { toast } from '@/components/ui/use-toast';
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { toast } from "@/components/ui/use-toast";
 // Fix the import to use default export
-import UnifiedValuationResult from '@/components/valuation/UnifiedValuationResult';
+import UnifiedValuationResult from "@/components/valuation/UnifiedValuationResult";
 
 const conditions = [
-  { label: 'Excellent', value: 'excellent' },
-  { label: 'Good', value: 'good' },
-  { label: 'Fair', value: 'fair' },
-  { label: 'Poor', value: 'poor' },
+  { label: "Excellent", value: "excellent" },
+  { label: "Good", value: "good" },
+  { label: "Fair", value: "fair" },
+  { label: "Poor", value: "poor" },
 ];
 
 export function FreeValuationPage() {
-  const [make, setMake] = useState('');
-  const [model, setModel] = useState('');
-  const [year, setYear] = useState('');
-  const [mileage, setMileage] = useState('');
-  const [condition, setCondition] = useState('');
-  const [zipCode, setZipCode] = useState('');
+  const [make, setMake] = useState("");
+  const [model, setModel] = useState("");
+  const [year, setYear] = useState("");
+  const [mileage, setMileage] = useState("");
+  const [condition, setCondition] = useState("");
+  const [zipCode, setZipCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [valuationId, setValuationId] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
@@ -52,7 +51,7 @@ export function FreeValuationPage() {
     event.preventDefault();
 
     if (!make || !model || !year || !mileage || !condition || !zipCode) {
-      setError('Please fill in all fields.');
+      setError("Please fill in all fields.");
       toast({
         description: "Please fill in all fields.",
         variant: "destructive",
@@ -66,10 +65,10 @@ export function FreeValuationPage() {
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Mock valuation result
-      const mockValuationId = 'valuation-' + Date.now();
+      const mockValuationId = "valuation-" + Date.now();
       setValuationId(mockValuationId);
       setProgress(100);
 
@@ -84,7 +83,8 @@ export function FreeValuationPage() {
         estimatedValue: Math.floor(Math.random() * (30000 - 10000 + 1)) + 10000, // Random value between 10000 and 30000
         confidenceScore: 80,
         adjustments: [],
-        explanation: 'This is a sample valuation based on the information provided.',
+        explanation:
+          "This is a sample valuation based on the information provided.",
       });
       setIsManualValuation(true);
 
@@ -94,10 +94,12 @@ export function FreeValuationPage() {
       });
 
       // Navigate to the valuation result page
-      navigate(`/valuation-result?valuationId=${mockValuationId}&isManual=true`);
+      navigate(
+        `/valuation-result?valuationId=${mockValuationId}&isManual=true`,
+      );
     } catch (err) {
       console.error("Error during form submission:", err);
-      setError('Failed to generate valuation. Please try again.');
+      setError("Failed to generate valuation. Please try again.");
       toast({
         description: "Failed to generate valuation. Please try again.",
         variant: "destructive",
@@ -111,10 +113,12 @@ export function FreeValuationPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
+
       <main className="flex-grow container mx-auto py-12 px-4">
         <section className="mb-12">
-          <h1 className="text-3xl font-semibold text-center mb-4">Get Your Free Vehicle Valuation</h1>
+          <h1 className="text-3xl font-semibold text-center mb-4">
+            Get Your Free Vehicle Valuation
+          </h1>
           <p className="text-lg text-gray-600 text-center">
             Enter your vehicle details to receive an instant valuation.
           </p>
@@ -124,7 +128,9 @@ export function FreeValuationPage() {
           <Card>
             <CardHeader>
               <CardTitle>Vehicle Details</CardTitle>
-              <CardDescription>Enter the details of your vehicle to get started.</CardDescription>
+              <CardDescription>
+                Enter the details of your vehicle to get started.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="grid gap-4">
@@ -207,22 +213,22 @@ export function FreeValuationPage() {
                   </div>
                 </div>
 
-                {error && (
-                  <p className="text-red-500 text-sm">{error}</p>
-                )}
+                {error && <p className="text-red-500 text-sm">{error}</p>}
 
                 <Button disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      Generating Valuation...
-                      <Progress value={progress} className="w-40 ml-2" />
-                    </>
-                  ) : (
-                    <>
-                      Get Valuation
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  )}
+                  {isSubmitting
+                    ? (
+                      <>
+                        Generating Valuation...
+                        <Progress value={progress} className="w-40 ml-2" />
+                      </>
+                    )
+                    : (
+                      <>
+                        Get Valuation
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </>
+                    )}
                 </Button>
               </form>
             </CardContent>

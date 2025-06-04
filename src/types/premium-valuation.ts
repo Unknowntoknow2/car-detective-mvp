@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import { ConditionLevel } from '@/components/lookup/types/manualEntry';
 
@@ -11,6 +12,23 @@ export interface FormData {
   mileage: number;
   condition: ConditionLevel;
   zipCode: string;
+=======
+export interface FormData {
+  identifierType: "vin" | "plate" | "manual" | "photo";
+  identifier: string;
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+  trim?: string;
+  mileage?: number;
+  zipCode: string;
+  condition: string;
+  conditionLabel?: string;
+  conditionScore?: number;
+  hasAccident: "yes" | "no";
+  accidentDescription: string;
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   fuelType: string;
   transmission: string;
   vin?: string;
@@ -27,8 +45,12 @@ export interface FormData {
   ownerCount?: number;
   drivingBehavior?: string;
   photos?: File[];
+<<<<<<< HEAD
   photoUrls?: string[];
   conditionScore: number;
+=======
+  drivingProfile: "light" | "average" | "heavy" | string; // Allow any string but prefer these values
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   valuationId?: string;
   userId?: string;
   

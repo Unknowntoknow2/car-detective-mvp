@@ -1,69 +1,94 @@
 
-import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from "../types";
+import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
+import rulesConfig from '../../valuationRules.json';
+import { supabase } from '@/integrations/supabase/client';
+import { getMarketMultiplier, getMarketMultiplierDescription } from '../../valuation/marketData';
+
+interface ZipLocationData {
+  places: {
+    'place name': string;
+    'state abbreviation': string;
+    latitude?: string;
+    longitude?: string;
+  }[];
+}
 
 export class LocationCalculator implements AdjustmentCalculator {
-  async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown> {
-    const zipCode = input.zipCode;
-    const basePrice = input.basePrice || 20000; // Default if not provided
+  async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
+    if (!input.zipCode) return null;
     
-    // In a real implementation, this would call an API or database
-    // to get the regional demand multiplier
-    const multiplier = await this.getRegionalMultiplier(zipCode);
+    try {
+      // Get market multiplier from our utility function
+      const marketMultiplier = await getMarketMultiplier(input.zipCode);
+      
+      // Early return if we have a valid multiplier
+      if (marketMultiplier !== 0) {
+        // Convert percentage to decimal for calculation
+        const multiplier = marketMultiplier / 100;
+        const adjustment = input.basePrice * multiplier;
+        
+        // Get location info for better description
+        let locationName = input.zipCode;
+        
+        // Try to get the cached location data for better description
+        try {
+          const { data: zipData } = await supabase
+            .from('zip_cache')
+            .select('location_data')
+            .eq('zip', input.zipCode)
+            .maybeSingle();
+          
+          if (zipData?.location_data) {
+            const locationData = zipData.location_data as unknown as ZipLocationData;
+            if (locationData.places && locationData.places.length > 0) {
+              const place = locationData.places[0];
+              locationName = `${place['place name']}, ${place['state abbreviation']}`;
+            }
+          }
+        } catch (err) {
+          // If there's an error with zip_cache, just use the ZIP code as the location name
+          console.log('Error fetching location data from zip_cache:', err);
+        }
+        
+        const factor = 'Location Impact';
+        const impact = Math.round(adjustment);
+        
+        return {
+          name: 'Location Impact',
+          value: impact,
+          description: `${getMarketMultiplierDescription(marketMultiplier)} (${locationName})`,
+          percentAdjustment: marketMultiplier,
+          factor,
+          impact
+        };
+      }
+    } catch (err) {
+      console.error('Error in LocationCalculator market_adjustments:', err);
+      // Fall through to default calculation
+    }
     
-    // Calculate impact
-    const impact = Math.round(basePrice * multiplier);
-    const regionName = await this.getRegionName(zipCode);
+    // Fallback to configured rules if no market data found
+    const zipRules = rulesConfig.adjustments.zip;
+    
+    let zoneType: 'hot' | 'cold' | 'default' = 'default';
+    if (zipRules.hot.includes(input.zipCode)) {
+      zoneType = 'hot';
+    } else if (zipRules.cold.includes(input.zipCode)) {
+      zoneType = 'cold';
+    }
+    
+    const adjustment = input.basePrice * zipRules.adjustments[zoneType];
+    const description = `Based on market demand in ${input.zipCode}`;
+    const factor = 'Location Impact';
+    const impact = Math.round(adjustment);
     
     return {
-      factor: "Regional Market",
-      impact,
-      description: `Market demand in ${regionName} affects vehicle value`
+      name: 'Location Impact',
+      value: impact,
+      description,
+      percentAdjustment: zipRules.adjustments[zoneType] * 100, // Convert to percentage
+      factor,
+      impact
     };
-  }
-  
-  private async getRegionalMultiplier(zipCode: string): Promise<number> {
-    // Mock implementation - in a real app, this would lookup from database
-    // Add artificial delay to simulate API call
-    await new Promise(resolve => setTimeout(resolve, 50));
-    
-    // Example regional demand multipliers (simplified)
-    const firstDigit = zipCode.charAt(0);
-    const zipMultipliers: Record<string, number> = {
-      "0": 0.02,  // New England (higher demand)
-      "1": 0.01,  // Northeast
-      "2": 0.005, // Mid-Atlantic
-      "3": -0.01, // Southeast
-      "4": -0.005, // Midwest
-      "5": -0.01, // South
-      "6": -0.005, // South Central
-      "7": 0,     // Midwest/Plains (neutral)
-      "8": 0.01,  // Mountain
-      "9": 0.03   // West Coast (highest demand)
-    };
-    
-    return zipMultipliers[firstDigit] || 0;
-  }
-  
-  private async getRegionName(zipCode: string): Promise<string> {
-    // Mock implementation - in a real app, this would lookup from database
-    // Add artificial delay to simulate API call
-    await new Promise(resolve => setTimeout(resolve, 50));
-    
-    // Example region names (simplified)
-    const firstDigit = zipCode.charAt(0);
-    const regionNames: Record<string, string> = {
-      "0": "New England",
-      "1": "Northeast",
-      "2": "Mid-Atlantic",
-      "3": "Southeast",
-      "4": "Midwest",
-      "5": "South",
-      "6": "South Central",
-      "7": "Midwest/Plains",
-      "8": "Mountain",
-      "9": "West Coast"
-    };
-    
-    return regionNames[firstDigit] || "Unknown Region";
   }
 }

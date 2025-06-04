@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
@@ -11,12 +10,12 @@ interface ReferralStatusCardProps {
   showProgress?: boolean;
 }
 
-export function ReferralStatusCard({ 
-  title, 
-  value, 
-  icon, 
-  maxValue = 0, 
-  showProgress = false 
+export function ReferralStatusCard({
+  title,
+  value,
+  icon,
+  maxValue = 0,
+  showProgress = false,
 }: ReferralStatusCardProps) {
   const progressValue = maxValue > 0 ? (value / maxValue) * 100 : 0;
 
@@ -37,12 +36,12 @@ export function ReferralStatusCard({
             {icon}
           </div>
         </div>
-        
+
         {showProgress && (
-          <Progress 
-            value={progressValue} 
-            max={100} 
-            className="h-1 mt-4" 
+          <Progress
+            value={progressValue}
+            max={100}
+            className="h-1 mt-4"
           />
         )}
       </CardContent>

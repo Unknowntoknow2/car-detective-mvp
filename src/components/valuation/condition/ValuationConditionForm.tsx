@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +17,16 @@ import { ValuationFactorInterior } from './ValuationFactorInterior';
 import { ValuationFactorExterior } from './ValuationFactorExterior';
 import { ValuationFactorEngine } from './ValuationFactorEngine';
 import { ValuationFactorTransmission } from './ValuationFactorTransmission';
+=======
+import React, { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ValuationFactorsGrid } from "./factors/ValuationFactorsGrid";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface ValuationConditionFormProps {
   initialValues?: Partial<ConditionValues>;
@@ -28,10 +39,10 @@ interface ValuationConditionFormProps {
   valuationId?: string;
 }
 
-export function ValuationConditionForm({ 
+export function ValuationConditionForm({
   initialValues,
   vehicleInfo,
-  valuationId
+  valuationId,
 }: ValuationConditionFormProps) {
   const navigate = useNavigate();
 
@@ -47,22 +58,30 @@ export function ValuationConditionForm({
     accidents: initialValues?.accidents || 0,
     mileage: initialValues?.mileage || 50,
     year: initialValues?.year || 0,
-    titleStatus: initialValues?.titleStatus || 'Clean',
-    zipCode: initialValues?.zipCode || ''
+    titleStatus: initialValues?.titleStatus || "Clean",
+    zipCode: initialValues?.zipCode || "",
   });
 
+<<<<<<< HEAD
   const formMethods = useForm();
 
   const handleConditionChange = (field: keyof ConditionValues, value: string | number) => {
     setConditionValues(prev => ({
       ...prev,
       [field]: value
+=======
+  const handleConditionChange = (id: string, value: any) => {
+    setConditionValues((prev) => ({
+      ...prev,
+      [id]: value,
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+<<<<<<< HEAD
     if (conditionValues.zipCode && !/^\d{5}$/.test(conditionValues.zipCode)) {
       toast("Please enter a valid 5-digit ZIP code.");
       return;
@@ -75,6 +94,29 @@ export function ValuationConditionForm({
       navigate(`/result?id=${id}`);
     } else {
       toast("Missing valuation ID. Please try again.");
+=======
+    // Validate ZIP code if provided
+    if (conditionValues.zipCode && !/^\d{5}$/.test(conditionValues.zipCode)) {
+      toast({
+        description: "Please enter a valid 5-digit ZIP code.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Store the condition values in localStorage
+    localStorage.setItem("condition_values", JSON.stringify(conditionValues));
+
+    // Get the valuation ID
+    const id = valuationId || localStorage.getItem("latest_valuation_id");
+    if (id) {
+      navigate(`/result?id=${id}`);
+    } else {
+      toast({
+        description: "Missing valuation ID. Please try again.",
+        variant: "destructive",
+      });
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     }
   };
 
@@ -125,6 +167,7 @@ export function ValuationConditionForm({
                 onChange={(val: string) => handleConditionChange('tiresCondition', val)}
               />
             </div>
+<<<<<<< HEAD
 
             <div className="pt-4">
               <Label htmlFor="zipCode">ZIP Code (Optional)</Label>
@@ -150,5 +193,38 @@ export function ValuationConditionForm({
         </CardContent>
       </Card>
     </FormProvider>
+=======
+          )}
+
+          <ValuationFactorsGrid
+            values={conditionValues}
+            onChange={handleConditionChange}
+          />
+
+          <div className="pt-4">
+            <Label htmlFor="zipCode">ZIP Code (Optional)</Label>
+            <Input
+              id="zipCode"
+              value={conditionValues.zipCode}
+              onChange={(e) => handleConditionChange("zipCode", e.target.value)}
+              placeholder="Enter ZIP code for more accurate valuation"
+              className="mt-1"
+              maxLength={5}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Adding your ZIP code helps us provide more accurate regional
+              pricing data.
+            </p>
+          </div>
+
+          <div className="pt-4">
+            <Button type="submit" className="w-full">
+              Calculate Value
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   );
 }

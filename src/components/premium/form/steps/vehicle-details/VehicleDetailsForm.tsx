@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 import React, { useEffect } from 'react';
 import { FormData } from '@/types/premium-valuation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+=======
+import React, { useEffect } from "react";
+import { FormData } from "@/types/premium-valuation";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface VehicleDetailsFormProps {
   step?: number;
@@ -13,37 +20,40 @@ interface VehicleDetailsFormProps {
   isLoading?: boolean;
 }
 
-export function VehicleDetailsForm({ 
-  step, 
-  formData, 
-  setFormData, 
+export function VehicleDetailsForm({
+  step,
+  formData,
+  setFormData,
   updateStepValidity,
   initialData,
   onSubmit,
-  isLoading
+  isLoading,
 }: VehicleDetailsFormProps) {
-  
   // Handle either direct formData or initialData
   const data = formData || initialData || {};
-  
+
   useEffect(() => {
     // Only run if we're in the step validation flow
     if (updateStepValidity) {
       // Validate the form
-      const isValid = data.mileage !== undefined && 
-                     data.zipCode !== '';
+      const isValid = data.mileage !== undefined &&
+        data.zipCode !== "";
       updateStepValidity(isValid);
     }
   }, [data.mileage, data.zipCode, updateStepValidity]);
 
   const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    
+
     if (setFormData) {
       // For the form steps flow
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
+<<<<<<< HEAD
         mileage: value ? parseInt(value) : 0
+=======
+        mileage: value ? parseInt(value) : undefined,
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       }));
     } else if (initialData && onSubmit) {
       // For the direct initialData/onSubmit flow
@@ -53,12 +63,12 @@ export function VehicleDetailsForm({
 
   const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    
+
     if (setFormData) {
       // For the form steps flow
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        zipCode: value
+        zipCode: value,
       }));
     } else if (initialData && onSubmit) {
       // For the direct initialData/onSubmit flow
@@ -68,7 +78,7 @@ export function VehicleDetailsForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (onSubmit && initialData) {
       onSubmit(initialData);
     }
@@ -80,7 +90,7 @@ export function VehicleDetailsForm({
       <p className="text-gray-600 mb-6">
         Please provide additional details about your vehicle.
       </p>
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <Label htmlFor="mileage">Mileage</Label>
@@ -88,29 +98,29 @@ export function VehicleDetailsForm({
             id="mileage"
             type="number"
             placeholder="Enter vehicle mileage"
-            value={data.mileage || ''}
+            value={data.mileage || ""}
             onChange={handleMileageChange}
           />
         </div>
-        
+
         <div>
           <Label htmlFor="zipCode">ZIP Code</Label>
           <Input
             id="zipCode"
             placeholder="Enter your ZIP code"
-            value={data.zipCode || ''}
+            value={data.zipCode || ""}
             onChange={handleZipCodeChange}
             maxLength={5}
           />
         </div>
-        
+
         {onSubmit && (
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="w-full py-2 px-4 bg-primary text-white rounded hover:bg-primary/90 transition-colors"
             disabled={isLoading}
           >
-            {isLoading ? 'Loading...' : 'Submit'}
+            {isLoading ? "Loading..." : "Submit"}
           </button>
         )}
       </form>

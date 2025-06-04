@@ -1,8 +1,14 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Container } from '@/components/ui/container';
 import { AINAssistantTrigger } from '@/components/chat/AINAssistantTrigger';
+=======
+import React from "react";
+import { Outlet } from "react-router-dom";
+import { Container } from "@/components/ui/container";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 const AuthLayout: React.FC = () => {
   return (
@@ -14,17 +20,18 @@ const AuthLayout: React.FC = () => {
           </div>
         </Container>
       </header>
-      
+
       <main className="flex-1 py-8">
         <Container>
           <Outlet />
         </Container>
       </main>
-      
+
       <footer className="py-4 bg-white border-t">
         <Container>
           <p className="text-sm text-center text-gray-500">
-            &copy; {new Date().getFullYear()} Car Detective. All rights reserved.
+            &copy; {new Date().getFullYear()}{" "}
+            Car Detective. All rights reserved.
           </p>
         </Container>
       </footer>

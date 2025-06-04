@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React, { useState } from 'react';
 import { toast } from 'sonner';
@@ -5,28 +6,40 @@ import { useDealerInventory } from './hooks/useDealerInventory';
 import { DealerVehicle } from '@/types/dealerVehicle';
 import { DealerInventoryTable } from './DealerInventoryTable';
 import { Button } from '@/components/ui/button';
+=======
+import React, { useState } from "react";
+import { toast } from "sonner";
+import { useDealerInventory } from "./hooks/useDealerInventory";
+import { DealerVehicle } from "@/types/vehicle"; // Updated import
+import { DealerInventoryTable } from "./DealerInventoryTable";
+import { Button } from "@/components/ui/button";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface DealerInventoryProps {
   onRefresh?: () => void;
 }
 
-export const DealerInventory: React.FC<DealerInventoryProps> = ({ onRefresh }) => {
+export const DealerInventory: React.FC<DealerInventoryProps> = (
+  { onRefresh },
+) => {
   const [isAddVehicleModalOpen, setIsAddVehicleModalOpen] = useState(false);
-  const [vehicleToDelete, setVehicleToDelete] = useState<DealerVehicle | null>(null);
+  const [vehicleToDelete, setVehicleToDelete] = useState<DealerVehicle | null>(
+    null,
+  );
   const [isDeleting, setIsDeleting] = useState(false);
-  
-  const { 
-    vehicles, 
-    isLoading, 
+
+  const {
+    vehicles,
+    isLoading,
     error,
     deleteVehicle,
-    refetch
+    refetch,
   } = useDealerInventory();
 
   // Handle add vehicle
   const handleVehicleAdded = () => {
     setIsAddVehicleModalOpen(false);
-    toast.success('Vehicle added successfully!');
+    toast.success("Vehicle added successfully!");
     // Call the onRefresh callback if provided
     if (onRefresh) {
       onRefresh();
@@ -41,20 +54,20 @@ export const DealerInventory: React.FC<DealerInventoryProps> = ({ onRefresh }) =
   // Handle actual deletion
   const handleConfirmDelete = async () => {
     if (!vehicleToDelete) return;
-    
+
     setIsDeleting(true);
     const result = await deleteVehicle(vehicleToDelete.id);
     setIsDeleting(false);
-    
+
     if (result.success) {
-      toast.success('Vehicle deleted successfully');
+      toast.success("Vehicle deleted successfully");
       if (onRefresh) {
         onRefresh();
       }
     } else if (result.error) {
       toast.error(result.error);
     }
-    
+
     setVehicleToDelete(null);
   };
 
@@ -67,24 +80,26 @@ export const DealerInventory: React.FC<DealerInventoryProps> = ({ onRefresh }) =
           Add Vehicle
         </Button>
       </div>
-      
+
       <DealerInventoryTable />
-      
+
       {/* You'll need to import or create these components */}
-      {/* 
-      <AddVehicleModal 
-        open={isAddVehicleModalOpen} 
+      {
+        /*
+      <AddVehicleModal
+        open={isAddVehicleModalOpen}
         onOpenChange={setIsAddVehicleModalOpen}
         onVehicleAdded={handleVehicleAdded}
       />
-      
-      <DeleteConfirmationDialog 
+
+      <DeleteConfirmationDialog
         open={vehicleToDelete !== null}
         onOpenChange={open => !open && setVehicleToDelete(null)}
         onConfirmDelete={handleConfirmDelete}
         isDeleting={isDeleting}
       />
-      */}
+      */
+      }
     </div>
   );
 };

@@ -1,13 +1,19 @@
-
-import React, { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import React, { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface PremiumDealerToggleProps {
   dealerId: string;
@@ -22,14 +28,16 @@ export function PremiumDealerToggle({
   isCurrentlyPremium,
   dealerName,
   expiresAt,
-  onStatusChange
+  onStatusChange,
 }: PremiumDealerToggleProps) {
   const [isPremium, setIsPremium] = useState(isCurrentlyPremium);
   const [loading, setLoading] = useState(false);
   const [expirationDate, setExpirationDate] = useState<string>(
-    expiresAt 
-      ? new Date(expiresAt).toISOString().split('T')[0] 
-      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    expiresAt
+      ? new Date(expiresAt).toISOString().split("T")[0]
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split(
+        "T",
+      )[0],
   );
 
   const handleToggle = async (enabled: boolean) => {
@@ -42,28 +50,28 @@ export function PremiumDealerToggle({
       }
 
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
           is_premium_dealer: enabled,
-          premium_expires_at: enabled ? premiumExpiresAt : null
+          premium_expires_at: enabled ? premiumExpiresAt : null,
         })
-        .eq('id', dealerId);
+        .eq("id", dealerId);
 
       if (error) throw error;
 
       setIsPremium(enabled);
       toast.success(
-        enabled 
-          ? `${dealerName} upgraded to premium dealer status` 
-          : `${dealerName} downgraded to standard dealer status`
+        enabled
+          ? `${dealerName} upgraded to premium dealer status`
+          : `${dealerName} downgraded to standard dealer status`,
       );
-      
+
       if (onStatusChange) {
         onStatusChange();
       }
     } catch (error) {
-      console.error('Error updating premium status:', error);
-      toast.error('Failed to update premium dealer status');
+      console.error("Error updating premium status:", error);
+      toast.error("Failed to update premium dealer status");
     } finally {
       setLoading(false);
     }
@@ -89,7 +97,7 @@ export function PremiumDealerToggle({
             disabled={loading}
           />
         </div>
-        
+
         {isPremium && (
           <div className="space-y-2">
             <Label htmlFor="expiration-date">Premium Access Expires</Label>
@@ -107,14 +115,14 @@ export function PremiumDealerToggle({
         )}
       </CardContent>
       <CardFooter>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => handleToggle(!isPremium)}
           disabled={loading}
         >
           {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-          {isPremium ? 'Revoke Premium Access' : 'Grant Premium Access'}
+          {isPremium ? "Revoke Premium Access" : "Grant Premium Access"}
         </Button>
       </CardFooter>
     </Card>

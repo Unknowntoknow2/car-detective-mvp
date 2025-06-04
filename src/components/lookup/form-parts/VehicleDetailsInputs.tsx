@@ -1,9 +1,15 @@
+<<<<<<< HEAD
 
 import React, { useState, useEffect } from 'react';
 import { useVehicleData } from '@/hooks/useVehicleData';
 import { FormSelect } from './FormSelect';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+=======
+import React from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export interface VehicleDetailsInputsProps {
   make: string;
@@ -31,6 +37,7 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
   setMileage,
   trim = '',
   setTrim,
+<<<<<<< HEAD
   color = '',
   setColor,
 }) => {
@@ -74,10 +81,35 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
       const numericValue = parseInt(value.replace(/\D/g, ''));
       if (!isNaN(numericValue)) {
         setMileage(numericValue);
+=======
+  color,
+  setColor,
+}) => {
+  const currentYear = new Date().getFullYear();
+
+  // Handle year change with validation
+  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const yearValue = parseInt(e.target.value);
+    if (!isNaN(yearValue)) {
+      // Limit year between 1900 and current year + 1
+      if (yearValue >= 1900 && yearValue <= currentYear + 1) {
+        setYear(yearValue);
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       }
     }
   };
 
+<<<<<<< HEAD
+=======
+  // Handle mileage change with validation
+  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const mileageValue = parseInt(e.target.value);
+    if (!isNaN(mileageValue) && mileageValue >= 0) {
+      setMileage(mileageValue);
+    }
+  };
+
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -101,7 +133,7 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="space-y-2">
           <label htmlFor="model" className="block text-sm font-medium text-gray-700">
             Model *
@@ -124,8 +156,13 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
           </Select>
         </div>
       </div>
+<<<<<<< HEAD
       
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+=======
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         <div className="space-y-2">
           <label htmlFor="year" className="block text-sm font-medium text-gray-700">
             Year
@@ -146,7 +183,7 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="space-y-2">
           <label htmlFor="mileage" className="block text-sm font-medium text-gray-700">
             Mileage
@@ -161,6 +198,7 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
           />
         </div>
       </div>
+<<<<<<< HEAD
       
       {setTrim && (
         <div className="space-y-2">
@@ -191,6 +229,34 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
             onChange={(e) => setColor(e.target.value)}
             className="w-full"
           />
+=======
+
+      {(setTrim || setColor) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {setTrim && (
+            <div className="space-y-2">
+              <Label htmlFor="trim">Trim (Optional)</Label>
+              <Input
+                id="trim"
+                placeholder="e.g. XLE"
+                value={trim}
+                onChange={(e) => setTrim(e.target.value)}
+              />
+            </div>
+          )}
+
+          {setColor && (
+            <div className="space-y-2">
+              <Label htmlFor="color">Color (Optional)</Label>
+              <Input
+                id="color"
+                placeholder="e.g. Silver"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+              />
+            </div>
+          )}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         </div>
       )}
     </div>

@@ -1,15 +1,14 @@
-
-import { useCallback, useState } from 'react';
+import { useCallback, useState } from "react";
 
 export function useFormSteps(totalSteps: number) {
   const [currentStep, setCurrentStep] = useState(1);
 
   const goToNextStep = useCallback(() => {
-    setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+    setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
   }, [totalSteps]);
 
   const goToPreviousStep = useCallback(() => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
   }, []);
 
   const goToStep = useCallback((step: number) => {
@@ -23,6 +22,6 @@ export function useFormSteps(totalSteps: number) {
     totalSteps,
     goToNextStep,
     goToPreviousStep,
-    goToStep
+    goToStep,
   };
 }

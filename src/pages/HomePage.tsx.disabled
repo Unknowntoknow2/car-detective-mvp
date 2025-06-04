@@ -1,0 +1,15 @@
+import React from "react";
+import EnhancedHomePage from "@/components/home/EnhancedHomePage";
+
+const HomePage: React.FC = () => {
+  // Diagnostic log to confirm this is rendering in dev environment
+  console.log("✅ HomePage (Enhanced) successfully loaded");
+
+  return (
+    <>
+      <EnhancedHomePage />
+    </>
+  );
+};
+
+export default HomePage;

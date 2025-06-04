@@ -1,9 +1,24 @@
+<<<<<<< HEAD
 
 import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { validateVIN } from '@/utils/validation/vin-validation';
 import { AlertCircle } from 'lucide-react';
+=======
+import React from "react";
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { UseFormReturn } from "react-hook-form";
+import { validateVin } from "@/utils/validation/vin-validation";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface VinInputFieldProps {
   form: any;
@@ -29,6 +44,7 @@ export const VinInputField: React.FC<VinInputFieldProps> = ({ form }) => {
   }, [value]);
   
   return (
+<<<<<<< HEAD
     <div className="space-y-2">
       <FormField
         control={form.control}
@@ -66,5 +82,41 @@ export const VinInputField: React.FC<VinInputFieldProps> = ({ form }) => {
         Adding a VIN will improve the accuracy of your valuation
       </p>
     </div>
+=======
+    <FormField
+      control={form.control}
+      name="vin"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>VIN (Optional)</FormLabel>
+          <FormControl>
+            <Input
+              placeholder="Vehicle Identification Number"
+              {...field}
+              onBlur={(e) => {
+                // Custom validation on blur
+                if (e.target.value) {
+                  const validation = validateVin(e.target.value);
+                  if (!validation.isValid) {
+                    form.setError("vin", {
+                      type: "manual",
+                      message: validation.message || "Invalid VIN",
+                    });
+                  } else {
+                    form.clearErrors("vin");
+                  }
+                }
+                field.onBlur();
+              }}
+            />
+          </FormControl>
+          <FormDescription>
+            Adding your VIN improves valuation accuracy
+          </FormDescription>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   );
 };

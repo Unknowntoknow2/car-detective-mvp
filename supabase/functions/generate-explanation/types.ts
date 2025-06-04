@@ -1,4 +1,3 @@
-
 export interface Adjustment {
   factor: string;
   impact: number;

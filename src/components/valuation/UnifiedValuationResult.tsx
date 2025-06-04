@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,10 +9,21 @@ import { ValuationScoreBar } from './ValuationScoreBar';
 import { AdjustmentBreakdown } from '@/utils/rules/types';
 import { AINSummary } from '@/components/premium/insights/AINSummary';
 import { CarfaxSummary } from '@/components/premium/insights/CarfaxSummary';
+=======
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Download, FileText, Mail } from "lucide-react";
+import { formatCurrency } from "@/utils/formatters";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface UnifiedValuationResultProps {
   valuationId: string;
+<<<<<<< HEAD
   displayMode?: 'compact' | 'full';
+=======
+  displayMode?: "summary" | "full";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   estimatedValue: number;
   confidenceScore: number;
   priceRange: [number, number];
@@ -32,11 +44,16 @@ interface UnifiedValuationResultProps {
 
 export default function UnifiedValuationResult({
   valuationId,
+<<<<<<< HEAD
   displayMode = 'full',
+=======
+  displayMode = "summary",
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   estimatedValue,
   confidenceScore,
   priceRange,
   adjustments = [],
+<<<<<<< HEAD
   vehicleInfo,
   isPremium = false,
   onDownloadPdf,
@@ -89,9 +106,70 @@ export default function UnifiedValuationResult({
                 {vehicleInfo.mileage && <span>{vehicleInfo.mileage.toLocaleString()} miles</span>}
                 {vehicleInfo.condition && <span>Condition: {vehicleInfo.condition}</span>}
               </div>
+=======
+  vehicleInfo = {},
+  onDownloadPdf, // Add this to destructuring
+  onEmailReport, // Add this to destructuring
+}) => {
+  // Calculate price range if not provided
+  const calculatedPriceRange = priceRange || [
+    Math.round(estimatedValue * 0.95),
+    Math.round(estimatedValue * 1.05),
+  ];
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex justify-between items-center">
+          <span>Estimated Value</span>
+          <span className="text-3xl font-bold text-primary">
+            {formatCurrency(estimatedValue)}
+          </span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* Vehicle information */}
+        {vehicleInfo && (
+          <div className="mb-4 p-4 bg-muted rounded-md">
+            <h3 className="font-semibold text-lg mb-2">
+              {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
+            </h3>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {vehicleInfo.mileage && (
+                <div>
+                  <span className="text-muted-foreground">Mileage:</span>{" "}
+                  {vehicleInfo.mileage.toLocaleString()} mi
+                </div>
+              )}
+              {vehicleInfo.condition && (
+                <div>
+                  <span className="text-muted-foreground">Condition:</span>{" "}
+                  {vehicleInfo.condition}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Price range and confidence */}
+        <div className="space-y-3 mb-6">
+          <div>
+            <span className="text-muted-foreground">Price Range:</span>{" "}
+            <span className="font-medium">
+              {formatCurrency(calculatedPriceRange[0])} -{" "}
+              {formatCurrency(calculatedPriceRange[1])}
+            </span>
+          </div>
+          {confidenceScore && (
+            <div>
+              <span className="text-muted-foreground">Confidence Score:</span>
+              {" "}
+              <span className="font-medium">{confidenceScore}%</span>
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
             </div>
           )}
 
+<<<<<<< HEAD
           {/* Price Information */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
@@ -114,9 +192,30 @@ export default function UnifiedValuationResult({
                   {marketTrend.label}
                 </span>
               </div>
+=======
+        {/* Adjustments (only in full mode) */}
+        {displayMode === "full" && adjustments && adjustments.length > 0 && (
+          <div className="mb-6">
+            <h3 className="font-semibold mb-3">Value Adjustments</h3>
+            <div className="space-y-2">
+              {adjustments.map((adjustment, index) => (
+                <div key={index} className="flex justify-between text-sm">
+                  <span>{adjustment.factor}</span>
+                  <span
+                    className={adjustment.impact >= 0
+                      ? "text-green-600"
+                      : "text-red-600"}
+                  >
+                    {adjustment.impact > 0 ? "+" : ""}
+                    {formatCurrency(adjustment.impact)}
+                  </span>
+                </div>
+              ))}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
             </div>
           </div>
 
+<<<<<<< HEAD
           {/* Confidence Score */}
           <div className="space-y-2">
             <div className="flex justify-between items-center">
@@ -159,6 +258,29 @@ export default function UnifiedValuationResult({
             ) : (
               <Button onClick={onUpgrade} className="w-full">
                 Upgrade to Premium for Detailed Report
+=======
+        {/* Action buttons */}
+        {(onDownloadPdf || onEmailReport) && (
+          <div className="flex gap-3 mt-6">
+            {onDownloadPdf && (
+              <Button
+                variant="outline"
+                onClick={onDownloadPdf}
+                className="flex-1"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
+            )}
+            {onEmailReport && (
+              <Button
+                variant="outline"
+                onClick={onEmailReport}
+                className="flex-1"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Email Report
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
               </Button>
             )}
           </div>

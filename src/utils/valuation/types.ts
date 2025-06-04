@@ -1,4 +1,3 @@
-
 // Define the base ValuationAdjustment interface
 export interface ValuationAdjustment {
   factor: string;
@@ -66,7 +65,7 @@ export interface ValuationResult {
 
 // Define EnhancedValuationParams interface
 export interface EnhancedValuationParams extends ValuationParams {
-  identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
+  identifierType?: "vin" | "plate" | "manual" | "photo";
   vin?: string;
   plate?: string;
   state?: string;
@@ -105,7 +104,7 @@ export interface FinalValuationResult extends ValuationResult {
 
 // Define ValuationInput interface for compatibility
 export interface ValuationInput {
-  identifierType?: 'vin' | 'plate' | 'manual' | 'photo';
+  identifierType?: "vin" | "plate" | "manual" | "photo";
   vin?: string;
   plate?: string;
   state?: string;

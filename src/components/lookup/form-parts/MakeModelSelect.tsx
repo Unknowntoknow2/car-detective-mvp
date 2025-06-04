@@ -1,12 +1,17 @@
-
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { UseFormReturn } from 'react-hook-form';
-import { ManualEntryFormData } from '../types/manualEntry';
-import { useMakeModels } from '@/hooks/useMakeModels';
-import CommonMakeModelSelect from '@/components/common/MakeModelSelect';
-import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle } from 'lucide-react';
-import { useEffect } from 'react';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { UseFormReturn } from "react-hook-form";
+import { ManualEntryFormData } from "../types/manualEntry";
+import { useMakeModels } from "@/hooks/useMakeModels";
+import CommonMakeModelSelect from "@/components/common/MakeModelSelect";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertCircle } from "lucide-react";
+import { useEffect } from "react";
 
 interface MakeModelSelectWrapperProps {
   form: UseFormReturn<ManualEntryFormData>;
@@ -21,8 +26,8 @@ export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelect
       make: form.watch('make'),
       model: form.watch('model')
     });
-  }, [form.watch('make'), form.watch('model')]);
-  
+  }, [form.watch("make"), form.watch("model")]);
+
   // Handle loading state
   if (isLoading && makes.length === 0) {
     return (
@@ -38,7 +43,7 @@ export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelect
       </div>
     );
   }
-  
+
   // Handle error state
   if (error) {
     return (
@@ -55,8 +60,8 @@ export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelect
   console.log('🎯 MakeModelFormField: rendering with data', { 
     makesCount: makes.length, 
     modelsCount: models.length,
-    selectedMake: form.watch('make'),
-    selectedModel: form.watch('model')
+    selectedMake: form.watch("make"),
+    selectedModel: form.watch("model"),
   });
   
   const selectedMakeId = form.watch('make') || '';
@@ -73,7 +78,7 @@ export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelect
       await fetchModelsByMakeId(makeId);
     }
   };
-  
+
   const handleModelChange = (modelId: string) => {
     console.log('🎯 MakeModelFormField: model changed to', modelId);
     form.setValue('model', modelId, { shouldValidate: true });
@@ -86,7 +91,9 @@ export function MakeModelFormField({ form, isDisabled = false }: MakeModelSelect
         name="make"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Make <span className="text-destructive">*</span></FormLabel>
+            <FormLabel>
+              Make <span className="text-destructive">*</span>
+            </FormLabel>
             <FormControl>
               <CommonMakeModelSelect
                 makes={makes}

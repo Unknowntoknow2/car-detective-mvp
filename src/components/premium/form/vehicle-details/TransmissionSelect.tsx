@@ -1,9 +1,13 @@
-
-import React from 'react';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { HelpCircle } from 'lucide-react';
+import React from "react";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { HelpCircle } from "lucide-react";
 
 interface TransmissionOption {
   value: string;
@@ -13,25 +17,28 @@ interface TransmissionOption {
 
 const TRANSMISSION_OPTIONS: TransmissionOption[] = [
   {
-    value: 'Automatic',
-    label: 'Automatic',
-    tooltip: 'Standard transmission type with broad market appeal'
+    value: "Automatic",
+    label: "Automatic",
+    tooltip: "Standard transmission type with broad market appeal",
   },
   {
-    value: 'Manual',
-    label: 'Manual',
-    tooltip: 'Traditional stick shift. Less popular in modern market, appeals to enthusiasts'
+    value: "Manual",
+    label: "Manual",
+    tooltip:
+      "Traditional stick shift. Less popular in modern market, appeals to enthusiasts",
   },
   {
-    value: 'CVT',
-    label: 'CVT',
-    tooltip: 'Continuously Variable Transmission. Smooth operation but concerns about longevity'
+    value: "CVT",
+    label: "CVT",
+    tooltip:
+      "Continuously Variable Transmission. Smooth operation but concerns about longevity",
   },
   {
-    value: 'Dual-Clutch',
-    label: 'Dual-Clutch',
-    tooltip: 'Performance-oriented transmission with quick gear changes. Premium feature'
-  }
+    value: "Dual-Clutch",
+    label: "Dual-Clutch",
+    tooltip:
+      "Performance-oriented transmission with quick gear changes. Premium feature",
+  },
 ];
 
 interface TransmissionSelectProps {
@@ -40,10 +47,10 @@ interface TransmissionSelectProps {
   disabled?: boolean;
 }
 
-export function TransmissionSelect({ 
-  value, 
-  onChange, 
-  disabled = false 
+export function TransmissionSelect({
+  value,
+  onChange,
+  disabled = false,
 }: TransmissionSelectProps) {
   return (
     <div className="space-y-3">
@@ -55,12 +62,14 @@ export function TransmissionSelect({
               <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
             </TooltipTrigger>
             <TooltipContent>
-              <p className="max-w-xs">The transmission type affects your vehicle's valuation</p>
+              <p className="max-w-xs">
+                The transmission type affects your vehicle's valuation
+              </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
-      
+
       <RadioGroup
         value={value}
         onValueChange={onChange}
@@ -69,13 +78,13 @@ export function TransmissionSelect({
       >
         {TRANSMISSION_OPTIONS.map((option) => (
           <div key={option.value} className="flex items-start gap-2">
-            <RadioGroupItem 
-              value={option.value} 
+            <RadioGroupItem
+              value={option.value}
               id={`transmission-${option.value}`}
               className="mt-1"
             />
             <div className="grid gap-1.5">
-              <Label 
+              <Label
                 htmlFor={`transmission-${option.value}`}
                 className="font-medium"
               >

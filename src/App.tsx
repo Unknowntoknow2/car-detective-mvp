@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -51,6 +52,14 @@ function App() {
       </AuthProvider>
     </QueryClientProvider>
   );
+=======
+// ✅ src/App.tsx
+import React from "react";
+import Router from "./router";
+
+function App() {
+  return <Router />;
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }
 
 export default App;

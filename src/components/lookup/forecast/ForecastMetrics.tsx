@@ -1,4 +1,3 @@
-
 interface ForecastMetricsProps {
   bestTimeToSell: string;
   percentageChange: number;
@@ -6,11 +5,11 @@ interface ForecastMetricsProps {
   highestValue: number;
 }
 
-export function ForecastMetrics({ 
-  bestTimeToSell, 
-  percentageChange, 
-  lowestValue, 
-  highestValue 
+export function ForecastMetrics({
+  bestTimeToSell,
+  percentageChange,
+  lowestValue,
+  highestValue,
 }: ForecastMetricsProps) {
   return (
     <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
@@ -20,7 +19,11 @@ export function ForecastMetrics({
       </div>
       <div className="p-4 bg-primary/5 rounded-lg">
         <p className="font-medium">12-Month Change</p>
-        <p className={`text-lg ${percentageChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+        <p
+          className={`text-lg ${
+            percentageChange >= 0 ? "text-green-600" : "text-red-600"
+          }`}
+        >
           {percentageChange}%
         </p>
       </div>

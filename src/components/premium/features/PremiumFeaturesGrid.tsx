@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 
@@ -24,7 +23,9 @@ export function PremiumFeaturesGrid({
   if (!features?.length) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">No features found in this category</p>
+        <p className="text-muted-foreground">
+          No features found in this category
+        </p>
       </div>
     );
   }
@@ -50,13 +51,19 @@ export function PremiumFeaturesGrid({
             <CardContent className="p-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <span className="text-xl" role="img" aria-label={feature.title}>
+                  <span
+                    className="text-xl"
+                    role="img"
+                    aria-label={feature.title}
+                  >
                     {feature.icon}
                   </span>
                 </div>
                 <h3 className="text-lg font-semibold">{feature.title}</h3>
               </div>
-              <p className="text-muted-foreground text-sm">{feature.description}</p>
+              <p className="text-muted-foreground text-sm">
+                {feature.description}
+              </p>
             </CardContent>
           </Card>
         </motion.div>

@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface LoadingGridProps {
@@ -28,8 +27,10 @@ export const LoadingGrid: React.FC<LoadingGridProps> = ({
           </div>
         </div>
       )}
-      
-      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns} gap-6`}>
+
+      <div
+        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns} gap-6`}
+      >
         {Array.from({ length: itemCount }).map((_, index) => (
           <div key={index} className={`${cardHeight} w-full`}>
             <Skeleton className="h-full w-full rounded-xl" />

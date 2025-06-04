@@ -1,10 +1,15 @@
+<<<<<<< HEAD
 
 import { FormData } from '@/types/premium-valuation';
 import { supabase } from '@/integrations/supabase/client';
+=======
+import { AICondition } from "@/types/photo";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 /**
  * Creates a premium valuation based on the provided form data
  */
+<<<<<<< HEAD
 export async function createPremiumValuation(data: FormData) {
   // In a real implementation, this would make an API call to create the valuation
   console.log('Creating premium valuation with data:', data);
@@ -16,6 +21,31 @@ export async function createPremiumValuation(data: FormData) {
     estimatedValue: 25000 + Math.floor(Math.random() * 5000),
     confidenceScore: 85,
     createdAt: new Date().toISOString()
+=======
+export async function getBestPhotoAssessment(valuationId: string) {
+  // This would normally fetch from an API or database
+  console.log("Getting photo assessment for:", valuationId);
+
+  // Return mock data for now
+  return {
+    aiCondition: {
+      condition: "Good",
+      confidenceScore: 85,
+      issuesDetected: ["Minor scratches"],
+      aiSummary: "Overall good condition with minor cosmetic issues",
+    } as AICondition,
+    photoScores: [
+      {
+        url: "https://example.com/photo1.jpg",
+        score: 0.85,
+        isPrimary: true,
+      },
+      {
+        url: "https://example.com/photo2.jpg",
+        score: 0.75,
+      },
+    ],
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   };
 }
 
@@ -52,6 +82,7 @@ export async function getPremiumValuations() {
  * Gets a valuation by ID
  */
 export async function getValuationById(id: string) {
+<<<<<<< HEAD
   try {
     const { data, error } = await supabase
       .from('valuations')
@@ -90,6 +121,37 @@ export async function getValuationById(id: string) {
     console.error('Error getting valuation by ID:', error);
     throw error;
   }
+=======
+  // Mock implementation
+  const mockData = {
+    accident_count: 0,
+    auction_avg_price: 15000,
+    base_price: 18000,
+    body_style: "Sedan",
+    body_type: "Sedan",
+    color: "Blue",
+    condition_score: 85,
+    confidence_score: 92,
+    created_at: new Date().toISOString(),
+    estimated_value: 17500,
+    id: id,
+    make: "Toyota",
+    model: "Camry",
+    vehicle_features: [],
+    year: 2018,
+    mileage: 45000,
+    fuel_type: "Gasoline",
+  };
+
+  // Access properties safely
+  return {
+    ...mockData,
+    // Parse safely for fuel_type
+    fuelType: mockData.fuel_type || "Unknown",
+    // Ensure photoUrl is properly handled
+    photoUrl: undefined, // Fixed missing photo_url access
+  };
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }
 
 /**

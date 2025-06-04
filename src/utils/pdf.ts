@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import { DecodedVehicleInfo } from '@/types/vehicle';
 
@@ -42,6 +43,9 @@ export interface ValuationReportInput {
   }>;
   isPremium?: boolean;
 }
+=======
+import type { DecodedVehicleInfo } from "@/types/vehicle";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export interface ReportData {
   make: string;
@@ -79,8 +83,22 @@ export interface ReportData {
  * Convert vehicle info to report data
  */
 export function convertVehicleInfoToReportData(
+<<<<<<< HEAD
   vehicleInfo: DecodedVehicleInfo, 
   valuationData: ValuationReportInput
+=======
+  vehicleInfo: DecodedVehicleInfo,
+  additionalData: {
+    mileage: number;
+    estimatedValue: number;
+    condition: string;
+    zipCode: string;
+    confidenceScore?: number;
+    adjustments?: any[];
+    aiCondition?: any;
+    isPremium?: boolean;
+  },
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 ): ReportData {
   // Make sure adjustments have a description
   const formattedAdjustments = valuationData.adjustments.map(adj => ({
@@ -95,6 +113,7 @@ export function convertVehicleInfoToReportData(
     model: vehicleInfo.model || 'Unknown',
     year: vehicleInfo.year || new Date().getFullYear(),
     vin: vehicleInfo.vin,
+<<<<<<< HEAD
     mileage: valuationData.mileage,
     condition: valuationData.condition || 'Good',
     
@@ -117,11 +136,19 @@ export function convertVehicleInfoToReportData(
     adjustments: formattedAdjustments,
     isPremium: valuationData.isPremium,
     generatedAt: new Date().toISOString()
+=======
+    generatedAt: new Date().toISOString(),
+    priceRange: [
+      Math.floor(additionalData.estimatedValue * 0.95),
+      Math.ceil(additionalData.estimatedValue * 1.05),
+    ],
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   };
   
   return reportData;
 }
 
+<<<<<<< HEAD
 /**
  * Download a PDF for the valuation report
  */
@@ -159,4 +186,30 @@ export async function downloadPdf(
     console.error('Error downloading valuation PDF:', error);
     throw error;
   }
+=======
+export async function downloadPdf(reportData: ReportData): Promise<void> {
+  console.log("Generating PDF with data:", reportData);
+
+  // Mock PDF generation for now (will be replaced with real PDF generation)
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // Create a mock PDF data URL (in a real app, this would be the actual PDF)
+  const mockPdfUrl = URL.createObjectURL(
+    new Blob(["Mock PDF content"], { type: "application/pdf" }),
+  );
+
+  // Create a download link and click it
+  const link = document.createElement("a");
+  link.href = mockPdfUrl;
+  link.download =
+    `${reportData.year}_${reportData.make}_${reportData.model}_valuation.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  // Clean up the URL object
+  setTimeout(() => URL.revokeObjectURL(mockPdfUrl), 100);
+
+  return Promise.resolve();
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }

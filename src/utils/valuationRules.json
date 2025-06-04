@@ -1,4 +1,3 @@
-
 {
   "adjustments": {
     "condition": {
@@ -44,6 +43,7 @@
         ]
       }
     },
+<<<<<<< HEAD
     "features": {
       "sunroof": 0.02,
       "leatherSeats": 0.03,
@@ -55,6 +55,28 @@
       "cooledSeats": 0.01,
       "parkingAssist": 0.01,
       "laneDepartureWarning": 0.01
+=======
+    "premiumFeatures": {
+      "leather": { "value": 0.02, "description": "Leather Interior" },
+      "sunroof": { "value": 0.01, "description": "Sunroof" },
+      "navigation": { "value": 0.01, "description": "Navigation System" },
+      "premium_audio": {
+        "value": 0.015,
+        "description": "Premium Audio System"
+      },
+      "third_row": { "value": 0.02, "description": "Third Row Seating" },
+      "awd": { "value": 0.03, "description": "All-Wheel Drive" }
+    },
+    "featureValueCap": 0.10
+  },
+  "confidenceScores": {
+    "baselineScore": 80,
+    "adjustments": {
+      "hasVin": 5,
+      "hasAccidentData": 3,
+      "hasPhotoAnalysis": 5,
+      "hasPremiumFeatures": 2
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     }
   }
 }

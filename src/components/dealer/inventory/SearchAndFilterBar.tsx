@@ -1,21 +1,20 @@
-
-import React from 'react';
-import { X, Filter } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { Filter, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 
 interface SearchAndFilterBarProps {
   searchTerm: string;
@@ -40,8 +39,8 @@ export const SearchAndFilterBar: React.FC<SearchAndFilterBarProps> = ({
   filteredCount,
   onClearFilters,
 }) => {
-  const filtersActive = searchTerm !== '' || statusFilter !== 'all';
-  
+  const filtersActive = searchTerm !== "" || statusFilter !== "all";
+
   return (
     <div className="space-y-2">
       <div className="flex flex-col md:flex-row gap-2 md:items-center justify-between">
@@ -57,19 +56,22 @@ export const SearchAndFilterBar: React.FC<SearchAndFilterBarProps> = ({
             {searchTerm && (
               <button
                 type="button"
-                onClick={() => onSearchChange({ target: { value: '' } } as any)}
+                onClick={() => onSearchChange({ target: { value: "" } } as any)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 <X className="h-4 w-4" />
               </button>
             )}
           </div>
-          
+
           {/* Mobile Filter Button */}
           <div className="block sm:hidden">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full flex justify-between">
+                <Button
+                  variant="outline"
+                  className="w-full flex justify-between"
+                >
                   <span className="flex items-center">
                     <Filter className="h-4 w-4 mr-2" />
                     Filters
@@ -100,7 +102,7 @@ export const SearchAndFilterBar: React.FC<SearchAndFilterBarProps> = ({
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <h4 className="font-medium text-sm">Sort By</h4>
                     <Select
@@ -113,14 +115,22 @@ export const SearchAndFilterBar: React.FC<SearchAndFilterBarProps> = ({
                       <SelectContent>
                         <SelectItem value="newest">Newest First</SelectItem>
                         <SelectItem value="oldest">Oldest First</SelectItem>
-                        <SelectItem value="price-high">Price: High to Low</SelectItem>
-                        <SelectItem value="price-low">Price: Low to High</SelectItem>
-                        <SelectItem value="year-new">Year: Newest First</SelectItem>
-                        <SelectItem value="year-old">Year: Oldest First</SelectItem>
+                        <SelectItem value="price-high">
+                          Price: High to Low
+                        </SelectItem>
+                        <SelectItem value="price-low">
+                          Price: Low to High
+                        </SelectItem>
+                        <SelectItem value="year-new">
+                          Year: Newest First
+                        </SelectItem>
+                        <SelectItem value="year-old">
+                          Year: Oldest First
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   {filtersActive && (
                     <Button
                       variant="outline"
@@ -136,7 +146,7 @@ export const SearchAndFilterBar: React.FC<SearchAndFilterBarProps> = ({
             </Popover>
           </div>
         </div>
-        
+
         {/* Desktop Filters */}
         <div className="hidden sm:flex items-center gap-2">
           <Select
@@ -153,7 +163,7 @@ export const SearchAndFilterBar: React.FC<SearchAndFilterBarProps> = ({
               <SelectItem value="sold">Sold</SelectItem>
             </SelectContent>
           </Select>
-          
+
           <Select
             value={sortOption}
             onValueChange={onSortOptionChange}
@@ -170,7 +180,7 @@ export const SearchAndFilterBar: React.FC<SearchAndFilterBarProps> = ({
               <SelectItem value="year-old">Year: Oldest First</SelectItem>
             </SelectContent>
           </Select>
-          
+
           {filtersActive && (
             <Button
               variant="ghost"
@@ -183,14 +193,12 @@ export const SearchAndFilterBar: React.FC<SearchAndFilterBarProps> = ({
           )}
         </div>
       </div>
-      
+
       {/* Results count */}
       <div className="flex items-center text-sm text-muted-foreground">
-        {filteredCount === totalVehicles ? (
-          <span>Showing all {totalVehicles} vehicles</span>
-        ) : (
-          <span>Showing {filteredCount} of {totalVehicles} vehicles</span>
-        )}
+        {filteredCount === totalVehicles
+          ? <span>Showing all {totalVehicles} vehicles</span>
+          : <span>Showing {filteredCount} of {totalVehicles} vehicles</span>}
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
-
-import { useEffect } from 'react';
-import { Label } from '@/components/ui/label';
-import { FormData } from '@/types/premium-valuation';
+import { useEffect } from "react";
+import { Label } from "@/components/ui/label";
+import { FormData } from "@/types/premium-valuation";
 import {
   Select,
   SelectContent,
@@ -9,8 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { HelpCircle } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { HelpCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface FuelTypeStepProps {
   step: number;
@@ -20,55 +24,60 @@ interface FuelTypeStepProps {
 }
 
 const FUEL_TYPES = [
-  { 
-    value: 'Gasoline', 
-    label: 'Gasoline', 
-    description: 'Most common fuel type for passenger vehicles'
+  {
+    value: "Gasoline",
+    label: "Gasoline",
+    description: "Most common fuel type for passenger vehicles",
   },
-  { 
-    value: 'Diesel', 
-    label: 'Diesel',
-    description: 'Better fuel economy, higher torque, longer engine life'
+  {
+    value: "Diesel",
+    label: "Diesel",
+    description: "Better fuel economy, higher torque, longer engine life",
   },
-  { 
-    value: 'Hybrid', 
-    label: 'Hybrid',
-    description: 'Combines gasoline engine with electric motor for improved efficiency'
+  {
+    value: "Hybrid",
+    label: "Hybrid",
+    description:
+      "Combines gasoline engine with electric motor for improved efficiency",
   },
-  { 
-    value: 'Electric', 
-    label: 'Electric',
-    description: 'Zero emissions, lower operating costs, instant torque'
+  {
+    value: "Electric",
+    label: "Electric",
+    description: "Zero emissions, lower operating costs, instant torque",
   },
-  { 
-    value: 'Plug-in Hybrid', 
-    label: 'Plug-in Hybrid',
-    description: 'Rechargeable battery with gasoline engine backup'
+  {
+    value: "Plug-in Hybrid",
+    label: "Plug-in Hybrid",
+    description: "Rechargeable battery with gasoline engine backup",
   },
-  { 
-    value: 'Natural Gas', 
-    label: 'Natural Gas (CNG)',
-    description: 'Lower emissions than gasoline, cheaper fuel costs'
+  {
+    value: "Natural Gas",
+    label: "Natural Gas (CNG)",
+    description: "Lower emissions than gasoline, cheaper fuel costs",
   },
-  { 
-    value: 'Flex Fuel', 
-    label: 'Flex Fuel (E85)',
-    description: 'Can run on gasoline or ethanol blend'
-  }
+  {
+    value: "Flex Fuel",
+    label: "Flex Fuel (E85)",
+    description: "Can run on gasoline or ethanol blend",
+  },
 ];
 
-export function FuelTypeStep({ step, formData, setFormData, updateValidity }: FuelTypeStepProps) {
+export function FuelTypeStep(
+  { step, formData, setFormData, updateValidity }: FuelTypeStepProps,
+) {
   // Set initial validity on mount
   useEffect(() => {
     updateValidity(step, Boolean(formData.fuelType));
   }, []);
 
   const handleFuelTypeChange = (value: string) => {
-    setFormData(prev => ({ ...prev, fuelType: value }));
+    setFormData((prev) => ({ ...prev, fuelType: value }));
     updateValidity(step, true);
   };
 
-  const selectedFuelType = FUEL_TYPES.find(type => type.value === formData.fuelType);
+  const selectedFuelType = FUEL_TYPES.find((type) =>
+    type.value === formData.fuelType
+  );
 
   return (
     <div className="space-y-6">
@@ -76,10 +85,11 @@ export function FuelTypeStep({ step, formData, setFormData, updateValidity }: Fu
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Fuel Type</h2>
         <p className="text-gray-600 mb-6">
           Select the fuel type for your vehicle to ensure an accurate valuation.
-          Different fuel types can significantly impact your vehicle's market value.
+          Different fuel types can significantly impact your vehicle's market
+          value.
         </p>
       </div>
-      
+
       <div>
         <div className="flex items-center mb-2">
           <Label htmlFor="fuelType" className="text-gray-700">
@@ -93,14 +103,18 @@ export function FuelTypeStep({ step, formData, setFormData, updateValidity }: Fu
                 </button>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                <p>The fuel type can significantly impact your vehicle's market value, especially with the growing popularity of alternative fuel vehicles.</p>
+                <p>
+                  The fuel type can significantly impact your vehicle's market
+                  value, especially with the growing popularity of alternative
+                  fuel vehicles.
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
         <div className="mt-1">
           <Select
-            value={formData.fuelType || ''}
+            value={formData.fuelType || ""}
             onValueChange={handleFuelTypeChange}
           >
             <SelectTrigger className="w-full h-12 bg-white">
@@ -108,10 +122,16 @@ export function FuelTypeStep({ step, formData, setFormData, updateValidity }: Fu
             </SelectTrigger>
             <SelectContent>
               {FUEL_TYPES.map((type) => (
-                <SelectItem key={type.value} value={type.value} className="py-3">
+                <SelectItem
+                  key={type.value}
+                  value={type.value}
+                  className="py-3"
+                >
                   <div className="flex flex-col">
                     <span className="font-medium">{type.label}</span>
-                    <span className="text-xs text-muted-foreground">{type.description}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {type.description}
+                    </span>
                   </div>
                 </SelectItem>
               ))}

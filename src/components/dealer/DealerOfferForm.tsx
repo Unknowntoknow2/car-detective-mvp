@@ -1,11 +1,16 @@
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, DollarSign, MessageSquare } from 'lucide-react';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { DollarSign, Loader2, MessageSquare } from "lucide-react";
 
 interface DealerOfferFormProps {
   onSubmit: (data: { amount: number; message: string }) => void;
@@ -19,40 +24,43 @@ interface DealerOfferFormProps {
   initialAmount?: number;
 }
 
-export function DealerOfferForm({ 
-  onSubmit, 
-  isLoading, 
+export function DealerOfferForm({
+  onSubmit,
+  isLoading,
   valuationDetails,
-  initialAmount = 0 
+  initialAmount = 0,
 }: DealerOfferFormProps) {
   const [amount, setAmount] = useState(initialAmount);
-  const [message, setMessage] = useState('');
-  
+  const [message, setMessage] = useState("");
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!amount || amount <= 0) {
       return;
     }
-    
+
     onSubmit({
       amount,
-      message
+      message,
     });
   };
-  
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>
-          {valuationDetails ? (
-            <>Make an Offer for {valuationDetails.year} {valuationDetails.make} {valuationDetails.model}</>
-          ) : (
-            <>Create Your Offer</>
-          )}
+          {valuationDetails
+            ? (
+              <>
+                Make an Offer for {valuationDetails.year}{" "}
+                {valuationDetails.make} {valuationDetails.model}
+              </>
+            )
+            : <>Create Your Offer</>}
         </CardTitle>
       </CardHeader>
-      
+
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -63,7 +71,7 @@ export function DealerOfferForm({
             <Input
               id="amount"
               type="number"
-              value={amount || ''}
+              value={amount || ""}
               onChange={(e) => setAmount(Number(e.target.value))}
               placeholder="Enter your offer amount"
               required
@@ -73,7 +81,7 @@ export function DealerOfferForm({
               Your best offer for this vehicle
             </p>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="message" className="flex items-center">
               <MessageSquare className="h-4 w-4 mr-1" />
@@ -88,21 +96,23 @@ export function DealerOfferForm({
             />
           </div>
         </CardContent>
-        
+
         <CardFooter>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full"
             disabled={isLoading || !amount || amount <= 0}
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              'Submit Offer'
-            )}
+            {isLoading
+              ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              )
+              : (
+                "Submit Offer"
+              )}
           </Button>
         </CardFooter>
       </form>

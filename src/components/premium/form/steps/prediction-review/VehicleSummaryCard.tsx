@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { FormData } from '@/types/premium-valuation';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { FormData } from "@/types/premium-valuation";
 
 interface VehicleSummaryCardProps {
   formData: FormData;
@@ -25,33 +24,37 @@ export function VehicleSummaryCard({ formData }: VehicleSummaryCardProps) {
               <p className="text-sm text-muted-foreground">{formData.year}</p>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-2">
             <div>
               <p className="text-sm font-medium">Mileage</p>
               <p className="text-sm text-muted-foreground">
-                {typeof formData.mileage === 'number' 
-                  ? formData.mileage.toLocaleString() 
+                {typeof formData.mileage === "number"
+                  ? formData.mileage.toLocaleString()
                   : formData.mileage} miles
               </p>
             </div>
             <div>
               <p className="text-sm font-medium">Condition</p>
               <p className="text-sm text-muted-foreground">
-                {formData.conditionLabel || 'Average'}
+                {formData.conditionLabel || "Average"}
               </p>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-2">
             <div>
               <p className="text-sm font-medium">ZIP Code</p>
-              <p className="text-sm text-muted-foreground">{formData.zipCode}</p>
+              <p className="text-sm text-muted-foreground">
+                {formData.zipCode}
+              </p>
             </div>
             {formData.fuelType && (
               <div>
                 <p className="text-sm font-medium">Fuel Type</p>
-                <p className="text-sm text-muted-foreground">{formData.fuelType}</p>
+                <p className="text-sm text-muted-foreground">
+                  {formData.fuelType}
+                </p>
               </div>
             )}
           </div>

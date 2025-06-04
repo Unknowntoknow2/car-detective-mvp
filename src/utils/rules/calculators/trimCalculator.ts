@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
 // Import rules dynamically to avoid TypeScript error
@@ -47,15 +48,45 @@ export class TrimCalculator implements AdjustmentCalculator {
     const basePrice = input.basePrice || 0;
     const adjustment = basePrice * trimData.percent;
     const factor = 'Trim Level';
+=======
+import {
+  AdjustmentBreakdown,
+  AdjustmentCalculator,
+  RulesEngineInput,
+} from "../types";
+import rulesConfig from "../../valuationRules.json";
+
+export class TrimCalculator implements AdjustmentCalculator {
+  calculate(input: RulesEngineInput): AdjustmentBreakdown | null {
+    if (!input.make || !input.model || !input.trim) return null;
+
+    const trimRules = rulesConfig.adjustments.trims as Record<
+      string,
+      Record<string, Array<{ trim: string; percent: number }>>
+    >;
+
+    if (!trimRules[input.make] || !trimRules[input.make][input.model]) {
+      return null;
+    }
+
+    const trimData = trimRules[input.make][input.model].find((t) =>
+      t.trim.toLowerCase() === input.trim.toLowerCase()
+    );
+
+    if (!trimData) return null;
+
+    const adjustment = input.basePrice * trimData.percent;
+    const factor = "Trim Level";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     const impact = Math.round(adjustment);
-    
+
     return {
-      name: 'Trim Level',
+      name: "Trim Level",
       value: Math.round(adjustment),
       description: `${input.make} ${input.model} ${input.trim} trim package`,
       percentAdjustment: trimData.percent,
       factor,
-      impact
+      impact,
     };
   }
 }

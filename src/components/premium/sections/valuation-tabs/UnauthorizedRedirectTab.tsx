@@ -1,15 +1,23 @@
-
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock, ChevronLeft } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ChevronLeft, Lock } from "lucide-react";
+import { useAuth } from "@/components/auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 interface UnauthorizedRedirectTabProps {
   setActiveTab: (tab: string) => void;
 }
 
-export function UnauthorizedRedirectTab({ setActiveTab }: UnauthorizedRedirectTabProps) {
+export function UnauthorizedRedirectTab(
+  { setActiveTab }: UnauthorizedRedirectTabProps,
+) {
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -22,7 +30,7 @@ export function UnauthorizedRedirectTab({ setActiveTab }: UnauthorizedRedirectTa
       navigate("/auth");
     }
   };
-  
+
   const handleGoBack = () => {
     setActiveTab("vin");
   };
@@ -40,20 +48,21 @@ export function UnauthorizedRedirectTab({ setActiveTab }: UnauthorizedRedirectTa
       </CardHeader>
       <CardContent className="text-amber-700">
         <p>
-          Upgrade to our premium valuation package to unlock this feature along with comprehensive vehicle
-          valuation reports, CARFAX history, dealer offers, and more.
+          Upgrade to our premium valuation package to unlock this feature along
+          with comprehensive vehicle valuation reports, CARFAX history, dealer
+          offers, and more.
         </p>
       </CardContent>
       <CardFooter className="flex gap-3 pt-0">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={handleGoBack}
           className="border-amber-300 text-amber-800 hover:bg-amber-100"
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
           Back
         </Button>
-        <Button 
+        <Button
           onClick={handleGetPremium}
           className="bg-amber-600 hover:bg-amber-700 text-white"
         >

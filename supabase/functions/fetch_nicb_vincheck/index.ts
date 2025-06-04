@@ -1,17 +1,17 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 console.log("NICB VINCheck function loaded");
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -20,16 +20,18 @@ serve(async (req) => {
     const { vin } = await req.json();
 
     // Validate the VIN
-    if (!vin || typeof vin !== 'string' || vin.length !== 17) {
+    if (!vin || typeof vin !== "string" || vin.length !== 17) {
       return new Response(
-        JSON.stringify({ error: 'Invalid VIN. Must be a 17-character string.' }),
-        { 
+        JSON.stringify({
+          error: "Invalid VIN. Must be a 17-character string.",
+        }),
+        {
           status: 400,
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          }
-        }
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        },
       );
     }
 
@@ -37,15 +39,15 @@ serve(async (req) => {
 
     // First check if we have a cached entry for this VIN
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
     // Check the cache
     const { data: cachedData, error: cacheError } = await supabaseClient
-      .from('vin_cache')
-      .select('nicb_data, fetched_at')
-      .eq('vin', vin)
+      .from("vin_cache")
+      .select("nicb_data, fetched_at")
+      .eq("vin", vin)
       .single();
 
     // If we have cache data and it's less than 7 days old, return it
@@ -58,17 +60,17 @@ serve(async (req) => {
       if (cacheAge < sevenDaysInMs) {
         console.log(`Returning cached NICB data for VIN ${vin}`);
         return new Response(
-          JSON.stringify({ 
+          JSON.stringify({
             data: cachedData.nicb_data,
-            source: 'cache',
-            fetched_at: cachedData.fetched_at
+            source: "cache",
+            fetched_at: cachedData.fetched_at,
           }),
-          { 
-            headers: { 
-              'Content-Type': 'application/json',
-              ...corsHeaders
-            }
-          }
+          {
+            headers: {
+              "Content-Type": "application/json",
+              ...corsHeaders,
+            },
+          },
         );
       }
     }
@@ -78,22 +80,24 @@ serve(async (req) => {
     console.log(`Fetching from NICB API: ${url}`);
 
     const response = await fetch(url);
-    
+
     if (!response.ok) {
-      console.error(`NICB API error: ${response.status} ${response.statusText}`);
+      console.error(
+        `NICB API error: ${response.status} ${response.statusText}`,
+      );
       return new Response(
-        JSON.stringify({ 
-          error: response.status === 404 
-            ? 'No NICB data found for this VIN.' 
-            : `NICB API error: ${response.status} ${response.statusText}`
+        JSON.stringify({
+          error: response.status === 404
+            ? "No NICB data found for this VIN."
+            : `NICB API error: ${response.status} ${response.statusText}`,
         }),
-        { 
+        {
           status: response.status === 404 ? 404 : 500,
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          }
-        }
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        },
       );
     }
 
@@ -103,43 +107,42 @@ serve(async (req) => {
 
     // Store in cache
     const { error: insertError } = await supabaseClient
-      .from('vin_cache')
+      .from("vin_cache")
       .upsert({
         vin,
         nicb_data: data,
-        fetched_at: new Date().toISOString()
+        fetched_at: new Date().toISOString(),
       });
 
     if (insertError) {
-      console.error('Error inserting into cache:', insertError);
+      console.error("Error inserting into cache:", insertError);
     }
 
     // Return the data
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         data,
-        source: 'api',
-        fetched_at: new Date().toISOString()
+        source: "api",
+        fetched_at: new Date().toISOString(),
       }),
-      { 
-        headers: { 
-          'Content-Type': 'application/json',
-          ...corsHeaders
-        }
-      }
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      },
     );
-    
   } catch (error) {
-    console.error('Error in NICB VINCheck function:', error);
+    console.error("Error in NICB VINCheck function:", error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Unknown error occurred' }),
-      { 
+      JSON.stringify({ error: error.message || "Unknown error occurred" }),
+      {
         status: 500,
-        headers: { 
-          'Content-Type': 'application/json',
-          ...corsHeaders
-        }
-      }
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      },
     );
   }
 });

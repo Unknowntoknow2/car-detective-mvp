@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabaseClient';
+=======
+import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/AuthContext";
+import { checkPremiumAccess } from "@/utils/premiumService";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export function usePremiumAccess(valuationId?: string) {
   const [hasPremiumAccess, setHasPremiumAccess] = useState(false);
@@ -12,6 +18,7 @@ export function usePremiumAccess(valuationId?: string) {
   useEffect(() => {
     const checkPremiumAccess = async () => {
       setIsLoading(true);
+<<<<<<< HEAD
       
       try {
         // If no user, definitely no premium access
@@ -83,6 +90,30 @@ export function usePremiumAccess(valuationId?: string) {
     
     checkPremiumAccess();
   }, [user, valuationId]);
+=======
+      setError(null);
+
+      try {
+        // Check if the function implementation in premiumService.ts returns an object
+        const result = await checkPremiumAccess();
+
+        // Extract the hasPremium boolean from the result
+        setHasPremiumAccess(result.hasPremium);
+      } catch (err) {
+        console.error("Error checking premium access:", err);
+        setError(
+          err instanceof Error
+            ? err
+            : new Error("Failed to check premium access"),
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchPremiumAccess();
+  }, [valuationId, user]);
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
   // Add the usePremiumCredit function
   const usePremiumCredit = async (valId: string): Promise<boolean> => {

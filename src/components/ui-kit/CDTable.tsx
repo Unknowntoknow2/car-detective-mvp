@@ -1,4 +1,3 @@
-
 import React from "react";
 import { cn } from "@/lib/utils";
 import { BodyS, Caption } from "./typography";
@@ -69,14 +68,14 @@ export function CDTable<T extends TableData>({
         "w-full overflow-auto relative",
         "bg-white rounded-lg",
         bordered && "border border-neutral-light",
-        className
+        className,
       )}
     >
       <table
         className={cn(
           "w-full border-collapse",
           compact ? "text-sm" : "text-base",
-          tableClassName
+          tableClassName,
         )}
       >
         {caption && (
@@ -89,7 +88,7 @@ export function CDTable<T extends TableData>({
             "bg-neutral-lighter text-neutral-darker font-medium",
             "border-b border-neutral-light",
             stickyHeader && "sticky top-0 z-10",
-            headerClassName
+            headerClassName,
           )}
         >
           <tr>
@@ -100,7 +99,7 @@ export function CDTable<T extends TableData>({
                   "text-left",
                   compact ? "px-3 py-2" : "px-4 py-3",
                   "whitespace-nowrap",
-                  column.className
+                  column.className,
                 )}
               >
                 {column.header}
@@ -109,48 +108,54 @@ export function CDTable<T extends TableData>({
           </tr>
         </thead>
         <tbody className={cn("divide-y divide-neutral-light", bodyClassName)}>
-          {isEmpty && emptyState ? (
-            <tr>
-              <td colSpan={columns.length} className="text-center py-8">
-                {emptyState}
-              </td>
-            </tr>
-          ) : (
-            tableData.map((row, rowIndex) => (
-              <tr
-                key={row.id}
-                className={cn(
-                  "transition-colors",
-                  striped && rowIndex % 2 === 1 && "bg-neutral-lighter/50",
-                  onRowClick && "cursor-pointer hover:bg-neutral-lighter",
-                  rowClassName && rowClassName(row, rowIndex)
-                )}
-                onClick={() => onRowClick && onRowClick(row)}
-              >
-                {columns.map((column, colIndex) => (
-                  <td
-                    key={colIndex}
-                    className={cn(
-                      compact ? "px-3 py-2" : "px-4 py-3",
-                      "align-middle",
-                      isLoading && "animate-pulse",
-                      column.className
-                    )}
-                  >
-                    {isLoading ? (
-                      <div className="h-4 bg-neutral-light rounded w-3/4" />
-                    ) : column.cell ? (
-                      column.cell(row)
-                    ) : typeof column.accessor === "function" ? (
-                      column.accessor(row)
-                    ) : (
-                      row[column.accessor]
-                    )}
-                  </td>
-                ))}
+          {isEmpty && emptyState
+            ? (
+              <tr>
+                <td colSpan={columns.length} className="text-center py-8">
+                  {emptyState}
+                </td>
               </tr>
-            ))
-          )}
+            )
+            : (
+              tableData.map((row, rowIndex) => (
+                <tr
+                  key={row.id}
+                  className={cn(
+                    "transition-colors",
+                    striped && rowIndex % 2 === 1 && "bg-neutral-lighter/50",
+                    onRowClick && "cursor-pointer hover:bg-neutral-lighter",
+                    rowClassName && rowClassName(row, rowIndex),
+                  )}
+                  onClick={() => onRowClick && onRowClick(row)}
+                >
+                  {columns.map((column, colIndex) => (
+                    <td
+                      key={colIndex}
+                      className={cn(
+                        compact ? "px-3 py-2" : "px-4 py-3",
+                        "align-middle",
+                        isLoading && "animate-pulse",
+                        column.className,
+                      )}
+                    >
+                      {isLoading
+                        ? <div className="h-4 bg-neutral-light rounded w-3/4" />
+                        : column.cell
+                        ? (
+                          column.cell(row)
+                        )
+                        : typeof column.accessor === "function"
+                        ? (
+                          column.accessor(row)
+                        )
+                        : (
+                          row[column.accessor]
+                        )}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            )}
         </tbody>
       </table>
     </div>

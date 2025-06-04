@@ -1,15 +1,16 @@
+import { SVGProps } from "react";
 
-import { SVGProps } from 'react';
-
-export function CheckCircleIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
+export function CheckCircleIcon(
+  { className, ...props }: SVGProps<SVGSVGElement>,
+) {
   return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
       {...props}
@@ -22,13 +23,13 @@ export function CheckCircleIcon({ className, ...props }: SVGProps<SVGSVGElement>
 
 export function XCircleIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
   return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
       {...props}
@@ -42,13 +43,13 @@ export function XCircleIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
 
 export function Check3DIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
   return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="3" 
-      strokeLinecap="round" 
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
       {...props}

@@ -1,6 +1,11 @@
-
-import React from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface FuelTypeSelectProps {
   value: string;
@@ -9,23 +14,52 @@ interface FuelTypeSelectProps {
 }
 
 const fuelTypes = [
-  { value: 'Gasoline', label: 'Gasoline', description: 'Most common fuel type for passenger vehicles' },
-  { value: 'Diesel', label: 'Diesel', description: 'Better fuel economy, higher torque, longer engine life' },
-  { value: 'Hybrid', label: 'Hybrid', description: 'Combines gasoline engine with electric motor for improved efficiency' },
-  { value: 'Electric', label: 'Electric', description: 'Zero emissions, lower operating costs, instant torque' },
-  { value: 'Plug-in Hybrid', label: 'Plug-in Hybrid', description: 'Rechargeable battery with gasoline engine backup' },
-  { value: 'Flex Fuel', label: 'Flex Fuel (E85)', description: 'Can run on gasoline or ethanol blend' },
-  { value: 'Natural Gas', label: 'Natural Gas (CNG)', description: 'Lower emissions than gasoline, cheaper fuel costs' }
+  {
+    value: "Gasoline",
+    label: "Gasoline",
+    description: "Most common fuel type for passenger vehicles",
+  },
+  {
+    value: "Diesel",
+    label: "Diesel",
+    description: "Better fuel economy, higher torque, longer engine life",
+  },
+  {
+    value: "Hybrid",
+    label: "Hybrid",
+    description:
+      "Combines gasoline engine with electric motor for improved efficiency",
+  },
+  {
+    value: "Electric",
+    label: "Electric",
+    description: "Zero emissions, lower operating costs, instant torque",
+  },
+  {
+    value: "Plug-in Hybrid",
+    label: "Plug-in Hybrid",
+    description: "Rechargeable battery with gasoline engine backup",
+  },
+  {
+    value: "Flex Fuel",
+    label: "Flex Fuel (E85)",
+    description: "Can run on gasoline or ethanol blend",
+  },
+  {
+    value: "Natural Gas",
+    label: "Natural Gas (CNG)",
+    description: "Lower emissions than gasoline, cheaper fuel costs",
+  },
 ];
 
 export const FuelTypeSelect: React.FC<FuelTypeSelectProps> = ({
   value,
   onChange,
-  isDisabled = false
+  isDisabled = false,
 }) => {
   return (
-    <Select 
-      value={value} 
+    <Select
+      value={value}
       onValueChange={onChange}
       disabled={isDisabled}
     >
@@ -33,15 +67,17 @@ export const FuelTypeSelect: React.FC<FuelTypeSelectProps> = ({
         <SelectValue placeholder="Select Fuel Type" />
       </SelectTrigger>
       <SelectContent>
-        {fuelTypes.map(type => (
-          <SelectItem 
-            key={type.value} 
+        {fuelTypes.map((type) => (
+          <SelectItem
+            key={type.value}
             value={type.value}
             className="py-2.5 cursor-pointer hover:bg-primary/10"
           >
             <div className="flex flex-col">
               <span>{type.label}</span>
-              <span className="text-xs text-muted-foreground">{type.description}</span>
+              <span className="text-xs text-muted-foreground">
+                {type.description}
+              </span>
             </div>
           </SelectItem>
         ))}

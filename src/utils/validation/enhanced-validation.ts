@@ -1,5 +1,4 @@
-
-import { z } from 'zod';
+import { z } from "zod";
 
 // Export the VIN regex for reuse
 export const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;
@@ -21,8 +20,9 @@ export const EnhancedManualEntrySchema = z.object({
   bodyType: z.string().optional(),
   features: z.array(z.string()).optional(),
   accidentCount: z.number().min(0).optional(),
-  vin: z.string().regex(/^[A-HJ-NPR-Z0-9]{17}$/, "Invalid VIN format").optional(),
+  vin: z.string().regex(/^[A-HJ-NPR-Z0-9]{17}$/, "Invalid VIN format")
+    .optional(),
 });
 
 // Re-export validation functions from vin-validation.ts for backward compatibility
-export * from './vin-validation';
+export * from "./vin-validation";

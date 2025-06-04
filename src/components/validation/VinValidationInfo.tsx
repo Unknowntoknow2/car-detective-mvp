@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React from "react";
 
 /**
  * Detailed VIN validation rules for form help text

@@ -1,22 +1,23 @@
-
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { FormData } from '@/types/premium-valuation';
-import { Car } from 'lucide-react';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { FormData } from "@/types/premium-valuation";
+import { Car } from "lucide-react";
 
 interface DrivingBehaviorSummaryProps {
   formData: FormData;
 }
 
-export function DrivingBehaviorSummary({ formData }: DrivingBehaviorSummaryProps) {
+export function DrivingBehaviorSummary(
+  { formData }: DrivingBehaviorSummaryProps,
+) {
   const getDrivingLabel = (profile: string) => {
     switch (profile) {
-      case 'light':
-        return 'Light (mostly city driving, short distances)';
-      case 'average':
-        return 'Average (mix of city and highway driving)';
-      case 'heavy':
-        return 'Heavy (mostly highway, long distances)';
+      case "light":
+        return "Light (mostly city driving, short distances)";
+      case "average":
+        return "Average (mix of city and highway driving)";
+      case "heavy":
+        return "Heavy (mostly highway, long distances)";
       default:
         return profile;
     }
@@ -31,14 +32,14 @@ export function DrivingBehaviorSummary({ formData }: DrivingBehaviorSummaryProps
             <Car className="h-10 w-10 text-primary/50" />
             <div>
               <div className="font-medium text-gray-900">
-                {getDrivingLabel(formData.drivingProfile || 'average')}
+                {getDrivingLabel(formData.drivingProfile || "average")}
               </div>
               <div className="text-sm text-muted-foreground mt-1">
-                {formData.drivingProfile === 'light' 
-                  ? 'Typically results in less wear and tear' 
-                  : formData.drivingProfile === 'heavy'
-                  ? 'May result in more wear and tear' 
-                  : 'Balanced driving profile'}
+                {formData.drivingProfile === "light"
+                  ? "Typically results in less wear and tear"
+                  : formData.drivingProfile === "heavy"
+                  ? "May result in more wear and tear"
+                  : "Balanced driving profile"}
               </div>
             </div>
           </div>

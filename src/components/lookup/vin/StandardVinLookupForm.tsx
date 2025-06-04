@@ -1,29 +1,39 @@
+<<<<<<< HEAD
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
 import { validateVIN } from '@/utils/validation/vin-validation';
+=======
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
+import { validateVin } from "@/utils/validation/vin-validation";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface VINLookupFormProps {
   onSubmit: (vin: string) => void;
   isLoading?: boolean;
 }
 
-export const VINLookupForm: React.FC<VINLookupFormProps> = ({ onSubmit, isLoading = false }) => {
-  const [vin, setVin] = useState('');
+export const VINLookupForm: React.FC<VINLookupFormProps> = (
+  { onSubmit, isLoading = false },
+) => {
+  const [vin, setVin] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate VIN format
     const result = validateVIN(vin);
     if (!result.isValid) {
-      setError(result.error || 'Invalid VIN format');
+      setError(result.error || "Invalid VIN format");
       return;
     }
-    
+
     setError(null);
     onSubmit(vin);
   };
@@ -46,20 +56,22 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = ({ onSubmit, isLoadin
           />
           {error && <div className="text-sm text-red-500">{error}</div>}
         </div>
-        
-        <Button 
-          type="submit" 
-          className="w-full" 
+
+        <Button
+          type="submit"
+          className="w-full"
           disabled={isLoading || vin.length !== 17}
         >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Looking up VIN...
-            </>
-          ) : (
-            'Get Vehicle Details'
-          )}
+          {isLoading
+            ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Looking up VIN...
+              </>
+            )
+            : (
+              "Get Vehicle Details"
+            )}
         </Button>
       </form>
     </div>

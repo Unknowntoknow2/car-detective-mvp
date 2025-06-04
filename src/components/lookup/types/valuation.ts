@@ -1,5 +1,16 @@
+<<<<<<< HEAD
 
 export interface ValuationResponse {
+=======
+export interface ValuationFormProps {
+  onSubmit?: (data: ManualValuationData) => Promise<void>;
+  isLoading?: boolean;
+  submitButtonText?: string;
+  isPremium?: boolean;
+}
+
+export interface ManualValuationData {
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   make: string;
   model: string;
   year: number;

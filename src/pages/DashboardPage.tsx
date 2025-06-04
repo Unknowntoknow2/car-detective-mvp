@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -13,12 +14,21 @@ import { FileBarChart, Car, CreditCard, Loader2 } from 'lucide-react';
 import ValuationHistoryList from '@/components/dashboard/ValuationHistoryList';
 import PremiumReportsList from '@/components/dashboard/PremiumReportsList';
 import { usePremiumCredits } from '@/hooks/usePremiumCredits';
+=======
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/auth/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export default function DashboardPage() {
   const { user, userDetails, isLoading: isAuthLoading } = useAuth();
   const { credits, isLoading: isCreditsLoading } = usePremiumCredits();
   const navigate = useNavigate();
 
+<<<<<<< HEAD
   React.useEffect(() => {
     if (!isAuthLoading && !user) {
       navigate('/auth');
@@ -26,6 +36,47 @@ export default function DashboardPage() {
   }, [isAuthLoading, user, navigate]);
 
   if (isAuthLoading) {
+=======
+  useEffect(() => {
+    async function checkUserRole() {
+      if (!user) {
+        navigate("/login");
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("user_role, dealership_name")
+          .eq("id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching user profile:", error);
+          toast.error("Could not load user profile");
+          setIsLoading(false);
+          return;
+        }
+
+        // Redirect based on user role
+        if (data?.user_role === "dealer") {
+          navigate("/dealer-dashboard");
+        } else {
+          navigate("/user-dashboard");
+        }
+      } catch (err) {
+        console.error("Error checking user role:", err);
+        setIsLoading(false);
+      }
+    }
+
+    checkUserRole();
+  }, [user, navigate]);
+
+  if (isLoading) {
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     return (
       <div className="flex min-h-screen flex-col">
         <Navbar />

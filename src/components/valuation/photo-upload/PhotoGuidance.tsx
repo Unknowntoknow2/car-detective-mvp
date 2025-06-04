@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { MIN_FILES, MAX_FILES } from '@/types/photo';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { MAX_FILES, MIN_FILES } from "@/types/photo";
 
 export function PhotoGuidance() {
   return (

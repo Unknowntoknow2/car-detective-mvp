@@ -1,7 +1,6 @@
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export interface AuthTestPanelProps {
   results: any[];
@@ -9,10 +8,10 @@ export interface AuthTestPanelProps {
   runTests: () => void;
 }
 
-export const AuthTestPanel: React.FC<AuthTestPanelProps> = ({ 
-  results = [], 
-  isRunning = false, 
-  runTests = () => console.log('Run tests') 
+export const AuthTestPanel: React.FC<AuthTestPanelProps> = ({
+  results = [],
+  isRunning = false,
+  runTests = () => console.log("Run tests"),
 }) => {
   return (
     <Card>
@@ -21,9 +20,9 @@ export const AuthTestPanel: React.FC<AuthTestPanelProps> = ({
       </CardHeader>
       <CardContent>
         <Button onClick={runTests} disabled={isRunning}>
-          {isRunning ? 'Running Tests...' : 'Run Tests'}
+          {isRunning ? "Running Tests..." : "Run Tests"}
         </Button>
-        
+
         {results.length > 0 && (
           <div className="mt-4 border rounded-md p-4">
             <h3 className="font-medium mb-2">Test Results</h3>

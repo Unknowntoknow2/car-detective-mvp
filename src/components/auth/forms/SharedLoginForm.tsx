@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -20,6 +21,26 @@ interface SharedLoginFormProps {
   alternateLoginPath?: string;
   alternateLoginText?: string;
   showDealershipField?: boolean;
+=======
+import React, { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { KeyRound, Loader2, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+interface SharedLoginFormProps {
+  isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
+  expectedRole: "individual" | "dealer" | undefined;
+  redirectPath: string;
+  alternateLoginPath: string;
+  alternateLoginText: string;
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }
 
 export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
@@ -28,26 +49,33 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
   isLoading = false,
   setIsLoading,
   expectedRole,
+<<<<<<< HEAD
   redirectPath = '/dashboard',
   alternateLoginPath = '/auth',
   alternateLoginText = 'Switch to other login',
   showDealershipField = false
+=======
+  redirectPath,
+  alternateLoginPath,
+  alternateLoginText,
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
-      setError('Please enter both email and password');
+      setError("Please enter both email and password");
       return;
     }
-    
+
     setError(null);
+<<<<<<< HEAD
     if (setIsLoading) setIsLoading(true);
     
     try {
@@ -57,15 +85,57 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
       if (!result.success) {
         const errorMessage = result.error ? errorToString(result.error) : 'Authentication failed';
         throw new Error(errorMessage);
+=======
+    setIsLoading(true);
+
+    try {
+      // Sign in using the auth context
+      const result = await signIn(email, password);
+
+      if (result?.error) {
+        throw new Error(result.error);
       }
-      
+
+      // Check if the user has the expected role
+      if (expectedRole) {
+        const { data, error: roleError } = await supabase
+          .from("profiles")
+          .select("user_role")
+          .eq("id", (await supabase.auth.getUser()).data.user?.id)
+          .single();
+
+        if (roleError) {
+          console.error("Error fetching user role:", roleError);
+          toast.error("Error verifying user role");
+          setIsLoading(false);
+          return;
+        }
+
+        // If the user doesn't have the expected role, show an error
+        if (data?.user_role !== expectedRole) {
+          setError(
+            `This account is not registered as a ${expectedRole}. Please use the correct login page.`,
+          );
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
+        }
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+      }
+
       // Redirect to the appropriate dashboard
-      toast.success('Login successful!');
+      toast.success("Login successful!");
       navigate(redirectPath);
     } catch (err: any) {
+<<<<<<< HEAD
       console.error('Login error:', err);
       setError(errorToString(err));
       if (setIsLoading) setIsLoading(false);
+=======
+      console.error("Login error:", err);
+      setError(err.message || "Invalid email or password");
+      setIsLoading(false);
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     }
   };
 
@@ -76,7 +146,7 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
           {error}
         </div>
       )}
-      
+
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <div className="relative">
@@ -93,11 +163,14 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
           />
         </div>
       </div>
-      
+
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="password">Password</Label>
-          <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+          <Link
+            to="/forgot-password"
+            className="text-xs text-primary hover:underline"
+          >
             Forgot password?
           </Link>
         </div>
@@ -115,18 +188,20 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
           />
         </div>
       </div>
-      
+
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Signing in...
-          </>
-        ) : (
-          'Sign In'
-        )}
+        {isLoading
+          ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Signing in...
+            </>
+          )
+          : (
+            "Sign In"
+          )}
       </Button>
-      
+
       <div className="text-center text-sm mt-4">
         <Link to={alternateLoginPath} className="text-primary hover:underline">
           {alternateLoginText}

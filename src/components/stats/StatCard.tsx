@@ -1,8 +1,7 @@
-
-import React from 'react';
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from '@/lib/utils';
-import { AnimatedCounter } from './AnimatedCounter';
+import { cn } from "@/lib/utils";
+import { AnimatedCounter } from "./AnimatedCounter";
 
 interface StatCardProps {
   title: string;
@@ -17,16 +16,21 @@ interface StatCardProps {
   };
 }
 
-export function StatCard({ 
-  title, 
-  value, 
-  icon, 
-  formatter = (val) => val.toLocaleString(), 
+export function StatCard({
+  title,
+  value,
+  icon,
+  formatter = (val) => val.toLocaleString(),
   className,
-  trend 
+  trend,
 }: StatCardProps) {
   return (
-    <Card className={cn("overflow-hidden hover:shadow-md transition-all duration-300 hover:scale-[1.02] group", className)}>
+    <Card
+      className={cn(
+        "overflow-hidden hover:shadow-md transition-all duration-300 hover:scale-[1.02] group",
+        className,
+      )}
+    >
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
           {title}
@@ -44,11 +48,16 @@ export function StatCard({
           </div>
           {trend && (
             <div className="mt-1 flex items-center text-xs">
-              <span className={trend.isPositive ? "text-green-600" : "text-red-600"}>
-                {trend.isPositive ? '+' : ''}{trend.value}%
+              <span
+                className={trend.isPositive ? "text-green-600" : "text-red-600"}
+              >
+                {trend.isPositive ? "+" : ""}
+                {trend.value}%
               </span>
               {trend.label && (
-                <span className="text-muted-foreground ml-1">{trend.label}</span>
+                <span className="text-muted-foreground ml-1">
+                  {trend.label}
+                </span>
               )}
             </div>
           )}

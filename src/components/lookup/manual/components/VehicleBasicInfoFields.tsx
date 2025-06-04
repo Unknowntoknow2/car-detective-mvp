@@ -1,18 +1,37 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+=======
+import React from "react";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { UseFormReturn } from "react-hook-form";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface VehicleBasicInfoFieldsProps {
   form: any;
 }
 
+<<<<<<< HEAD
 export const VehicleBasicInfoFields: React.FC<VehicleBasicInfoFieldsProps> = ({ form }) => {
   // Generate year options from 1980 to current year
   const currentYear = new Date().getFullYear();
   const yearOptions = Array.from({ length: currentYear - 1979 }, (_, i) => currentYear - i);
   
+=======
+export const VehicleBasicInfoFields: React.FC<VehicleBasicInfoFieldsProps> = (
+  { form },
+) => {
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   return (
     <div>
       <h3 className="text-lg font-medium mb-4">Vehicle Information</h3>

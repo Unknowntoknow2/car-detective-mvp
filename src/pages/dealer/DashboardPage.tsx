@@ -1,6 +1,5 @@
-
-import React from 'react';
-import DealerDashboard from './DealerDashboard';
+import React from "react";
+import DealerDashboard from "./DealerDashboard";
 
 const DealerDashboardPage = () => {
   return <DealerDashboard />;

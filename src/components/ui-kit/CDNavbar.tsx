@@ -1,4 +1,3 @@
-
 import React from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -50,14 +49,14 @@ export const CDNavbar: React.FC<NavbarProps> = ({
         "w-full z-40",
         sticky && "sticky top-0",
         variantClasses[variant],
-        className
+        className,
       )}
     >
       <div
         className={cn(
           "px-4 md:px-6 mx-auto",
           "flex h-16 items-center justify-between",
-          containerClassName
+          containerClassName,
         )}
       >
         {/* Logo and brand */}
@@ -82,9 +81,7 @@ export const CDNavbar: React.FC<NavbarProps> = ({
         {/* Navigation Links - Hidden on Mobile */}
         <nav className="hidden md:flex items-center gap-1">
           {children ||
-            navItems.map((item, i) => (
-              <NavLink key={i} item={item} />
-            ))}
+            navItems.map((item, i) => <NavLink key={i} item={item} />)}
         </nav>
 
         {/* Action Buttons */}
@@ -101,40 +98,42 @@ export const CDNavbar: React.FC<NavbarProps> = ({
             <span className="sr-only">
               {collapsed ? "Close menu" : "Open menu"}
             </span>
-            {collapsed ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="size-6"
-              >
-                <path d="M18 6 6 18" />
-                <path d="m6 6 12 12" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="size-6"
-              >
-                <line x1="4" x2="20" y1="12" y2="12" />
-                <line x1="4" x2="20" y1="6" y2="6" />
-                <line x1="4" x2="20" y1="18" y2="18" />
-              </svg>
-            )}
+            {collapsed
+              ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-6"
+                >
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
+              )
+              : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-6"
+                >
+                  <line x1="4" x2="20" y1="12" y2="12" />
+                  <line x1="4" x2="20" y1="6" y2="6" />
+                  <line x1="4" x2="20" y1="18" y2="18" />
+                </svg>
+              )}
           </button>
         </div>
       </div>
@@ -160,7 +159,7 @@ export const CDNavbar: React.FC<NavbarProps> = ({
                   "flex items-center px-3 py-2 rounded-md text-sm font-medium",
                   item.isActive
                     ? "bg-primary/10 text-primary"
-                    : "text-neutral-darker hover:bg-neutral-lighter"
+                    : "text-neutral-darker hover:bg-neutral-lighter",
                 )}
               >
                 {item.icon && <span className="mr-2">{item.icon}</span>}
@@ -181,7 +180,7 @@ const NavLink: React.FC<{ item: NavItem }> = ({ item }) => {
         "relative px-3 py-2 text-sm font-medium rounded-md transition-colors",
         item.isActive
           ? "text-primary"
-          : "text-neutral-darker hover:text-primary hover:bg-neutral-lighter"
+          : "text-neutral-darker hover:text-primary hover:bg-neutral-lighter",
       )}
     >
       <span className="flex items-center gap-1.5">

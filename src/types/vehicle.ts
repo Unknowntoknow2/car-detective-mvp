@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 
+=======
+// src/types/vehicle.ts
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 // Consolidated vehicle types for the entire application
 

@@ -1,6 +1,22 @@
+<<<<<<< HEAD
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { ReportData, ReportOptions, DocumentFonts } from '../types';
 import { defaultReportOptions } from '../defaultReportOptions';
+=======
+import { PDFDocument, PDFFont, PDFPage, rgb } from "pdf-lib";
+import { ReportData } from "../types";
+
+interface BasicReportGeneratorProps {
+  pdfDoc: PDFDocument;
+  page: PDFPage;
+  width: number;
+  height: number;
+  margin: number;
+  regularFont: PDFFont;
+  boldFont: PDFFont;
+  reportData: ReportData;
+}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 /**
  * Generate a basic PDF report for a vehicle valuation
@@ -9,6 +25,7 @@ import { defaultReportOptions } from '../defaultReportOptions';
  * @returns Promise resolving to Uint8Array containing PDF data
  */
 export async function generateBasicReport(
+<<<<<<< HEAD
   data: ReportData,
   options: Partial<ReportOptions> = {}
 ): Promise<Uint8Array> {
@@ -41,6 +58,24 @@ export async function generateBasicReport(
   
   // Draw header
   page.drawText('Vehicle Valuation Report', {
+=======
+  props: BasicReportGeneratorProps,
+): Promise<void> {
+  const {
+    pdfDoc,
+    page,
+    width,
+    height,
+    margin,
+    regularFont,
+    boldFont,
+    reportData,
+  } = props;
+  let currentY = height - margin;
+
+  // Add header
+  page.drawText("Vehicle Valuation Report", {
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     x: margin,
     y: height - margin,
     size: 24,
@@ -51,6 +86,7 @@ export async function generateBasicReport(
     x: margin,
     y: height - margin - 30,
     size: 18,
+<<<<<<< HEAD
     font: fonts.bold,
   });
   
@@ -173,8 +209,71 @@ export async function generateBasicReport(
       y: yPos,
       size: 12,
       font: fonts.bold,
+=======
+    font: boldFont,
+    color: rgb(0.1, 0.1, 0.1),
+  });
+  currentY -= 20;
+
+  // Add vehicle details
+  page.drawText(
+    `Vehicle: ${reportData.year} ${reportData.make} ${reportData.model}`,
+    {
+      x: margin,
+      y: currentY,
+      size: 12,
+      font: regularFont,
+      color: rgb(0.3, 0.3, 0.3),
+    },
+  );
+  currentY -= 15;
+
+  page.drawText(`VIN: ${reportData.vin}`, {
+    x: margin,
+    y: currentY,
+    size: 10,
+    font: regularFont,
+    color: rgb(0.5, 0.5, 0.5),
+  });
+  currentY -= 15;
+
+  // Add valuation details
+  page.drawText(`Estimated Value: $${reportData.estimatedValue}`, {
+    x: margin,
+    y: currentY,
+    size: 14,
+    font: boldFont,
+    color: rgb(0.2, 0.7, 0.2),
+  });
+  currentY -= 20;
+
+  // Add explanation
+  const explanationLines = wrapText(
+    reportData.explanation,
+    regularFont,
+    10,
+    width - margin * 2,
+  );
+  page.drawText("Explanation:", {
+    x: margin,
+    y: currentY,
+    size: 12,
+    font: boldFont,
+    color: rgb(0.3, 0.3, 0.3),
+  });
+  currentY -= 15;
+
+  for (const line of explanationLines) {
+    page.drawText(line, {
+      x: margin,
+      y: currentY,
+      size: 10,
+      font: regularFont,
+      color: rgb(0.3, 0.3, 0.3),
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     });
   }
+<<<<<<< HEAD
   
   // Draw valuation section
   yPos = height - margin - 200;
@@ -211,6 +310,29 @@ export async function generateBasicReport(
     
     if (Array.isArray(data.priceRange)) {
       priceRangeValues = [data.priceRange[0], data.priceRange[1]];
+=======
+}
+
+/**
+ * Wraps text to fit within a given width
+ */
+function wrapText(
+  text: string,
+  font: PDFFont,
+  fontSize: number,
+  maxWidth: number,
+): string[] {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const width = font.widthOfTextAtSize(testLine, fontSize);
+
+    if (width <= maxWidth) {
+      currentLine = testLine;
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     } else {
       // Fallback - use estimated value with +/- 5%
       const value = data.estimatedValue;

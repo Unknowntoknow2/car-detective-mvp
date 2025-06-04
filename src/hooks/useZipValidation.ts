@@ -1,19 +1,18 @@
-
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface ZipLocation {
-  'place name': string;
+  "place name": string;
   state: string;
-  'state abbreviation': string;
+  "state abbreviation": string;
   latitude: string;
   longitude: string;
 }
 
 export interface ZipValidationResult {
   country: string;
-  'post code': string;
+  "post code": string;
   places: ZipLocation[];
 }
 
@@ -21,9 +20,9 @@ export function useZipValidation(zip: string) {
   const {
     data,
     isLoading,
-    error
+    error,
   } = useQuery({
-    queryKey: ['zipValidation', zip],
+    queryKey: ["zipValidation", zip],
     queryFn: async () => {
       // Only run the query if we have a valid ZIP
       if (!zip || !/^\d{5}$/.test(zip)) {
@@ -31,19 +30,24 @@ export function useZipValidation(zip: string) {
       }
 
       try {
-        const { data, error } = await supabase.functions.invoke('fetch_zippopotamus', {
-          body: { zip },
-        });
+        const { data, error } = await supabase.functions.invoke(
+          "fetch_zippopotamus",
+          {
+            body: { zip },
+          },
+        );
 
         if (error) {
-          console.error('ZIP validation error:', error);
-          throw new Error(error.message || 'Failed to validate ZIP code');
+          console.error("ZIP validation error:", error);
+          throw new Error(error.message || "Failed to validate ZIP code");
         }
 
         return data as ZipValidationResult;
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Failed to validate ZIP code';
-        console.error('ZIP validation error:', err);
+        const errorMsg = err instanceof Error
+          ? err.message
+          : "Failed to validate ZIP code";
+        console.error("ZIP validation error:", err);
         toast.error(errorMsg);
         throw err;
       }

@@ -1,4 +1,3 @@
-
 export interface StepConfig {
   component: string;
   shouldShow: boolean;

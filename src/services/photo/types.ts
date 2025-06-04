@@ -1,5 +1,4 @@
-
-import { Photo, AICondition, PhotoScore } from '@/types/photo';
+import { AICondition, Photo, PhotoScore } from "@/types/photo";
 
 /**
  * Interface for photo uploading API response

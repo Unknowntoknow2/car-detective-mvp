@@ -1,5 +1,4 @@
-
-import CDButton from './CDButton';
+import CDButton from "./CDButton";
 export { CDButton };
-export type { CDButtonProps, CDButtonVariant, CDButtonSize } from './CDButton';
+export type { CDButtonProps, CDButtonSize, CDButtonVariant } from "./CDButton";
 export default CDButton;

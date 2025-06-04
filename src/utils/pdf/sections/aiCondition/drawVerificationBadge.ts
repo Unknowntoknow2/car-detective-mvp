@@ -1,5 +1,4 @@
-
-import { PDFPage, rgb, PDFFont } from 'pdf-lib';
+import { PDFFont, PDFPage, rgb } from "pdf-lib";
 
 /**
  * Draw a verification badge based on confidence score
@@ -10,7 +9,7 @@ export function drawVerificationBadge(
   yPosition: number,
   width: number,
   margin: number,
-  boldFont: PDFFont
+  boldFont: PDFFont,
 ): void {
   // Only show badge if confidence is high enough
   if (confidenceScore >= 70) {
@@ -18,7 +17,7 @@ export function drawVerificationBadge(
     const badgeHeight = 30;
     const badgeX = width - badgeWidth - margin - 10;
     const badgeY = yPosition + 10;
-    
+
     // Draw verification badge
     page.drawRectangle({
       x: badgeX,
@@ -30,14 +29,14 @@ export function drawVerificationBadge(
       borderWidth: 1,
       opacity: 0.9,
     });
-    
+
     // Add verification text
-    page.drawText('✓ AI VERIFIED', {
+    page.drawText("✓ AI VERIFIED", {
       x: badgeX + 10,
       y: badgeY + 10,
       size: 12,
       font: boldFont,
-      color: rgb(0, 0.5, 0.8)
+      color: rgb(0, 0.5, 0.8),
     });
   }
 }

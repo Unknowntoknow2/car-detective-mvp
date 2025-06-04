@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.170.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { Resend } from "https://esm.sh/resend@1.0.0";
@@ -11,7 +10,8 @@ const appUrl = "https://car-detective.app"; // Replace with your actual app URL
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface EmailRequest {
@@ -31,51 +31,60 @@ serve(async (req) => {
   try {
     // Create Supabase client
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
+
     // Get JWT token from request
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: "Missing Authorization header" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
-    
+
     // Get user from JWT
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    
+    const { data: { user }, error: userError } = await supabase.auth.getUser(
+      token,
+    );
+
     if (userError || !user) {
       return new Response(
         JSON.stringify({ error: "Invalid token or user not found" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
-    
+
     // Parse request
-    const { type, referralToken, inviterName, referredEmail, referralId } = await req.json() as EmailRequest;
-    
+    const { type, referralToken, inviterName, referredEmail, referralId } =
+      await req.json() as EmailRequest;
+
     let referralData;
     let inviterData;
     let recipientEmail;
     let subject;
     let html;
-    
+
     switch (type) {
       case "invite":
         if (!referralToken || !referredEmail) {
           throw new Error("Missing required parameters");
         }
-        
+
         // Get inviter's profile
         const { data: profile } = await supabase
           .from("profiles")
           .select("full_name")
           .eq("id", user.id)
           .single();
-          
-        const senderName = profile?.full_name || 'Your friend';
-        
+
+        const senderName = profile?.full_name || "Your friend";
+
         // Create invite email
         recipientEmail = referredEmail;
         subject = `${senderName} invited you to try Car Detective`;
@@ -98,32 +107,32 @@ serve(async (req) => {
           </div>
         `;
         break;
-        
+
       case "earned":
         if (!referralId) {
           throw new Error("Missing required parameters");
         }
-        
+
         // Get referral data
         const { data: earnedReferral, error: earnedError } = await supabase
           .from("referrals")
           .select("*")
           .eq("id", referralId)
           .single();
-          
+
         if (earnedError) throw earnedError;
         referralData = earnedReferral;
-        
+
         // Get inviter data
         const { data: inviter, error: inviterError } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", referralData.inviter_id)
           .single();
-          
+
         if (inviterError) throw inviterError;
         inviterData = inviter;
-        
+
         // Create earned reward email
         recipientEmail = user.email;
         subject = "You've earned a reward on Car Detective!";
@@ -140,29 +149,31 @@ serve(async (req) => {
           </div>
         `;
         break;
-        
+
       case "reminder":
         if (!referralId) {
           throw new Error("Missing required parameters");
         }
-        
+
         // Get referral data
         const { data: reminderReferral, error: reminderError } = await supabase
           .from("referrals")
           .select("*")
           .eq("id", referralId)
           .single();
-          
+
         if (reminderError) throw reminderError;
         referralData = reminderReferral;
-        
+
         // Get inviter email
-        const { data: reminderInviter } = await supabase.auth.admin.getUserById(referralData.inviter_id);
-        
+        const { data: reminderInviter } = await supabase.auth.admin.getUserById(
+          referralData.inviter_id,
+        );
+
         if (!reminderInviter || !reminderInviter.user) {
           throw new Error("Inviter not found");
         }
-        
+
         // Create reminder email
         recipientEmail = reminderInviter.user.email;
         subject = "Don't forget to claim your Car Detective reward!";
@@ -178,11 +189,11 @@ serve(async (req) => {
           </div>
         `;
         break;
-        
+
       default:
         throw new Error("Invalid email type");
     }
-    
+
     // Send the email
     const { data: emailResult, error: emailError } = await resend.emails.send({
       from: "Car Detective <referrals@car-detective.app>",
@@ -190,19 +201,26 @@ serve(async (req) => {
       subject: subject,
       html: html,
     });
-    
+
     if (emailError) throw emailError;
-    
+
     return new Response(
-      JSON.stringify({ success: true, message: "Email sent successfully", data: emailResult }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        success: true,
+        message: "Email sent successfully",
+        data: emailResult,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("Error sending referral email:", error.message);
-    
+
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });

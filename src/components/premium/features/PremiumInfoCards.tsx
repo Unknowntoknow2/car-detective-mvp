@@ -1,6 +1,5 @@
-
-import { Shield, FileText, Car } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Car, FileText, Shield } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function PremiumInfoCards() {
   return (
@@ -10,7 +9,8 @@ export function PremiumInfoCards() {
           <Shield className="h-8 w-8 text-primary mb-4" />
           <h3 className="text-lg font-semibold mb-2">CARFAX® Integration</h3>
           <p className="text-sm text-muted-foreground">
-            Complete vehicle history analysis for superior accuracy in valuations
+            Complete vehicle history analysis for superior accuracy in
+            valuations
           </p>
         </CardContent>
       </Card>

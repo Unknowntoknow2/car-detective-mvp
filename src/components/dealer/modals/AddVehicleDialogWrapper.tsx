@@ -1,13 +1,12 @@
-
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Car } from 'lucide-react';
+import { Car } from "lucide-react";
 
 export interface AddVehicleDialogWrapperProps {
   children: React.ReactNode;
@@ -15,11 +14,13 @@ export interface AddVehicleDialogWrapperProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-export const AddVehicleDialogWrapper: React.FC<AddVehicleDialogWrapperProps> = ({
-  children,
-  open,
-  onOpenChange
-}) => {
+export const AddVehicleDialogWrapper: React.FC<AddVehicleDialogWrapperProps> = (
+  {
+    children,
+    open,
+    onOpenChange,
+  },
+) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -28,7 +29,8 @@ export const AddVehicleDialogWrapper: React.FC<AddVehicleDialogWrapperProps> = (
             <Car size={18} /> Add New Vehicle
           </DialogTitle>
           <DialogDescription>
-            Add a new vehicle to your dealer inventory. Fill out the details below.
+            Add a new vehicle to your dealer inventory. Fill out the details
+            below.
           </DialogDescription>
         </DialogHeader>
         {children}

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import { useState, useEffect } from 'react';
 import { useVehicleSelector } from '@/hooks/useVehicleSelector';
@@ -5,6 +6,13 @@ import { LoadingMessage } from './LoadingMessage';
 import { ErrorMessage } from './ErrorMessage';
 import { MakeModelSelectors } from './MakeModelSelectors';
 import { ValidationMessage } from './ValidationMessage';
+=======
+import { useVehicleSelector } from "@/hooks/useVehicleSelector";
+import { LoadingMessage } from "./LoadingMessage";
+import { ErrorMessage } from "./ErrorMessage";
+import { MakeModelSelectors } from "./MakeModelSelectors";
+import { ValidationMessage } from "./ValidationMessage";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface VehicleSelectorWrapperProps {
   selectedMake: string;
@@ -23,7 +31,7 @@ export const VehicleSelectorWrapper = ({
   setSelectedModel,
   disabled = false,
   required = false,
-  onValidationChange
+  onValidationChange,
 }: VehicleSelectorWrapperProps) => {
   const [attempts, setAttempts] = useState(0);
   const [forcedRender, setForcedRender] = useState(0);
@@ -42,16 +50,19 @@ export const VehicleSelectorWrapper = ({
     modelSearchTerm,
     setModelSearchTerm,
     validationError,
+<<<<<<< HEAD
     loadingModels,
     models,
     fetchAttempts
+=======
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   } = useVehicleSelector({
     selectedMake,
     setSelectedMake,
     selectedModel,
     setSelectedModel,
     required,
-    onValidationChange
+    onValidationChange,
   });
 
   // Force a re-render if we've exceeded fetch attempts to ensure fallback data is used
@@ -74,7 +85,7 @@ export const VehicleSelectorWrapper = ({
 
   if (error) {
     // Convert any error to string safely
-    const errorMessage = typeof error === 'string' ? error : String(error);
+    const errorMessage = typeof error === "string" ? error : String(error);
     return <ErrorMessage error={errorMessage} />;
   }
 
@@ -103,8 +114,13 @@ export const VehicleSelectorWrapper = ({
         setMakesOpen={setMakesOpen}
         modelsOpen={modelsOpen}
         setModelsOpen={setModelsOpen}
+<<<<<<< HEAD
         filteredMakes={makeNames}
         filteredModels={modelNames}
+=======
+        filteredMakes={filteredMakes || []}
+        filteredModels={filteredModels || []}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         modelSearchTerm={modelSearchTerm}

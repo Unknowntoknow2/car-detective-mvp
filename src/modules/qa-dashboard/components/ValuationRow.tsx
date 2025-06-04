@@ -1,8 +1,7 @@
-
-import React, { useState } from 'react';
-import { format } from 'date-fns';
-import { Trash2, Eye, Database, FileText, CreditCard } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState } from "react";
+import { format } from "date-fns";
+import { CreditCard, Database, Eye, FileText, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,14 +12,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
-import { CDButton } from '@/components/ui-kit/CDButton';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { CDButton } from "@/components/ui-kit/CDButton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Define this function earlier
 const getConditionLabel = (condition: string | undefined) => {
-  if (!condition) return 'Unknown';
+  if (!condition) return "Unknown";
   return condition.charAt(0).toUpperCase() + condition.slice(1).toLowerCase();
 };
 
@@ -47,7 +51,7 @@ export interface Valuation {
   zip_code: string;
   estimated_value: number;
   confidence_score: number;
-  status: 'pending' | 'completed' | 'error';
+  status: "pending" | "completed" | "error";
   error_message?: string;
   is_premium: boolean;
   paid_at?: string;
@@ -60,7 +64,7 @@ export function ValuationRow({
   onRerunGPT,
   onGeneratePDF,
   onDownloadPDF,
-  onViewStripeStatus
+  onViewStripeStatus,
 }: ValuationRowProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -73,7 +77,7 @@ export function ValuationRow({
   return (
     <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
       <td className="py-3 px-4">
-        {format(new Date(valuation.created_at), 'MMM dd, yyyy HH:mm')}
+        {format(new Date(valuation.created_at), "MMM dd, yyyy HH:mm")}
       </td>
       <td className="py-3 px-4">{valuation.vin}</td>
       <td className="py-3 px-4">
@@ -84,22 +88,22 @@ export function ValuationRow({
       <td className="py-3 px-4">{valuation.zip_code}</td>
       <td className="py-3 px-4">{valuation.estimated_value}</td>
       <td className="py-3 px-4">
-        {valuation.status === 'completed' ? (
-          <Badge variant="outline">Completed</Badge>
-        ) : valuation.status === 'pending' ? (
-          <Badge>Pending</Badge>
-        ) : (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Badge variant="destructive">Error</Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{valuation.error_message || 'Unknown error'}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        {valuation.status === "completed"
+          ? <Badge variant="outline">Completed</Badge>
+          : valuation.status === "pending"
+          ? <Badge>Pending</Badge>
+          : (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Badge variant="destructive">Error</Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{valuation.error_message || "Unknown error"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
       </td>
 
       <td className="py-3 px-4 text-right">
@@ -113,7 +117,7 @@ export function ValuationRow({
           >
             View
           </CDButton>
-          
+
           <CDButton
             variant="ghost"
             size="sm"
@@ -123,7 +127,7 @@ export function ValuationRow({
           >
             Rerun
           </CDButton>
-          
+
           <CDButton
             variant="ghost"
             size="sm"
@@ -133,7 +137,7 @@ export function ValuationRow({
           >
             PDF
           </CDButton>
-          
+
           {valuation.is_premium && valuation.paid_at && (
             <CDButton
               variant="ghost"

@@ -1,7 +1,12 @@
+<<<<<<< HEAD
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useVehicleData, MakeData, ModelData } from '@/hooks/useVehicleData';
 import { toast } from 'sonner';
+=======
+import { useEffect, useState } from "react";
+import { useVehicleData } from "@/hooks/useVehicleData";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface UseVehicleSelectorProps {
   selectedMake: string;
@@ -18,16 +23,24 @@ export const useVehicleSelector = ({
   selectedModel,
   setSelectedModel,
   required = false,
-  onValidationChange
+  onValidationChange,
 }: UseVehicleSelectorProps) => {
   const { makes, getModelsByMake, isLoading, error } = useVehicleData();
   const [makesOpen, setMakesOpen] = useState(false);
   const [modelsOpen, setModelsOpen] = useState(false);
+<<<<<<< HEAD
   const [filteredMakes, setFilteredMakes] = useState<MakeData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [modelSearchTerm, setModelSearchTerm] = useState('');
   const [models, setModels] = useState<ModelData[]>([]);
   const [filteredModels, setFilteredModels] = useState<ModelData[]>([]);
+=======
+  const [filteredMakes, setFilteredMakes] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [modelSearchTerm, setModelSearchTerm] = useState("");
+  const [models, setModels] = useState<any[]>([]);
+  const [filteredModels, setFilteredModels] = useState<any[]>([]);
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   const [validationError, setValidationError] = useState<string | null>(null);
   const [loadingModels, setLoadingModels] = useState(false);
   
@@ -51,6 +64,7 @@ export const useVehicleSelector = ({
       modelsInitialized.current = false;
       return;
     }
+<<<<<<< HEAD
     
     try {
       setLoadingModels(true);
@@ -116,6 +130,11 @@ export const useVehicleSelector = ({
       setFilteredModels([]);
     }
   }, [getModelsByMake, selectedModel, setSelectedModel]);
+=======
+
+    fetchModels();
+  }, [selectedMake, getModelsByMake]);
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
   // Get models for selected make
   useEffect(() => {
@@ -142,7 +161,7 @@ export const useVehicleSelector = ({
   // Handle search terms for makes
   useEffect(() => {
     if (searchTerm) {
-      const filtered = makes.filter(make => 
+      const filtered = makes.filter((make) =>
         make.make_name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredMakes(filtered);
@@ -154,7 +173,7 @@ export const useVehicleSelector = ({
   // Handle search terms for models
   useEffect(() => {
     if (modelSearchTerm) {
-      const filtered = models.filter(model => 
+      const filtered = models.filter((model) =>
         model.model_name.toLowerCase().includes(modelSearchTerm.toLowerCase())
       );
       setFilteredModels(filtered);
@@ -173,9 +192,9 @@ export const useVehicleSelector = ({
         error = "Model is required";
       }
     }
-    
+
     setValidationError(error);
-    
+
     if (onValidationChange) {
       onValidationChange(error === null);
     }
@@ -208,7 +227,10 @@ export const useVehicleSelector = ({
     setModelSearchTerm,
     validationError,
     loadingModels,
+<<<<<<< HEAD
     models,
     fetchAttempts: fetchAttempts.current
+=======
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   };
 };

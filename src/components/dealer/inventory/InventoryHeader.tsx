@@ -1,6 +1,5 @@
-
-import { ResourceHeader } from '@/components/ui/resource-header';
-import { Plus } from 'lucide-react';
+import { ResourceHeader } from "@/components/ui/resource-header";
+import { Plus } from "lucide-react";
 
 interface InventoryHeaderProps {
   onAddVehicle: () => void;

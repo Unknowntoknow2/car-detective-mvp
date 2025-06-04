@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,13 +8,13 @@
     --color-primary: 0, 98, 255;
     --color-primary-hover: 0, 81, 219;
     --color-primary-light: 229, 240, 255;
-    
+
     --color-surface: 249, 250, 251;
     --color-surface-card: 255, 255, 255;
-    
+
     --color-text-primary: 17, 24, 39;
     --color-text-secondary: 75, 85, 99;
-    
+
     /* ShadCN compatibility */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
@@ -46,7 +45,7 @@
     --ring: 221 83% 53%;
 
     --radius: 0.5rem;
-    
+
     /* Sidebar specific variables */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 10% 3.9%;
@@ -86,7 +85,7 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 221 83% 53%;
-    
+
     /* Sidebar specific variables */
     --sidebar-background: 240 10% 3.9%;
     --sidebar-foreground: 0 0% 98%;

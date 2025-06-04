@@ -1,10 +1,16 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { CheckCircle, ArrowRight, ShieldCheck, FileText, Share2, CreditCard } from 'lucide-react';
-import { toast } from 'sonner';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import {
+  ArrowRight,
+  CheckCircle,
+  CreditCard,
+  FileText,
+  Share2,
+  ShieldCheck,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface NextStepsCardProps {
   isPremium?: boolean;
@@ -12,13 +18,15 @@ interface NextStepsCardProps {
   onShareClick?: () => void;
 }
 
-export function NextStepsCard({ isPremium = false, valuationId, onShareClick }: NextStepsCardProps) {
+export function NextStepsCard(
+  { isPremium = false, valuationId, onShareClick }: NextStepsCardProps,
+) {
   const handleShareClick = () => {
     if (onShareClick) {
       onShareClick();
     } else {
       // Copy share link to clipboard
-      const shareLink = `${window.location.origin}/valuation/${valuationId}`;
+      const shareLink = `${globalThis.location.origin}/valuation/${valuationId}`;
       navigator.clipboard.writeText(shareLink);
       toast.success("Share link copied to clipboard");
     }
@@ -36,9 +44,12 @@ export function NextStepsCard({ isPremium = false, valuationId, onShareClick }: 
               <div className="flex gap-2 items-start">
                 <ShieldCheck className="h-5 w-5 text-yellow-600 mt-0.5" />
                 <div>
-                  <h3 className="font-medium text-yellow-800">Unlock Premium Report</h3>
+                  <h3 className="font-medium text-yellow-800">
+                    Unlock Premium Report
+                  </h3>
                   <p className="text-sm text-yellow-700 mt-1">
-                    Get CARFAX history, market analytics, and more detailed valuation.
+                    Get CARFAX history, market analytics, and more detailed
+                    valuation.
                   </p>
                 </div>
               </div>
@@ -54,13 +65,13 @@ export function NextStepsCard({ isPremium = false, valuationId, onShareClick }: 
               </Button>
             </div>
           )}
-          
+
           <div className="space-y-3">
             <h3 className="text-sm font-medium">What would you like to do?</h3>
-            
-            <Button 
-              variant="outline" 
-              className="w-full justify-between" 
+
+            <Button
+              variant="outline"
+              className="w-full justify-between"
               onClick={handleShareClick}
             >
               <div className="flex items-center">
@@ -69,9 +80,9 @@ export function NextStepsCard({ isPremium = false, valuationId, onShareClick }: 
               </div>
               <ArrowRight className="h-4 w-4" />
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               className="w-full justify-between"
               asChild
             >
@@ -83,9 +94,9 @@ export function NextStepsCard({ isPremium = false, valuationId, onShareClick }: 
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               className="w-full justify-between"
               asChild
             >
@@ -97,10 +108,10 @@ export function NextStepsCard({ isPremium = false, valuationId, onShareClick }: 
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            
+
             {isPremium && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full justify-between"
                 asChild
               >

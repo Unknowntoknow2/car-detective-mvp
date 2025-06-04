@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,30 +15,40 @@ interface FeatureGridProps {
   onFeatureToggle: (id: string) => void;
 }
 
-export function FeatureGrid({ features, featureList, onFeatureToggle }: FeatureGridProps) {
+export function FeatureGrid(
+  { features, featureList, onFeatureToggle }: FeatureGridProps,
+) {
   // Group features by category
   const featureCategories = {
-    "Comfort": featureList.filter(f => ["heated", "vent"].includes(f.id)),
-    "Convenience": featureList.filter(f => ["power", "remote", "wireless"].includes(f.id)),
-    "Entertainment": featureList.filter(f => ["nav", "audio"].includes(f.id)),
-    "Interior": featureList.filter(f => ["leather", "sunroof"].includes(f.id)),
-    "Performance": featureList.filter(f => ["awd", "sport"].includes(f.id)),
-    "Safety": featureList.filter(f => ["camera", "cruise", "blind", "lane"].includes(f.id))
+    "Comfort": featureList.filter((f) => ["heated", "vent"].includes(f.id)),
+    "Convenience": featureList.filter((f) =>
+      ["power", "remote", "wireless"].includes(f.id)
+    ),
+    "Entertainment": featureList.filter((f) => ["nav", "audio"].includes(f.id)),
+    "Interior": featureList.filter((f) =>
+      ["leather", "sunroof"].includes(f.id)
+    ),
+    "Performance": featureList.filter((f) => ["awd", "sport"].includes(f.id)),
+    "Safety": featureList.filter((f) =>
+      ["camera", "cruise", "blind", "lane"].includes(f.id)
+    ),
   };
-  
+
   return (
     <div className="space-y-6">
       {Object.entries(featureCategories).map(([category, categoryFeatures]) => (
         <div key={category} className="space-y-3">
-          <h3 className="text-sm font-medium text-muted-foreground">{category}</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">
+            {category}
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {categoryFeatures.map((feature) => (
-              <Card 
+              <Card
                 key={feature.id}
                 className={`p-3 cursor-pointer transition-all ${
-                  features.includes(feature.id) 
-                    ? 'bg-primary/10 border-primary/30' 
-                    : 'hover:bg-muted/50'
+                  features.includes(feature.id)
+                    ? "bg-primary/10 border-primary/30"
+                    : "hover:bg-muted/50"
                 }`}
                 onClick={() => onFeatureToggle(feature.id)}
               >

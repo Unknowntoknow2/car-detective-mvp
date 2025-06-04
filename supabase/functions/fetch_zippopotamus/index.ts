@@ -1,10 +1,10 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.36.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // Create a Supabase client
@@ -21,15 +21,17 @@ serve(async (req) => {
   try {
     // Get request parameters
     const { zip } = await req.json();
-    
+
     // Validate zip parameter
     if (!zip || !/^\d{5}$/.test(zip)) {
       return new Response(
-        JSON.stringify({ error: "Invalid ZIP code format. Please provide a 5-digit ZIP code." }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
+        JSON.stringify({
+          error: "Invalid ZIP code format. Please provide a 5-digit ZIP code.",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -44,33 +46,36 @@ serve(async (req) => {
     if (cachedData && !cacheError) {
       const fetchedAt = new Date(cachedData.fetched_at);
       const now = new Date();
-      const cacheAgeDays = (now.getTime() - fetchedAt.getTime()) / (1000 * 60 * 60 * 24);
-      
+      const cacheAgeDays = (now.getTime() - fetchedAt.getTime()) /
+        (1000 * 60 * 60 * 24);
+
       if (cacheAgeDays < 30) {
         console.log("Returning cached ZIP data");
         return new Response(
           JSON.stringify(cachedData.location_data),
-          { 
-            headers: { ...corsHeaders, "Content-Type": "application/json" } 
-          }
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
     }
 
     // Fetch fresh data from Zippopotam.us API
     const apiUrl = `http://api.zippopotam.us/us/${zip}`;
-    
+
     console.log(`Fetching ZIP data from: ${apiUrl}`);
     const response = await fetch(apiUrl);
-    
+
     if (!response.ok) {
-      console.error(`Zippopotam.us API error: ${response.status} ${response.statusText}`);
+      console.error(
+        `Zippopotam.us API error: ${response.status} ${response.statusText}`,
+      );
       return new Response(
         JSON.stringify({ error: "Invalid ZIP code" }),
-        { 
-          status: 404, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
+        {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -94,18 +99,18 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify(locationData),
-      { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      }
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   } catch (error) {
     console.error("Error in fetch_zippopotamus function:", error);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      }
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });

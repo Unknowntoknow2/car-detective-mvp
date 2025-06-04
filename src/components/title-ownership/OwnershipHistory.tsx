@@ -1,21 +1,27 @@
-
-import React from 'react';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
+import React from "react";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 
 interface OwnershipHistoryProps {
   numberOfOwners: number;
   onChange: (value: number) => void;
 }
 
-export function OwnershipHistory({ numberOfOwners, onChange }: OwnershipHistoryProps) {
+export function OwnershipHistory(
+  { numberOfOwners, onChange }: OwnershipHistoryProps,
+) {
   const handleSliderChange = (values: number[]) => {
     onChange(values[0]);
   };
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
     if (!isNaN(value) && value >= 1 && value <= 10) {
@@ -51,7 +57,7 @@ export function OwnershipHistory({ numberOfOwners, onChange }: OwnershipHistoryP
             </TooltipTrigger>
             <TooltipContent className="max-w-sm">
               <p className="text-sm">
-                Fewer previous owners generally means higher resale value. 
+                Fewer previous owners generally means higher resale value.
                 One-owner vehicles typically command a premium.
               </p>
             </TooltipContent>
@@ -85,8 +91,8 @@ export function OwnershipHistory({ numberOfOwners, onChange }: OwnershipHistoryP
           {impact.text}
         </p>
         <p className="text-muted-foreground mt-1">
-          {numberOfOwners === 1 
-            ? "Original owner vehicle (highest value)" 
+          {numberOfOwners === 1
+            ? "Original owner vehicle (highest value)"
             : `${numberOfOwners} different owners in vehicle history`}
         </p>
       </div>

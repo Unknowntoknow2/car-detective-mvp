@@ -1,34 +1,33 @@
-
-import React, { useMemo } from 'react';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer 
-} from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuctionIndex } from '@/hooks/useAuctionIndex';
-import { Loader2 } from 'lucide-react';
-import { format, subMonths } from 'date-fns';
+import React, { useMemo } from "react";
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuctionIndex } from "@/hooks/useAuctionIndex";
+import { Loader2 } from "lucide-react";
+import { format, subMonths } from "date-fns";
 
 export const AuctionIndexChart = () => {
   // Get data for the last 12 months
   const today = new Date();
   const twelveMonthsAgo = subMonths(today, 12);
-  const startDate = format(twelveMonthsAgo, 'yyyy-MM-dd');
-  const endDate = format(today, 'yyyy-MM-dd');
-  
+  const startDate = format(twelveMonthsAgo, "yyyy-MM-dd");
+  const endDate = format(today, "yyyy-MM-dd");
+
   const { data, isLoading, error } = useAuctionIndex(startDate, endDate);
-  
+
   const chartData = useMemo(() => {
     if (!data) return [];
-    
-    return data.map(entry => ({
-      date: format(new Date(entry.date), 'MMM yyyy'),
+
+    return data.map((entry) => ({
+      date: format(new Date(entry.date), "MMM yyyy"),
       overallIndex: entry.index_data.overall_index,
       luxuryIndex: entry.index_data.luxury_index,
       economyIndex: entry.index_data.economy_index,
@@ -46,7 +45,9 @@ export const AuctionIndexChart = () => {
         <CardContent className="h-80 flex items-center justify-center">
           <div className="flex flex-col items-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-            <p className="text-sm text-gray-500">Loading auction index data...</p>
+            <p className="text-sm text-gray-500">
+              Loading auction index data...
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -61,7 +62,7 @@ export const AuctionIndexChart = () => {
         </CardHeader>
         <CardContent className="h-80 flex items-center justify-center">
           <p className="text-sm text-gray-500">
-            {error ? 'Error loading auction data' : 'No auction data available'}
+            {error ? "Error loading auction data" : "No auction data available"}
           </p>
         </CardContent>
       </Card>
@@ -90,36 +91,36 @@ export const AuctionIndexChart = () => {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="overallIndex" 
-                stroke="#8884d8" 
+              <Line
+                type="monotone"
+                dataKey="overallIndex"
+                stroke="#8884d8"
                 name="Overall"
-                activeDot={{ r: 8 }} 
+                activeDot={{ r: 8 }}
               />
-              <Line 
-                type="monotone" 
-                dataKey="luxuryIndex" 
-                stroke="#82ca9d" 
-                name="Luxury" 
+              <Line
+                type="monotone"
+                dataKey="luxuryIndex"
+                stroke="#82ca9d"
+                name="Luxury"
               />
-              <Line 
-                type="monotone" 
-                dataKey="economyIndex" 
-                stroke="#ffc658" 
-                name="Economy" 
+              <Line
+                type="monotone"
+                dataKey="economyIndex"
+                stroke="#ffc658"
+                name="Economy"
               />
-              <Line 
-                type="monotone" 
-                dataKey="suvIndex" 
-                stroke="#ff7300" 
-                name="SUV" 
+              <Line
+                type="monotone"
+                dataKey="suvIndex"
+                stroke="#ff7300"
+                name="SUV"
               />
-              <Line 
-                type="monotone" 
-                dataKey="truckIndex" 
-                stroke="#0088fe" 
-                name="Truck" 
+              <Line
+                type="monotone"
+                dataKey="truckIndex"
+                stroke="#0088fe"
+                name="Truck"
               />
             </LineChart>
           </ResponsiveContainer>

@@ -2,7 +2,12 @@
 import React from "react";
 import { ConditionLevel } from "@/components/lookup/types/manualEntry";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Props {
   value: ConditionLevel;
@@ -32,11 +37,15 @@ const CONDITION_LEVELS: { level: ConditionLevel; tip: string }[] = [
   },
 ];
 
-export const ConditionSelectorSegmented: React.FC<Props> = ({ value, onChange }) => {
+export const ConditionSelectorSegmented: React.FC<Props> = (
+  { value, onChange },
+) => {
   return (
     <TooltipProvider>
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium text-gray-700">Vehicle Condition</label>
+        <label className="text-sm font-medium text-gray-700">
+          Vehicle Condition
+        </label>
         <div className="flex gap-2 flex-wrap">
           {CONDITION_LEVELS.map(({ level, tip }) => (
             <Tooltip key={level}>
@@ -48,7 +57,7 @@ export const ConditionSelectorSegmented: React.FC<Props> = ({ value, onChange })
                     "px-3 py-2 rounded-md text-xs font-semibold border transition-all",
                     value === level
                       ? "bg-blue-600 text-white border-blue-700 shadow"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100",
                   )}
                 >
                   {level}

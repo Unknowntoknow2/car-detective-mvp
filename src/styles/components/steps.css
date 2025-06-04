@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,18 +8,18 @@
   }
 
   .step-number {
-    @apply w-10 h-10 rounded-full bg-primary text-white font-semibold
-           flex items-center justify-center shadow-sm z-10;
+    @apply w-10 h-10 rounded-full bg-primary text-white font-semibold flex
+      items-center justify-center shadow-sm z-10;
   }
-  
+
   .step-connector {
     @apply absolute left-5 top-10 w-0.5 h-full -z-10 bg-border;
   }
-  
+
   .step-active .step-number {
     @apply bg-gradient-primary shadow-md;
   }
-  
+
   .step-completed .step-number {
     @apply bg-success text-white;
   }

@@ -1,9 +1,9 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CDButton } from '@/components/ui-kit/CDButton';
-import { BodyS } from '@/components/ui-kit/typography';
-import { Lock, Download } from 'lucide-react';
-import styles from './styles';
+import React from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { CDButton } from "@/components/ui-kit/CDButton";
+import { BodyS } from "@/components/ui-kit/typography";
+import { Download, Lock } from "lucide-react";
+import styles from "./styles";
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -22,12 +22,12 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
   onUpgrade,
   onDownloadPdf,
   estimatedValue,
-  isDownloading = false
+  isDownloading = false,
 }) => {
   return (
     <React.Fragment>
       {children}
-      
+
       {/* Mobile Action Bar */}
       <AnimatePresence mode="wait">
         {!isLoading && (
@@ -44,27 +44,29 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
                 ${estimatedValue.toLocaleString()}
               </span>
             </div>
-            
-            {isPremium ? (
-              <CDButton 
-                variant="primary"
-                icon={<Download className="h-4 w-4" />}
-                onClick={onDownloadPdf}
-                isLoading={isDownloading}
-                className="w-1/2"
-              >
-                Get PDF
-              </CDButton>
-            ) : (
-              <CDButton 
-                variant="primary"
-                icon={<Lock className="h-4 w-4" />}
-                onClick={onUpgrade}
-                className="w-1/2"
-              >
-                Unlock Premium
-              </CDButton>
-            )}
+
+            {isPremium
+              ? (
+                <CDButton
+                  variant="primary"
+                  icon={<Download className="h-4 w-4" />}
+                  onClick={onDownloadPdf}
+                  isLoading={isDownloading}
+                  className="w-1/2"
+                >
+                  Get PDF
+                </CDButton>
+              )
+              : (
+                <CDButton
+                  variant="primary"
+                  icon={<Lock className="h-4 w-4" />}
+                  onClick={onUpgrade}
+                  className="w-1/2"
+                >
+                  Unlock Premium
+                </CDButton>
+              )}
           </motion.div>
         )}
       </AnimatePresence>

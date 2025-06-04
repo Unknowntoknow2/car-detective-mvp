@@ -1,13 +1,20 @@
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
+<<<<<<< HEAD
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
 export type RoleType = 'admin' | 'dealer' | 'user' | undefined;
+=======
+export type RoleType = "admin" | "dealer" | "user" | undefined;
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export const withAuth = (
   Component: React.ComponentType,
-  allowedRoles?: RoleType[]
+  allowedRoles?: RoleType[],
 ) => {
   return function ProtectedRoute(props: any) {
     const { user, userDetails, isLoading } = useAuth();
@@ -16,6 +23,7 @@ export const withAuth = (
 
     useEffect(() => {
       if (!isLoading && !user) {
+<<<<<<< HEAD
         // User not logged in, redirect to unified auth page
         navigate('/auth', { replace: true });
       } else if (
@@ -24,14 +32,24 @@ export const withAuth = (
         allowedRoles && 
         userRole && 
         !allowedRoles.includes(userRole as RoleType)
+=======
+        // User not logged in, redirect to auth page
+        navigate("/auth/signin", { replace: true });
+      } else if (
+        !isLoading &&
+        user &&
+        allowedRoles &&
+        userRole &&
+        !allowedRoles.includes(userRole)
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       ) {
         // User doesn't have required role, redirect based on their role
-        if (userRole === 'admin') {
-          navigate('/qa', { replace: true });
-        } else if (userRole === 'dealer') {
-          navigate('/dealer', { replace: true });
+        if (userRole === "admin") {
+          navigate("/qa", { replace: true });
+        } else if (userRole === "dealer") {
+          navigate("/dealer", { replace: true });
         } else {
-          navigate('/my-valuations', { replace: true });
+          navigate("/my-valuations", { replace: true });
         }
       }
     }, [user, userRole, isLoading, navigate]);
@@ -39,7 +57,8 @@ export const withAuth = (
     if (isLoading) {
       return (
         <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full">
+          </div>
         </div>
       );
     }

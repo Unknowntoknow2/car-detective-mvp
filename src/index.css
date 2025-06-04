@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 @import 'styles/index.css';
 
@@ -22,3 +23,9 @@ body {
 }
 
 /* Add any additional global styles here */
+=======
+@import "./styles/tailwind-extensions.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)

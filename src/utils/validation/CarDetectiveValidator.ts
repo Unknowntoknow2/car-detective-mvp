@@ -35,12 +35,31 @@ export type ValidationResult = {
 
 export class CarDetectiveValidator {
   private static readonly CURRENT_YEAR = new Date().getFullYear();
-  
+
   // Allowed values
-  private static readonly ALLOWED_CONDITIONS = ["Excellent", "Good", "Fair", "Poor"];
-  private static readonly ALLOWED_FUEL_TYPES = ["Gasoline", "Diesel", "Electric", "Hybrid", "Plug-in Hybrid", "Natural Gas", "Flex Fuel"];
-  private static readonly ALLOWED_TRANSMISSIONS = ["Automatic", "Manual", "CVT", "Semi-Automatic", "Dual Clutch"];
-  
+  private static readonly ALLOWED_CONDITIONS = [
+    "Excellent",
+    "Good",
+    "Fair",
+    "Poor",
+  ];
+  private static readonly ALLOWED_FUEL_TYPES = [
+    "Gasoline",
+    "Diesel",
+    "Electric",
+    "Hybrid",
+    "Plug-in Hybrid",
+    "Natural Gas",
+    "Flex Fuel",
+  ];
+  private static readonly ALLOWED_TRANSMISSIONS = [
+    "Automatic",
+    "Manual",
+    "CVT",
+    "Semi-Automatic",
+    "Dual Clutch",
+  ];
+
   // Zod schema for vehicle data
   private static vehicleSchema = z.object({
     make: z.string().min(1, "Make is required"),
@@ -50,26 +69,50 @@ export class CarDetectiveValidator {
       z.number()
         .int("Year must be a whole number")
         .min(1980, "Year must be 1980 or later")
-        .max(CarDetectiveValidator.CURRENT_YEAR, `Year cannot be greater than ${CarDetectiveValidator.CURRENT_YEAR}`)
+        .max(
+          CarDetectiveValidator.CURRENT_YEAR,
+          `Year cannot be greater than ${CarDetectiveValidator.CURRENT_YEAR}`,
+        ),
     ),
     mileage: z.preprocess(
       (val) => (typeof val === "string" ? parseInt(val, 10) : val),
       z.number()
         .int("Mileage must be a whole number")
         .min(0, "Mileage must be 0 or greater")
-        .max(300000, "Mileage must be 300,000 or less")
+        .max(300000, "Mileage must be 300,000 or less"),
     ),
     zipCode: z.string()
       .regex(/^\d{5}$/, "ZIP code must be a 5-digit number"),
-    condition: z.enum(CarDetectiveValidator.ALLOWED_CONDITIONS as [string, ...string[]], {
-      errorMap: () => ({ message: `Condition must be one of: ${CarDetectiveValidator.ALLOWED_CONDITIONS.join(", ")}` }),
-    }),
-    fuelType: z.enum(CarDetectiveValidator.ALLOWED_FUEL_TYPES as [string, ...string[]], {
-      errorMap: () => ({ message: `Fuel type must be one of: ${CarDetectiveValidator.ALLOWED_FUEL_TYPES.join(", ")}` }),
-    }),
-    transmission: z.enum(CarDetectiveValidator.ALLOWED_TRANSMISSIONS as [string, ...string[]], {
-      errorMap: () => ({ message: `Transmission must be one of: ${CarDetectiveValidator.ALLOWED_TRANSMISSIONS.join(", ")}` }),
-    }),
+    condition: z.enum(
+      CarDetectiveValidator.ALLOWED_CONDITIONS as [string, ...string[]],
+      {
+        errorMap: () => ({
+          message: `Condition must be one of: ${
+            CarDetectiveValidator.ALLOWED_CONDITIONS.join(", ")
+          }`,
+        }),
+      },
+    ),
+    fuelType: z.enum(
+      CarDetectiveValidator.ALLOWED_FUEL_TYPES as [string, ...string[]],
+      {
+        errorMap: () => ({
+          message: `Fuel type must be one of: ${
+            CarDetectiveValidator.ALLOWED_FUEL_TYPES.join(", ")
+          }`,
+        }),
+      },
+    ),
+    transmission: z.enum(
+      CarDetectiveValidator.ALLOWED_TRANSMISSIONS as [string, ...string[]],
+      {
+        errorMap: () => ({
+          message: `Transmission must be one of: ${
+            CarDetectiveValidator.ALLOWED_TRANSMISSIONS.join(", ")
+          }`,
+        }),
+      },
+    ),
     vin: z.string().optional(),
     plate: z.string().optional(),
     state: z.string().optional(),
@@ -90,18 +133,18 @@ export class CarDetectiveValidator {
     // Create a sub-schema based on which fields are present
     // This allows us to only validate the fields that are provided
     const result = this.vehicleSchema.safeParse(data);
-    
+
     if (result.success) {
       return { valid: true, errors: {} };
     }
-    
+
     // Format Zod errors into our error map format
     const errors: FieldErrorMap = {};
     result.error.errors.forEach((err) => {
       const path = err.path[0] as keyof VehicleFormData;
       errors[path] = err.message;
     });
-    
+
     return { valid: false, errors };
   }
 
@@ -111,19 +154,28 @@ export class CarDetectiveValidator {
    * @param value Field value to validate
    * @returns Error message or null if valid
    */
-  public static validateField(field: keyof VehicleFormData, value: any): string | null {
+  public static validateField(
+    field: keyof VehicleFormData,
+    value: any,
+  ): string | null {
     // Create a schema just for this field
+<<<<<<< HEAD
     // Fix for TS7053 error: use type assertion for shape indexing
     const fieldSchema = z.object({ 
       [field]: (this.vehicleSchema.shape as any)[field] || z.any() 
     }).partial();
     
+=======
+    const fieldSchema = z.object({ [field]: this.vehicleSchema.shape[field] })
+      .partial();
+
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     const result = fieldSchema.safeParse({ [field]: value });
-    
+
     if (result.success) {
       return null;
     }
-    
+
     return result.error.errors[0]?.message || `Invalid ${field}`;
   }
 
@@ -134,14 +186,14 @@ export class CarDetectiveValidator {
    */
   public static isValidVIN(vin: string): boolean {
     if (!vin) return false;
-    
+
     // Remove spaces and make uppercase
     vin = vin.replace(/\s/g, "").toUpperCase();
-    
+
     // Check length and character set (excluding I, O, Q)
     const vinRegex = /^[A-HJ-NPR-Z0-9]{17}$/;
     if (!vinRegex.test(vin)) return false;
-    
+
     // Simple checksum validation (could be expanded in the future)
     // This is a basic implementation and doesn't cover all cases
     return true;
@@ -155,7 +207,7 @@ export class CarDetectiveValidator {
    */
   public static isValidPlate(plate: string, state: string): boolean {
     if (!plate || !state) return false;
-    
+
     // Use the state-specific validation
     const validationResult = validateStatePlate(plate, state);
     return validationResult.valid;
@@ -169,7 +221,7 @@ export class CarDetectiveValidator {
   public static async isAsyncValidVIN(vin: string): Promise<boolean> {
     // Basic validation first
     if (!this.isValidVIN(vin)) return false;
-    
+
     try {
       // This could be replaced with an actual API call
       // For now, we'll just use the sync validator

@@ -1,10 +1,14 @@
-
-import React, { useState, useEffect } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, PlusCircle, Settings } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, PlusCircle, Settings } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EquipmentOption {
   id: number;
@@ -19,7 +23,9 @@ interface EquipmentSelectorProps {
   onChange: (selectedIds: number[]) => void;
 }
 
-export function EquipmentSelector({ selectedEquipment, onChange }: EquipmentSelectorProps) {
+export function EquipmentSelector(
+  { selectedEquipment, onChange }: EquipmentSelectorProps,
+) {
   const [options, setOptions] = useState<EquipmentOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,18 +36,22 @@ export function EquipmentSelector({ selectedEquipment, onChange }: EquipmentSele
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from('equipment_options')
-          .select('*')
-          .order('name');
-        
+          .from("equipment_options")
+          .select("*")
+          .order("name");
+
         if (error) {
           throw new Error(error.message);
         }
-        
+
         setOptions(data || []);
       } catch (err) {
-        console.error('Error fetching equipment options:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load equipment options');
+        console.error("Error fetching equipment options:", err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load equipment options",
+        );
       } finally {
         setLoading(false);
       }
@@ -53,7 +63,7 @@ export function EquipmentSelector({ selectedEquipment, onChange }: EquipmentSele
   // Toggle equipment selection
   const toggleEquipment = (id: number) => {
     if (selectedEquipment.includes(id)) {
-      onChange(selectedEquipment.filter(item => item !== id));
+      onChange(selectedEquipment.filter((item) => item !== id));
     } else {
       onChange([...selectedEquipment, id]);
     }
@@ -62,7 +72,7 @@ export function EquipmentSelector({ selectedEquipment, onChange }: EquipmentSele
   // Calculate total value add
   const calculateTotalValueAdd = (): number => {
     return selectedEquipment.reduce((total, id) => {
-      const option = options.find(opt => opt.id === id);
+      const option = options.find((opt) => opt.id === id);
       return total + (option?.value_add || 0);
     }, 0);
   };
@@ -116,15 +126,17 @@ export function EquipmentSelector({ selectedEquipment, onChange }: EquipmentSele
               <Tooltip key={option.id}>
                 <TooltipTrigger asChild>
                   <Badge
-                    variant={selectedEquipment.includes(option.id) ? "default" : "outline"}
+                    variant={selectedEquipment.includes(option.id)
+                      ? "default"
+                      : "outline"}
                     className={`cursor-pointer ${
-                      selectedEquipment.includes(option.id) 
-                        ? "bg-primary text-primary-foreground" 
+                      selectedEquipment.includes(option.id)
+                        ? "bg-primary text-primary-foreground"
                         : "hover:bg-primary/10"
                     }`}
                     onClick={() => toggleEquipment(option.id)}
                   >
-                    {option.name} 
+                    {option.name}
                     {selectedEquipment.includes(option.id) && (
                       <span className="ml-1 text-xs">
                         ({formatPercentage(option.multiplier)})
@@ -135,7 +147,8 @@ export function EquipmentSelector({ selectedEquipment, onChange }: EquipmentSele
                 <TooltipContent>
                   <p>{option.description}</p>
                   <p className="text-xs font-medium mt-1">
-                    Value: +${option.value_add.toLocaleString()} ({formatPercentage(option.multiplier)})
+                    Value: +${option.value_add.toLocaleString()}{" "}
+                    ({formatPercentage(option.multiplier)})
                   </p>
                 </TooltipContent>
               </Tooltip>

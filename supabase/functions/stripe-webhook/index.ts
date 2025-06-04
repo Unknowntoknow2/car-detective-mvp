@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@11.18.0?target=deno";
 
@@ -9,8 +8,9 @@ const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
 
 // Set up CORS headers
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
@@ -26,19 +26,22 @@ serve(async (req) => {
     console.error("Missing signature or webhook secret");
     return new Response(
       JSON.stringify({ error: "Missing signature or webhook secret" }),
-      { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      },
     );
   }
 
   try {
     // Get the request body as text for verification
     const body = await req.text();
-    
+
     // Verify the webhook signature
     const event = stripe.webhooks.constructEvent(
       body,
       signature,
-      webhookSecret
+      webhookSecret,
     );
 
     console.log(`Processing webhook event: ${event.type}`);
@@ -46,6 +49,7 @@ serve(async (req) => {
     // Handle the event type
     let userId = null;
     let expiresAt = null;
+<<<<<<< HEAD
     let customerId = null;
     let creditsToAdd = 0;
     let valuationId = null;
@@ -88,73 +92,103 @@ serve(async (req) => {
           }
         }
         
+=======
+
+    // For subscriptions and invoices, we need to lookup by customer id
+    let customerId = null;
+
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object;
+
+        // Get the user ID from the session metadata
+        userId = session.metadata?.user_id;
+        customerId = session.customer;
+
+        console.log(
+          `Checkout completed for user: ${userId}, customer: ${customerId}`,
+        );
+
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         // If we have a subscription, let's get the current period end
         if (session.subscription) {
-          const subscription = await stripe.subscriptions.retrieve(session.subscription);
-          expiresAt = new Date(subscription.current_period_end * 1000).toISOString();
+          const subscription = await stripe.subscriptions.retrieve(
+            session.subscription,
+          );
+          expiresAt = new Date(subscription.current_period_end * 1000)
+            .toISOString();
         } else {
+<<<<<<< HEAD
           // Default to 12 months if no subscription (for credits)
           expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+=======
+          // Default to 30 days if no subscription (for one-time purchases)
+          expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            .toISOString();
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         }
-        
+
         break;
       }
       case "customer.subscription.updated": {
         const subscription = event.data.object;
         customerId = subscription.customer;
-        
+
         // Get the user ID from the customer ID
         const { data, error } = await req.supabaseClient
-          .from('profiles')
-          .select('id')
-          .eq('stripe_customer_id', customerId)
+          .from("profiles")
+          .select("id")
+          .eq("stripe_customer_id", customerId)
           .maybeSingle();
-          
+
         if (error) {
           console.error("Error finding user by customer ID:", error);
         } else if (data) {
           userId = data.id;
           console.log(`Subscription updated for user: ${userId}`);
-          
+
           // Get the new expiration date
-          expiresAt = new Date(subscription.current_period_end * 1000).toISOString();
+          expiresAt = new Date(subscription.current_period_end * 1000)
+            .toISOString();
         }
-        
+
         break;
       }
       case "customer.subscription.deleted": {
         const subscription = event.data.object;
         customerId = subscription.customer;
-        
+
         // Get the user ID from the customer ID
         const { data, error } = await req.supabaseClient
-          .from('profiles')
-          .select('id')
-          .eq('stripe_customer_id', customerId)
+          .from("profiles")
+          .select("id")
+          .eq("stripe_customer_id", customerId)
           .maybeSingle();
-          
+
         if (error) {
           console.error("Error finding user by customer ID:", error);
         } else if (data) {
           userId = data.id;
           console.log(`Subscription canceled for user: ${userId}`);
-          
+
           // Update the profile to remove premium status
           const { error: updateError } = await req.supabaseClient
-            .from('profiles')
+            .from("profiles")
             .update({
               is_premium_dealer: false,
-              premium_expires_at: null
+              premium_expires_at: null,
             })
-            .eq('id', userId);
-            
+            .eq("id", userId);
+
           if (updateError) {
             console.error("Error updating user profile:", updateError);
           } else {
-            console.log(`Successfully removed premium status for user: ${userId}`);
+            console.log(
+              `Successfully removed premium status for user: ${userId}`,
+            );
           }
         }
-        
+
         break;
       }
       default:
@@ -167,22 +201,23 @@ serve(async (req) => {
       // Store customer ID if available, to link future webhook events
       const updateData: any = {
         is_premium_dealer: true,
-        premium_expires_at: expiresAt
+        premium_expires_at: expiresAt,
       };
-      
+
       if (customerId) {
         updateData.stripe_customer_id = customerId;
       }
-      
+
       const { error } = await req.supabaseClient
-        .from('profiles')
+        .from("profiles")
         .update(updateData)
-        .eq('id', userId);
-        
+        .eq("id", userId);
+
       if (error) {
         console.error("Error updating user profile:", error);
         throw error;
       }
+<<<<<<< HEAD
       
       console.log(`Successfully updated premium status for user: ${userId}, expires: ${expiresAt}`);
       
@@ -249,6 +284,12 @@ serve(async (req) => {
           }
         }
       }
+=======
+
+      console.log(
+        `Successfully updated premium status for user: ${userId}, expires: ${expiresAt}`,
+      );
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     }
 
     return new Response(JSON.stringify({ received: true }), {
@@ -259,7 +300,10 @@ serve(async (req) => {
     console.error(`Webhook Error: ${err.message}`);
     return new Response(
       JSON.stringify({ error: `Webhook Error: ${err.message}` }),
-      { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      },
     );
   }
 });

@@ -1,4 +1,3 @@
-
 /**
  * Mileage Adjustment Calculator
  * Calculates value adjustments based on vehicle mileage using industry standard
@@ -13,7 +12,7 @@
 export function mileageAdjustmentCurve(mileage: number): number {
   // Industry standard mileage adjustment curve
   // These values would typically be calibrated based on historical sales data
-  
+
   if (mileage < 10000) {
     // Very low mileage premium
     return 0.04;
@@ -67,7 +66,10 @@ export function getMileageDescription(mileage: number): string {
  * @param basePrice The base price of the vehicle
  * @returns Dollar amount adjustment based on mileage
  */
-export function getMileageAdjustment(mileage: number, basePrice: number): number {
+export function getMileageAdjustment(
+  mileage: number,
+  basePrice: number,
+): number {
   const multiplier = mileageAdjustmentCurve(mileage);
   return basePrice * multiplier;
 }
