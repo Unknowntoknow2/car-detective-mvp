@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { CalendarX } from 'lucide-react';
+import React from "react";
+import { CalendarX } from "lucide-react";
 
 export function EmptyState() {
   return (

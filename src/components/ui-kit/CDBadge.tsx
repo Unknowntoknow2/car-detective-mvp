@@ -1,4 +1,3 @@
-
 import React from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -33,7 +32,8 @@ export const CDBadge: React.FC<BadgeProps> = ({
     success: "bg-success-light text-success-dark border border-success/10",
     warning: "bg-warning-light text-warning-dark border border-warning/10",
     error: "bg-error-light text-error-dark border border-error/10",
-    neutral: "bg-neutral-lighter text-neutral-darker border border-neutral-light",
+    neutral:
+      "bg-neutral-lighter text-neutral-darker border border-neutral-light",
   };
 
   // Size classes
@@ -51,7 +51,7 @@ export const CDBadge: React.FC<BadgeProps> = ({
         variantClasses[variant],
         sizeClasses[size],
         rounded ? "rounded-full" : "rounded-md",
-        className
+        className,
       )}
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}

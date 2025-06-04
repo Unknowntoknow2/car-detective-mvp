@@ -1,16 +1,27 @@
-
-import React, { useEffect, useState } from 'react';
-import { HelpCircle } from 'lucide-react';
-import { FeatureCheck } from './FeatureCheck';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import React, { useEffect, useState } from "react";
+import { HelpCircle } from "lucide-react";
+import { FeatureCheck } from "./FeatureCheck";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface FeatureComparison {
   name: string;
   description?: string;
-  basic: boolean | 'limited' | 'full';
-  pro: boolean | 'limited' | 'full';
-  enterprise: boolean | 'limited' | 'full';
+  basic: boolean | "limited" | "full";
+  pro: boolean | "limited" | "full";
+  enterprise: boolean | "limited" | "full";
   category?: string;
   basicTooltip?: string;
   proTooltip?: string;
@@ -21,25 +32,27 @@ interface PlanComparisonTableProps {
   features: FeatureComparison[];
 }
 
-export const PlanComparisonTable: React.FC<PlanComparisonTableProps> = ({ features }) => {
+export const PlanComparisonTable: React.FC<PlanComparisonTableProps> = (
+  { features },
+) => {
   const [isSticky, setIsSticky] = useState(false);
-  
+
   useEffect(() => {
     const handleScroll = () => {
-      const offset = window.scrollY;
+      const offset = globalThis.scrollY;
       setIsSticky(offset > 400);
     };
-    
-    window.addEventListener('scroll', handleScroll);
-    
+
+    globalThis.addEventListener("scroll", handleScroll);
+
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      globalThis.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
   // Group features by category
   const categories = features.reduce((acc, feature) => {
-    const category = feature.category || 'Features';
+    const category = feature.category || "Features";
     if (!acc[category]) {
       acc[category] = [];
     }
@@ -48,12 +61,14 @@ export const PlanComparisonTable: React.FC<PlanComparisonTableProps> = ({ featur
   }, {} as Record<string, FeatureComparison[]>);
 
   return (
-    <div className={`w-full bg-background transition-all duration-300 ${
-      isSticky ? 'sticky top-0 z-20 shadow-md' : ''
-    }`}>
+    <div
+      className={`w-full bg-background transition-all duration-300 ${
+        isSticky ? "sticky top-0 z-20 shadow-md" : ""
+      }`}
+    >
       <div className="container max-w-5xl mx-auto px-4 py-8">
         <h2 className="text-2xl font-bold mb-6 text-center">Plan Comparison</h2>
-        
+
         <div className="rounded-lg border overflow-hidden">
           <Table>
             <TableHeader className="bg-muted/50">
@@ -65,7 +80,9 @@ export const PlanComparisonTable: React.FC<PlanComparisonTableProps> = ({ featur
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Object.entries(categories).map(([category, categoryFeatures]) => (
+              {Object.entries(categories).map((
+                [category, categoryFeatures],
+              ) => (
                 <React.Fragment key={category}>
                   <TableRow className="bg-muted/20">
                     <TableCell colSpan={4} className="font-medium py-2">
@@ -84,7 +101,9 @@ export const PlanComparisonTable: React.FC<PlanComparisonTableProps> = ({ featur
                                   <HelpCircle className="h-3.5 w-3.5 text-muted-foreground ml-1" />
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p className="max-w-xs text-sm">{feature.description}</p>
+                                  <p className="max-w-xs text-sm">
+                                    {feature.description}
+                                  </p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -92,20 +111,20 @@ export const PlanComparisonTable: React.FC<PlanComparisonTableProps> = ({ featur
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <FeatureCheck 
-                          included={feature.basic} 
+                        <FeatureCheck
+                          included={feature.basic}
                           label={feature.basicTooltip}
                         />
                       </TableCell>
                       <TableCell className="text-center">
-                        <FeatureCheck 
-                          included={feature.pro} 
+                        <FeatureCheck
+                          included={feature.pro}
                           label={feature.proTooltip}
                         />
                       </TableCell>
                       <TableCell className="text-center">
-                        <FeatureCheck 
-                          included={feature.enterprise} 
+                        <FeatureCheck
+                          included={feature.enterprise}
                           label={feature.enterpriseTooltip}
                         />
                       </TableCell>

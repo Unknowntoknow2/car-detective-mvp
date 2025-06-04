@@ -1,7 +1,6 @@
-
 import React, { forwardRef } from "react";
 import { cn } from "@/lib/utils";
-import { Label, Caption } from "./typography";
+import { Caption, Label } from "./typography";
 
 export type InputProps = {
   label?: string;
@@ -43,7 +42,7 @@ export const CDInput = forwardRef<HTMLInputElement, InputProps>(
       containerClassName,
       ...props
     },
-    ref
+    ref,
   ) => {
     // Size classes
     const sizeClasses = {
@@ -54,16 +53,20 @@ export const CDInput = forwardRef<HTMLInputElement, InputProps>(
 
     // Variant classes
     const variantClasses = {
-      default: "border border-neutral-light bg-white focus:border-primary focus:ring-primary/20",
-      outline: "border-2 border-neutral-light bg-transparent focus:border-primary focus:ring-primary/10",
-      filled: "border border-transparent bg-neutral-lighter focus:bg-white focus:border-primary focus:ring-primary/20",
+      default:
+        "border border-neutral-light bg-white focus:border-primary focus:ring-primary/20",
+      outline:
+        "border-2 border-neutral-light bg-transparent focus:border-primary focus:ring-primary/10",
+      filled:
+        "border border-transparent bg-neutral-lighter focus:bg-white focus:border-primary focus:ring-primary/20",
     };
 
     // Status classes
     const statusClasses = {
       error:
         "border-error focus:border-error focus:ring-error/20 text-error placeholder:text-error/50",
-      disabled: "opacity-60 cursor-not-allowed bg-neutral-lighter text-neutral-dark",
+      disabled:
+        "opacity-60 cursor-not-allowed bg-neutral-lighter text-neutral-dark",
     };
 
     // Handle icon spacing
@@ -79,7 +82,7 @@ export const CDInput = forwardRef<HTMLInputElement, InputProps>(
         className={cn(
           "flex flex-col space-y-2",
           fullWidth ? "w-full" : "w-auto",
-          containerClassName
+          containerClassName,
         )}
       >
         {label && (
@@ -93,7 +96,7 @@ export const CDInput = forwardRef<HTMLInputElement, InputProps>(
             <div
               className={cn(
                 "absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-dark",
-                onIconClick && "cursor-pointer hover:text-primary"
+                onIconClick && "cursor-pointer hover:text-primary",
               )}
               onClick={onIconClick}
             >
@@ -116,7 +119,7 @@ export const CDInput = forwardRef<HTMLInputElement, InputProps>(
               iconSpacingClasses.trailing,
               error ? statusClasses.error : "",
               disabled ? statusClasses.disabled : "",
-              inputClassName
+              inputClassName,
             )}
             {...props}
           />
@@ -125,7 +128,7 @@ export const CDInput = forwardRef<HTMLInputElement, InputProps>(
             <div
               className={cn(
                 "absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-dark",
-                onTrailingIconClick && "cursor-pointer hover:text-primary"
+                onTrailingIconClick && "cursor-pointer hover:text-primary",
               )}
               onClick={onTrailingIconClick}
             >
@@ -137,7 +140,7 @@ export const CDInput = forwardRef<HTMLInputElement, InputProps>(
         {(helperText || (error && errorMessage)) && (
           <Caption
             className={cn(
-              error ? "text-error" : "text-neutral-dark"
+              error ? "text-error" : "text-neutral-dark",
             )}
           >
             {error && errorMessage ? errorMessage : helperText}
@@ -145,7 +148,7 @@ export const CDInput = forwardRef<HTMLInputElement, InputProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 CDInput.displayName = "CDInput";

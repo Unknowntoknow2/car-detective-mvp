@@ -1,15 +1,15 @@
-import React from 'react';
-import { PlateLookupInfo } from '@/types/lookup';
-import { Button } from '@/components/ui/button';
-import { Download, BookmarkPlus } from 'lucide-react';
+import React from "react";
+import { PlateLookupInfo } from "@/types/lookup";
+import { Button } from "@/components/ui/button";
+import { BookmarkPlus, Download } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 
 interface PlateInfoCardProps {
   vehicleInfo: PlateLookupInfo;
@@ -24,16 +24,18 @@ export const PlateInfoCard = ({
   onDownloadPdf,
   onSaveValuation,
   isSaving = false,
-  isUserLoggedIn = false
+  isUserLoggedIn = false,
 }: PlateInfoCardProps) => {
   const displayField = (value: string | number | null | undefined) => {
     if (value === undefined || value === null) return "Unknown";
-    if (typeof value === 'string' && (
-      value.trim() === '' || 
-      value === 'N/A' || 
-      value === 'Not Applicable' || 
-      value === 'Not Available'
-    )) {
+    if (
+      typeof value === "string" && (
+        value.trim() === "" ||
+        value === "N/A" ||
+        value === "Not Applicable" ||
+        value === "Not Available"
+      )
+    ) {
       return "Unknown";
     }
     return value;
@@ -44,32 +46,41 @@ export const PlateInfoCard = ({
       <CardHeader>
         <CardTitle className="text-2xl">Vehicle Information</CardTitle>
         <CardDescription>
-          Details for {vehicleInfo.plate ? `plate: ${vehicleInfo.plate}` : 'vehicle'}
-          {vehicleInfo.state ? `, state: ${vehicleInfo.state}` : ''}
+          Details for{" "}
+          {vehicleInfo.plate ? `plate: ${vehicleInfo.plate}` : "vehicle"}
+          {vehicleInfo.state ? `, state: ${vehicleInfo.state}` : ""}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Make</p>
-            <p className="text-lg font-semibold">{displayField(vehicleInfo.make)}</p>
+            <p className="text-lg font-semibold">
+              {displayField(vehicleInfo.make)}
+            </p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Model</p>
-            <p className="text-lg font-semibold">{displayField(vehicleInfo.model)}</p>
+            <p className="text-lg font-semibold">
+              {displayField(vehicleInfo.model)}
+            </p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Year</p>
-            <p className="text-lg font-semibold">{displayField(vehicleInfo.year)}</p>
+            <p className="text-lg font-semibold">
+              {displayField(vehicleInfo.year)}
+            </p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Color</p>
-            <p className="text-lg font-semibold">{displayField(vehicleInfo.color)}</p>
+            <p className="text-lg font-semibold">
+              {displayField(vehicleInfo.color)}
+            </p>
           </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-between pt-4">
-        <Button 
+        <Button
           onClick={onDownloadPdf}
           variant="outline"
         >
@@ -77,13 +88,13 @@ export const PlateInfoCard = ({
           Download Report
         </Button>
         {isUserLoggedIn && (
-          <Button 
+          <Button
             onClick={onSaveValuation}
             disabled={isSaving}
             variant="secondary"
           >
             <BookmarkPlus className="mr-2" />
-            {isSaving ? 'Saving...' : 'Save to Dashboard'}
+            {isSaving ? "Saving..." : "Save to Dashboard"}
           </Button>
         )}
       </CardFooter>

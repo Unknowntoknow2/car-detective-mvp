@@ -1,4 +1,3 @@
-
 export interface ReportData {
   // Vehicle information
   make: string;
@@ -79,6 +78,7 @@ export interface AuctionResult {
 }
 
 export interface ReportOptions {
+<<<<<<< HEAD
   isPremium?: boolean;
   includeExplanation?: boolean;
   includeFooter?: boolean;
@@ -98,6 +98,24 @@ export interface ReportOptions {
   marketplaceListings?: MarketplaceListing[];
   footerText?: string;
   notifyDealers?: boolean;
+=======
+  pageSize: "letter" | "a4" | "legal";
+  margins: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  includePageNumbers: boolean;
+  includePhotos: boolean;
+  includeSimilarVehicles: boolean;
+  companyInfo: {
+    name: string;
+    logo: string | null;
+    website: string;
+    phone: string;
+  };
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }
 
 export interface SectionParams {

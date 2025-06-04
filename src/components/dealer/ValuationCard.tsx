@@ -1,10 +1,9 @@
-
-import { formatCurrency, formatDate } from '@/utils/formatters';
-import { ConditionBadge } from '@/components/ui/condition-badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ValuationWithCondition } from '@/types/dealer';
-import { Download, ExternalLink } from 'lucide-react';
+import { formatCurrency, formatDate } from "@/utils/formatters";
+import { ConditionBadge } from "@/components/ui/condition-badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ValuationWithCondition } from "@/types/dealer";
+import { Download, ExternalLink } from "lucide-react";
 
 interface ValuationCardProps {
   valuation: ValuationWithCondition;
@@ -17,7 +16,9 @@ interface ValuationCardProps {
   onDownload: (valuation: ValuationWithCondition) => void;
 }
 
-export function ValuationCard({ valuation, aiCondition, onDownload }: ValuationCardProps) {
+export function ValuationCard(
+  { valuation, aiCondition, onDownload }: ValuationCardProps,
+) {
   return (
     <Card className="bg-card hover:shadow-md transition-shadow">
       <CardContent className="p-4">
@@ -27,36 +28,43 @@ export function ValuationCard({ valuation, aiCondition, onDownload }: ValuationC
               {valuation.year} {valuation.make} {valuation.model}
             </h3>
             <div className="flex items-center gap-2 mt-1">
-              {aiCondition ? (
-                <ConditionBadge 
-                  condition={aiCondition.condition as any} 
-                  confidenceScore={aiCondition.confidenceScore} 
-                />
-              ) : (
-                <span className="text-xs text-muted-foreground">
-                  {valuation.aiCondition ? valuation.aiCondition.condition : 'Condition unknown'}
-                </span>
-              )}
+              {aiCondition
+                ? (
+                  <ConditionBadge
+                    condition={aiCondition.condition as any}
+                    confidenceScore={aiCondition.confidenceScore}
+                  />
+                )
+                : (
+                  <span className="text-xs text-muted-foreground">
+                    {valuation.aiCondition
+                      ? valuation.aiCondition.condition
+                      : "Condition unknown"}
+                  </span>
+                )}
               <span className="text-xs text-muted-foreground">•</span>
               <span className="text-xs text-muted-foreground">
-                {valuation.mileage?.toLocaleString() || 'Unknown'} miles
+                {valuation.mileage?.toLocaleString() || "Unknown"} miles
               </span>
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              Created {formatDate(valuation.created_at || new Date().toISOString())}
+              Created{" "}
+              {formatDate(valuation.created_at || new Date().toISOString())}
             </div>
           </div>
-          
+
           <div className="text-center">
             <span className="text-sm text-muted-foreground">Valuation</span>
             <div className="text-xl font-bold text-primary">
               {formatCurrency(valuation.estimated_value)}
             </div>
             <div className="text-xs text-muted-foreground">
-              {valuation.confidence_score ? `${valuation.confidence_score}% confidence` : ''}
+              {valuation.confidence_score
+                ? `${valuation.confidence_score}% confidence`
+                : ""}
             </div>
           </div>
-          
+
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
@@ -73,7 +81,11 @@ export function ValuationCard({ valuation, aiCondition, onDownload }: ValuationC
               className="flex items-center gap-1"
               asChild
             >
-              <a href={`/valuations/${valuation.id}`} target="_blank" rel="noopener noreferrer">
+              <a
+                href={`/valuations/${valuation.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <ExternalLink className="h-3.5 w-3.5" />
                 <span>View</span>
               </a>

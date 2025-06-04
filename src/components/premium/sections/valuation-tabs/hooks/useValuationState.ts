@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useVehicleLookup } from "@/hooks/useVehicleLookup";
 import { ValuationServiceId } from "../services";
@@ -10,16 +9,21 @@ export function useValuationState() {
   const [vinValue, setVinValue] = useState("");
   const [plateValue, setPlateValue] = useState("");
   const [plateState, setPlateState] = useState("");
+<<<<<<< HEAD
   const { lookupVehicle, isLoading, vehicleData: vehicle } = useVehicleLookup();
   
+=======
+  const { lookupVehicle, isLoading, vehicle } = useVehicleLookup();
+
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   const handleVinLookup = async () => {
     if (!vinValue || vinValue.length < 17) {
       toast.error("Please enter a valid 17-character VIN");
       return;
     }
-    await lookupVehicle('vin', vinValue);
+    await lookupVehicle("vin", vinValue);
   };
-  
+
   const handlePlateLookup = async () => {
     if (!plateValue) {
       toast.error("Please enter a license plate number");
@@ -29,11 +33,11 @@ export function useValuationState() {
       toast.error("Please select a state");
       return;
     }
-    await lookupVehicle('plate', plateValue, plateState);
+    await lookupVehicle("plate", plateValue, plateState);
   };
 
   const handleManualSubmit = (data: ManualEntryFormData) => {
-    lookupVehicle('manual', 'manual-entry', undefined, data);
+    lookupVehicle("manual", "manual-entry", undefined, data);
   };
 
   return {
@@ -49,6 +53,6 @@ export function useValuationState() {
     vehicle,
     handleVinLookup,
     handlePlateLookup,
-    handleManualSubmit
+    handleManualSubmit,
   };
 }

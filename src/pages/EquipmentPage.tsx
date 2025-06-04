@@ -1,17 +1,17 @@
-
-import React from 'react';
+import React from "react";
 
 const EquipmentPage = () => {
   return (
     <div className="container mx-auto py-12 px-4">
       <h1 className="text-3xl font-bold mb-6">Vehicle Equipment & Features</h1>
-      
+
       <div className="bg-white shadow-sm rounded-lg p-6 mb-8">
         <p className="text-lg mb-4">
-          Select the equipment and features present in your vehicle for a more accurate valuation.
-          Certain features can significantly impact your vehicle's market value.
+          Select the equipment and features present in your vehicle for a more
+          accurate valuation. Certain features can significantly impact your
+          vehicle's market value.
         </p>
-        
+
         <div className="grid md:grid-cols-3 gap-6 mt-8">
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Comfort & Convenience</h2>
@@ -34,7 +34,7 @@ const EquipmentPage = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Performance</h2>
             <div className="space-y-2">
@@ -56,7 +56,7 @@ const EquipmentPage = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Safety & Technology</h2>
             <div className="space-y-2">
@@ -80,10 +80,10 @@ const EquipmentPage = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="text-center">
-        <a 
-          href="/premium" 
+        <a
+          href="/premium"
           className="bg-primary text-white py-2 px-6 rounded-md hover:bg-primary/90 transition-colors inline-block"
         >
           Continue to Valuation

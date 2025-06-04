@@ -1,21 +1,33 @@
-
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Input } from '@/components/ui/input';
-import { 
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "@/components/ui/input";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 // Update the interface to include missing fields and isEditing property
 export interface DealerVehicleFormData {
@@ -45,47 +57,49 @@ export interface DealerVehicleFormProps {
   onCancel?: () => void; // Add for VehicleUploadModal
 }
 
-export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({ 
-  onSuccess, 
+export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({
+  onSuccess,
   vehicleData = {},
   isEditing = false,
   initialData,
   isSubmitting = false,
   submitLabel = "Save Vehicle",
   showCancel = false,
-  onCancel
+  onCancel,
 }) => {
   const [isSubmittingInternal, setIsSubmittingInternal] = useState(false);
-  
+
   // Set default values using the vehicleData or initialData or empty values
   const mergedData = { ...vehicleData, ...initialData };
-  
+
   const defaultValues: Partial<DealerVehicleFormData> = {
-    make: mergedData.make || '',
-    model: mergedData.model || '',
+    make: mergedData.make || "",
+    model: mergedData.model || "",
     year: mergedData.year || new Date().getFullYear(),
     price: mergedData.price || 0,
     mileage: mergedData.mileage || 0,
-    condition: mergedData.condition || 'Good',
-    description: mergedData.description || '',
-    status: mergedData.status || 'Available',
+    condition: mergedData.condition || "Good",
+    description: mergedData.description || "",
+    status: mergedData.status || "Available",
     photos: mergedData.photos || [],
-    color: mergedData.color || '',
+    color: mergedData.color || "",
     features: mergedData.features || [],
-    vehicleId: mergedData.vehicleId || '',
-    id: mergedData.id || '',
+    vehicleId: mergedData.vehicleId || "",
+    id: mergedData.id || "",
   };
 
   // Create form schema with Zod
   const formSchema = z.object({
-    make: z.string().min(1, 'Make is required'),
-    model: z.string().min(1, 'Model is required'),
-    year: z.coerce.number().min(1900, 'Year must be at least 1900').max(new Date().getFullYear() + 1),
-    price: z.coerce.number().min(0, 'Price cannot be negative'),
-    mileage: z.coerce.number().min(0, 'Mileage cannot be negative'),
-    condition: z.string().min(1, 'Condition is required'),
+    make: z.string().min(1, "Make is required"),
+    model: z.string().min(1, "Model is required"),
+    year: z.coerce.number().min(1900, "Year must be at least 1900").max(
+      new Date().getFullYear() + 1,
+    ),
+    price: z.coerce.number().min(0, "Price cannot be negative"),
+    mileage: z.coerce.number().min(0, "Mileage cannot be negative"),
+    condition: z.string().min(1, "Condition is required"),
     description: z.string().optional(),
-    status: z.string().min(1, 'Status is required'),
+    status: z.string().min(1, "Status is required"),
     photos: z.array(z.string()),
     color: z.string().optional(),
     features: z.array(z.string()).optional(),
@@ -95,7 +109,7 @@ export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({
 
   const form = useForm<DealerVehicleFormData>({
     resolver: zodResolver(formSchema),
-    defaultValues
+    defaultValues,
   });
 
   const handleSubmit = async (data: DealerVehicleFormData) => {
@@ -104,13 +118,13 @@ export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({
       // If editing, ensure ID is preserved
       const submissionData = {
         ...data,
-        id: isEditing ? mergedData.id || mergedData.vehicleId : undefined
+        id: isEditing ? mergedData.id || mergedData.vehicleId : undefined,
       };
 
       // Call the onSuccess callback with the form data
       await onSuccess(submissionData);
     } catch (error) {
-      console.error('Error submitting vehicle data:', error);
+      console.error("Error submitting vehicle data:", error);
     } finally {
       setIsSubmittingInternal(false);
     }
@@ -119,7 +133,7 @@ export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>{isEditing ? 'Edit Vehicle' : 'Add New Vehicle'}</CardTitle>
+        <CardTitle>{isEditing ? "Edit Vehicle" : "Add New Vehicle"}</CardTitle>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
@@ -161,7 +175,11 @@ export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({
                   <FormItem>
                     <FormLabel>Year</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -174,7 +192,11 @@ export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({
                   <FormItem>
                     <FormLabel>Price ($)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -187,7 +209,11 @@ export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({
                   <FormItem>
                     <FormLabel>Mileage</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -289,20 +315,22 @@ export const DealerVehicleForm: React.FC<DealerVehicleFormProps> = ({
           </CardContent>
           <CardFooter className="flex gap-2 justify-end">
             {showCancel && onCancel && (
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={onCancel}
                 disabled={isSubmitting || isSubmittingInternal}
               >
                 Cancel
               </Button>
             )}
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isSubmitting || isSubmittingInternal}
             >
-              {isSubmitting || isSubmittingInternal ? 'Saving...' : submitLabel || (isEditing ? 'Update Vehicle' : 'Add Vehicle')}
+              {isSubmitting || isSubmittingInternal
+                ? "Saving..."
+                : submitLabel || (isEditing ? "Update Vehicle" : "Add Vehicle")}
             </Button>
           </CardFooter>
         </form>

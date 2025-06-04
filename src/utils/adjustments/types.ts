@@ -1,5 +1,4 @@
-
-export type VehicleCondition = 'excellent' | 'good' | 'fair' | 'poor';
+export type VehicleCondition = "excellent" | "good" | "fair" | "poor";
 
 export interface VehicleFeature {
   name: string;

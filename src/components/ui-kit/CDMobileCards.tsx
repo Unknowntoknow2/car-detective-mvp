@@ -1,6 +1,5 @@
-
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
 
@@ -27,7 +26,7 @@ export const CDMobileCard: React.FC<CDMobileCardProps> = ({
         "w-full bg-white rounded-xl border border-neutral-light overflow-hidden",
         "transition-shadow duration-200",
         interactive && "active:bg-neutral-lighter cursor-pointer",
-        className
+        className,
       )}
       onClick={interactive ? onClick : undefined}
       whileTap={interactive ? { scale: 0.98 } : undefined}
@@ -106,7 +105,7 @@ export const CDMobileBottomSheet: React.FC<CDMobileBottomSheetProps> = ({
             className={cn(
               "fixed bottom-0 left-0 right-0 bg-white z-50 rounded-t-2xl",
               "shadow-xl max-h-[90vh] overflow-auto safe-area-inset",
-              height === "auto" ? "h-auto" : `h-[${height}]`
+              height === "auto" ? "h-auto" : `h-[${height}]`,
             )}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -116,7 +115,9 @@ export const CDMobileBottomSheet: React.FC<CDMobileBottomSheetProps> = ({
             <div className="sticky top-0 bg-white pt-2 pb-1 px-4 border-b border-neutral-light z-10">
               <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-2" />
               {title && (
-                <h2 className="text-lg font-semibold text-center pb-2">{title}</h2>
+                <h2 className="text-lg font-semibold text-center pb-2">
+                  {title}
+                </h2>
               )}
             </div>
             <div className="p-4">{children}</div>
@@ -140,7 +141,7 @@ export const CDMobileList: React.FC<CDMobileListProps> = ({
     <ul
       className={cn(
         "divide-y divide-neutral-light overflow-hidden rounded-xl border border-neutral-light bg-white",
-        className
+        className,
       )}
     >
       {children}
@@ -168,7 +169,7 @@ export const CDMobileListItem: React.FC<CDMobileListItemProps> = ({
       className={cn(
         "flex items-center p-4 active:bg-neutral-lighter",
         onClick && "cursor-pointer",
-        className
+        className,
       )}
       onClick={onClick}
     >

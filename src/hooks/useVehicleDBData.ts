@@ -1,6 +1,5 @@
-
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface MakeModel {
   id: string;
@@ -14,75 +13,75 @@ export function useVehicleDBData() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedMake, setSelectedMake] = useState<string | null>(null);
-  
+
   // Fetch makes
   useEffect(() => {
     async function fetchMakes() {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         const { data, error } = await supabase
-          .from('makes')
-          .select('id, make_name')
-          .order('make_name');
-          
+          .from("makes")
+          .select("id, make_name")
+          .order("make_name");
+
         if (error) throw error;
-        
+
         // Map the data to match the MakeModel interface
-        const formattedMakes: MakeModel[] = (data || []).map(make => ({
+        const formattedMakes: MakeModel[] = (data || []).map((make) => ({
           id: make.id,
-          name: make.make_name
+          name: make.make_name,
         }));
-        
+
         setMakes(formattedMakes);
       } catch (err: any) {
-        console.error('Error fetching makes:', err);
-        setError('Failed to load vehicle makes');
+        console.error("Error fetching makes:", err);
+        setError("Failed to load vehicle makes");
       } finally {
         setIsLoading(false);
       }
     }
-    
+
     fetchMakes();
   }, []);
-  
+
   // Function to fetch models by make ID
   const getModelsByMakeId = async (makeId: string) => {
     if (!makeId) {
       setModels([]);
       return [];
     }
-    
+
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const { data, error } = await supabase
-        .from('models')
-        .select('id, model_name')
-        .eq('make_id', makeId)
-        .order('model_name');
-        
+        .from("models")
+        .select("id, model_name")
+        .eq("make_id", makeId)
+        .order("model_name");
+
       if (error) throw error;
-      
+
       // Map the data to match the MakeModel interface
-      const formattedModels: MakeModel[] = (data || []).map(model => ({
+      const formattedModels: MakeModel[] = (data || []).map((model) => ({
         id: model.id,
-        name: model.model_name
+        name: model.model_name,
       }));
-      
+
       setModels(formattedModels);
       return formattedModels;
     } catch (err: any) {
-      console.error('Error fetching models:', err);
-      setError('Failed to load vehicle models');
+      console.error("Error fetching models:", err);
+      setError("Failed to load vehicle models");
       return [];
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   // Generate years (this could be based on make/model or static range)
   const getYears = () => {
     const currentYear = new Date().getFullYear();
@@ -92,43 +91,43 @@ export function useVehicleDBData() {
     }
     return yearsList;
   };
-  
+
   // Function to get make name by ID
   const getMakeName = async (makeId: string): Promise<string> => {
     try {
       const { data, error } = await supabase
-        .from('makes')
-        .select('make_name')
-        .eq('id', makeId)
+        .from("makes")
+        .select("make_name")
+        .eq("id", makeId)
         .single();
-        
+
       if (error) throw error;
-      
-      return data?.make_name || 'Unknown Make';
+
+      return data?.make_name || "Unknown Make";
     } catch (err: any) {
-      console.error('Error fetching make name:', err);
-      return 'Unknown Make';
+      console.error("Error fetching make name:", err);
+      return "Unknown Make";
     }
   };
-  
+
   // Function to get model name by ID
   const getModelName = async (modelId: string): Promise<string> => {
     try {
       const { data, error } = await supabase
-        .from('models')
-        .select('model_name')
-        .eq('id', modelId)
+        .from("models")
+        .select("model_name")
+        .eq("id", modelId)
         .single();
-        
+
       if (error) throw error;
-      
-      return data?.model_name || 'Unknown Model';
+
+      return data?.model_name || "Unknown Model";
     } catch (err: any) {
-      console.error('Error fetching model name:', err);
-      return 'Unknown Model';
+      console.error("Error fetching model name:", err);
+      return "Unknown Model";
     }
   };
-  
+
   return {
     makes,
     models,
@@ -139,6 +138,6 @@ export function useVehicleDBData() {
     getMakeName,
     getModelName,
     getModelsByMakeId,
-    getYears
+    getYears,
   };
 }

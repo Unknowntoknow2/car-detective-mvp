@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Search, X, ChevronDown } from 'lucide-react';
+import React from "react";
+import { ChevronDown, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +25,10 @@ interface SearchAndFilterBarProps {
   className?: string;
 }
 
-export const SearchAndFilterBar = React.forwardRef<HTMLDivElement, SearchAndFilterBarProps>(({
+export const SearchAndFilterBar = React.forwardRef<
+  HTMLDivElement,
+  SearchAndFilterBarProps
+>(({
   searchTerm,
   onSearchChange,
   sortBy,
@@ -36,7 +38,9 @@ export const SearchAndFilterBar = React.forwardRef<HTMLDivElement, SearchAndFilt
   className,
 }, ref) => {
   // Get the active sort function
-  const activeSortOption = sortOptions.find(option => option.value === sortBy) || sortOptions[0];
+  const activeSortOption = sortOptions.find((option) =>
+    option.value === sortBy
+  ) || sortOptions[0];
 
   return (
     <div ref={ref} className={`flex flex-col sm:flex-row gap-4 ${className}`}>
@@ -49,19 +53,22 @@ export const SearchAndFilterBar = React.forwardRef<HTMLDivElement, SearchAndFilt
           className="pl-10"
         />
         {searchTerm && (
-          <button 
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600" 
-            onClick={() => onSearchChange('')}
+          <button
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            onClick={() => onSearchChange("")}
             aria-label="Clear search"
           >
             <X className="h-4 w-4" />
           </button>
         )}
       </div>
-      
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="w-full sm:w-auto sm:min-w-[180px] justify-between">
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto sm:min-w-[180px] justify-between"
+          >
             Sort: {activeSortOption.label}
             <ChevronDown className="h-4 w-4 ml-2" />
           </Button>
@@ -71,7 +78,9 @@ export const SearchAndFilterBar = React.forwardRef<HTMLDivElement, SearchAndFilt
             <DropdownMenuItem
               key={option.value}
               onClick={() => onSortChange(option.value)}
-              className={option.value === sortBy ? "bg-accent text-accent-foreground" : ""}
+              className={option.value === sortBy
+                ? "bg-accent text-accent-foreground"
+                : ""}
             >
               {option.label}
             </DropdownMenuItem>
@@ -82,6 +91,6 @@ export const SearchAndFilterBar = React.forwardRef<HTMLDivElement, SearchAndFilt
   );
 });
 
-SearchAndFilterBar.displayName = 'SearchAndFilterBar';
+SearchAndFilterBar.displayName = "SearchAndFilterBar";
 
 export default SearchAndFilterBar;

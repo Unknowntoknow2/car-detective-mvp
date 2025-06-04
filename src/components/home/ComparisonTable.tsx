@@ -1,28 +1,31 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, ChevronRight } from "lucide-react";
+import { Check, ChevronRight, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 export function ComparisonTable() {
   const navigate = useNavigate();
-  
+
   const features = [
-    { name: 'VIN/Plate/Manual Lookup', free: true, premium: true },
-    { name: 'Basic Market Estimate', free: true, premium: true },
-    { name: 'Single Photo AI Scoring', free: true, premium: true },
-    { name: 'Multi-Photo AI Analysis', free: false, premium: true },
-    { name: 'Full CARFAX® History Report', free: false, premium: true },
-    { name: 'Limited CARFAX® Preview', free: 'Basic', premium: 'Complete' },
-    { name: 'Feature-Based Value Adjustments', free: false, premium: true },
-    { name: 'Dealer-Beat Offers', free: false, premium: true },
-    { name: 'Open Marketplace Pricing', free: false, premium: true },
-    { name: '12-Month Value Forecast', free: false, premium: true },
-    { name: 'Professional PDF Report', free: 'Basic', premium: 'Complete' },
-    { name: 'Save & Retrieve Reports', free: '3 Reports', premium: 'Unlimited' },
+    { name: "VIN/Plate/Manual Lookup", free: true, premium: true },
+    { name: "Basic Market Estimate", free: true, premium: true },
+    { name: "Single Photo AI Scoring", free: true, premium: true },
+    { name: "Multi-Photo AI Analysis", free: false, premium: true },
+    { name: "Full CARFAX® History Report", free: false, premium: true },
+    { name: "Limited CARFAX® Preview", free: "Basic", premium: "Complete" },
+    { name: "Feature-Based Value Adjustments", free: false, premium: true },
+    { name: "Dealer-Beat Offers", free: false, premium: true },
+    { name: "Open Marketplace Pricing", free: false, premium: true },
+    { name: "12-Month Value Forecast", free: false, premium: true },
+    { name: "Professional PDF Report", free: "Basic", premium: "Complete" },
+    {
+      name: "Save & Retrieve Reports",
+      free: "3 Reports",
+      premium: "Unlimited",
+    },
   ];
-  
+
   return (
     <section className="py-16 bg-surface">
       <div className="container mx-auto max-w-6xl px-4">
@@ -31,12 +34,13 @@ export function ComparisonTable() {
             Free vs Premium Comparison
           </CardTitle>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto mt-4">
-            See how our Premium service provides the most comprehensive valuation data available 
-            anywhere—combining CARFAX®, dealer offers, and advanced AI.
+            See how our Premium service provides the most comprehensive
+            valuation data available anywhere—combining CARFAX®, dealer offers,
+            and advanced AI.
           </p>
         </CardHeader>
-        
-        <motion.div 
+
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -50,13 +54,17 @@ export function ComparisonTable() {
                 <div className="p-6 text-center font-semibold text-xl border-b border-r border-slate-200">
                   <div className="flex flex-col items-center">
                     <span>Free</span>
-                    <span className="text-base font-medium text-slate-500">$0</span>
+                    <span className="text-base font-medium text-slate-500">
+                      $0
+                    </span>
                   </div>
                 </div>
                 <div className="p-6 text-center font-semibold text-xl bg-primary/5 border-b border-slate-200">
                   <div className="flex flex-col items-center">
                     <span>Premium</span>
-                    <span className="text-base font-medium text-primary">$29.99</span>
+                    <span className="text-base font-medium text-primary">
+                      $29.99
+                    </span>
                   </div>
                 </div>
               </div>
@@ -72,37 +80,55 @@ export function ComparisonTable() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: index * 0.05, duration: 0.3 }}
                         className={`border-b last:border-0 border-slate-200 
-                          ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}
+                          ${index % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
                           hover:bg-slate-50 transition-colors duration-200`}
                       >
-                        <td className="p-5 px-6 font-medium text-slate-800 w-1/2">{feature.name}</td>
+                        <td className="p-5 px-6 font-medium text-slate-800 w-1/2">
+                          {feature.name}
+                        </td>
                         <td className="p-5 text-center w-1/4">
-                          {typeof feature.free === 'boolean' ? (
-                            feature.free ? 
-                              <motion.div
-                                whileHover={{ scale: 1.1 }}
-                                transition={{ duration: 0.2 }}
-                              >
-                                <Check className="h-6 w-6 text-green-500 mx-auto" />
-                              </motion.div> : 
-                              <X className="h-6 w-6 text-slate-300 mx-auto" />
-                          ) : (
-                            <span className="text-sm font-medium text-slate-700">{feature.free}</span>
-                          )}
+                          {typeof feature.free === "boolean"
+                            ? (
+                              feature.free
+                                ? (
+                                  <motion.div
+                                    whileHover={{ scale: 1.1 }}
+                                    transition={{ duration: 0.2 }}
+                                  >
+                                    <Check className="h-6 w-6 text-green-500 mx-auto" />
+                                  </motion.div>
+                                )
+                                : (
+                                  <X className="h-6 w-6 text-slate-300 mx-auto" />
+                                )
+                            )
+                            : (
+                              <span className="text-sm font-medium text-slate-700">
+                                {feature.free}
+                              </span>
+                            )}
                         </td>
                         <td className="p-5 text-center w-1/4 bg-primary/5">
-                          {typeof feature.premium === 'boolean' ? (
-                            feature.premium ? 
-                              <motion.div
-                                whileHover={{ scale: 1.1 }}
-                                transition={{ duration: 0.2 }}
-                              >
-                                <Check className="h-6 w-6 text-green-500 mx-auto" />
-                              </motion.div> : 
-                              <X className="h-6 w-6 text-slate-300 mx-auto" />
-                          ) : (
-                            <span className="text-sm font-medium text-primary">{feature.premium}</span>
-                          )}
+                          {typeof feature.premium === "boolean"
+                            ? (
+                              feature.premium
+                                ? (
+                                  <motion.div
+                                    whileHover={{ scale: 1.1 }}
+                                    transition={{ duration: 0.2 }}
+                                  >
+                                    <Check className="h-6 w-6 text-green-500 mx-auto" />
+                                  </motion.div>
+                                )
+                                : (
+                                  <X className="h-6 w-6 text-slate-300 mx-auto" />
+                                )
+                            )
+                            : (
+                              <span className="text-sm font-medium text-primary">
+                                {feature.premium}
+                              </span>
+                            )}
                         </td>
                       </motion.tr>
                     ))}
@@ -112,15 +138,15 @@ export function ComparisonTable() {
             </CardContent>
           </Card>
         </motion.div>
-        
+
         <div className="mt-12 flex flex-col items-center">
           <motion.div
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             transition={{ duration: 0.2 }}
           >
-            <Button 
-              onClick={() => navigate("/premium")} 
+            <Button
+              onClick={() => navigate("/premium")}
               size="lg"
               className="bg-primary hover:bg-primary-hover text-white px-10 py-6 h-auto text-lg font-medium gap-2 rounded-xl shadow-md transition-all duration-300"
             >
@@ -129,9 +155,14 @@ export function ComparisonTable() {
             </Button>
           </motion.div>
           <p className="mt-4 text-base text-slate-600 flex items-center justify-center gap-1.5">
-            <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-sm font-medium">One-time purchase</span>
-            <span>•</span> 
-            <span>CARFAX® report included <span className="text-green-600 font-medium">($44 value)</span></span>
+            <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-sm font-medium">
+              One-time purchase
+            </span>
+            <span>•</span>
+            <span>
+              CARFAX® report included{" "}
+              <span className="text-green-600 font-medium">($44 value)</span>
+            </span>
           </p>
         </div>
       </div>

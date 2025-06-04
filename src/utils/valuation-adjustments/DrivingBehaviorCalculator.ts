@@ -1,43 +1,67 @@
 
-import { AdjustmentBreakdown, RulesEngineInput } from "../valuation/rules/types";
+import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../rules/types';
 
-export class DrivingBehaviorCalculator {
-  calculate(input: RulesEngineInput): AdjustmentBreakdown {
-    // Get driving score (0-100, higher is better)
-    const drivingScore = input.drivingScore || 70; // Default to average if not provided
-    const basePrice = input.basePrice || 20000; // Default if not provided
-    
-    // Calculate multiplier based on driving score
-    let multiplier = 0;
-    let description = "";
-    
-    if (drivingScore >= 90) {
-      multiplier = 0.05; // 5% premium for excellent driving
-      description = "Vehicle likely treated with exceptional care based on driving patterns";
-    } else if (drivingScore >= 80) {
-      multiplier = 0.03; // 3% premium for very good driving
-      description = "Vehicle likely treated with above-average care based on driving patterns";
-    } else if (drivingScore >= 70) {
-      multiplier = 0.01; // 1% premium for good driving
-      description = "Vehicle likely treated with good care based on driving patterns";
-    } else if (drivingScore >= 60) {
-      multiplier = 0; // No adjustment for average driving
-      description = "Vehicle treated with average care based on driving patterns";
-    } else if (drivingScore >= 50) {
-      multiplier = -0.02; // 2% discount for below average driving
-      description = "Vehicle may have been driven somewhat roughly based on patterns";
-    } else {
-      multiplier = -0.05; // 5% discount for poor driving
-      description = "Vehicle likely driven roughly based on patterns";
+export class DrivingBehaviorCalculator implements AdjustmentCalculator {
+  async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
+    // Skip if no driving profile is provided
+    if (!input.drivingProfile) {
+      return null;
     }
     
-    // Calculate impact
-    const impact = Math.round(basePrice * multiplier);
+    // Define driving profiles and their multipliers
+    const drivingProfiles = {
+      'gentle': 1.05,        // Gentle drivers maintain vehicle better: +5%
+      'average': 1.00,       // Average driver: no adjustment
+      'aggressive': 0.95,    // Aggressive driving wears vehicle more: -5%
+      'commercial': 0.92,    // Commercial use (more wear): -8%
+      'rideshare': 0.90      // Rideshare vehicles get a lot of wear: -10%
+    };
+    
+    // Use provided profile or default to average
+    const profile = input.drivingProfile.toLowerCase();
+    const multiplier = drivingProfiles[profile as keyof typeof drivingProfiles] || 1.0;
+    
+    // Skip if default multiplier (no adjustment)
+    if (multiplier === 1.0) {
+      return null;
+    }
+    
+    // Calculate the adjustment
+    const adjustment = input.basePrice * (multiplier - 1);
+    
+    // Generate description based on driving profile
+    let description = '';
+    switch (profile) {
+      case 'gentle':
+        description = 'Vehicle driven gently with minimal wear and tear';
+        break;
+      case 'average':
+        description = 'Vehicle driven with typical usage patterns';
+        break;
+      case 'aggressive':
+        description = 'Vehicle driven aggressively, may have increased wear';
+        break;
+      case 'commercial':
+        description = 'Vehicle used for commercial purposes, higher wear expected';
+        break;
+      case 'rideshare':
+        description = 'Vehicle used for rideshare services, significant usage';
+        break;
+      default:
+        description = `Driving profile: ${input.drivingProfile}`;
+    }
+    
+    const name = 'Driving Behavior';
+    const factor = name;
+    const value = Math.round(adjustment);
+    const impact = value;
+    const percentAdjustment = multiplier - 1;
     
     return {
       factor: "Driving Behavior",
       impact,
-      description
+      description,
+      percentAdjustment
     };
   }
 }

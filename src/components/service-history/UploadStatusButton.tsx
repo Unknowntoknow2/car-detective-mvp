@@ -1,8 +1,7 @@
-
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Loader2, X } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Loader2, X } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface UploadStatusButtonProps {
   isUploading: boolean;
@@ -10,7 +9,9 @@ interface UploadStatusButtonProps {
   onCancel: () => void;
 }
 
-export function UploadStatusButton({ isUploading, uploadProgress, onCancel }: UploadStatusButtonProps) {
+export function UploadStatusButton(
+  { isUploading, uploadProgress, onCancel }: UploadStatusButtonProps,
+) {
   if (isUploading) {
     return (
       <div className="space-y-2">

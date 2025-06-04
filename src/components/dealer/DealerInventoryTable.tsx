@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,16 @@ import { DealerVehicle } from '@/types/dealerVehicle'; // Updated import
 import { formatCurrency } from '@/utils/formatters';
 import { Edit, Trash2, Car } from 'lucide-react';
 import { toast } from 'sonner';
+=======
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useDealerInventory } from "./hooks/useDealerInventory";
+import { DealerVehicle } from "@/types/vehicle"; // Updated import
+import { formatCurrency } from "@/utils/formatters";
+import { Loading } from "@/components/ui/loading"; // Updated import
+import { Car, Edit, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 import {
   Table,
   TableBody,
@@ -13,39 +24,42 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 
 export const DealerInventoryTable: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [vehicleToDelete, setVehicleToDelete] = useState<DealerVehicle | null>(null);
-  
-  const { vehicles, isLoading, error, deleteVehicle, refetch } = useDealerInventory();
-  
+  const [vehicleToDelete, setVehicleToDelete] = useState<DealerVehicle | null>(
+    null,
+  );
+
+  const { vehicles, isLoading, error, deleteVehicle, refetch } =
+    useDealerInventory();
+
   const handleDeleteClick = (vehicle: DealerVehicle) => {
     setVehicleToDelete(vehicle);
     setIsDeleteDialogOpen(true);
   };
-  
+
   const handleConfirmDelete = async () => {
     if (!vehicleToDelete) return;
-    
+
     const result = await deleteVehicle(vehicleToDelete.id);
     setIsDeleteDialogOpen(false);
-    
+
     if (result.success) {
-      toast.success('Vehicle removed from inventory');
+      toast.success("Vehicle removed from inventory");
       refetch();
     } else {
-      toast.error(result.error || 'Failed to delete vehicle');
+      toast.error(result.error || "Failed to delete vehicle");
     }
-    
+
     setVehicleToDelete(null);
   };
-  
+
   if (isLoading) {
     return <div>Loading inventory...</div>;
   }
-  
+
   if (error) {
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-md text-red-700">
@@ -53,7 +67,7 @@ export const DealerInventoryTable: React.FC = () => {
       </div>
     );
   }
-  
+
   if (!vehicles || vehicles.length === 0) {
     return (
       <div className="p-8 text-center border rounded-md bg-muted/20">
@@ -65,7 +79,7 @@ export const DealerInventoryTable: React.FC = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="rounded-md border">
       <Table>
@@ -87,7 +101,9 @@ export const DealerInventoryTable: React.FC = () => {
               </TableCell>
               <TableCell>{vehicle.year}</TableCell>
               <TableCell>
-                {vehicle.mileage ? `${vehicle.mileage.toLocaleString()} mi` : 'N/A'}
+                {vehicle.mileage
+                  ? `${vehicle.mileage.toLocaleString()} mi`
+                  : "N/A"}
               </TableCell>
               <TableCell>{formatCurrency(vehicle.price)}</TableCell>
               <TableCell>
@@ -116,7 +132,7 @@ export const DealerInventoryTable: React.FC = () => {
           ))}
         </TableBody>
       </Table>
-      
+
       {/* Delete Dialog would be here */}
     </div>
   );
@@ -129,19 +145,21 @@ interface BadgeProps {
 const Badge: React.FC<BadgeProps> = ({ vehicle }) => {
   const getStatusColor = () => {
     switch (vehicle.status) {
-      case 'available':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'sold':
-        return 'bg-red-100 text-red-800';
+      case "available":
+        return "bg-green-100 text-green-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "sold":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
-  
+
   return (
-    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor()}`}>
+    <span
+      className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor()}`}
+    >
       {vehicle.status.charAt(0).toUpperCase() + vehicle.status.slice(1)}
     </span>
   );

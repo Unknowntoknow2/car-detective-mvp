@@ -1,15 +1,16 @@
-
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import ServiceRecordsEmpty from './ServiceRecordsEmpty';
-import { Plus } from 'lucide-react';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import ServiceRecordsEmpty from "./ServiceRecordsEmpty";
+import { Plus } from "lucide-react";
 
 export interface ServiceHistoryDisplayProps {
   vin?: string;
 }
 
-export const ServiceHistoryDisplay: React.FC<ServiceHistoryDisplayProps> = ({ vin }) => {
+export const ServiceHistoryDisplay: React.FC<ServiceHistoryDisplayProps> = (
+  { vin },
+) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [records, setRecords] = useState<any[]>([]);
@@ -27,13 +28,13 @@ export const ServiceHistoryDisplay: React.FC<ServiceHistoryDisplayProps> = ({ vi
     try {
       setIsLoading(true);
       // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
       // Add record to state
       setRecords([...records, { ...record, id: Date.now().toString() }]);
       setIsAddingRecord(false);
     } catch (err) {
-      setError('Failed to save service record');
+      setError("Failed to save service record");
     } finally {
       setIsLoading(false);
     }
@@ -43,12 +44,12 @@ export const ServiceHistoryDisplay: React.FC<ServiceHistoryDisplayProps> = ({ vi
     try {
       setIsLoading(true);
       // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       // Remove record from state
-      setRecords(records.filter(record => record.id !== id));
+      setRecords(records.filter((record) => record.id !== id));
     } catch (err) {
-      setError('Failed to delete service record');
+      setError("Failed to delete service record");
     } finally {
       setIsLoading(false);
     }
@@ -64,43 +65,43 @@ export const ServiceHistoryDisplay: React.FC<ServiceHistoryDisplayProps> = ({ vi
         </Button>
       </div>
 
-      {isLoading ? (
-        <div className="py-8 text-center">Loading service records...</div>
-      ) : error ? (
-        <div className="py-8 text-center text-destructive">{error}</div>
-      ) : records.length === 0 ? (
-        <ServiceRecordsEmpty />
-      ) : (
-        <div className="space-y-4">
-          {records.map(record => (
-            <Card key={record.id}>
-              <CardHeader className="py-3">
-                <CardTitle className="text-base font-medium">
-                  {record.serviceType}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="py-3">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>Date: {record.date}</div>
-                  <div>Mileage: {record.mileage}</div>
-                  <div className="col-span-2">
-                    Description: {record.description}
+      {isLoading
+        ? <div className="py-8 text-center">Loading service records...</div>
+        : error
+        ? <div className="py-8 text-center text-destructive">{error}</div>
+        : records.length === 0
+        ? <ServiceRecordsEmpty />
+        : (
+          <div className="space-y-4">
+            {records.map((record) => (
+              <Card key={record.id}>
+                <CardHeader className="py-3">
+                  <CardTitle className="text-base font-medium">
+                    {record.serviceType}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="py-3">
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>Date: {record.date}</div>
+                    <div>Mileage: {record.mileage}</div>
+                    <div className="col-span-2">
+                      Description: {record.description}
+                    </div>
                   </div>
-                </div>
-                <div className="mt-3 flex justify-end">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleDeleteRecord(record.id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                  <div className="mt-3 flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteRecord(record.id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
     </div>
   );
 };

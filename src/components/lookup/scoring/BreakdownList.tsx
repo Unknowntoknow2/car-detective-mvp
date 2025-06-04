@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { BreakdownItem, BreakdownItemProps } from './BreakdownItem';
+import React from "react";
+import { BreakdownItem, BreakdownItemProps } from "./BreakdownItem";
 
 interface BreakdownListProps {
   items: BreakdownItemProps[];
@@ -8,7 +7,9 @@ interface BreakdownListProps {
   comparableVehicles: number;
 }
 
-export const BreakdownList = ({ items, baseValue, comparableVehicles }: BreakdownListProps) => (
+export const BreakdownList = (
+  { items, baseValue, comparableVehicles }: BreakdownListProps,
+) => (
   <div className="space-y-4">
     <div className="border-b pb-2">
       <h4 className="font-medium">Valuation Breakdown</h4>
@@ -16,9 +17,6 @@ export const BreakdownList = ({ items, baseValue, comparableVehicles }: Breakdow
         Based on {comparableVehicles} similar vehicles in your area
       </p>
     </div>
-    {items.map((item, idx) => (
-      <BreakdownItem key={idx} {...item} />
-    ))}
+    {items.map((item, idx) => <BreakdownItem key={idx} {...item} />)}
   </div>
 );
-

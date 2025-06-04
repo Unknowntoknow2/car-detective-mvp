@@ -1,12 +1,18 @@
-
-import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { CheckIcon } from 'lucide-react';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { usePremiumDealer } from '@/hooks/usePremiumDealer';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { CheckIcon } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { usePremiumDealer } from "@/hooks/usePremiumDealer";
 
 export interface PremiumSubscriptionCardProps {
   name: string;
@@ -21,7 +27,7 @@ export function PremiumSubscriptionCard({
   price,
   features,
   recommended = false,
-  priceId
+  priceId,
 }: PremiumSubscriptionCardProps) {
   const [isLoading, setIsLoading] = React.useState(false);
   const { isPremium } = usePremiumDealer();
@@ -29,29 +35,34 @@ export function PremiumSubscriptionCard({
   const handleSubscribe = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { plan: priceId }
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "create-checkout",
+        {
+          body: { plan: priceId },
+        },
+      );
 
       if (error) {
         throw error;
       }
 
       if (data?.url) {
-        window.location.href = data.url;
+        globalThis.location.href = data.url;
       } else {
-        throw new Error('No checkout URL returned');
+        throw new Error("No checkout URL returned");
       }
     } catch (error) {
-      console.error('Error creating checkout session:', error);
-      toast.error('Failed to start checkout process');
+      console.error("Error creating checkout session:", error);
+      toast.error("Failed to start checkout process");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Card className={`flex flex-col h-full ${recommended ? 'border-primary' : ''}`}>
+    <Card
+      className={`flex flex-col h-full ${recommended ? "border-primary" : ""}`}
+    >
       <CardHeader className="pb-4">
         <div className="flex justify-between items-start">
           <div>
@@ -59,7 +70,9 @@ export function PremiumSubscriptionCard({
               {name}
             </CardTitle>
             <CardDescription className="mt-1">
-              {recommended ? 'Recommended plan with all features' : 'Standard dealer subscription'}
+              {recommended
+                ? "Recommended plan with all features"
+                : "Standard dealer subscription"}
             </CardDescription>
           </div>
           {recommended && (
@@ -83,16 +96,16 @@ export function PremiumSubscriptionCard({
         </ul>
       </CardContent>
       <CardFooter>
-        <Button 
-          className="w-full" 
+        <Button
+          className="w-full"
           onClick={handleSubscribe}
           disabled={isLoading || isPremium}
         >
-          {isLoading 
-            ? 'Loading...' 
-            : isPremium 
-              ? 'Already Subscribed' 
-              : 'Subscribe'}
+          {isLoading
+            ? "Loading..."
+            : isPremium
+            ? "Already Subscribed"
+            : "Subscribe"}
         </Button>
       </CardFooter>
     </Card>

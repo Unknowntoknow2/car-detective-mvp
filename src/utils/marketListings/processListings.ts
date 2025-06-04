@@ -1,4 +1,6 @@
+import { MarketData, MarketListing } from "@/types/marketListings";
 
+<<<<<<< HEAD
 import { MarketData, MarketListing } from "@/types/marketListings";
 
 /**
@@ -28,7 +30,18 @@ export function processExistingListings(listings: MarketListing[]): MarketData {
     // Use the URL from the most recent listing for this source
     const mostRecent = sourceListings[0]; // Assuming listings are sorted by date desc
     sources[source] = mostRecent.url || '';
+=======
+export const processExistingListings = (
+  listings: MarketListing[],
+): MarketData => {
+  const averages: Record<string, number> = {};
+  const sources: Record<string, string> = {};
+
+  listings.forEach((listing) => {
+    averages[listing.source] = listing.price;
+    sources[listing.source] = listing.url || "";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   });
-  
+
   return { averages, sources };
 }

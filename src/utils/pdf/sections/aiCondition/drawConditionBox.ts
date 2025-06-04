@@ -1,17 +1,16 @@
-
-import { PDFPage, rgb, Color } from 'pdf-lib';
+import { Color, PDFPage, rgb } from "pdf-lib";
 
 /**
  * Draw a styled box for the condition display
  */
 export function drawConditionBox(
   page: PDFPage,
-  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null,
+  condition: "Excellent" | "Good" | "Fair" | "Poor" | null,
   yPosition: number,
   boxWidth: number,
   boxHeight: number,
   margin: number,
-  conditionColor: Color
+  conditionColor: Color,
 ): void {
   // Draw the main condition box with rounded corners effect
   page.drawRectangle({
@@ -24,7 +23,7 @@ export function drawConditionBox(
     borderWidth: 2,
     opacity: 0.9,
   });
-  
+
   // Draw a colored header bar
   page.drawRectangle({
     x: margin,

@@ -1,4 +1,3 @@
-
 // Mock data for subscription components
 
 export const currentPlanFeatures = [
@@ -7,7 +6,7 @@ export const currentPlanFeatures = [
   "Priority customer support",
   "Bulk import functionality",
   "Access to premium leads",
-  "Custom dealership profile"
+  "Custom dealership profile",
 ];
 
 export const mockPaymentMethods = [
@@ -17,7 +16,7 @@ export const mockPaymentMethods = [
     last4: "4242",
     expMonth: 12,
     expYear: 25,
-    isDefault: true
+    isDefault: true,
   },
   {
     id: "card_789012",
@@ -25,8 +24,8 @@ export const mockPaymentMethods = [
     last4: "8888",
     expMonth: 6,
     expYear: 26,
-    isDefault: false
-  }
+    isDefault: false,
+  },
 ];
 
 export const mockInvoices = [
@@ -34,32 +33,32 @@ export const mockInvoices = [
     id: "INV-001",
     date: "Nov 1, 2025",
     amount: 29.99,
-    status: "paid"
+    status: "paid",
   },
   {
     id: "INV-002",
     date: "Oct 1, 2025",
     amount: 29.99,
-    status: "paid"
+    status: "paid",
   },
   {
     id: "INV-003",
     date: "Sep 1, 2025",
     amount: 29.99,
-    status: "paid"
+    status: "paid",
   },
   {
     id: "INV-004",
     date: "Aug 1, 2025",
     amount: 19.99,
-    status: "paid"
+    status: "paid",
   },
   {
     id: "INV-005",
     date: "Dec 1, 2025",
     amount: 29.99,
-    status: "pending"
-  }
+    status: "pending",
+  },
 ];
 
 export const availablePlans = [
@@ -72,9 +71,9 @@ export const availablePlans = [
       "Up to 5 vehicle uploads",
       "Basic dealership profile",
       "Standard support",
-      "Community forums access"
+      "Community forums access",
     ],
-    popular: false
+    popular: false,
   },
   {
     id: "basic",
@@ -86,9 +85,9 @@ export const availablePlans = [
       "Enhanced dealership profile",
       "Email support within 24 hours",
       "Basic analytics dashboard",
-      "Customer inquiry forwarding"
+      "Customer inquiry forwarding",
     ],
-    popular: false
+    popular: false,
   },
   {
     id: "pro",
@@ -101,10 +100,10 @@ export const availablePlans = [
       "Priority support",
       "Advanced analytics dashboard",
       "Bulk import functionality",
-      "Access to premium leads"
+      "Access to premium leads",
     ],
     popular: true,
-    saving: 60
+    saving: 60,
   },
   {
     id: "enterprise",
@@ -118,9 +117,9 @@ export const availablePlans = [
       "White-label reports",
       "API access",
       "Multi-user accounts",
-      "Advanced market insights"
+      "Advanced market insights",
     ],
     popular: false,
-    saving: 200
-  }
+    saving: 200,
+  },
 ];

@@ -1,29 +1,34 @@
-
-import React, { ReactNode, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { UserRole } from '@/types/auth';
-import { Loader2 } from 'lucide-react';
+import React, { ReactNode, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { UserRole } from "@/types/auth";
+import { Loader2 } from "lucide-react";
 
 interface AuthenticatedLayoutProps {
   children: ReactNode;
   requireRole?: UserRole;
 }
 
-const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({ 
-  children, 
-  requireRole 
+const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({
+  children,
+  requireRole,
 }) => {
   const { user, userDetails, isLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!isLoading && !user) {
+<<<<<<< HEAD
       navigate('/auth', { state: { from: window.location.pathname } });
+=======
+      navigate("/sign-in", { state: { from: globalThis.location.pathname } });
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     }
-    
-    if (!isLoading && user && requireRole && userDetails?.role !== requireRole) {
-      navigate('/access-denied');
+
+    if (
+      !isLoading && user && requireRole && userDetails?.role !== requireRole
+    ) {
+      navigate("/access-denied");
     }
   }, [user, userDetails, isLoading, navigate, requireRole]);
 

@@ -1,9 +1,22 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { FormLabel } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ConditionLevel } from '../types/manualEntry';
 import ConditionSelectorBar from '@/components/common/ConditionSelectorBar';
+=======
+import React from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { ConditionLevel } from "../types/manualEntry";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface ConditionAndFuelInputsProps {
   condition: ConditionLevel;
@@ -20,8 +33,9 @@ export const ConditionAndFuelInputs: React.FC<ConditionAndFuelInputsProps> = ({
   fuelType,
   setFuelType,
   transmission,
-  setTransmission
+  setTransmission,
 }) => {
+<<<<<<< HEAD
   return (
     <div className="space-y-6">
       <div>
@@ -37,6 +51,54 @@ export const ConditionAndFuelInputs: React.FC<ConditionAndFuelInputsProps> = ({
           <FormLabel htmlFor="fuelType" className="block text-gray-700 mb-2">Fuel Type</FormLabel>
           <Select 
             value={fuelType} 
+=======
+  const handleConditionChange = (value: string) => {
+    switch (value) {
+      case "Excellent":
+        setCondition(ConditionLevel.Excellent);
+        break;
+      case "Good":
+        setCondition(ConditionLevel.Good);
+        break;
+      case "Fair":
+        setCondition(ConditionLevel.Fair);
+        break;
+      case "Poor":
+        setCondition(ConditionLevel.Poor);
+        break;
+      default:
+        setCondition(ConditionLevel.Good);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="condition">Condition</Label>
+          <Select
+            value={condition}
+            onValueChange={handleConditionChange}
+          >
+            <SelectTrigger id="condition">
+              <SelectValue placeholder="Select condition" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ConditionLevel.Excellent}>
+                Excellent
+              </SelectItem>
+              <SelectItem value={ConditionLevel.Good}>Good</SelectItem>
+              <SelectItem value={ConditionLevel.Fair}>Fair</SelectItem>
+              <SelectItem value={ConditionLevel.Poor}>Poor</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="fuelType">Fuel Type</Label>
+          <Select
+            value={fuelType}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
             onValueChange={setFuelType}
           >
             <SelectTrigger id="fuelType">
@@ -51,11 +113,19 @@ export const ConditionAndFuelInputs: React.FC<ConditionAndFuelInputsProps> = ({
             </SelectContent>
           </Select>
         </div>
+<<<<<<< HEAD
         
         <div>
           <FormLabel htmlFor="transmission" className="block text-gray-700 mb-2">Transmission</FormLabel>
           <Select 
             value={transmission} 
+=======
+
+        <div className="space-y-2">
+          <Label htmlFor="transmission">Transmission</Label>
+          <Select
+            value={transmission}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
             onValueChange={setTransmission}
           >
             <SelectTrigger id="transmission">

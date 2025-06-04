@@ -1,13 +1,26 @@
+<<<<<<< HEAD
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
+=======
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/auth/AuthContext";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, Download, FileBarChart, Clock } from 'lucide-react';
-import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
+import { Clock, Download, FileBarChart, Loader2 } from "lucide-react";
+import { convertVehicleInfoToReportData, downloadPdf } from "@/utils/pdf";
 
 interface PremiumReport {
   id: string;
@@ -34,31 +47,33 @@ export default function PremiumReportsList() {
     const fetchPremiumReports = async () => {
       try {
         const { data, error } = await supabase
-          .from('orders')
-          .select('*, valuations(*)')
-          .eq('user_id', user.id)
-          .eq('status', 'completed')
-          .order('created_at', { ascending: false });
+          .from("orders")
+          .select("*, valuations(*)")
+          .eq("user_id", user.id)
+          .eq("status", "completed")
+          .order("created_at", { ascending: false });
 
         if (error) throw error;
-        
-        const formattedReports = data?.map(order => ({
+
+        const formattedReports = data?.map((order) => ({
           id: order.id,
           created_at: order.created_at,
           status: order.status,
-          vehicle_info: order.valuations ? {
-            make: order.valuations.make,
-            model: order.valuations.model,
-            year: order.valuations.year,
-            vin: order.valuations.vin,
-            estimatedValue: order.valuations.estimated_value || 0
-          } : undefined
+          vehicle_info: order.valuations
+            ? {
+              make: order.valuations.make,
+              model: order.valuations.model,
+              year: order.valuations.year,
+              vin: order.valuations.vin,
+              estimatedValue: order.valuations.estimated_value || 0,
+            }
+            : undefined,
         })) || [];
-        
+
         setReports(formattedReports);
       } catch (error: any) {
-        console.error('Error fetching premium reports:', error.message);
-        toast.error('Failed to load premium reports');
+        console.error("Error fetching premium reports:", error.message);
+        toast.error("Failed to load premium reports");
       } finally {
         setIsLoading(false);
       }
@@ -69,18 +84,18 @@ export default function PremiumReportsList() {
 
   const handleDownloadReport = (report: PremiumReport) => {
     if (!report.vehicle_info) {
-      toast.error('Vehicle information not available');
+      toast.error("Vehicle information not available");
       return;
     }
-    
+
     const reportData = convertVehicleInfoToReportData({
       ...report.vehicle_info,
       mileage: 0, // Add default mileage value
-      vin: report.vehicle_info.vin || 'Unknown',
-      make: report.vehicle_info.make || 'Unknown',
-      model: report.vehicle_info.model || 'Unknown',
+      vin: report.vehicle_info.vin || "Unknown",
+      make: report.vehicle_info.make || "Unknown",
+      model: report.vehicle_info.model || "Unknown",
       year: report.vehicle_info.year || 0,
-      transmission: 'Unknown', // Add the required transmission field
+      transmission: "Unknown", // Add the required transmission field
     }, {
       estimatedValue: report.vehicle_info.estimatedValue || 0,
       mileage: 0,
@@ -88,11 +103,11 @@ export default function PremiumReportsList() {
       condition: "Excellent",
       zipCode: "10001",
       adjustments: [],
-      isPremium: true
+      isPremium: true,
     });
-    
+
     downloadPdf(reportData);
-    toast.success('Downloading your premium report');
+    toast.success("Downloading your premium report");
   };
 
   if (isLoading) {
@@ -108,12 +123,16 @@ export default function PremiumReportsList() {
       <Card>
         <CardHeader>
           <CardTitle>Premium Reports</CardTitle>
-          <CardDescription>You haven't purchased any premium reports yet</CardDescription>
+          <CardDescription>
+            You haven't purchased any premium reports yet
+          </CardDescription>
         </CardHeader>
         <CardContent className="text-center py-8">
           <FileBarChart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="mb-4">Get comprehensive vehicle valuations with CARFAX® reports</p>
-          <Button onClick={() => navigate('/premium')}>
+          <p className="mb-4">
+            Get comprehensive vehicle valuations with CARFAX® reports
+          </p>
+          <Button onClick={() => navigate("/premium")}>
             Get Premium Valuation
           </Button>
         </CardContent>
@@ -138,8 +157,10 @@ export default function PremiumReportsList() {
                 </div>
               </div>
               <CardDescription>
-                {report.vehicle_info?.year || 'N/A'} 
-                {report.vehicle_info?.vin ? ` • VIN: ${report.vehicle_info.vin.substring(0, 6)}...` : ''}
+                {report.vehicle_info?.year || "N/A"}
+                {report.vehicle_info?.vin
+                  ? ` • VIN: ${report.vehicle_info.vin.substring(0, 6)}...`
+                  : ""}
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
@@ -148,10 +169,11 @@ export default function PremiumReportsList() {
               </p>
             </CardContent>
             <CardFooter className="pt-2">
-              <Button 
-                variant="outline" 
-                className="w-full" 
-                onClick={() => handleDownloadReport(report)}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() =>
+                  handleDownloadReport(report)}
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download Report

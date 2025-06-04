@@ -1,4 +1,3 @@
-
 export interface Valuation {
   id: string;
   user_id?: string;
@@ -7,6 +6,7 @@ export interface Valuation {
   model?: string;
   mileage?: number;
   condition?: string;
+<<<<<<< HEAD
   zipCode?: string;
   estimated_value?: number;
   created_at: string;
@@ -21,8 +21,21 @@ export interface Valuation {
   accident_count?: number;
   titleStatus?: string;
   // Add missing fields needed by ValuationTable.tsx
+=======
+  created_at: string;
+
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   vin?: string;
   plate?: string;
   state?: string;
   valuation?: number;
+<<<<<<< HEAD
+=======
+  estimatedValue?: number;
+  estimated_value?: number;
+  is_premium?: boolean;
+  premium_unlocked?: boolean;
+  confidence_score?: number;
+  condition_score?: number;
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }

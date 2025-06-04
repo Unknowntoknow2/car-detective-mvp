@@ -1,6 +1,6 @@
 // src/components/lookup/manual/form-parts/AutoCompleteVehicleSelector.tsx
 
-import { VehicleSelectorWrapper } from './vehicle-selector/VehicleSelectorWrapper';
+import { VehicleSelectorWrapper } from "./vehicle-selector/VehicleSelectorWrapper";
 
 interface AutoCompleteVehicleSelectorProps {
   selectedMake: string;
@@ -12,6 +12,8 @@ interface AutoCompleteVehicleSelectorProps {
   onValidationChange?: (isValid: boolean) => void;
 }
 
-export const AutoCompleteVehicleSelector = (props: AutoCompleteVehicleSelectorProps) => {
+export const AutoCompleteVehicleSelector = (
+  props: AutoCompleteVehicleSelectorProps,
+) => {
   return <VehicleSelectorWrapper {...props} />;
 };

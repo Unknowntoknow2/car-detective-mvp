@@ -1,7 +1,6 @@
-
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface EpaMpgResult {
   data: {
@@ -14,7 +13,7 @@ export interface EpaMpgResult {
 
 export function useEpaMpg(year: number, make: string, model: string) {
   return useQuery({
-    queryKey: ['epaMpg', year, make, model],
+    queryKey: ["epaMpg", year, make, model],
     queryFn: async (): Promise<EpaMpgResult | null> => {
       // Skip API call if required parameters are missing
       if (!year || !make || !model) {
@@ -22,9 +21,12 @@ export function useEpaMpg(year: number, make: string, model: string) {
       }
 
       try {
-        const { data, error } = await supabase.functions.invoke('fetch_epa_mpg', {
-          body: { year, make, model },
-        });
+        const { data, error } = await supabase.functions.invoke(
+          "fetch_epa_mpg",
+          {
+            body: { year, make, model },
+          },
+        );
 
         if (error) {
           throw new Error(error.message);

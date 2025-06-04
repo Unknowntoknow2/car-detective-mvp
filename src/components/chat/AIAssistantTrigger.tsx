@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { MessageCircle, Sparkles } from 'lucide-react';
@@ -7,6 +8,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { AINFloatingChat } from './AINFloatingChat';
 import { useLocation } from 'react-router-dom';
 import { useAINStore } from '@/stores/useAINStore';
+=======
+import React, { useState } from "react";
+import { Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AIAssistantDrawer } from "./AIAssistantDrawer";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export const AIAssistantTrigger: React.FC = () => {
   const { setOpen } = useAINStore();

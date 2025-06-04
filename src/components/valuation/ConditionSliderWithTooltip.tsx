@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Info } from 'lucide-react';
+import React from "react";
+import { Info } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import {
   Tooltip,
@@ -16,16 +15,16 @@ interface ConditionSliderProps {
 }
 
 const marks = [
-  { value: 25, label: 'Poor', color: 'text-destructive' },
-  { value: 50, label: 'Fair', color: 'text-warning' },
-  { value: 75, label: 'Good', color: 'text-success' },
-  { value: 90, label: 'Excellent', color: 'text-primary' }
+  { value: 25, label: "Poor", color: "text-destructive" },
+  { value: 50, label: "Fair", color: "text-warning" },
+  { value: 75, label: "Good", color: "text-success" },
+  { value: 90, label: "Excellent", color: "text-primary" },
 ];
 
 export function ConditionSliderWithTooltip({
   score,
   onScoreChange,
-  disabled = false
+  disabled = false,
 }: ConditionSliderProps) {
   return (
     <div className="space-y-4">
@@ -38,9 +37,12 @@ export function ConditionSliderWithTooltip({
                 <Info className="h-4 w-4 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                <p>Select the vehicle's overall condition. This adjusts the valuation:</p>
+                <p>
+                  Select the vehicle's overall condition. This adjusts the
+                  valuation:
+                </p>
                 <ul className="mt-2 space-y-1">
-                  {marks.map(mark => (
+                  {marks.map((mark) => (
                     <li key={mark.value} className={`text-sm ${mark.color}`}>
                       {mark.label}: {mark.value}%
                     </li>
@@ -63,9 +65,11 @@ export function ConditionSliderWithTooltip({
       />
 
       <div className="grid grid-cols-4 gap-2">
-        {marks.map(mark => (
+        {marks.map((mark) => (
           <div key={mark.value} className="text-center">
-            <span className={`text-xs font-medium ${mark.color}`}>{mark.label}</span>
+            <span className={`text-xs font-medium ${mark.color}`}>
+              {mark.label}
+            </span>
           </div>
         ))}
       </div>

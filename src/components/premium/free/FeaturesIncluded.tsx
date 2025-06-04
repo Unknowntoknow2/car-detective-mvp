@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Check } from 'lucide-react';
+import React from "react";
+import { Check } from "lucide-react";
 
 interface Feature {
   title: string;
@@ -23,7 +22,9 @@ const FeaturesIncluded: React.FC<FeaturesIncludedProps> = ({ features }) => {
             </span>
             <div>
               <h4 className="font-medium">{feature.title}</h4>
-              <p className="text-sm text-muted-foreground">{feature.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {feature.description}
+              </p>
             </div>
           </li>
         ))}

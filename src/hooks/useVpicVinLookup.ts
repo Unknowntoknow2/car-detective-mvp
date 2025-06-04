@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 export function useVinLookup() {
   const [loading, setLoading] = useState(false);
@@ -10,14 +10,14 @@ export function useVinLookup() {
     setError(null);
     setCarData(null);
     try {
-      const res = await fetch('/functions/v1/unified-decode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/functions/v1/unified-decode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ vin }),
       });
       const json = await res.json();
       if (json.success) setCarData(json.nhtsaData); // Adjust to your result shape
-      else setError(json.error || 'Unknown error');
+      else setError(json.error || "Unknown error");
     } catch (e: any) {
       setError(e.message || String(e));
     } finally {

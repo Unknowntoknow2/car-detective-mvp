@@ -1,3 +1,25 @@
+<<<<<<< HEAD
+=======
+export interface AdjustmentCalculator {
+  calculate: (input: RulesEngineInput) =>
+    | {
+      factor: string;
+      impact: number;
+      description: string;
+      name?: string;
+      value?: number;
+      percentAdjustment?: number;
+    }
+    | Promise<{
+      factor: string;
+      impact: number;
+      description: string;
+      name?: string;
+      value?: number;
+      percentAdjustment?: number;
+    }>;
+}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export interface RulesEngineInput {
   baseValue?: number;

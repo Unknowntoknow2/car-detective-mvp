@@ -1,19 +1,25 @@
-
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Check, HelpCircle, X } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import React from "react";
+import { motion } from "framer-motion";
+import { Check, HelpCircle, X } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface FeatureCheckProps {
-  included: boolean | 'limited' | 'full';
+  included: boolean | "limited" | "full";
   label?: string;
 }
 
-export const FeatureCheck: React.FC<FeatureCheckProps> = ({ included, label }) => {
-  if (included === 'limited') {
+export const FeatureCheck: React.FC<FeatureCheckProps> = (
+  { included, label },
+) => {
+  if (included === "limited") {
     return (
       <div className="flex items-center justify-center">
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", duration: 0.5 }}
@@ -37,9 +43,9 @@ export const FeatureCheck: React.FC<FeatureCheckProps> = ({ included, label }) =
     );
   }
 
-  if (included === 'full' || included === true) {
+  if (included === "full" || included === true) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", duration: 0.5 }}
@@ -51,7 +57,7 @@ export const FeatureCheck: React.FC<FeatureCheckProps> = ({ included, label }) =
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ type: "spring", duration: 0.5 }}

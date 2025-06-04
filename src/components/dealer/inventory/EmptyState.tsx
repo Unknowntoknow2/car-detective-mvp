@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export interface EmptyStateProps {
   title?: string;
@@ -13,10 +12,11 @@ export interface EmptyStateProps {
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
   title = "No vehicles in your inventory",
-  description = "Add your first vehicle to get started with inventory management.",
+  description =
+    "Add your first vehicle to get started with inventory management.",
   actionLabel = "Add Vehicle",
   onAddClick,
-  icon = <Plus className="h-12 w-12 text-muted-foreground" />
+  icon = <Plus className="h-12 w-12 text-muted-foreground" />,
 }) => {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center border rounded-lg bg-muted/20">

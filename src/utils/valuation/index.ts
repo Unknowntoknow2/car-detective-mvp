@@ -1,5 +1,4 @@
-
 // Re-export types
-export * from './types';
+export * from "./types";
 // Export the calculator module
-export { calculateFinalValuation } from './calculateFinalValuation';
+export { calculateFinalValuation } from "./calculateFinalValuation";

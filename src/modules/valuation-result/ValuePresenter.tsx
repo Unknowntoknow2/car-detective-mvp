@@ -1,11 +1,13 @@
-
-import React from 'react';
-import { motion } from 'framer-motion';
-import { AnimatedCounter } from '@/components/animations/AnimatedCounter';
-import { getConfidenceColor, getConfidenceLabel } from '@/components/animations/utils';
-import { ProgressRing } from '@/components/animations/ProgressRing';
-import { CDCard } from '@/components/ui-kit/CDCard';
-import { formatCurrency } from '@/utils/formatters';
+import React from "react";
+import { motion } from "framer-motion";
+import { AnimatedCounter } from "@/components/animations/AnimatedCounter";
+import {
+  getConfidenceColor,
+  getConfidenceLabel,
+} from "@/components/animations/utils";
+import { ProgressRing } from "@/components/animations/ProgressRing";
+import { CDCard } from "@/components/ui-kit/CDCard";
+import { formatCurrency } from "@/utils/formatters";
 
 interface ValuePresenterProps {
   value: number;
@@ -20,33 +22,33 @@ export const ValuePresenter: React.FC<ValuePresenterProps> = ({
   confidenceScore,
   isAnimated = true,
   isPremium = false,
-  className = ''
+  className = "",
 }) => {
   // Get color and label based on confidence score
   const confidenceColor = getConfidenceColor(confidenceScore);
   const confidenceLabel = getConfidenceLabel(confidenceScore);
-  
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: {
         staggerChildren: 0.2,
-        delayChildren: 0.3
-      }
-    }
+        delayChildren: 0.3,
+      },
+    },
   };
-  
+
   const itemVariants = {
     hidden: { opacity: 0, y: 10 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
-      transition: { duration: 0.5 }
-    }
+      transition: { duration: 0.5 },
+    },
   };
-  
+
   return (
     <motion.div
       className={`${className}`}
@@ -54,22 +56,31 @@ export const ValuePresenter: React.FC<ValuePresenterProps> = ({
       initial="hidden"
       animate="visible"
     >
-      <CDCard className={`p-6 ${isPremium ? 'bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20' : ''}`}>
+      <CDCard
+        className={`p-6 ${
+          isPremium
+            ? "bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20"
+            : ""
+        }`}
+      >
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Value Display */}
-          <motion.div variants={itemVariants} className="text-center md:text-left">
+          <motion.div
+            variants={itemVariants}
+            className="text-center md:text-left"
+          >
             <p className="text-sm text-gray-500 mb-1">Estimated Value</p>
             <h2 className="text-4xl font-bold text-primary">
-              <AnimatedCounter 
-                value={value} 
+              <AnimatedCounter
+                value={value}
                 prefix="$"
-                formatter={(val) => val.toLocaleString()} 
+                formatter={(val) => val.toLocaleString()}
                 animate={isAnimated}
                 duration={2000}
               />
             </h2>
           </motion.div>
-          
+
           {/* Confidence Ring */}
           <motion.div variants={itemVariants} className="text-center">
             <ProgressRing
@@ -81,7 +92,10 @@ export const ValuePresenter: React.FC<ValuePresenterProps> = ({
               duration={1.5}
             >
               <div className="flex flex-col justify-center items-center">
-                <span className="text-xl font-bold" style={{ color: confidenceColor }}>
+                <span
+                  className="text-xl font-bold"
+                  style={{ color: confidenceColor }}
+                >
                   {confidenceScore}%
                 </span>
                 <span className="text-xs">{confidenceLabel}</span>
@@ -93,7 +107,7 @@ export const ValuePresenter: React.FC<ValuePresenterProps> = ({
 
         {/* Premium Badge */}
         {isPremium && (
-          <motion.div 
+          <motion.div
             className="absolute top-4 right-4"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}

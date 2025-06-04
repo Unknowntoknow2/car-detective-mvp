@@ -1,7 +1,6 @@
-
-import { useEffect } from 'react';
-import { FormData } from '@/types/premium-valuation';
-import { toast } from 'sonner';
+import { useEffect } from "react";
+import { FormData } from "@/types/premium-valuation";
+import { toast } from "sonner";
 
 interface FormInitializerProps {
   initialLoad: boolean;
@@ -22,21 +21,21 @@ export function FormInitializer({
     if (initialLoad) {
       // First, try to load from formData autosave
       const savedFormData = loadSavedData();
-      
+
       // Then, check if we have vehicle data from the lookup tabs
       const savedVehicleData = localStorage.getItem("premium_vehicle");
-      
+
       if (savedVehicleData) {
         try {
           const vehicleData = JSON.parse(savedVehicleData);
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
-            ...vehicleData
+            ...vehicleData,
           }));
-          
+
           updateStepValidity(1, true);
           localStorage.removeItem("premium_vehicle");
-          
+
           toast.success("Vehicle information loaded from previous lookup");
         } catch (error) {
           console.error("Error parsing saved vehicle data:", error);
@@ -44,10 +43,16 @@ export function FormInitializer({
       } else if (savedFormData) {
         setFormData(savedFormData);
       }
-      
+
       setInitialLoad(false);
     }
-  }, [initialLoad, loadSavedData, setFormData, updateStepValidity, setInitialLoad]);
+  }, [
+    initialLoad,
+    loadSavedData,
+    setFormData,
+    updateStepValidity,
+    setInitialLoad,
+  ]);
 
   return null;
 }

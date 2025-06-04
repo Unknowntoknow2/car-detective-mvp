@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -34,6 +35,38 @@ export const AIChatBubble: React.FC<AIChatBubbleProps> = ({ valuation, enrichedD
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+=======
+import React, { useEffect, useState } from "react";
+import { ChatBubble } from "./ChatBubble";
+import { Valuation } from "@/types/valuation-history";
+
+interface AIChatBubbleProps {
+  valuation?: Valuation | null;
+  position?: "bottom-right" | "bottom-left";
+}
+
+export function AIChatBubble(
+  { valuation, position = "bottom-right" }: AIChatBubbleProps,
+) {
+  const [initialMessage, setInitialMessage] = useState(
+    "Tell me about my car's valuation",
+  );
+
+  // Generate a more specific initial message if we have valuation data
+  useEffect(() => {
+    if (valuation) {
+      const year = valuation.year || "";
+      const make = valuation.make || "";
+      const model = valuation.model || "";
+
+      if (year && make && model) {
+        setInitialMessage(
+          `Tell me about my ${year} ${make} ${model} valuation`,
+        );
+      }
+    }
+  }, [valuation]);
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
   const vehicleContext: VehicleContext = {
     make: valuation.make,
@@ -121,6 +154,7 @@ export const AIChatBubble: React.FC<AIChatBubbleProps> = ({ valuation, enrichedD
   }
 
   return (
+<<<<<<< HEAD
     <Card className="fixed bottom-6 right-6 w-96 h-[500px] shadow-xl border-2 border-primary/20 flex flex-col z-50">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
@@ -194,5 +228,13 @@ export const AIChatBubble: React.FC<AIChatBubbleProps> = ({ valuation, enrichedD
         </div>
       </div>
     </Card>
+=======
+    <ChatBubble
+      valuationId={valuation.id}
+      initialMessage={initialMessage}
+      position={position}
+      title="Ask about your valuation"
+    />
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   );
 };

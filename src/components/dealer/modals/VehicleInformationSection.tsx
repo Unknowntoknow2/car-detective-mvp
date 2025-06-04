@@ -1,8 +1,7 @@
-
-import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
-import { VehicleFormData } from '../schemas/vehicleSchema';
-import { useVehicleSelectors } from '@/hooks/useVehicleSelectors';
+import React from "react";
+import { UseFormReturn } from "react-hook-form";
+import { VehicleFormData } from "../schemas/vehicleSchema";
+import { useVehicleSelectors } from "@/hooks/useVehicleSelectors";
 import {
   Form,
   FormControl,
@@ -25,13 +24,15 @@ interface VehicleInformationSectionProps {
   form: UseFormReturn<VehicleFormData>;
 }
 
-export const VehicleInformationSection: React.FC<VehicleInformationSectionProps> = ({ form }) => {
-  const { 
-    makes, 
-    models, 
-    selectedMakeId, 
+export const VehicleInformationSection: React.FC<
+  VehicleInformationSectionProps
+> = ({ form }) => {
+  const {
+    makes,
+    models,
+    selectedMakeId,
     setSelectedMakeId,
-    getYearOptions 
+    getYearOptions,
   } = useVehicleSelectors();
 
   const yearOptions = getYearOptions(1990);
@@ -40,7 +41,7 @@ export const VehicleInformationSection: React.FC<VehicleInformationSectionProps>
     <Form {...form}>
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Vehicle Information</h3>
-        
+
         {/* Make and Model */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
@@ -49,14 +50,14 @@ export const VehicleInformationSection: React.FC<VehicleInformationSectionProps>
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Make*</FormLabel>
-                <Select 
+                <Select
                   onValueChange={(value) => {
                     field.onChange(value);
-                    const makeObj = makes.find(m => m.make_name === value);
+                    const makeObj = makes.find((m) => m.make_name === value);
                     if (makeObj) {
                       setSelectedMakeId(makeObj.id);
                     }
-                  }} 
+                  }}
                   defaultValue={field.value}
                 >
                   <FormControl>
@@ -83,8 +84,8 @@ export const VehicleInformationSection: React.FC<VehicleInformationSectionProps>
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Model*</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
+                <Select
+                  onValueChange={field.onChange}
                   defaultValue={field.value}
                   disabled={!selectedMakeId || models.length === 0}
                 >
@@ -115,8 +116,8 @@ export const VehicleInformationSection: React.FC<VehicleInformationSectionProps>
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Year*</FormLabel>
-                <Select 
-                  onValueChange={(value) => field.onChange(parseInt(value))} 
+                <Select
+                  onValueChange={(value) => field.onChange(parseInt(value))}
                   defaultValue={field.value.toString()}
                 >
                   <FormControl>
@@ -144,15 +145,17 @@ export const VehicleInformationSection: React.FC<VehicleInformationSectionProps>
               <FormItem>
                 <FormLabel>Mileage</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    placeholder="e.g., 25000" 
+                  <Input
+                    type="number"
+                    placeholder="e.g., 25000"
                     {...field}
                     onChange={(e) => {
-                      const value = e.target.value ? parseInt(e.target.value) : null;
+                      const value = e.target.value
+                        ? parseInt(e.target.value)
+                        : null;
                       field.onChange(value);
                     }}
-                    value={field.value === null ? '' : field.value}
+                    value={field.value === null ? "" : field.value}
                   />
                 </FormControl>
                 <FormDescription>Leave empty if unknown</FormDescription>
@@ -171,12 +174,14 @@ export const VehicleInformationSection: React.FC<VehicleInformationSectionProps>
               <FormItem>
                 <FormLabel>Price ($)*</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    placeholder="e.g., 15000" 
+                  <Input
+                    type="number"
+                    placeholder="e.g., 15000"
                     {...field}
                     onChange={(e) => {
-                      const value = e.target.value ? parseFloat(e.target.value) : 0;
+                      const value = e.target.value
+                        ? parseFloat(e.target.value)
+                        : 0;
                       field.onChange(value);
                     }}
                   />
@@ -192,7 +197,10 @@ export const VehicleInformationSection: React.FC<VehicleInformationSectionProps>
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Condition*</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select condition" />
@@ -219,8 +227,8 @@ export const VehicleInformationSection: React.FC<VehicleInformationSectionProps>
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Transmission</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
+                <Select
+                  onValueChange={field.onChange}
                   defaultValue={field.value || undefined}
                 >
                   <FormControl>
@@ -244,8 +252,8 @@ export const VehicleInformationSection: React.FC<VehicleInformationSectionProps>
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Fuel Type</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
+                <Select
+                  onValueChange={field.onChange}
                   defaultValue={field.value || undefined}
                 >
                   <FormControl>
@@ -275,8 +283,8 @@ export const VehicleInformationSection: React.FC<VehicleInformationSectionProps>
               <FormItem>
                 <FormLabel>Zip Code</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="e.g., 90210" 
+                  <Input
+                    placeholder="e.g., 90210"
                     {...field}
                     maxLength={10}
                   />
@@ -292,7 +300,10 @@ export const VehicleInformationSection: React.FC<VehicleInformationSectionProps>
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Status*</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />

@@ -1,8 +1,7 @@
-
 import React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { HeadingM } from "./typography";
 
 export type ModalProps = {
@@ -71,14 +70,16 @@ export const CDModal: React.FC<ModalProps> = ({
                   "translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-lg",
                   "bg-white p-6 shadow-xl border border-neutral-light",
                   "focus:outline-none focus-visible:ring-0",
-                  className
+                  className,
                 )}
                 initial={{ opacity: 0, scale: 0.95, y: "-40%" }}
                 animate={{ opacity: 1, scale: 1, y: "-50%" }}
                 exit={{ opacity: 0, scale: 0.95, y: "-40%" }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               >
-                <div className={cn("flex flex-col space-y-4", contentClassName)}>
+                <div
+                  className={cn("flex flex-col space-y-4", contentClassName)}
+                >
                   {title && (
                     <div className="flex items-start justify-between">
                       <HeadingM>{title}</HeadingM>
@@ -134,7 +135,8 @@ export const CDModalBody: React.FC<ModalBodyProps> = ({
   children,
   className,
 }) => {
-  return <div className={cn("flex-1 overflow-auto", className)}>{children}</div>;
+  return <div className={cn("flex-1 overflow-auto", className)}>{children}
+  </div>;
 };
 
 export const CDModalFooter: React.FC<ModalFooterProps> = ({
@@ -145,7 +147,7 @@ export const CDModalFooter: React.FC<ModalFooterProps> = ({
     <div
       className={cn(
         "mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
-        className
+        className,
       )}
     >
       {children}

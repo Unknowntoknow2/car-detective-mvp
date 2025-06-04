@@ -1,8 +1,7 @@
-
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { FormData } from '@/types/premium-valuation';
-import { Progress } from '@/components/ui/progress';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { FormData } from "@/types/premium-valuation";
+import { Progress } from "@/components/ui/progress";
 
 interface ConditionSummaryProps {
   formData: FormData;
@@ -10,6 +9,7 @@ interface ConditionSummaryProps {
 
 export function ConditionSummary({ formData }: ConditionSummaryProps) {
   // Convert condition to a number if it's a string
+<<<<<<< HEAD
   const conditionValue = formData.conditionScore || 
     (typeof formData.condition === 'string' 
       ? formData.condition === 'excellent' ? 95 
@@ -17,6 +17,11 @@ export function ConditionSummary({ formData }: ConditionSummaryProps) {
         : formData.condition === 'fair' ? 50 
         : 30
       : 75);
+=======
+  const conditionValue = typeof formData.condition === "string"
+    ? parseInt(formData.condition, 10)
+    : formData.conditionScore || 75;
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
   return (
     <div className="mb-6">
@@ -25,22 +30,26 @@ export function ConditionSummary({ formData }: ConditionSummaryProps) {
         <CardContent className="p-6">
           <div className="space-y-4">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-gray-600 font-medium">Overall Condition:</span>
+              <span className="text-gray-600 font-medium">
+                Overall Condition:
+              </span>
               <span className="text-right font-medium text-gray-800">
-                {formData.conditionLabel || 'Good'} ({conditionValue}%)
+                {formData.conditionLabel || "Good"} ({conditionValue}%)
               </span>
             </div>
-            
-            <Progress 
-              value={conditionValue} 
-              className="h-2.5 bg-gray-100" 
+
+            <Progress
+              value={conditionValue}
+              className="h-2.5 bg-gray-100"
             />
-            
-            {formData.hasAccident === 'yes' && (
+
+            {formData.hasAccident === "yes" && (
               <div className="pt-4 border-t border-gray-100 mt-4">
-                <div className="text-gray-600 font-medium mb-2">Accident History:</div>
+                <div className="text-gray-600 font-medium mb-2">
+                  Accident History:
+                </div>
                 <div className="p-3 bg-gray-50 rounded-md text-gray-700">
-                  {formData.accidentDescription || 'Has accident history'}
+                  {formData.accidentDescription || "Has accident history"}
                 </div>
               </div>
             )}

@@ -1,10 +1,10 @@
-
 /**
  * Format a date to a human-readable string
  * @param date - The date to format (Date object or string)
  * @param options - Intl.DateTimeFormatOptions object
  * @returns Formatted date string
  */
+<<<<<<< HEAD
 export const formatDate = (
   date: Date | string | null | undefined,
   options: Intl.DateTimeFormatOptions = { 
@@ -87,5 +87,14 @@ export const formatTimeAgo = (date: Date | string | null | undefined): string =>
   } catch (error) {
     console.error('Error formatting time ago:', error);
     return '';
+=======
+export const formatDate = (date: Date | string): string => {
+  if (!date) return "";
+  try {
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    return dateObj.toLocaleDateString("en-US");
+  } catch (error) {
+    return "Invalid date";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   }
 };

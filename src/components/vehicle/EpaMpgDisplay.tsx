@@ -1,8 +1,7 @@
-
-import React from 'react';
-import { useEpaMpg } from '@/hooks/useEpaMpg';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Info } from 'lucide-react';
+import React from "react";
+import { useEpaMpg } from "@/hooks/useEpaMpg";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Info, Loader2 } from "lucide-react";
 
 interface EpaMpgDisplayProps {
   year: number;
@@ -55,10 +54,12 @@ export function EpaMpgDisplay({ year, make, model }: EpaMpgDisplayProps) {
       </CardHeader>
       <CardContent>
         <div className="grid gap-1">
-          <div className="text-2xl font-bold text-primary">{data.data.value} MPG</div>
+          <div className="text-2xl font-bold text-primary">
+            {data.data.value} MPG
+          </div>
           <div className="text-sm text-muted-foreground">{data.data.text}</div>
           <div className="text-xs text-muted-foreground mt-2">
-            Source: {data.source === 'api' ? 'EPA Estimate' : 'Cached Value'}
+            Source: {data.source === "api" ? "EPA Estimate" : "Cached Value"}
           </div>
         </div>
       </CardContent>

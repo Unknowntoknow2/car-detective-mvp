@@ -1,4 +1,3 @@
-
 import * as z from "zod";
 
 export const dealerFormSchema = z.object({
@@ -9,8 +8,11 @@ export const dealerFormSchema = z.object({
     .min(8, "Password must be at least 8 characters")
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/,
-      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number",
     ),
-  dealershipName: z.string().min(2, "Dealership name must be at least 2 characters"),
+  dealershipName: z.string().min(
+    2,
+    "Dealership name must be at least 2 characters",
+  ),
   phone: z.string().optional(),
 });

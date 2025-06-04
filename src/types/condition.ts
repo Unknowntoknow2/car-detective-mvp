@@ -1,4 +1,3 @@
-
 export interface ConditionRatingOption {
   id: string;
   name: string;

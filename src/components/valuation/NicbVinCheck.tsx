@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
@@ -70,6 +71,81 @@ const NicbVinCheck: React.FC<NicbVinCheckProps> = ({
     } finally {
       setIsLoading(false);
     }
+=======
+import React, { useState } from "react";
+import { useNicbVinCheck } from "@/hooks/useNicbVinCheck";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  RefreshCw,
+  XCircle,
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { validateVin } from "@/utils/validation/vin-validation";
+
+export const NicbVinCheck: React.FC = () => {
+  const [vinInput, setVinInput] = useState("");
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const { checkVin, data, loading, error, source, fetchedAt, refresh } =
+    useNicbVinCheck();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Reset validation error
+    setValidationError(null);
+
+    // Validate VIN
+    const validation = validateVin(vinInput);
+    if (!validation.isValid) {
+      setValidationError(validation.error || "Invalid VIN");
+      return;
+    }
+
+    // Check VIN
+    await checkVin(vinInput);
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "Unknown";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const renderStatusBadge = () => {
+    if (!data) return null;
+
+    const hasIssues = data.is_stolen || data.has_title_issues;
+
+    return (
+      <div
+        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+          hasIssues ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
+        }`}
+      >
+        {hasIssues
+          ? (
+            <>
+              <XCircle className="h-4 w-4 mr-1" />
+              Issues Found
+            </>
+          )
+          : (
+            <>
+              <CheckCircle className="h-4 w-4 mr-1" />
+              No Issues
+            </>
+          )}
+      </div>
+    );
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   };
 
   return (
@@ -97,9 +173,15 @@ const NicbVinCheck: React.FC<NicbVinCheckProps> = ({
               className="uppercase"
               disabled={isLoading}
             />
+<<<<<<< HEAD
             {error && (
               <div className="text-red-500 text-sm">{error}</div>
             )}
+=======
+            <Button type="submit" disabled={loading}>
+              {loading ? "Checking..." : "Check VIN"}
+            </Button>
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
           </div>
           
           <Button 
@@ -137,6 +219,7 @@ const NicbVinCheck: React.FC<NicbVinCheckProps> = ({
                 <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
               )}
               <div>
+<<<<<<< HEAD
                 <AlertTitle className={
                   result.isStolen 
                     ? 'text-red-800' 
@@ -163,6 +246,113 @@ const NicbVinCheck: React.FC<NicbVinCheckProps> = ({
         Data provided in partnership with the National Insurance Crime Bureau (NICB) and National Motor Vehicle Title Information System (NMVTIS).
       </CardFooter>
     </Card>
+=======
+                <h3 className="text-sm font-medium text-gray-500">VIN</h3>
+                <p className="font-mono">{data.vin}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">
+                  Last Checked
+                </h3>
+                <p className="flex items-center">
+                  <Clock className="h-4 w-4 mr-1" />
+                  {formatDate(data.last_checked)}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">
+                  Reported Stolen
+                </h3>
+                <p className="flex items-center">
+                  {data.is_stolen
+                    ? (
+                      <span className="text-red-600 flex items-center">
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Yes - {data.theft_date
+                          ? formatDate(data.theft_date)
+                          : "Date Unknown"}
+                      </span>
+                    )
+                    : (
+                      <span className="text-green-600 flex items-center">
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        No
+                      </span>
+                    )}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Recovered</h3>
+                <p className="flex items-center">
+                  {data.is_recovered
+                    ? (
+                      <span className="text-green-600 flex items-center">
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Yes - {data.recovery_date
+                          ? formatDate(data.recovery_date)
+                          : "Date Unknown"}
+                      </span>
+                    )
+                    : (
+                      <span className="text-gray-600 flex items-center">
+                        <Clock className="h-4 w-4 mr-1" />
+                        No
+                      </span>
+                    )}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">
+                  Title Issues
+                </h3>
+                <p className="flex items-center">
+                  {data.has_title_issues
+                    ? (
+                      <span className="text-red-600 flex items-center">
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Yes
+                      </span>
+                    )
+                    : (
+                      <span className="text-green-600 flex items-center">
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        No
+                      </span>
+                    )}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">
+                  Data Source
+                </h3>
+                <p className="capitalize">{source || "Unknown"}</p>
+              </div>
+            </div>
+
+            {fetchedAt && (
+              <div className="pt-4 border-t mt-4">
+                <p className="text-xs text-gray-500 flex items-center justify-between">
+                  <span>
+                    Data retrieved: {new Date(fetchedAt).toLocaleString()}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={refresh}
+                    disabled={loading}
+                    className="h-8 px-2"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-1" />
+                    Refresh
+                  </Button>
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   );
 };
 

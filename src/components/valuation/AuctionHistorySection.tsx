@@ -1,49 +1,115 @@
-// src/components/valuation/AuctionHistorySection.tsx
+import React, { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import React, { useEffect, useState } from 'react';
-import { AuctionHistoryViewer, AuctionData } from './AuctionHistoryViewer';
+export interface AuctionHistorySectionProps {
+  vin: string;
+}
 
-export const AuctionHistorySection = ({ vin }: { vin: string }) => {
-  const [data, setData] = useState<AuctionData | null>(null);
+interface AuctionRecord {
+  vin: string;
+  sold_date: string | null;
+  price: string | null;
+  odometer: string | null;
+  auction_source: string;
+  photo_urls: string[];
+  condition_grade: string | null;
+}
+
+export const AuctionHistorySection: React.FC<AuctionHistorySectionProps> = (
+  { vin },
+) => {
+  const [history, setHistory] = useState<AuctionRecord | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchAuctionHistory = async () => {
+    const fetchHistory = async () => {
+      setLoading(true);
       try {
-        const response = await fetch('https://xltxqqzattxogxtqrggt.functions.supabase.co/fetch-bidcars', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        const res = await fetch(
+          "https://xltxqqzattxogxtqrggt.functions.supabase.co/fetch-auction-history",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization":
+                `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({ vin }),
           },
-          body: JSON.stringify({ vin }),
-        });
+        );
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch auction data (Status: ${response.status})`);
-        }
-
-        const result = await response.json();
-        if (result?.success && result?.data) {
-          setData(result.data);
+        const json = await res.json();
+        if (res.status === 200 && json?.data) {
+          setHistory(json.data);
         } else {
-          throw new Error('No valid auction result returned.');
+          setHistory(null);
         }
       } catch (err: any) {
-        setError(err.message);
-        console.error('Auction fetch error:', err);
+        setError(err.message || "Unknown error");
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchAuctionHistory();
+    fetchHistory();
   }, [vin]);
 
-  if (error) {
+  if (loading) {
     return (
-      <div className="text-sm text-red-600 mt-4">
-        ⚠️ Could not load auction history: {error}
-      </div>
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Auction History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Fetching auction data...
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
-  return data ? <AuctionHistoryViewer data={data} /> : null;
+  if (!history) {
+    return null;
+  }
+
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle>Auction History</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <p>
+            <strong>Source:</strong> {history.auction_source}
+          </p>
+          <p>
+            <strong>Odometer:</strong> {history.odometer || "N/A"}
+          </p>
+          <p>
+            <strong>Price:</strong> {history.price || "N/A"}
+          </p>
+          <p>
+            <strong>Condition:</strong> {history.condition_grade || "Unknown"}
+          </p>
+          <p>
+            <strong>Date Sold:</strong> {history.sold_date || "N/A"}
+          </p>
+          {history.photo_urls?.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-4">
+              {history.photo_urls.map((url, idx) => (
+                <img
+                  key={idx}
+                  src={url}
+                  alt={`Auction photo ${idx + 1}`}
+                  className="rounded border shadow-sm"
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
 };

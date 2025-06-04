@@ -1,8 +1,7 @@
-
-import React from 'react';
-import { FormData } from '@/types/premium-valuation';
-import { AccidentHistoryForm } from './accident-history/AccidentHistoryForm';
-import { VehicleDetailsForm } from './vehicle-details/VehicleDetailsForm';
+import React from "react";
+import { FormData } from "@/types/premium-valuation";
+import { AccidentHistoryForm } from "./accident-history/AccidentHistoryForm";
+import { VehicleDetailsForm } from "./vehicle-details/VehicleDetailsForm";
 
 interface StepContentProps {
   currentStep: number;
@@ -27,14 +26,16 @@ export function StepContent({
   handleReset,
   valuationId,
   goToNextStep,
-  goToPreviousStep
+  goToPreviousStep,
 }: StepContentProps) {
   switch (currentStep) {
     case 1:
       return (
         <div>
           <h2 className="text-xl font-semibold mb-4">Vehicle Identification</h2>
-          <p className="text-gray-600 mb-4">Please enter your vehicle's information to begin.</p>
+          <p className="text-gray-600 mb-4">
+            Please enter your vehicle's information to begin.
+          </p>
           {/* We'll implement proper forms later */}
         </div>
       );
@@ -43,7 +44,8 @@ export function StepContent({
         <VehicleDetailsForm
           formData={formData}
           setFormData={setFormData}
-          updateStepValidity={(isValid) => updateStepValidity(currentStep, isValid)}
+          updateStepValidity={(isValid) =>
+            updateStepValidity(currentStep, isValid)}
           step={currentStep}
         />
       );
@@ -60,7 +62,9 @@ export function StepContent({
       return (
         <div>
           <h2 className="text-xl font-semibold mb-4">Feature Selection</h2>
-          <p className="text-gray-600 mb-4">Select the features your vehicle has.</p>
+          <p className="text-gray-600 mb-4">
+            Select the features your vehicle has.
+          </p>
           {/* We'll implement proper forms later */}
         </div>
       );
@@ -68,7 +72,9 @@ export function StepContent({
       return (
         <div>
           <h2 className="text-xl font-semibold mb-4">Vehicle Condition</h2>
-          <p className="text-gray-600 mb-4">Rate the condition of your vehicle.</p>
+          <p className="text-gray-600 mb-4">
+            Rate the condition of your vehicle.
+          </p>
           {/* We'll implement proper forms later */}
         </div>
       );
@@ -84,7 +90,9 @@ export function StepContent({
       return (
         <div>
           <h2 className="text-xl font-semibold mb-4">Driving Behavior</h2>
-          <p className="text-gray-600 mb-4">Tell us about your driving habits.</p>
+          <p className="text-gray-600 mb-4">
+            Tell us about your driving habits.
+          </p>
           {/* We'll implement proper forms later */}
         </div>
       );
@@ -92,8 +100,10 @@ export function StepContent({
       return (
         <div>
           <h2 className="text-xl font-semibold mb-4">Review & Submit</h2>
-          <p className="text-gray-600 mb-4">Review your information before submitting.</p>
-          <button 
+          <p className="text-gray-600 mb-4">
+            Review your information before submitting.
+          </p>
+          <button
             className="bg-primary text-white px-4 py-2 rounded"
             onClick={() => handleSubmit()}
           >

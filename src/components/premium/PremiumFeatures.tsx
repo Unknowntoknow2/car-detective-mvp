@@ -1,10 +1,14 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Valuation } from '@/types/valuation-history';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Valuation } from "@/types/valuation-history";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 
 interface PremiumFeaturesProps {
   valuation: Valuation;
@@ -14,31 +18,31 @@ export function PremiumFeatures({ valuation }: PremiumFeaturesProps) {
   // Define premium features based on valuation data
   const features = [
     {
-      name: 'CARFAX Report',
+      name: "CARFAX Report",
       available: valuation.premium_unlocked || valuation.is_premium,
-      description: 'Full vehicle history and records'
+      description: "Full vehicle history and records",
     },
     {
-      name: 'Market Analysis',
+      name: "Market Analysis",
       available: valuation.premium_unlocked || valuation.is_premium,
-      description: 'Local market data and price comparisons'
+      description: "Local market data and price comparisons",
     },
     {
-      name: 'Confidence Score',
+      name: "Confidence Score",
       available: true,
       value: valuation.confidence_score || 75,
-      description: 'Accuracy of the valuation based on available data'
+      description: "Accuracy of the valuation based on available data",
     },
     {
-      name: 'Feature Adjustments',
+      name: "Feature Adjustments",
       available: valuation.premium_unlocked || valuation.is_premium,
-      description: 'Individual value of each feature and option'
+      description: "Individual value of each feature and option",
     },
     {
-      name: 'Similar Listings',
+      name: "Similar Listings",
       available: valuation.premium_unlocked || valuation.is_premium,
-      description: 'Comparable vehicles currently on the market'
-    }
+      description: "Comparable vehicles currently on the market",
+    },
   ];
 
   return (
@@ -46,7 +50,10 @@ export function PremiumFeatures({ valuation }: PremiumFeaturesProps) {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           Premium Features
-          <Badge variant="outline" className="ml-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+          <Badge
+            variant="outline"
+            className="ml-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+          >
             Premium
           </Badge>
         </CardTitle>
@@ -72,11 +79,9 @@ export function PremiumFeatures({ valuation }: PremiumFeaturesProps) {
                 <div className="text-lg font-bold">{feature.value}%</div>
               )}
               <div className="text-sm text-muted-foreground mt-1">
-                {feature.available ? (
-                  <span className="text-green-600">Included</span>
-                ) : (
-                  <span className="text-amber-600">Upgrade to access</span>
-                )}
+                {feature.available
+                  ? <span className="text-green-600">Included</span>
+                  : <span className="text-amber-600">Upgrade to access</span>}
               </div>
             </div>
           ))}

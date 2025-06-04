@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { useParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from "react";
+import { useParams } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DealerVehicleDetailsPage() {
   const { id } = useParams<{ id: string }>();

@@ -1,15 +1,21 @@
-
-import React from 'react';
-import { Progress } from '@/components/ui/progress';
-import { Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import React from "react";
+import { Progress } from "@/components/ui/progress";
+import { Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ConfidenceScoreProps {
   score: number;
   comparableVehicles: number;
 }
 
-export const ConfidenceScore = ({ score, comparableVehicles }: ConfidenceScoreProps) => {
+export const ConfidenceScore = (
+  { score, comparableVehicles }: ConfidenceScoreProps,
+) => {
   // Calculate color based on score
   const getColorClass = () => {
     if (score >= 90) return "bg-green-500";
@@ -21,7 +27,9 @@ export const ConfidenceScore = ({ score, comparableVehicles }: ConfidenceScorePr
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <p className="text-sm font-medium text-muted-foreground">Confidence Score</p>
+        <p className="text-sm font-medium text-muted-foreground">
+          Confidence Score
+        </p>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
@@ -30,7 +38,10 @@ export const ConfidenceScore = ({ score, comparableVehicles }: ConfidenceScorePr
             <TooltipContent className="max-w-xs">
               <div>
                 <p className="font-medium mb-1">Data Confidence Rating</p>
-                <p className="text-sm">Based on {comparableVehicles} comparable vehicles in your area.</p>
+                <p className="text-sm">
+                  Based on {comparableVehicles}{" "}
+                  comparable vehicles in your area.
+                </p>
                 <ul className="text-sm list-disc pl-4 mt-2">
                   <li>Market sample size</li>
                   <li>Data completeness</li>
@@ -44,8 +55,8 @@ export const ConfidenceScore = ({ score, comparableVehicles }: ConfidenceScorePr
       <p className="text-lg font-semibold text-primary">
         {score}%
       </p>
-      <Progress 
-        value={score} 
+      <Progress
+        value={score}
         className={`h-2`}
       />
     </div>

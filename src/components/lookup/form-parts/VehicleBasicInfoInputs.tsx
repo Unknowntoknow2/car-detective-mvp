@@ -1,17 +1,30 @@
-
-import React from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UseFormReturn } from 'react-hook-form';
-import { ManualEntryFormData } from '../types/manualEntry';
-import { ZipCodeInput } from './ZipCodeInput';
+import React from "react";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { UseFormReturn } from "react-hook-form";
+import { ManualEntryFormData } from "../types/manualEntry";
+import { ZipCodeInput } from "./ZipCodeInput";
 
 interface VehicleBasicInfoInputsProps {
   form: UseFormReturn<ManualEntryFormData>;
 }
 
-export const VehicleBasicInfoInputs: React.FC<VehicleBasicInfoInputsProps> = ({ form }) => {
+export const VehicleBasicInfoInputs: React.FC<VehicleBasicInfoInputsProps> = (
+  { form },
+) => {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 35 }, (_, i) => currentYear - i);
 

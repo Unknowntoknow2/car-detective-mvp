@@ -1,4 +1,3 @@
-
 import { corsHeaders } from "../_shared/cors.ts";
 
 // Constants for validation
@@ -7,7 +6,9 @@ export const VALID_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 export const MAX_PHOTOS = 5;
 
 // Validate uploaded photos
-export function validatePhotos(photos: File[]): { isValid: boolean; errorResponse?: Response } {
+export function validatePhotos(
+  photos: File[],
+): { isValid: boolean; errorResponse?: Response } {
   // Check if any photos were uploaded
   if (photos.length === 0) {
     return {
@@ -16,9 +17,9 @@ export function validatePhotos(photos: File[]): { isValid: boolean; errorRespons
         JSON.stringify({ error: "No photos uploaded" }),
         {
           status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        }
-      )
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      ),
     };
   }
 
@@ -30,9 +31,9 @@ export function validatePhotos(photos: File[]): { isValid: boolean; errorRespons
         JSON.stringify({ error: `Maximum ${MAX_PHOTOS} photos allowed` }),
         {
           status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
-        }
-      )
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      ),
     };
   }
 
@@ -43,14 +44,15 @@ export function validatePhotos(photos: File[]): { isValid: boolean; errorRespons
       return {
         isValid: false,
         errorResponse: new Response(
-          JSON.stringify({ 
-            error: `Invalid file type: ${photo.type}. Only JPEG and PNG are accepted.`
+          JSON.stringify({
+            error:
+              `Invalid file type: ${photo.type}. Only JPEG and PNG are accepted.`,
           }),
           {
             status: 415, // Unsupported Media Type
-            headers: { ...corsHeaders, "Content-Type": "application/json" }
-          }
-        )
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        ),
       };
     }
 
@@ -59,14 +61,14 @@ export function validatePhotos(photos: File[]): { isValid: boolean; errorRespons
       return {
         isValid: false,
         errorResponse: new Response(
-          JSON.stringify({ 
-            error: `File too large: ${photo.name}. Maximum size is 10MB.`
+          JSON.stringify({
+            error: `File too large: ${photo.name}. Maximum size is 10MB.`,
           }),
           {
             status: 413, // Payload Too Large
-            headers: { ...corsHeaders, "Content-Type": "application/json" }
-          }
-        )
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        ),
       };
     }
   }

@@ -1,6 +1,5 @@
-
-import { CheckCircle2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { CheckCircle2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface VehicleInfo {
   year?: number;
@@ -17,10 +16,10 @@ interface VehicleFoundCardProps {
   stateValue?: string;
 }
 
-export function VehicleFoundCard({ 
-  vehicle, 
-  plateValue, 
-  stateValue 
+export function VehicleFoundCard({
+  vehicle,
+  plateValue,
+  stateValue,
 }: VehicleFoundCardProps) {
   return (
     <motion.div
@@ -33,15 +32,17 @@ export function VehicleFoundCard({
         <div className="rounded-full bg-green-100 p-1.5 mt-0.5">
           <CheckCircle2 className="h-5 w-5 text-green-600" />
         </div>
-        
+
         <div className="space-y-2 flex-1">
           <div>
-            <h3 className="text-base font-medium text-green-800">Vehicle Found</h3>
+            <h3 className="text-base font-medium text-green-800">
+              Vehicle Found
+            </h3>
             <p className="text-sm text-green-700 font-medium">
               {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
             </p>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
             {plateValue && stateValue && (
               <>
@@ -55,18 +56,22 @@ export function VehicleFoundCard({
                 </div>
               </>
             )}
-            
+
             {vehicle.exteriorColor && (
               <div>
                 <p className="text-xs text-green-700/70">Color:</p>
-                <p className="font-medium text-green-800">{vehicle.exteriorColor}</p>
+                <p className="font-medium text-green-800">
+                  {vehicle.exteriorColor}
+                </p>
               </div>
             )}
-            
+
             {vehicle.vin && (
               <div>
                 <p className="text-xs text-green-700/70">VIN:</p>
-                <p className="font-medium text-green-800 font-mono text-xs tracking-wide">{vehicle.vin}</p>
+                <p className="font-medium text-green-800 font-mono text-xs tracking-wide">
+                  {vehicle.vin}
+                </p>
               </div>
             )}
           </div>

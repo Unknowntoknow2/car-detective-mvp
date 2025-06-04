@@ -1,9 +1,16 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 import { FormValidationError } from '@/components/premium/common/FormValidationError';
 import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
+=======
+import { Input } from "@/components/ui/input";
+import { CheckCircle2 } from "lucide-react";
+import { FormValidationError } from "@/components/premium/common/FormValidationError";
+import { VinInfoMessage } from "@/components/validation/VinInfoMessage";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface VinInputProps {
   value: string;
@@ -24,18 +31,21 @@ export function VinInput({
   touched,
   isValid,
   isLoading,
-  onKeyPress
+  onKeyPress,
 }: VinInputProps) {
   return (
     <div className="space-y-3">
       <div className="relative">
-        <Input 
+        <Input
           value={value}
           onChange={onChange}
-          placeholder="Enter VIN (e.g., 1HGCM82633A004352)" 
+          placeholder="Enter VIN (e.g., 1HGCM82633A004352)"
           className={`text-lg font-mono tracking-wide h-12 pr-10 ${
-            (touched && validationError) ? 'border-red-500 focus-visible:ring-red-500' : 
-            (isValid) ? 'border-green-500 focus-visible:ring-green-500' : ''
+            (touched && validationError)
+              ? "border-red-500 focus-visible:ring-red-500"
+              : isValid
+              ? "border-green-500 focus-visible:ring-green-500"
+              : ""
           }`}
           onKeyPress={onKeyPress}
         />
@@ -43,6 +53,7 @@ export function VinInput({
           <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
         )}
       </div>
+<<<<<<< HEAD
       
       {touched && validationError ? (
         <FormValidationError error={validationError} />
@@ -51,6 +62,24 @@ export function VinInput({
       ) : (
         <VinInfoMessage />
       )}
+=======
+
+      {touched && validationError
+        ? (
+          <FormValidationError
+            error={validationError}
+            variant="error"
+          />
+        )
+        : externalError
+        ? (
+          <FormValidationError
+            error={externalError}
+            variant="error"
+          />
+        )
+        : <VinInfoMessage />}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     </div>
   );
 }

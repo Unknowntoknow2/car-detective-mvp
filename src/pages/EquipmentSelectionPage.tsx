@@ -1,13 +1,12 @@
-
-import React, { useState, useEffect } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
-import { EquipmentSelector } from '@/components/valuation/equipment/EquipmentSelector';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useEffect, useState } from "react";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { EquipmentSelector } from "@/components/valuation/equipment/EquipmentSelector";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EquipmentOption {
   id: number;
@@ -20,15 +19,17 @@ export default function EquipmentSelectionPage() {
   const navigate = useNavigate();
   const [selectedEquipment, setSelectedEquipment] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [equipmentOptions, setEquipmentOptions] = useState<EquipmentOption[]>([]);
+  const [equipmentOptions, setEquipmentOptions] = useState<EquipmentOption[]>(
+    [],
+  );
 
   // Fetch equipment options to calculate combined multiplier
   useEffect(() => {
     const fetchEquipmentOptions = async () => {
       const { data, error } = await supabase
-        .from('equipment_options')
-        .select('*');
-      
+        .from("equipment_options")
+        .select("*");
+
       if (!error && data) {
         setEquipmentOptions(data);
       }
@@ -39,34 +40,34 @@ export default function EquipmentSelectionPage() {
 
   const handleSaveEquipment = () => {
     setIsSubmitting(true);
-    
+
     try {
       // Calculate combined multiplier and value add
-      const selectedOptions = equipmentOptions.filter(option => 
+      const selectedOptions = equipmentOptions.filter((option) =>
         selectedEquipment.includes(option.id)
       );
-      
+
       const combinedMultiplier = selectedOptions.reduce(
-        (total, option) => total * option.multiplier, 
-        1
+        (total, option) => total * option.multiplier,
+        1,
       );
-      
+
       const totalValueAdd = selectedOptions.reduce(
-        (total, option) => total + option.value_add, 
-        0
+        (total, option) => total + option.value_add,
+        0,
       );
-      
+
       // Store equipment info in local storage for the valuation process
-      localStorage.setItem('equipment_ids', JSON.stringify(selectedEquipment));
-      localStorage.setItem('equipment_multiplier', String(combinedMultiplier));
-      localStorage.setItem('equipment_value_add', String(totalValueAdd));
-      
+      localStorage.setItem("equipment_ids", JSON.stringify(selectedEquipment));
+      localStorage.setItem("equipment_multiplier", String(combinedMultiplier));
+      localStorage.setItem("equipment_value_add", String(totalValueAdd));
+
       // Add equipment names for better context in the valuation
-      const equipmentNames = selectedOptions.map(option => option.name);
-      localStorage.setItem('equipment_names', JSON.stringify(equipmentNames));
-      
+      const equipmentNames = selectedOptions.map((option) => option.name);
+      localStorage.setItem("equipment_names", JSON.stringify(equipmentNames));
+
       toast.success("Equipment options saved successfully");
-      navigate('/premium');
+      navigate("/premium");
     } catch (error) {
       console.error("Error saving equipment options:", error);
       toast.error("Failed to save equipment options");
@@ -86,17 +87,18 @@ export default function EquipmentSelectionPage() {
               Back to Premium Valuation
             </Link>
           </Button>
-          
+
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-2">
             Equipment & Packages
           </h1>
           <p className="text-lg text-gray-600">
-            Select all equipment and packages included with your vehicle for a more accurate valuation.
+            Select all equipment and packages included with your vehicle for a
+            more accurate valuation.
           </p>
         </div>
-        
+
         <div className="bg-white shadow-sm rounded-lg border p-6 mb-8">
-          <EquipmentSelector 
+          <EquipmentSelector
             selectedEquipment={selectedEquipment}
             onChange={setSelectedEquipment}
           />
@@ -107,7 +109,7 @@ export default function EquipmentSelectionPage() {
               disabled={isSubmitting}
               className="flex items-center"
             >
-              {isSubmitting ? 'Saving...' : 'Save Equipment Options'}
+              {isSubmitting ? "Saving..." : "Save Equipment Options"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>

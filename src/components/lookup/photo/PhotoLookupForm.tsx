@@ -1,31 +1,32 @@
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Camera, Upload, X, Image } from 'lucide-react';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Camera, Image, Upload, X } from "lucide-react";
 
 interface PhotoLookupFormProps {
   onUpload?: (files: File[]) => void;
 }
 
-export const PhotoLookupForm: React.FC<PhotoLookupFormProps> = ({ onUpload }) => {
+export const PhotoLookupForm: React.FC<PhotoLookupFormProps> = (
+  { onUpload },
+) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-      setSelectedFiles(prev => [...prev, ...files]);
-      
+      setSelectedFiles((prev) => [...prev, ...files]);
+
       // Create preview URLs
-      const newPreviewUrls = files.map(file => URL.createObjectURL(file));
-      setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+      const newPreviewUrls = files.map((file) => URL.createObjectURL(file));
+      setPreviewUrls((prev) => [...prev, ...newPreviewUrls]);
     }
   };
 
   const handleRemoveFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-    setPreviewUrls(prev => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviewUrls((prev) => {
       // Revoke the URL to prevent memory leaks
       URL.revokeObjectURL(prev[index]);
       return prev.filter((_, i) => i !== index);
@@ -68,15 +69,16 @@ export const PhotoLookupForm: React.FC<PhotoLookupFormProps> = ({ onUpload }) =>
             {previewUrls.map((url, index) => (
               <div key={index} className="relative group">
                 <div className="aspect-square rounded-md overflow-hidden border border-gray-200">
-                  <img 
-                    src={url} 
-                    alt={`Vehicle photo ${index + 1}`} 
+                  <img
+                    src={url}
+                    alt={`Vehicle photo ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <button
                   type="button"
-                  onClick={() => handleRemoveFile(index)}
+                  onClick={() =>
+                    handleRemoveFile(index)}
                   className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <X className="h-4 w-4 text-gray-600" />
@@ -86,10 +88,10 @@ export const PhotoLookupForm: React.FC<PhotoLookupFormProps> = ({ onUpload }) =>
           </div>
         )}
       </div>
-      
-      <Button 
-        type="submit" 
-        className="w-full" 
+
+      <Button
+        type="submit"
+        className="w-full"
         disabled={selectedFiles.length === 0}
       >
         <Image className="mr-2 h-4 w-4" />

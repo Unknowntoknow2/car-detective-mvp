@@ -1,8 +1,7 @@
-
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Check, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowRight, Check, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export interface ValuationResultCardProps {
   estimatedValue?: number;
@@ -21,7 +20,7 @@ export function ValuationResultCard({
   predictionResult,
   isLoading,
   isFormValid,
-  handleSubmit
+  handleSubmit,
 }: ValuationResultCardProps) {
   // If we have a prediction result object, extract its properties
   const value = predictionResult?.estimatedValue || estimatedValue;
@@ -52,15 +51,19 @@ export function ValuationResultCard({
           {score && (
             <div className="mt-4 md:mt-0 flex items-center">
               <div className="bg-primary/10 px-4 py-2 rounded-full">
-                <span className="text-primary font-medium">{score}% Confidence</span>
+                <span className="text-primary font-medium">
+                  {score}% Confidence
+                </span>
               </div>
             </div>
           )}
         </div>
-        
+
         {range && (
           <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-500 mb-2">Estimated Price Range</h4>
+            <h4 className="text-sm font-medium text-gray-500 mb-2">
+              Estimated Price Range
+            </h4>
             <div className="flex items-center space-x-2">
               <span className="font-medium">${range[0]?.toLocaleString()}</span>
               <span className="text-gray-400">to</span>
@@ -68,7 +71,7 @@ export function ValuationResultCard({
             </div>
           </div>
         )}
-        
+
         {handleSubmit && (
           <div className="mt-6">
             <Button
@@ -76,13 +79,15 @@ export function ValuationResultCard({
               disabled={!isFormValid}
               className="w-full gap-2 h-12 text-base"
             >
-              {isFormValid ? (
-                <>
-                  Continue to Report <ArrowRight className="h-4 w-4" />
-                </>
-              ) : (
-                'Please complete all required fields'
-              )}
+              {isFormValid
+                ? (
+                  <>
+                    Continue to Report <ArrowRight className="h-4 w-4" />
+                  </>
+                )
+                : (
+                  "Please complete all required fields"
+                )}
             </Button>
           </div>
         )}

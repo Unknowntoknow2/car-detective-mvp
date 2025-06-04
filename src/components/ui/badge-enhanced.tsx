@@ -1,8 +1,7 @@
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
   "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
@@ -22,7 +21,8 @@ const badgeVariants = cva(
         info:
           "border-transparent bg-info-DEFAULT text-white hover:bg-info-dark",
         outline: "text-foreground",
-        accent: "border-transparent bg-accent text-accent-foreground hover:bg-accent/80",
+        accent:
+          "border-transparent bg-accent text-accent-foreground hover:bg-accent/80",
       },
       size: {
         default: "px-2.5 py-0.5 text-xs",
@@ -34,30 +34,31 @@ const badgeVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
-)
+  },
+);
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof badgeVariants> {
   icon?: React.ReactNode;
   removable?: boolean;
   onRemove?: () => void;
 }
 
-function BadgeEnhanced({ 
-  className, 
-  variant, 
+function BadgeEnhanced({
+  className,
+  variant,
   size,
   icon,
   removable = false,
   onRemove,
   children,
-  ...props 
+  ...props
 }: BadgeProps) {
   return (
-    <div 
-      className={cn(badgeVariants({ variant, size }), className)} 
+    <div
+      className={cn(badgeVariants({ variant, size }), className)}
       {...props}
     >
       {icon && <span className="flex-shrink-0">{icon}</span>}
@@ -82,12 +83,13 @@ function BadgeEnhanced({
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
           </svg>
         </button>
       )}
     </div>
-  )
+  );
 }
 
-export { BadgeEnhanced, badgeVariants }
+export { BadgeEnhanced, badgeVariants };

@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -48,15 +47,19 @@ export function ComboBox({
   className,
 }: ComboBoxProps) {
   const [open, setOpen] = React.useState(false);
-  
+
   React.useEffect(() => {
     // Debug log
-    console.log(`ComboBox (${id || 'unnamed'}): ${items?.length || 0} items, current value: ${value || 'none'}`);
+    console.log(
+      `ComboBox (${id || "unnamed"}): ${
+        items?.length || 0
+      } items, current value: ${value || "none"}`,
+    );
   }, [items, value, id]);
-  
+
   // Ensure we have a valid array
   const safeItems = Array.isArray(items) ? items : [];
-  
+
   // Find the currently selected item
   const selectedItem = safeItems.find((item) => item.value === value);
 
@@ -70,13 +73,18 @@ export function ComboBox({
           aria-expanded={open}
           className={cn(
             "w-full justify-between",
-            className
+            className,
           )}
           disabled={disabled}
           onClick={() => {
-            console.log(`ComboBox (${id || 'unnamed'}): Button clicked, items:`, safeItems.length);
+            console.log(
+              `ComboBox (${id || "unnamed"}): Button clicked, items:`,
+              safeItems.length,
+            );
             if (safeItems.length === 0) {
-              console.warn(`ComboBox (${id || 'unnamed'}): No items available to display`);
+              console.warn(
+                `ComboBox (${id || "unnamed"}): No items available to display`,
+              );
             }
           }}
         >
@@ -95,46 +103,55 @@ export function ComboBox({
             className="border-b px-3 py-2"
           />
           <CommandList className="max-h-[200px] overflow-y-auto">
-            {safeItems.length === 0 ? (
-              <CommandEmpty className="p-3 text-center text-sm text-muted-foreground">
-                {emptyText}
-              </CommandEmpty>
-            ) : (
-              <CommandGroup>
-                {safeItems.map((item) => (
-                  <CommandItem
-                    key={item.value}
-                    value={item.value}
-                    onSelect={() => {
-                      // Use item.value directly from the map to ensure correct selection
-                      console.log(`ComboBox (${id || 'unnamed'}): Selected ${item.label} (${item.value})`);
-                      onChange(item.value);
-                      setOpen(false);
-                    }}
-                    className="cursor-pointer hover:bg-gray-100 px-3 py-2 flex items-center gap-2 rounded-sm transition-colors text-black"
-                  >
-                    {item.icon && (
-                      <img
-                        src={item.icon}
-                        alt=""
-                        className="h-4 w-4 object-contain"
-                        onError={(e) => {
-                          console.log("Image load error");
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    )}
-                    <span className="text-black font-normal">{item.label}</span>
-                    <Check
-                      className={cn(
-                        "ml-auto h-4 w-4 text-primary",
-                        value === item.value ? "opacity-100" : "opacity-0"
+            {safeItems.length === 0
+              ? (
+                <CommandEmpty className="p-3 text-center text-sm text-muted-foreground">
+                  {emptyText}
+                </CommandEmpty>
+              )
+              : (
+                <CommandGroup>
+                  {safeItems.map((item) => (
+                    <CommandItem
+                      key={item.value}
+                      value={item.value}
+                      onSelect={() => {
+                        // Use item.value directly from the map to ensure correct selection
+                        console.log(
+                          `ComboBox (${
+                            id || "unnamed"
+                          }): Selected ${item.label} (${item.value})`,
+                        );
+                        onChange(item.value);
+                        setOpen(false);
+                      }}
+                      className="cursor-pointer hover:bg-gray-100 px-3 py-2 flex items-center gap-2 rounded-sm transition-colors text-black"
+                    >
+                      {item.icon && (
+                        <img
+                          src={item.icon}
+                          alt=""
+                          className="h-4 w-4 object-contain"
+                          onError={(e) => {
+                            console.log("Image load error");
+                            (e.target as HTMLImageElement).style.display =
+                              "none";
+                          }}
+                        />
                       )}
-                    />
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
+                      <span className="text-black font-normal">
+                        {item.label}
+                      </span>
+                      <Check
+                        className={cn(
+                          "ml-auto h-4 w-4 text-primary",
+                          value === item.value ? "opacity-100" : "opacity-0",
+                        )}
+                      />
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
           </CommandList>
         </Command>
       </PopoverContent>

@@ -1,12 +1,11 @@
-
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { VinInputSection } from './VinInputSection';
-import { VehicleHistoryForm } from './VehicleHistoryForm';
-import { ServiceHistorySection } from './ServiceHistorySection';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileText } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { VinInputSection } from "./VinInputSection";
+import { VehicleHistoryForm } from "./VehicleHistoryForm";
+import { ServiceHistorySection } from "./ServiceHistorySection";
 
 interface VehicleHistoryData {
   vin: string;
@@ -16,12 +15,14 @@ interface VehicleHistoryData {
 }
 
 export function VehicleHistorySection() {
-  const [vin, setVin] = useState('');
-  const [titleStatus, setTitleStatus] = useState('Clean');
+  const [vin, setVin] = useState("");
+  const [titleStatus, setTitleStatus] = useState("Clean");
   const [numberOfOwners, setNumberOfOwners] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [hasFullServiceHistory, setHasFullServiceHistory] = useState(false);
-  const [vehicleData, setVehicleData] = useState<VehicleHistoryData | null>(null);
+  const [vehicleData, setVehicleData] = useState<VehicleHistoryData | null>(
+    null,
+  );
   const [showServiceUploader, setShowServiceUploader] = useState(false);
 
   // Validate VIN format (17 characters, no I, O, Q)
@@ -31,7 +32,7 @@ export function VehicleHistorySection() {
 
   const fetchVehicleHistory = async () => {
     if (!isValidVin(vin)) {
-      toast.error('Please enter a valid 17-character VIN');
+      toast.error("Please enter a valid 17-character VIN");
       return;
     }
 
@@ -39,28 +40,28 @@ export function VehicleHistorySection() {
     try {
       // Use direct query
       const { data, error } = await supabase
-        .from('vehicles')
-        .select('*')
-        .eq('vin', vin)
+        .from("vehicles")
+        .select("*")
+        .eq("vin", vin)
         .single();
 
       if (error) {
-        if (error.code === 'PGRST116') { // Not found error code
+        if (error.code === "PGRST116") { // Not found error code
           // Vehicle not in database yet, set default values
           setVehicleData(null);
-          setTitleStatus('Clean');
+          setTitleStatus("Clean");
           setNumberOfOwners(1);
           setHasFullServiceHistory(false);
-          
+
           // Create the vehicle record
-          await supabase.from('vehicles').insert({
+          await supabase.from("vehicles").insert({
             vin,
-            title_brand: 'Clean',
+            title_brand: "Clean",
             num_owners: 1,
-            has_full_service_history: false
+            has_full_service_history: false,
           });
-          
-          toast.info('No previous history found for this VIN. Starting fresh.');
+
+          toast.info("No previous history found for this VIN. Starting fresh.");
           return;
         }
         throw error;
@@ -69,14 +70,13 @@ export function VehicleHistorySection() {
       // Process the returned data
       const typedData = data as unknown as VehicleHistoryData;
       setVehicleData(typedData);
-      setTitleStatus(typedData.title_brand || 'Clean');
+      setTitleStatus(typedData.title_brand || "Clean");
       setNumberOfOwners(typedData.num_owners || 1);
       setHasFullServiceHistory(typedData.has_full_service_history || false);
-      toast.success('Vehicle history loaded successfully');
-      
+      toast.success("Vehicle history loaded successfully");
     } catch (error: any) {
-      console.error('Error fetching vehicle history:', error);
-      toast.error('Failed to fetch vehicle history: ' + error.message);
+      console.error("Error fetching vehicle history:", error);
+      toast.error("Failed to fetch vehicle history: " + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -84,7 +84,7 @@ export function VehicleHistorySection() {
 
   const saveVehicleHistory = async () => {
     if (!vin || !isValidVin(vin)) {
-      toast.error('Please enter a valid VIN first');
+      toast.error("Please enter a valid VIN first");
       return;
     }
 
@@ -92,29 +92,29 @@ export function VehicleHistorySection() {
     try {
       // Direct upsert operation
       const { error } = await supabase
-        .from('vehicles')
+        .from("vehicles")
         .upsert({
           vin,
           title_brand: titleStatus,
           num_owners: numberOfOwners,
-          has_full_service_history: hasFullServiceHistory
+          has_full_service_history: hasFullServiceHistory,
         }, {
-          onConflict: 'vin'
+          onConflict: "vin",
         });
 
       if (error) throw error;
-      
+
       setVehicleData({
         vin,
         title_brand: titleStatus,
         num_owners: numberOfOwners,
-        has_full_service_history: hasFullServiceHistory
+        has_full_service_history: hasFullServiceHistory,
       });
-      
-      toast.success('Vehicle history information saved successfully');
+
+      toast.success("Vehicle history information saved successfully");
     } catch (error: any) {
-      console.error('Error saving vehicle history:', error);
-      toast.error('Failed to save vehicle history: ' + error.message);
+      console.error("Error saving vehicle history:", error);
+      toast.error("Failed to save vehicle history: " + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -135,15 +135,15 @@ export function VehicleHistorySection() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <VinInputSection 
-            vin={vin} 
-            isLoading={isLoading} 
-            onVinChange={setVin} 
-            onFetchHistory={fetchVehicleHistory} 
+          <VinInputSection
+            vin={vin}
+            isLoading={isLoading}
+            onVinChange={setVin}
+            onFetchHistory={fetchVehicleHistory}
           />
 
           {(vin && isValidVin(vin)) && (
-            <VehicleHistoryForm 
+            <VehicleHistoryForm
               titleStatus={titleStatus}
               numberOfOwners={numberOfOwners}
               isLoading={isLoading}
@@ -156,7 +156,7 @@ export function VehicleHistorySection() {
       </Card>
 
       {vin && isValidVin(vin) && (
-        <ServiceHistorySection 
+        <ServiceHistorySection
           vin={vin}
           showServiceUploader={showServiceUploader}
           onToggleUploader={() => setShowServiceUploader(!showServiceUploader)}

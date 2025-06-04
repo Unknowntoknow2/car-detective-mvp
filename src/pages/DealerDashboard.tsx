@@ -1,11 +1,12 @@
-
-import React, { Suspense, lazy } from 'react';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import React, { lazy, Suspense } from "react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Lazy load the dashboard content for improved performance
-const DealerDashboardContent = lazy(() => import('@/components/dealer/DealerDashboardContent'));
+const DealerDashboardContent = lazy(() =>
+  import("@/components/dealer/DealerDashboardContent")
+);
 
 // Loading state component
 const LoadingState = () => (
@@ -24,22 +25,27 @@ const LoadingState = () => (
 // Dashboard wrapper with error boundary and suspense
 const DealerDashboard = () => {
   return (
-    <ErrorBoundary fallback={
-      <div className="container p-8">
-        <div className="p-6 rounded-lg bg-red-50 border border-red-200 text-center">
-          <h2 className="text-xl font-semibold text-red-700 mb-4">Dashboard Error</h2>
-          <p className="text-red-600 mb-6">
-            We encountered an issue loading the dealer dashboard. Please try again or contact support.
-          </p>
-          <Button 
-            onClick={() => window.location.reload()}
-            variant="destructive"
-          >
-            Reload Dashboard
-          </Button>
+    <ErrorBoundary
+      fallback={
+        <div className="container p-8">
+          <div className="p-6 rounded-lg bg-red-50 border border-red-200 text-center">
+            <h2 className="text-xl font-semibold text-red-700 mb-4">
+              Dashboard Error
+            </h2>
+            <p className="text-red-600 mb-6">
+              We encountered an issue loading the dealer dashboard. Please try
+              again or contact support.
+            </p>
+            <Button
+              onClick={() => globalThis.location.reload()}
+              variant="destructive"
+            >
+              Reload Dashboard
+            </Button>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <Suspense fallback={<LoadingState />}>
         <DealerDashboardContent />
       </Suspense>

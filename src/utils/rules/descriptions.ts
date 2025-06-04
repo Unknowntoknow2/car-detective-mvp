@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for generating human-readable descriptions for valuation adjustments
  */
@@ -7,19 +6,19 @@
  * Generate a description for a photo score adjustment
  */
 export function getPhotoScoreAdjustmentDescription(
-  photoScore: number, 
-  impactPercentage: number, 
-  adjustmentAmount: number
+  photoScore: number,
+  impactPercentage: number,
+  adjustmentAmount: number,
 ): string {
   const formattedAmount = Math.abs(adjustmentAmount).toLocaleString(undefined, {
-    style: 'currency',
-    currency: 'USD',
+    style: "currency",
+    currency: "USD",
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
   });
-  
+
   const formattedPercentage = Math.abs(impactPercentage).toFixed(1);
-  
+
   if (photoScore >= 0.9) {
     return `Your vehicle photos show excellent condition, adding ${formattedAmount} (${formattedPercentage}%) to the valuation.`;
   } else if (photoScore >= 0.7) {

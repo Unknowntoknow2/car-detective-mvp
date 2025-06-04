@@ -1,4 +1,3 @@
-
 export interface ConditionValues {
   exteriorBody: string;
   exteriorPaint: string;

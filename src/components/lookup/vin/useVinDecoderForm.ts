@@ -1,12 +1,20 @@
 
+<<<<<<< HEAD
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { getCarfaxReport } from '@/utils/carfax/mockCarfaxService';
 import { supabase } from '@/integrations/supabase/client';
+=======
+import { useState } from "react";
+import { toast } from "sonner";
+import { getCarfaxReport } from "@/utils/carfax/mockCarfaxService";
+import { useVinDecoder } from "@/hooks/useVinDecoder";
+import { useFullValuationPipeline } from "@/hooks/useFullValuationPipeline";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export function useVinDecoderForm() {
-  const [vin, setVin] = useState('');
-  const [zipCode, setZipCode] = useState('');
+  const [vin, setVin] = useState("");
+  const [zipCode, setZipCode] = useState("");
   const [carfaxData, setCarfaxData] = useState<any>(null);
   const [carfaxError, setCarfaxError] = useState<string | null>(null);
   const [isLoadingCarfax, setIsLoadingCarfax] = useState(false);
@@ -19,7 +27,7 @@ export function useVinDecoderForm() {
     e.preventDefault();
 
     if (!vin) {
-      toast.error('Please enter a valid VIN');
+      toast.error("Please enter a valid VIN");
       return;
     }
 
@@ -29,7 +37,18 @@ export function useVinDecoderForm() {
       setCarfaxError(null);
       setError(null);
 
+<<<<<<< HEAD
       // Step 1: Get Carfax data
+=======
+      const decoded = await lookupVin(vin);
+      if (!decoded) {
+        toast.error("VIN lookup failed. Try again.");
+        return;
+      }
+
+      await runLookup("vin", vin);
+
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       setIsLoadingCarfax(true);
       const report = await getCarfaxReport(vin);
       setCarfaxData(report);
@@ -82,6 +101,7 @@ export function useVinDecoderForm() {
       }
 
     } catch (err) {
+<<<<<<< HEAD
       console.error('CARFAX error:', err);
       setCarfaxError('Unable to retrieve vehicle history report.');
       setError('Could not retrieve vehicle history report.');
@@ -90,6 +110,26 @@ export function useVinDecoderForm() {
       setIsLoading(false);
       setIsLoadingCarfax(false);
     }
+=======
+      console.error("CARFAX error:", err);
+      setCarfaxError("Unable to retrieve vehicle history report.");
+      setIsLoadingCarfax(false);
+      toast.error("Could not retrieve vehicle history report.");
+    }
+
+    if (valuationResult?.id && result) {
+      localStorage.setItem("latest_valuation_id", valuationResult.id);
+      localStorage.setItem(`vin_lookup_${vin}`, JSON.stringify(result));
+    }
+  };
+
+  const handleDetailsSubmit = async (details: any): Promise<void> => {
+    await submitValuation({
+      ...details,
+      zipCode: zipCode || details.zipCode,
+      carfaxData: carfaxData || undefined,
+    });
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   };
 
   return {

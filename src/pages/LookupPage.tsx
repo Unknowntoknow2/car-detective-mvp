@@ -1,13 +1,12 @@
-
-import React, { useState } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
-import PlateDecoderForm from '@/components/lookup/PlateDecoderForm';
-import ManualEntryForm from '@/components/lookup/ManualEntryForm';
-import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
-import { MarketingBanner } from '@/components/marketing/MarketingBanner';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
-import { VINLookupForm } from '@/components/lookup/vin/StandardVinLookupForm';
+import React, { useState } from "react";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import PlateDecoderForm from "@/components/lookup/PlateDecoderForm";
+import ManualEntryForm from "@/components/lookup/ManualEntryForm";
+import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
+import { MarketingBanner } from "@/components/marketing/MarketingBanner";
+import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
+import { VINLookupForm } from "@/components/lookup/vin/StandardVinLookupForm";
 
 export default function PlateLookupPage() {
   const [showManualEntry, setShowManualEntry] = useState(false);
@@ -45,16 +44,19 @@ export default function PlateLookupPage() {
             ctaText="Explore Premium Features"
             ctaHref="/premium"
           />
-          
+
           <VINLookupForm onSubmit={handleVinSubmit} />
 
-          <PlateDecoderForm onManualEntryClick={() => setShowManualEntry(true)} />
+          <PlateDecoderForm
+            onManualEntryClick={() => setShowManualEntry(true)}
+          />
 
           {showManualEntry && (
             <div className="mt-8">
               <h2 className="text-xl font-semibold mb-4">Manual Entry</h2>
               <p className="text-gray-600 mb-6">
-                If you prefer, you can manually enter your vehicle details below.
+                If you prefer, you can manually enter your vehicle details
+                below.
               </p>
               <ManualEntryForm onSubmit={handleManualSubmit} />
             </div>

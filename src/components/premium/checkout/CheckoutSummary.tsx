@@ -1,5 +1,10 @@
-
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { PremiumCheckoutButton } from "./PremiumCheckoutButton";
 import { Check } from "lucide-react";
 
@@ -8,7 +13,9 @@ interface CheckoutSummaryProps {
   isLoading?: boolean;
 }
 
-export function CheckoutSummary({ onCheckout, isLoading = false }: CheckoutSummaryProps) {
+export function CheckoutSummary(
+  { onCheckout, isLoading = false }: CheckoutSummaryProps,
+) {
   return (
     <Card className="border-amber-200 bg-amber-50">
       <CardHeader>

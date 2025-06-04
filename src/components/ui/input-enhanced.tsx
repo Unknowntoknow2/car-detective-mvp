@@ -1,8 +1,7 @@
-
 // ✅ TS check passed
-import * as React from "react"
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 export interface InputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
@@ -16,35 +15,36 @@ export interface InputProps
 }
 
 const InputEnhanced = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ 
-    className, 
-    type, 
-    error, 
-    icon, 
-    trailingIcon, 
-    size = "default", 
+  ({
+    className,
+    type,
+    error,
+    icon,
+    trailingIcon,
+    size = "default",
     variant = "default",
     success,
     helperText,
-    ...props 
+    ...props
   }, ref) => {
     const sizeClasses = {
       sm: "h-8 px-3 py-1 text-sm",
       default: "h-10 px-4 py-2",
       lg: "h-12 px-4 py-2 text-base",
-    }
+    };
 
     const variantClasses = {
       default: "border border-input bg-background",
       filled: "border border-input bg-muted",
       outline: "border-2 border-input bg-transparent",
       ghost: "border-0 bg-transparent shadow-none",
-    }
+    };
 
     const stateClasses = {
-      error: "border-destructive focus-visible:ring-destructive text-destructive",
+      error:
+        "border-destructive focus-visible:ring-destructive text-destructive",
       success: "border-success-DEFAULT focus-visible:ring-success-DEFAULT",
-    }
+    };
 
     return (
       <div className="w-full space-y-1.5">
@@ -54,7 +54,7 @@ const InputEnhanced = React.forwardRef<HTMLInputElement, InputProps>(
               {icon}
             </div>
           )}
-          
+
           <input
             type={type}
             className={cn(
@@ -65,34 +65,38 @@ const InputEnhanced = React.forwardRef<HTMLInputElement, InputProps>(
               success && stateClasses.success,
               icon && "pl-10",
               trailingIcon && "pr-10",
-              className
+              className,
             )}
             ref={ref}
             {...props}
           />
-          
+
           {trailingIcon && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
               {trailingIcon}
             </div>
           )}
         </div>
-        
+
         {helperText && (
-          <p className={cn(
-            "text-xs",
-            error ? "text-destructive" : 
-            success ? "text-success-DEFAULT" : 
-            "text-muted-foreground"
-          )}>
+          <p
+            className={cn(
+              "text-xs",
+              error
+                ? "text-destructive"
+                : success
+                ? "text-success-DEFAULT"
+                : "text-muted-foreground",
+            )}
+          >
             {helperText}
           </p>
         )}
       </div>
-    )
-  }
-)
+    );
+  },
+);
 
-InputEnhanced.displayName = "InputEnhanced"
+InputEnhanced.displayName = "InputEnhanced";
 
-export { InputEnhanced }
+export { InputEnhanced };

@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AccountPage() {
   return (
@@ -10,7 +9,9 @@ export default function AccountPage() {
           <CardTitle>My Account</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Account management content will go here.</p>
+          <p className="text-muted-foreground">
+            Account management content will go here.
+          </p>
         </CardContent>
       </Card>
     </div>

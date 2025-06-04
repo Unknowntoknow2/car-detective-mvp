@@ -1,9 +1,17 @@
+<<<<<<< HEAD
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+=======
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 const DashboardRouter: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -14,9 +22,17 @@ const DashboardRouter: React.FC = () => {
     const checkUserRole = async () => {
       try {
         // Check if the user is authenticated
+<<<<<<< HEAD
         if (!user) {
           console.log('No authenticated user found');
           navigate('/auth');
+=======
+        const { data: { user }, error } = await supabase.auth.getUser();
+
+        if (error || !user) {
+          console.error("Authentication error:", error);
+          navigate("/auth/login");
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
           return;
         }
 
@@ -27,6 +43,7 @@ const DashboardRouter: React.FC = () => {
 
         // Route based on role
         switch (role) {
+<<<<<<< HEAD
           case 'dealer':
             navigate('/dealer/dashboard');
             break;
@@ -43,6 +60,22 @@ const DashboardRouter: React.FC = () => {
         console.error('Error checking user role:', err);
         toast.error("Failed to load dashboard. Please try again.");
         navigate('/auth');
+=======
+          case "dealer":
+            navigate("/dashboard/dealer");
+            break;
+          case "admin":
+            navigate("/dashboard/admin");
+            break;
+          default:
+            navigate("/dashboard/individual");
+            break;
+        }
+      } catch (err) {
+        console.error("Error checking user role:", err);
+        toast.error("Failed to load dashboard. Please try again.");
+        navigate("/auth/login");
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       } finally {
         setIsLoading(false);
       }

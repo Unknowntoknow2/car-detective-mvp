@@ -1,13 +1,12 @@
-
-import React from 'react';
+import React from "react";
 import {
-  CommandItem,
+  CommandEmpty,
   CommandGroup,
-  CommandEmpty
-} from '@/components/ui/command';
-import { Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Model } from '@/hooks/types/vehicle';
+  CommandItem,
+} from "@/components/ui/command";
+import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Model } from "@/hooks/types/vehicle";
 
 interface ModelSelectorProps {
   models: Model[];
@@ -16,13 +15,19 @@ interface ModelSelectorProps {
   disabled?: boolean;
 }
 
-export function ModelSelector({ models, selectedModel, onSelect, disabled }: ModelSelectorProps) {
+export function ModelSelector(
+  { models, selectedModel, onSelect, disabled }: ModelSelectorProps,
+) {
   // Ensure models is always an array, even if it's undefined
   const safeModels = Array.isArray(models) ? models : [];
-  
+
   // Return empty state component if no models
   if (safeModels.length === 0) {
-    return <CommandEmpty className="py-6 text-center text-sm">No models available for this make</CommandEmpty>;
+    return (
+      <CommandEmpty className="py-6 text-center text-sm">
+        No models available for this make
+      </CommandEmpty>
+    );
   }
 
   return (
@@ -39,7 +44,7 @@ export function ModelSelector({ models, selectedModel, onSelect, disabled }: Mod
           <Check
             className={cn(
               "mr-2 h-4 w-4",
-              selectedModel === model.model_name ? "opacity-100" : "opacity-0"
+              selectedModel === model.model_name ? "opacity-100" : "opacity-0",
             )}
           />
           {model.model_name}

@@ -1,4 +1,3 @@
-
 // Define the NicbData type for the NICB VIN check
 export interface NicbData {
   vin: string;
@@ -14,7 +13,7 @@ export interface NicbData {
 // Define the response types for the NICB API
 export interface NicbResponse {
   data: NicbData;
-  source: 'api' | 'cache';
+  source: "api" | "cache";
   fetched_at: string;
 }
 

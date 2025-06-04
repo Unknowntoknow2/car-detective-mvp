@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +19,12 @@ interface Valuation {
   vin?: string;
   premium_unlocked: boolean;
 }
+=======
+import { Loader2 } from "lucide-react";
+import { useValuationHistory } from "@/hooks/useValuationHistory";
+import { EmptyState } from "./valuation-history/EmptyState";
+import { ValuationTable } from "./valuation-history/ValuationTable";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export default function ValuationHistoryList() {
   const [valuations, setValuations] = useState<Valuation[]>([]);

@@ -1,9 +1,19 @@
-
-import React from 'react';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { HelpCircle } from 'lucide-react';
+import React from "react";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { HelpCircle } from "lucide-react";
 
 interface WarrantySelectProps {
   value: string;
@@ -11,10 +21,10 @@ interface WarrantySelectProps {
   disabled?: boolean;
 }
 
-export function WarrantySelect({ 
-  value, 
-  onChange, 
-  disabled = false 
+export function WarrantySelect({
+  value,
+  onChange,
+  disabled = false,
 }: WarrantySelectProps) {
   return (
     <div className="space-y-2">
@@ -28,12 +38,15 @@ export function WarrantySelect({
               <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
             </TooltipTrigger>
             <TooltipContent>
-              <p className="max-w-xs">Warranty status can affect your vehicle's value. Factory and extended warranties generally increase value.</p>
+              <p className="max-w-xs">
+                Warranty status can affect your vehicle's value. Factory and
+                extended warranties generally increase value.
+              </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
-      
+
       <Select
         value={value}
         onValueChange={onChange}
@@ -48,14 +61,14 @@ export function WarrantySelect({
           <SelectItem value="Extended/CPO">Extended/CPO Warranty</SelectItem>
         </SelectContent>
       </Select>
-      
-      {value === 'Factory' && (
+
+      {value === "Factory" && (
         <p className="text-sm text-green-600">
           Factory warranty typically increases a vehicle's value by ~2%
         </p>
       )}
-      
-      {value === 'Extended/CPO' && (
+
+      {value === "Extended/CPO" && (
         <p className="text-sm text-green-600">
           Extended/CPO warranty typically increases a vehicle's value by ~4%
         </p>

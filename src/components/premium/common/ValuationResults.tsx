@@ -1,8 +1,13 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { CheckCircle, AlertCircle } from 'lucide-react';
-import { PremiumBadge } from '@/components/ui/premium-badge';
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { AlertCircle, CheckCircle } from "lucide-react";
+import { PremiumBadge } from "@/components/ui/premium-badge";
 
 interface Adjustment {
   factor: string;
@@ -36,15 +41,14 @@ export function ValuationResults({
   demandFactor,
   aiVerified = false,
   aiCondition,
-  isPremium = false
+  isPremium = false,
 }: ValuationResultsProps) {
-  
   // Formatting helpers
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
     }).format(value);
   };
 
@@ -58,10 +62,10 @@ export function ValuationResults({
               Valuation Report
             </CardTitle>
           </div>
-          
+
           {isPremium && (
-            <PremiumBadge 
-              variant="gold" 
+            <PremiumBadge
+              variant="gold"
               size="sm"
               className="border border-amber-300"
             >
@@ -69,11 +73,15 @@ export function ValuationResults({
             </PremiumBadge>
           )}
         </div>
-        
+
         <CardDescription className="text-xs md:text-sm">
-          {aiVerified ? 'AI-verified assessment' : 'Based on your vehicle details'}
+          {aiVerified
+            ? "AI-verified assessment"
+            : "Based on your vehicle details"}
           {aiCondition && aiCondition.confidenceScore >= 80 && (
-            <span className="ml-2 text-green-600 font-medium"> • AI Verified: {aiCondition.condition}</span>
+            <span className="ml-2 text-green-600 font-medium">
+              • AI Verified: {aiCondition.condition}
+            </span>
           )}
         </CardDescription>
       </CardHeader>
@@ -104,8 +112,13 @@ export function ValuationResults({
                 {adjustments.slice(0, 3).map((adj, i) => (
                   <li key={i} className="flex justify-between">
                     <span className="line-clamp-1">{adj.factor}</span>
-                    <span className={adj.impact >= 0 ? 'text-green-600' : 'text-red-600'}>
-                      {adj.impact > 0 ? '+' : ''}{adj.impact}%
+                    <span
+                      className={adj.impact >= 0
+                        ? "text-green-600"
+                        : "text-red-600"}
+                    >
+                      {adj.impact > 0 ? "+" : ""}
+                      {adj.impact}%
                     </span>
                   </li>
                 ))}
@@ -116,9 +129,9 @@ export function ValuationResults({
             <div className="p-4 bg-primary/5 rounded-lg">
               <p className="font-medium">Market Adjustment</p>
               <p className="text-lg">
-                {demandFactor !== 1 
-                  ? ((demandFactor - 1) * 100).toFixed(1) + '%' 
-                  : '0%'}
+                {demandFactor !== 1
+                  ? ((demandFactor - 1) * 100).toFixed(1) + "%"
+                  : "0%"}
               </p>
             </div>
           )}
@@ -127,10 +140,12 @@ export function ValuationResults({
         {priceRange && (
           <div className="mt-4 p-4 bg-primary/5 rounded-lg">
             <p className="font-medium">Price Range</p>
-            <p className="text-base md:text-lg">{formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}</p>
+            <p className="text-base md:text-lg">
+              {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
+            </p>
           </div>
         )}
-        
+
         {isPremium && aiCondition && (
           <div className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
             <p className="font-medium text-amber-800 flex items-center">
@@ -138,7 +153,8 @@ export function ValuationResults({
               Premium AI Analysis
             </p>
             <p className="text-sm text-amber-700 mt-1">
-              {aiCondition.aiSummary || `This vehicle is in ${aiCondition.condition} condition with a ${aiCondition.confidenceScore}% confidence score.`}
+              {aiCondition.aiSummary ||
+                `This vehicle is in ${aiCondition.condition} condition with a ${aiCondition.confidenceScore}% confidence score.`}
             </p>
           </div>
         )}

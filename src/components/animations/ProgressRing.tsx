@@ -1,7 +1,6 @@
-
-import React, { useEffect, useState, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { useInView } from 'framer-motion';
+import React, { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { useInView } from "framer-motion";
 
 interface ProgressRingProps {
   value: number; // 0-100
@@ -19,19 +18,19 @@ export function ProgressRing({
   value,
   size = 120,
   strokeWidth = 8,
-  color = 'currentColor',
-  backgroundColor = '#e5e7eb',
+  color = "currentColor",
+  backgroundColor = "#e5e7eb",
   children,
   className,
   duration = 1.5,
-  delay = 0.2
+  delay = 0.2,
 }: ProgressRingProps) {
   const [progress, setProgress] = useState(0);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.5 });
-  
+
   // Calculate the stroke-dashoffset based on the progress
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
@@ -41,14 +40,14 @@ export function ProgressRing({
       const timeoutId = setTimeout(() => {
         setProgress(value);
       }, delay * 1000);
-      
+
       return () => clearTimeout(timeoutId);
     }
   }, [isInView, value, delay]);
 
   return (
-    <div 
-      ref={ref} 
+    <div
+      ref={ref}
       className={`relative inline-flex items-center justify-center ${className}`}
       style={{ width: size, height: size }}
     >
@@ -63,14 +62,14 @@ export function ProgressRing({
           strokeWidth={strokeWidth}
         />
       </svg>
-      
+
       {/* Progress circle */}
       <motion.svg
         width={size}
         height={size}
         className="absolute"
         initial={{ rotate: -90 }}
-        style={{ originX: '50%', originY: '50%' }}
+        style={{ originX: "50%", originY: "50%" }}
       >
         <motion.circle
           cx={size / 2}
@@ -82,15 +81,15 @@ export function ProgressRing({
           strokeDasharray={circumference}
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset }}
-          transition={{ 
-            duration, 
+          transition={{
+            duration,
             delay: delay + 0.1,
-            ease: "easeOut" 
+            ease: "easeOut",
           }}
           strokeLinecap="round"
         />
       </motion.svg>
-      
+
       {/* Content in the center */}
       <div className="relative z-10">
         {children}

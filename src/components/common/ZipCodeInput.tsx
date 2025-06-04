@@ -1,10 +1,13 @@
-
-import React, { useState, useEffect, useRef } from 'react';
-import { Input } from '@/components/ui/input';
-import { validateZipCode, debounce, ZipValidationResult } from '@/utils/validation/zipCodeValidator';
-import { MapPin, AlertCircle, CheckCircle } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import React, { useEffect, useRef, useState } from "react";
+import { Input } from "@/components/ui/input";
+import {
+  debounce,
+  validateZipCode,
+  ZipValidationResult,
+} from "@/utils/validation/zipCodeValidator";
+import { AlertCircle, CheckCircle, MapPin } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ZipCodeInputProps {
   value: string;
@@ -24,17 +27,19 @@ export const ZipCodeInput: React.FC<ZipCodeInputProps> = ({
   value,
   onChange,
   className,
-  placeholder = 'Enter ZIP code',
+  placeholder = "Enter ZIP code",
   disabled = false,
   required = false,
   showValidation = true,
   label,
-  name = 'zipCode',
-  id = 'zipCode',
-  autoFocus = false
+  name = "zipCode",
+  id = "zipCode",
+  autoFocus = false,
 }) => {
   const [isValidating, setIsValidating] = useState(false);
-  const [validation, setValidation] = useState<ZipValidationResult | null>(null);
+  const [validation, setValidation] = useState<ZipValidationResult | null>(
+    null,
+  );
   const [touched, setTouched] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -45,25 +50,25 @@ export const ZipCodeInput: React.FC<ZipCodeInputProps> = ({
         setValidation(null);
         return;
       }
-      
+
       setIsValidating(true);
       const result = await validateZipCode(zipToValidate);
       setValidation(result);
       setIsValidating(false);
-      
+
       // Notify parent component about validation result
       onChange(zipToValidate, result.isValid);
-    }, 300)
+    }, 300),
   ).current;
 
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Only allow digits and limit to 5 characters
-    const sanitizedValue = e.target.value.replace(/\D/g, '').slice(0, 5);
-    
+    const sanitizedValue = e.target.value.replace(/\D/g, "").slice(0, 5);
+
     // Update parent component with the new value
     onChange(sanitizedValue);
-    
+
     // Validate if 5 digits entered
     if (sanitizedValue.length === 5) {
       debouncedValidate(sanitizedValue);
@@ -98,24 +103,24 @@ export const ZipCodeInput: React.FC<ZipCodeInputProps> = ({
   // Determine validation status UI elements
   const getValidationIcon = () => {
     if (!showValidation || !touched || value.length !== 5) return null;
-    
+
     if (isValidating) {
       return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
     }
-    
+
     if (validation) {
-      return validation.isValid ? 
-        <CheckCircle className="h-4 w-4 text-success" /> : 
-        <AlertCircle className="h-4 w-4 text-destructive" />;
+      return validation.isValid
+        ? <CheckCircle className="h-4 w-4 text-success" />
+        : <AlertCircle className="h-4 w-4 text-destructive" />;
     }
-    
+
     return null;
   };
 
   return (
     <div className="space-y-2">
       {label && (
-        <label 
+        <label
           htmlFor={id}
           className="text-sm font-medium text-gray-700 flex items-center gap-1"
         >
@@ -123,7 +128,7 @@ export const ZipCodeInput: React.FC<ZipCodeInputProps> = ({
           {required && <span className="text-destructive">*</span>}
         </label>
       )}
-      
+
       <div className="relative">
         <Input
           ref={inputRef}
@@ -137,23 +142,27 @@ export const ZipCodeInput: React.FC<ZipCodeInputProps> = ({
           disabled={disabled}
           className={cn(
             "pl-10 pr-10",
-            validation && !validation.isValid && touched ? "border-destructive focus:border-destructive" : "",
-            validation?.isValid && touched ? "border-success focus:border-success" : "",
-            className
+            validation && !validation.isValid && touched
+              ? "border-destructive focus:border-destructive"
+              : "",
+            validation?.isValid && touched
+              ? "border-success focus:border-success"
+              : "",
+            className,
           )}
           maxLength={5}
           inputMode="numeric"
           pattern="[0-9]*"
           required={required}
         />
-        
+
         <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        
+
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
           {getValidationIcon()}
         </div>
       </div>
-      
+
       {/* Validation message */}
       {touched && validation && !validation.isValid && value.length === 5 && (
         <p className="text-sm text-destructive flex items-center gap-1">
@@ -161,7 +170,7 @@ export const ZipCodeInput: React.FC<ZipCodeInputProps> = ({
           Invalid ZIP code
         </p>
       )}
-      
+
       {/* City/State display when valid */}
       {validation?.isValid && (
         <p className="text-xs text-muted-foreground">

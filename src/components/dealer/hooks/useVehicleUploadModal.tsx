@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState } from "react";
 
 export interface VehicleUploadModalContextProps {
   isOpen: boolean;
@@ -8,15 +7,19 @@ export interface VehicleUploadModalContextProps {
   onClose: () => void;
 }
 
-const VehicleUploadModalContext = createContext<VehicleUploadModalContextProps>({
-  isOpen: false,
-  setIsOpen: () => {},
-  openModal: () => {},
-  onClose: () => {}
-});
+const VehicleUploadModalContext = createContext<VehicleUploadModalContextProps>(
+  {
+    isOpen: false,
+    setIsOpen: () => {},
+    openModal: () => {},
+    onClose: () => {},
+  },
+);
 
-export const VehicleUploadModalProvider: React.FC<{ children: React.ReactNode }> = ({ 
-  children 
+export const VehicleUploadModalProvider: React.FC<
+  { children: React.ReactNode }
+> = ({
+  children,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -24,7 +27,9 @@ export const VehicleUploadModalProvider: React.FC<{ children: React.ReactNode }>
   const onClose = () => setIsOpen(false);
 
   return (
-    <VehicleUploadModalContext.Provider value={{ isOpen, setIsOpen, openModal, onClose }}>
+    <VehicleUploadModalContext.Provider
+      value={{ isOpen, setIsOpen, openModal, onClose }}
+    >
       {children}
     </VehicleUploadModalContext.Provider>
   );
@@ -32,11 +37,13 @@ export const VehicleUploadModalProvider: React.FC<{ children: React.ReactNode }>
 
 export const useVehicleUploadModal = () => {
   const context = useContext(VehicleUploadModalContext);
-  
+
   if (context === undefined) {
-    throw new Error('useVehicleUploadModal must be used within a VehicleUploadModalProvider');
+    throw new Error(
+      "useVehicleUploadModal must be used within a VehicleUploadModalProvider",
+    );
   }
-  
+
   return context;
 };
 

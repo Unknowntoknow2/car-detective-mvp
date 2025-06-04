@@ -1,9 +1,8 @@
-
-import React from 'react';
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Mail } from 'lucide-react';
-import { Referral } from '@/contexts/ReferralContext';
+import { Loader2, Mail } from "lucide-react";
+import { Referral } from "@/contexts/ReferralContext";
 
 interface ReferralHistoryListProps {
   referrals: Referral[];
@@ -11,23 +10,29 @@ interface ReferralHistoryListProps {
   isLoading: boolean;
 }
 
-export function ReferralHistoryList({ referrals, onSendReminder, isLoading }: ReferralHistoryListProps) {
+export function ReferralHistoryList(
+  { referrals, onSendReminder, isLoading }: ReferralHistoryListProps,
+) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
-  const getStatusBadge = (status: 'pending' | 'earned' | 'claimed') => {
+  const getStatusBadge = (status: "pending" | "earned" | "claimed") => {
     switch (status) {
-      case 'pending':
+      case "pending":
         return <Badge variant="outline">Pending</Badge>;
-      case 'earned':
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Reward Earned</Badge>;
-      case 'claimed':
+      case "earned":
+        return (
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+            Reward Earned
+          </Badge>
+        );
+      case "claimed":
         return <Badge variant="secondary">Claimed</Badge>;
       default:
         return null;
@@ -58,7 +63,7 @@ export function ReferralHistoryList({ referrals, onSendReminder, isLoading }: Re
             </tr>
           </thead>
           <tbody>
-            {referrals.map(referral => (
+            {referrals.map((referral) => (
               <tr key={referral.id} className="border-b">
                 <td className="py-3">
                   {referral.referred_email || "Email not provided"}
@@ -70,7 +75,7 @@ export function ReferralHistoryList({ referrals, onSendReminder, isLoading }: Re
                   {getStatusBadge(referral.reward_status)}
                 </td>
                 <td className="py-3">
-                  {referral.reward_status === 'pending' && (
+                  {referral.reward_status === "pending" && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -78,11 +83,9 @@ export function ReferralHistoryList({ referrals, onSendReminder, isLoading }: Re
                       onClick={() => onSendReminder(referral.id)}
                       disabled={isLoading}
                     >
-                      {isLoading ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <Mail className="h-3 w-3" />
-                      )}
+                      {isLoading
+                        ? <Loader2 className="h-3 w-3 animate-spin" />
+                        : <Mail className="h-3 w-3" />}
                       Remind
                     </Button>
                   )}

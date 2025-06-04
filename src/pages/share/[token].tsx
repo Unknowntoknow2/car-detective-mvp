@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -5,6 +6,14 @@ import { Loader2 } from 'lucide-react';
 import { ValuationResult } from '@/types/valuation';
 import { fetchValuation } from '@/services/valuationService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+=======
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import { ValuationResult } from "@/types/valuation";
+import { fetchValuation } from "@/services/valuationService";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export default function SharedValuationPage() {
   const { token } = useParams<{ token: string }>();
@@ -15,32 +24,33 @@ export default function SharedValuationPage() {
   useEffect(() => {
     async function fetchData() {
       if (!token) {
-        setError('Invalid share token');
+        setError("Invalid share token");
         setIsLoading(false);
         return;
       }
 
       try {
         setIsLoading(true);
-        
+
         // For now, we'll just use a mock implementation since getValuationByToken is not yet available
         // In a real implementation, you would call getValuationByToken from your service
-        
+
         // Mock implementation
         setTimeout(() => {
           // Mock valuation data for demonstration
           const mockValuation: ValuationResult = {
-            id: 'shared-id',
-            make: 'Toyota',
-            model: 'Camry',
+            id: "shared-id",
+            make: "Toyota",
+            model: "Camry",
             year: 2019,
             mileage: 35000,
-            condition: 'Good',
-            zipCode: '90210',
+            condition: "Good",
+            zipCode: "90210",
             estimatedValue: 19500,
             confidenceScore: 88,
             isPremium: true,
             created_at: new Date().toISOString(),
+<<<<<<< HEAD
             priceRange: [18500, 20500],
             adjustments: [
               { 
@@ -49,15 +59,16 @@ export default function SharedValuationPage() {
                 description: 'Slightly higher than average mileage'
               }
             ]
+=======
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
           };
-          
+
           setValuation(mockValuation);
           setIsLoading(false);
         }, 1500);
-        
       } catch (error) {
-        console.error('Error fetching shared valuation:', error);
-        setError('Failed to load shared valuation');
+        console.error("Error fetching shared valuation:", error);
+        setError("Failed to load shared valuation");
         setIsLoading(false);
       }
     }
@@ -82,7 +93,7 @@ export default function SharedValuationPage() {
             <CardTitle className="text-red-600">Error</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>{error || 'Could not load the shared valuation'}</p>
+            <p>{error || "Could not load the shared valuation"}</p>
           </CardContent>
         </Card>
       </div>
@@ -92,16 +103,24 @@ export default function SharedValuationPage() {
   return (
     <div className="container mx-auto max-w-2xl p-6">
       <h1 className="text-2xl font-bold mb-6">Shared Vehicle Valuation</h1>
-      
+
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>{valuation.year} {valuation.make} {valuation.model}</CardTitle>
+          <CardTitle>
+            {valuation.year} {valuation.make} {valuation.model}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500">Estimated Value</p>
+<<<<<<< HEAD
               <p className="text-xl font-bold">${valuation.estimatedValue?.toLocaleString() || 0}</p>
+=======
+              <p className="text-xl font-bold">
+                ${valuation.estimatedValue.toLocaleString()}
+              </p>
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
             </div>
             <div>
               <p className="text-sm text-gray-500">Mileage</p>
@@ -115,18 +134,21 @@ export default function SharedValuationPage() {
               <p className="text-sm text-gray-500">Confidence</p>
               <div className="flex items-center">
                 <div className="h-2 w-16 bg-gray-200 rounded-full mr-2">
-                  <div 
-                    className="h-2 bg-primary rounded-full" 
-                    style={{width: `${valuation.confidenceScore || 0}%`}}
-                  ></div>
+                  <div
+                    className="h-2 bg-primary rounded-full"
+                    style={{ width: `${valuation.confidenceScore || 0}%` }}
+                  >
+                  </div>
                 </div>
-                <span className="text-sm">{valuation.confidenceScore || 0}%</span>
+                <span className="text-sm">
+                  {valuation.confidenceScore || 0}%
+                </span>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
-      
+
       <p className="text-sm text-gray-500 text-center">
         This valuation was shared with you by a Car Detective user.
       </p>

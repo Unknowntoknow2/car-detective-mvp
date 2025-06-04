@@ -34,9 +34,11 @@ export async function scrapeEbayMotorsListings({
 }): Promise<EbayListing[]> {
   // Build search URL
   const keywords = [year, make, model].filter(Boolean).join("+");
-  const url = `https://www.ebay.com/sch/Cars-Trucks/6001/i.html?_nkw=${encodeURIComponent(
-    keywords
-  )}&_stpos=${zip}&_ipg=${maxResults}`;
+  const url = `https://www.ebay.com/sch/Cars-Trucks/6001/i.html?_nkw=${
+    encodeURIComponent(
+      keywords,
+    )
+  }&_stpos=${zip}&_ipg=${maxResults}`;
 
   try {
     const { data: html } = await axios.get(url, {
@@ -67,7 +69,7 @@ export async function scrapeEbayMotorsListings({
       let makeFound: string | null = null;
       let modelFound: string | null = null;
       const titleMatch = title.match(
-        /(\d{4})\s+([A-Za-z]+)\s+([A-Za-z0-9\-]+)/ // e.g., "2018 Toyota Camry"
+        /(\d{4})\s+([A-Za-z]+)\s+([A-Za-z0-9\-]+)/, // e.g., "2018 Toyota Camry"
       );
       if (titleMatch) {
         year = parseInt(titleMatch[1], 10);
@@ -84,7 +86,8 @@ export async function scrapeEbayMotorsListings({
 
       // Location
       const location =
-        $(el).find(".s-item__location.s-item__itemLocation").text().trim() || null;
+        $(el).find(".s-item__location.s-item__itemLocation").text().trim() ||
+        null;
 
       // Detail URL
       let detailUrl = $(el).find(".s-item__link").attr("href") || "";
@@ -93,14 +96,18 @@ export async function scrapeEbayMotorsListings({
       }
 
       // Image URL
-      const imageUrl = $(el).find(".s-item__image-img").attr("src") || undefined;
+      const imageUrl = $(el).find(".s-item__image-img").attr("src") ||
+        undefined;
 
       // Bids
       const bidsText = $(el).find(".s-item__bids.s-item__bidCount").text();
-      const bids = bidsText ? parseInt(bidsText.replace(/[^\d]/g, ""), 10) : undefined;
+      const bids = bidsText
+        ? parseInt(bidsText.replace(/[^\d]/g, ""), 10)
+        : undefined;
 
       // Time Left
-      const timeLeft = $(el).find(".s-item__time-left").text().trim() || undefined;
+      const timeLeft = $(el).find(".s-item__time-left").text().trim() ||
+        undefined;
 
       results.push({
         title,
@@ -134,4 +141,3 @@ export async function scrapeEbayMotorsListings({
 //   });
 //   console.log(cars);
 // })();
-

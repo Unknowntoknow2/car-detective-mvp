@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchVehicleByPlate, fetchVehicleByVin } from '@/services/vehicleLookupService';
 import { DecodedVehicleInfo } from '@/types/vehicle';
+=======
+import { useState } from "react";
+import { ValuationInput } from "@/utils/valuation/types";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 const ANONYMOUS_USER_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -20,11 +25,66 @@ export function useValuation() {
   const [valuationData, setValuationData] = useState<any>(null);
   const { user } = useAuth();
 
+<<<<<<< HEAD
   const saveValuation = async (valuationData: any) => {
+=======
+  const submitValuation = async (
+    formData: ValuationInput,
+  ): Promise<{ success: boolean; data?: any; errorMessage?: string }> => {
+    setIsLoading(true);
+    try {
+      // Validate form data
+      if (!formData.zipCode) {
+        throw new Error("Please enter a valid ZIP code");
+      }
+
+      // Simulate API response - in a real app, this would be an API call
+      const response = {
+        success: true,
+        valuationId: "123456",
+        confidenceScore: 85,
+        error: null,
+      };
+
+      if (!response.success) {
+        throw new Error(response.error || "Failed to submit valuation");
+      }
+
+      // Simulate successful valuation
+      setValuationResult({
+        valuationId: response.valuationId,
+        confidenceScore: response.confidenceScore,
+      });
+
+      return { success: true, data: response };
+    } catch (error: any) {
+      console.error("Valuation error:", error);
+      setError(
+        error.message || "An error occurred while processing your valuation",
+      );
+      return {
+        success: false,
+        errorMessage: error.message ||
+          "An error occurred while processing your valuation",
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Add generateValuation function that works the same as submitValuation
+  const generateValuation = async (formData: ValuationInput): Promise<{
+    success: boolean;
+    valuationId?: string;
+    confidenceScore?: number;
+    error?: string;
+  }> => {
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     setIsLoading(true);
     setError(null);
-    
+
     try {
+<<<<<<< HEAD
       const { data, error } = await supabase
         .from('valuations')
         .insert({
@@ -39,6 +99,30 @@ export function useValuation() {
     } catch (err: any) {
       setError(err.message);
       throw err;
+=======
+      // Validate form data
+      if (!formData.zipCode) {
+        throw new Error("Please enter a valid ZIP code");
+      }
+
+      // Simulate API response
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const result = {
+        success: true,
+        valuationId: `val-${Date.now()}`,
+        confidenceScore: 85,
+      };
+
+      return result;
+    } catch (error: any) {
+      console.error("Valuation generation error:", error);
+      setError(error.message || "Failed to generate valuation");
+      return {
+        success: false,
+        error: error.message || "Failed to generate valuation",
+      };
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     } finally {
       setIsLoading(false);
     }
@@ -164,6 +248,7 @@ export function useValuation() {
   return {
     isLoading,
     error,
+<<<<<<< HEAD
     valuationData,
     saveValuation,
     getValuation,
@@ -173,5 +258,9 @@ export function useValuation() {
     decodePlate,
     manualValuation,
     resetValuation
+=======
+    submitValuation,
+    generateValuation,
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   };
 }

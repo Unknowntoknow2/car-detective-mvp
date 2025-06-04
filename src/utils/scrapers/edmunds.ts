@@ -34,7 +34,8 @@ export async function scrapeEdmundsListings({
   year?: number;
 }): Promise<EdmundsListing[]> {
   // Construct search URL
-  let url = `https://www.edmunds.com/used-cars-for-sale/listings/${make.toLowerCase()}/${model.toLowerCase()}/?radius=500&zipcode=${zip}`;
+  let url =
+    `https://www.edmunds.com/used-cars-for-sale/listings/${make.toLowerCase()}/${model.toLowerCase()}/?radius=500&zipcode=${zip}`;
   if (year) url += `&year=${year}`;
 
   try {
@@ -54,7 +55,8 @@ export async function scrapeEdmundsListings({
       const $el = $(el);
 
       // Title & Trim
-      const title = $el.find(".listing-title").text().trim() || $el.find("h2").text().trim();
+      const title = $el.find(".listing-title").text().trim() ||
+        $el.find("h2").text().trim();
 
       // Price (e.g., "$27,995")
       const priceText = $el.find(".listing-price").text().replace(/[$,]/g, "");
@@ -92,8 +94,8 @@ export async function scrapeEdmundsListings({
       }
 
       // Image URL
-      const imageUrl =
-        $el.find("img").attr("src") || $el.find("img").attr("data-src") || undefined;
+      const imageUrl = $el.find("img").attr("src") ||
+        $el.find("img").attr("data-src") || undefined;
 
       results.push({
         title,

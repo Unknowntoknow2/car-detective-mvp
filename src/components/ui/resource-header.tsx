@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 interface ResourceHeaderProps {
   title: string;
@@ -25,11 +24,13 @@ export const ResourceHeader: React.FC<ResourceHeaderProps> = ({
   className = "",
 }) => {
   return (
-    <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${className}`}>
+    <div
+      className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ${className}`}
+    >
       <div>
         <h2 className="text-2xl font-bold">
           {title}
-          {typeof count === 'number' && (
+          {typeof count === "number" && (
             <span className="ml-2 text-muted-foreground font-normal text-lg">
               ({count})
             </span>

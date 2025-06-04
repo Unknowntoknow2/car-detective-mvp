@@ -1,22 +1,24 @@
-
-import { Variants } from 'framer-motion';
+import { Variants } from "framer-motion";
 
 // Fade in animation
 export const fadeIn: Variants = {
   hidden: { opacity: 0 },
-  visible: { 
+  visible: {
     opacity: 1,
-    transition: { duration: 0.3 }
-  }
+    transition: { duration: 0.3 },
+  },
 };
 
 // Fade in from direction
-export const fadeInFrom = (direction: 'top' | 'right' | 'bottom' | 'left', distance = 20): Variants => {
+export const fadeInFrom = (
+  direction: "top" | "right" | "bottom" | "left",
+  distance = 20,
+): Variants => {
   const directionMap = {
     top: { y: -distance },
     right: { x: distance },
     bottom: { y: distance },
-    left: { x: -distance }
+    left: { x: -distance },
   };
 
   return {
@@ -26,12 +28,12 @@ export const fadeInFrom = (direction: 'top' | 'right' | 'bottom' | 'left', dista
       x: 0,
       y: 0,
       transition: {
-        type: 'spring',
+        type: "spring",
         stiffness: 300,
         damping: 24,
-        duration: 0.3
-      }
-    }
+        duration: 0.3,
+      },
+    },
   };
 };
 
@@ -42,11 +44,11 @@ export const scaleIn: Variants = {
     opacity: 1,
     scale: 1,
     transition: {
-      type: 'spring',
+      type: "spring",
       stiffness: 300,
-      damping: 24
-    }
-  }
+      damping: 24,
+    },
+  },
 };
 
 // Staggered container animation
@@ -56,23 +58,23 @@ export const staggerContainer: Variants = {
     opacity: 1,
     transition: {
       staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
-  }
+      delayChildren: 0.2,
+    },
+  },
 };
 
 // Form field animation
 export const formField: Variants = {
   hidden: { opacity: 0, y: 10 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
-      type: 'spring',
+      type: "spring",
       stiffness: 300,
-      damping: 24
-    }
-  }
+      damping: 24,
+    },
+  },
 };
 
 // Success animation
@@ -82,36 +84,36 @@ export const success: Variants = {
     scale: 1,
     opacity: 1,
     transition: {
-      type: 'spring',
+      type: "spring",
       stiffness: 300,
-      damping: 10
-    }
-  }
+      damping: 10,
+    },
+  },
 };
 
 // Content switch animation
 export const contentSwitch: Variants = {
   exit: { opacity: 0, x: -20, transition: { duration: 0.2 } },
   enter: { opacity: 0, x: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     x: 0,
-    transition: { 
+    transition: {
       duration: 0.3,
-      type: 'spring',
+      type: "spring",
       stiffness: 500,
-      damping: 30
-    }
-  }
+      damping: 30,
+    },
+  },
 };
 
 // Button animations
 export const buttonHover = {
   scale: 1.02,
-  transition: { duration: 0.2 }
+  transition: { duration: 0.2 },
 };
 
 export const buttonTap = {
   scale: 0.98,
-  transition: { duration: 0.1 }
+  transition: { duration: 0.1 },
 };

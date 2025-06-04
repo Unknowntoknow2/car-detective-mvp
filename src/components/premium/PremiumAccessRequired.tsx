@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,23 +6,39 @@ import { Button } from '@/components/ui/button';
 import { Lock, ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SHOW_ALL_COMPONENTS } from '@/lib/constants';
+=======
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface PremiumAccessRequiredProps {
   valuationId?: string;
   onBack?: () => void;
 }
 
-export function PremiumAccessRequired({ valuationId, onBack }: PremiumAccessRequiredProps) {
+export function PremiumAccessRequired(
+  { valuationId, onBack }: PremiumAccessRequiredProps,
+) {
   const navigate = useNavigate();
 
   const handleGetPremium = () => {
     if (valuationId) {
       navigate(`/premium?id=${valuationId}`);
     } else {
-      navigate('/premium');
+      navigate("/premium");
     }
   };
-  
+
   return (
     <Card className="border-amber-200 bg-amber-50">
       {SHOW_ALL_COMPONENTS && (
@@ -40,14 +57,15 @@ export function PremiumAccessRequired({ valuationId, onBack }: PremiumAccessRequ
       </CardHeader>
       <CardContent className="text-amber-700">
         <p>
-          Upgrade to our premium valuation package to unlock this feature along with comprehensive vehicle
-          valuation reports, CARFAX history, dealer offers, and more.
+          Upgrade to our premium valuation package to unlock this feature along
+          with comprehensive vehicle valuation reports, CARFAX history, dealer
+          offers, and more.
         </p>
       </CardContent>
       <CardFooter className="flex gap-3 pt-0">
         {onBack && (
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={onBack}
             className="border-amber-300 text-amber-800 hover:bg-amber-100"
           >
@@ -55,7 +73,7 @@ export function PremiumAccessRequired({ valuationId, onBack }: PremiumAccessRequ
             Back
           </Button>
         )}
-        <Button 
+        <Button
           onClick={handleGetPremium}
           className="bg-amber-600 hover:bg-amber-700 text-white"
         >

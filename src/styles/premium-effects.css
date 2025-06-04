@@ -1,4 +1,3 @@
-
 @keyframes shine {
   0% {
     left: -100%;
@@ -14,7 +13,7 @@
 }
 
 .premium-shine::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;

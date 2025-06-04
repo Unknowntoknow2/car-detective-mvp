@@ -1,14 +1,13 @@
-
-import React, { useEffect, useState } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Car, AlertTriangle } from 'lucide-react';
-import { useValuationHistory } from '@/hooks/useValuationHistory';
-import { Valuation } from '@/types/valuation-history';
-import { formatCurrency, formatNumber } from '@/utils/formatters';
+import React, { useEffect, useState } from "react";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { AlertTriangle, Car, Loader2 } from "lucide-react";
+import { useValuationHistory } from "@/hooks/useValuationHistory";
+import { Valuation } from "@/types/valuation-history";
+import { formatCurrency, formatNumber } from "@/utils/formatters";
 
 const MyValuationsContent = () => {
   const { valuations, isLoading, error, isEmpty } = useValuationHistory();
@@ -46,10 +45,15 @@ const MyValuationsContent = () => {
             <CardContent className="flex items-start gap-4 p-0">
               <AlertTriangle className="h-6 w-6 text-red-600 flex-shrink-0 mt-1" />
               <div>
-                <h3 className="font-semibold text-red-700 mb-2">Error Loading Valuations</h3>
-                <p className="text-red-600 mb-4">{error || "We encountered an issue loading your valuation history."}</p>
-                <Button 
-                  onClick={() => window.location.reload()}
+                <h3 className="font-semibold text-red-700 mb-2">
+                  Error Loading Valuations
+                </h3>
+                <p className="text-red-600 mb-4">
+                  {error ||
+                    "We encountered an issue loading your valuation history."}
+                </p>
+                <Button
+                  onClick={() => globalThis.location.reload()}
                   variant="destructive"
                   size="sm"
                 >
@@ -75,6 +79,7 @@ const MyValuationsContent = () => {
           </Button>
         </div>
 
+<<<<<<< HEAD
         {isEmpty() ? (
           <Card className="text-center p-8">
             <CardContent className="pt-6">
@@ -97,6 +102,35 @@ const MyValuationsContent = () => {
             ))}
           </div>
         )}
+=======
+        {isEmpty
+          ? (
+            <Card className="text-center p-8">
+              <CardContent className="pt-6">
+                <div className="mx-auto bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                  <Car className="h-8 w-8 text-primary" />
+                </div>
+                <h2 className="text-xl font-semibold mb-2">
+                  No Valuations Yet
+                </h2>
+                <p className="text-muted-foreground mb-6">
+                  You haven't created any vehicle valuations yet. Start by
+                  getting a valuation for your vehicle.
+                </p>
+                <Button asChild>
+                  <Link to="/lookup">Create Your First Valuation</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )
+          : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {valuations.map((valuation: Valuation) => (
+                <ValuationCard key={valuation.id} valuation={valuation} />
+              ))}
+            </div>
+          )}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       </main>
       <Footer />
     </div>
@@ -107,14 +141,16 @@ const MyValuationsContent = () => {
 const ValuationCard = ({ valuation }: { valuation: Valuation }) => {
   // Extract core data, applying fallbacks for potentially missing fields
   const year = valuation.year || new Date().getFullYear();
-  const make = valuation.make || 'Unknown Make';
-  const model = valuation.model || 'Unknown Model';
+  const make = valuation.make || "Unknown Make";
+  const model = valuation.model || "Unknown Model";
   const mileage = valuation.mileage || 0;
-  const condition = valuation.condition || 'Unknown';
+  const condition = valuation.condition || "Unknown";
   const estimatedValue = valuation.estimated_value || valuation.valuation || 0;
   const confidenceScore = valuation.confidence_score || 75;
   const isPremium = valuation.is_premium || valuation.premium_unlocked || false;
-  const createdAt = valuation.created_at ? new Date(valuation.created_at) : new Date();
+  const createdAt = valuation.created_at
+    ? new Date(valuation.created_at)
+    : new Date();
 
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
@@ -130,7 +166,9 @@ const ValuationCard = ({ valuation }: { valuation: Valuation }) => {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
             <p className="text-sm text-muted-foreground">Estimated Value</p>
-            <p className="font-semibold text-lg">{formatCurrency(estimatedValue)}</p>
+            <p className="font-semibold text-lg">
+              {formatCurrency(estimatedValue)}
+            </p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Mileage</p>
@@ -144,34 +182,39 @@ const ValuationCard = ({ valuation }: { valuation: Valuation }) => {
             <p className="text-sm text-muted-foreground">Confidence</p>
             <div className="flex items-center">
               <div className="h-2 w-16 bg-gray-200 rounded-full mr-2">
-                <div 
-                  className="h-2 bg-primary rounded-full" 
-                  style={{width: `${confidenceScore}%`}}
-                ></div>
+                <div
+                  className="h-2 bg-primary rounded-full"
+                  style={{ width: `${confidenceScore}%` }}
+                >
+                </div>
               </div>
               <span className="text-sm">{confidenceScore}%</span>
             </div>
           </div>
         </div>
-        
+
         <div className="flex justify-between mt-4">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             asChild
           >
             <Link to={`/valuation/${valuation.id}`}>View Details</Link>
           </Button>
-          
-          {isPremium ? (
-            <Button size="sm" variant="secondary" asChild>
-              <Link to={`/valuation/${valuation.id}/pdf`}>Download PDF</Link>
-            </Button>
-          ) : (
-            <Button size="sm" asChild>
-              <Link to={`/valuation/${valuation.id}/upgrade`}>Upgrade to Premium</Link>
-            </Button>
-          )}
+
+          {isPremium
+            ? (
+              <Button size="sm" variant="secondary" asChild>
+                <Link to={`/valuation/${valuation.id}/pdf`}>Download PDF</Link>
+              </Button>
+            )
+            : (
+              <Button size="sm" asChild>
+                <Link to={`/valuation/${valuation.id}/upgrade`}>
+                  Upgrade to Premium
+                </Link>
+              </Button>
+            )}
         </div>
       </CardContent>
     </Card>

@@ -1,6 +1,5 @@
-
-import { linearRegression } from 'simple-statistics';
-import { supabase } from '@/integrations/supabase/client';
+import { linearRegression } from "simple-statistics";
+import { supabase } from "@/integrations/supabase/client";
 
 export type ForecastPoint = {
   month: string;
@@ -11,13 +10,13 @@ export type ForecastResult = {
   forecast: ForecastPoint[];
   percentageChange: number;
   bestTimeToSell: string;
-  valueTrend: 'increasing' | 'decreasing' | 'stable';
+  valueTrend: "increasing" | "decreasing" | "stable";
   confidenceScore: number;
   lowestValue: number;
   highestValue: number;
-  months: string[];  // Added missing property
-  values: number[];  // Added missing property
-  trend: 'increasing' | 'decreasing' | 'stable';  // Added missing property
+  months: string[]; // Added missing property
+  values: number[]; // Added missing property
+  trend: "increasing" | "decreasing" | "stable"; // Added missing property
 };
 
 function runLinearForecast(prices: number[], months: string[]) {
@@ -35,7 +34,9 @@ function runLinearForecast(prices: number[], months: string[]) {
   for (let i = 1; i <= 12; i++) {
     const d = new Date(lastDate);
     d.setMonth(d.getMonth() + i);
-    forecastMonths.push(d.toLocaleString('default', { month: 'short', year: 'numeric' }));
+    forecastMonths.push(
+      d.toLocaleString("default", { month: "short", year: "numeric" }),
+    );
     forecastValues.push(Math.round(m * (x.length + i - 1) + b));
   }
 
@@ -43,20 +44,26 @@ function runLinearForecast(prices: number[], months: string[]) {
 }
 
 export async function generateValuationForecast(
-  valuationId: string
+  valuationId: string,
 ): Promise<ForecastResult> {
-  const { data, error } = await supabase.functions.invoke('valuation-forecast', {
-    body: { valuationId }
-  });
+  const { data, error } = await supabase.functions.invoke(
+    "valuation-forecast",
+    {
+      body: { valuationId },
+    },
+  );
 
   if (error) {
-    console.error('Error fetching forecast:', error);
+    console.error("Error fetching forecast:", error);
     throw error;
   }
 
-  const forecast: ForecastPoint[] = data.months.map((month: string, index: number) => ({
+  const forecast: ForecastPoint[] = data.months.map((
+    month: string,
+    index: number,
+  ) => ({
     month,
-    value: data.values[index]
+    value: data.values[index],
   }));
 
   return {
@@ -67,8 +74,8 @@ export async function generateValuationForecast(
     confidenceScore: data.confidenceScore,
     lowestValue: Math.min(...data.values),
     highestValue: Math.max(...data.values),
-    months: data.months,  // Added to match the return type
-    values: data.values,  // Added to match the return type
-    trend: data.trend     // Added to match the return type
+    months: data.months, // Added to match the return type
+    values: data.values, // Added to match the return type
+    trend: data.trend, // Added to match the return type
   };
 }

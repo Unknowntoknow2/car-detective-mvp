@@ -1,10 +1,10 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.36.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // Create a Supabase client
@@ -21,15 +21,17 @@ serve(async (req) => {
   try {
     // Get request parameters
     const { make, model, year } = await req.json();
-    
+
     // Validate required parameters
     if (!make || !model || !year) {
       return new Response(
-        JSON.stringify({ error: "Missing required parameters: make, model, and year" }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
+        JSON.stringify({
+          error: "Missing required parameters: make, model, and year",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -46,33 +48,38 @@ serve(async (req) => {
     if (cachedData && !cacheError) {
       const fetchedAt = new Date(cachedData.fetched_at);
       const now = new Date();
-      const cacheAgeDays = (now.getTime() - fetchedAt.getTime()) / (1000 * 60 * 60 * 24);
-      
+      const cacheAgeDays = (now.getTime() - fetchedAt.getTime()) /
+        (1000 * 60 * 60 * 24);
+
       if (cacheAgeDays < 30) {
         console.log("Returning cached NHTSA recall data");
         return new Response(
           JSON.stringify(cachedData.recalls_data),
-          { 
-            headers: { ...corsHeaders, "Content-Type": "application/json" } 
-          }
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
     }
 
     // Fetch fresh data from NHTSA API
-    const apiUrl = `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&modelYear=${year}`;
-    
+    const apiUrl = `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${
+      encodeURIComponent(make)
+    }&model=${encodeURIComponent(model)}&modelYear=${year}`;
+
     console.log(`Fetching NHTSA recall data from: ${apiUrl}`);
     const response = await fetch(apiUrl);
-    
+
     if (!response.ok) {
-      console.error(`NHTSA API error: ${response.status} ${response.statusText}`);
+      console.error(
+        `NHTSA API error: ${response.status} ${response.statusText}`,
+      );
       return new Response(
         JSON.stringify({ error: "Failed to fetch recall data" }),
-        { 
-          status: response.status, 
-          headers: { ...corsHeaders, "Content-Type": "application/json" } 
-        }
+        {
+          status: response.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -98,18 +105,18 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify(recallsData),
-      { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      }
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   } catch (error) {
     console.error("Error in fetch_nhtsa_recalls function:", error);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      }
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });

@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, RefreshCcw } from 'lucide-react';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, RefreshCcw } from "lucide-react";
 
 interface ReviewActionsProps {
   isFormValid: boolean;
@@ -9,7 +8,9 @@ interface ReviewActionsProps {
   handleReset: () => void;
 }
 
-export function ReviewActions({ isFormValid, handleSubmit, handleReset }: ReviewActionsProps) {
+export function ReviewActions(
+  { isFormValid, handleSubmit, handleReset }: ReviewActionsProps,
+) {
   return (
     <div className="flex flex-col sm:flex-row gap-4 pt-2">
       <Button
@@ -20,7 +21,7 @@ export function ReviewActions({ isFormValid, handleSubmit, handleReset }: Review
         <CheckCircle className="mr-2 h-4 w-4" />
         Get Premium Valuation
       </Button>
-      
+
       <Button
         onClick={handleReset}
         variant="outline"

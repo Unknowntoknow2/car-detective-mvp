@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -6,6 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+=======
+import React from "react";
+import { Button } from "@/components/ui/button";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export default function UpgradePage() {
   const navigate = useNavigate();
@@ -15,6 +20,7 @@ export default function UpgradePage() {
   };
   
   return (
+<<<<<<< HEAD
     <MainLayout>
       <Container className="py-12">
         <div className="max-w-4xl mx-auto">
@@ -132,5 +138,15 @@ export default function UpgradePage() {
         </div>
       </Container>
     </MainLayout>
+=======
+    <div className="container mx-auto py-12">
+      <h1 className="text-3xl font-bold mb-6">Upgrade Your Valuation</h1>
+      <p className="mb-6">
+        Get more accurate and detailed information about your vehicle's value
+        with our premium service.
+      </p>
+      <Button>Upgrade Now</Button>
+    </div>
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   );
 }

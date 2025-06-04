@@ -1,43 +1,42 @@
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { PhotoFile, Photo } from '@/types/photo';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Photo, PhotoFile } from "@/types/photo";
+import { v4 as uuidv4 } from "uuid";
 
 interface MockPhotoUploaderProps {
   onPhotosSelected: (photos: Photo[]) => void;
   maxFiles?: number;
 }
 
-export const MockPhotoUploader: React.FC<MockPhotoUploaderProps> = ({ 
+export const MockPhotoUploader: React.FC<MockPhotoUploaderProps> = ({
   onPhotosSelected,
-  maxFiles = 6
+  maxFiles = 6,
 }) => {
   const [files, setFiles] = useState<PhotoFile[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
-    
+
     const newFiles: PhotoFile[] = [];
-    
-    Array.from(e.target.files).forEach(file => {
+
+    Array.from(e.target.files).forEach((file) => {
       // Create a preview URL
       const preview = URL.createObjectURL(file);
-      
+
       newFiles.push({
         id: uuidv4(),
         file,
-        preview
+        preview,
       });
     });
-    
+
     const combinedFiles = [...files, ...newFiles].slice(0, maxFiles);
     setFiles(combinedFiles);
-    
+
     // Convert to Photo type for parent component
-    const photos: Photo[] = combinedFiles.map(file => ({
+    const photos: Photo[] = combinedFiles.map((file) => ({
       id: file.id,
       file: file.file,
       name: file.file.name,
@@ -48,16 +47,16 @@ export const MockPhotoUploader: React.FC<MockPhotoUploaderProps> = ({
       uploaded: false,
       url: '' // Use empty string instead of undefined
     }));
-    
+
     onPhotosSelected(photos);
   };
 
   const clearFiles = () => {
     // Release object URLs to avoid memory leaks
-    files.forEach(file => {
+    files.forEach((file) => {
       if (file.preview) URL.revokeObjectURL(file.preview);
     });
-    
+
     setFiles([]);
     onPhotosSelected([]);
   };
@@ -66,11 +65,11 @@ export const MockPhotoUploader: React.FC<MockPhotoUploaderProps> = ({
     <div className="space-y-4">
       <div>
         <Label htmlFor="photo-upload">Upload Vehicle Photos</Label>
-        <Input 
-          id="photo-upload" 
-          type="file" 
-          accept="image/*" 
-          multiple 
+        <Input
+          id="photo-upload"
+          type="file"
+          accept="image/*"
+          multiple
           onChange={handleFileChange}
           disabled={files.length >= maxFiles}
           className="mt-2"
@@ -79,9 +78,10 @@ export const MockPhotoUploader: React.FC<MockPhotoUploaderProps> = ({
           {files.length} of {maxFiles} photos selected
         </p>
       </div>
-      
+
       {files.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+<<<<<<< HEAD
           {files.map(file => (
             <div key={file.id} className="relative aspect-square rounded-md overflow-hidden bg-muted">
               {file.preview && (
@@ -91,15 +91,27 @@ export const MockPhotoUploader: React.FC<MockPhotoUploaderProps> = ({
                   className="object-cover w-full h-full"
                 />
               )}
+=======
+          {files.map((file) => (
+            <div
+              key={file.id}
+              className="relative aspect-square rounded-md overflow-hidden bg-muted"
+            >
+              <img
+                src={file.preview}
+                alt={file.file.name}
+                className="object-cover w-full h-full"
+              />
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
             </div>
           ))}
         </div>
       )}
-      
+
       {files.length > 0 && (
-        <Button 
-          type="button" 
-          variant="outline" 
+        <Button
+          type="button"
+          variant="outline"
           onClick={clearFiles}
           className="mt-2"
         >

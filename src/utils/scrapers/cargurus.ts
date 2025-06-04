@@ -32,9 +32,12 @@ export async function scrapeCarGurusListings({
   zip?: string;
   maxResults?: number;
 }): Promise<CarGurusListing[]> {
-  const url = `https://www.cargurus.com/Cars/inventorylisting/viewDetailsFilterViewInventoryListing.action?zip=${zip}&showNegotiable=false&sortDir=ASC&sourceContext=carGurusHomePageModel&distance=50&sortType=DEAL_SCORE&entitySelectingHelper.selectedMake=${encodeURIComponent(
-    make
-  )}&entitySelectingHelper.selectedModel=${encodeURIComponent(model)}`;
+  const url =
+    `https://www.cargurus.com/Cars/inventorylisting/viewDetailsFilterViewInventoryListing.action?zip=${zip}&showNegotiable=false&sortDir=ASC&sourceContext=carGurusHomePageModel&distance=50&sortType=DEAL_SCORE&entitySelectingHelper.selectedMake=${
+      encodeURIComponent(
+        make,
+      )
+    }&entitySelectingHelper.selectedModel=${encodeURIComponent(model)}`;
 
   try {
     const { data: html } = await axios.get(url, {
@@ -75,7 +78,8 @@ export async function scrapeCarGurusListings({
 
       // Location
       const location =
-        $(el).find(".cg-dealFinder-location .cg-text").text().trim() || "Unknown";
+        $(el).find(".cg-dealFinder-location .cg-text").text().trim() ||
+        "Unknown";
 
       // Detail URL
       let detailUrl = $(el).find("a.cg-listingRow-link").attr("href") || "";
@@ -120,4 +124,3 @@ export async function scrapeCarGurusListings({
 //   });
 //   console.log(cars);
 // })();
-

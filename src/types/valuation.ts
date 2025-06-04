@@ -42,9 +42,63 @@ export interface ValuationResult {
   } | null;
 }
 
+<<<<<<< HEAD
 export interface ValuationResponse {
   success: boolean;
   data?: ValuationResult;
   message?: string;
   error?: any;
+=======
+export interface ValuationResultProps {
+  valuationId?: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  mileage?: number;
+  condition?: string;
+  location?: string;
+  valuation?: number;
+  isManualValuation?: boolean;
+  features?: string[];
+  color?: string; // Added for compatibility with other usages
+}
+
+export interface ValuationInput {
+  identifierType?: "vin" | "plate" | "manual" | "photo";
+  vin?: string;
+  plate?: string;
+  state?: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  mileage?: number;
+  condition?: string;
+  zipCode: string; // Make required to match expectation in buildValuationReport
+  bodyType?: string;
+  trim?: string;
+  transmission?: string;
+  fuelType?: string;
+  accidentCount?: number;
+  photos?: File[];
+  features?: string[];
+  mpg?: number | null;
+  userId?: string;
+  valuationId?: string;
+  isPremium?: boolean;
+  isTestMode?: boolean;
+  notifyDealers?: boolean;
+  baseMarketValue?: number; // Add this property for compatibility
+  aiConditionOverride?: any; // Add this property for AI condition
+}
+
+export interface AdjustmentBreakdown {
+  name: string;
+  value: number;
+  description: string;
+  percentAdjustment: number;
+  factor: string;
+  impact: number;
+  adjustment?: number;
+  impactPercentage?: number;
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }

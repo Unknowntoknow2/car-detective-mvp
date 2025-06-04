@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { Info, TrendingUp, TrendingDown } from 'lucide-react';
+import React from "react";
+import { Info, TrendingDown, TrendingUp } from "lucide-react";
 import {
   HoverCard,
   HoverCardContent,
@@ -24,10 +23,10 @@ interface ValuationBreakdownProps {
   comparableVehicles: number;
 }
 
-export const ValuationBreakdown = ({ 
+export const ValuationBreakdown = ({
   valuationBreakdown,
   baseValue,
-  comparableVehicles
+  comparableVehicles,
 }: ValuationBreakdownProps) => {
   return (
     <Popover>
@@ -46,17 +45,20 @@ export const ValuationBreakdown = ({
           {valuationBreakdown.map((item, idx) => (
             <div key={idx} className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {item.impact > 0 ? (
-                  <TrendingUp className="h-4 w-4 text-green-500" />
-                ) : (
-                  <TrendingDown className="h-4 w-4 text-red-500" />
-                )}
+                {item.impact > 0
+                  ? <TrendingUp className="h-4 w-4 text-green-500" />
+                  : <TrendingDown className="h-4 w-4 text-red-500" />}
                 <span>{item.factor}</span>
               </div>
               <HoverCard>
                 <HoverCardTrigger className="flex items-center gap-1">
-                  <span className={item.impact > 0 ? "text-green-500" : "text-red-500"}>
-                    {item.impact > 0 ? "+" : ""}{item.impact}%
+                  <span
+                    className={item.impact > 0
+                      ? "text-green-500"
+                      : "text-red-500"}
+                  >
+                    {item.impact > 0 ? "+" : ""}
+                    {item.impact}%
                   </span>
                   <Info className="h-3 w-3 text-muted-foreground" />
                 </HoverCardTrigger>

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +11,31 @@ import { InfoIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ZipCodeInput } from '@/components/common/ZipCodeInput';
+=======
+import React, { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FormData } from "@/types/premium-valuation";
+import { FormValidationError } from "@/components/premium/common/FormValidationError";
+import { ColorSwatch } from "@/components/ui/ColorSwatch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { InfoIcon } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { ZipCodeInput } from "@/components/common/ZipCodeInput";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface VehicleDetailsFieldsProps {
   formData: FormData;
@@ -17,63 +43,73 @@ interface VehicleDetailsFieldsProps {
   errors: Record<string, string>;
 }
 
-export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleDetailsFieldsProps) {
-  const [colorMultiplier, setColorMultiplier] = useState<number>(formData.colorMultiplier || 1);
+export function VehicleDetailsFields(
+  { formData, setFormData, errors }: VehicleDetailsFieldsProps,
+) {
+  const [colorMultiplier, setColorMultiplier] = useState<number>(
+    formData.colorMultiplier || 1,
+  );
   const [isZipValid, setIsZipValid] = useState<boolean | undefined>(undefined);
-  
+
   const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
+<<<<<<< HEAD
       mileage: value === '' ? 0 : Number(value)
+=======
+      mileage: value === "" ? undefined : Number(value),
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     }));
   };
 
   const handleFuelTypeChange = (value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      fuelType: value
+      fuelType: value,
     }));
   };
 
   const handleZipCodeChange = (value: string, isValid?: boolean) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      zipCode: value
+      zipCode: value,
     }));
-    
+
     setIsZipValid(isValid);
   };
 
   const handleExteriorColorChange = (color: string, multiplier: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       exteriorColor: color,
-      colorMultiplier: multiplier
+      colorMultiplier: multiplier,
     }));
     setColorMultiplier(multiplier);
-    
-    const adjustmentText = multiplier > 1 
-      ? `+${((multiplier - 1) * 100).toFixed(0)}%` 
-      : multiplier < 1 
-        ? `-${((1 - multiplier) * 100).toFixed(0)}%` 
-        : 'no adjustment';
-        
+
+    const adjustmentText = multiplier > 1
+      ? `+${((multiplier - 1) * 100).toFixed(0)}%`
+      : multiplier < 1
+      ? `-${((1 - multiplier) * 100).toFixed(0)}%`
+      : "no adjustment";
+
     toast.info(`Selected ${color} with ${adjustmentText} value impact`);
   };
 
-  const handleInteriorColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
+  const handleInteriorColorChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      interiorColor: e.target.value
+      interiorColor: e.target.value,
     }));
   };
 
   const handleBodyStyleChange = (value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       bodyStyle: value,
-      bodyType: value // Setting both for compatibility
+      bodyType: value, // Setting both for compatibility
     }));
   };
 
@@ -88,12 +124,14 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
           id="mileage"
           type="number"
           placeholder="e.g. 45000"
-          value={formData.mileage || ''}
+          value={formData.mileage || ""}
           onChange={handleMileageChange}
           className={`h-12 ${errors.mileage ? "border-red-500" : ""}`}
         />
         {errors.mileage && <FormValidationError error={errors.mileage} />}
-        <p className="text-sm text-gray-500">Current mileage on your vehicle's odometer</p>
+        <p className="text-sm text-gray-500">
+          Current mileage on your vehicle's odometer
+        </p>
       </div>
 
       {/* Fuel Type */}
@@ -102,10 +140,13 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
           Fuel Type <span className="text-red-500">*</span>
         </Label>
         <Select
-          value={formData.fuelType || ''}
+          value={formData.fuelType || ""}
           onValueChange={handleFuelTypeChange}
         >
-          <SelectTrigger id="fuelType" className={`h-12 ${errors.fuelType ? "border-red-500" : ""}`}>
+          <SelectTrigger
+            id="fuelType"
+            className={`h-12 ${errors.fuelType ? "border-red-500" : ""}`}
+          >
             <SelectValue placeholder="Select fuel type" />
           </SelectTrigger>
           <SelectContent className="max-h-[40vh]">
@@ -127,39 +168,52 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
           ZIP Code <span className="text-red-500">*</span>
         </Label>
         <ZipCodeInput
-          value={formData.zipCode || ''}
+          value={formData.zipCode || ""}
           onChange={handleZipCodeChange}
-          showValidation={true}
+          showValidation
           disabled={false}
-          required={true}
+          required
         />
         {errors.zipCode && <FormValidationError error={errors.zipCode} />}
-        <p className="text-sm text-gray-500">Used to determine regional market value</p>
+        <p className="text-sm text-gray-500">
+          Used to determine regional market value
+        </p>
       </div>
 
       {/* Exterior Color */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Label htmlFor="exteriorColor" className="text-sm font-medium">Exterior Color</Label>
+          <Label htmlFor="exteriorColor" className="text-sm font-medium">
+            Exterior Color
+          </Label>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <InfoIcon className="h-4 w-4 text-muted-foreground cursor-help" />
               </TooltipTrigger>
               <TooltipContent className="max-w-[250px] p-3">
-                <p className="text-sm">Color popularity affects value. Rare colors like Yellow can add up to 10% in value, while common colors like Black may reduce value by 5%.</p>
+                <p className="text-sm">
+                  Color popularity affects value. Rare colors like Yellow can
+                  add up to 10% in value, while common colors like Black may
+                  reduce value by 5%.
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
-        <ColorSwatch 
-          value={formData.exteriorColor || ''} 
+        <ColorSwatch
+          value={formData.exteriorColor || ""}
           onChange={handleExteriorColorChange}
         />
         <p className="text-sm text-gray-500 flex items-center">
           {colorMultiplier !== 1 && (
-            <span className={colorMultiplier > 1 ? "text-green-600" : "text-red-600"}>
-              Value impact: {colorMultiplier > 1 ? '+' : ''}{((colorMultiplier - 1) * 100).toFixed(0)}%
+            <span
+              className={colorMultiplier > 1
+                ? "text-green-600"
+                : "text-red-600"}
+            >
+              Value impact: {colorMultiplier > 1 ? "+" : ""}
+              {((colorMultiplier - 1) * 100).toFixed(0)}%
             </span>
           )}
         </p>
@@ -167,11 +221,13 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
 
       {/* Interior Color */}
       <div className="space-y-2">
-        <Label htmlFor="interiorColor" className="text-sm font-medium block">Interior Color</Label>
+        <Label htmlFor="interiorColor" className="text-sm font-medium block">
+          Interior Color
+        </Label>
         <Input
           id="interiorColor"
           placeholder="e.g. Black Leather"
-          value={formData.interiorColor || ''}
+          value={formData.interiorColor || ""}
           onChange={handleInteriorColorChange}
           className="h-12"
         />
@@ -179,9 +235,11 @@ export function VehicleDetailsFields({ formData, setFormData, errors }: VehicleD
 
       {/* Body Type/Style */}
       <div className="space-y-2">
-        <Label htmlFor="bodyStyle" className="text-sm font-medium block">Body Style</Label>
+        <Label htmlFor="bodyStyle" className="text-sm font-medium block">
+          Body Style
+        </Label>
         <Select
-          value={formData.bodyStyle || formData.bodyType || ''}
+          value={formData.bodyStyle || formData.bodyType || ""}
           onValueChange={handleBodyStyleChange}
         >
           <SelectTrigger id="bodyStyle" className="h-12">

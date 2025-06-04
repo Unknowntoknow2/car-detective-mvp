@@ -1,4 +1,3 @@
-
 import React from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -51,7 +50,7 @@ export const CDCard: React.FC<CardProps> = ({
     md: "p-5",
     lg: "p-7",
   };
-  
+
   if (interactive) {
     return (
       <motion.button
@@ -60,7 +59,7 @@ export const CDCard: React.FC<CardProps> = ({
           variantClasses[variant],
           paddingClasses[padding],
           "cursor-pointer hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/25",
-          className
+          className,
         )}
         onClick={onClick}
         type="button"
@@ -80,7 +79,7 @@ export const CDCard: React.FC<CardProps> = ({
         variantClasses[variant],
         paddingClasses[padding],
         interactive === false && "shadow-sm hover:shadow-md",
-        className
+        className,
       )}
       {...motionProps}
     >

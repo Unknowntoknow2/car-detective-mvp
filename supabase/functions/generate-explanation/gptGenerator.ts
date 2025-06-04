@@ -1,24 +1,35 @@
-
-import { ExplanationRequest } from './types.ts';
+import { ExplanationRequest } from "./types.ts";
 
 /**
  * Generates an explanation using OpenAI's GPT-4o model
  * @param data The valuation data
  * @returns A professional explanation string from GPT-4o
  */
-export async function generateGPT4Explanation(data: ExplanationRequest): Promise<string> {
+export async function generateGPT4Explanation(
+  data: ExplanationRequest,
+): Promise<string> {
   try {
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    const openAIApiKey = Deno.env.get("OPENAI_API_KEY");
     if (!openAIApiKey) {
-      throw new Error('OPENAI_API_KEY environment variable is not set');
+      throw new Error("OPENAI_API_KEY environment variable is not set");
     }
 
-    const { 
-      make, model, year, mileage, condition, zipCode = data.location, 
-      baseMarketValue, finalValuation, adjustments,
-      mileageAdj = 0, conditionAdj = 0, zipAdj = 0, featureAdjTotal = 0
+    const {
+      make,
+      model,
+      year,
+      mileage,
+      condition,
+      zipCode = data.location,
+      baseMarketValue,
+      finalValuation,
+      adjustments,
+      mileageAdj = 0,
+      conditionAdj = 0,
+      zipAdj = 0,
+      featureAdjTotal = 0,
     } = data;
-    
+
     // Create system prompt for professional tone
     const systemPrompt = `
 You are a world-class vehicle pricing analyst. Your job is to explain clearly, honestly, and concisely why a car received the valuation it did. You must sound neutral, professional, and trustworthy.
@@ -54,33 +65,35 @@ Explain this to a car owner with transparency, so they understand how the price 
 `;
 
     // Call OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openAIApiKey}`
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${openAIApiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: "gpt-4o",
         messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
         ],
         temperature: 0.7,
         max_tokens: 1000,
-      })
+      }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+      console.error("OpenAI API error:", errorData);
+      throw new Error(
+        `OpenAI API error: ${errorData.error?.message || "Unknown error"}`,
+      );
     }
 
     const result = await response.json();
     return result.choices[0].message.content.trim();
   } catch (error) {
-    console.error('Error generating GPT-4o explanation:', error);
+    console.error("Error generating GPT-4o explanation:", error);
     return "We're unable to generate the explanation right now. Please try again later.";
   }
 }

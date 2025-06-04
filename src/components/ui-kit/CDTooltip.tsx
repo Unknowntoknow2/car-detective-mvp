@@ -1,8 +1,7 @@
-
 import React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 type TooltipProps = {
   children: React.ReactNode;
@@ -62,7 +61,7 @@ export const CDTooltip: React.FC<TooltipProps> = ({
                     "bg-neutral-darkest text-white",
                     "px-3 py-1.5 text-sm shadow-md",
                     "border border-neutral-darkest/10",
-                    contentClassName
+                    contentClassName,
                   )}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}

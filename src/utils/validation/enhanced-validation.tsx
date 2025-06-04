@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { z } from 'zod';
+import React from "react";
+import { z } from "zod";
 
 // VIN validation constants
 const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;
@@ -10,21 +9,21 @@ const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;
  */
 export function validateVIN(vin: string): { isValid: boolean; error?: string } {
   if (!vin) {
-    return { isValid: false, error: 'VIN is required' };
+    return { isValid: false, error: "VIN is required" };
   }
 
   if (vin.length !== 17) {
-    return { isValid: false, error: 'VIN must be exactly 17 characters' };
+    return { isValid: false, error: "VIN must be exactly 17 characters" };
   }
 
   if (/[IOQ]/.test(vin.toUpperCase())) {
-    return { isValid: false, error: 'VIN cannot contain letters I, O, or Q' };
+    return { isValid: false, error: "VIN cannot contain letters I, O, or Q" };
   }
 
   if (!VIN_REGEX.test(vin.toUpperCase())) {
     return {
       isValid: false,
-      error: 'VIN must only contain letters A-H, J-N, P, R-Z and digits 0-9',
+      error: "VIN must only contain letters A-H, J-N, P, R-Z and digits 0-9",
     };
   }
 
@@ -56,7 +55,8 @@ export const EnhancedManualEntrySchema = z.object({
   bodyType: z.string().optional(),
   features: z.array(z.string()).optional(),
   accidentCount: z.number().min(0).optional(),
-  vin: z.string().regex(/^[A-HJ-NPR-Z0-9]{17}$/, "Invalid VIN format").optional(),
+  vin: z.string().regex(/^[A-HJ-NPR-Z0-9]{17}$/, "Invalid VIN format")
+    .optional(),
 });
 
 /**

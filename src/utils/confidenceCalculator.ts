@@ -1,4 +1,3 @@
-
 export interface InputFactors {
   vin?: string;
   zip?: string;
@@ -44,10 +43,10 @@ export function calculateConfidenceScore(input: InputFactors): number {
 
   // Equipment indicates features and desirability
   if (input.hasEquipment) score += 5;
-  
+
   // Transmission type indicates desirability
   if (input.hasTransmission) score += 5;
-  
+
   // Recall status affects safety and value
   if (input.hasOpenRecall) score -= 5;
 

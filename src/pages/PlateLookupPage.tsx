@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React, { useState } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
@@ -5,6 +6,16 @@ import { Footer } from '@/components/layout/Footer';
 import PlateDecoderForm from '@/components/lookup/PlateDecoderForm';
 import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
 import { MarketingBanner } from '@/components/marketing/MarketingBanner';
+=======
+import React, { useState } from "react";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import PlateDecoderForm from "@/components/lookup/PlateDecoderForm";
+import ManualEntryForm from "@/components/lookup/ManualEntryForm";
+import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
+import { MarketingBanner } from "@/components/marketing/MarketingBanner";
+import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export default function PlateLookupPage() {
   const [plateNumber, setPlateNumber] = useState<string | null>(null);
@@ -43,7 +54,24 @@ export default function PlateLookupPage() {
             ctaHref="/premium"
           />
 
+<<<<<<< HEAD
           <PlateDecoderForm onManualEntryClick={handleManualEntryClick} />
+=======
+          <PlateDecoderForm
+            onManualEntryClick={() => setShowManualEntry(true)}
+          />
+
+          {showManualEntry && (
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold mb-4">Manual Entry</h2>
+              <p className="text-gray-600 mb-6">
+                If you prefer, you can manually enter your vehicle details
+                below.
+              </p>
+              <ManualEntryForm onSubmit={handleManualSubmit} />
+            </div>
+          )}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         </div>
       </main>
       <Footer />

@@ -1,8 +1,7 @@
-
-import { DealerSignupForm } from '@/components/dealer/DealerSignupForm';
-import { Card } from '@/components/ui/card';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
+import { DealerSignupForm } from "@/components/dealer/DealerSignupForm";
+import { Card } from "@/components/ui/card";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 
 export default function DealerSignup() {
   return (

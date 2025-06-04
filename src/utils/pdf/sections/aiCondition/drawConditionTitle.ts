@@ -1,25 +1,24 @@
-
-import { PDFPage, PDFFont, Color } from 'pdf-lib';
+import { Color, PDFFont, PDFPage } from "pdf-lib";
 
 /**
  * Draw the condition title with appropriate styling
  */
 export function drawConditionTitle(
   page: PDFPage,
-  condition: 'Excellent' | 'Good' | 'Fair' | 'Poor' | null,
+  condition: "Excellent" | "Good" | "Fair" | "Poor" | null,
   yPosition: number,
   xPosition: number,
   boldFont: PDFFont,
-  conditionColor: Color
+  conditionColor: Color,
 ): void {
   if (!condition) return;
-  
+
   // Draw the condition title
   page.drawText(`Condition: ${condition}`, {
     x: xPosition,
     y: yPosition,
     size: 14,
     font: boldFont,
-    color: conditionColor
+    color: conditionColor,
   });
 }

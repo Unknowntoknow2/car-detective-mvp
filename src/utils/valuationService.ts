@@ -1,32 +1,36 @@
-
-import { AICondition } from '@/types/photo';
+import { AICondition } from "@/types/photo";
 
 /**
  * Get the best photo assessment for a valuation
  */
 export async function getBestPhotoAssessment(valuationId: string) {
   // This would normally fetch from an API or database
-  console.log('Getting photo assessment for:', valuationId);
-  
+  console.log("Getting photo assessment for:", valuationId);
+
   // Return mock data for now
   return {
     aiCondition: {
-      condition: 'Good',
+      condition: "Good",
       confidenceScore: 85,
+<<<<<<< HEAD
       issuesDetected: ['Minor scratches'],
       summary: 'Overall good condition with minor cosmetic issues'
+=======
+      issuesDetected: ["Minor scratches"],
+      aiSummary: "Overall good condition with minor cosmetic issues",
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     } as AICondition,
     photoScores: [
       {
-        url: 'https://example.com/photo1.jpg',
+        url: "https://example.com/photo1.jpg",
         score: 0.85,
-        isPrimary: true
+        isPrimary: true,
       },
       {
-        url: 'https://example.com/photo2.jpg',
-        score: 0.75
-      }
-    ]
+        url: "https://example.com/photo2.jpg",
+        score: 0.75,
+      },
+    ],
   };
 }
 

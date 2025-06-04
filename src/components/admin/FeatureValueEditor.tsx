@@ -1,8 +1,7 @@
-
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import React, { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -10,9 +9,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Loader2, Save, Trash, Plus } from 'lucide-react';
-import { toast } from 'sonner';
+} from "@/components/ui/table";
+import { Loader2, Plus, Save, Trash } from "lucide-react";
+import { toast } from "sonner";
 
 interface Feature {
   id: string;
@@ -26,11 +25,13 @@ export function FeatureValueEditor() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newFeature, setNewFeature] = useState({
-    name: '',
+    name: "",
     value_impact: 0,
-    category: 'premium',
+    category: "premium",
   });
-  const [editingFeature, setEditingFeature] = useState<{[key: string]: number}>({});
+  const [editingFeature, setEditingFeature] = useState<
+    { [key: string]: number }
+  >({});
 
   useEffect(() => {
     fetchFeatures();
@@ -40,16 +41,16 @@ export function FeatureValueEditor() {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
-        .from('features')
-        .select('*')
-        .order('category', { ascending: true })
-        .order('name', { ascending: true });
+        .from("features")
+        .select("*")
+        .order("category", { ascending: true })
+        .order("name", { ascending: true });
 
       if (error) throw error;
       setFeatures(data || []);
     } catch (err) {
-      console.error('Error fetching features:', err);
-      toast.error('Failed to load features');
+      console.error("Error fetching features:", err);
+      toast.error("Failed to load features");
     } finally {
       setIsLoading(false);
     }
@@ -65,32 +66,34 @@ export function FeatureValueEditor() {
 
   const saveFeatureValue = async (feature: Feature) => {
     if (!(feature.id in editingFeature)) return;
-    
+
     try {
       setIsSubmitting(true);
       const newValue = editingFeature[feature.id];
-      
+
       const { error } = await supabase
-        .from('features')
+        .from("features")
         .update({ value_impact: newValue })
-        .eq('id', feature.id);
+        .eq("id", feature.id);
 
       if (error) throw error;
-      
+
       // Update the local state
-      setFeatures(features.map(f => 
-        f.id === feature.id ? { ...f, value_impact: newValue } : f
-      ));
-      
+      setFeatures(
+        features.map((f) =>
+          f.id === feature.id ? { ...f, value_impact: newValue } : f
+        ),
+      );
+
       // Clear this feature from editing state
       const newEditingFeature = { ...editingFeature };
       delete newEditingFeature[feature.id];
       setEditingFeature(newEditingFeature);
-      
+
       toast.success(`Updated value for ${feature.name}`);
     } catch (err) {
-      console.error('Error updating feature:', err);
-      toast.error('Failed to update feature value');
+      console.error("Error updating feature:", err);
+      toast.error("Failed to update feature value");
     } finally {
       setIsSubmitting(false);
     }
@@ -98,39 +101,39 @@ export function FeatureValueEditor() {
 
   const addNewFeature = async () => {
     if (!newFeature.name.trim()) {
-      toast.error('Feature name is required');
+      toast.error("Feature name is required");
       return;
     }
 
     try {
       setIsSubmitting(true);
-      
+
       const { data, error } = await supabase
-        .from('features')
+        .from("features")
         .insert({
           name: newFeature.name.trim(),
           value_impact: newFeature.value_impact,
-          category: newFeature.category.trim() || 'premium',
+          category: newFeature.category.trim() || "premium",
         })
         .select()
         .single();
 
       if (error) throw error;
-      
+
       // Add the new feature to the list
       setFeatures([...features, data]);
-      
+
       // Reset the new feature form
       setNewFeature({
-        name: '',
+        name: "",
         value_impact: 0,
-        category: 'premium',
+        category: "premium",
       });
-      
+
       toast.success(`Added new feature: ${data.name}`);
     } catch (err) {
-      console.error('Error adding feature:', err);
-      toast.error('Failed to add new feature');
+      console.error("Error adding feature:", err);
+      toast.error("Failed to add new feature");
     } finally {
       setIsSubmitting(false);
     }
@@ -143,21 +146,21 @@ export function FeatureValueEditor() {
 
     try {
       setIsSubmitting(true);
-      
+
       const { error } = await supabase
-        .from('features')
+        .from("features")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
-      
+
       // Remove from local state
-      setFeatures(features.filter(f => f.id !== id));
-      
+      setFeatures(features.filter((f) => f.id !== id));
+
       toast.success(`Deleted feature: ${name}`);
     } catch (err) {
-      console.error('Error deleting feature:', err);
-      toast.error('Failed to delete feature');
+      console.error("Error deleting feature:", err);
+      toast.error("Failed to delete feature");
     } finally {
       setIsSubmitting(false);
     }
@@ -185,7 +188,8 @@ export function FeatureValueEditor() {
             <Input
               placeholder="Feature name"
               value={newFeature.name}
-              onChange={(e) => setNewFeature({...newFeature, name: e.target.value})}
+              onChange={(e) =>
+                setNewFeature({ ...newFeature, name: e.target.value })}
               disabled={isSubmitting}
             />
           </div>
@@ -194,7 +198,11 @@ export function FeatureValueEditor() {
               type="number"
               placeholder="Value ($)"
               value={newFeature.value_impact}
-              onChange={(e) => setNewFeature({...newFeature, value_impact: Number(e.target.value)})}
+              onChange={(e) =>
+                setNewFeature({
+                  ...newFeature,
+                  value_impact: Number(e.target.value),
+                })}
               disabled={isSubmitting}
             />
           </div>
@@ -202,17 +210,20 @@ export function FeatureValueEditor() {
             <Input
               placeholder="Category"
               value={newFeature.category}
-              onChange={(e) => setNewFeature({...newFeature, category: e.target.value})}
+              onChange={(e) =>
+                setNewFeature({ ...newFeature, category: e.target.value })}
               disabled={isSubmitting}
             />
           </div>
           <div className="col-span-1">
-            <Button 
-              onClick={addNewFeature} 
+            <Button
+              onClick={addNewFeature}
               disabled={isSubmitting || !newFeature.name.trim()}
               className="w-full"
             >
-              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              {isSubmitting
+                ? <Loader2 className="h-4 w-4 animate-spin" />
+                : <Plus className="h-4 w-4" />}
             </Button>
           </div>
         </div>
@@ -229,48 +240,58 @@ export function FeatureValueEditor() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {features.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                  No features found. Add your first feature above.
-                </TableCell>
-              </TableRow>
-            ) : (
-              features.map((feature) => (
-                <TableRow key={feature.id}>
-                  <TableCell className="font-medium">{feature.name}</TableCell>
-                  <TableCell>{feature.category}</TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      defaultValue={feature.value_impact}
-                      onChange={(e) => handleValueChange(feature.id, e.target.value)}
-                      className="w-28"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => saveFeatureValue(feature)}
-                        disabled={isSubmitting || !(feature.id in editingFeature)}
-                      >
-                        <Save className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => deleteFeature(feature.id, feature.name)}
-                        disabled={isSubmitting}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
+            {features.length === 0
+              ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="text-center py-8 text-muted-foreground"
+                  >
+                    No features found. Add your first feature above.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
+              )
+              : (
+                features.map((feature) => (
+                  <TableRow key={feature.id}>
+                    <TableCell className="font-medium">
+                      {feature.name}
+                    </TableCell>
+                    <TableCell>{feature.category}</TableCell>
+                    <TableCell>
+                      <Input
+                        type="number"
+                        defaultValue={feature.value_impact}
+                        onChange={(e) =>
+                          handleValueChange(feature.id, e.target.value)}
+                        className="w-28"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => saveFeatureValue(feature)}
+                          disabled={isSubmitting ||
+                            !(feature.id in editingFeature)}
+                        >
+                          <Save className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() =>
+                            deleteFeature(feature.id, feature.name)}
+                          disabled={isSubmitting}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
           </TableBody>
         </Table>
       </div>

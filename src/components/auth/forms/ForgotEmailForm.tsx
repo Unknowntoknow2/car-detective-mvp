@@ -1,9 +1,8 @@
-
-import { useState } from 'react';
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { toast } from 'sonner';
+import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 
@@ -12,22 +11,24 @@ interface ForgotEmailFormProps {
   setIsLoading: (loading: boolean) => void;
 }
 
-export const ForgotEmailForm = ({ isLoading, setIsLoading }: ForgotEmailFormProps) => {
-  const [phone, setPhone] = useState('');
-  const [error, setError] = useState('');
+export const ForgotEmailForm = (
+  { isLoading, setIsLoading }: ForgotEmailFormProps,
+) => {
+  const [phone, setPhone] = useState("");
+  const [error, setError] = useState("");
 
   const validatePhone = (value: string) => {
     // Basic international phone validation
     const phoneRegex = /^\+?[1-9]\d{9,14}$/;
     if (!value) {
-      setError('Phone number is required');
+      setError("Phone number is required");
       return false;
     }
     if (!phoneRegex.test(value)) {
-      setError('Please enter a valid international phone number');
+      setError("Please enter a valid international phone number");
       return false;
     }
-    setError('');
+    setError("");
     return true;
   };
 
@@ -40,11 +41,11 @@ export const ForgotEmailForm = ({ isLoading, setIsLoading }: ForgotEmailFormProp
     try {
       // Simulate API call
       setTimeout(() => {
-        toast.success('Account lookup successful', {
-          description: 'We found an account associated with this phone number.',
+        toast.success("Account lookup successful", {
+          description: "We found an account associated with this phone number.",
         });
-        toast.info('Associated username', {
-          description: 'm****@gmail.com',
+        toast.info("Associated username", {
+          description: "m****@gmail.com",
         });
       }, 1500);
     } finally {
@@ -69,9 +70,7 @@ export const ForgotEmailForm = ({ isLoading, setIsLoading }: ForgotEmailFormProp
           className="rounded-xl transition-all duration-200"
           required
         />
-        {error && (
-          <div className="text-sm text-destructive">{error}</div>
-        )}
+        {error && <div className="text-sm text-destructive">{error}</div>}
       </div>
       <Alert variant="default" className="bg-muted/50 text-sm">
         <Info className="h-4 w-4" />
@@ -79,13 +78,13 @@ export const ForgotEmailForm = ({ isLoading, setIsLoading }: ForgotEmailFormProp
           Enter your phone number and we'll look up your associated username.
         </AlertDescription>
       </Alert>
-      <Button 
-        type="button" 
-        className="w-full rounded-xl transition-all duration-200 shadow-sm hover:shadow-md" 
+      <Button
+        type="button"
+        className="w-full rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
         disabled={isLoading || !!error}
         onClick={handleSubmit}
       >
-        {isLoading ? 'Searching...' : 'Recover Username'}
+        {isLoading ? "Searching..." : "Recover Username"}
       </Button>
     </div>
   );

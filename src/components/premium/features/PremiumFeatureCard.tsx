@@ -1,14 +1,13 @@
-
-import { useState } from 'react';
+import { useState } from "react";
 import { HoverCard, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { LucideIcon } from 'lucide-react';
-import { FeatureBenefitsList } from './cards/FeatureBenefitsList';
-import { FeatureIcon } from './cards/FeatureIcon';
-import { FeatureHeader } from './cards/FeatureHeader';
+import { LucideIcon } from "lucide-react";
+import { FeatureBenefitsList } from "./cards/FeatureBenefitsList";
+import { FeatureIcon } from "./cards/FeatureIcon";
+import { FeatureHeader } from "./cards/FeatureHeader";
 
 interface PremiumFeatureCardProps {
   icon: LucideIcon;
@@ -29,7 +28,7 @@ export function PremiumFeatureCard({
   color,
   benefits,
   onSelect,
-  isSelected
+  isSelected,
 }: PremiumFeatureCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -41,18 +40,20 @@ export function PremiumFeatureCard({
     indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
     rose: "bg-rose-50 text-rose-600 border-rose-100",
     cyan: "bg-cyan-50 text-cyan-600 border-cyan-100",
-    amber: "bg-amber-50 text-amber-600 border-amber-100"
+    amber: "bg-amber-50 text-amber-600 border-amber-100",
   };
 
   return (
     <HoverCard openDelay={200}>
       <HoverCardTrigger asChild>
-        <Card 
+        <Card
           className={cn(
             "relative overflow-hidden transition-all duration-300 cursor-pointer",
             "border-2",
-            isSelected ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/30",
-            isHovered ? "transform -translate-y-1 shadow-lg" : "shadow-md"
+            isSelected
+              ? "border-primary ring-2 ring-primary/20"
+              : "border-border hover:border-primary/30",
+            isHovered ? "transform -translate-y-1 shadow-lg" : "shadow-md",
           )}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -62,21 +63,23 @@ export function PremiumFeatureCard({
             <div className="flex items-start gap-4">
               <FeatureIcon Icon={icon} colorClass={colorVariants[color]} />
               <div className="space-y-2 flex-1">
-                <FeatureHeader 
-                  title={title} 
-                  value={value} 
-                  colorClass={colorVariants[color]} 
+                <FeatureHeader
+                  title={title}
+                  value={value}
+                  colorClass={colorVariants[color]}
                 />
                 <p className="text-sm text-slate-600">{description}</p>
               </div>
             </div>
-            
-            <div className={cn(
-              "mt-4 pt-4 border-t transition-all duration-300",
-              isHovered ? "opacity-100" : "opacity-0"
-            )}>
-              <Button 
-                variant="ghost" 
+
+            <div
+              className={cn(
+                "mt-4 pt-4 border-t transition-all duration-300",
+                isHovered ? "opacity-100" : "opacity-0",
+              )}
+            >
+              <Button
+                variant="ghost"
                 className="w-full justify-between hover:bg-primary/5"
               >
                 Learn More <ArrowRight className="h-4 w-4" />
@@ -85,7 +88,7 @@ export function PremiumFeatureCard({
           </CardContent>
         </Card>
       </HoverCardTrigger>
-      
+
       <FeatureBenefitsList benefits={benefits} />
     </HoverCard>
   );

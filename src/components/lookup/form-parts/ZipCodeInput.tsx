@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { ZipCodeInput as CommonZipCodeInput } from '@/components/common/ZipCodeInput';
+import React from "react";
+import { ZipCodeInput as CommonZipCodeInput } from "@/components/common/ZipCodeInput";
 
 interface ZipCodeInputProps {
   zipCode: string;
@@ -11,7 +10,7 @@ interface ZipCodeInputProps {
 export const ZipCodeInput: React.FC<ZipCodeInputProps> = ({
   zipCode,
   setZipCode,
-  isDisabled = false
+  isDisabled = false,
 }) => {
   return (
     <CommonZipCodeInput

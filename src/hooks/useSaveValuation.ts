@@ -1,6 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/components/auth/AuthContext";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -27,9 +26,9 @@ export const useSaveValuation = () => {
 
     setIsSaving(true);
     try {
-      const { error } = await supabase.from('saved_valuations').insert({
+      const { error } = await supabase.from("saved_valuations").insert({
         user_id: user.id,
-        ...valuationData
+        ...valuationData,
       });
 
       if (error) throw error;

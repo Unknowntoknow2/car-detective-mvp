@@ -1,9 +1,8 @@
-
 import { z } from "zod";
-import { VinSchema, PlateSchema } from "./validation/schemas";
+import { PlateSchema, VinSchema } from "./validation/schemas";
 
 export const VehicleLookupSchema = z.object({
-  mode: z.enum(['vin', 'plate', 'manual']).default('vin'),
+  mode: z.enum(["vin", "plate", "manual"]).default("vin"),
   lookupValue: z.string().optional(),
   manual: z.object({
     make: z.string().min(1, "Make is required"),

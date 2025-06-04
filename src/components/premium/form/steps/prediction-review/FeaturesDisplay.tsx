@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Check } from 'lucide-react';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Check } from "lucide-react";
 
 interface FeaturesDisplayProps {
   features: string[];

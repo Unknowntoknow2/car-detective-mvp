@@ -1,4 +1,3 @@
-
 export interface Valuation {
   id: string;
   created_at: string;
@@ -13,7 +12,7 @@ export interface Valuation {
   zip_code: string;
   estimated_value: number;
   confidence_score: number;
-  status: 'pending' | 'completed' | 'error';
+  status: "pending" | "completed" | "error";
   error_message?: string;
   is_premium: boolean;
   paid_at?: string;
@@ -30,7 +29,7 @@ export interface ValuationRowProps {
 }
 
 export interface ValuationFilter {
-  status?: 'all' | 'pending' | 'completed' | 'error';
+  status?: "all" | "pending" | "completed" | "error";
   dateRange?: [Date | null, Date | null];
   premium?: boolean;
   search?: string;

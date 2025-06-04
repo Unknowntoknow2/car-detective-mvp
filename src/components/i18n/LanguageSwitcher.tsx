@@ -1,5 +1,4 @@
-
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,9 +9,9 @@ import {
 import { Languages } from "lucide-react";
 
 const languages = [
-  { code: 'en', label: 'English' },
-  { code: 'es', label: 'Español' },
-  { code: 'ar', label: 'العربية' }
+  { code: "en", label: "English" },
+  { code: "es", label: "Español" },
+  { code: "ar", label: "العربية" },
 ];
 
 export function LanguageSwitcher() {
@@ -21,7 +20,7 @@ export function LanguageSwitcher() {
   const switchLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
     // Set RTL/LTR
-    document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = lng === "ar" ? "rtl" : "ltr";
   };
 
   return (

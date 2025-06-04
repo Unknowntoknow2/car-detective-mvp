@@ -101,12 +101,12 @@ export default {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
           primary: "hsl(var(--sidebar-primary))",
-          'primary-foreground': "hsl(var(--sidebar-primary-foreground))",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
           accent: "hsl(var(--sidebar-accent))",
-          'accent-foreground': "hsl(var(--sidebar-accent-foreground))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))"
-        }
+          ring: "hsl(var(--sidebar-ring))",
+        },
       },
       fontSize: {
         "page-title": ["42px", { lineHeight: "54px", fontWeight: "700" }],
@@ -128,14 +128,19 @@ export default {
       },
       boxShadow: {
         "sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-        "md": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-        "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-        "xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+        "md":
+          "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+        "lg":
+          "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+        "xl":
+          "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
         "2xl": "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
         "inner": "inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)",
         "glass": "0 8px 32px 0 rgba(31, 38, 135, 0.15)",
-        "btn": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-        "hover": "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+        "btn":
+          "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+        "hover":
+          "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
         "none": "none",
       },
       borderRadius: {
@@ -178,7 +183,7 @@ export default {
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
-        }
+        },
       },
       animation: {
         "fade-in": "fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -188,26 +193,27 @@ export default {
         "float": "float 3s ease-in-out infinite",
         "shimmer": "shimmer 3s ease-in-out infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out"
+        "accordion-up": "accordion-up 0.2s ease-out",
       },
       backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-        'gradient-card': 'linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%)',
-        'gradient-primary': 'linear-gradient(90deg, #0062FF 0%, #60A5FA 100%)',
-        'gradient-success': 'linear-gradient(90deg, #10B981 0%, #34D399 100%)',
-        'gradient-warning': 'linear-gradient(90deg, #F59E0B 0%, #FBBF24 100%)',
-        'gradient-error': 'linear-gradient(90deg, #EF4444 0%, #F87171 100%)',
-        'gradient-neumorph': 'linear-gradient(145deg, #f3f4f6, #ffffff)',
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "gradient-conic":
+          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+        "gradient-card": "linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%)",
+        "gradient-primary": "linear-gradient(90deg, #0062FF 0%, #60A5FA 100%)",
+        "gradient-success": "linear-gradient(90deg, #10B981 0%, #34D399 100%)",
+        "gradient-warning": "linear-gradient(90deg, #F59E0B 0%, #FBBF24 100%)",
+        "gradient-error": "linear-gradient(90deg, #EF4444 0%, #F87171 100%)",
+        "gradient-neumorph": "linear-gradient(145deg, #f3f4f6, #ffffff)",
       },
       backdropFilter: {
-        'none': 'none',
-        'blur': 'blur(20px)',
+        "none": "none",
+        "blur": "blur(20px)",
       },
       borderColor: {
-        'border-dark': 'hsl(var(--border) / 0.7)',
-      }
-    }
+        "border-dark": "hsl(var(--border) / 0.7)",
+      },
+    },
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;

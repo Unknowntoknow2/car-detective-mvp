@@ -1,14 +1,13 @@
-
 /* Mobile optimizations for premium page */
 @media (max-width: 768px) {
   .premium-hero {
     padding: 2rem 1rem;
   }
-  
+
   .premium-feature-card {
     padding: 1rem;
   }
-  
+
   .premium-pricing-card {
     margin: 0 1rem;
   }
@@ -43,7 +42,9 @@
 
 .premium-card-hover:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 /* Custom scrollbar for premium page */

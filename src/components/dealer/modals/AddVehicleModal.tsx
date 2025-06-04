@@ -1,13 +1,12 @@
-
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import AddEditVehicleForm from '../AddEditVehicleForm';
+} from "@/components/ui/dialog";
+import AddEditVehicleForm from "../AddEditVehicleForm";
 
 interface AddVehicleModalProps {
   open: boolean;
@@ -15,10 +14,10 @@ interface AddVehicleModalProps {
   onVehicleAdded?: () => void;
 }
 
-const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ 
-  open, 
+const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
+  open,
   onOpenChange,
-  onVehicleAdded
+  onVehicleAdded,
 }) => {
   const handleSuccess = () => {
     onOpenChange(false);

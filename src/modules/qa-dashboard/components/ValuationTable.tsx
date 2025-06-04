@@ -1,8 +1,14 @@
-
-import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ValuationRow } from './ValuationRow';
-import { Valuation, ValuationRowProps } from '../types';
+import React from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ValuationRow } from "./ValuationRow";
+import { Valuation, ValuationRowProps } from "../types";
 
 interface ValuationTableProps {
   valuations: Valuation[];
@@ -21,7 +27,7 @@ export function ValuationTable({
   onRerunGPT,
   onGeneratePDF,
   onDownloadPDF,
-  onViewStripeStatus
+  onViewStripeStatus,
 }: ValuationTableProps) {
   if (isLoading) {
     return <div className="text-center py-4">Loading valuations...</div>;

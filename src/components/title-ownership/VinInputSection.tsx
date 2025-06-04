@@ -1,9 +1,8 @@
-
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { AlertCircle, Search, Loader2 } from 'lucide-react';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { AlertCircle, Loader2, Search } from "lucide-react";
 
 interface VinInputSectionProps {
   vin: string;
@@ -13,12 +12,20 @@ interface VinInputSectionProps {
   readonly?: boolean;
 }
 
+<<<<<<< HEAD
 export function VinInputSection({ 
   vin, 
   isLoading, 
   onVinChange, 
   onFetchHistory,
   readonly = false
+=======
+export function VinInputSection({
+  vin,
+  isLoading,
+  onVinChange,
+  onFetchHistory,
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }: VinInputSectionProps) {
   // Validate VIN format (17 characters, no I, O, Q)
   const isValidVin = (vin: string) => {
@@ -53,11 +60,9 @@ export function VinInputSection({
           onClick={handleFetchHistory}
           disabled={!vin || isLoading || !isValidVin(vin) || readonly}
         >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Search className="h-4 w-4 mr-2" />
-          )}
+          {isLoading
+            ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            : <Search className="h-4 w-4 mr-2" />}
           Fetch History
         </Button>
       </div>

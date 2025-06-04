@@ -1,53 +1,67 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertCircle, CheckCircle, Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { AlertCircle, CheckCircle, Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TitleStatusFactorCardProps {
   value: string;
   onChange: (value: string) => void;
 }
 
-export function TitleStatusFactorCard({ value, onChange }: TitleStatusFactorCardProps) {
+export function TitleStatusFactorCard(
+  { value, onChange }: TitleStatusFactorCardProps,
+) {
   const getTitleStatusInfo = (status: string) => {
     switch (status) {
-      case 'Clean':
+      case "Clean":
         return {
-          description: 'Vehicle has no title issues, accidents, or major damage',
+          description:
+            "Vehicle has no title issues, accidents, or major damage",
           icon: <CheckCircle className="h-4 w-4 text-green-500" />,
-          impact: 'No negative impact on value'
+          impact: "No negative impact on value",
         };
-      case 'Rebuilt':
+      case "Rebuilt":
         return {
-          description: 'Vehicle was previously damaged and has been rebuilt',
+          description: "Vehicle was previously damaged and has been rebuilt",
           icon: <AlertCircle className="h-4 w-4 text-amber-500" />,
-          impact: 'Reduces value by approximately 20-30%'
+          impact: "Reduces value by approximately 20-30%",
         };
-      case 'Salvage':
+      case "Salvage":
         return {
-          description: 'Vehicle was declared a total loss by insurance',
+          description: "Vehicle was declared a total loss by insurance",
           icon: <AlertCircle className="h-4 w-4 text-red-500" />,
-          impact: 'Reduces value by approximately 50% or more'
+          impact: "Reduces value by approximately 50% or more",
         };
-      case 'Lemon':
+      case "Lemon":
         return {
-          description: 'Vehicle had significant defects and was bought back by manufacturer',
+          description:
+            "Vehicle had significant defects and was bought back by manufacturer",
           icon: <AlertCircle className="h-4 w-4 text-red-500" />,
-          impact: 'Reduces value by approximately 25-40%'
+          impact: "Reduces value by approximately 25-40%",
         };
-      case 'Flood':
+      case "Flood":
         return {
-          description: 'Vehicle sustained water damage from flooding',
+          description: "Vehicle sustained water damage from flooding",
           icon: <AlertCircle className="h-4 w-4 text-red-500" />,
-          impact: 'Reduces value by approximately 40-60%'
+          impact: "Reduces value by approximately 40-60%",
         };
       default:
         return {
-          description: 'No specific title status information available',
+          description: "No specific title status information available",
           icon: <Info className="h-4 w-4 text-gray-500" />,
-          impact: 'Impact unknown'
+          impact: "Impact unknown",
         };
     }
   };
@@ -57,7 +71,7 @@ export function TitleStatusFactorCard({ value, onChange }: TitleStatusFactorCard
   return (
     <div className="rounded-2xl shadow p-4 bg-white">
       <h3 className="text-xl font-semibold mb-4">Title Status</h3>
-      
+
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger>
           <SelectValue placeholder="Select title status" />
@@ -70,15 +84,17 @@ export function TitleStatusFactorCard({ value, onChange }: TitleStatusFactorCard
           <SelectItem value="Flood">Flood/Water Damage</SelectItem>
         </SelectContent>
       </Select>
-      
+
       <div className="mt-4 bg-muted/40 p-3 rounded-md">
         <div className="flex items-center gap-2 mb-2">
           {statusInfo.icon}
           <span className="font-medium">{value} Title</span>
         </div>
-        
-        <p className="text-sm text-muted-foreground mb-2">{statusInfo.description}</p>
-        
+
+        <p className="text-sm text-muted-foreground mb-2">
+          {statusInfo.description}
+        </p>
+
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger className="text-sm flex items-center text-muted-foreground underline underline-offset-2">

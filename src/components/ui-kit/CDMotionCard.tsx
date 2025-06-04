@@ -1,8 +1,7 @@
-
-import React from 'react';
-import { motion, MotionProps } from 'framer-motion';
-import { CDCard, CDCardBody, CDCardHeader, CDCardFooter } from './CDCard';
-import { shouldReduceMotion } from '@/components/animations/utils';
+import React from "react";
+import { motion, MotionProps } from "framer-motion";
+import { CDCard, CDCardBody, CDCardFooter, CDCardHeader } from "./CDCard";
+import { shouldReduceMotion } from "@/components/animations/utils";
 
 interface CDMotionCardProps {
   children: React.ReactNode;
@@ -26,18 +25,18 @@ export const CDMotionCard: React.FC<CDMotionCardProps> = ({
   onClick,
 }) => {
   const reduceMotion = shouldReduceMotion();
-  
+
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
-      transition: { 
+      transition: {
         duration: 0.5,
         delay: reduceMotion ? 0 : delay,
-        ease: "easeOut"
-      }
-    }
+        ease: "easeOut",
+      },
+    },
   };
 
   if (interactive) {
@@ -50,7 +49,7 @@ export const CDMotionCard: React.FC<CDMotionCardProps> = ({
         whileTap={reduceMotion ? undefined : { y: 0 }}
         {...motionProps}
       >
-        <CDCard 
+        <CDCard
           className={className}
           variant={variant}
           padding={padding}
@@ -71,7 +70,7 @@ export const CDMotionCard: React.FC<CDMotionCardProps> = ({
       whileHover={reduceMotion ? undefined : { y: -5 }}
       {...motionProps}
     >
-      <CDCard 
+      <CDCard
         className={className}
         variant={variant}
         padding={padding}
@@ -83,4 +82,4 @@ export const CDMotionCard: React.FC<CDMotionCardProps> = ({
 };
 
 // Re-export card subcomponents
-export { CDCardBody, CDCardHeader, CDCardFooter };
+export { CDCardBody, CDCardFooter, CDCardHeader };

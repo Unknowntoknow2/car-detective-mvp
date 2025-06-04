@@ -1,7 +1,6 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 interface VehicleDetailsCardProps {
   make?: string;
@@ -30,11 +29,11 @@ export function VehicleDetailsCard({
   fuelType,
   color,
   transmission,
-  zipCode
+  zipCode,
 }: VehicleDetailsCardProps) {
   // Format mileage with commas
-  const formattedMileage = mileage ? mileage.toLocaleString() : 'N/A';
-  
+  const formattedMileage = mileage ? mileage.toLocaleString() : "N/A";
+
   return (
     <Card className="border-primary/20">
       <CardHeader className="pb-3">
@@ -46,11 +45,14 @@ export function VehicleDetailsCard({
             <DetailItem label="Make" value={make} />
             <DetailItem label="Model" value={model} />
             <DetailItem label="Year" value={year?.toString()} />
-            <DetailItem label="Mileage" value={mileage ? `${formattedMileage} miles` : 'N/A'} />
+            <DetailItem
+              label="Mileage"
+              value={mileage ? `${formattedMileage} miles` : "N/A"}
+            />
             <DetailItem label="Condition" value={condition} capitalize />
             {trim && <DetailItem label="Trim" value={trim} />}
           </div>
-          
+
           {(bodyType || fuelType || color || transmission) && (
             <>
               <Separator />
@@ -58,18 +60,20 @@ export function VehicleDetailsCard({
                 {bodyType && <DetailItem label="Body Style" value={bodyType} />}
                 {fuelType && <DetailItem label="Fuel Type" value={fuelType} />}
                 {color && <DetailItem label="Color" value={color} capitalize />}
-                {transmission && <DetailItem label="Transmission" value={transmission} />}
+                {transmission && (
+                  <DetailItem label="Transmission" value={transmission} />
+                )}
               </div>
             </>
           )}
-          
+
           {vin && (
             <>
               <Separator />
               <DetailItem label="VIN" value={vin} fullWidth />
             </>
           )}
-          
+
           {zipCode && (
             <>
               <Separator />
@@ -89,13 +93,15 @@ interface DetailItemProps {
   fullWidth?: boolean;
 }
 
-function DetailItem({ label, value, capitalize = false, fullWidth = false }: DetailItemProps) {
+function DetailItem(
+  { label, value, capitalize = false, fullWidth = false }: DetailItemProps,
+) {
   if (!value) return null;
-  
-  const classes = capitalize ? 'capitalize' : '';
-  
+
+  const classes = capitalize ? "capitalize" : "";
+
   return (
-    <div className={fullWidth ? 'col-span-2' : ''}>
+    <div className={fullWidth ? "col-span-2" : ""}>
       <p className="text-sm text-muted-foreground">{label}:</p>
       <p className={`font-medium text-sm ${classes}`}>{value}</p>
     </div>

@@ -1,20 +1,19 @@
-
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface PriceDisplayProps {
   className?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
 }
 
-export function PriceDisplay({ className, size = 'md' }: PriceDisplayProps) {
+export function PriceDisplay({ className, size = "md" }: PriceDisplayProps) {
   const price = 29.99;
-  
+
   const sizeClasses = {
-    sm: 'text-sm',
-    md: 'text-base',
-    lg: 'text-xl'
+    sm: "text-sm",
+    md: "text-base",
+    lg: "text-xl",
   };
 
   return (

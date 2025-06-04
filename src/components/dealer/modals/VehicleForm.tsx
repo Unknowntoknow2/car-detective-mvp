@@ -1,8 +1,7 @@
-
-import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
-import { VehicleFormData } from '../schemas/vehicleSchema';
-import { X, Upload } from 'lucide-react';
+import React from "react";
+import { UseFormReturn } from "react-hook-form";
+import { VehicleFormData } from "../schemas/vehicleSchema";
+import { Upload, X } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -20,8 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { useVehicleSelectors } from '@/hooks/useVehicleSelectors';
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { useVehicleSelectors } from "@/hooks/useVehicleSelectors";
 
 interface VehicleFormProps {
   form: UseFormReturn<VehicleFormData>;
@@ -36,25 +35,29 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
   onSubmit,
   photoUrls,
   handlePhotoUpload,
-  removePhoto
+  removePhoto,
 }) => {
-  const { 
-    makes, 
-    models, 
-    selectedMakeId, 
+  const {
+    makes,
+    models,
+    selectedMakeId,
     setSelectedMakeId,
-    getYearOptions 
+    getYearOptions,
   } = useVehicleSelectors();
 
   const yearOptions = getYearOptions(1990);
 
   return (
     <Form {...form}>
-      <form id="vehicle-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        id="vehicle-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6"
+      >
         {/* Vehicle Information Section */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Vehicle Information</h3>
-          
+
           {/* Make and Model */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
@@ -63,14 +66,14 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Make*</FormLabel>
-                  <Select 
+                  <Select
                     onValueChange={(value) => {
                       field.onChange(value);
-                      const makeObj = makes.find(m => m.make_name === value);
+                      const makeObj = makes.find((m) => m.make_name === value);
                       if (makeObj) {
                         setSelectedMakeId(makeObj.id);
                       }
-                    }} 
+                    }}
                     defaultValue={field.value}
                   >
                     <FormControl>
@@ -97,8 +100,8 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Model*</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                     disabled={!selectedMakeId || models.length === 0}
                   >
@@ -129,8 +132,8 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Year*</FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(parseInt(value))} 
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
                     defaultValue={field.value.toString()}
                   >
                     <FormControl>
@@ -158,15 +161,17 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                 <FormItem>
                   <FormLabel>Mileage</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      placeholder="e.g., 25000" 
+                    <Input
+                      type="number"
+                      placeholder="e.g., 25000"
                       {...field}
                       onChange={(e) => {
-                        const value = e.target.value ? parseInt(e.target.value) : null;
+                        const value = e.target.value
+                          ? parseInt(e.target.value)
+                          : null;
                         field.onChange(value);
                       }}
-                      value={field.value === null ? '' : field.value}
+                      value={field.value === null ? "" : field.value}
                     />
                   </FormControl>
                   <FormDescription>Leave empty if unknown</FormDescription>
@@ -185,12 +190,14 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                 <FormItem>
                   <FormLabel>Price ($)*</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      placeholder="e.g., 15000" 
+                    <Input
+                      type="number"
+                      placeholder="e.g., 15000"
                       {...field}
                       onChange={(e) => {
-                        const value = e.target.value ? parseFloat(e.target.value) : 0;
+                        const value = e.target.value
+                          ? parseFloat(e.target.value)
+                          : 0;
                         field.onChange(value);
                       }}
                     />
@@ -206,7 +213,10 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Condition*</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select condition" />
@@ -233,8 +243,8 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Transmission</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value || undefined}
                   >
                     <FormControl>
@@ -258,8 +268,8 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Fuel Type</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value || undefined}
                   >
                     <FormControl>
@@ -289,8 +299,8 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                 <FormItem>
                   <FormLabel>Zip Code</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="e.g., 90210" 
+                    <Input
+                      placeholder="e.g., 90210"
                       {...field}
                       maxLength={10}
                     />
@@ -306,7 +316,10 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status*</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
@@ -328,23 +341,24 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
         {/* Photo Upload Section */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Vehicle Photos</h3>
-          
+
           <div className="flex flex-col gap-4">
             {/* Photo Preview Grid */}
             {photoUrls.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {photoUrls.map((url, index) => (
                   <div key={index} className="relative group">
-                    <AspectRatio ratio={4/3}>
-                      <img 
-                        src={url} 
+                    <AspectRatio ratio={4 / 3}>
+                      <img
+                        src={url}
                         alt={`Vehicle preview ${index + 1}`}
-                        className="object-cover w-full h-full rounded-md" 
+                        className="object-cover w-full h-full rounded-md"
                       />
                     </AspectRatio>
                     <button
                       type="button"
-                      onClick={() => removePhoto(index)}
+                      onClick={() =>
+                        removePhoto(index)}
                       className="absolute top-1 right-1 bg-black/70 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X size={14} />
@@ -353,23 +367,24 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
                 ))}
               </div>
             )}
-            
+
             {/* Upload Button */}
             <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
                 <Upload className="w-8 h-8 mb-2 text-gray-500" />
                 <p className="mb-1 text-sm text-gray-500">
-                  <span className="font-semibold">Click to upload</span> or drag and drop
+                  <span className="font-semibold">Click to upload</span>{" "}
+                  or drag and drop
                 </p>
                 <p className="text-xs text-gray-500">
                   JPEG, PNG or WebP (max 5 photos, 10MB each)
                 </p>
               </div>
-              <input 
-                type="file" 
-                className="hidden" 
-                accept="image/*" 
-                multiple 
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
+                multiple
                 onChange={handlePhotoUpload}
               />
             </label>

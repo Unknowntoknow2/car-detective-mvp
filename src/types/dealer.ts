@@ -1,4 +1,3 @@
-
 export interface DealerSignupData {
   email: string;
   password: string;
@@ -13,7 +12,7 @@ export interface Dealer {
   contact_name: string;
   phone?: string;
   email: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   created_at: string;
   updated_at: string;
 }
@@ -25,7 +24,7 @@ export interface DealerOffer {
   report_id: string;
   offer_amount: number;
   message?: string;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: "pending" | "accepted" | "rejected";
   created_at: string;
   updated_at: string;
 }

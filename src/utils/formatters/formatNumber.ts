@@ -1,4 +1,3 @@
-
 /**
  * Format a number with thousands separators and decimals
  * @param value - The numeric value to format
@@ -6,6 +5,7 @@
  * @param locale - The locale to use (default: en-US)
  * @returns Formatted number string
  */
+<<<<<<< HEAD
 export const formatNumber = (
   value: number | null | undefined,
   decimals: number = 0,
@@ -93,3 +93,15 @@ export const formatCompactNumber = (
     return num.toFixed(decimals);
   }
 };
+=======
+export function formatNumber(number: number, decimals: number = 0): string {
+  if (number === null || number === undefined || isNaN(number)) {
+    return "0";
+  }
+
+  return number.toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)

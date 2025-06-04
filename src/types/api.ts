@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 
 import { DecodedVehicleInfo } from './vehicle';
+=======
+import { PlateLookupInfo } from "./lookup";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export interface VinDecoderResponse {
   success: boolean;

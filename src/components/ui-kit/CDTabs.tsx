@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -42,11 +41,13 @@ export const CDTabs: React.FC<TabsProps> = ({
 }) => {
   // For uncontrolled usage
   const [localValue, setLocalValue] = useState(
-    defaultValue || (items.length > 0 ? items[0].value : "")
+    defaultValue || (items.length > 0 ? items[0].value : ""),
   );
 
   // Use controlled value if provided, otherwise use local state
-  const activeValue = controlledValue !== undefined ? controlledValue : localValue;
+  const activeValue = controlledValue !== undefined
+    ? controlledValue
+    : localValue;
 
   // Find the active tab
   const activeTab = items.find((item) => item.value === activeValue);
@@ -63,17 +64,20 @@ export const CDTabs: React.FC<TabsProps> = ({
   const variantClasses = {
     underline: {
       tabs: "border-b border-neutral-light",
-      tab: "border-b-2 border-transparent hover:border-neutral-dark [&[data-state=active]]:border-primary",
+      tab:
+        "border-b-2 border-transparent hover:border-neutral-dark [&[data-state=active]]:border-primary",
       indicator: "bg-primary",
     },
     boxed: {
       tabs: "p-1 bg-neutral-lighter rounded-lg",
-      tab: "rounded-md [&[data-state=active]]:bg-white [&[data-state=active]]:shadow-sm",
+      tab:
+        "rounded-md [&[data-state=active]]:bg-white [&[data-state=active]]:shadow-sm",
       indicator: "rounded-md bg-white shadow-sm",
     },
     minimal: {
       tabs: "",
-      tab: "border-b-2 border-transparent hover:text-primary [&[data-state=active]]:text-primary [&[data-state=active]]:border-none",
+      tab:
+        "border-b-2 border-transparent hover:text-primary [&[data-state=active]]:text-primary [&[data-state=active]]:border-none",
       indicator: "bg-transparent",
     },
   };
@@ -103,7 +107,7 @@ export const CDTabs: React.FC<TabsProps> = ({
           "relative flex w-full",
           variantClasses[variant].tabs,
           alignmentClasses[alignment],
-          tabsClassName
+          tabsClassName,
         )}
       >
         {items.map((item) => (
@@ -121,7 +125,7 @@ export const CDTabs: React.FC<TabsProps> = ({
               sizeClasses[size],
               variantClasses[variant].tab,
               tabClassName,
-              fullWidth && "flex-1"
+              fullWidth && "flex-1",
             )}
           >
             {item.icon && <span className="size-4">{item.icon}</span>}
@@ -134,7 +138,7 @@ export const CDTabs: React.FC<TabsProps> = ({
           <motion.div
             className={cn(
               "absolute bottom-0 left-0 h-0.5 rounded-full",
-              variantClasses[variant].indicator
+              variantClasses[variant].indicator,
             )}
             initial={false}
             style={{

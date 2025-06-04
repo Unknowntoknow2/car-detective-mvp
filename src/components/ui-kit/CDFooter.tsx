@@ -1,4 +1,3 @@
-
 import React from "react";
 import { cn } from "@/lib/utils";
 import { Caption } from "./typography";
@@ -50,13 +49,13 @@ export const CDFooter: React.FC<FooterProps> = ({
           "w-full py-4",
           bordered && "border-t border-neutral-light",
           variantClasses[variant],
-          className
+          className,
         )}
       >
         <div
           className={cn(
             "px-4 md:px-6 mx-auto flex flex-col md:flex-row items-center justify-between gap-4",
-            containerClassName
+            containerClassName,
           )}
         >
           <div className="flex items-center gap-4">
@@ -90,13 +89,13 @@ export const CDFooter: React.FC<FooterProps> = ({
         "w-full py-8 md:py-12",
         bordered && "border-t border-neutral-light",
         variantClasses[variant],
-        className
+        className,
       )}
     >
       <div
         className={cn(
           "px-4 md:px-6 mx-auto",
-          containerClassName
+          containerClassName,
         )}
       >
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">

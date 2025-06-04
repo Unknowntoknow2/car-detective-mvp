@@ -1,11 +1,17 @@
-
-import React from 'react';
-import { Check, Tag } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
+import React from "react";
+import { Check, Tag } from "lucide-react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 export interface Feature {
   title: string;
@@ -16,7 +22,7 @@ export interface Feature {
 export interface PricingPlan {
   id: string;
   name: string;
-  price: number | 'Custom';
+  price: number | "Custom";
   description: string;
   popular?: boolean;
   features: Feature[];
@@ -31,13 +37,17 @@ interface PricingCardProps {
   delay?: number;
 }
 
-export const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, delay = 0 }) => {
-  const priceDisplay = typeof plan.price === 'number' 
-    ? `$${isYearly ? Math.floor(plan.price * 0.8) : plan.price}` 
+export const PricingCard: React.FC<PricingCardProps> = (
+  { plan, isYearly, delay = 0 },
+) => {
+  const priceDisplay = typeof plan.price === "number"
+    ? `$${isYearly ? Math.floor(plan.price * 0.8) : plan.price}`
     : plan.price;
-    
-  const billing = typeof plan.price === 'number' ? (isYearly ? '/year' : '/month') : '';
-  
+
+  const billing = typeof plan.price === "number"
+    ? (isYearly ? "/year" : "/month")
+    : "";
+
   const handleButtonClick = () => {
     toast.success(`You've selected the ${plan.name} plan! 🚀`);
   };
@@ -46,21 +56,23 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, delay 
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ 
-        type: "spring", 
-        stiffness: 300, 
-        damping: 15, 
-        delay: delay * 0.1 
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 15,
+        delay: delay * 0.1,
       }}
-      whileHover={{ 
+      whileHover={{
         y: -8,
-        transition: { type: "spring", stiffness: 200, damping: 10 }
+        transition: { type: "spring", stiffness: 200, damping: 10 },
       }}
       className="h-full"
     >
-      <Card 
+      <Card
         className={`h-full overflow-hidden transition-all duration-300 ${
-          plan.highlighted ? 'border-primary shadow-lg shadow-primary/10' : 'border-border'
+          plan.highlighted
+            ? "border-primary shadow-lg shadow-primary/10"
+            : "border-border"
         }`}
       >
         {plan.popular && (
@@ -71,7 +83,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, delay 
             </div>
           </div>
         )}
-        <CardHeader className={`pb-8 ${plan.popular ? 'pt-10' : 'pt-6'}`}>
+        <CardHeader className={`pb-8 ${plan.popular ? "pt-10" : "pt-6"}`}>
           <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
           <CardDescription className="mt-2 text-muted-foreground">
             {plan.description}
@@ -86,20 +98,28 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, delay 
         <CardContent className="space-y-4">
           <ul className="space-y-3">
             {plan.features.map((feature, index) => (
-              <motion.li 
+              <motion.li
                 key={index}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ 
+                transition={{
                   delay: delay * 0.1 + index * 0.05,
-                  duration: 0.2
+                  duration: 0.2,
                 }}
                 className="flex items-start"
               >
-                <div className={`mr-3 mt-1 ${feature.highlight ? 'text-primary' : 'text-green-500'}`}>
+                <div
+                  className={`mr-3 mt-1 ${
+                    feature.highlight ? "text-primary" : "text-green-500"
+                  }`}
+                >
                   <Check className="h-4 w-4" />
                 </div>
-                <span className={`text-sm ${feature.highlight ? 'font-medium text-foreground' : ''}`}>
+                <span
+                  className={`text-sm ${
+                    feature.highlight ? "font-medium text-foreground" : ""
+                  }`}
+                >
                   {feature.title}
                 </span>
               </motion.li>
@@ -111,9 +131,9 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, isYearly, delay 
             variant={plan.highlighted ? "default" : "outline"}
             size="lg"
             className={`w-full transition-all ${
-              plan.highlighted 
-                ? 'bg-primary hover:bg-primary/90 text-white shadow-sm' 
-                : 'hover:border-primary/50 hover:text-primary'
+              plan.highlighted
+                ? "bg-primary hover:bg-primary/90 text-white shadow-sm"
+                : "hover:border-primary/50 hover:text-primary"
             }`}
             onClick={handleButtonClick}
           >

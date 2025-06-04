@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,11 +14,27 @@ interface LookupTabsProps {
     onSubmit?: (data: any) => void;
     onVinLookup?: (vin: string) => void;
     onPlateLookup?: (data: { plate: string; state: string; zipCode: string }) => void;
+=======
+// src/components/premium/lookup/LookupTabs.tsx
+
+import React from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { VINLookupForm } from "@/components/lookup/vin/VINLookupForm";
+import { PlateLookup } from "@/components/lookup/PlateLookup";
+import { ManualLookup } from "@/components/premium/lookup/PremiumManualLookup";
+
+interface LookupTabsProps {
+  lookup: "vin" | "plate" | "manual";
+  onLookupChange: (value: "vin" | "plate" | "manual") => void;
+  formProps: {
+    onSubmit: (data: any) => void;
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     isLoading?: boolean;
     submitButtonText?: string;
   };
 }
 
+<<<<<<< HEAD
 export function LookupTabs({ lookup, onLookupChange, formProps }: LookupTabsProps) {
   // Define handlers for each type of lookup
   const handlePlateSubmit = (data: { plate: string; state: string; zipCode: string }) => {
@@ -53,6 +70,23 @@ export function LookupTabs({ lookup, onLookupChange, formProps }: LookupTabsProp
       <TabsList className="grid grid-cols-3 mb-6">
         <TabsTrigger value="vin">VIN Lookup</TabsTrigger>
         <TabsTrigger value="plate">Plate Lookup</TabsTrigger>
+=======
+export function LookupTabs({
+  lookup,
+  onLookupChange,
+  formProps,
+  onSubmit,
+}: LookupTabsProps) {
+  return (
+    <Tabs
+      value={lookup}
+      onValueChange={onLookupChange as (value: string) => void}
+      className="w-full"
+    >
+      <TabsList className="grid w-full grid-cols-3">
+        <TabsTrigger value="vin">VIN</TabsTrigger>
+        <TabsTrigger value="plate">License Plate</TabsTrigger>
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         <TabsTrigger value="manual">Manual Entry</TabsTrigger>
       </TabsList>
       

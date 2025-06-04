@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+=======
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export interface Make {
   id: string;
@@ -19,6 +24,7 @@ export function useMakeModels() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+<<<<<<< HEAD
   // Fetch all makes on hook initialization
   const fetchMakes = useCallback(async () => {
     try {
@@ -41,6 +47,42 @@ export function useMakeModels() {
     } finally {
       setIsLoading(false);
     }
+=======
+  // Load makes on initial component mount
+  useEffect(() => {
+    async function fetchMakes() {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const { data, error } = await supabase
+          .from("makes")
+          .select("id, make_name")
+          .order("make_name");
+
+        if (error) throw error;
+
+        // Update the type handling to match the actual structure of the makes table
+        // which appears to not have a logo_url column
+        const typedData: VehicleMake[] = data
+          ? data.map((make) => ({
+            id: make.id,
+            make_name: make.make_name,
+            logo_url: null, // Set logo_url to null since it doesn't exist in the database
+          }))
+          : [];
+
+        setMakes(typedData);
+      } catch (err: any) {
+        console.error("Error fetching makes:", err);
+        setError("Failed to load vehicle makes");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchMakes();
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   }, []);
 
   // Fetch models by make ID
@@ -58,6 +100,7 @@ export function useMakeModels() {
       setIsLoading(true);
       setError(null);
 
+<<<<<<< HEAD
       console.log('🔍 Fetching models for make_id:', makeId);
       console.log('🔍 Make ID type:', typeof makeId);
       console.log('🔍 Make ID length:', makeId.length);
@@ -122,6 +165,47 @@ export function useMakeModels() {
       console.error('❌ Error fetching models:', err);
       setError('Failed to load vehicle models');
       setModels([]);
+=======
+      const { data, error } = await supabase
+        .from("models")
+        .select("id, make_id, model_name")
+        .eq("make_id", makeId)
+        .order("model_name");
+
+      if (error) throw error;
+
+      setModels(data || []);
+      return data || [];
+    } catch (err: any) {
+      console.error("Error fetching models:", err);
+      setError("Failed to load vehicle models");
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to fetch trims for a specific model
+  const getTrimsByModelId = async (modelId: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase
+        .from("model_trims")
+        .select("id, model_id, trim_name, year, fuel_type, transmission")
+        .eq("model_id", modelId)
+        .order("trim_name");
+
+      if (error) throw error;
+
+      setTrims(data || []);
+      return data || [];
+    } catch (err: any) {
+      console.error("Error fetching trims:", err);
+      setError("Failed to load vehicle trims");
+      return [];
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     } finally {
       setIsLoading(false);
     }

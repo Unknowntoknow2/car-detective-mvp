@@ -1,5 +1,4 @@
-
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * Generate a unique ID
@@ -17,7 +16,7 @@ export function generateUniqueId(): string {
  */
 export function truncateString(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str;
-  return str.slice(0, maxLength) + '...';
+  return str.slice(0, maxLength) + "...";
 }
 
 /**
@@ -26,6 +25,6 @@ export function truncateString(str: string, maxLength: number): string {
  * @returns The capitalized string
  */
 export function capitalizeFirstLetter(str: string): string {
-  if (!str) return '';
+  if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1);
 }

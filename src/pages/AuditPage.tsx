@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +27,11 @@ const AuditPage = () => {
   if (userDetails?.role !== 'admin') {
     return <Navigate to="/dashboard" replace />;
   }
+=======
+import React from "react";
+import { AuditChecklist } from "@/components/audit/AuditChecklist";
+import { UserAuth } from "@/components/auth/UserAuth";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
   return (
     <div className="container mx-auto py-8 px-4">

@@ -1,8 +1,7 @@
-
-import React from 'react';
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from '@/lib/utils';
-import { AnimatedCounter } from './AnimatedCounter';
+import { cn } from "@/lib/utils";
+import { AnimatedCounter } from "./AnimatedCounter";
 
 interface StatsCardProps {
   title: string;
@@ -17,13 +16,13 @@ interface StatsCardProps {
   };
 }
 
-export function StatsCard({ 
-  title, 
-  value, 
-  icon, 
-  formatter = (val) => val.toLocaleString(), 
+export function StatsCard({
+  title,
+  value,
+  icon,
+  formatter = (val) => val.toLocaleString(),
   className,
-  trend 
+  trend,
 }: StatsCardProps) {
   return (
     <Card className={cn("overflow-hidden", className)}>
@@ -40,11 +39,18 @@ export function StatsCard({
             </div>
             {trend && (
               <div className="mt-1 flex items-center text-xs">
-                <span className={trend.isPositive ? "text-green-600" : "text-red-600"}>
-                  {trend.isPositive ? '+' : ''}{trend.value}%
+                <span
+                  className={trend.isPositive
+                    ? "text-green-600"
+                    : "text-red-600"}
+                >
+                  {trend.isPositive ? "+" : ""}
+                  {trend.value}%
                 </span>
                 {trend.label && (
-                  <span className="text-muted-foreground ml-1">{trend.label}</span>
+                  <span className="text-muted-foreground ml-1">
+                    {trend.label}
+                  </span>
                 )}
               </div>
             )}

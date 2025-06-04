@@ -1,15 +1,14 @@
-
-import React from 'react';
-import { BodyM } from '@/components/ui-kit/typography';
-import { Loader2 } from 'lucide-react';
-import styles from '../styles';
+import React from "react";
+import { BodyM } from "@/components/ui-kit/typography";
+import { Loader2 } from "lucide-react";
+import styles from "../styles";
 
 interface LoadingStateProps {
   message?: string;
 }
 
-const LoadingState: React.FC<LoadingStateProps> = ({ 
-  message = 'Loading valuation data...' 
+const LoadingState: React.FC<LoadingStateProps> = ({
+  message = "Loading valuation data...",
 }) => {
   return (
     <div className={styles.container}>

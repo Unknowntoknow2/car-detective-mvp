@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 
@@ -16,19 +15,19 @@ export function YearScroller({
   onYearChange,
   startYear = 1980,
   endYear = new Date().getFullYear() + 1,
-  disabled = false
+  disabled = false,
 }: YearScrollerProps) {
   const listRef = useRef<HTMLUListElement>(null);
   const years = Array.from(
     { length: endYear - startYear + 1 },
-    (_, i) => endYear - i
+    (_, i) => endYear - i,
   );
 
   useEffect(() => {
     const index = years.findIndex((y) => y === selectedYear);
     const node = listRef.current?.children[index] as HTMLElement;
     if (node) {
-      node.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      node.scrollIntoView({ block: "center", behavior: "smooth" });
     }
   }, [selectedYear, years]);
 

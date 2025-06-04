@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 
 import React from 'react';
+=======
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 import { TabsContent } from "@/components/ui/tabs";
 import { VinLookupTab } from "./VinLookupTab";
 import { PlateLookupTab } from "./PlateLookupTab";
@@ -39,8 +42,13 @@ export function TabContent({
   onManualSubmit
 }: TabContentProps) {
   return (
+<<<<<<< HEAD
     <>
       <TabsContent value="vin">
+=======
+    <div className="space-y-6">
+      <TabsContent value="vin" className="mt-0">
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         <VinLookupTab
           vinValue={vinValue}
           isLoading={isLoading}
@@ -61,13 +69,19 @@ export function TabContent({
           onLookup={onPlateLookup}
         />
       </TabsContent>
+<<<<<<< HEAD
       
       <TabsContent value="manual">
+=======
+
+      <TabsContent value="manual" className="mt-0">
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         <ManualEntryTab
           onSubmit={onManualSubmit}
           isLoading={isLoading}
         />
       </TabsContent>
+<<<<<<< HEAD
       
       <TabsContent value="photo">
         <PhotoLookupTab
@@ -77,5 +91,59 @@ export function TabContent({
         />
       </TabsContent>
     </>
+=======
+
+      <TabsContent value="photo" className="mt-0">
+        <PhotoUploadTab />
+      </TabsContent>
+
+      <TabsContent value="dealers" className="mt-0">
+        <DealerOffersTab
+          vehicleData={vehicle
+            ? {
+              make: vehicle.make,
+              model: vehicle.model,
+              year: vehicle.year,
+              trim: vehicle.trim,
+              vin: vinValue.length === 17 ? vinValue : undefined,
+            }
+            : undefined}
+        />
+      </TabsContent>
+
+      <TabsContent value="market" className="mt-0">
+        <MarketAnalysisTab
+          vehicleData={vehicle
+            ? {
+              make: vehicle.make,
+              model: vehicle.model,
+              year: vehicle.year,
+              trim: vehicle.trim,
+            }
+            : undefined}
+        />
+      </TabsContent>
+
+      <TabsContent value="forecast" className="mt-0">
+        <TwelveMonthForecastTab
+          vehicleData={vehicle
+            ? {
+              make: vehicle.make,
+              model: vehicle.model,
+              year: vehicle.year,
+              trim: vehicle.trim,
+              vin: vinValue.length === 17 ? vinValue : undefined,
+            }
+            : undefined}
+        />
+      </TabsContent>
+
+      <TabsContent value="carfax" className="mt-0">
+        <CarfaxReportTab
+          vin={vinValue.length === 17 ? vinValue : undefined}
+        />
+      </TabsContent>
+    </div>
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   );
 }

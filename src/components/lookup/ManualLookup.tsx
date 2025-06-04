@@ -1,9 +1,15 @@
+<<<<<<< HEAD
 
 import React, { useState } from 'react';
 import { ManualEntryFormFree } from './ManualEntryFormFree';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 import { ConditionLevel, ManualEntryFormData } from './types/manualEntry';
+=======
+import React from "react";
+import ManualEntryForm from "@/components/lookup/ManualEntryForm";
+import { Card, CardContent } from "@/components/ui/card";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface ManualLookupProps {
   onSubmit: (data: ManualEntryFormData) => void;
@@ -17,10 +23,15 @@ interface ManualLookupProps {
 export function ManualLookup({ 
   onSubmit, 
   isLoading = false,
+<<<<<<< HEAD
   submitButtonText,
   isPremium,
   initialData,
   onCancel
+=======
+  submitButtonText = "Get Valuation",
+  isPremium = false,
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }: ManualLookupProps) {
   
   const handleSubmit = async (formData: ManualEntryFormData) => {
@@ -96,5 +107,8 @@ export function ManualLookup({
     />
   );
 }
+<<<<<<< HEAD
 
 export default ManualLookup;
+=======
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)

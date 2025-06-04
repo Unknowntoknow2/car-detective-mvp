@@ -1,9 +1,14 @@
-
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const SettingsPage: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -12,9 +17,9 @@ const SettingsPage: React.FC = () => {
   const handleLogout = async () => {
     try {
       await signOut();
-      navigate('/');
+      navigate("/");
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error("Error signing out:", error);
     }
   };
 
@@ -27,7 +32,7 @@ const SettingsPage: React.FC = () => {
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-2xl font-bold mb-6">Account Settings</h1>
-      
+
       <div className="space-y-6">
         <Card>
           <CardHeader>
@@ -37,39 +42,60 @@ const SettingsPage: React.FC = () => {
           <CardContent>
             <div className="space-y-4">
               <div>
+<<<<<<< HEAD
                 <p className="text-sm font-medium text-gray-500">Email Address</p>
                 <p className="text-base">{user?.email || 'N/A'}</p>
+=======
+                <p className="text-sm font-medium text-gray-500">
+                  Email Address
+                </p>
+                <p className="text-base">{user?.email}</p>
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
               </div>
-              
+
               <div>
-                <p className="text-sm font-medium text-gray-500">Member Since</p>
+                <p className="text-sm font-medium text-gray-500">
+                  Member Since
+                </p>
                 <p className="text-base">
+<<<<<<< HEAD
                   {formatDate(user?.created_at)}
+=======
+                  {user?.created_at
+                    ? new Date(user.created_at).toLocaleDateString()
+                    : "N/A"}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
                 </p>
               </div>
-              
+
               <Button variant="outline">Edit Profile</Button>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Security</CardTitle>
-            <CardDescription>Manage your password and security settings</CardDescription>
+            <CardDescription>
+              Manage your password and security settings
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <Button variant="outline">Change Password</Button>
-              <Button variant="outline">Enable Two-Factor Authentication</Button>
+              <Button variant="outline">
+                Enable Two-Factor Authentication
+              </Button>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Preferences</CardTitle>
-            <CardDescription>Manage your notification and display preferences</CardDescription>
+            <CardDescription>
+              Manage your notification and display preferences
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -78,7 +104,7 @@ const SettingsPage: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Account Actions</CardTitle>

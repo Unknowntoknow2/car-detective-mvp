@@ -1,10 +1,9 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 .bg-grid-pattern {
-  background-image: url('/images/grid-pattern.svg');
+  background-image: url("/images/grid-pattern.svg");
   background-repeat: repeat;
   background-size: 50px 50px;
 }

@@ -1,13 +1,21 @@
-
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+<<<<<<< HEAD
 } from '@/components/ui/dialog';
 import AddEditVehicleForm from './AddEditVehicleForm';
+=======
+} from "@/components/ui/dialog";
+import AddEditVehicleForm from "./AddEditVehicleForm";
+import { VehicleFormData } from "./schemas/vehicleSchema";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { vehicleSchema } from "./schemas/vehicleSchema";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface AddVehicleModalProps {
   open: boolean;
@@ -15,11 +23,28 @@ interface AddVehicleModalProps {
   onVehicleAdded?: () => void;
 }
 
-const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ 
-  open, 
+const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
+  open,
   onOpenChange,
-  onVehicleAdded
+  onVehicleAdded,
 }) => {
+<<<<<<< HEAD
+=======
+  const form = useForm<VehicleFormData>({
+    resolver: zodResolver(vehicleSchema),
+    defaultValues: {
+      make: "",
+      model: "",
+      year: new Date().getFullYear(),
+      mileage: null,
+      price: 0,
+      condition: "Good",
+      status: "available",
+      photos: [],
+    },
+  });
+
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   const handleSuccess = () => {
     onOpenChange(false);
     if (onVehicleAdded) {

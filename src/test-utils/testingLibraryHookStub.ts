@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 /**
  * This is a custom stub for testing hooks without any external dependencies
@@ -45,3 +46,8 @@ export const act = jest.fn().mockImplementation((callback) => {
 // Provide additional testing utilities that might be needed
 export const cleanup = jest.fn();
 export const renderHookResult = jest.fn();
+=======
+// Create a stub for @testing-library/react-hooks if needed
+export const renderHook = jest.fn();
+export const act = jest.fn();
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)

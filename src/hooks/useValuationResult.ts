@@ -1,7 +1,11 @@
+<<<<<<< HEAD
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ValuationResult } from '@/types/valuation';
+=======
+import { useEffect, useState } from "react";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 // Helper function to validate UUID format
 const isValidUUID = (id: string): boolean => {
@@ -28,6 +32,7 @@ export function useValuationResult(valuationId: string) {
       let result = null;
       let apiError = null;
 
+<<<<<<< HEAD
       // First try to fetch by ID if it's a valid UUID
       if (isValidUUID(valuationId)) {
         console.log('Attempting fetch by UUID:', valuationId);
@@ -54,6 +59,79 @@ export function useValuationResult(valuationId: string) {
         
         result = response.data;
         apiError = response.error;
+=======
+      try {
+        // Try to get data from localStorage first (for demo purposes)
+        const storedData = localStorage.getItem(`valuation_${valuationId}`);
+
+        if (storedData) {
+          const parsedData = JSON.parse(storedData);
+
+          // Add missing properties for display if needed
+          if (!parsedData.priceRange) {
+            const baseValue = parsedData.estimatedValue || 20000;
+            parsedData.priceRange = [
+              Math.round(baseValue * 0.95),
+              Math.round(baseValue * 1.05),
+            ];
+          }
+
+          if (!parsedData.adjustments) {
+            parsedData.adjustments = [
+              {
+                factor: "Base Value",
+                impact: 0,
+                description: "Starting value based on make, model, year",
+              },
+              {
+                factor: "Mileage Adjustment",
+                impact: -500,
+                description: "Impact of vehicle mileage on value",
+              },
+              {
+                factor: "Condition",
+                impact: parsedData.condition === "Excellent"
+                  ? 1000
+                  : parsedData.condition === "Good"
+                  ? 0
+                  : parsedData.condition === "Fair"
+                  ? -1000
+                  : -2000,
+                description: `Vehicle is in ${parsedData.condition} condition`,
+              },
+            ];
+          }
+
+          // Ensure id property is set and is not optional for the returned data
+          parsedData.id = parsedData.id || valuationId;
+
+          // Add created_at if not present, make sure it's not optional
+          parsedData.created_at = parsedData.created_at ||
+            new Date().toISOString();
+
+          // Add premium_unlocked if not present
+          parsedData.premium_unlocked = parsedData.premium_unlocked || false;
+
+          // Add accident_count if not present
+          parsedData.accident_count = parsedData.accident_count || 0;
+
+          // Add titleStatus if not present
+          parsedData.titleStatus = parsedData.titleStatus || "Clean";
+
+          setData(parsedData as ValuationResult);
+        } else {
+          // In a real app, you'd fetch from an API here
+          throw new Error("Valuation data not found");
+        }
+      } catch (err) {
+        console.error("Error fetching valuation data:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch valuation data",
+        );
+        setIsError(true); // Set error state
+      } finally {
+        setIsLoading(false);
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       }
 
       if (apiError) {
@@ -61,9 +139,23 @@ export function useValuationResult(valuationId: string) {
         throw new Error(apiError.message || 'Failed to fetch valuation data');
       }
 
+<<<<<<< HEAD
       if (!result) {
         throw new Error('Valuation not found');
       }
+=======
+  // Add refetch function to match expected API
+  const refetch = () => {
+    setIsLoading(true);
+    setError(null);
+    setIsError(false);
+
+    // Re-trigger the effect by setting a new state
+    setTimeout(() => {
+      setIsLoading((state) => !state);
+    }, 0);
+  };
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
       console.log('Valuation data fetched successfully:', result);
       

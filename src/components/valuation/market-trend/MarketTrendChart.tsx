@@ -1,7 +1,14 @@
-
-import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { formatCurrency } from '@/utils/formatters';
+import React from "react";
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { formatCurrency } from "@/utils/formatters";
 
 interface MarketTrendChartProps {
   data: any[];
@@ -17,19 +24,19 @@ export function MarketTrendChart({ data }: MarketTrendChartProps) {
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="month" />
-          <YAxis 
+          <YAxis
             tickFormatter={(value) => formatCurrency(value)}
-            domain={['auto', 'auto']}
+            domain={["auto", "auto"]}
           />
-          <Tooltip 
+          <Tooltip
             formatter={(value) => formatCurrency(Number(value))}
             labelFormatter={(label) => `Month: ${label}`}
           />
-          <Line 
-            type="monotone" 
-            dataKey="value" 
-            stroke="#6366f1" 
-            activeDot={{ r: 8 }} 
+          <Line
+            type="monotone"
+            dataKey="value"
+            stroke="#6366f1"
+            activeDot={{ r: 8 }}
             name="Value"
           />
         </LineChart>

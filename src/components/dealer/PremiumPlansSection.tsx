@@ -1,51 +1,50 @@
-
-import React from 'react';
-import { PremiumSubscriptionCard } from './PremiumSubscriptionCard';
-import { PremiumBadge } from './PremiumDealerBadge';
-import { usePremiumDealer } from '@/hooks/usePremiumDealer';
+import React from "react";
+import { PremiumSubscriptionCard } from "./PremiumSubscriptionCard";
+import { PremiumBadge } from "./PremiumDealerBadge";
+import { usePremiumDealer } from "@/hooks/usePremiumDealer";
 
 export const PremiumPlansSection = () => {
   const { isPremium, expiryDate, isLoading } = usePremiumDealer();
 
   const plans = [
     {
-      name: 'Basic Dealer',
-      price: '$9.99/month',
+      name: "Basic Dealer",
+      price: "$9.99/month",
       features: [
-        'Access to dealer dashboard',
-        'Inventory management (up to 10 vehicles)',
-        'Basic analytics',
-        'Email support'
+        "Access to dealer dashboard",
+        "Inventory management (up to 10 vehicles)",
+        "Basic analytics",
+        "Email support",
       ],
-      priceId: 'price_basic_dealer'
+      priceId: "price_basic_dealer",
     },
     {
-      name: 'Premium Dealer',
-      price: '$29.99/month',
+      name: "Premium Dealer",
+      price: "$29.99/month",
       features: [
-        'Access to dealer dashboard',
-        'Unlimited inventory management',
-        'Advanced analytics & market insights',
-        'Priority support',
-        'Customer leads from premium valuations',
-        'Featured listings'
+        "Access to dealer dashboard",
+        "Unlimited inventory management",
+        "Advanced analytics & market insights",
+        "Priority support",
+        "Customer leads from premium valuations",
+        "Featured listings",
       ],
       recommended: true,
-      priceId: 'price_premium_dealer'
+      priceId: "price_premium_dealer",
     },
     {
-      name: 'Enterprise Dealer',
-      price: '$99.99/month',
+      name: "Enterprise Dealer",
+      price: "$99.99/month",
       features: [
-        'All Premium features',
-        'Multi-user access',
-        'White-label reports',
-        'API access',
-        'Dedicated account manager',
-        'Custom integration support'
+        "All Premium features",
+        "Multi-user access",
+        "White-label reports",
+        "API access",
+        "Dedicated account manager",
+        "Custom integration support",
       ],
-      priceId: 'price_enterprise_dealer'
-    }
+      priceId: "price_enterprise_dealer",
+    },
   ];
 
   if (isLoading) {
@@ -62,7 +61,8 @@ export const PremiumPlansSection = () => {
               <h3 className="text-xl font-medium">You're a Premium Dealer</h3>
               {expiryDate && (
                 <p className="text-gray-600">
-                  Your subscription is active until {new Date(expiryDate).toLocaleDateString()}
+                  Your subscription is active until{" "}
+                  {new Date(expiryDate).toLocaleDateString()}
                 </p>
               )}
             </div>

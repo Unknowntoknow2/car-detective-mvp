@@ -1,25 +1,29 @@
-
-import React, { useEffect, useState } from 'react';
-import type { DecodedVehicleInfo } from '@/types/vehicle';
-import { Button } from '@/components/ui/button';
-import { Download, BookmarkPlus, AlertTriangle, ShieldCheck } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import type { DecodedVehicleInfo } from "@/types/vehicle";
+import { Button } from "@/components/ui/button";
+import {
+  AlertTriangle,
+  BookmarkPlus,
+  Download,
+  ShieldCheck,
+} from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
-} from '@/components/ui/card';
-import { VehicleDetailsGrid } from './VehicleDetailsGrid';
-import { VehicleScoring } from './VehicleScoring';
-import { ForecastChart } from './forecast/ForecastChart';
-import { CarfaxSummary } from './CarfaxSummary';
-import { VehicleHistory } from './VehicleHistory';
-import { CarfaxData } from '@/utils/carfax/mockCarfaxService';
-import { useSaveValuation } from '@/hooks/useSaveValuation';
-import { MarketingBanner } from '@/components/marketing/MarketingBanner';
-import { useAICondition } from '@/hooks/useAICondition';
+} from "@/components/ui/card";
+import { VehicleDetailsGrid } from "./VehicleDetailsGrid";
+import { VehicleScoring } from "./VehicleScoring";
+import { ForecastChart } from "./forecast/ForecastChart";
+import { CarfaxSummary } from "./CarfaxSummary";
+import { VehicleHistory } from "./VehicleHistory";
+import { CarfaxData } from "@/utils/carfax/mockCarfaxService";
+import { useSaveValuation } from "@/hooks/useSaveValuation";
+import { MarketingBanner } from "@/components/marketing/MarketingBanner";
+import { useAICondition } from "@/hooks/useAICondition";
 
 interface VehicleInfoCardProps {
   vehicleInfo: DecodedVehicleInfo;
@@ -27,10 +31,10 @@ interface VehicleInfoCardProps {
   carfaxData?: CarfaxData;
 }
 
-export const VehicleInfoCard = ({ 
-  vehicleInfo, 
-  onDownloadPdf, 
-  carfaxData 
+export const VehicleInfoCard = ({
+  vehicleInfo,
+  onDownloadPdf,
+  carfaxData,
 }: VehicleInfoCardProps) => {
   const basePrice = 24500;
   const { saveValuation, isSaving } = useSaveValuation();
@@ -45,7 +49,7 @@ export const VehicleInfoCard = ({
       valuation: basePrice,
       confidenceScore: carfaxData ? 92 : 85,
       conditionScore: conditionData?.confidenceScore || 75,
-      is_vin_lookup: true
+      is_vin_lookup: true,
     });
   };
 
@@ -55,32 +59,40 @@ export const VehicleInfoCard = ({
         <div className="flex justify-between items-center">
           <div>
             <CardTitle className="text-2xl">Vehicle Information</CardTitle>
+<<<<<<< HEAD
             <CardDescription>Details found for VIN: {vehicleInfo.vin || 'Unknown'}</CardDescription>
+=======
+            <CardDescription>
+              Details found for VIN: {vehicleInfo.vin}
+            </CardDescription>
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
           </div>
-          
+
           {carfaxData && (
             <div className="flex items-center gap-2">
-              {carfaxData.accidentsReported > 0 || carfaxData.salvageTitle ? (
-                <div className="flex items-center text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-                  <AlertTriangle className="h-4 w-4 mr-1" />
-                  <span className="text-sm font-medium">History Issues</span>
-                </div>
-              ) : (
-                <div className="flex items-center text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-200">
-                  <ShieldCheck className="h-4 w-4 mr-1" />
-                  <span className="text-sm font-medium">Clean History</span>
-                </div>
-              )}
+              {carfaxData.accidentsReported > 0 || carfaxData.salvageTitle
+                ? (
+                  <div className="flex items-center text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                    <AlertTriangle className="h-4 w-4 mr-1" />
+                    <span className="text-sm font-medium">History Issues</span>
+                  </div>
+                )
+                : (
+                  <div className="flex items-center text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-200">
+                    <ShieldCheck className="h-4 w-4 mr-1" />
+                    <span className="text-sm font-medium">Clean History</span>
+                  </div>
+                )}
             </div>
           )}
         </div>
       </CardHeader>
       <CardContent>
         <VehicleDetailsGrid vehicleInfo={vehicleInfo} />
-        
+
         {!carfaxData && (
           <div className="my-6">
-            <MarketingBanner 
+            <MarketingBanner
               headline="Want the complete CARFAX® history report?"
               subtext="Upgrade to Premium and get full vehicle history, accident details, service records, and more."
               ctaText="Get Premium with CARFAX®"
@@ -88,68 +100,88 @@ export const VehicleInfoCard = ({
             />
           </div>
         )}
-        
+
         {carfaxData && <CarfaxSummary carfaxData={carfaxData} />}
+<<<<<<< HEAD
         
         <VehicleHistory 
           vin={vehicleInfo.vin || ''} 
           valuationId={vehicleInfo.vin || ''}
+=======
+
+        <VehicleHistory
+          vin={vehicleInfo.vin}
+          valuationId={vehicleInfo.vin}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         />
-        
+
         <div className="mt-8 pt-6 border-t border-border/60">
           <h3 className="text-lg font-semibold mb-4">Valuation & Scoring</h3>
-          <VehicleScoring 
+          <VehicleScoring
             baseValue={basePrice}
             valuationBreakdown={[
               {
                 factor: "Mileage",
                 impact: -3.5,
-                description: "Vehicle has higher mileage than average (76,000 mi vs. market avg of 65,000 mi)"
+                description:
+                  "Vehicle has higher mileage than average (76,000 mi vs. market avg of 65,000 mi)",
               },
               {
                 factor: "Condition",
                 impact: 2.0,
-                description: "Vehicle condition is above average based on service history and reported condition"
+                description:
+                  "Vehicle condition is above average based on service history and reported condition",
               },
               {
                 factor: "Market Demand",
                 impact: 4.0,
-                description: "This model currently has high demand in your region (based on 30-day sales data)"
+                description:
+                  "This model currently has high demand in your region (based on 30-day sales data)",
               },
-              ...(carfaxData && carfaxData.accidentsReported > 0 ? [{
-                factor: "Accident History",
-                impact: -3.0,
-                description: `${carfaxData.accidentsReported} reported accident${carfaxData.accidentsReported > 1 ? 's' : ''} with ${carfaxData.damageSeverity || 'minor'} damage`
-              }] : [])
+              ...(carfaxData && carfaxData.accidentsReported > 0
+                ? [{
+                  factor: "Accident History",
+                  impact: -3.0,
+                  description:
+                    `${carfaxData.accidentsReported} reported accident${
+                      carfaxData.accidentsReported > 1 ? "s" : ""
+                    } with ${carfaxData.damageSeverity || "minor"} damage`,
+                }]
+                : []),
             ]}
             confidenceScore={carfaxData ? 92 : 85}
             estimatedValue={basePrice}
             comparableVehicles={117}
           />
         </div>
-        
+
         <div className="mt-8">
+<<<<<<< HEAD
           <ForecastChart 
             valuationId={vehicleInfo.vin || ''}
+=======
+          <ForecastChart
+            valuationId={vehicleInfo.vin}
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
             basePrice={basePrice}
           />
         </div>
       </CardContent>
       <CardFooter className="flex justify-between pt-4">
-        <Button 
+        <Button
           onClick={onDownloadPdf}
           variant="outline"
         >
           <Download className="mr-2" />
           Download Report
         </Button>
-        <Button 
+        <Button
           onClick={handleSaveValuation}
           disabled={isSaving}
           variant="secondary"
         >
           <BookmarkPlus className="mr-2" />
-          {isSaving ? 'Saving...' : 'Save to Dashboard'}
+          {isSaving ? "Saving..." : "Save to Dashboard"}
         </Button>
       </CardFooter>
     </Card>

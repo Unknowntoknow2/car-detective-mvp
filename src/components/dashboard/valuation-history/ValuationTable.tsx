@@ -1,8 +1,14 @@
-
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { downloadPdf, convertVehicleInfoToReportData } from "@/utils/pdf";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { convertVehicleInfoToReportData, downloadPdf } from "@/utils/pdf";
 import type { Valuation } from "@/types/valuation-history";
 
 interface ValuationTableProps {
@@ -13,15 +19,15 @@ export function ValuationTable({ valuations }: ValuationTableProps) {
   const handleDownloadReport = (valuation: Valuation) => {
     // Create a vehicle info object that matches DecodedVehicleInfo
     const vehicleInfo = {
-      make: valuation.make || '',
-      model: valuation.model || '',
+      make: valuation.make || "",
+      model: valuation.model || "",
       year: valuation.year || 0,
-      vin: valuation.vin || '',
-      transmission: 'Automatic', // Add default transmission
+      vin: valuation.vin || "",
+      transmission: "Automatic", // Add default transmission
       state: valuation.state,
       // Don't include plate property here as it's not in DecodedVehicleInfo
     };
-    
+
     const reportData = convertVehicleInfoToReportData(vehicleInfo, {
       mileage: valuation.mileage || 0,
       estimatedValue: valuation.valuation || valuation.estimated_value || 0,
@@ -29,9 +35,9 @@ export function ValuationTable({ valuations }: ValuationTableProps) {
       condition: "Good",
       zipCode: "10001",
       adjustments: [],
-      isPremium: valuation.is_premium
+      isPremium: valuation.is_premium,
     });
-    
+
     downloadPdf(reportData);
   };
 
@@ -57,27 +63,34 @@ export function ValuationTable({ valuations }: ValuationTableProps) {
               {valuation.year} {valuation.make} {valuation.model}
             </TableCell>
             <TableCell>
-              {valuation.vin ? 
-                `VIN: ${valuation.vin.substring(0, 6)}...` : 
-                valuation.plate ? `Plate: ${valuation.plate}${valuation.state ? ` (${valuation.state})` : ''}` : 'N/A'
-              }
+              {valuation.vin
+                ? `VIN: ${valuation.vin.substring(0, 6)}...`
+                : valuation.plate
+                ? `Plate: ${valuation.plate}${
+                  valuation.state ? ` (${valuation.state})` : ""
+                }`
+                : "N/A"}
             </TableCell>
             <TableCell className="text-right">
-              {(valuation.valuation || valuation.estimated_value) ? 
-                `$${(valuation.valuation || valuation.estimated_value || 0).toLocaleString()}` : 
-                'N/A'
-              }
+              {(valuation.valuation || valuation.estimated_value)
+                ? `$${
+                  (valuation.valuation || valuation.estimated_value || 0)
+                    .toLocaleString()
+                }`
+                : "N/A"}
             </TableCell>
             <TableCell>
-              {valuation.is_premium ? (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                  Premium
-                </span>
-              ) : (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                  Standard
-                </span>
-              )}
+              {valuation.is_premium
+                ? (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                    Premium
+                  </span>
+                )
+                : (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    Standard
+                  </span>
+                )}
             </TableCell>
             <TableCell className="text-right">
               <Button

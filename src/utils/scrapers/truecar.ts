@@ -34,9 +34,13 @@ export async function scrapeTrueCarListings({
   maxResults?: number;
 }): Promise<TrueCarListing[]> {
   // Construct the TrueCar search URL for used cars
-  const searchUrl = `https://www.truecar.com/used-cars-for-sale/listings/${encodeURIComponent(
-    make
-  )}/${encodeURIComponent(model)}/${year ? `${year}/` : ""}?searchRadius=500&zip=${zip}`;
+  const searchUrl = `https://www.truecar.com/used-cars-for-sale/listings/${
+    encodeURIComponent(
+      make,
+    )
+  }/${encodeURIComponent(model)}/${
+    year ? `${year}/` : ""
+  }?searchRadius=500&zip=${zip}`;
 
   try {
     const { data: html } = await axios.get(searchUrl, {
@@ -56,18 +60,22 @@ export async function scrapeTrueCarListings({
       const $el = $(el);
 
       // Title: usually "2020 Toyota Camry SE"
-      const title = $el.find("[data-test='vehicleCardYearMakeModel']").text().trim();
+      const title = $el.find("[data-test='vehicleCardYearMakeModel']").text()
+        .trim();
 
       // Price
-      const priceText = $el.find("[data-test='vehicleCardPricingBlockPrice']").text().replace(/[$,]/g, "");
+      const priceText = $el.find("[data-test='vehicleCardPricingBlockPrice']")
+        .text().replace(/[$,]/g, "");
       const price = priceText ? parseInt(priceText, 10) : null;
 
       // Mileage
-      const mileageText = $el.find("[data-test='vehicleMileage']").text().replace(/[^\d]/g, "");
+      const mileageText = $el.find("[data-test='vehicleMileage']").text()
+        .replace(/[^\d]/g, "");
       const mileage = mileageText ? parseInt(mileageText, 10) : null;
 
       // Location (city, state)
-      const location = $el.find("[data-test='vehicleCardLocation']").text().trim() || null;
+      const location =
+        $el.find("[data-test='vehicleCardLocation']").text().trim() || null;
 
       // Image URL
       const imageUrl = $el.find("img").attr("src") || undefined;
@@ -93,7 +101,8 @@ export async function scrapeTrueCarListings({
       }
 
       // Dealer name (optional)
-      const dealerName = $el.find("[data-test='dealerName']").text().trim() || null;
+      const dealerName = $el.find("[data-test='dealerName']").text().trim() ||
+        null;
 
       results.push({
         title,

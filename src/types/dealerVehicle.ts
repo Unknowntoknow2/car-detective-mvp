@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 export interface DealerVehicle {
   id: string;
@@ -46,3 +47,12 @@ export interface DeleteVehicleResult {
 
 // Ensure DealerInventoryItem is exactly the same as DealerVehicle
 export type DealerInventoryItem = DealerVehicle;
+=======
+// This file is deprecated. Import from '@/types/vehicle' instead.
+// This file is kept for backward compatibility
+export type {
+  DealerVehicle,
+  DealerVehicleFormData,
+  DealerVehicleStatus,
+} from "./vehicle";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)

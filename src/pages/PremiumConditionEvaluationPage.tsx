@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -6,10 +7,22 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+=======
+import React, { useState } from "react";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { ConditionEvaluationForm } from "@/components/valuation/condition";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { ConditionValues } from "@/components/valuation/condition/types";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export default function PremiumConditionEvaluationPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+<<<<<<< HEAD
   
   // State for condition scores (typically 1-10)
   const [scores, setScores] = React.useState({
@@ -31,6 +44,33 @@ export default function PremiumConditionEvaluationPage() {
       ...prev,
       [category]: value
     }));
+=======
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Updated to match the expected signature from ConditionEvaluationForm
+  const handleConditionSubmit = (values: ConditionValues) => {
+    setIsSubmitting(true);
+    console.log("Condition assessment values:", values);
+
+    // Calculate overall score here if needed
+    const overallScore = Object.values(values).reduce(
+      (sum, value) => sum + (typeof value === "number" ? value : 0),
+      0,
+    ) / Object.values(values).length;
+    console.log("Overall condition score:", overallScore);
+
+    // Store values in local storage for use in the valuation process
+    localStorage.setItem("condition_factors", JSON.stringify(values));
+    localStorage.setItem("condition_score", String(overallScore));
+
+    // Mock API call to demonstrate the flow
+    setTimeout(() => {
+      toast.success("Condition assessment saved successfully");
+      setIsSubmitting(false);
+      // Navigate to the next step in the workflow
+      navigate("/premium");
+    }, 1000);
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   };
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -49,6 +89,7 @@ export default function PremiumConditionEvaluationPage() {
   };
   
   return (
+<<<<<<< HEAD
     <div className="container mx-auto py-8 max-w-3xl">
       <h1 className="text-3xl font-bold mb-6">Vehicle Condition Evaluation</h1>
       
@@ -229,6 +270,33 @@ export default function PremiumConditionEvaluationPage() {
           <Button type="submit">
             Complete Evaluation
           </Button>
+=======
+    <div className="min-h-screen bg-slate-50">
+      <Navbar />
+      <main className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <Button variant="ghost" size="sm" asChild className="mb-4">
+            <Link to="/premium">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Premium Valuation
+            </Link>
+          </Button>
+
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-2">
+            Enterprise Condition Evaluation
+          </h1>
+          <p className="text-lg text-gray-600">
+            Provide a detailed assessment of your vehicle's condition for the
+            most accurate valuation.
+          </p>
+        </div>
+
+        <div className="bg-white shadow-sm rounded-lg border p-6 mb-8">
+          <ConditionEvaluationForm
+            onSubmit={handleConditionSubmit}
+            onCancel={() => navigate("/premium")}
+          />
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         </div>
       </form>
     </div>

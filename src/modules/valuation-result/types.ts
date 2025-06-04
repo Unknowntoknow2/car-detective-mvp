@@ -1,6 +1,5 @@
-
-import { AICondition } from '@/types/photo';
-import { ValuationResult } from '@/types/valuation';
+import { AICondition } from "@/types/photo";
+import { ValuationResult } from "@/types/valuation";
 
 export interface ValuationContextProps {
   valuationData: ValuationResult | null;
@@ -35,7 +34,7 @@ export interface HeaderProps {
 export interface SummaryProps {
   confidenceScore: number;
   priceRange: { low: number; high: number };
-  marketTrend: 'up' | 'down' | 'stable';
+  marketTrend: "up" | "down" | "stable";
   recommendationText: string;
 }
 

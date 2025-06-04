@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
 
@@ -13,6 +14,14 @@ function getPhotoScoreAdjustmentDescription(score: number, percentAdjustment: nu
     return `Photo analysis indicates poor condition (-10% adjustment: -$${Math.abs(adjustment).toLocaleString()})`;
   }
 }
+=======
+import {
+  AdjustmentBreakdown,
+  AdjustmentCalculator,
+  RulesEngineInput,
+} from "../types";
+import { getPhotoScoreAdjustmentDescription } from "../descriptions";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export class PhotoScoreCalculator implements AdjustmentCalculator {
   public calculate(input: RulesEngineInput): AdjustmentBreakdown {
@@ -45,9 +54,14 @@ export class PhotoScoreCalculator implements AdjustmentCalculator {
     }
 
     // Apply adjustment to base price
+<<<<<<< HEAD
     const basePrice = input.basePrice || 0;
     const adjustment = basePrice * percentAdjustment;
     const name = 'Photo Score';
+=======
+    const adjustment = input.basePrice * percentAdjustment;
+    const name = "Photo Score";
+>>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     const factor = name;
     const impact = Math.round(adjustment);
     const value = impact;
@@ -57,8 +71,12 @@ export class PhotoScoreCalculator implements AdjustmentCalculator {
       impact,
       name,
       value,
-      description: getPhotoScoreAdjustmentDescription(input.photoScore, percentAdjustment, adjustment),
-      percentAdjustment
+      description: getPhotoScoreAdjustmentDescription(
+        input.photoScore,
+        percentAdjustment,
+        adjustment,
+      ),
+      percentAdjustment,
     };
   }
 }

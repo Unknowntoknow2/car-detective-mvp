@@ -1,10 +1,9 @@
-
-import React from 'react';
-import { formatCurrency, formatDate } from '@/utils/formatters';
-import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React from "react";
+import { formatCurrency, formatDate } from "@/utils/formatters";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 // Export the ServiceRecord interface
 export interface ServiceRecord {
@@ -24,19 +23,21 @@ export interface ServiceRecordsListProps {
   onDelete: (id: string) => Promise<void>;
 }
 
-export const ServiceRecordsList: React.FC<ServiceRecordsListProps> = ({ records, onDelete }) => {
+export const ServiceRecordsList: React.FC<ServiceRecordsListProps> = (
+  { records, onDelete },
+) => {
   if (!records.length) {
     return null;
   }
 
   // Sort records by date (newest first)
-  const sortedRecords = [...records].sort((a, b) => 
+  const sortedRecords = [...records].sort((a, b) =>
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
   return (
     <div className="space-y-4">
-      {sortedRecords.map(record => (
+      {sortedRecords.map((record) => (
         <Card key={record.id} className="overflow-hidden">
           <CardHeader className="bg-muted/30 py-3">
             <div className="flex items-center justify-between">
@@ -46,11 +47,12 @@ export const ServiceRecordsList: React.FC<ServiceRecordsListProps> = ({ records,
                   {formatDate(record.date)}
                 </Badge>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-destructive" 
-                onClick={() => onDelete(record.id)}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-destructive"
+                onClick={() =>
+                  onDelete(record.id)}
               >
                 <Trash2 className="h-4 w-4" />
                 <span className="sr-only">Delete</span>
@@ -69,10 +71,10 @@ export const ServiceRecordsList: React.FC<ServiceRecordsListProps> = ({ records,
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Shop</p>
-                <p>{record.shop || 'Not specified'}</p>
+                <p>{record.shop || "Not specified"}</p>
               </div>
             </div>
-            
+
             {record.notes && (
               <div className="mt-4">
                 <p className="text-sm text-muted-foreground">Notes</p>
