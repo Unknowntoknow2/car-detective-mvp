@@ -7,13 +7,13 @@ import { FollowUpAnswers } from '@/types/follow-up-answers';
 interface FeaturesTabProps {
   formData: FollowUpAnswers;
   updateFormData: (data: Partial<FollowUpAnswers>) => void;
-  baseValue: number;
+  baseValue?: number;
 }
 
 export const FeaturesTab: React.FC<FeaturesTabProps> = ({
   formData,
   updateFormData,
-  baseValue,
+  baseValue = 20000, // Default base value
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 

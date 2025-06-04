@@ -31,10 +31,10 @@ export function LookupTabs({
     }
   };
 
-  const handlePlateSubmit = (plate: string, state: string) => {
-    console.log(`LOOKUP TABS PLATE: Form submitted with plate: ${plate} and state: ${state}`);
+  const handleVehicleFound = (data: any) => {
+    console.log(`LOOKUP TABS PLATE: Vehicle found:`, data);
     if (onSubmit) {
-      onSubmit("plate", plate, state);
+      onSubmit("plate", data.plate, data.state);
     }
   };
 
@@ -67,8 +67,10 @@ export function LookupTabs({
       
       <TabsContent value="plate" className="space-y-4 mt-4">
         <PlateLookup 
-          onSubmit={handlePlateSubmit} 
-          isLoading={isSubmitting && activeTab === 'plate'} 
+          tier="free"
+          onVehicleFound={handleVehicleFound}
+          showPremiumFeatures={true}
+          includePremiumBadging={true}
         />
       </TabsContent>
       

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useRouter } from 'next/router';
+import { useParams } from 'react-router-dom';
 import { MainLayout } from '@/components/layout';
 import { ValuationResult } from '@/components/valuation/ValuationResult';
 import { Card } from '@/components/ui/card';
@@ -8,11 +8,10 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 const ValuationResultPage = () => {
-  const router = useRouter();
-  const { id } = router.query;
+  const { id } = useParams<{ id: string }>();
 
   const handleGoBack = () => {
-    router.back();
+    window.history.back();
   };
 
   return (
