@@ -1,53 +1,77 @@
 
 import { useState } from 'react';
 import { PlateLookupInfo } from '@/types/lookup';
-import { supabase } from '@/integrations/supabase/client';
+import { lookupPlate } from '@/services/plateService';
 
-export const usePlateLookup = () => {
+export interface UsePlateLookupOptions {
+  tier?: 'free' | 'premium';
+  includePremiumData?: boolean;
+}
+
+export const usePlateLookup = (options: UsePlateLookupOptions = {}) => {
+  const { tier = 'free', includePremiumData = false } = options;
+  
   const [plateInfo, setPlateInfo] = useState<PlateLookupInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const lookupPlate = async (plate: string, state: string): Promise<PlateLookupInfo | null> => {
+  const lookupPlateData = async (plate: string, state: string): Promise<PlateLookupInfo | null> => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // Mock API call for now
-      const mockData: PlateLookupInfo = {
-        plate,
-        state,
-        make: 'Toyota',
-        model: 'Camry',
-        year: 2019,
-        color: 'Silver',
-        mileage: 45000,
-        transmission: 'Automatic',
-        fuelType: 'Gasoline',
-        bodyType: 'Sedan',
-        estimatedValue: 18500,
-        zipCode: '90210',
-        condition: 'Good'
-      };
+      const response = await lookupPlate(plate, state);
       
-      // Simulate API latency
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to lookup plate');
+      }
       
-      setPlateInfo(mockData);
-      return mockData;
+      let vehicleData = response.data;
+      
+      // Enhanced data for premium tier
+      if (tier === 'premium' || includePremiumData) {
+        vehicleData = {
+          ...vehicleData,
+          // Add premium-specific fields
+          detailedHistory: true,
+          marketInsights: {
+            averagePrice: vehicleData.estimatedValue || 0,
+            priceRange: [
+              (vehicleData.estimatedValue || 0) * 0.9,
+              (vehicleData.estimatedValue || 0) * 1.1
+            ],
+            marketTrend: 'stable'
+          },
+          serviceRecords: [],
+          accidentHistory: {
+            reported: false,
+            details: []
+          }
+        };
+      }
+      
+      setPlateInfo(vehicleData);
+      return vehicleData;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to lookup plate';
       setError(errorMessage);
+      setPlateInfo(null);
       return null;
     } finally {
       setIsLoading(false);
     }
   };
 
+  const clearData = () => {
+    setPlateInfo(null);
+    setError(null);
+  };
+
   return {
     plateInfo,
     isLoading,
     error,
-    lookupPlate
+    lookupPlate: lookupPlateData,
+    clearData
   };
 };

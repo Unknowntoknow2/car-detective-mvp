@@ -4,7 +4,7 @@ import { Container } from '@/components/ui/container';
 import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
 import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
 import { FoundCarCard } from '@/components/lookup/found/FoundCarCard';
-import { PlateLookupForm } from '@/components/lookup/plate/PlateLookupForm';
+import { UnifiedPlateLookup } from '@/components/lookup/plate/UnifiedPlateLookup';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { toast } from 'sonner';
@@ -68,7 +68,11 @@ export default function PlateValuationPage() {
               Enter your license plate to get detailed vehicle information and valuation.
             </p>
           </div>
-          <PlateLookupForm onVehicleFound={handleVehicleFound} />
+          <UnifiedPlateLookup 
+            tier="free"
+            onVehicleFound={handleVehicleFound}
+            showPremiumFeatures={true}
+          />
         </div>
       ) : (
         <div className="space-y-8">
