@@ -1,205 +1,63 @@
-<<<<<<< HEAD
 
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { useAuth } from '@/hooks/useAuth';
-import { Home, Car, Search, User, Sparkles, Building, Settings, LogOut } from 'lucide-react';
-=======
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { useAuth } from "@/components/auth/AuthContext";
-import {
-  Building,
-  Car,
-  Home,
-  LogOut,
-  Search,
-  Settings,
-  Sparkles,
-  User,
-} from "lucide-react";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+import { Link } from 'react-router-dom';
 
-interface MobileMenuProps {
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
+export const MobileMenu: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
 
-const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, setIsOpen }) => {
-  const { user, userDetails, signOut } = useAuth();
-  const navigate = useNavigate();
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      setIsOpen(false);
-      navigate("/");
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
-  };
+  const menuItems = [
+    { label: 'Home', href: '/' },
+    { label: 'Valuation', href: '/valuation' },
+    { label: 'Premium', href: '/premium' },
+    { label: 'About', href: '/about' },
+    { label: 'Contact', href: '/contact' }
+  ];
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent side="left" className="w-[80%] sm:w-[350px]">
-        <SheetHeader className="pb-6">
-          <SheetTitle>Menu</SheetTitle>
-        </SheetHeader>
-        <div className="flex flex-col gap-4">
-          <Link
-            to="/"
-            className="flex items-center gap-2 text-base"
-            onClick={() => setIsOpen(false)}
-          >
-            <Home className="h-5 w-5" />
-            Home
-          </Link>
-          <Link
-            to="/valuation"
-            className="flex items-center gap-2 text-base"
-            onClick={() => setIsOpen(false)}
-          >
-            <Car className="h-5 w-5" />
-            Valuations
-          </Link>
-          <Link
-            to="/decoder"
-            className="flex items-center gap-2 text-base"
-            onClick={() => setIsOpen(false)}
-          >
-            <Search className="h-5 w-5" />
-            VIN Decoder
-          </Link>
-          <Link
-            to="/premium"
-            className="flex items-center gap-2 text-base"
-            onClick={() => setIsOpen(false)}
-          >
-            <Sparkles className="h-5 w-5" />
-            Premium
-          </Link>
-<<<<<<< HEAD
-          
-          {user ? (
-            <>
-              <div className="h-px bg-border my-2" />
-              <Link to="/dashboard" className="flex items-center gap-2 text-base" onClick={() => setIsOpen(false)}>
-                <User className="h-5 w-5" />
-                Dashboard
-              </Link>
-              
-              {userDetails?.role === 'dealer' && (
-                <Link to="/dealer-dashboard" className="flex items-center gap-2 text-base" onClick={() => setIsOpen(false)}>
-                  <Building className="h-5 w-5" />
-                  Dealer Dashboard
-                </Link>
-              )}
-              
-              <Link to="/settings" className="flex items-center gap-2 text-base" onClick={() => setIsOpen(false)}>
-                <Settings className="h-5 w-5" />
-                Settings
-              </Link>
-              
-              <button 
-                onClick={handleSignOut} 
-                className="flex items-center gap-2 text-base text-red-600 hover:text-red-700 mt-2"
+    <div className="md:hidden">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setIsOpen(!isOpen)}
+        className="h-10 w-10"
+      >
+        {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </Button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 bg-white border-t shadow-lg z-50">
+          <nav className="flex flex-col py-4">
+            {menuItems.map((item, index) => (
+              <Link
+                key={index}
+                to={item.href}
+                className="px-4 py-3 text-sm font-medium hover:bg-gray-100 transition-colors"
+                onClick={() => setIsOpen(false)}
               >
-                <LogOut className="h-5 w-5" />
-                Sign out
-              </button>
-            </>
-          ) : (
-            <>
-              <div className="h-px bg-border my-2" />
-              <Link to="/auth" className="flex items-center gap-2 text-base" onClick={() => setIsOpen(false)}>
-                <User className="h-5 w-5" />
+                {item.label}
+              </Link>
+            ))}
+            <div className="px-4 py-2 border-t mt-2">
+              <Link
+                to="/sign-in"
+                className="block w-full text-center py-2 text-sm font-medium text-gray-700 hover:text-primary"
+                onClick={() => setIsOpen(false)}
+              >
                 Sign In
               </Link>
-              <Link to="/auth" className="flex items-center gap-2 text-base font-medium" onClick={() => setIsOpen(false)}>
-                <User className="h-5 w-5" />
+              <Link
+                to="/sign-up"
+                className="block w-full text-center py-2 mt-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary/90"
+                onClick={() => setIsOpen(false)}
+              >
                 Sign Up
               </Link>
-            </>
-          )}
-=======
-
-          {user
-            ? (
-              <>
-                <div className="h-px bg-border my-2" />
-                <Link
-                  to="/dashboard"
-                  className="flex items-center gap-2 text-base"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <User className="h-5 w-5" />
-                  Dashboard
-                </Link>
-
-                {userRole === "dealer" && (
-                  <Link
-                    to="/dealer-dashboard"
-                    className="flex items-center gap-2 text-base"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <Building className="h-5 w-5" />
-                    Dealer Dashboard
-                  </Link>
-                )}
-
-                <Link
-                  to="/settings"
-                  className="flex items-center gap-2 text-base"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Settings className="h-5 w-5" />
-                  Settings
-                </Link>
-
-                <button
-                  onClick={handleSignOut}
-                  className="flex items-center gap-2 text-base text-red-600 hover:text-red-700 mt-2"
-                >
-                  <LogOut className="h-5 w-5" />
-                  Sign out
-                </button>
-              </>
-            )
-            : (
-              <>
-                <div className="h-px bg-border my-2" />
-                <Link
-                  to="/auth"
-                  className="flex items-center gap-2 text-base"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <User className="h-5 w-5" />
-                  Sign In
-                </Link>
-                <Link
-                  to="/register"
-                  className="flex items-center gap-2 text-base font-medium"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <User className="h-5 w-5" />
-                  Sign Up
-                </Link>
-              </>
-            )}
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+            </div>
+          </nav>
         </div>
-      </SheetContent>
-    </Sheet>
+      )}
+    </div>
   );
 };
-
-export default MobileMenu;

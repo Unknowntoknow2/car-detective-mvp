@@ -1,35 +1,12 @@
-<<<<<<< HEAD
 
-import React from 'react';
-import { Header } from './Header';
-import { Footer } from './Footer';
-=======
-import React, { useEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
-<<<<<<< HEAD
-export function MainLayout({ children }: MainLayoutProps) {
-  return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Header />
-      <main className="flex-1">
-        {children}
-      </main>
-      <Footer />
-=======
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  // Add diagnostic logging
-  console.log("🔄 MainLayout rendering...");
-
-  useEffect(() => {
-    console.log("✅ MainLayout mounted");
-  }, []);
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="bg-white shadow-sm dark:bg-gray-800">
@@ -56,12 +33,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </header>
 
       <main className="w-full">
-        {/* Fallback to ensure children are rendered */}
-        {!children && (
-          <div className="p-4 bg-red-100 text-red-800">
-            Warning: No children passed to MainLayout!
-          </div>
-        )}
         {children}
       </main>
 
@@ -70,7 +41,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <p>© {new Date().getFullYear()} CarDetective. All rights reserved.</p>
         </div>
       </footer>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     </div>
   );
 }
