@@ -1,65 +1,8 @@
-<<<<<<< HEAD
 
-import React from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useVehicleData } from '@/hooks/useVehicleData';
-
-interface YearMileageInputsProps {
-  form: any;
-}
-
-export const YearMileageInputs: React.FC<YearMileageInputsProps> = ({ form }) => {
-  const { getYearOptions } = useVehicleData();
-  const yearOptions = getYearOptions(1990);
-
-  return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <FormField
-        control={form.control}
-        name="year"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Year</FormLabel>
-            <Select 
-              onValueChange={(value) => {
-                if (value === '') {
-                  field.onChange('');
-                } else {
-                  field.onChange(parseInt(value));
-                }
-              }} 
-              defaultValue={field.value !== undefined && field.value !== null ? field.value.toString() : ''}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {yearOptions.map(year => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-=======
 import React from "react";
 import { Input } from "@/components/ui/input";
-import { useVehicleData } from "@/hooks/useVehicleData";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { toast } from "sonner";
-import { getMileageDescription } from "@/utils/adjustments/descriptions";
+import { Label } from "@/components/ui/label";
+import { FormValidationError } from "@/components/premium/common/FormValidationError";
 
 interface YearMileageInputsProps {
   selectedYear: number | "";
@@ -67,116 +10,82 @@ interface YearMileageInputsProps {
   mileage: string;
   setMileage: (mileage: string) => void;
   isDisabled?: boolean;
+  errors?: Record<string, string>;
 }
 
-export const YearMileageInputs: React.FC<YearMileageInputsProps> = ({
+export function YearMileageInputs({
   selectedYear,
   setSelectedYear,
   mileage,
   setMileage,
   isDisabled = false,
-}) => {
-  const { getYearOptions } = useVehicleData();
-
-  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "");
-    const numberValue = parseInt(value, 10);
-
-    if (value === "" || (numberValue > 0 && numberValue <= 999999)) {
-      // Format with comma separators for thousands
-      if (value) {
-        const formattedValue = value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        const plainValue = formattedValue.replace(/,/g, "");
-        setMileage(plainValue);
-      } else {
-        setMileage(value);
+  errors = {},
+}: YearMileageInputsProps) {
+  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === "") {
+      setSelectedYear("");
+    } else {
+      const numValue = parseInt(value, 10);
+      if (!isNaN(numValue)) {
+        setSelectedYear(numValue);
       }
     }
   };
 
-  const getMileageInfo = (miles: string) => {
-    const numericMiles = parseInt(miles.replace(/,/g, ""), 10);
-    if (!isNaN(numericMiles) && numericMiles > 0) {
-      return getMileageDescription(numericMiles);
-    }
-    return "";
+  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "");
+    setMileage(value);
   };
+
+  const currentYear = new Date().getFullYear();
 
   return (
     <>
-      <Select
-        onValueChange={(value) => setSelectedYear(Number(value))}
-        disabled={isDisabled}
-        value={selectedYear ? String(selectedYear) : ""}
-      >
-        <SelectTrigger className="h-12 bg-white border-2 transition-colors hover:border-primary/50 focus:border-primary">
-          <SelectValue placeholder="Select Year" />
-        </SelectTrigger>
-        <SelectContent className="max-h-[300px] overflow-y-auto">
-          {getYearOptions().map((year) => (
-            <SelectItem
-              key={year}
-              value={String(year)}
-              className="py-2.5 cursor-pointer hover:bg-primary/10"
-            >
-              {year}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      <div className="space-y-1 w-full">
+      <div className="space-y-2">
+        <Label htmlFor="year" className="text-sm font-medium text-slate-700">
+          Year
+        </Label>
         <Input
-          type="text"
-          inputMode="numeric"
-          placeholder="Enter Mileage"
-          value={mileage.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-          onChange={handleMileageChange}
+          id="year"
+          type="number"
+          value={selectedYear === "" ? "" : selectedYear}
+          onChange={handleYearChange}
+          placeholder="Enter year"
+          min={1900}
+          max={currentYear + 1}
+          className={`h-10 transition-all duration-200 ${
+            errors.year
+              ? "border-red-300 focus:ring-red-200"
+              : "focus:ring-primary/20 focus:border-primary hover:border-primary/30"
+          }`}
           disabled={isDisabled}
-          className="h-12 bg-white border-2 transition-colors hover:border-primary/50 focus:border-primary"
-          onBlur={() => {
-            if (mileage === "" || parseInt(mileage, 10) <= 0) {
-              toast.error(
-                "Mileage must be a positive number greater than zero",
-              );
-              setMileage("");
-            }
-          }}
         />
-        {mileage && (
-          <p className="text-xs text-muted-foreground">
-            {getMileageInfo(mileage)}
-          </p>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-        )}
-      />
-      
-      <FormField
-        control={form.control}
-        name="mileage"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Mileage</FormLabel>
-            <FormControl>
-              <Input 
-                type="text" 
-                placeholder="e.g. 45000" 
-                {...field} 
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '');
-                  if (value === '') {
-                    field.onChange('');
-                  } else {
-                    field.onChange(parseInt(value));
-                  }
-                }}
-                value={field.value !== undefined && field.value !== null ? field.value.toString() : ''}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
+        {errors.year && <FormValidationError error={errors.year} />}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="mileage" className="text-sm font-medium text-slate-700">
+          Mileage
+        </Label>
+        <Input
+          id="mileage"
+          type="text"
+          value={mileage}
+          onChange={handleMileageChange}
+          placeholder="Enter mileage"
+          className={`h-10 transition-all duration-200 ${
+            errors.mileage
+              ? "border-red-300 focus:ring-red-200"
+              : "focus:ring-primary/20 focus:border-primary hover:border-primary/30"
+          }`}
+          disabled={isDisabled}
+        />
+        {errors.mileage && <FormValidationError error={errors.mileage} />}
+        <p className="text-xs text-slate-500">
+          Lower mileage typically increases vehicle value
+        </p>
+      </div>
+    </>
   );
-};
+}
