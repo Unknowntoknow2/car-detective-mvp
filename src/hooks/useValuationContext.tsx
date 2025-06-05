@@ -1,10 +1,6 @@
-<<<<<<< HEAD
 
-import React, { createContext, useContext, useState } from 'react';
-=======
 import { createContext, ReactNode, useContext, useState } from "react";
 import { toast } from "sonner";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 type ValuationContextType = {
   vinValue: string;
@@ -32,13 +28,9 @@ const defaultContext: ValuationContextType = {
   valuationId: null, // Initialize valuationId property
 };
 
-<<<<<<< HEAD
-const ValuationContext = createContext<ValuationContextType>(defaultContext);
-=======
 const ValuationContext = createContext<ValuationContextType | undefined>(
   undefined,
 );
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [vinValue, setVinValue] = useState('');
@@ -68,9 +60,6 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   );
 };
 
-<<<<<<< HEAD
-export const useValuationContext = () => useContext(ValuationContext);
-=======
 export function useValuationContext() {
   const context = useContext(ValuationContext);
   if (context === undefined) {
@@ -80,4 +69,3 @@ export function useValuationContext() {
   }
   return context;
 }
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
