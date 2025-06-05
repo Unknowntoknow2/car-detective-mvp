@@ -1,3 +1,4 @@
+
 import React from "react";
 import { AccidentFactorCard } from "./AccidentFactorCard";
 import { MileageFactorCard } from "./MileageFactorCard";
@@ -15,19 +16,6 @@ export function ValuationFactorsGrid(
 ) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-<<<<<<< HEAD
-      <AccidentFactorCard 
-        value={Number(values.accidents) || 0} 
-        onChange={(value) => onChange('accidents', value)} 
-      />
-      <MileageFactorCard 
-        value={Number(values.mileage) || 0} 
-        onChange={(value) => onChange('mileage', value)} 
-      />
-      <YearFactorCard 
-        value={Number(values.year) || 0} 
-        onChange={(value) => onChange('year', value)} 
-=======
       <AccidentFactorCard
         value={values.accidents || 0}
         onChange={(value) => onChange("accidents", value)}
@@ -39,7 +27,6 @@ export function ValuationFactorsGrid(
       <YearFactorCard
         value={values.year || 0}
         onChange={(value) => onChange("year", value)}
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       />
       <TitleStatusFactorCard
         value={values.titleStatus || "Clean"}
