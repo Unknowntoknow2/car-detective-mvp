@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useVehicleData } from "@/hooks/useVehicleData";
 import { Button } from "@/components/ui/button";
@@ -6,13 +7,8 @@ import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function VehicleDataInfo() {
-<<<<<<< HEAD
-  const { makes, counts, isLoading, refreshData } = useVehicleData();
-  
-=======
   const { makes, models, counts, isLoading, refreshData } = useVehicleData();
 
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   const handleRefresh = async () => {
     try {
       toast.loading("Refreshing vehicle data...");

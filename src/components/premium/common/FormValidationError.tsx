@@ -1,21 +1,4 @@
-<<<<<<< HEAD
 
-import React from 'react';
-import { AlertCircle } from 'lucide-react';
-
-interface FormValidationErrorProps {
-  error: string;
-  variant?: 'error' | 'warning' | 'info';
-}
-
-export function FormValidationError({ error, variant = 'error' }: FormValidationErrorProps) {
-  if (!error) return null;
-  
-  const variantClasses = {
-    error: 'text-red-500',
-    warning: 'text-amber-500',
-    info: 'text-blue-500'
-=======
 import React from "react";
 import { AlertCircle, AlertTriangle, XCircle } from "lucide-react";
 
@@ -23,7 +6,7 @@ interface FormValidationErrorProps {
   error: string;
   variant?: "error" | "warning" | "info";
   className?: string;
-  details?: string; // Make sure the details prop is included
+  details?: string;
 }
 
 export function FormValidationError({
@@ -58,15 +41,9 @@ export function FormValidationError({
       default:
         return "text-red-500";
     }
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   };
 
   return (
-<<<<<<< HEAD
-    <div className={`flex items-center mt-1 text-sm ${variantClasses[variant]}`}>
-      <AlertCircle className="h-3.5 w-3.5 mr-1" />
-      <span>{error}</span>
-=======
     <div
       className={`flex items-start gap-2 text-sm ${getTextColor()} ${className}`}
     >
@@ -75,7 +52,6 @@ export function FormValidationError({
         <p>{error}</p>
         {details && <p className="text-xs mt-1 opacity-80">{details}</p>}
       </div>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     </div>
   );
 }

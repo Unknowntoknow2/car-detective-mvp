@@ -1,20 +1,13 @@
+
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SectionHeader } from "@/components/ui/design-system";
 import { Button } from "@/components/ui/button";
-<<<<<<< HEAD
-import PremiumValuationForm from './form/PremiumValuationForm';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
-import { EquipmentSummary } from '../valuation/equipment/EquipmentSummary';
-=======
 import { PremiumValuationForm } from "./form/PremiumValuationForm";
 import { useAuth } from "@/components/auth/AuthContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { EquipmentSummary } from "../valuation/equipment/EquipmentSummary";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface PremiumValuationSectionProps {
   equipmentData?: {
