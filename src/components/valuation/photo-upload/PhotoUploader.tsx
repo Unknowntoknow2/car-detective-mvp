@@ -1,289 +1,113 @@
-<<<<<<< HEAD
-import React, { useState, useCallback } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Upload, Image as ImageIcon, AlertCircle, Camera, Check } from 'lucide-react';
-import { useDropzone } from 'react-dropzone';
-import { PhotoUploadList } from './PhotoUploadList';
-import { usePhotoUpload } from '@/hooks/usePhotoUpload';
-import { PhotoScore, AICondition } from '@/types/photo';
-import { MAX_FILES, MIN_FILES } from '@/types/photo';
-import { Progress } from '@/components/ui/progress';
-=======
-import React, { useCallback, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+
+import React, { useState, useCallback } from "react";
+import { Upload, X, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  AlertCircle,
-  Camera,
-  Check,
-  Image as ImageIcon,
-  Upload,
-} from "lucide-react";
-import { useDropzone } from "react-dropzone";
-import { PhotoUploadList } from "./PhotoUploadList";
-import { usePhotoUpload } from "@/hooks/usePhotoUpload";
-import { AICondition, PhotoScore } from "@/types/photo";
-import { MAX_FILES, MIN_FILES } from "@/types/photo";
-import { Progress } from "@/components/ui/progress";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface PhotoUploaderProps {
-  valuationId: string;
-  onScoreUpdate?: (
-    score: number,
-    bestPhoto?: string,
-    aiCondition?: AICondition,
-  ) => void;
-  isPremium?: boolean;
+  onPhotosUploaded: (photos: File[]) => void;
+  maxPhotos?: number;
+  isUploading?: boolean;
 }
 
 export function PhotoUploader({
-  valuationId,
-  onScoreUpdate,
-  isPremium = false,
+  onPhotosUploaded,
+  maxPhotos = 5,
+  isUploading = false,
 }: PhotoUploaderProps) {
-  const [scoringComplete, setScoringComplete] = useState(false);
-  const [analyzeProgress, setAnalyzeProgress] = useState(0);
-<<<<<<< HEAD
-  const [bestPhotoUrl, setBestPhotoUrl] = useState<string>('');
-  const [photoAssessment, setPhotoAssessment] = useState<AICondition | null>(null);
-  
-  const { 
-    photos, 
-=======
-  const [bestPhotoUrl, setBestPhotoUrl] = useState<string | undefined>(
-    undefined,
-  );
-  const [photoAssessment, setPhotoAssessment] = useState<AICondition | null>(
-    null,
-  );
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
 
-  const {
-    photos,
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-    isUploading,
-    error,
-    handleFileSelect,
-    uploadPhotos,
-    removePhoto,
-    addExplanation,
-    createPhotoScores,
-    analyzePhotos,
-  } = usePhotoUpload({
-<<<<<<< HEAD
-    valuationId: valuationId || ''
-=======
-    valuationId,
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-  });
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    handleFileSelect(acceptedFiles);
-  }, [handleFileSelect]);
+    const newPhotos = [...photos, ...files].slice(0, maxPhotos);
+    setPhotos(newPhotos);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "image/*": [".jpeg", ".jpg", ".png", ".webp"],
-    },
-    maxFiles: MAX_FILES,
-    maxSize: 10 * 1024 * 1024, // 10MB
-  });
+    // Generate previews
+    const newPreviews = newPhotos.map(file => URL.createObjectURL(file));
+    setPreviews(newPreviews);
 
-  const simulateProgress = () => {
-    // Simulate progress for better UX
-    setAnalyzeProgress(0);
-    const interval = setInterval(() => {
-      setAnalyzeProgress((prev) => {
-        if (prev >= 95) {
-          clearInterval(interval);
-          return prev;
-        }
-        return prev + 5;
-      });
-    }, 300);
+    onPhotosUploaded(newPhotos);
+  }, [photos, maxPhotos, onPhotosUploaded]);
 
-    return () => clearInterval(interval);
-  };
-
-  const handleAnalyzePhotos = async () => {
-    const progressCleanup = simulateProgress();
-
-    try {
-      // First upload the photos
-      await uploadPhotos();
-
-      // Create initial scores
-      const photoScores = createPhotoScores();
-
-      // Find best photo (highest score)
-      let bestScore = 0;
-      let bestPhoto = "";
-
-      photoScores.forEach((score) => {
-        if (score.score > bestScore) {
-          bestScore = score.score;
-          bestPhoto = score.url;
-        }
-      });
-<<<<<<< HEAD
-      
-      // If we found a best photo, set it
-      if (bestPhoto) {
-        setBestPhotoUrl(bestPhoto);
-      }
-      
-=======
-
-      setBestPhotoUrl(bestPhoto);
-
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-      // Now analyze photos for AI condition assessment
-      const analysis = await analyzePhotos(
-        photos.map((p) => p.url!),
-        valuationId,
-      );
-
-      if (analysis && analysis.aiCondition) {
-        setPhotoAssessment(analysis.aiCondition);
-      }
-
-      // Finalize progress
-      setAnalyzeProgress(100);
-
-      // Calculate average score from all photos
-      const avgScore = photoScores.reduce((sum, item) => sum + item.score, 0) /
-        photoScores.length;
-
-      // Call parent's callback with the score
-      if (onScoreUpdate) {
-        onScoreUpdate(
-          avgScore,
-          bestPhoto,
-          analysis?.aiCondition,
-        );
-      }
-
-      setScoringComplete(true);
-    } catch (err) {
-      console.error("Error analyzing photos:", err);
-      setAnalyzeProgress(0);
-    } finally {
-      progressCleanup();
-    }
-  };
+  const removePhoto = useCallback((index: number) => {
+    const newPhotos = photos.filter((_, i) => i !== index);
+    const newPreviews = previews.filter((_, i) => i !== index);
+    
+    setPhotos(newPhotos);
+    setPreviews(newPreviews);
+    onPhotosUploaded(newPhotos);
+  }, [photos, previews, onPhotosUploaded]);
 
   return (
-    <div className="space-y-4">
-      {!scoringComplete && (
-        <>
-          <div
-            {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
-              ${
-              isDragActive
-                ? "border-primary bg-primary/5"
-                : "border-gray-300 hover:border-primary/50"
-            }
-            `}
-          >
-            <input {...getInputProps()} />
-            <div className="flex flex-col items-center justify-center space-y-2">
-              <Camera className="h-8 w-8 text-gray-400" />
-              <p className="text-sm font-medium">
-                Drag & drop your vehicle photos here
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Or click to browse (max {MAX_FILES} photos, 10MB each)
-              </p>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Camera className="h-5 w-5" />
+          Upload Vehicle Photos
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {previews.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {previews.map((preview, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={preview}
+                    alt={`Vehicle photo ${index + 1}`}
+                    className="w-full h-24 object-cover rounded-md"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(index)}
+                    className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
             </div>
+          )}
+
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-600 mb-2">
+              Click to upload or drag and drop vehicle photos
+            </p>
+            <p className="text-xs text-gray-500 mb-4">
+              JPG, PNG or WebP (max 10MB each)
+            </p>
+            <Button
+              variant="outline"
+              disabled={isUploading || photos.length >= maxPhotos}
+              asChild
+            >
+              <label className="cursor-pointer">
+                Upload Photos
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileSelect}
+                  disabled={isUploading || photos.length >= maxPhotos}
+                />
+              </label>
+            </Button>
           </div>
 
           {photos.length > 0 && (
-            <Card>
-              <CardContent className="p-4">
-                <PhotoUploadList photos={photos} onRemove={removePhoto} />
-
-                {analyzeProgress > 0 && analyzeProgress < 100 && (
-                  <div className="mt-4 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Analyzing photos...</span>
-                      <span>{analyzeProgress}%</span>
-                    </div>
-                    <Progress value={analyzeProgress} className="h-2" />
-                  </div>
-                )}
-
-                <div className="mt-4 flex justify-end">
-                  <Button
-                    onClick={handleAnalyzePhotos}
-                    disabled={isUploading || photos.length < MIN_FILES ||
-                      analyzeProgress > 0}
-                  >
-                    {isUploading
-                      ? "Uploading..."
-                      : analyzeProgress > 0
-                      ? "Analyzing..."
-                      : "Analyze Photos"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <p className="text-xs text-gray-500 text-center">
+              {photos.length} of {maxPhotos} photos uploaded
+            </p>
           )}
-
-          {error && (
-            <div className="flex items-center space-x-2 text-red-600 text-sm">
-              <AlertCircle className="h-4 w-4" />
-              <p>{error}</p>
-            </div>
-          )}
-        </>
-      )}
-
-      {scoringComplete && (
-        <Card className="bg-slate-50 border border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="bg-green-100 rounded-full p-1">
-                <Check className="h-5 w-5 text-green-600" />
-              </div>
-              <p className="text-sm font-medium text-green-700">
-                Photo analysis complete!{" "}
-                {isPremium ? "Premium condition assessment included." : ""}
-              </p>
-            </div>
-
-            {bestPhotoUrl && (
-              <div className="aspect-video relative bg-slate-100 rounded-lg overflow-hidden mb-4">
-                <img
-                  src={bestPhotoUrl}
-                  alt="Vehicle"
-                  className="object-cover w-full h-full"
-                />
-              </div>
-            )}
-
-            {photoAssessment && (
-              <div className="bg-white rounded border p-3 text-sm">
-                <p className="font-medium mb-1">AI Assessment:</p>
-                <p>
-                  Condition:{" "}
-                  <span className="font-medium">
-                    {photoAssessment.condition}
-                  </span>
-                </p>
-                {photoAssessment.issuesDetected &&
-                  photoAssessment.issuesDetected.length > 0 && (
-                  <p className="mt-1">
-                    Issues: {photoAssessment.issuesDetected.join(", ")}
-                  </p>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
+
+export default PhotoUploader;

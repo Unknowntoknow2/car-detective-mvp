@@ -1,74 +1,34 @@
-<<<<<<< HEAD:src/components/valuation/free/ValuationResultFree.tsx
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Share, Download, ArrowRight } from 'lucide-react';
-import { formatCurrency } from '@/utils/formatters';
-import { supabase } from '@/utils/supabaseClient';
-=======
-import React, { useEffect, useState } from "react";
+
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Download, Share } from "lucide-react";
 import { formatCurrency } from "@/utils/formatters";
-import { supabase } from "@/utils/supabaseClient";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup):src/components/valuation/free/ValuationResult.tsx
 
 interface ValuationResultFreeProps {
-  valuationData: any;
-  valuationId: string | null;
+  estimatedValue: number;
+  confidenceScore: number;
+  vehicleInfo: {
+    year: number;
+    make: string;
+    model: string;
+    mileage: number;
+    condition: string;
+  };
 }
 
-<<<<<<< HEAD:src/components/valuation/free/ValuationResultFree.tsx
-export function ValuationResultFree({ valuationData, valuationId }: ValuationResultFreeProps) {
-  const [makeDisplay, setMakeDisplay] = useState<string>('');
-  const [modelDisplay, setModelDisplay] = useState<string>('');
-  
-=======
-export function ValuationResult(
-  { valuationData, valuationId }: ValuationResultProps,
-) {
-  const [makeDisplay, setMakeDisplay] = useState<string>("");
-  const [modelDisplay, setModelDisplay] = useState<string>("");
-
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup):src/components/valuation/free/ValuationResult.tsx
-  // Fetch make and model names if we have a valuation ID
-  useEffect(() => {
-    async function fetchVehicleDetails() {
-      if (!valuationId) return;
-
-      try {
-        const { data, error } = await supabase
-          .from("valuations")
-          .select("make, model, year")
-          .eq("id", valuationId)
-          .single();
-
-        if (error) throw error;
-
-        if (data) {
-          setMakeDisplay(data.make);
-          setModelDisplay(data.model);
-        }
-      } catch (err) {
-        console.error("Error fetching valuation details:", err);
-      }
-    }
-
-    fetchVehicleDetails();
-  }, [valuationId]);
-
-  if (!valuationData) return null;
-
-  const { finalValue, baseValue, confidenceScore, priceRange } = valuationData;
-
+export function ValuationResultFree({
+  estimatedValue,
+  confidenceScore,
+  vehicleInfo,
+}: ValuationResultFreeProps) {
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-6 rounded-lg shadow-sm">
         <h3 className="text-xl font-medium text-primary">Estimated Value</h3>
         <div className="mt-2 flex items-baseline">
           <span className="text-4xl font-bold text-primary">
-            {formatCurrency(finalValue)}
+            {formatCurrency(estimatedValue)}
           </span>
           <span className="ml-2 text-sm text-muted-foreground">
             {confidenceScore >= 80
@@ -77,19 +37,6 @@ export function ValuationResult(
               ? "Medium confidence"
               : "Low confidence"}
           </span>
-        </div>
-
-        <div className="mt-4 text-sm text-muted-foreground">
-          <div className="flex justify-between">
-            <span>Value Range:</span>
-            <span>
-              {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
-            </span>
-          </div>
-          <div className="flex justify-between mt-1">
-            <span>Base Value:</span>
-            <span>{formatCurrency(baseValue)}</span>
-          </div>
         </div>
       </div>
 
@@ -101,23 +48,23 @@ export function ValuationResult(
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="font-medium">Make:</span>
-              <span>{makeDisplay}</span>
+              <span>{vehicleInfo.make}</span>
             </div>
             <div className="flex justify-between">
               <span className="font-medium">Model:</span>
-              <span>{modelDisplay}</span>
+              <span>{vehicleInfo.model}</span>
             </div>
             <div className="flex justify-between">
               <span className="font-medium">Year:</span>
-              <span>{valuationData.year}</span>
+              <span>{vehicleInfo.year}</span>
             </div>
             <div className="flex justify-between">
               <span className="font-medium">Mileage:</span>
-              <span>{valuationData.mileage.toLocaleString()} miles</span>
+              <span>{vehicleInfo.mileage.toLocaleString()} miles</span>
             </div>
             <div className="flex justify-between">
               <span className="font-medium">Condition:</span>
-              <span className="capitalize">{valuationData.condition}</span>
+              <span className="capitalize">{vehicleInfo.condition}</span>
             </div>
           </div>
         </CardContent>
