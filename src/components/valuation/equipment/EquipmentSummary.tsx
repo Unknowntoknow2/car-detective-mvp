@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-=======
 import React, { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +6,6 @@ import { PlusCircle, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface EquipmentSummaryProps {
   selectedEquipmentIds: number[];
@@ -18,13 +13,6 @@ interface EquipmentSummaryProps {
   totalValueAdd: number;
 }
 
-<<<<<<< HEAD
-export function EquipmentSummary({ 
-  selectedEquipmentIds, 
-  combinedMultiplier, 
-  totalValueAdd 
-}: EquipmentSummaryProps) {
-=======
 export function EquipmentSummary({
   selectedEquipmentIds,
   combinedMultiplier,
@@ -81,7 +69,6 @@ export function EquipmentSummary({
     );
   }
 
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   return (
     <Card>
       <CardHeader>
@@ -110,8 +97,6 @@ export function EquipmentSummary({
             </p>
           </div>
         </div>
-<<<<<<< HEAD
-=======
 
         <div className="flex flex-wrap gap-2 mb-4">
           {equipmentNames.map((name, index) => (
@@ -126,7 +111,6 @@ export function EquipmentSummary({
             Edit Equipment Options
           </Link>
         </Button>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       </CardContent>
     </Card>
   );
