@@ -1,272 +1,189 @@
-<<<<<<< HEAD
 
-import { useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
-import * as z from 'zod';
-import { useAuth } from '@/hooks/useAuth';
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
-// Define the form schema with validation
-const dealerFormSchema = z.object({
-  dealershipName: z.string().min(2, "Dealership name must be at least 2 characters"),
-  fullName: z.string().min(2, "Contact name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number"),
-  phone: z.string().optional(),
-  termsAccepted: z.boolean().refine(val => val === true, {
-    message: "You must accept the terms and conditions",
-  }),
+const dealerSignupSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  fullName: z.string().min(2, "Full name is required"),
+  dealershipName: z.string().min(2, "Dealership name is required"),
+  phone: z.string().min(10, "Valid phone number is required"),
+  address: z.string().min(5, "Address is required"),
+  city: z.string().min(2, "City is required"),
+  state: z.string().min(2, "State is required"),
+  zipCode: z.string().min(5, "Valid ZIP code is required"),
 });
 
-type FormData = z.infer<typeof dealerFormSchema>;
+type DealerSignupFormData = z.infer<typeof dealerSignupSchema>;
 
-export function DealerSignupForm() {
+export const DealerSignupForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-  const { signUp } = useAuth();
-  
-  const form = useForm<FormData>({
-    resolver: zodResolver(dealerFormSchema),
-    defaultValues: {
-      fullName: '',
-      email: '',
-      password: '',
-      dealershipName: '',
-      phone: '',
-      termsAccepted: false,
-    },
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<DealerSignupFormData>({
+    resolver: zodResolver(dealerSignupSchema),
   });
-  
-  const onSubmit = async (data: FormData) => {
+
+  const onSubmit = async (data: DealerSignupFormData) => {
     setIsLoading(true);
     
     try {
-      // Sign up the user with dealer role and metadata
-      const metadata = {
-        full_name: data.fullName,
-        role: 'dealer',
-        dealership_name: data.dealershipName,
-        phone: data.phone || null,
-      };
-      
-      const result = await signUp(data.email, data.password, metadata);
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Registration failed');
-      }
-      
-      toast.success('Dealership registration successful!', {
-        description: 'Please check your email to verify your account.'
+      const { error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.fullName,
+            dealership_name: data.dealershipName,
+            phone: data.phone,
+            address: data.address,
+            city: data.city,
+            state: data.state,
+            zip_code: data.zipCode,
+            role: 'dealer',
+          },
+        },
       });
-      
-      navigate('/dealer/dashboard');
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      
-      let errorMessage = 'Registration failed';
-      
-      if (error.message?.includes('already registered')) {
-        errorMessage = 'This email is already registered';
-      }
 
-      toast.error(errorMessage, {
-        description: error.message,
-      });
+      if (error) throw error;
+
+      toast.success("Dealer account created successfully! Please check your email to verify your account.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create dealer account");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="dealershipName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dealership Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Your Dealership LLC" {...field} disabled={isLoading} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="fullName">Full Name</Label>
+          <Input
+            id="fullName"
+            {...register("fullName")}
+            placeholder="John Doe"
+          />
+          {errors.fullName && (
+            <p className="text-sm text-red-600 mt-1">{errors.fullName.message}</p>
           )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="fullName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Contact Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} disabled={isLoading} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="dealer@example.com" {...field} disabled={isLoading} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="Create a secure password" {...field} disabled={isLoading} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone Number (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="(555) 123-4567" {...field} disabled={isLoading} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="termsAccepted"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4 border">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  disabled={isLoading}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel className="text-sm font-normal">
-                  I accept the terms and conditions
-                </FormLabel>
-              </div>
-            </FormItem>
-          )}
-        />
-        
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating Account...
-            </>
-          ) : (
-            'Register Dealership'
-          )}
-        </Button>
-=======
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { Link } from "react-router-dom";
-import { useDealerSignup } from "./hooks/useDealerSignup";
-import {
-  DealershipNameField,
-  EmailField,
-  FullNameField,
-  PasswordField,
-  PhoneField,
-} from "./components/DealerFormFields";
-import { Loader2 } from "lucide-react";
-
-export function DealerSignupForm() {
-  const {
-    form,
-    isLoading,
-    dealershipError,
-    setDealershipError,
-    onSubmit,
-  } = useDealerSignup();
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-        <FullNameField form={form} isLoading={isLoading} />
-
-        <DealershipNameField
-          form={form}
-          isLoading={isLoading}
-          dealershipError={dealershipError}
-          setDealershipError={setDealershipError}
-        />
-
-        <PhoneField form={form} isLoading={isLoading} />
-
-        <EmailField form={form} isLoading={isLoading} />
-
-        <PasswordField form={form} isLoading={isLoading} />
-
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={isLoading}
-        >
-          {isLoading
-            ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Account...
-              </>
-            )
-            : (
-              "Create Dealer Account"
-            )}
-        </Button>
-
-        <div className="text-center mt-4">
-          <Link
-            to="/login-dealer"
-            className="text-primary hover:underline text-sm"
-          >
-            Already have a dealer account? Login here
-          </Link>
         </div>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-      </form>
-    </Form>
+
+        <div>
+          <Label htmlFor="dealershipName">Dealership Name</Label>
+          <Input
+            id="dealershipName"
+            {...register("dealershipName")}
+            placeholder="ABC Motors"
+          />
+          {errors.dealershipName && (
+            <p className="text-sm text-red-600 mt-1">{errors.dealershipName.message}</p>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          {...register("email")}
+          placeholder="dealer@example.com"
+        />
+        {errors.email && (
+          <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>
+        )}
+      </div>
+
+      <div>
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          {...register("password")}
+          placeholder="••••••••"
+        />
+        {errors.password && (
+          <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
+        )}
+      </div>
+
+      <div>
+        <Label htmlFor="phone">Phone Number</Label>
+        <Input
+          id="phone"
+          {...register("phone")}
+          placeholder="(555) 123-4567"
+        />
+        {errors.phone && (
+          <p className="text-sm text-red-600 mt-1">{errors.phone.message}</p>
+        )}
+      </div>
+
+      <div>
+        <Label htmlFor="address">Address</Label>
+        <Input
+          id="address"
+          {...register("address")}
+          placeholder="123 Main St"
+        />
+        {errors.address && (
+          <p className="text-sm text-red-600 mt-1">{errors.address.message}</p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <Label htmlFor="city">City</Label>
+          <Input
+            id="city"
+            {...register("city")}
+            placeholder="Anytown"
+          />
+          {errors.city && (
+            <p className="text-sm text-red-600 mt-1">{errors.city.message}</p>
+          )}
+        </div>
+
+        <div>
+          <Label htmlFor="state">State</Label>
+          <Input
+            id="state"
+            {...register("state")}
+            placeholder="CA"
+          />
+          {errors.state && (
+            <p className="text-sm text-red-600 mt-1">{errors.state.message}</p>
+          )}
+        </div>
+
+        <div>
+          <Label htmlFor="zipCode">ZIP Code</Label>
+          <Input
+            id="zipCode"
+            {...register("zipCode")}
+            placeholder="12345"
+          />
+          {errors.zipCode && (
+            <p className="text-sm text-red-600 mt-1">{errors.zipCode.message}</p>
+          )}
+        </div>
+      </div>
+
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? "Creating Account..." : "Create Dealer Account"}
+      </Button>
+    </form>
   );
-}
+};
