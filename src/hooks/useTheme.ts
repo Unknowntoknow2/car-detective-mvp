@@ -1,19 +1,6 @@
+
 import { useEffect, useState } from "react";
 
-<<<<<<< HEAD
-import { useContext } from 'react';
-import { ThemeContext } from '@/components/theme/ThemeProvider';
-
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  
-  return context;
-};
-=======
 type Theme = "light" | "dark";
 
 export function useTheme() {
@@ -46,4 +33,3 @@ export function useTheme() {
 
   return { theme, setTheme };
 }
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
