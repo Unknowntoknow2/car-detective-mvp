@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,20 +13,12 @@ interface VinInputSectionProps {
   readonly?: boolean;
 }
 
-<<<<<<< HEAD
-export function VinInputSection({ 
-  vin, 
-  isLoading, 
-  onVinChange, 
-  onFetchHistory,
-  readonly = false
-=======
 export function VinInputSection({
   vin,
   isLoading,
   onVinChange,
   onFetchHistory,
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+  readonly = false
 }: VinInputSectionProps) {
   // Validate VIN format (17 characters, no I, O, Q)
   const isValidVin = (vin: string) => {
