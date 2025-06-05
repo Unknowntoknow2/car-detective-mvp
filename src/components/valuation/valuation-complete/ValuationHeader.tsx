@@ -1,139 +1,186 @@
-<<<<<<< HEAD
-
 import React from 'react';
-import { ChatBubble } from '@/components/chat/ChatBubble';
-import { Valuation } from '@/types/valuation-history';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency } from '@/lib/utils';
-import { CalendarIcon, CarIcon, InfoIcon } from 'lucide-react';
-=======
-import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { formatCurrency } from "@/utils/formatters";
-import { Badge } from "@/components/ui/badge";
+import { Button } from '@/components/ui/button';
+import { Download, Mail, TrendingUp, AlertCircle } from 'lucide-react';
+import { ValuationScoreBar } from './ValuationScoreBar';
+import { AdjustmentBreakdown } from '@/utils/rules/types';
+import { AINSummary } from '@/components/premium/insights/AINSummary';
+import { CarfaxSummary } from '@/components/premium/insights/CarfaxSummary';
 
-interface VehicleInfo {
-  make: string;
-  model: string;
-  year: number;
-  mileage: number;
-  condition: string;
+interface UnifiedValuationResultProps {
+  valuationId: string;
+  displayMode?: 'compact' | 'full';
+  estimatedValue: number;
+  confidenceScore: number;
+  priceRange: [number, number];
+  adjustments?: AdjustmentBreakdown[];
+  vehicleInfo?: {
+    year?: number;
+    make?: string;
+    model?: string;
+    mileage?: number;
+    condition?: string;
+    vin?: string;
+  };
+  isPremium?: boolean;
+  onDownloadPdf?: () => void;
+  onEmailReport?: () => void;
+  onUpgrade?: () => void;
 }
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
-interface ValuationHeaderProps {
-  valuation: Valuation;
-}
-
-<<<<<<< HEAD
-export const ValuationHeader: React.FC<ValuationHeaderProps> = ({ valuation }) => {
-  const { year, make, model } = valuation;
-  // Use a type assertion to safely access the trim property that might not exist in the type definition
-  const trimValue = (valuation as any).trim?.toString() || '';
-  const formattedDate = valuation.created_at ? new Date(valuation.created_at).toLocaleDateString() : 'N/A';
-  const estimatedValue = valuation.estimated_value || 0;
-  
-  return (
-    <div className="mb-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-        <div>
-          <h1 className="text-2xl font-bold">
-            {year} {make} {model} {trimValue}
-          </h1>
-          <div className="flex flex-wrap items-center gap-2 mt-2">
-            <Badge variant="outline" className="flex items-center gap-1">
-              <CarIcon className="h-3 w-3" />
-              <span>{year}</span>
-            </Badge>
-            <Badge variant="outline" className="flex items-center gap-1">
-              <CalendarIcon className="h-3 w-3" />
-              <span>Valued on {formattedDate}</span>
-            </Badge>
-            <Badge variant="outline" className="flex items-center gap-1">
-              <InfoIcon className="h-3 w-3" />
-              <span>VIN: {valuation.vin || 'Not provided'}</span>
-            </Badge>
-=======
-export const ValuationHeader: React.FC<ValuationHeaderProps> = ({
-  vehicleInfo,
+export default function UnifiedValuationResult({
+  valuationId,
+  displayMode = 'full',
   estimatedValue,
+  confidenceScore,
+  priceRange,
+  adjustments = [],
+  vehicleInfo,
   isPremium = false,
-  additionalInfo = {},
-}) => {
+  onDownloadPdf,
+  onEmailReport,
+  onUpgrade
+}: UnifiedValuationResultProps) {
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const getMarketTrend = () => {
+    if (confidenceScore >= 80) return { label: 'Strong', color: 'text-green-600', icon: TrendingUp };
+    if (confidenceScore >= 60) return { label: 'Moderate', color: 'text-yellow-600', icon: TrendingUp };
+    return { label: 'Uncertain', color: 'text-red-600', icon: AlertCircle };
+  };
+
+  const marketTrend = getMarketTrend();
+
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold flex items-center gap-2">
-        {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
-        <Badge variant="outline" className="ml-2">
-          {vehicleInfo.condition}
-        </Badge>
-      </h1>
+    <div className="space-y-6">
+      {/* Main Valuation Summary */}
+      <Card className="relative">
+        {isPremium && (
+          <div className="absolute top-4 right-4">
+            <Badge className="bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-900">
+              Premium
+            </Badge>
+          </div>
+        )}
 
-      <Card className="p-4 shadow-sm">
-        <CardContent className="p-0">
-          <div className="flex flex-col md:flex-row justify-between">
-            <div className="space-y-2">
-              <p className="text-muted-foreground text-sm">Vehicle Details</p>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Year:</p>
-                  <p className="font-medium">{vehicleInfo.year}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Mileage:</p>
-                  <p className="font-medium">
-                    {vehicleInfo.mileage.toLocaleString()} miles
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Condition:</p>
-                  <p className="font-medium">{vehicleInfo.condition}</p>
-                </div>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Vehicle Valuation Summary</span>
+          </CardTitle>
+        </CardHeader>
 
-                {/* Display any additional info if provided */}
-                {Object.entries(additionalInfo).map(([key, value]) => (
-                  <div key={key}>
-                    <p className="text-muted-foreground">{key}:</p>
-                    <p className="font-medium">{value}</p>
+        <CardContent className="space-y-6">
+          {/* Vehicle Info */}
+          {vehicleInfo && (
+            <div className="border-b pb-4">
+              <h3 className="text-lg font-semibold">
+                {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
+              </h3>
+              <div className="flex gap-4 text-sm text-muted-foreground">
+                {vehicleInfo.mileage && <span>{vehicleInfo.mileage.toLocaleString()} miles</span>}
+                {vehicleInfo.condition && <span>Condition: {vehicleInfo.condition}</span>}
+              </div>
+            </div>
+          )}
+
+          {/* Price Information */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">Estimated Value</p>
+              <p className="text-3xl font-bold text-primary">{formatCurrency(estimatedValue)}</p>
+            </div>
+
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">Price Range</p>
+              <p className="text-lg font-semibold">
+                {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
+              </p>
+            </div>
+
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-1">Market Confidence</p>
+              <div className="flex items-center justify-center gap-2">
+                <marketTrend.icon className={`h-4 w-4 ${marketTrend.color}`} />
+                <span className={`font-semibold ${marketTrend.color}`}>
+                  {marketTrend.label}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Confidence Score */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Confidence Score</span>
+              <span className="text-sm font-bold">{confidenceScore}%</span>
+            </div>
+            <ValuationScoreBar score={confidenceScore} />
+          </div>
+
+          {/* Adjustments Breakdown */}
+          {displayMode === 'full' && adjustments.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="font-semibold">Value Adjustments</h4>
+              <div className="space-y-2">
+                {adjustments.map((adjustment, index) => (
+                  <div key={index} className="flex justify-between items-center text-sm">
+                    <span>{adjustment.factor}</span>
+                    <span className={adjustment.impact >= 0 ? 'text-green-600' : 'text-red-600'}>
+                      {adjustment.impact > 0 ? '+' : ''}{formatCurrency(adjustment.impact)}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
+          )}
 
-            <div className="mt-4 md:mt-0 text-right">
-              <p className="text-sm text-muted-foreground">Estimated Value</p>
-              <p className="text-3xl font-bold text-primary">
-                {formatCurrency(estimatedValue)}
-              </p>
-              {isPremium && (
-                <Badge
-                  variant="outline"
-                  className="bg-primary/10 text-primary border-primary/20 mt-2"
-                >
-                  Premium Report
-                </Badge>
-              )}
-            </div>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-3 pt-4 border-t">
+            {isPremium ? (
+              <>
+                <Button onClick={onDownloadPdf} className="flex-1">
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Premium PDF
+                </Button>
+                <Button variant="outline" onClick={onEmailReport} className="flex-1">
+                  <Mail className="mr-2 h-4 w-4" />
+                  Email Report
+                </Button>
+              </>
+            ) : (
+              <Button onClick={onUpgrade} className="w-full">
+                Upgrade to Premium for Detailed Report
+              </Button>
+            )}
           </div>
-        </div>
-        
-        <div className="bg-primary/10 p-3 rounded-lg">
-          <div className="text-sm text-muted-foreground">Estimated Value</div>
-          <div className="text-2xl font-bold text-primary">
-            {formatCurrency(estimatedValue)}
-          </div>
-        </div>
-      </div>
-      
-      <div className="flex justify-end">
-        <ChatBubble 
-          content="Ask me about your valuation"
-          sender="assistant"
-          timestamp={new Date()}
-          valuationId={valuation.id}
-        />
-      </div>
+        </CardContent>
+      </Card>
+
+      {/* Premium Features */}
+      {isPremium && vehicleInfo?.vin && (
+        <>
+          <AINSummary
+            vin={vehicleInfo.vin}
+            vehicleData={{
+              year: vehicleInfo.year,
+              make: vehicleInfo.make,
+              model: vehicleInfo.model,
+              mileage: vehicleInfo.mileage,
+              estimatedValue: estimatedValue
+            }}
+          />
+
+          <CarfaxSummary />
+        </>
+      )}
     </div>
   );
-};
+}

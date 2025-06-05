@@ -1,13 +1,13 @@
-<<<<<<< HEAD
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { Navbar } from "./components/layout/Navbar";
-import { Footer } from "./components/layout/Footer";
+// ✅ src/App.tsx
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { Navbar } from './components/layout/Navbar';
+import { Footer } from './components/layout/Footer';
 import { AINAssistantTrigger } from '@/components/chat/AINAssistantTrigger';
 import routes from '@/router';
 
@@ -19,7 +19,7 @@ function App() {
       if (route.index) {
         return <Route key={index} index element={route.element} />;
       }
-      
+
       if (route.children) {
         return (
           <Route key={index} path={route.path} element={route.element}>
@@ -27,7 +27,7 @@ function App() {
           </Route>
         );
       }
-      
+
       return <Route key={index} path={route.path} element={route.element} />;
     });
   };
@@ -39,9 +39,7 @@ function App() {
           <div className="min-h-screen flex flex-col bg-background">
             <Navbar />
             <main className="flex-grow">
-              <Routes>
-                {renderRoutes(routes)}
-              </Routes>
+              <Routes>{renderRoutes(routes)}</Routes>
             </main>
             <Footer />
             <AINAssistantTrigger />
@@ -52,14 +50,6 @@ function App() {
       </AuthProvider>
     </QueryClientProvider>
   );
-=======
-// ✅ src/App.tsx
-import React from "react";
-import Router from "./router";
-
-function App() {
-  return <Router />;
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }
 
 export default App;

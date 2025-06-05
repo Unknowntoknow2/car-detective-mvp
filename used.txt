@@ -3388,7 +3388,7 @@ import MagicString, { SourceMap } from 'magic-string';
 import MainLayout from "@/components/layout/MainLayout";
 import MakeModelSelect from "./MakeModelSelect";
 import ManualEntryForm from "./ManualEntryForm";
-import ManualEntryForm from "@/components/lookup/ManualEntryForm";
+import ManualEntryForm from "@/components/lookup/manual/ManualEntryForm";
 import ManualEntryForm from "@/components/lookup/manual/ManualEntryForm";
 import MarkerElement from './MarkerElement';
 import MaskElement from './MaskElement';
