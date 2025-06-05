@@ -1,12 +1,7 @@
-<<<<<<< HEAD
-=======
+
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
- 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

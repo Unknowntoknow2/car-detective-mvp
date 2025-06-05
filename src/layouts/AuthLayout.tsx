@@ -1,14 +1,8 @@
-<<<<<<< HEAD
 
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { Container } from '@/components/ui/container';
-import { AINAssistantTrigger } from '@/components/chat/AINAssistantTrigger';
-=======
 import React from "react";
 import { Outlet } from "react-router-dom";
 import { Container } from "@/components/ui/container";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+import { AINAssistantTrigger } from "@/components/chat/AINAssistantTrigger";
 
 const AuthLayout: React.FC = () => {
   return (
