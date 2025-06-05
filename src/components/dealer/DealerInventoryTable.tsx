@@ -1,22 +1,11 @@
-<<<<<<< HEAD
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { useDealerInventory } from './hooks/useDealerInventory';
-import { DealerVehicle } from '@/types/dealerVehicle'; // Updated import
-import { formatCurrency } from '@/utils/formatters';
-import { Edit, Trash2, Car } from 'lucide-react';
-import { toast } from 'sonner';
-=======
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useDealerInventory } from "./hooks/useDealerInventory";
-import { DealerVehicle } from "@/types/vehicle"; // Updated import
+import { DealerVehicle } from "@/types/vehicle";
 import { formatCurrency } from "@/utils/formatters";
-import { Loading } from "@/components/ui/loading"; // Updated import
 import { Car, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 import {
   Table,
   TableBody,
@@ -132,8 +121,6 @@ export const DealerInventoryTable: React.FC = () => {
           ))}
         </TableBody>
       </Table>
-
-      {/* Delete Dialog would be here */}
     </div>
   );
 };
