@@ -1,4 +1,4 @@
-// ✅ src/main.tsx
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -10,7 +10,7 @@ import { loadFonts } from './lib/fonts';
 import { setupTrackingErrorHandler } from './utils/errorHandling';
 import './index.css';
 
-// ✅ Initialize third-party tools
+// Initialize third-party tools
 initSentry();
 loadFonts();
 
@@ -18,7 +18,7 @@ if (typeof window !== 'undefined') {
   setupTrackingErrorHandler();
 }
 
-// ✅ Enable React Router future flags
+// Enable React Router future flags for better performance
 if (import.meta.env.VITE_ROUTER_FUTURE_FLAGS) {
   (window as any).__reactRouterFutureFlags = {
     v7_startTransition: true,
@@ -26,10 +26,15 @@ if (import.meta.env.VITE_ROUTER_FUTURE_FLAGS) {
   };
 }
 
-// ✅ Render the app
+// Render the app with error handling
 const renderApp = () => {
   try {
-    ReactDOM.createRoot(document.getElementById('root')!).render(
+    const rootElement = document.getElementById('root');
+    if (!rootElement) {
+      throw new Error('Root element not found');
+    }
+
+    ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
         <BrowserRouter>
           <AuthProvider>
@@ -45,7 +50,7 @@ const renderApp = () => {
     const rootElement = document.getElementById('root');
     if (rootElement) {
       rootElement.innerHTML = `
-        <div style="padding: 20px; text-align: center;">
+        <div style="padding: 20px; text-align: center; font-family: system-ui;">
           <h2>Application Error</h2>
           <p>We're sorry, but the application failed to load properly.</p>
           <p>Please try refreshing the page.</p>
