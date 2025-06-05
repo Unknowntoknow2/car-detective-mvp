@@ -1,11 +1,6 @@
-<<<<<<< HEAD
 
-import * as React from "react"
-import * as SwitchPrimitives from "@radix-ui/react-switch"
-=======
 import * as React from "react";
 import * as SwitchPrimitives from "@radix-ui/react-switch";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 import { cn } from "@/lib/utils";
 

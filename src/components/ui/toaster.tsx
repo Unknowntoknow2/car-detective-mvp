@@ -1,3 +1,4 @@
+
 import {
   Toast,
   ToastClose,
@@ -5,40 +6,11 @@ import {
   ToastProvider,
   ToastTitle,
   ToastViewport,
-<<<<<<< HEAD
-} from "@/components/ui/toast"
-import { useToast } from "@/hooks/use-toast"
-=======
 } from "@/components/ui/toast";
-import { AlertCircle, Check, Info, X } from "lucide-react";
 import { toast, Toaster as SonnerToaster } from "sonner";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export function Toaster() {
-  const { toasts } = useToast()
-
   return (
-<<<<<<< HEAD
-    <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
-        return (
-          <Toast key={id} {...props}>
-            <div className="grid gap-1">
-              {title && <ToastTitle>{title}</ToastTitle>}
-              {description && (
-                <ToastDescription>{description}</ToastDescription>
-              )}
-            </div>
-            {action}
-            <ToastClose />
-          </Toast>
-        )
-      })}
-      <ToastViewport />
-    </ToastProvider>
-  )
-}
-=======
     <SonnerToaster
       className="toaster group"
       toastOptions={{
@@ -65,4 +37,3 @@ export function Toaster() {
 }
 
 export { toast };
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
