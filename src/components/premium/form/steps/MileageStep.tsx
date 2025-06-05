@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +20,6 @@ export default function MileageStep(
   );
   const [error, setError] = useState<string | null>(null);
 
-  // Format the mileage with commas when input loses focus
   const handleBlur = () => {
     if (inputValue) {
       const mileage = parseInt(inputValue.replace(/,/g, ""), 10);
@@ -27,7 +27,6 @@ export default function MileageStep(
     }
   };
 
-  // Remove commas when input gets focus for easier editing
   const handleFocus = () => {
     setInputValue(inputValue.replace(/,/g, ""));
   };
@@ -35,24 +34,12 @@ export default function MileageStep(
   const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
-    // Allow empty input or numeric input
     if (value === "" || /^\d+$/.test(value)) {
       setInputValue(value);
-<<<<<<< HEAD
-      
-      if (value === '') {
-        // Convert to type-safe version to prevent issues with mileage being undefined
-        setFormData(prev => ({
-          ...prev, 
-          mileage: 0 // Use 0 instead of undefined to ensure type compatibility
-        }));
-        setError('');
-=======
 
       if (value === "") {
         setFormData((prev) => ({ ...prev, mileage: null }));
         setError("");
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         updateValidity(step, false);
       } else {
         const mileage = parseInt(value, 10);
@@ -72,16 +59,9 @@ export default function MileageStep(
     }
   };
 
-  // Set initial validity state on mount
   useEffect(() => {
-<<<<<<< HEAD
-    const mileageValue = formData.mileage;
-    const isValid = mileageValue !== undefined && mileageValue !== null && 
-                    mileageValue >= 0 && mileageValue <= 999999;
-=======
     const isValid = formData.mileage !== null && formData.mileage >= 0 &&
       formData.mileage <= 999999;
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     updateValidity(step, isValid);
   }, []);
 

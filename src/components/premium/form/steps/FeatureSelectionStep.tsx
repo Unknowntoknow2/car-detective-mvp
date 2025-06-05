@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { FormData } from "@/types/premium-valuation";
 import { Label } from "@/components/ui/label";
@@ -23,23 +24,19 @@ export function FeatureSelectionStep({
   );
 
   useEffect(() => {
-    // Initialize selected features from form data
     setSelectedFeatures(formData.features || []);
   }, [formData.features]);
 
   useEffect(() => {
-    // Update form data whenever selected features change
     setFormData((prev) => ({
       ...prev,
       features: selectedFeatures,
     }));
 
-    // Validate if any features are selected
     const isValid = selectedFeatures.length > 0;
     updateValidity(step, isValid);
   }, [selectedFeatures, setFormData, step, updateValidity]);
 
-  // Feature categories and their items
   const featureCategories = [
     {
       name: "Entertainment",
@@ -91,22 +88,14 @@ export function FeatureSelectionStep({
     });
   };
 
-  // Handle seasonal adjustment changes
   const handleSeasonalChange = (
     values: { saleDate: Date | undefined; bodyStyle: string | undefined },
   ) => {
     setFormData((prev) => ({
       ...prev,
-<<<<<<< HEAD
-      // Convert Date to Date object explicitly to match the FormData type
-      saleDate: values.saleDate ? new Date(values.saleDate) : undefined,
-      bodyStyle: values.bodyStyle || undefined, // Use undefined if empty
-      bodyType: values.bodyStyle || undefined  // Keep bodyType in sync with bodyStyle
-=======
       saleDate: values.saleDate,
-      bodyStyle: values.bodyStyle, // Using bodyStyle as defined in FormData interface
-      bodyType: values.bodyStyle, // Also set bodyType for compatibility
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+      bodyStyle: values.bodyStyle,
+      bodyType: values.bodyStyle,
     }));
   };
 
@@ -122,7 +111,6 @@ export function FeatureSelectionStep({
         </p>
       </div>
 
-      {/* Seasonal Adjustment Card */}
       <Card>
         <CardContent className="pt-6">
           <h3 className="text-lg font-medium mb-4">Seasonal Market Timing</h3>
@@ -139,7 +127,6 @@ export function FeatureSelectionStep({
         </CardContent>
       </Card>
 
-      {/* Feature Selection Cards */}
       {featureCategories.map((category) => (
         <Card key={category.name}>
           <CardContent className="space-y-3">
@@ -150,8 +137,7 @@ export function FeatureSelectionStep({
                   <Checkbox
                     id={item}
                     checked={selectedFeatures.includes(item)}
-                    onCheckedChange={() =>
-                      handleFeatureChange(item)}
+                    onCheckedChange={() => handleFeatureChange(item)}
                   />
                   <Label htmlFor={item}>{item}</Label>
                 </div>
