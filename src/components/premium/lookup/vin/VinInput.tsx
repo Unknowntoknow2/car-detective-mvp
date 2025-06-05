@@ -1,16 +1,9 @@
-<<<<<<< HEAD
 
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
-import { FormValidationError } from '@/components/premium/common/FormValidationError';
-import { VinInfoMessage } from '@/components/validation/VinInfoMessage';
-=======
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2 } from "lucide-react";
 import { FormValidationError } from "@/components/premium/common/FormValidationError";
 import { VinInfoMessage } from "@/components/validation/VinInfoMessage";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface VinInputProps {
   value: string;
@@ -53,16 +46,6 @@ export function VinInput({
           <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
         )}
       </div>
-<<<<<<< HEAD
-      
-      {touched && validationError ? (
-        <FormValidationError error={validationError} />
-      ) : externalError ? (
-        <FormValidationError error={externalError} />
-      ) : (
-        <VinInfoMessage />
-      )}
-=======
 
       {touched && validationError
         ? (
@@ -79,7 +62,6 @@ export function VinInput({
           />
         )
         : <VinInfoMessage />}
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     </div>
   );
 }
