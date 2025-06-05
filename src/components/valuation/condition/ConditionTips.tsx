@@ -1,20 +1,12 @@
+
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { InfoIcon } from "lucide-react";
 import { ConditionTipsProps } from "./types";
 
-<<<<<<< HEAD
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { InfoIcon } from 'lucide-react';
-import { ConditionTipsProps } from './types';
-
-export function ConditionTips({ category, rating, tip, selectedRatings }: Partial<ConditionTipsProps>) {
-=======
 export function ConditionTips(
   { category, tip, selectedRatings }: Partial<ConditionTipsProps>,
 ) {
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   // Use the passed tip or get from selected ratings if available
   const tipText = tip ||
     (selectedRatings &&
