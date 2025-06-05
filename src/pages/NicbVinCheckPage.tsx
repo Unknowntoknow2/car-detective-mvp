@@ -1,9 +1,4 @@
-<<<<<<< HEAD
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import NicbVinCheck from '@/components/valuation/NicbVinCheck';
-=======
 import React from "react";
 import {
   Card,
@@ -13,7 +8,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { NicbVinCheck } from "@/components/valuation/NicbVinCheck";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 const NicbVinCheckPage: React.FC = () => {
   return (
