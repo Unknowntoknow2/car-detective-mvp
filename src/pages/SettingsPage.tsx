@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +24,6 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  // Format date helper
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
@@ -42,15 +42,10 @@ const SettingsPage: React.FC = () => {
           <CardContent>
             <div className="space-y-4">
               <div>
-<<<<<<< HEAD
-                <p className="text-sm font-medium text-gray-500">Email Address</p>
-                <p className="text-base">{user?.email || 'N/A'}</p>
-=======
                 <p className="text-sm font-medium text-gray-500">
                   Email Address
                 </p>
                 <p className="text-base">{user?.email}</p>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
               </div>
 
               <div>
@@ -58,13 +53,9 @@ const SettingsPage: React.FC = () => {
                   Member Since
                 </p>
                 <p className="text-base">
-<<<<<<< HEAD
-                  {formatDate(user?.created_at)}
-=======
                   {user?.created_at
                     ? new Date(user.created_at).toLocaleDateString()
                     : "N/A"}
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
                 </p>
               </div>
 
