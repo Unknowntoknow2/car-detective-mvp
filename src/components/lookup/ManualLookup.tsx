@@ -1,15 +1,8 @@
-<<<<<<< HEAD
-
-import React, { useState } from 'react';
-import { ManualEntryFormFree } from './ManualEntryFormFree';
-import { supabase } from '@/lib/supabaseClient';
-import { toast } from '@/hooks/use-toast';
-import { ConditionLevel, ManualEntryFormData } from './types/manualEntry';
-=======
 import React from "react";
-import ManualEntryForm from "@/components/lookup/manual/ManualEntryForm";
-import { Card, CardContent } from "@/components/ui/card";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+import ManualEntryFormFree from "@/components/lookup/manual/ManualEntryFormFree"; // or adjust path if needed
+import { supabase } from "@/lib/supabaseClient";
+import { toast } from "@/hooks/use-toast";
+import { ConditionLevel, ManualEntryFormData } from "@/types/manualEntry";
 
 interface ManualLookupProps {
   onSubmit: (data: ManualEntryFormData) => void;
@@ -20,29 +13,21 @@ interface ManualLookupProps {
   onCancel?: () => void;
 }
 
-export function ManualLookup({ 
-  onSubmit, 
+export function ManualLookup({
+  onSubmit,
   isLoading = false,
-<<<<<<< HEAD
-  submitButtonText,
-  isPremium,
-  initialData,
-  onCancel
-=======
   submitButtonText = "Get Valuation",
   isPremium = false,
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+  initialData,
+  onCancel,
 }: ManualLookupProps) {
-  
   const handleSubmit = async (formData: ManualEntryFormData) => {
     try {
-      // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (user) {
-        // If user is logged in, save the data to Supabase
         const { error } = await supabase
-          .from('manual_entry_valuations')
+          .from("manual_entry_valuations")
           .insert({
             make: formData.make,
             model: formData.model,
@@ -57,11 +42,11 @@ export function ManualLookup({
             vin: formData.vin || null,
             accident: formData.accidentDetails?.hasAccident || false,
             accident_severity: formData.accidentDetails?.severity || null,
-            selected_features: formData.selectedFeatures || []
+            selected_features: formData.selectedFeatures || [],
           });
-          
+
         if (error) {
-          console.error('Error saving to Supabase:', error);
+          console.error("Error saving to Supabase:", error);
           toast({
             title: "Error",
             description: error.message,
@@ -75,26 +60,22 @@ export function ManualLookup({
           });
         }
       } else {
-        // If no user, just show a toast with default variant
         toast({
           title: "Not Logged In",
           description: "Your data is not being saved. Sign in to save your entries.",
           variant: "default",
         });
       }
-      
-      // Proceed with the regular onSubmit handler
+
       onSubmit(formData);
-      
     } catch (error: any) {
-      console.error('Error in ManualLookup:', error);
+      console.error("Error in ManualLookup:", error);
       toast({
         title: "Error",
         description: error.message || "Could not process your request",
         variant: "destructive",
       });
-      // Still submit the data for valuation even if there's an error saving to Supabase
-      onSubmit(formData);
+      onSubmit(formData); // Proceed with valuation even on Supabase error
     }
   };
 
@@ -104,11 +85,10 @@ export function ManualLookup({
       isLoading={isLoading}
       submitButtonText={submitButtonText}
       isPremium={isPremium}
+      initialData={initialData}
+      onCancel={onCancel}
     />
   );
 }
-<<<<<<< HEAD
 
 export default ManualLookup;
-=======
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)

@@ -1,128 +1,95 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { validateVin } from "@/utils/validation/vin-validation";
-import { AlertCircle } from "lucide-react";
-import {
-  ConditionLevel,
-  ManualEntryFormData,
-} from "@/components/lookup/types/manualEntry";
+import React from 'react';
+import { ManualEntryFormFree } from './ManualEntryFormFree';
+import { supabase } from '@/lib/supabaseClient';
+import { toast } from '@/hooks/use-toast';
+import { ConditionLevel, ManualEntryFormData } from '@/types/manualEntry';
 
-// Import our component parts
-import { VehicleBasicInfoFields } from "./components/VehicleBasicInfoFields";
-import { VehicleDetailsFields } from "./components/VehicleDetailsFields";
-import { ConditionAndZipFields } from "./components/ConditionAndZipFields";
-import { VinInputField } from "./components/VinInputField";
-
-// Extend the form schema to include VIN
-const formSchema = z.object({
-  make: z.string().min(1, "Make is required"),
-  model: z.string().min(1, "Model is required"),
-  year: z.string().regex(/^\d{4}$/, "Enter a valid 4-digit year"),
-  mileage: z.string().regex(/^\d+$/, "Enter a valid mileage"),
-  condition: z.string().min(1, "Condition is required"),
-  zipCode: z.string().regex(/^\d{5}$/, "Enter a valid 5-digit ZIP code"),
-  vin: z.string().optional(),
-  fuelType: z.string().optional(),
-  transmission: z.string().optional(),
-  trim: z.string().optional(),
-  color: z.string().optional(),
-  bodyType: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
-export interface ManualEntryFormProps {
+interface ManualLookupProps {
   onSubmit: (data: ManualEntryFormData) => void;
   isLoading?: boolean;
   submitButtonText?: string;
   isPremium?: boolean;
+  initialData?: Partial<ManualEntryFormData>;
+  onCancel?: () => void;
 }
 
-const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
-  onSubmit,
+export function ManualLookup({ 
+  onSubmit, 
   isLoading = false,
   submitButtonText = "Get Valuation",
   isPremium = false,
-}) => {
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      make: "",
-      model: "",
-      year: "",
-      mileage: "",
-      condition: "",
-      zipCode: "",
-      vin: "",
-      fuelType: "",
-      transmission: "",
-      trim: "",
-      color: "",
-      bodyType: "",
-    },
-  });
+  initialData,
+  onCancel
+}: ManualLookupProps) {
 
-  const handleSubmit = (values: FormValues) => {
-    // Only check VIN validation if a value is provided
-    if (values.vin && values.vin.trim() !== "") {
-      const validation = validateVin(values.vin);
-      if (!validation.isValid) {
-        // We don't need to set error state here as it's handled in the VinInputField component
-        return;
+  const handleSubmit = async (formData: ManualEntryFormData) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const { error } = await supabase
+          .from('manual_entry_valuations')
+          .insert({
+            make: formData.make,
+            model: formData.model,
+            year: formData.year,
+            mileage: formData.mileage,
+            condition: formData.condition,
+            zip_code: formData.zipCode,
+            user_id: user.id,
+            fuel_type: formData.fuelType,
+            transmission: formData.transmission,
+            trim: formData.trim || null,
+            vin: formData.vin || null,
+            accident: formData.accidentDetails?.hasAccident || false,
+            accident_severity: formData.accidentDetails?.severity || null,
+            selected_features: formData.selectedFeatures || []
+          });
+
+        if (error) {
+          console.error('Error saving to Supabase:', error);
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: "Data saved successfully",
+            variant: "success",
+          });
+        }
+      } else {
+        toast({
+          title: "Not Logged In",
+          description: "Your data is not being saved. Sign in to save your entries.",
+          variant: "default",
+        });
       }
+
+      onSubmit(formData);
+    } catch (error: any) {
+      console.error('Error in ManualLookup:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Could not process your request",
+        variant: "destructive",
+      });
+      onSubmit(formData);
     }
-
-    // Convert string values to appropriate types for ManualEntryFormData
-    const formattedData: ManualEntryFormData = {
-      make: values.make,
-      model: values.model,
-      year: parseInt(values.year),
-      mileage: parseInt(values.mileage),
-      condition: (values.condition as ConditionLevel) || ConditionLevel.Good,
-      zipCode: values.zipCode,
-      fuelType: values.fuelType,
-      transmission: values.transmission,
-      trim: values.trim,
-      color: values.color,
-      bodyType: values.bodyType,
-    };
-
-    onSubmit(formattedData);
   };
 
-  const conditionOptions = [
-    { value: ConditionLevel.Excellent, label: "Excellent" },
-    { value: ConditionLevel.VeryGood, label: "Very Good" },
-    { value: ConditionLevel.Good, label: "Good" },
-    { value: ConditionLevel.Fair, label: "Fair" },
-    { value: ConditionLevel.Poor, label: "Poor" },
-  ];
-
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="space-y-4">
-          <VehicleBasicInfoFields form={form} />
-          <VehicleDetailsFields form={form} />
-          <ConditionAndZipFields
-            form={form}
-            conditionOptions={conditionOptions}
-          />
-        </div>
-
-        {/* VIN field with validation */}
-        <VinInputField form={form} />
-
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Processing..." : submitButtonText}
-        </Button>
-      </form>
-    </Form>
+    <ManualEntryFormFree
+      onSubmit={handleSubmit}
+      isLoading={isLoading}
+      submitButtonText={submitButtonText}
+      isPremium={isPremium}
+      initialData={initialData}
+      onCancel={onCancel}
+    />
   );
-};
+}
 
-export default ManualEntryForm;
+export default ManualLookup;

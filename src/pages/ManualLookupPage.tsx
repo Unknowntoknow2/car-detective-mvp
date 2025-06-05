@@ -1,35 +1,27 @@
-import React from "react";
-import { ManualLookup } from "@/components/lookup/ManualLookup";
-import Layout from "@/components/layout/Layout";
-import { toast } from "@/hooks/use-toast";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { UnifiedManualEntryForm } from '@/components/lookup/manual/UnifiedManualEntryForm';
+import { ManualEntryFormData } from '@/types/manualEntry';
+import { submitManualValuation } from '@/services/valuation/submitManualValuation';
 
-const ManualLookupPage = () => {
-  const handleSubmit = (data: any) => {
-    // Here you would normally handle form submission
-    console.log("Form submitted with data:", data);
+const ManualLookupPage: React.FC = () => {
+  const navigate = useNavigate();
 
-    // Show toast with proper structure
-    toast({
-      description: "Vehicle information submitted successfully!",
-      variant: "success",
-    });
-
-    // Redirect to results page or handle response
+  const handleSubmit = async (data: ManualEntryFormData) => {
+    try {
+      // Optional: Pass userId if logged-in dealer
+      const valuationId = await submitManualValuation(data);
+      navigate(`/valuation/result/${valuationId}`);
+    } catch (error) {
+      console.error('Premium valuation submission failed:', error);
+      // TODO: Add premium-specific toast or user alert
+    }
   };
 
   return (
-    <div>
-      <Layout />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Manual Vehicle Lookup</h1>
-        <p className="text-gray-600 mb-6">
-          Enter your vehicle details manually to get an accurate valuation.
-        </p>
-
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <ManualLookup onSubmit={handleSubmit} />
-        </div>
-      </div>
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Premium Manual Vehicle Valuation</h1>
+      <UnifiedManualEntryForm mode="premium" onSubmit={handleSubmit} />
     </div>
   );
 };
