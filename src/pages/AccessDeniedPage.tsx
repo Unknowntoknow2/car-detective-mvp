@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -75,18 +76,11 @@ const AccessDeniedPage = () => {
               </Button>
             )}
           </div>
-<<<<<<< HEAD
-          
+
           {userDetails?.role && (
             <p className="text-sm text-muted-foreground mt-6">
-              You are currently signed in as: <span className="font-medium">{userDetails.role}</span>
-=======
-
-          {userRole && (
-            <p className="text-sm text-muted-foreground mt-6">
               You are currently signed in as:{" "}
-              <span className="font-medium">{userRole}</span>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+              <span className="font-medium">{userDetails.role}</span>
             </p>
           )}
         </div>

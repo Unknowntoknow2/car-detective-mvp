@@ -1,12 +1,4 @@
-<<<<<<< HEAD
 
-import React, { useState } from 'react';
-import { Navbar } from '@/components/layout/Navbar';
-import { Footer } from '@/components/layout/Footer';
-import PlateDecoderForm from '@/components/lookup/PlateDecoderForm';
-import { AnnouncementBar } from '@/components/marketing/AnnouncementBar';
-import { MarketingBanner } from '@/components/marketing/MarketingBanner';
-=======
 import React, { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -15,11 +7,11 @@ import ManualEntryForm from "@/components/lookup/manual/ManualEntryForm";
 import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
 import { MarketingBanner } from "@/components/marketing/MarketingBanner";
 import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 export default function PlateLookupPage() {
   const [plateNumber, setPlateNumber] = useState<string | null>(null);
   const [showFollowUp, setShowFollowUp] = useState(false);
+  const [showManualEntry, setShowManualEntry] = useState(false);
 
   const handlePlateSubmit = (plate: string, state: string) => {
     console.log("Plate submitted:", plate, state);
@@ -27,9 +19,12 @@ export default function PlateLookupPage() {
     setShowFollowUp(true);
   };
 
+  const handleManualSubmit = (data: ManualEntryFormData) => {
+    console.log("Manual entry submitted:", data);
+  };
+
   const handleManualEntryClick = () => {
-    // Navigate to manual entry or show manual entry form
-    console.log("Manual entry clicked");
+    setShowManualEntry(true);
   };
 
   return (
@@ -54,9 +49,6 @@ export default function PlateLookupPage() {
             ctaHref="/premium"
           />
 
-<<<<<<< HEAD
-          <PlateDecoderForm onManualEntryClick={handleManualEntryClick} />
-=======
           <PlateDecoderForm
             onManualEntryClick={() => setShowManualEntry(true)}
           />
@@ -71,7 +63,6 @@ export default function PlateLookupPage() {
               <ManualEntryForm onSubmit={handleManualSubmit} />
             </div>
           )}
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         </div>
       </main>
       <Footer />

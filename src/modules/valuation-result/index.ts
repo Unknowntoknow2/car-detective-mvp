@@ -1,10 +1,6 @@
 
 // Export main component
-<<<<<<< HEAD
-export { default } from './ValuationResult';
-=======
 export { default as ValuationResult } from "./ValuationResult";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 // Export section components
 export { Header } from "./sections/Header";
