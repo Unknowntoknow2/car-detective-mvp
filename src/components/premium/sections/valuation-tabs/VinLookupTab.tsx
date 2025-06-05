@@ -1,15 +1,10 @@
-<<<<<<< HEAD
 
-import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { VinLookup } from "@/components/premium/lookup/VinLookup";
-=======
+import React from "react";
 import { TabContentWrapper } from "./TabContentWrapper";
 import VinLookup from "../../lookup/VinLookup";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface VinLookupTabProps {
   vinValue: string;
@@ -19,27 +14,6 @@ interface VinLookupTabProps {
   onLookup: () => void;
 }
 
-<<<<<<< HEAD
-export function VinLookupTab({
-  vinValue,
-  isLoading,
-  vehicle,
-  onVinChange,
-  onLookup
-}: VinLookupTabProps) {
-  return (
-    <Card>
-      <CardContent className="p-6">
-        <VinLookup
-          value={vinValue}
-          onChange={onVinChange}
-          onLookup={onLookup}
-          isLoading={isLoading}
-          existingVehicle={vehicle}
-        />
-      </CardContent>
-    </Card>
-=======
 export function VinLookupTab(
   { vinValue, isLoading, vehicle, onVinChange, onLookup }: VinLookupTabProps,
 ) {
@@ -112,6 +86,5 @@ export function VinLookupTab(
         </div>
       )}
     </TabContentWrapper>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   );
 }
