@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -116,13 +117,8 @@ export function ConditionEvaluationGrid(
           <CardContent>
             <div className="space-y-8">
               {Object.entries(category.factors).map(([factorName, options]) => {
-<<<<<<< HEAD
-                const id = `${category.key}${factorName.charAt(0).toUpperCase() + factorName.slice(1)}`;
-                
-=======
                 const id = `${category.key}_${factorName}`;
 
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
                 // Format the factor name for display (capitalize, add spaces)
                 const displayName = factorName
                   .replace(/([A-Z])/g, " $1") // Add space before capital letters
@@ -130,17 +126,11 @@ export function ConditionEvaluationGrid(
                     str.toUpperCase()); // Capitalize first letter
 
                 // For numeric sliders only - ensure the value is a number with default fallback
-<<<<<<< HEAD
-                const currentValue = values[id as keyof ConditionValues];
-                const numericValue = typeof currentValue === 'number' ? currentValue : 50; // Default to 50 (Good) if not set or not a number
-                
-=======
                 const currentValue = values[id];
                 const numericValue = typeof currentValue === "number"
                   ? currentValue
                   : 50; // Default to 50 (Good) if not set or not a number
 
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
                 return (
                   <FactorSlider
                     key={id}
