@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import PlateDecoderForm from "@/components/lookup/PlateDecoderForm";
-import ManualEntryForm from "@/components/lookup/ManualEntryForm";
+import ManualEntryForm from "@/components/lookup/manual/ManualEntryForm";
 import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
 import { MarketingBanner } from "@/components/marketing/MarketingBanner";
 import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";

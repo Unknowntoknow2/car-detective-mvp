@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { VinDecoderForm } from "@/components/lookup/VinDecoderForm";
-import ManualEntryForm from "@/components/lookup/ManualEntryForm";
+import ManualEntryForm from "@/components/lookup/manual/ManualEntryForm";
 import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";

@@ -18,7 +18,7 @@ import { useState } from "react";
 import { VinDecoderForm } from "@/components/lookup/VinDecoderForm";
 import PlateDecoderForm from "@/components/lookup/PlateDecoderForm";
 import { manualEntryToJson } from "@/utils/formatters";
-import ManualEntryForm from "@/components/lookup/ManualEntryForm";
+import ManualEntryForm from "@/components/lookup/manual/ManualEntryForm";
 import { useNavigate } from "react-router-dom";
 import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
 >>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)

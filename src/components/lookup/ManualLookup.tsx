@@ -7,7 +7,7 @@ import { toast } from '@/hooks/use-toast';
 import { ConditionLevel, ManualEntryFormData } from './types/manualEntry';
 =======
 import React from "react";
-import ManualEntryForm from "@/components/lookup/ManualEntryForm";
+import ManualEntryForm from "@/components/lookup/manual/ManualEntryForm";
 import { Card, CardContent } from "@/components/ui/card";
 >>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 

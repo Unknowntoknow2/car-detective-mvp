@@ -1,47 +1,47 @@
-<<<<<<< HEAD
-
+// ✅ src/main.tsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { initSentry } from './lib/sentry';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
-import './index.css';
 import { AppProviders } from './providers/AppProviders';
+import { AuthProvider } from '@/components/auth/AuthContext';
+import { initSentry } from './lib/sentry';
 import { loadFonts } from './lib/fonts';
 import { setupTrackingErrorHandler } from './utils/errorHandling';
+import './index.css';
 
-// Initialize Sentry with proper error handling
+// ✅ Initialize third-party tools
 initSentry();
-
-// Load the Inter font from CDN
 loadFonts();
 
-// Set up error handling for third-party scripts
 if (typeof window !== 'undefined') {
   setupTrackingErrorHandler();
 }
 
-// Suppress React Router future flags warnings if enabled in env
+// ✅ Enable React Router future flags
 if (import.meta.env.VITE_ROUTER_FUTURE_FLAGS) {
   (window as any).__reactRouterFutureFlags = {
     v7_startTransition: true,
-    v7_relativeSplatPath: true
+    v7_relativeSplatPath: true,
   };
 }
 
-// Create a robust error boundary for the root
+// ✅ Render the app
 const renderApp = () => {
   try {
     ReactDOM.createRoot(document.getElementById('root')!).render(
       <React.StrictMode>
-        <AppProviders>
-          <App />
-        </AppProviders>
-      </React.StrictMode>,
+        <BrowserRouter>
+          <AuthProvider>
+            <AppProviders>
+              <App />
+            </AppProviders>
+          </AuthProvider>
+        </BrowserRouter>
+      </React.StrictMode>
     );
   } catch (error) {
     console.error('Failed to render application:', error);
-    
-    // Fallback render in case of critical error
     const rootElement = document.getElementById('root');
     if (rootElement) {
       rootElement.innerHTML = `
@@ -56,21 +56,3 @@ const renderApp = () => {
 };
 
 renderApp();
-=======
-// ✅ src/main.tsx
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App";
-import { BrowserRouter } from "react-router-dom";
-import { AuthProvider } from "@/components/auth/AuthContext";
-
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </BrowserRouter>
-  </React.StrictMode>
-);
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
