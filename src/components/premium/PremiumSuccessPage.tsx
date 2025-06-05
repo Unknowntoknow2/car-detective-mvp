@@ -1,177 +1,98 @@
-<<<<<<< HEAD
 
-// Add a check to handle undefined values before using the valuationId
-// This is a partial fix assuming the component exists
-import { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-=======
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle, Loader2 } from "lucide-react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { toast } from "sonner";
-import { verifyPaymentStatus } from "@/utils/premiumService";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+import { CheckCircle, Download, FileText } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
-const PremiumSuccessPage = () => {
-  const { valuationId } = useParams<{ valuationId: string }>();
+export const PremiumSuccessPage: React.FC = () => {
   const navigate = useNavigate();
-<<<<<<< HEAD
-
-  // Navigation handlers
-  const handleViewValuation = () => {
-    if (valuationId) {
-      navigate(`/valuation/${valuationId}`);
-    } else {
-      navigate('/dashboard');
-    }
-  };
-
-  const handleGetDealerOffers = () => {
-    if (valuationId) {
-      navigate(`/dealer-offers/${valuationId}`);
-    } else {
-      navigate('/dashboard');
-    }
-  };
-
-  return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="text-center max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Premium Upgrade Successful!</h1>
-        <p className="text-lg mb-8">
-          You now have access to premium features including detailed valuation analytics,
-          dealer offers, and comprehensive vehicle history reports.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button onClick={handleViewValuation} size="lg">
-            View Enhanced Valuation
-          </Button>
-          <Button onClick={handleGetDealerOffers} variant="outline" size="lg">
-            Get Dealer Offers
-          </Button>
-        </div>
-      </div>
-=======
-  const sessionId = searchParams.get("session_id");
+  const [searchParams] = useSearchParams();
   const valuationId = searchParams.get("valuation_id");
-  const [verifying, setVerifying] = useState(true);
-  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
 
   useEffect(() => {
-    // Redirect if no session ID or valuation ID
-    if (!sessionId || !valuationId) {
-      toast.error("Invalid payment session");
-      navigate("/");
-      return;
+    // Store success state in localStorage
+    localStorage.setItem("premium_payment_success", "true");
+    if (valuationId) {
+      localStorage.setItem("premium_valuation_id", valuationId);
     }
+  }, [valuationId]);
 
-    // Check payment status
-    async function verifyPayment() {
-      try {
-        setVerifying(true);
-
-        const result = await verifyPaymentStatus(sessionId, valuationId);
-
-        if (result.success) {
-          setPaymentConfirmed(result.paymentConfirmed);
-
-          if (result.paymentConfirmed) {
-            toast.success(
-              "Payment confirmed! Premium features are now available.",
-            );
-          } else {
-            // Payment exists but isn't completed yet
-            toast.info(
-              "Your payment is being processed. Premium features will be available shortly.",
-            );
-          }
-        } else {
-          toast.error(
-            "Unable to verify payment status. Please contact support.",
-          );
-        }
-      } catch (err) {
-        console.error("Error verifying payment status:", err);
-        toast.error(
-          "Failed to verify payment. Please contact support if premium features are not available.",
-        );
-      } finally {
-        setVerifying(false);
-      }
+  const handleDownloadReport = () => {
+    if (valuationId) {
+      navigate(`/valuation/${valuationId}/download`);
     }
+  };
 
-    verifyPayment();
-  }, [sessionId, valuationId, navigate]);
+  const handleViewDashboard = () => {
+    navigate("/dashboard");
+  };
 
   return (
-    <div className="container max-w-3xl py-12">
-      <Card className="border-primary/20">
-        <CardHeader className="text-center pb-4 border-b">
-          <div className="mx-auto mb-4 bg-primary/10 p-3 rounded-full inline-flex">
-            {verifying
-              ? <Loader2 className="h-8 w-8 text-primary animate-spin" />
-              : <CheckCircle className="h-8 w-8 text-primary" />}
+    <div className="container mx-auto max-w-2xl py-8">
+      <Card className="border-green-200 bg-green-50">
+        <CardHeader className="text-center pb-4">
+          <div className="flex justify-center mb-4">
+            <div className="rounded-full bg-green-100 p-3">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
           </div>
-          <CardTitle className="text-2xl font-bold">
-            {verifying
-              ? "Verifying Payment..."
-              : paymentConfirmed
-              ? "Payment Successful!"
-              : "Payment Processing"}
+          <CardTitle className="text-2xl text-green-800">
+            Payment Successful!
           </CardTitle>
+          <p className="text-green-700 mt-2">
+            Thank you for upgrading to premium. Your premium valuation report is now ready.
+          </p>
         </CardHeader>
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            <p className="text-center text-muted-foreground">
-              {verifying
-                ? "Please wait while we verify your payment..."
-                : paymentConfirmed
-                ? "Thank you for your purchase. Your premium valuation report is now ready."
-                : "Your payment is being processed. Premium features will be available shortly."}
-            </p>
-
-            <div className="grid gap-4 mt-8">
-              {!verifying && (
-                <>
-                  <Button asChild size="lg">
-                    <Link
-                      to={`/valuation/${valuationId}${
-                        paymentConfirmed ? "/premium" : ""
-                      }`}
-                    >
-                      {paymentConfirmed
-                        ? "View Premium Report"
-                        : "View Valuation"}{" "}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-
-                  <Button variant="outline" asChild>
-                    <Link to="/dashboard">
-                      Go to Dashboard
-                    </Link>
-                  </Button>
-                </>
-              )}
-            </div>
-
-            <div className="text-xs text-center text-muted-foreground mt-6">
-              <p>Transaction ID: {sessionId?.substring(0, 8)}...</p>
-              <p className="mt-1">
-                If you have any questions or need assistance, please contact our
-                support team.
-              </p>
-            </div>
+        
+        <CardContent className="space-y-4">
+          <div className="bg-white rounded-lg p-4 border border-green-200">
+            <h3 className="font-semibold text-gray-900 mb-2">What's included:</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                Comprehensive valuation report
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                CARFAX vehicle history report
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                Market comparison analysis
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                Dealer offers and recommendations
+              </li>
+            </ul>
           </div>
+          
+          <div className="flex flex-col gap-3">
+            <Button 
+              onClick={handleDownloadReport}
+              className="w-full bg-green-600 hover:bg-green-700"
+              disabled={!valuationId}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download Premium Report
+            </Button>
+            
+            <Button 
+              variant="outline"
+              onClick={handleViewDashboard}
+              className="w-full border-green-300 text-green-800 hover:bg-green-100"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              View Dashboard
+            </Button>
+          </div>
+          
+          <p className="text-center text-sm text-gray-500 mt-4">
+            You can access your premium reports anytime from your dashboard.
+          </p>
         </CardContent>
       </Card>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     </div>
   );
 };
-
-export default PremiumSuccessPage;
