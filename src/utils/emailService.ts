@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-// Utility functions for email service
-=======
 import { supabase } from "@/integrations/supabase/client";
 
 export type EmailType =
@@ -9,7 +6,6 @@ export type EmailType =
   | "dealer_offer_followup"
   | "photo_upload_prompt"
   | "reactivation";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 /**
  * Creates a new email campaign
@@ -18,21 +14,6 @@ export type EmailType =
  * @param audienceType - Type of audience (users, dealers, etc.)
  * @returns Created campaign ID
  */
-<<<<<<< HEAD
-export const createEmailCampaign = async (
-  subject: string,
-  body: string,
-  audienceType: string
-): Promise<string> => {
-  try {
-    // Implementation would be added here in a real application
-    // This is a placeholder function to satisfy the import
-    console.log('Creating email campaign:', { subject, body, audienceType });
-    return 'campaign-' + Math.random().toString(36).substring(2, 15);
-  } catch (error) {
-    console.error('Error creating email campaign:', error);
-    throw error;
-=======
 export async function sendEmail(
   emailType: EmailType,
   email: string,
@@ -127,7 +108,6 @@ export async function createEmailCampaign(
   } catch (err) {
     console.error("Exception creating email campaign:", err);
     return { success: false, error: err.message };
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   }
 };
 

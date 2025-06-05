@@ -1,54 +1,6 @@
-<<<<<<< HEAD
 
-import { AICondition, PhotoScore } from '@/types/photo';
-import { supabase } from '@/integrations/supabase/client';
-
-interface PhotoAnalysisResult {
-  overallScore: number;
-  individualScores: PhotoScore[];
-  aiCondition?: AICondition;
-}
-
-export async function analyzePhotos(photoUrls: string[], valuationId: string): Promise<PhotoAnalysisResult> {
-  if (!photoUrls || photoUrls.length === 0) {
-    throw new Error('No photos provided for analysis');
-  }
-
-  try {
-    const { data, error } = await supabase.functions.invoke('score-image', {
-      body: { photoUrls, valuationId }
-    });
-
-    if (error) {
-      throw new Error(`Failed to analyze photos: ${error.message}`);
-    }
-
-    if (!data || !data.scores || !Array.isArray(data.scores)) {
-      throw new Error('Invalid response from photo analysis service');
-    }
-
-    // Calculate overall score based on individual scores
-    const scores = data.scores as { url: string; score: number }[];
-    const overallScore = scores.length > 0 
-      ? scores.reduce((sum, item) => sum + item.score, 0) / scores.length
-      : 0;
-
-    // Map to our PhotoScore type
-    const individualScores: PhotoScore[] = scores.map(score => ({
-      url: score.url,
-      score: score.score,
-      isPrimary: false,
-      explanation: undefined
-    }));
-
-    return {
-      overallScore,
-      individualScores,
-      aiCondition: data.aiCondition
-=======
 import { supabase } from "@/integrations/supabase/client";
 import { AICondition, PhotoScore, PhotoScoringResult } from "@/types/photo";
-import process from "node:process";
 
 /**
  * Analyzes photos using the photo analysis edge function
@@ -90,7 +42,7 @@ export async function analyzePhotos(
           condition: "Fair",
           confidenceScore: 0,
         },
-        error: error.message || "Failed to analyze photos", // Valid property now
+        error: error.message || "Failed to analyze photos",
       };
     }
 
@@ -104,7 +56,7 @@ export async function analyzePhotos(
           condition: "Fair",
           confidenceScore: 0,
         },
-        error: "Invalid response from photo analysis service", // Valid property now
+        error: "Invalid response from photo analysis service",
       };
     }
 
@@ -136,16 +88,10 @@ export async function analyzePhotos(
         condition: "Fair",
         confidenceScore: 0,
       },
-      error: error.message || "Failed to analyze photos", // Valid property now
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+      error: error.message || "Failed to analyze photos",
     };
-  } catch (err) {
-    console.error('Error analyzing photos:', err);
-    throw err;
   }
 }
-<<<<<<< HEAD
-=======
 
 export const uploadAndAnalyzePhotos = async (
   files: File[],
@@ -184,8 +130,7 @@ export const uploadAndAnalyzePhotos = async (
         condition: "Fair",
         confidenceScore: 0,
       },
-      error: error.message || "Failed to upload and analyze photos", // Valid property now
+      error: error.message || "Failed to upload and analyze photos",
     };
   }
 };
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
