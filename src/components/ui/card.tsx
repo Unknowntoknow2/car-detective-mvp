@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 
-import * as React from "react"
-=======
 import * as React from "react";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 import { cn } from "@/lib/utils";
 

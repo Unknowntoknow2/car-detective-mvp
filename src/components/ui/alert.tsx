@@ -1,11 +1,6 @@
-<<<<<<< HEAD
 
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-=======
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 import { cn } from "@/lib/utils";
 

@@ -1,16 +1,9 @@
+
 import React from "react";
 import { cn } from "@/lib/utils";
 
 interface ContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
-<<<<<<< HEAD
-}
-
-export function Container({ children, className, ...props }: ContainerProps) {
-  return (
-    <div 
-      className={cn("container mx-auto px-4", className)}
-=======
   size?: "default" | "small" | "large";
 }
 
@@ -31,7 +24,6 @@ export function Container({
         },
         className,
       )}
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       {...props}
     >
       {children}
