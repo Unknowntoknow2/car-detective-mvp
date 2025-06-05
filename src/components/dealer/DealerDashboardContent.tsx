@@ -1,6 +1,5 @@
-<<<<<<< HEAD
 
-import React from 'react';
+import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
@@ -32,11 +31,6 @@ const data = [
     total: Math.floor(Math.random() * 5000) + 1000,
   },
 ];
-=======
-import React from "react";
-import { VehicleUploadButton } from "./VehicleUploadButton";
-import { VehicleUploadProvider } from "./vehicle-upload/VehicleUploadProvider";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 const DealerDashboardContent = () => {
   const { userDetails } = useAuth();
@@ -55,7 +49,6 @@ const DealerDashboardContent = () => {
           )}
         </div>
 
-<<<<<<< HEAD
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader className="pb-2">
@@ -87,13 +80,6 @@ const DealerDashboardContent = () => {
               <p className="text-xs text-muted-foreground">2 require follow-up</p>
             </CardContent>
           </Card>
-=======
-        {/* Other dashboard content would go here */}
-        <div className="bg-muted/30 rounded-lg p-8 text-center">
-          <p className="text-muted-foreground">
-            Your dashboard content will appear here.
-          </p>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         </div>
 
         <Card>

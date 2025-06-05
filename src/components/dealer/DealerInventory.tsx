@@ -1,19 +1,10 @@
-<<<<<<< HEAD
 
-import React, { useState } from 'react';
-import { toast } from 'sonner';
-import { useDealerInventory } from './hooks/useDealerInventory';
-import { DealerVehicle } from '@/types/dealerVehicle';
-import { DealerInventoryTable } from './DealerInventoryTable';
-import { Button } from '@/components/ui/button';
-=======
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { useDealerInventory } from "./hooks/useDealerInventory";
-import { DealerVehicle } from "@/types/vehicle"; // Updated import
+import { DealerVehicle } from "@/types/vehicle";
 import { DealerInventoryTable } from "./DealerInventoryTable";
 import { Button } from "@/components/ui/button";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface DealerInventoryProps {
   onRefresh?: () => void;
@@ -40,7 +31,6 @@ export const DealerInventory: React.FC<DealerInventoryProps> = (
   const handleVehicleAdded = () => {
     setIsAddVehicleModalOpen(false);
     toast.success("Vehicle added successfully!");
-    // Call the onRefresh callback if provided
     if (onRefresh) {
       onRefresh();
     }
@@ -71,7 +61,6 @@ export const DealerInventory: React.FC<DealerInventoryProps> = (
     setVehicleToDelete(null);
   };
 
-  // Simplified component that uses DealerInventoryTable
   return (
     <div className="container max-w-7xl py-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -82,27 +71,8 @@ export const DealerInventory: React.FC<DealerInventoryProps> = (
       </div>
 
       <DealerInventoryTable />
-
-      {/* You'll need to import or create these components */}
-      {
-        /*
-      <AddVehicleModal
-        open={isAddVehicleModalOpen}
-        onOpenChange={setIsAddVehicleModalOpen}
-        onVehicleAdded={handleVehicleAdded}
-      />
-
-      <DeleteConfirmationDialog
-        open={vehicleToDelete !== null}
-        onOpenChange={open => !open && setVehicleToDelete(null)}
-        onConfirmDelete={handleConfirmDelete}
-        isDeleting={isDeleting}
-      />
-      */
-      }
     </div>
   );
 };
 
-// Add default export to fix the error
 export default DealerInventory;
