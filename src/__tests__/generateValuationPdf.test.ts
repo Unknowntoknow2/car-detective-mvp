@@ -1,74 +1,4 @@
-<<<<<<< HEAD
 
-// Import necessary modules
-import { generateValuationPdf } from '../utils/pdf/generateValuationPdf';
-import { ReportData } from '../utils/pdf/types';
-
-describe('generateValuationPdf', () => {
-  // Mock data for tests
-  const mockReportData: ReportData = {
-    make: 'Toyota',
-    model: 'Camry',
-    year: 2020,
-    mileage: 35000,
-    estimatedValue: 22500,
-    condition: 'Good',
-    confidenceScore: 85,
-    zipCode: '90210',
-    aiCondition: {
-      condition: 'Good',
-      confidenceScore: 85,
-      issuesDetected: [],
-      summary: 'The vehicle is in good condition overall.'
-    },
-    generatedAt: new Date().toISOString(),
-    // Add required adjustments property with descriptions
-    adjustments: [
-      { factor: 'Mileage', impact: -500, description: 'Higher than average mileage adjustment' },
-      { factor: 'Condition', impact: 300, description: 'Good condition premium' }
-    ]
-  };
-
-  // Test case: PDF generation function returns a Uint8Array
-  test('returns a Uint8Array', async () => {
-    const result = await generateValuationPdf(mockReportData);
-    expect(result).toBeInstanceOf(Uint8Array);
-  });
-
-  // Test case: PDF generation handles premium options
-  test('handles premium options', async () => {
-    const result = await generateValuationPdf(mockReportData, {
-      isPremium: true,
-      includeExplanation: true
-    });
-    expect(result).toBeInstanceOf(Uint8Array);
-  });
-
-  // Test case: Handles missing optional fields
-  test('handles missing optional fields', async () => {
-    const minimalData: ReportData = {
-      make: 'Honda',
-      model: 'Civic',
-      year: 2018,
-      mileage: 45000,
-      estimatedValue: 18000,
-      condition: 'Fair',
-      confidenceScore: 75,
-      zipCode: '60601',
-      aiCondition: {
-        condition: 'Fair',
-        confidenceScore: 75,
-        issuesDetected: [],
-        summary: 'The vehicle is in fair condition.'
-      },
-      generatedAt: new Date().toISOString(),
-      // Add required adjustments property with descriptions
-      adjustments: []
-    };
-
-    const result = await generateValuationPdf(minimalData);
-    expect(result).toBeInstanceOf(Uint8Array);
-=======
 import { describe, expect, it, vi } from "vitest";
 import { generateValuationPdf } from "../utils/pdf/generateValuationPdf";
 import { ReportData } from "../utils/pdf/types";
@@ -109,7 +39,7 @@ describe("generateValuationPdf", () => {
       mileage: 15000,
       condition: "Good",
       zipCode: "90210",
-      price: 25000, // Added required price property
+      price: 25000,
       estimatedValue: 25000,
       adjustments: [
         {
@@ -148,7 +78,7 @@ describe("generateValuationPdf", () => {
       mileage: 20000,
       condition: "Fair",
       zipCode: "10001",
-      price: 18000, // Added required price property
+      price: 18000,
       estimatedValue: 18000,
       generatedAt: new Date().toISOString(),
     } as ReportData;
@@ -159,6 +89,5 @@ describe("generateValuationPdf", () => {
     // Verify the PDF was generated even with minimal data
     expect(pdfBuffer).toBeDefined();
     expect(pdfBuffer instanceof Buffer).toBe(true);
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   });
 });
