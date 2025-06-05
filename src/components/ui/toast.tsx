@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import * as ToastPrimitives from "@radix-ui/react-toast";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -29,15 +30,7 @@ const toastVariants = cva(
       variant: {
         default: "border bg-background text-foreground",
         destructive:
-<<<<<<< HEAD
           "destructive border-destructive bg-destructive text-destructive-foreground",
-        success: "border-green-500 bg-green-50 text-green-900",
-=======
-          "destructive group border-destructive bg-destructive text-destructive-foreground",
-        success: "success group border-green-600 bg-green-50 text-green-800",
-        warning: "warning group border-yellow-600 bg-yellow-50 text-yellow-800",
-        info: "info group border-blue-600 bg-blue-50 text-blue-800",
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       },
     },
     defaultVariants: {
@@ -48,8 +41,8 @@ const toastVariants = cva(
 
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
-  & React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root>
-  & VariantProps<typeof toastVariants>
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
+    VariantProps<typeof toastVariants>
 >(({ className, variant, ...props }, ref) => {
   return (
     <ToastPrimitives.Root
@@ -83,13 +76,8 @@ const ToastClose = React.forwardRef<
   <ToastPrimitives.Close
     ref={ref}
     className={cn(
-<<<<<<< HEAD
       "absolute right-2 top-2 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600",
-      className
-=======
-      "absolute right-2 top-2 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600 group-[.success]:text-green-700 group-[.warning]:text-yellow-700 group-[.info]:text-blue-700",
       className,
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     )}
     toast-close=""
     {...props}
@@ -128,13 +116,13 @@ type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>;
 type ToastActionElement = React.ReactElement<typeof ToastAction>;
 
 export {
-  Toast,
-  ToastAction,
-  type ToastActionElement,
-  ToastClose,
-  ToastDescription,
   type ToastProps,
+  type ToastActionElement,
   ToastProvider,
-  ToastTitle,
   ToastViewport,
+  Toast,
+  ToastTitle,
+  ToastDescription,
+  ToastClose,
+  ToastAction,
 };

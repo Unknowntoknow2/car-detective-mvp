@@ -1,11 +1,6 @@
-<<<<<<< HEAD
 
-import * as React from "react"
-import * as PopoverPrimitive from "@radix-ui/react-popover"
-=======
 import * as React from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 import { cn } from "@/lib/utils";
 
