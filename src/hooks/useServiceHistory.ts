@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabaseClient";
 
@@ -37,11 +38,7 @@ export function useServiceHistory({ vin }: UseServiceHistoryProps) {
       }
 
       // Convert database record IDs from number to string if needed
-<<<<<<< HEAD
-      const formattedRecords = data.map((record: any) => ({
-=======
       const formattedRecords = data.map((record) => ({
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         ...record,
         id: String(record.id), // Ensure id is string type
       })) as ServiceRecord[];

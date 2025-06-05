@@ -1,14 +1,8 @@
-<<<<<<< HEAD
 
-import { useState } from 'react';
-import { verifyPaymentSession, createCheckoutSession } from '@/utils/stripeService';
-import { toast } from 'sonner';
-=======
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface UsePremiumPaymentResult {
   isLoading: boolean;
@@ -20,15 +14,8 @@ interface UsePremiumPaymentResult {
 export function usePremiumPayment(): UsePremiumPaymentResult {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const navigate = useNavigate();
 
-<<<<<<< HEAD
-  const verifyPayment = async (sessionId: string): Promise<boolean> => {
-    if (!sessionId) {
-      setError(new Error('No session ID provided'));
-      return false;
-    }
-
-=======
   const createPaymentSession = async (
     valuationId: string,
     returnUrl?: string,
@@ -61,29 +48,10 @@ export function usePremiumPayment(): UsePremiumPaymentResult {
   };
 
   const verifyPaymentSession = async (sessionId: string) => {
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     setIsLoading(true);
     setError(null);
 
     try {
-<<<<<<< HEAD
-      const result = await verifyPaymentSession(sessionId);
-      
-      if (result.success) {
-        toast.success('Payment verified successfully');
-        return true;
-      } else {
-        toast.error('Payment verification failed');
-        setError(new Error(result.error || 'Payment verification failed'));
-        return false;
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error during payment verification';
-      console.error('Error verifying payment:', errorMessage);
-      toast.error(errorMessage);
-      setError(err instanceof Error ? err : new Error(errorMessage));
-      return false;
-=======
       // For now, simulate a successful payment verification
       // In a real implementation, this would call a Supabase function to verify the Stripe session
       console.log(`Verifying payment session: ${sessionId}`);
@@ -119,51 +87,15 @@ export function usePremiumPayment(): UsePremiumPaymentResult {
       setError(err.message || "Failed to verify payment");
       toast.error(err.message || "Failed to verify payment");
       return { success: false, error: err.message };
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     } finally {
       setIsLoading(false);
     }
   };
 
-<<<<<<< HEAD
-  const createPaymentSession = async (valuationId: string, returnUrl?: string): Promise<void> => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const result = await createCheckoutSession({
-        bundle: 'single',
-        valuationId,
-        successUrl: returnUrl
-      });
-      
-      if (result.success && result.url) {
-        // Redirect to Stripe checkout
-        window.location.href = result.url;
-      } else {
-        throw new Error(result.error || 'Failed to create checkout session');
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error creating payment session';
-      console.error('Error creating payment session:', errorMessage);
-      toast.error(errorMessage);
-      setError(err instanceof Error ? err : new Error(errorMessage));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return {
-    isLoading,
-    error,
-    verifyPaymentSession: verifyPayment,
-    createPaymentSession
-=======
   return {
     isLoading,
     error,
     createPaymentSession,
     verifyPaymentSession,
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   };
 }
