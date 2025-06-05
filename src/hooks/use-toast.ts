@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import * as React from "react"
 
 import type {
@@ -95,30 +94,6 @@ export const reducer = (state: State, action: Action): State => {
       // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
-=======
-import { toast as sonnerToast } from "sonner";
-import * as React from "react";
-
-export type ToastProps = {
-  description?: React.ReactNode;
-  variant?: "default" | "destructive" | "success" | "warning" | "info";
-  className?: string;
-};
-
-export function useToast() {
-  return {
-    toast: (props: ToastProps) => {
-      const { description, variant = "default", className } = props;
-
-      if (variant === "destructive") {
-        sonnerToast.error(description);
-      } else if (variant === "success") {
-        sonnerToast.success(description);
-      } else if (variant === "warning") {
-        sonnerToast.warning(description);
-      } else if (variant === "info") {
-        sonnerToast.info(description);
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       } else {
         state.toasts.forEach((toast) => {
           addToRemoveQueue(toast.id)
@@ -136,7 +111,6 @@ export function useToast() {
             : t
         ),
       }
-<<<<<<< HEAD
     }
     case "REMOVE_TOAST":
       if (action.toastId === undefined) {
@@ -149,26 +123,6 @@ export function useToast() {
         ...state,
         toasts: state.toasts.filter((t) => t.id !== action.toastId),
       }
-=======
-    },
-  };
-}
-
-// Toast function for direct usage without the hook
-export function toast(props: ToastProps) {
-  const { description, variant = "default", className } = props;
-
-  if (variant === "destructive") {
-    sonnerToast.error(description);
-  } else if (variant === "success") {
-    sonnerToast.success(description);
-  } else if (variant === "warning") {
-    sonnerToast.warning(description);
-  } else if (variant === "info") {
-    sonnerToast.info(description);
-  } else {
-    sonnerToast(description);
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   }
 }
 

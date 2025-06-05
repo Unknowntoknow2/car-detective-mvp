@@ -1,197 +1,56 @@
-<<<<<<< HEAD
-
-// Fallback vehicle data for when API calls fail
 
 export const VEHICLE_MAKES = [
-  "Acura", "Alfa Romeo", "Aston Martin", "Audi", "Bentley", "BMW", "Buick", "Cadillac", 
-  "Chevrolet", "Chrysler", "Dodge", "Ferrari", "Fiat", "Ford", "Genesis", "GMC", 
-  "Honda", "Hyundai", "Infiniti", "Jaguar", "Jeep", "Kia", "Lamborghini", "Land Rover", 
-  "Lexus", "Lincoln", "Maserati", "Mazda", "McLaren", "Mercedes-Benz", "MINI", "Mitsubishi", 
-  "Nissan", "Porsche", "RAM", "Rolls-Royce", "Subaru", "Tesla", "Toyota", "Volkswagen", "Volvo"
+  "Acura", "Audi", "BMW", "Buick", "Cadillac", "Chevrolet", "Chrysler", 
+  "Dodge", "Ford", "GMC", "Honda", "Hyundai", "Infiniti", "Jeep", "Kia", 
+  "Land Rover", "Lexus", "Lincoln", "Mazda", "Mercedes-Benz", "Mitsubishi", 
+  "Nissan", "Porsche", "Ram", "Subaru", "Tesla", "Toyota", "Volkswagen", "Volvo"
 ];
 
-export const VEHICLE_MODELS = [
-  "Accord", "Altima", "Aventador", "Bronco", "Camaro", "Camry", "Charger", "Civic", "Colorado", 
-  "Corolla", "Corvette", "CR-V", "Cruze", "Durango", "Edge", "Encore", "Equinox", "Escape", 
-  "Explorer", "F-150", "Fiesta", "Focus", "Fusion", "G-Class", "Highlander", "Impala", "Jetta", 
-  "Malibu", "Maxima", "Model 3", "Model S", "Model X", "Model Y", "Mustang", "Odyssey", "Outback", 
-  "Pacifica", "Pilot", "Prius", "RAV4", "Rio", "Rogue", "Sentra", "Silverado", "Sonata", 
-  "Soul", "Tacoma", "Tahoe", "Taurus", "Tiguan", "Tucson", "Tundra", "Wrangler", "X5", "XC90"
-];
-
-// Define a type for the vehicle models by make object
-export interface VehicleModelsByMake {
-  [make: string]: string[];
-}
-
-export const VEHICLE_MODELS_BY_MAKE: VehicleModelsByMake = {
-  "Acura": ["ILX", "MDX", "NSX", "RDX", "TLX", "TSX"],
-  "Audi": ["A3", "A4", "A5", "A6", "A7", "A8", "Q3", "Q5", "Q7", "Q8", "R8", "TT"],
-  "BMW": ["1 Series", "2 Series", "3 Series", "4 Series", "5 Series", "6 Series", "7 Series", "8 Series", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "Z4"],
-  "Chevrolet": ["Blazer", "Camaro", "Colorado", "Corvette", "Equinox", "Malibu", "Silverado", "Suburban", "Tahoe", "Traverse"],
-  "Ford": ["Bronco", "Edge", "Escape", "Explorer", "F-150", "Fusion", "Mustang", "Ranger"],
-  "Honda": ["Accord", "Civic", "CR-V", "Fit", "HR-V", "Odyssey", "Pilot", "Ridgeline"],
-  "Hyundai": ["Accent", "Elantra", "Kona", "Palisade", "Santa Fe", "Sonata", "Tucson", "Veloster"],
-  "Lexus": ["ES", "GS", "GX", "IS", "LC", "LS", "LX", "NX", "RC", "RX", "UX"],
-  "Mercedes-Benz": ["A-Class", "C-Class", "CLA", "CLS", "E-Class", "G-Class", "GLA", "GLC", "GLE", "GLS", "S-Class", "SL"],
-  "Nissan": ["Altima", "Armada", "Frontier", "GT-R", "Leaf", "Maxima", "Murano", "Pathfinder", "Rogue", "Sentra", "Titan", "Versa"],
-  "Tesla": ["Model 3", "Model S", "Model X", "Model Y"],
-  "Toyota": ["4Runner", "Avalon", "Camry", "Corolla", "Highlander", "Land Cruiser", "Prius", "RAV4", "Sienna", "Tacoma", "Tundra"]
+export const VEHICLE_MODELS: Record<string, string[]> = {
+  "Honda": ["Accord", "Civic", "CR-V", "Pilot", "Odyssey", "Fit", "HR-V", "Passport", "Ridgeline"],
+  "Toyota": ["Camry", "Corolla", "RAV4", "Highlander", "Prius", "Sienna", "Tacoma", "Tundra", "4Runner"],
+  "Ford": ["F-150", "Escape", "Explorer", "Focus", "Mustang", "Edge", "Expedition", "Ranger", "Bronco"],
+  "Chevrolet": ["Silverado", "Equinox", "Malibu", "Tahoe", "Suburban", "Traverse", "Camaro", "Corvette"],
+  "BMW": ["3 Series", "5 Series", "X3", "X5", "X1", "7 Series", "4 Series", "X7", "Z4"],
+  "Mercedes-Benz": ["C-Class", "E-Class", "S-Class", "GLC", "GLE", "GLS", "A-Class", "CLA", "G-Class"],
+  "Audi": ["A4", "A6", "Q5", "Q7", "A3", "Q3", "A8", "TT", "R8"],
+  "Nissan": ["Altima", "Sentra", "Rogue", "Pathfinder", "Murano", "Maxima", "Titan", "Frontier", "370Z"],
+  "Hyundai": ["Elantra", "Sonata", "Tucson", "Santa Fe", "Accent", "Genesis", "Palisade", "Kona", "Veloster"],
+  "Kia": ["Optima", "Forte", "Sorento", "Sportage", "Soul", "Stinger", "Telluride", "Rio", "Cadenza"],
+  "Subaru": ["Outback", "Forester", "Impreza", "Legacy", "Crosstrek", "Ascent", "WRX", "BRZ"],
+  "Mazda": ["Mazda3", "Mazda6", "CX-5", "CX-9", "CX-3", "MX-5 Miata", "CX-30"],
+  "Volkswagen": ["Jetta", "Passat", "Tiguan", "Atlas", "Golf", "Beetle", "Arteon"],
+  "Jeep": ["Grand Cherokee", "Cherokee", "Wrangler", "Compass", "Renegade", "Gladiator"],
+  "Ram": ["1500", "2500", "3500", "ProMaster"],
+  "GMC": ["Sierra", "Terrain", "Acadia", "Yukon", "Canyon"],
+  "Buick": ["Enclave", "Encore", "Envision", "LaCrosse"],
+  "Cadillac": ["Escalade", "XT5", "CT6", "XT4", "CTS"],
+  "Lincoln": ["Navigator", "MKX", "MKZ", "Continental"],
+  "Acura": ["MDX", "RDX", "TLX", "ILX", "NSX"],
+  "Infiniti": ["QX60", "Q50", "QX80", "Q60", "QX50"],
+  "Lexus": ["RX", "ES", "GX", "LX", "IS", "LS", "NX"],
+  "Volvo": ["XC90", "XC60", "S60", "V60", "XC40"],
+  "Land Rover": ["Range Rover", "Discovery", "Evoque", "Velar"],
+  "Porsche": ["911", "Cayenne", "Macan", "Panamera", "Boxster"],
+  "Tesla": ["Model S", "Model 3", "Model X", "Model Y"],
+  "Mitsubishi": ["Outlander", "Eclipse Cross", "Mirage", "Outlander Sport"],
+  "Chrysler": ["Pacifica", "300"],
+  "Dodge": ["Charger", "Challenger", "Durango", "Journey"]
 };
-=======
-export const VEHICLE_MAKES = [
-  "Acura",
-  "Alfa Romeo",
-  "Aston Martin",
-  "Audi",
-  "Bentley",
-  "BMW",
-  "Buick",
-  "Cadillac",
-  "Chevrolet",
-  "Chrysler",
-  "Dodge",
-  "Ferrari",
-  "Fiat",
-  "Ford",
-  "Genesis",
-  "GMC",
-  "Honda",
-  "Hyundai",
-  "Infiniti",
-  "Jaguar",
-  "Jeep",
-  "Kia",
-  "Lamborghini",
-  "Land Rover",
-  "Lexus",
-  "Lincoln",
-  "Maserati",
-  "Mazda",
-  "McLaren",
-  "Mercedes-Benz",
-  "Mini",
-  "Mitsubishi",
-  "Nissan",
-  "Porsche",
-  "Ram",
-  "Rolls-Royce",
-  "Subaru",
-  "Tesla",
-  "Toyota",
-  "Volkswagen",
-  "Volvo",
-];
 
-export const VEHICLE_MODELS = [
-  // Acura
-  "ILX",
-  "MDX",
-  "NSX",
-  "RDX",
-  "RLX",
-  "TLX",
-  "Integra",
-  // Audi
-  "A3",
-  "A4",
-  "A5",
-  "A6",
-  "A7",
-  "A8",
-  "e-tron",
-  "Q3",
-  "Q5",
-  "Q7",
-  "Q8",
-  "R8",
-  "RS",
-  "S3",
-  "S4",
-  "S5",
-  "S6",
-  "S7",
-  "S8",
-  "TT",
-  // BMW
-  "2 Series",
-  "3 Series",
-  "4 Series",
-  "5 Series",
-  "7 Series",
-  "8 Series",
-  "i3",
-  "i8",
-  "M2",
-  "M3",
-  "M4",
-  "M5",
-  "M8",
-  "X1",
-  "X2",
-  "X3",
-  "X4",
-  "X5",
-  "X6",
-  "X7",
-  "Z4",
-  // Chevrolet
-  "Blazer",
-  "Bolt",
-  "Camaro",
-  "Colorado",
-  "Corvette",
-  "Equinox",
-  "Impala",
-  "Malibu",
-  "Silverado",
-  "Suburban",
-  "Tahoe",
-  "Trailblazer",
-  "Traverse",
-  "Trax",
-  // Ford
-  "Bronco",
-  "EcoSport",
-  "Edge",
-  "Escape",
-  "Expedition",
-  "Explorer",
-  "F-150",
-  "F-250",
-  "F-350",
-  "Fusion",
-  "Mustang",
-  "Ranger",
-  "Transit",
-  // Honda
-  "Accord",
-  "Civic",
-  "CR-V",
-  "Fit",
-  "HR-V",
-  "Insight",
-  "Odyssey",
-  "Passport",
-  "Pilot",
-  "Ridgeline",
-  // Toyota
-  "Avalon",
-  "Camry",
-  "Corolla",
-  "GR86",
-  "Highlander",
-  "Land Cruiser",
-  "Prius",
-  "RAV4",
-  "Sequoia",
-  "Sienna",
-  "Tacoma",
-  "Tundra",
-  "4Runner",
-];
+export const getModelsForMake = (make: string): string[] => {
+  return VEHICLE_MODELS[make] || [];
+};
 
-export const VEHICLE_YEARS = Array.from({
-  length: new Date().getFullYear() - 1990 + 2,
-}, (_, i) => new Date().getFullYear() - i + 1).reverse();
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+export const CURRENT_YEAR = new Date().getFullYear();
+export const VEHICLE_YEARS = Array.from(
+  { length: 30 }, 
+  (_, i) => CURRENT_YEAR - i
+);
+
+export const CONDITION_OPTIONS = [
+  { value: "excellent", label: "Excellent" },
+  { value: "good", label: "Good" },
+  { value: "fair", label: "Fair" },
+  { value: "poor", label: "Poor" }
+];
