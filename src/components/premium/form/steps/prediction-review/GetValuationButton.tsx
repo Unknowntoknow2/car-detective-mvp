@@ -1,55 +1,34 @@
-<<<<<<< HEAD
 
-import React from 'react';
-import { LoadingButton } from '@/components/ui/loading-button';
-import { TrendingUp } from 'lucide-react';
-=======
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, TrendingUp } from "lucide-react";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+import { Loader2 } from "lucide-react";
 
 interface GetValuationButtonProps {
-  onClick: () => void;
+  onGetValuation: () => void;
   disabled?: boolean;
   isLoading?: boolean;
-  isPremium?: boolean;
 }
 
 export function GetValuationButton({
-  onClick,
+  onGetValuation,
   disabled = false,
-  isLoading = false,
-  isPremium = true,
+  isLoading = false
 }: GetValuationButtonProps) {
   return (
-    <LoadingButton
-      onClick={onClick}
-      disabled={disabled}
-      isLoading={isLoading}
-      loadingText="Processing..."
-      variant={isPremium ? "default" : "default"}
-      className="flex items-center gap-2"
+    <Button
+      onClick={onGetValuation}
+      disabled={disabled || isLoading}
+      className="w-full"
+      size="lg"
     >
-<<<<<<< HEAD
-      <TrendingUp className="h-4 w-4" />
-      {isPremium ? "Get Premium Valuation" : "Get Free Valuation"}
-    </LoadingButton>
-=======
-      {isLoading
-        ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Processing...
-          </>
-        )
-        : (
-          <>
-            <TrendingUp className="h-4 w-4" />
-            {isPremium ? "Get Premium Valuation" : "Get Free Valuation"}
-          </>
-        )}
+      {isLoading ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Getting Valuation...
+        </>
+      ) : (
+        "Get My Valuation"
+      )}
     </Button>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   );
 }

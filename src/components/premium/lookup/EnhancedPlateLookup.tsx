@@ -1,447 +1,105 @@
-<<<<<<< HEAD
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { validatePlate, validateZipCode } from '@/utils/validation';
-import { usStates } from '@/data/states';
-import { Loader2 } from 'lucide-react';
-=======
 import React, { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { usePlateLookup } from "@/hooks/usePlateLookup";
-import { AlertCircle, Car, CheckCircle, Loader2, Search } from "lucide-react";
-import { states } from "@/components/premium/lookup/shared/states-data"; // Updated from US_STATES to states
-import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
-import { AnimatePresence, motion } from "framer-motion";
-import { VehicleFoundCard } from "./plate/VehicleFoundCard";
-import { ValuationErrorState } from "./shared/ValuationErrorState";
-import { ValuationStages } from "./shared/ValuationStages";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 
 interface EnhancedPlateLookupProps {
-  onSubmit: (data: {
-    plate: string;
-    state: string;
-    zipCode: string;
-  }) => void;
-  isLoading?: boolean;
+  onLookupComplete?: (data: any) => void;
 }
 
-<<<<<<< HEAD
-export function EnhancedPlateLookup({ onSubmit, isLoading = false }: EnhancedPlateLookupProps) {
-  const [plate, setPlate] = useState('');
-  const [state, setState] = useState('');
-  const [zipCode, setZipCode] = useState('');
-  const [errors, setErrors] = useState<{
-    plate?: string;
-    state?: string;
-    zipCode?: string;
-  }>({});
+export function EnhancedPlateLookup({ onLookupComplete }: EnhancedPlateLookupProps) {
+  const [plate, setPlate] = useState("");
+  const [state, setState] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const validateForm = () => {
-    const newErrors: {
-      plate?: string;
-      state?: string;
-      zipCode?: string;
-    } = {};
-
-    const plateError = validatePlate(plate);
-    if (plateError) {
-      newErrors.plate = plateError;
-=======
-export function EnhancedPlateLookup(
-  { onComplete }: { onComplete: (data: any) => void },
-) {
-  const [plateNumber, setPlateNumber] = useState("");
-  const [stateCode, setStateCode] = useState("");
-  const [isFetching, setIsFetching] = useState(false);
-  const [vehicleData, setVehicleData] = useState<any>(null);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
-
-  const [additionalInfo, setAdditionalInfo] = useState<RequiredInputs>({
-    mileage: 0,
-    fuelType: "",
-    zipCode: "",
-    hasAccident: "no", // Changed from false to 'no'
-    accidentDescription: "",
-  });
-
-  const { lookupVehicle } = usePlateLookup();
+  const states = [
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+    "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+    "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+    "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+    "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitError(null);
+    if (!plate || !state) return;
 
+    setIsLoading(true);
     try {
-      // Validate additional info
-      if (
-        !additionalInfo.mileage || !additionalInfo.fuelType ||
-        !additionalInfo.zipCode
-      ) {
-        setSubmitError("Please fill in all additional information fields.");
-        return;
-      }
-
-      // Combine vehicle data and additional info
-      const combinedData = {
-        ...vehicleData,
-        ...additionalInfo,
-        licensePlate: plateNumber,
-        state: stateCode,
-      };
-
-      // Pass the combined data to the onComplete callback
-      onComplete(combinedData);
-      setShowSuccess(true);
-      toast.success("Valuation form completed successfully!");
-    } catch (error: any) {
-      console.error("Failed to submit valuation:", error);
-      setSubmitError(
-        error.message || "Failed to submit valuation. Please try again.",
-      );
-      toast.error(submitError);
-    } finally {
-      setIsSubmitting(false);
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-    }
-
-    if (!state) {
-      newErrors.state = 'State is required';
-    }
-
-    const zipError = validateZipCode(zipCode);
-    if (zipError) {
-      newErrors.zipCode = zipError;
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-<<<<<<< HEAD
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      onSubmit({
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const mockData = {
         plate,
         state,
-        zipCode,
-      });
-=======
-  const handleFetchVehicle = async () => {
-    setIsFetching(true);
-    setFetchError(null);
-
-    try {
-      const data = await lookupVehicle(plateNumber, stateCode);
-      if (!data) {
-        throw new Error("Failed to fetch vehicle data");
-      }
-      setVehicleData(data);
-      setShowAdditionalInfo(true);
-      toast.success("Vehicle found! Please provide additional details.");
-    } catch (error: any) {
-      console.error("Failed to fetch vehicle:", error);
-      setFetchError(
-        error.message ||
-          "Failed to fetch vehicle. Please check the plate number and state.",
-      );
-      toast.error(fetchError);
-      setVehicleData(null);
-      setShowAdditionalInfo(false);
+        make: "Toyota",
+        model: "Camry",
+        year: 2019,
+        vin: "1234567890ABCDEFG"
+      };
+      
+      onLookupComplete?.(mockData);
+    } catch (error) {
+      console.error("Plate lookup error:", error);
     } finally {
-      setIsFetching(false);
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+      setIsLoading(false);
     }
   };
 
   return (
-<<<<<<< HEAD
     <Card>
       <CardHeader>
         <CardTitle>License Plate Lookup</CardTitle>
-=======
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-        <CardTitle className="text-2xl font-bold">
-          Enhanced Plate Lookup
-        </CardTitle>
-        <Search className="ml-2 h-5 w-5 text-gray-500" />
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="plate" className="block text-sm font-medium">
-              License Plate
-            </label>
+          <div>
+            <Label htmlFor="plate">License Plate Number</Label>
             <Input
               id="plate"
               value={plate}
               onChange={(e) => setPlate(e.target.value.toUpperCase())}
               placeholder="Enter license plate"
-              className={errors.plate ? 'border-red-500' : ''}
-              aria-invalid={!!errors.plate}
+              className="uppercase"
             />
-            {errors.plate && <p className="text-sm text-red-500">{errors.plate}</p>}
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="state" className="block text-sm font-medium">
-              State
-            </label>
-            <Select value={state} onValueChange={setState}>
-              <SelectTrigger
-                id="state"
-                className={errors.state ? 'border-red-500' : ''}
-                aria-invalid={!!errors.state}
-              >
+          <div>
+            <Label htmlFor="state">State</Label>
+            <Select onValueChange={setState} value={state}>
+              <SelectTrigger id="state">
                 <SelectValue placeholder="Select state" />
               </SelectTrigger>
               <SelectContent>
-                {usStates.map((state) => (
-                  <SelectItem key={state.value} value={state.value}>
-                    {state.label}
+                {states.map(stateCode => (
+                  <SelectItem key={stateCode} value={stateCode}>
+                    {stateCode}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {errors.state && <p className="text-sm text-red-500">{errors.state}</p>}
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="zipCode" className="block text-sm font-medium">
-              ZIP Code
-            </label>
-            <Input
-              id="zipCode"
-              value={zipCode}
-              onChange={(e) => setZipCode(e.target.value)}
-              placeholder="Enter ZIP code"
-              className={errors.zipCode ? 'border-red-500' : ''}
-              aria-invalid={!!errors.zipCode}
-            />
-            {errors.zipCode && <p className="text-sm text-red-500">{errors.zipCode}</p>}
-          </div>
-
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={!plate || !state || isLoading}
+          >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Looking up...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Looking up...
               </>
             ) : (
-              'Lookup License Plate'
+              "Lookup Vehicle"
             )}
           </Button>
         </form>
       </CardContent>
-<<<<<<< HEAD
     </Card>
   );
 }
-
-export default EnhancedPlateLookup;
-=======
-      <CardFooter>
-        <Button
-          className="w-full"
-          onClick={handleFetchVehicle}
-          disabled={isFetching || !plateNumber || !stateCode}
-        >
-          {isFetching
-            ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Fetching Vehicle...
-              </>
-            )
-            : (
-              "Fetch Vehicle"
-            )}
-        </Button>
-      </CardFooter>
-
-      <AnimatePresence>
-        {fetchError && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="mt-4 p-3 rounded-md bg-red-50 text-red-700 border border-red-200"
-          >
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="h-4 w-4" />
-              <p>{fetchError}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {vehicleData && showAdditionalInfo && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="mt-6"
-          >
-            <VehicleFoundCard vehicle={vehicleData} />
-            <CardContent className="grid gap-4 mt-4">
-              <div className="grid grid-cols-4 gap-2">
-                <Label
-                  htmlFor="mileage"
-                  className="text-right flex items-center"
-                >
-                  Mileage:
-                </Label>
-                <Input
-                  id="mileage"
-                  type="number"
-                  className="col-span-3"
-                  placeholder="Enter mileage"
-                  value={additionalInfo.mileage}
-                  onChange={(e) =>
-                    setAdditionalInfo({
-                      ...additionalInfo,
-                      mileage: parseInt(e.target.value),
-                    })}
-                />
-              </div>
-              <div className="grid grid-cols-4 gap-2">
-                <Label
-                  htmlFor="fuelType"
-                  className="text-right flex items-center"
-                >
-                  Fuel Type:
-                </Label>
-                <Select
-                  onValueChange={(value) =>
-                    setAdditionalInfo({ ...additionalInfo, fuelType: value })}
-                  defaultValue={additionalInfo.fuelType}
-                >
-                  <SelectTrigger id="fuelType" className="col-span-3">
-                    <SelectValue placeholder="Select fuel type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Gasoline">Gasoline</SelectItem>
-                    <SelectItem value="Diesel">Diesel</SelectItem>
-                    <SelectItem value="Electric">Electric</SelectItem>
-                    <SelectItem value="Hybrid">Hybrid</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 gap-2">
-                <Label
-                  htmlFor="zipCode"
-                  className="text-right flex items-center"
-                >
-                  ZIP Code:
-                </Label>
-                <Input
-                  id="zipCode"
-                  type="number"
-                  className="col-span-3"
-                  placeholder="Enter ZIP code"
-                  value={additionalInfo.zipCode}
-                  onChange={(e) =>
-                    setAdditionalInfo({
-                      ...additionalInfo,
-                      zipCode: e.target.value,
-                    })}
-                />
-              </div>
-              <div className="grid grid-cols-4 gap-2">
-                <Label
-                  htmlFor="hasAccident"
-                  className="text-right flex items-center"
-                >
-                  Accident History:
-                </Label>
-                <Select
-                  onValueChange={(value) =>
-                    setAdditionalInfo({
-                      ...additionalInfo,
-                      hasAccident: value,
-                    })}
-                  defaultValue={additionalInfo.hasAccident}
-                >
-                  <SelectTrigger id="hasAccident" className="col-span-3">
-                    <SelectValue placeholder="Select accident history" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="yes">Yes</SelectItem>
-                    <SelectItem value="no">No</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button
-                className="w-full"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-              >
-                {isSubmitting
-                  ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Submitting...
-                    </>
-                  )
-                  : (
-                    "Submit Valuation"
-                  )}
-              </Button>
-            </CardFooter>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showSuccess && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="mt-4 p-3 rounded-md bg-green-50 text-green-700 border border-green-200"
-          >
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-4 w-4" />
-              <p>Valuation submitted successfully!</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </Card>
-  );
-}
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)

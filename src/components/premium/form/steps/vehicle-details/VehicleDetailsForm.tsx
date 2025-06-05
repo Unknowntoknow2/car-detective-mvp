@@ -1,129 +1,28 @@
-<<<<<<< HEAD
-import React, { useEffect } from 'react';
-import { FormData } from '@/types/premium-valuation';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-=======
-import React, { useEffect } from "react";
+
+import React from "react";
 import { FormData } from "@/types/premium-valuation";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { VehicleDetailsFields } from "./VehicleDetailsFields";
+import { AccidentHistorySection } from "./AccidentHistorySection";
 
 interface VehicleDetailsFormProps {
-  step?: number;
-  formData?: FormData;
-  setFormData?: React.Dispatch<React.SetStateAction<FormData>>;
-  updateStepValidity?: (isValid: boolean) => void;
-  initialData?: any;
-  onSubmit?: (details: any) => Promise<void>;
-  isLoading?: boolean;
+  formData: FormData;
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
 }
 
-export function VehicleDetailsForm({
-  step,
-  formData,
-  setFormData,
-  updateStepValidity,
-  initialData,
-  onSubmit,
-  isLoading,
-}: VehicleDetailsFormProps) {
-  // Handle either direct formData or initialData
-  const data = formData || initialData || {};
-
-  useEffect(() => {
-    // Only run if we're in the step validation flow
-    if (updateStepValidity) {
-      // Validate the form
-      const isValid = data.mileage !== undefined &&
-        data.zipCode !== "";
-      updateStepValidity(isValid);
-    }
-  }, [data.mileage, data.zipCode, updateStepValidity]);
-
-  const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-
-    if (setFormData) {
-      // For the form steps flow
-      setFormData((prev) => ({
-        ...prev,
-<<<<<<< HEAD
-        mileage: value ? parseInt(value) : 0
-=======
-        mileage: value ? parseInt(value) : undefined,
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-      }));
-    } else if (initialData && onSubmit) {
-      // For the direct initialData/onSubmit flow
-      initialData.mileage = value ? parseInt(value) : 0;
-    }
-  };
-
-  const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-
-    if (setFormData) {
-      // For the form steps flow
-      setFormData((prev) => ({
-        ...prev,
-        zipCode: value,
-      }));
-    } else if (initialData && onSubmit) {
-      // For the direct initialData/onSubmit flow
-      initialData.zipCode = value;
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (onSubmit && initialData) {
-      onSubmit(initialData);
-    }
-  };
-
+export function VehicleDetailsForm({ formData, setFormData }: VehicleDetailsFormProps) {
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-4">Vehicle Details</h2>
-      <p className="text-gray-600 mb-6">
-        Please provide additional details about your vehicle.
-      </p>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Vehicle Specifications</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <VehicleDetailsFields formData={formData} setFormData={setFormData} />
+        </CardContent>
+      </Card>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Label htmlFor="mileage">Mileage</Label>
-          <Input
-            id="mileage"
-            type="number"
-            placeholder="Enter vehicle mileage"
-            value={data.mileage || ""}
-            onChange={handleMileageChange}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="zipCode">ZIP Code</Label>
-          <Input
-            id="zipCode"
-            placeholder="Enter your ZIP code"
-            value={data.zipCode || ""}
-            onChange={handleZipCodeChange}
-            maxLength={5}
-          />
-        </div>
-
-        {onSubmit && (
-          <button
-            type="submit"
-            className="w-full py-2 px-4 bg-primary text-white rounded hover:bg-primary/90 transition-colors"
-            disabled={isLoading}
-          >
-            {isLoading ? "Loading..." : "Submit"}
-          </button>
-        )}
-      </form>
+      <AccidentHistorySection formData={formData} setFormData={setFormData} />
     </div>
   );
 }
