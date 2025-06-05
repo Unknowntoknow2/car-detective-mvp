@@ -1,7 +1,9 @@
+
 import React from "react";
 import { Input } from "@/components/ui/input";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { FormValidationError } from "@/components/premium/common/FormValidationError";
+import { VinInfoMessage } from "@/components/validation/VinInfoMessage";
 
 interface VinInputProps {
   value: string;
@@ -44,21 +46,6 @@ export function VinInput({
           <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
         )}
       </div>
-<<<<<<< HEAD
-      
-      {touched && validationError ? (
-        <FormValidationError error={validationError} />
-      ) : externalError ? (
-        <FormValidationError error={externalError} />
-      ) : (
-        <div className="flex items-start gap-2 text-xs text-slate-500">
-          <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-          <p>
-            Find your 17-character VIN on your vehicle registration, insurance card, or on the driver's side dashboard.
-          </p>
-        </div>
-      )}
-=======
 
       {touched && validationError
         ? (
@@ -74,16 +61,7 @@ export function VinInput({
             variant="error"
           />
         )
-        : (
-          <div className="flex items-start gap-2 text-xs text-slate-500">
-            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-            <p>
-              Find your 17-character VIN on your vehicle registration, insurance
-              card, or on the driver's side dashboard.
-            </p>
-          </div>
-        )}
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+        : <VinInfoMessage />}
     </div>
   );
 }

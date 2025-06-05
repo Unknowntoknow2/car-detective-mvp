@@ -1,32 +1,18 @@
-<<<<<<< HEAD
 
-import React from 'react';
-import { MakeModelSelect } from './fields/MakeModelSelect';
-import { YearMileageInputs } from './fields/YearMileageInputs';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { FormValidationError } from '@/components/premium/common/FormValidationError';
-=======
 import React from "react";
 import { MakeModelSelect } from "@/components/premium/lookup/form-parts/fields/MakeModelSelect";
 import { YearMileageInputs } from "@/components/premium/lookup/form-parts/fields/YearMileageInputs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormValidationError } from "@/components/premium/common/FormValidationError";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface BasicVehicleInfoProps {
   selectedMakeId: string;
   setSelectedMakeId: (id: string) => void;
   selectedModel: string;
   setSelectedModel: (model: string) => void;
-<<<<<<< HEAD
-  selectedYear: number | string | '';
-  setSelectedYear: (year: string | number) => void;
-=======
   selectedYear: number | "";
   setSelectedYear: (year: number | "") => void;
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   mileage: string;
   setMileage: (mileage: string) => void;
   zipCode: string;
@@ -66,18 +52,6 @@ export function BasicVehicleInfo({
           errors={errors}
         />
       </div>
-<<<<<<< HEAD
-      
-      <YearMileageInputs
-        selectedYear={selectedYear}
-        setSelectedYear={setSelectedYear}
-        mileage={mileage}
-        setMileage={setMileage}
-        isDisabled={isDisabled}
-        errors={errors}
-      />
-      
-=======
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <YearMileageInputs
@@ -90,7 +64,6 @@ export function BasicVehicleInfo({
         />
       </div>
 
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       <div className="sm:w-1/2">
         <div className="space-y-2">
           <Label
