@@ -1,14 +1,10 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-<<<<<<< HEAD
-import { Profile } from '@/types/profile';
-import { toast } from "@/hooks/use-toast";
-=======
 import { Profile } from "@/types/profile";
-import { toast } from "@/components/ui/use-toast";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+import { toast } from "sonner";
 
 interface AvatarUploadProps {
   profile: Profile | null;
@@ -27,32 +23,14 @@ export const AvatarUpload = (
 
       // Validate file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        toast({
-<<<<<<< HEAD
-          title: "File Too Large",
-          description: 'Avatar must be less than 2MB',
-          variant: 'destructive'
-=======
-          description: "Avatar must be less than 2MB",
-          variant: "destructive",
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-        });
+        toast.error("Avatar must be less than 2MB");
         return;
       }
 
       // Validate file type
       const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
       if (!validTypes.includes(file.type)) {
-        toast({
-<<<<<<< HEAD
-          title: "Invalid File Type",
-          description: 'Please upload a JPEG, PNG, GIF, or WebP image',
-          variant: 'destructive'
-=======
-          description: "Please upload a JPEG, PNG, GIF, or WebP image",
-          variant: "destructive",
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-        });
+        toast.error("Please upload a JPEG, PNG, GIF, or WebP image");
         return;
       }
 

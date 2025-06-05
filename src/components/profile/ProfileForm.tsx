@@ -1,232 +1,125 @@
-<<<<<<< HEAD
 
-// Add a simple implementation or mock for this component
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-=======
-import { useForm } from "react-hook-form";
-import { Input } from "@/components/ui/input";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Profile } from "@/types/profile";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { User, Mail, Phone, MapPin } from "lucide-react";
 
 interface ProfileFormProps {
-  className?: string;
+  initialData?: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    city?: string;
+  };
+  onSubmit?: (data: any) => void;
+  isLoading?: boolean;
 }
 
-<<<<<<< HEAD
-const ProfileForm: React.FC<ProfileFormProps> = ({ className }) => {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [isUpdating, setIsUpdating] = useState(false);
-  const { user, isLoading } = useAuth();
-=======
-export const ProfileForm = (
-  { profile, onSubmit, isLoading }: ProfileFormProps,
-) => {
-  const form = useForm<Partial<Profile>>({
-    defaultValues: {
-      username: profile?.username || "",
-      full_name: profile?.full_name || "",
-      bio: profile?.bio || "",
-      website: profile?.website || "",
-    },
+export function ProfileForm({ initialData, onSubmit, isLoading = false }: ProfileFormProps) {
+  const [formData, setFormData] = useState({
+    firstName: initialData?.firstName || "",
+    lastName: initialData?.lastName || "",
+    email: initialData?.email || "",
+    phone: initialData?.phone || "",
+    city: initialData?.city || "",
   });
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
-  useEffect(() => {
-    if (user) {
-      // Set email from auth user
-      setEmail(user.email || '');
-      
-      // Fetch user profile to get full name
-      const fetchProfile = async () => {
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', user.id)
-            .single();
-            
-          if (error) {
-            console.error('Error fetching profile:', error);
-            return;
-          }
-          
-          if (data) {
-            setFullName(data.full_name || '');
-          }
-        } catch (err) {
-          console.error('Error in fetchProfile:', err);
-        }
-      };
-      
-      fetchProfile();
-    }
-  }, [user]);
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user) return;
-    
-    setIsUpdating(true);
-    
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: fullName,
-        })
-        .eq('id', user.id);
-        
-      if (error) throw error;
-      
-      toast.success('Profile updated successfully');
-    } catch (err: any) {
-      console.error('Error updating profile:', err);
-      toast.error('Failed to update profile');
-    } finally {
-      setIsUpdating(false);
+    if (onSubmit) {
+      onSubmit(formData);
     }
   };
 
   return (
-<<<<<<< HEAD
-    <Card className={className}>
+    <Card className="w-full max-w-lg mx-auto">
       <CardHeader>
-        <CardTitle>Profile Information</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <User className="h-5 w-5" />
+          Profile Information
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="flex justify-center p-4">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={formData.firstName}
+                onChange={(e) => handleChange("firstName", e.target.value)}
+                placeholder="Enter first name"
+                disabled={isLoading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                value={formData.lastName}
+                onChange={(e) => handleChange("lastName", e.target.value)}
+                placeholder="Enter last name"
+                disabled={isLoading}
+              />
+            </div>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email"
-                value={email}
-                disabled
-                className="bg-muted"
-              />
-              <p className="text-xs text-muted-foreground">
-                Your email cannot be changed
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input 
-                id="fullName"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                disabled={isUpdating}
-              />
-            </div>
-            
-            <Button 
-              type="submit"
-              disabled={isUpdating}
-              className="mt-4"
-            >
-              {isUpdating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                'Save Changes'
-              )}
-            </Button>
-          </form>
-        )}
+
+          <div className="space-y-2">
+            <Label htmlFor="email" className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              Email
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+              placeholder="Enter email address"
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone" className="flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              Phone
+            </Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => handleChange("phone", e.target.value)}
+              placeholder="Enter phone number"
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="city" className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              City
+            </Label>
+            <Input
+              id="city"
+              value={formData.city}
+              onChange={(e) => handleChange("city", e.target.value)}
+              placeholder="Enter city"
+              disabled={isLoading}
+            />
+          </div>
+
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? "Saving..." : "Save Profile"}
+          </Button>
+        </form>
       </CardContent>
     </Card>
-=======
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Username" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="full_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Full Name" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="bio"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Bio</FormLabel>
-              <FormControl>
-                <Textarea {...field} placeholder="Tell us about yourself" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="website"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Website</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Your website URL" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Saving..." : "Save Changes"}
-        </Button>
-      </form>
-    </Form>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   );
-};
-
-export default ProfileForm;
+}
