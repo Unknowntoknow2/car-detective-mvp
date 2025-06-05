@@ -1,13 +1,13 @@
-<<<<<<< HEAD
 
-import React from 'react';
-=======
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+import React from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import { VinLookupTab } from "./VinLookupTab";
 import { PlateLookupTab } from "./PlateLookupTab";
 import { ManualEntryTab } from "./ManualEntryTab";
 import { PhotoLookupTab } from "./PhotoLookupTab";
+import { MarketAnalysisTab } from "./MarketAnalysisTab";
+import { TwelveMonthForecastTab } from "./TwelveMonthForecastTab";
+import { CarfaxReportTab } from "./CarfaxReportTab";
 import { ValuationServiceId } from "./services";
 
 export interface TabContentProps {
@@ -42,13 +42,8 @@ export function TabContent({
   onManualSubmit
 }: TabContentProps) {
   return (
-<<<<<<< HEAD
-    <>
-      <TabsContent value="vin">
-=======
     <div className="space-y-6">
       <TabsContent value="vin" className="mt-0">
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         <VinLookupTab
           vinValue={vinValue}
           isLoading={isLoading}
@@ -58,7 +53,7 @@ export function TabContent({
         />
       </TabsContent>
       
-      <TabsContent value="plate">
+      <TabsContent value="plate" className="mt-0">
         <PlateLookupTab
           plateValue={plateValue}
           plateState={plateState}
@@ -69,46 +64,16 @@ export function TabContent({
           onLookup={onPlateLookup}
         />
       </TabsContent>
-<<<<<<< HEAD
-      
-      <TabsContent value="manual">
-=======
 
       <TabsContent value="manual" className="mt-0">
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         <ManualEntryTab
           onSubmit={onManualSubmit}
           isLoading={isLoading}
         />
       </TabsContent>
-<<<<<<< HEAD
-      
-      <TabsContent value="photo">
-        <PhotoLookupTab
-          isLoading={isLoading}
-          vehicle={vehicle}
-          onPhotoUpload={() => {}}
-        />
-      </TabsContent>
-    </>
-=======
 
       <TabsContent value="photo" className="mt-0">
-        <PhotoUploadTab />
-      </TabsContent>
-
-      <TabsContent value="dealers" className="mt-0">
-        <DealerOffersTab
-          vehicleData={vehicle
-            ? {
-              make: vehicle.make,
-              model: vehicle.model,
-              year: vehicle.year,
-              trim: vehicle.trim,
-              vin: vinValue.length === 17 ? vinValue : undefined,
-            }
-            : undefined}
-        />
+        <PhotoLookupTab />
       </TabsContent>
 
       <TabsContent value="market" className="mt-0">
@@ -144,6 +109,5 @@ export function TabContent({
         />
       </TabsContent>
     </div>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   );
 }
