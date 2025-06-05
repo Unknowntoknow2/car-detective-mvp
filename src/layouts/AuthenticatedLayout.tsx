@@ -1,3 +1,4 @@
+
 import React, { ReactNode, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,11 +19,7 @@ const AuthenticatedLayout: React.FC<AuthenticatedLayoutProps> = ({
 
   useEffect(() => {
     if (!isLoading && !user) {
-<<<<<<< HEAD
-      navigate('/auth', { state: { from: window.location.pathname } });
-=======
       navigate("/sign-in", { state: { from: globalThis.location.pathname } });
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     }
 
     if (

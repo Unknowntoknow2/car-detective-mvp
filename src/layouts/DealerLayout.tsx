@@ -1,53 +1,36 @@
-<<<<<<< HEAD
 
-import React, { useState } from 'react';
-import { DealerSidebar } from '@/components/dealer/DealerSidebar';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-=======
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import DealerSidebar from "@/components/dealer/DealerSidebar";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { AIAssistantTrigger } from "@/components/chat/AIAssistantTrigger";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+import { AINAssistantTrigger } from "@/components/chat/AINAssistantTrigger";
 
 interface DealerLayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 const DealerLayout: React.FC<DealerLayoutProps> = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const toggleSidebar = () => {
+  const toggleCollapse = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  const toggleMobileSidebar = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
   return (
-<<<<<<< HEAD
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <div className="flex flex-1">
-        <DealerSidebar 
-          collapsed={sidebarCollapsed}
-          onToggleCollapse={toggleSidebar}
-=======
     <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <DealerSidebar
           collapsed={sidebarCollapsed}
           onToggleCollapse={toggleCollapse}
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         />
-        <main className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
-          {children}
-        </main>
       </div>
-<<<<<<< HEAD
-      <Footer />
-=======
 
       {/* Mobile Sidebar */}
       <div
@@ -96,8 +79,7 @@ const DealerLayout: React.FC<DealerLayoutProps> = ({ children }) => {
       </div>
 
       {/* AI Assistant Trigger */}
-      <AIAssistantTrigger />
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+      <AINAssistantTrigger />
     </div>
   );
 };
