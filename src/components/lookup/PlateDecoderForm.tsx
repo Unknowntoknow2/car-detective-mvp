@@ -1,17 +1,5 @@
-<<<<<<< HEAD
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { useValuation } from '@/hooks/useValuation';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { usStates } from '@/data/states';
-=======
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,210 +10,73 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { states } from "@/data/states";
-import { AlertTriangle, Loader2 } from "lucide-react";
-import { useValuationFallback } from "@/hooks/useValuationFallback";
-import ManualEntryForm from "./ManualEntryForm";
-import { plateSchema, validateForm } from "@/components/form/validation";
-import { toast } from "sonner";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+import { Loader2 } from "lucide-react";
 
 interface PlateDecoderFormProps {
-  onManualEntryClick: () => void;
+  onManualEntryClick?: () => void;
 }
 
-<<<<<<< HEAD
-const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({ onManualEntryClick }) => {
-  const [plate, setPlate] = useState('');
-  const [state, setState] = useState('');
-  const { decodePlate, isLoading } = useValuation();
-  const navigate = useNavigate();
+const US_STATES = [
+  { value: "AL", label: "Alabama" },
+  { value: "AK", label: "Alaska" },
+  { value: "AZ", label: "Arizona" },
+  { value: "AR", label: "Arkansas" },
+  { value: "CA", label: "California" },
+  { value: "CO", label: "Colorado" },
+  { value: "CT", label: "Connecticut" },
+  { value: "DE", label: "Delaware" },
+  { value: "FL", label: "Florida" },
+  { value: "GA", label: "Georgia" },
+  // Add more states as needed
+];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!plate || !state) {
-      toast.error('Please enter both license plate and state');
-      return;
-    }
-
-    try {
-      console.log('Starting plate lookup for:', plate, state);
-      const result = await decodePlate(plate, state);
-      
-      if (result && result.success && result.data) {
-        console.log('Plate lookup successful:', result.data);
-        
-        // Store data for follow-up steps
-        localStorage.setItem('current_plate', plate);
-        localStorage.setItem('current_state', state);
-        
-        // Navigate to valuation follow-up
-        navigate(`/valuation-followup?plate=${plate}&state=${state}`);
-        toast.success('Vehicle information found successfully');
-      } else {
-        const errorMessage = result?.error || 'Failed to lookup license plate';
-        console.error('Plate lookup failed:', errorMessage);
-        toast.error(errorMessage);
-      }
-    } catch (error: any) {
-      console.error('Plate lookup error:', error);
-      toast.error('An unexpected error occurred during plate lookup');
-    }
-  };
-=======
 const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
-  onSubmit,
   onManualEntryClick,
 }) => {
   const [plate, setPlate] = useState("");
   const [state, setState] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<
-    Record<string, string>
-  >({});
-  const { fallbackState, setFallbackForPlate, shouldShowManualEntry } =
-    useValuationFallback();
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!plate || !state || !zipCode) return;
 
-    // Validate form data
-    const validation = validateForm(plateSchema, { plate, state, zipCode });
-
-    if (!validation.success) {
-      console.log("PLATE LOOKUP: Validation failed", validation.errors);
-      setValidationErrors(validation.errors || {});
-      return;
-    }
-
-    // Clear validation errors
-    setValidationErrors({});
-
-    // If onSubmit handler provided, use it
-    if (onSubmit) {
-      onSubmit(plate, state);
-      return;
-    }
-
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      console.log("PLATE LOOKUP: Looking up plate", plate, "in state", state);
-
-      // Simulate API call with random success/failure
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      const success = Math.random() > 0.5; // Simulate 50% failure rate for testing
-
-      if (!success) {
-        console.error("PLATE LOOKUP: Lookup failed");
-        setFallbackForPlate();
-      } else {
-        console.log("PLATE LOOKUP: Lookup successful");
-        toast.success("Vehicle found!");
-        // In a real app, you'd store the result and update the UI
-      }
+      // Handle plate lookup logic here
+      console.log("Looking up plate:", { plate, state, zipCode });
     } catch (error) {
-      console.error("PLATE LOOKUP: Error during lookup:", error);
-      setFallbackForPlate();
+      console.error("Plate lookup error:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [plate, state, zipCode, onSubmit, setFallbackForPlate]);
-
-  const handleManualSubmit = useCallback((data: any) => {
-    console.log("PLATE LOOKUP: Fallback to manual entry with data:", data);
-    toast.success("Vehicle information submitted manually");
-  }, []);
-
-  // If lookup failed and in fallback mode, show manual entry
-  if (shouldShowManualEntry) {
-    return (
-      <div className="space-y-4">
-        <div className="p-4 border border-amber-200 bg-amber-50 rounded-md flex items-center gap-2 text-amber-700">
-          <AlertTriangle className="h-5 w-5" />
-          <div>
-            <p className="font-medium">Plate lookup failed</p>
-            <p className="text-sm">
-              Please enter your vehicle details manually
-            </p>
-          </div>
-        </div>
-
-        <ManualEntryForm onSubmit={handleManualSubmit} />
-      </div>
-    );
-  }
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+  };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>License Plate Lookup</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-<<<<<<< HEAD
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="plate">License Plate</Label>
             <Input
               id="plate"
+              type="text"
+              placeholder="Enter license plate"
               value={plate}
               onChange={(e) => setPlate(e.target.value.toUpperCase())}
-              placeholder="Enter license plate"
-              className="uppercase"
               required
             />
-=======
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="plate">License Plate</Label>
-              <Input
-                id="plate"
-                value={plate}
-                onChange={(e) => setPlate(e.target.value.toUpperCase())}
-                placeholder="Enter plate number"
-                className={validationErrors.plate ? "border-red-500" : ""}
-              />
-              {validationErrors.plate && (
-                <p className="text-sm text-red-500">{validationErrors.plate}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="state">State</Label>
-              <Select value={state} onValueChange={setState}>
-                <SelectTrigger
-                  id="state"
-                  className={validationErrors.state ? "border-red-500" : ""}
-                >
-                  <SelectValue placeholder="Select state" />
-                </SelectTrigger>
-                <SelectContent>
-                  {states.map((state) => (
-                    <SelectItem key={state.value} value={state.value}>
-                      {state.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {validationErrors.state && (
-                <p className="text-sm text-red-500">{validationErrors.state}</p>
-              )}
-            </div>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
           </div>
-
+          
           <div className="space-y-2">
-<<<<<<< HEAD
             <Label htmlFor="state">State</Label>
-            <Select value={state} onValueChange={setState} required>
+            <Select value={state} onValueChange={setState}>
               <SelectTrigger id="state">
                 <SelectValue placeholder="Select state" />
               </SelectTrigger>
               <SelectContent>
-                {usStates.map((stateOption) => (
+                {US_STATES.map((stateOption) => (
                   <SelectItem key={stateOption.value} value={stateOption.value}>
                     {stateOption.label}
                   </SelectItem>
@@ -233,66 +84,40 @@ const PlateDecoderForm: React.FC<PlateDecoderFormProps> = ({
               </SelectContent>
             </Select>
           </div>
-          
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Looking up...' : 'Get Vehicle Details'}
-          </Button>
-          
-          <Button 
-            type="button" 
-            variant="outline" 
-=======
-            <Label htmlFor="zipCode">ZIP Code</Label>
-            <Input
-              id="zipCode"
-              value={zipCode}
-              onChange={(e) => setZipCode(e.target.value)}
-              placeholder="Enter ZIP code"
-              className={validationErrors.zipCode ? "border-red-500" : ""}
-            />
-            {validationErrors.zipCode && (
-              <p className="text-sm text-red-500">{validationErrors.zipCode}</p>
-            )}
-          </div>
+        </div>
 
-          <Button
-            type="submit"
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-            className="w-full"
-            onClick={onManualEntryClick}
-          >
-<<<<<<< HEAD
-            Manual Entry Instead
-          </Button>
-        </form>
-=======
-            {isLoading
-              ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Looking up plate...
-                </>
-              )
-              : (
-                "Lookup License Plate"
-              )}
-          </Button>
-        </form>
+        <div className="space-y-2">
+          <Label htmlFor="zipCode">ZIP Code</Label>
+          <Input
+            id="zipCode"
+            type="text"
+            placeholder="Enter ZIP code"
+            value={zipCode}
+            onChange={(e) => setZipCode(e.target.value)}
+            required
+          />
+        </div>
 
-        {onManualEntryClick && (
-          <div className="mt-4 text-center">
-            <Button
-              variant="link"
-              onClick={onManualEntryClick}
-              className="text-sm"
-            >
-              Enter Details Manually
-            </Button>
-          </div>
-        )}
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-      </CardContent>
-    </Card>
+        <Button type="submit" disabled={isLoading} className="w-full">
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Looking Up Plate...
+            </>
+          ) : (
+            "Lookup License Plate"
+          )}
+        </Button>
+      </form>
+
+      {onManualEntryClick && (
+        <div className="text-center">
+          <Button variant="outline" onClick={onManualEntryClick}>
+            Enter Vehicle Details Manually
+          </Button>
+        </div>
+      )}
+    </div>
   );
 };
 

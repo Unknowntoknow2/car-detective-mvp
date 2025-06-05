@@ -1,11 +1,4 @@
-<<<<<<< HEAD
 
-import React from 'react';
-import { FormLabel } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ConditionLevel } from '../types/manualEntry';
-import ConditionSelectorBar from '@/components/common/ConditionSelectorBar';
-=======
 import React from "react";
 import {
   Select,
@@ -16,7 +9,6 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { ConditionLevel } from "../types/manualEntry";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface ConditionAndFuelInputsProps {
   condition: ConditionLevel;
@@ -35,23 +27,6 @@ export const ConditionAndFuelInputs: React.FC<ConditionAndFuelInputsProps> = ({
   transmission,
   setTransmission,
 }) => {
-<<<<<<< HEAD
-  return (
-    <div className="space-y-6">
-      <div>
-        <FormLabel className="block text-gray-700 mb-2">Vehicle Condition</FormLabel>
-        <ConditionSelectorBar 
-          value={condition}
-          onChange={setCondition}
-        />
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <FormLabel htmlFor="fuelType" className="block text-gray-700 mb-2">Fuel Type</FormLabel>
-          <Select 
-            value={fuelType} 
-=======
   const handleConditionChange = (value: string) => {
     switch (value) {
       case "Excellent":
@@ -98,7 +73,6 @@ export const ConditionAndFuelInputs: React.FC<ConditionAndFuelInputsProps> = ({
           <Label htmlFor="fuelType">Fuel Type</Label>
           <Select
             value={fuelType}
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
             onValueChange={setFuelType}
           >
             <SelectTrigger id="fuelType">
@@ -113,19 +87,11 @@ export const ConditionAndFuelInputs: React.FC<ConditionAndFuelInputsProps> = ({
             </SelectContent>
           </Select>
         </div>
-<<<<<<< HEAD
-        
-        <div>
-          <FormLabel htmlFor="transmission" className="block text-gray-700 mb-2">Transmission</FormLabel>
-          <Select 
-            value={transmission} 
-=======
 
         <div className="space-y-2">
           <Label htmlFor="transmission">Transmission</Label>
           <Select
             value={transmission}
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
             onValueChange={setTransmission}
           >
             <SelectTrigger id="transmission">
