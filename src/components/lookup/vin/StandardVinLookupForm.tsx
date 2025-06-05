@@ -1,17 +1,9 @@
-<<<<<<< HEAD
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Loader2 } from 'lucide-react';
-import { validateVIN } from '@/utils/validation/vin-validation';
-=======
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { validateVin } from "@/utils/validation/vin-validation";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface VINLookupFormProps {
   onSubmit: (vin: string) => void;
@@ -28,9 +20,9 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = (
     e.preventDefault();
 
     // Validate VIN format
-    const result = validateVIN(vin);
+    const result = validateVin(vin);
     if (!result.isValid) {
-      setError(result.error || "Invalid VIN format");
+      setError(result.message || "Invalid VIN format");
       return;
     }
 

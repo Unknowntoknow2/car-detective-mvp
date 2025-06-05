@@ -1,10 +1,4 @@
 
-<<<<<<< HEAD
-import React from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-=======
 import React from "react";
 import {
   FormControl,
@@ -17,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { ConditionLevel } from "@/components/lookup/types/manualEntry";
 import { ConditionSelectorSegmented } from "@/components/lookup/ConditionSelectorSegmented";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface ConditionOption {
   value: string;
@@ -25,7 +18,7 @@ interface ConditionOption {
 }
 
 interface ConditionAndZipFieldsProps {
-  form: any;
+  form: UseFormReturn<any>;
   conditionOptions: ConditionOption[];
 }
 
@@ -43,23 +36,12 @@ export const ConditionAndZipFields: React.FC<ConditionAndZipFieldsProps> = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Condition</FormLabel>
-              <Select 
-                onValueChange={field.onChange} 
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select condition" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {conditionOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <ConditionSelectorSegmented
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

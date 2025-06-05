@@ -1,10 +1,4 @@
-<<<<<<< HEAD
 
-import React from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-=======
 import React from "react";
 import {
   FormControl,
@@ -15,23 +9,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface VehicleBasicInfoFieldsProps {
-  form: any;
+  form: UseFormReturn<any>;
 }
 
-<<<<<<< HEAD
-export const VehicleBasicInfoFields: React.FC<VehicleBasicInfoFieldsProps> = ({ form }) => {
-  // Generate year options from 1980 to current year
-  const currentYear = new Date().getFullYear();
-  const yearOptions = Array.from({ length: currentYear - 1979 }, (_, i) => currentYear - i);
-  
-=======
 export const VehicleBasicInfoFields: React.FC<VehicleBasicInfoFieldsProps> = (
   { form },
 ) => {
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   return (
     <div>
       <h3 className="text-lg font-medium mb-4">Vehicle Information</h3>
@@ -70,23 +55,13 @@ export const VehicleBasicInfoFields: React.FC<VehicleBasicInfoFieldsProps> = (
           render={({ field }) => (
             <FormItem>
               <FormLabel>Year</FormLabel>
-              <Select 
-                onValueChange={field.onChange} 
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {yearOptions.map(year => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  placeholder="e.g. 2020" 
+                  {...field} 
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

@@ -1,36 +1,25 @@
-<<<<<<< HEAD
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EnhancedVinLookup } from './EnhancedVinLookup';
-=======
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { isValidVIN } from "@/utils/validation/vin-validation";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 interface VINLookupFormProps {
-  onVehicleFound?: (vehicle: any) => void;
-  showHeader?: boolean;
-  readonly?: boolean;
+  onSubmit: (vin: string) => void;
+  isLoading: boolean;
+  existingVehicle?: {
+    make?: string;
+    model?: string;
+    year?: number;
+  };
+  value?: string;
+  onChange?: (vin: string) => void;
+  error?: string | null;
+  submitButtonText?: string;
 }
 
-<<<<<<< HEAD
-export function VINLookupForm({ onVehicleFound, showHeader = true, readonly = false }: VINLookupFormProps) {
-  const handleVehicleFound = (vehicle: any) => {
-    onVehicleFound?.(vehicle);
-  };
-
-  return (
-    <Card className="w-full max-w-md mx-auto">
-      {showHeader && (
-        <CardHeader>
-          <CardTitle className="text-center">VIN Lookup</CardTitle>
-        </CardHeader>
-=======
 export const VINLookupForm: React.FC<VINLookupFormProps> = ({
   onSubmit,
   isLoading,
@@ -111,15 +100,9 @@ export const VINLookupForm: React.FC<VINLookupFormProps> = ({
             {existingVehicle.model}
           </p>
         </div>
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
       )}
-      <CardContent>
-        <EnhancedVinLookup 
-          onVehicleFound={handleVehicleFound}
-          showManualFallback={!readonly}
-          readonly={readonly}
-        />
-      </CardContent>
-    </Card>
+    </form>
   );
-}
+};
+
+export default VINLookupForm;
