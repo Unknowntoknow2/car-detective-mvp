@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,16 +8,13 @@ import { ImagePlus, X } from "lucide-react";
 interface ImageUploadSectionProps {
   onChange: (photos: File[]) => void;
   maxPhotos?: number;
-  onPhotosChange?: (newPhotos: File[]) => void; // Add the missing prop
+  onPhotosChange?: (newPhotos: File[]) => void;
 }
 
 export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   onChange,
   maxPhotos = 5,
-<<<<<<< HEAD
   onPhotosChange
-=======
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }) => {
   const [photos, setPhotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -34,24 +32,15 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
     setPhotos(updatedPhotos);
 
     // Generate previews
-<<<<<<< HEAD
-    const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-    setPreviews(prev => [...prev, ...newPreviews]);
-    
-    // Notify parent using either callback
-    onChange(updatedPhotos);
-    if (onPhotosChange) {
-      onPhotosChange(updatedPhotos);
-    }
-    
-=======
     const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
     setPreviews((prev) => [...prev, ...newPreviews]);
 
     // Notify parent
     onChange(updatedPhotos);
+    if (onPhotosChange) {
+      onPhotosChange(updatedPhotos);
+    }
 
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     // Reset input
     e.target.value = "";
   };
@@ -65,13 +54,8 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
 
     setPreviews(updatedPreviews);
     setPhotos(updatedPhotos);
-<<<<<<< HEAD
-    
-    // Notify parent using either callback
-=======
 
     // Notify parent
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     onChange(updatedPhotos);
     if (onPhotosChange) {
       onPhotosChange(updatedPhotos);
@@ -83,9 +67,7 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
       <div>
         <Label className="block mb-2">Vehicle Photos</Label>
         <p className="text-sm text-muted-foreground mb-4">
-          Upload up to {maxPhotos}{" "}
-          photos of your vehicle. The first photo will be used as the main
-          image.
+          Upload up to {maxPhotos} photos of your vehicle. The first photo will be used as the main image.
         </p>
       </div>
 
@@ -100,8 +82,7 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
               />
               <button
                 type="button"
-                onClick={() =>
-                  removePhoto(index)}
+                onClick={() => removePhoto(index)}
                 className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full 
                            opacity-0 group-hover:opacity-100 transition-opacity"
                 aria-label="Remove photo"
@@ -127,8 +108,7 @@ export const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
             <div className="flex flex-col items-center justify-center pt-5 pb-6">
               <ImagePlus className="w-8 h-8 mb-3 text-gray-400" />
               <p className="mb-2 text-sm text-gray-500">
-                <span className="font-semibold">Click to upload</span>{" "}
-                or drag and drop
+                <span className="font-semibold">Click to upload</span> or drag and drop
               </p>
               <p className="text-xs text-gray-500">
                 PNG, JPG or WEBP (Max. {maxPhotos - photos.length} more)
