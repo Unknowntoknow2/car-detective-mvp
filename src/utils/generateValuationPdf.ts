@@ -1,16 +1,5 @@
-<<<<<<< HEAD
 
-import { ReportData } from './pdf/types';
-
-// Define the interface for the adjustment type
-interface Adjustment {
-  factor: string;
-  impact: number;
-  description?: string;
-}
-=======
 import { FormData } from "@/types/premium-valuation";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 /**
  * Generates a PDF for the valuation report
@@ -19,11 +8,7 @@ import { FormData } from "@/types/premium-valuation";
  * @returns Promise resolving to PDF document as Uint8Array
  */
 export async function generateValuationPdf(
-<<<<<<< HEAD
-  data: Partial<ReportData>, 
-=======
   data: FormData,
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   options: {
     isPremium?: boolean;
     includeBranding?: boolean;
@@ -31,15 +16,7 @@ export async function generateValuationPdf(
     includeFooter?: boolean;
     includeTimestamp?: boolean;
     includePhotoAssessment?: boolean;
-<<<<<<< HEAD
-    includeExplanation?: boolean;
-    includeAuctionData?: boolean;
-    includeCompetitorPricing?: boolean;
-    includeAINSummary?: boolean;
-  } = {}
-=======
   } = {},
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 ): Promise<Uint8Array> {
   const defaultOptions = {
     isPremium: false,
@@ -48,13 +25,6 @@ export async function generateValuationPdf(
     includeFooter: true,
     includeTimestamp: true,
     includePhotoAssessment: true,
-<<<<<<< HEAD
-    includeExplanation: false,
-    includeAuctionData: false,
-    includeCompetitorPricing: false,
-    includeAINSummary: false
-=======
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   };
 
   const mergedOptions = { ...defaultOptions, ...options };
@@ -64,30 +34,15 @@ export async function generateValuationPdf(
     console.log("Generating premium PDF with enhanced data for:", data);
     // In a real implementation, we would use pdf-lib or a similar library
     // to create a more detailed and styled PDF for premium users
-<<<<<<< HEAD
-=======
 
     // This is where we would add premium-only sections like:
     // - CARFAX report data
     // - Detailed market analysis
     // - AI condition assessment with photos
     // - Dealer comparison pricing
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   } else {
     console.log("Generating basic PDF for:", data);
   }
-<<<<<<< HEAD
-  
-  // Handle adjustments safely with optional chaining
-  const adjustments: Adjustment[] = data.adjustments 
-    ? data.adjustments.map((adj: Adjustment) => ({
-        factor: adj.factor,
-        impact: adj.impact,
-        description: adj.description || ""
-      }))
-    : [];
-  
-=======
 
   // Add adjustments with default empty description if needed
   const adjustments = data.adjustments?.map((adj) => ({
@@ -96,7 +51,6 @@ export async function generateValuationPdf(
     description: adj.description || "",
   })) || [];
 
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   // Return dummy data for now
   return new Uint8Array([0]); // Placeholder
 }
