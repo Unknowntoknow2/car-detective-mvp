@@ -1,6 +1,11 @@
 
+
 import type { vi } from 'vitest';
-import type { screen as testingLibraryScreen, fireEvent as testingLibraryFireEvent, waitFor as testingLibraryWaitFor } from '@testing-library/react';
+import type { 
+  screen as testingLibraryScreen, 
+  fireEvent as testingLibraryFireEvent, 
+  waitFor as testingLibraryWaitFor 
+} from '@testing-library/react';
 
 declare global {
   var describe: typeof import('vitest').describe;
@@ -62,3 +67,4 @@ declare module 'vitest' {
 }
 
 export {};
+
