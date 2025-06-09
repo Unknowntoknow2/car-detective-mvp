@@ -4,8 +4,8 @@ import type * as testingLibrary from "@testing-library/react";
 import type { vi } from "vitest";
 
 declare global {
-  // Testing Library globals
-  var screen: typeof testingLibrary.screen;
+  // Testing Library globals - use the full screen interface
+  var screen: testingLibrary.screen;
   var fireEvent: typeof testingLibrary.fireEvent;
   var waitFor: typeof testingLibrary.waitFor;
   var render: typeof testingLibrary.render;
@@ -21,8 +21,15 @@ declare global {
   var afterAll: typeof import("vitest").afterAll;
   var vi: typeof import("vitest").vi;
   
-  // Jest compatibility
-  var jest: typeof vi;
+  // Jest compatibility with proper Mock type
+  var jest: typeof vi & {
+    Mock: typeof vi.Mock;
+    fn: typeof vi.fn;
+    mock: typeof vi.mock;
+    clearAllMocks: typeof vi.clearAllMocks;
+    resetAllMocks: typeof vi.resetAllMocks;
+    restoreAllMocks: typeof vi.restoreAllMocks;
+  };
 }
 
 export {};
