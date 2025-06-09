@@ -16,7 +16,7 @@ globalThis.afterAll = afterAll;
 globalThis.afterEach = afterEach;
 globalThis.vi = vi;
 
-// Jest compatibility with proper mock methods
+// Enhanced Jest compatibility with proper mock methods
 globalThis.jest = {
   fn: vi.fn,
   mock: vi.mock,
@@ -25,6 +25,12 @@ globalThis.jest = {
   restoreAllMocks: vi.restoreAllMocks,
   spyOn: vi.spyOn,
   Mock: vi.Mock,
+  createMockFromModule: vi.mock,
+  doMock: vi.doMock,
+  dontMock: vi.dontMock,
+  unmock: vi.unmock,
+  resetModules: vi.resetModules,
+  isolateModules: vi.isolateModules,
 } as any;
 
 // Setup MSW server
@@ -56,3 +62,17 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: vi.fn(),
   })),
 });
+
+// Mock IntersectionObserver
+global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}));
+
+// Mock ResizeObserver
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}));
