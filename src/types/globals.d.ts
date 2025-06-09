@@ -1,5 +1,6 @@
 
 import type { vi } from 'vitest';
+import type { screen as testingLibraryScreen, fireEvent as testingLibraryFireEvent, waitFor as testingLibraryWaitFor } from '@testing-library/react';
 
 declare global {
   var describe: typeof import('vitest').describe;
@@ -12,10 +13,10 @@ declare global {
   var afterEach: typeof import('vitest').afterEach;
   var vi: typeof import('vitest').vi;
   
-  // Testing library globals - use the actual screen type from testing library
-  var screen: typeof import('@testing-library/react').screen;
-  var fireEvent: typeof import('@testing-library/react').fireEvent;
-  var waitFor: typeof import('@testing-library/react').waitFor;
+  // Testing library globals - properly typed
+  var screen: typeof testingLibraryScreen;
+  var fireEvent: typeof testingLibraryFireEvent;
+  var waitFor: typeof testingLibraryWaitFor;
   
   var jest: {
     fn: typeof vi.fn;
