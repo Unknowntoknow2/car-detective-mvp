@@ -1,14 +1,14 @@
 
 // src/types/globals.d.ts
-import type * as testingLibrary from "@testing-library/react";
+import type { screen, fireEvent, waitFor, render } from "@testing-library/react";
 import type { vi } from "vitest";
 
 declare global {
-  // Testing Library globals - use the full screen interface
-  var screen: testingLibrary.screen;
-  var fireEvent: typeof testingLibrary.fireEvent;
-  var waitFor: typeof testingLibrary.waitFor;
-  var render: typeof testingLibrary.render;
+  // Testing Library globals - import and re-export the actual types
+  var screen: typeof screen;
+  var fireEvent: typeof fireEvent;
+  var waitFor: typeof waitFor;
+  var render: typeof render;
   
   // Vitest/Jest globals
   var describe: typeof import("vitest").describe;
