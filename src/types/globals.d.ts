@@ -19,6 +19,12 @@ declare global {
     restoreAllMocks: typeof vi.restoreAllMocks;
     spyOn: typeof vi.spyOn;
     Mock: typeof vi.Mock;
+    createMockFromModule: typeof vi.mock;
+    doMock: typeof vi.doMock;
+    dontMock: typeof vi.dontMock;
+    unmock: typeof vi.unmock;
+    resetModules: typeof vi.resetModules;
+    isolateModules: typeof vi.isolateModules;
   };
 
   namespace jest {
@@ -28,6 +34,11 @@ declare global {
       mockRejectedValue: ReturnType<typeof vi.fn>['mockRejectedValue'];
       mockImplementation: ReturnType<typeof vi.fn>['mockImplementation'];
     }
+  }
+
+  interface Window {
+    IntersectionObserver: any;
+    ResizeObserver: any;
   }
 }
 
