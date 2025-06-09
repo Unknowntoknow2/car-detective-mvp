@@ -1,6 +1,5 @@
 
 import React from "react";
-import { render } from "@testing-library/react";
 import { PDFDownloadButton } from "@/components/common/PDFDownloadButton";
 import { generateValuationPdf } from "@/utils/pdf/generateValuationPdf";
 import { toast } from "@/components/ui/use-toast";
