@@ -1,7 +1,7 @@
 
 import React from "react";
 import { render } from "@testing-library/react";
-import { Loading } from "@/components/ui/loading";
+import { Loading } from "@/components/ui/Loading";
 
 describe("Loading component", () => {
   it("renders the loading spinner with text", () => {
