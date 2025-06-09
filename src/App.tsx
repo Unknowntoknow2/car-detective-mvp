@@ -8,7 +8,7 @@ import { Toaster as Sonner } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
-import { AINAssistantTrigger } from '@/components/chat/AINAssistantTrigger';
+import AINAssistantTrigger from '@/components/chat/AINAssistantTrigger';
 import routes from '@/App.routes';
 
 const queryClient = new QueryClient({
