@@ -1,5 +1,4 @@
 
-
 import type { vi } from 'vitest';
 import type { 
   screen as testingLibraryScreen, 
@@ -18,7 +17,7 @@ declare global {
   var afterEach: typeof import('vitest').afterEach;
   var vi: typeof import('vitest').vi;
   
-  // Use the actual testing library screen type
+  // Properly declare screen with all testing library methods
   var screen: typeof testingLibraryScreen;
   var fireEvent: typeof testingLibraryFireEvent;
   var waitFor: typeof testingLibraryWaitFor;
@@ -67,4 +66,3 @@ declare module 'vitest' {
 }
 
 export {};
-
