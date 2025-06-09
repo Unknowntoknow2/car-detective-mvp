@@ -1,8 +1,28 @@
+
 import "@testing-library/jest-dom";
 import { cleanup } from "@testing-library/react";
-import { afterEach, vi } from "vitest";
+import { afterEach, vi, describe, test, expect, beforeEach, beforeAll, afterAll } from "vitest";
 import { setupServer } from "msw/node";
 import { handlers } from "./mocks/handlers";
+
+// Make globals available
+globalThis.describe = describe;
+globalThis.test = test;
+globalThis.expect = expect;
+globalThis.beforeEach = beforeEach;
+globalThis.beforeAll = beforeAll;
+globalThis.afterAll = afterAll;
+globalThis.vi = vi;
+
+// Jest compatibility
+globalThis.jest = {
+  fn: vi.fn,
+  mock: vi.mock,
+  clearAllMocks: vi.clearAllMocks,
+  resetAllMocks: vi.resetAllMocks,
+  restoreAllMocks: vi.restoreAllMocks,
+  spyOn: vi.spyOn,
+} as any;
 
 // Setup MSW server
 const server = setupServer(...handlers);
