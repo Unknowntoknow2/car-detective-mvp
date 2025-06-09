@@ -21,5 +21,12 @@ import { vi, describe, it, test, expect, beforeEach, afterEach, beforeAll, after
 (globalThis as any).afterAll = afterAll;
 (globalThis as any).vi = vi;
 
-// Jest compatibility for legacy tests
-(globalThis as any).jest = vi;
+// Jest compatibility for legacy tests with proper Mock support
+(globalThis as any).jest = Object.assign(vi, {
+  Mock: vi.Mock,
+  fn: vi.fn,
+  mock: vi.mock,
+  clearAllMocks: vi.clearAllMocks,
+  resetAllMocks: vi.resetAllMocks,
+  restoreAllMocks: vi.restoreAllMocks,
+});
