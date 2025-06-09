@@ -9,7 +9,7 @@ export interface LoadingProps {
   minHeight?: string;
 }
 
-export const Loading: React.FC<LoadingProps> = ({
+const Loading: React.FC<LoadingProps> = ({
   size = 12,
   message = "Loading...",
   className = "",
@@ -22,8 +22,8 @@ export const Loading: React.FC<LoadingProps> = ({
     >
       <div className="flex flex-col items-center space-y-4">
         <Loader2 className={`h-${size} w-${size} animate-spin text-primary`} />
-        {message && <p className="text-lg font-medium">{message}</p>
-        </div>
+        {message && <p className="text-lg font-medium">{message}</p>}
+      </div>
     </div>
   );
 };
