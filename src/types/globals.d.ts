@@ -1,10 +1,6 @@
 
 import type { vi } from 'vitest';
-import type { 
-  screen as testingLibraryScreen, 
-  fireEvent as testingLibraryFireEvent, 
-  waitFor as testingLibraryWaitFor 
-} from '@testing-library/react';
+import type { screen as testingLibraryScreen, fireEvent as testingLibraryFireEvent, waitFor as testingLibraryWaitFor } from '@testing-library/react';
 
 declare global {
   var describe: typeof import('vitest').describe;
@@ -17,7 +13,7 @@ declare global {
   var afterEach: typeof import('vitest').afterEach;
   var vi: typeof import('vitest').vi;
   
-  // Properly declare screen with all testing library methods
+  // Testing library utilities
   var screen: typeof testingLibraryScreen;
   var fireEvent: typeof testingLibraryFireEvent;
   var waitFor: typeof testingLibraryWaitFor;
