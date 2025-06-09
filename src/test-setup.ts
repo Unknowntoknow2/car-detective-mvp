@@ -17,10 +17,10 @@ globalThis.afterAll = afterAll;
 globalThis.afterEach = afterEach;
 globalThis.vi = vi;
 
-// Make testing-library utilities globally available
-globalThis.screen = screen;
-globalThis.fireEvent = fireEvent;
-globalThis.waitFor = waitFor;
+// Make testing-library utilities globally available - properly typed
+(globalThis as any).screen = screen;
+(globalThis as any).fireEvent = fireEvent;
+(globalThis as any).waitFor = waitFor;
 
 // Enhanced Jest compatibility with proper mock methods
 globalThis.jest = {
