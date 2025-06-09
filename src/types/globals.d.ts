@@ -13,7 +13,7 @@ declare global {
   var afterEach: typeof import('vitest').afterEach;
   var vi: typeof import('vitest').vi;
   
-  // Testing library globals with complete screen object
+  // Testing library globals - use the actual screen type
   var screen: typeof import('@testing-library/react').screen;
   var fireEvent: typeof import('@testing-library/react').fireEvent;
   var waitFor: typeof import('@testing-library/react').waitFor;
