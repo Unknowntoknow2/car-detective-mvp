@@ -13,7 +13,7 @@ declare global {
   var afterEach: typeof import('vitest').afterEach;
   var vi: typeof import('vitest').vi;
   
-  // Testing library globals
+  // Testing library globals with complete screen object
   var screen: typeof import('@testing-library/react').screen;
   var fireEvent: typeof import('@testing-library/react').fireEvent;
   var waitFor: typeof import('@testing-library/react').waitFor;
@@ -46,6 +46,18 @@ declare global {
   interface Window {
     IntersectionObserver: any;
     ResizeObserver: any;
+  }
+}
+
+// Extend vitest expect with jest-dom matchers
+declare module 'vitest' {
+  interface Assertion<T = any> extends jest.Matchers<void, T> {
+    toBeInTheDocument(): T;
+    toHaveClass(className: string): T;
+    toHaveTextContent(text: string | RegExp): T;
+    toHaveAttribute(attr: string, value?: string): T;
+    toBeDisabled(): T;
+    toBeEmptyDOMElement(): T;
   }
 }
 
