@@ -1,3 +1,4 @@
+
 import { AICondition } from "@/types/photo";
 
 /**
@@ -12,13 +13,8 @@ export async function getBestPhotoAssessment(valuationId: string) {
     aiCondition: {
       condition: "Good",
       confidenceScore: 85,
-<<<<<<< HEAD
-      issuesDetected: ['Minor scratches'],
-      summary: 'Overall good condition with minor cosmetic issues'
-=======
       issuesDetected: ["Minor scratches"],
       aiSummary: "Overall good condition with minor cosmetic issues",
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     } as AICondition,
     photoScores: [
       {
