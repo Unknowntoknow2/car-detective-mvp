@@ -1,30 +1,5 @@
-<<<<<<< HEAD
-import { ReportData } from './types';
-import { injectMarketplaceListingsToPDF } from './injectMarketplaceListingsToPDF';
-import { injectForecastToPDF } from './injectForecastToPDF';
-import { getOrCreateVinForecast } from '@/services/vinForecastService';
-
-// Define the interface for the adjustment type
-interface Adjustment {
-  factor: string;
-  impact: number;
-  description?: string;
-}
-
-interface MarketplaceListing {
-  id: string;
-  title: string;
-  price: number;
-  platform: string;
-  location: string;
-  url: string;
-  mileage?: number;
-  created_at: string;
-}
-=======
 import { ReportData } from "./types";
 import { Buffer } from "node:buffer";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 /**
  * Generates a PDF for the valuation report
@@ -32,106 +7,6 @@ import { Buffer } from "node:buffer";
  * @param options Additional options for PDF generation
  * @returns Promise resolving to PDF document as Uint8Array
  */
-<<<<<<< HEAD
-export async function generateValuationPdf(
-  data: Partial<ReportData>, 
-  options: {
-    isPremium?: boolean;
-    includeBranding?: boolean;
-    includeAIScore?: boolean;
-    includeFooter?: boolean;
-    includeTimestamp?: boolean;
-    includePhotoAssessment?: boolean;
-    includeExplanation?: boolean;
-    includeAuctionData?: boolean;
-    includeCompetitorPricing?: boolean;
-    includeAINSummary?: boolean;
-    includeForecast?: boolean;
-    watermark?: string;
-    trackingId?: string;
-    ainSummary?: string;
-    debugInfo?: string;
-    enrichedData?: any;
-    marketplaceListings?: MarketplaceListing[];
-  } = {}
-): Promise<Uint8Array> {
-  const defaultOptions = {
-    isPremium: false,
-    includeBranding: true,
-    includeAIScore: true,
-    includeFooter: true,
-    includeTimestamp: true,
-    includePhotoAssessment: true,
-    includeExplanation: false,
-    includeAuctionData: false,
-    includeCompetitorPricing: false,
-    includeAINSummary: false,
-    includeForecast: false
-  };
-  
-  const mergedOptions = { ...defaultOptions, ...options };
-  
-  // For premium reports, we would include additional data and formatting
-  if (mergedOptions.isPremium) {
-    console.log('Generating premium PDF with enhanced data for:', data);
-    // In a real implementation, we would use pdf-lib or a similar library
-    // to create a more detailed and styled PDF for premium users
-  } else {
-    console.log('Generating basic PDF for:', data);
-  }
-  
-  // Handle adjustments safely with optional chaining
-  const adjustments: Adjustment[] = data.adjustments 
-    ? data.adjustments.map((adj: Adjustment) => ({
-        factor: adj.factor,
-        impact: adj.impact,
-        description: adj.description || ""
-      }))
-    : [];
-  
-  // Create a basic PDF structure (mock implementation)
-  let pdfBytes = new Uint8Array([0]); // Placeholder - would be actual PDF generation
-  
-  // Inject marketplace listings if provided
-  if (mergedOptions.marketplaceListings && mergedOptions.marketplaceListings.length > 0) {
-    console.log('Injecting marketplace listings into PDF:', mergedOptions.marketplaceListings.length);
-    try {
-      const injectedPdfBytes = await injectMarketplaceListingsToPDF({
-        pdfBytes,
-        listings: mergedOptions.marketplaceListings,
-        estimatedValue: data.estimatedValue || 0,
-        maxListings: 5
-      });
-      // Ensure we return the correct Uint8Array type
-      pdfBytes = new Uint8Array(injectedPdfBytes);
-    } catch (error) {
-      console.error('Failed to inject marketplace listings into PDF:', error);
-      // Continue without marketplace data rather than failing completely
-    }
-  }
-
-  // Inject forecast for premium reports
-  if (mergedOptions.isPremium && mergedOptions.includeForecast && data.vin) {
-    console.log('🔮 Injecting AIN forecast into PDF for VIN:', data.vin);
-    try {
-      const forecast = await getOrCreateVinForecast(data.vin);
-      if (forecast) {
-        const forecastPdfBytes = await injectForecastToPDF({
-          pdfBytes,
-          forecast,
-          estimatedValue: data.estimatedValue || 0
-        });
-        pdfBytes = new Uint8Array(forecastPdfBytes);
-      }
-    } catch (error) {
-      console.error('Failed to inject forecast into PDF:', error);
-      // Continue without forecast data
-    }
-  }
-  
-  return pdfBytes;
-}
-=======
 export const generateValuationPdf = async (
   data: ReportData,
 ): Promise<Buffer> => {
@@ -142,7 +17,6 @@ export const generateValuationPdf = async (
   // For now just return a mock buffer
   return Buffer.from("Mock PDF content");
 };
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 /**
  * Download a PDF for the valuation report
@@ -150,13 +24,8 @@ export const generateValuationPdf = async (
  * @param fileName Optional custom filename
  */
 export const downloadValuationPdf = async (
-<<<<<<< HEAD
-  data: Partial<ReportData>,
-  fileName?: string
-=======
   data: ReportData,
   fileName?: string,
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 ): Promise<void> => {
   try {
     const pdfBuffer = await generateValuationPdf(data);

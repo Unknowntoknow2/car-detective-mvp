@@ -1,25 +1,10 @@
-<<<<<<< HEAD
-=======
+
 import { ReportData, ReportOptions } from "./types";
 import { defaultReportOptions } from "./defaultReportOptions";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
 /**
  * Utility for generating PDF reports
  */
-<<<<<<< HEAD
-export async function generatePdf(data: any, options: any): Promise<Buffer> {
-  // This would use a PDF generation library in a real implementation
-  // For now, return a mock Buffer
-  
-  console.log('Generating PDF with data:', data);
-  console.log('PDF options:', options);
-  
-  // Create a mock buffer (would be actual PDF content in real implementation)
-  const buffer = Buffer.from('Mock PDF content');
-  
-  return buffer;
-=======
 export async function generatePdf(
   data: ReportData,
   template: string = "default",
@@ -46,7 +31,6 @@ export async function generatePdf(
 
   // Return mock PDF content
   return new Uint8Array([1, 2, 3, 4, 5]);
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 }
 
 // For backward compatibility
