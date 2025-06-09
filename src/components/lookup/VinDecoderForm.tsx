@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { AlertCircle, Search, Loader2, Info } from 'lucide-react';
 import { validateVIN } from '@/utils/validation/vin-validation';
 import { toast } from 'sonner';
-import { decodeVin } from '@/services/vinService';
+import { decodeVin } from '@/services/vehicleDecodeService';
 
 export default function VinDecoderForm() {
   const [vin, setVin] = useState('');
@@ -42,8 +42,8 @@ export default function VinDecoderForm() {
       // Decode the VIN
       const result = await decodeVin(vin);
       
-      if (result.success && result.data) {
-        console.log('✅ VIN decoded successfully:', result.data);
+      if (result.success && result.decoded) {
+        console.log('✅ VIN decoded successfully:', result.decoded);
         toast.success('Vehicle found! Redirecting to valuation...');
         
         // Navigate to the valuation page with the VIN
