@@ -1,6 +1,7 @@
+
 import React from "react";
 import { RouteObject } from "react-router-dom";
-import HomePage from "./pages/HomePage";
+import { EnhancedHomePage } from "./components/home/EnhancedHomePage";
 import AboutPage from "./pages/AboutPage";
 import VinLookupPage from "./pages/VinLookupPage";
 import LoginPage from "./pages/LoginPage";
@@ -25,7 +26,7 @@ const routes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <HomePage />,
+        element: <EnhancedHomePage />,
       },
       {
         path: "about",
