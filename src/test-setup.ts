@@ -1,4 +1,5 @@
 
+
 import "@testing-library/jest-dom";
 import { cleanup } from "@testing-library/react";
 import * as testingLibrary from "@testing-library/react";
@@ -17,7 +18,7 @@ globalThis.afterAll = afterAll;
 globalThis.afterEach = afterEach;
 globalThis.vi = vi;
 
-// Make testing-library utilities globally available with proper typing
+// Make testing-library utilities globally available
 globalThis.screen = testingLibrary.screen;
 globalThis.fireEvent = testingLibrary.fireEvent;
 globalThis.waitFor = testingLibrary.waitFor;
