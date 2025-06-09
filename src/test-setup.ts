@@ -1,8 +1,6 @@
 
-
 import "@testing-library/jest-dom";
-import { cleanup } from "@testing-library/react";
-import { screen, fireEvent, waitFor } from "@testing-library/react";
+import { cleanup, screen, fireEvent, waitFor } from "@testing-library/react";
 import { afterEach, vi, describe, test, it, expect, beforeEach, beforeAll, afterAll } from "vitest";
 import { setupServer } from "msw/node";
 import { handlers } from "./mocks/handlers";
@@ -18,7 +16,7 @@ globalThis.afterAll = afterAll;
 globalThis.afterEach = afterEach;
 globalThis.vi = vi;
 
-// Make testing-library utilities globally available with proper assignment
+// Make testing-library utilities globally available - assign the actual screen object
 globalThis.screen = screen;
 globalThis.fireEvent = fireEvent;
 globalThis.waitFor = waitFor;
@@ -83,4 +81,3 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }));
-
