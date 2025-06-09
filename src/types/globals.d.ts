@@ -12,8 +12,19 @@ declare global {
   var afterEach: typeof import('vitest').afterEach;
   var vi: typeof import('vitest').vi;
   
-  // Testing library globals - use the actual screen type with all methods
-  var screen: typeof import('@testing-library/react').screen;
+  // Testing library globals - properly type the screen object with all methods
+  var screen: {
+    getByText: (text: string | RegExp) => HTMLElement;
+    getByRole: (role: string, options?: any) => HTMLElement;
+    getByLabelText: (text: string | RegExp) => HTMLElement;
+    queryByText: (text: string | RegExp) => HTMLElement | null;
+    getByTestId: (testId: string) => HTMLElement;
+    queryByRole: (role: string, options?: any) => HTMLElement | null;
+    getAllByText: (text: string | RegExp) => HTMLElement[];
+    findByText: (text: string | RegExp) => Promise<HTMLElement>;
+    findByRole: (role: string, options?: any) => Promise<HTMLElement>;
+  } & typeof import('@testing-library/react').screen;
+  
   var fireEvent: typeof import('@testing-library/react').fireEvent;
   var waitFor: typeof import('@testing-library/react').waitFor;
   
