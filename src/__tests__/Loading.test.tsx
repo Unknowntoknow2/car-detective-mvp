@@ -1,6 +1,7 @@
+
 import React from "react";
-import { render, screen } from "@testing-library/react";
-import { Loading } from "@/components/ui/loading"; // Update the import path to match the correct location
+import { render } from "@testing-library/react";
+import { Loading } from "@/components/ui/loading";
 
 describe("Loading component", () => {
   it("renders the loading spinner with text", () => {
