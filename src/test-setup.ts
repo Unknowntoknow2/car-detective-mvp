@@ -1,4 +1,5 @@
 
+
 import "@testing-library/jest-dom";
 import { cleanup } from "@testing-library/react";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
@@ -17,7 +18,7 @@ globalThis.afterAll = afterAll;
 globalThis.afterEach = afterEach;
 globalThis.vi = vi;
 
-// Make testing-library utilities globally available
+// Make testing-library utilities globally available with proper assignment
 globalThis.screen = screen;
 globalThis.fireEvent = fireEvent;
 globalThis.waitFor = waitFor;
@@ -82,3 +83,4 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }));
+
