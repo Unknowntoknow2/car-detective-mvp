@@ -5,7 +5,7 @@ import { afterEach, vi, describe, test, it, expect, beforeEach, beforeAll, after
 import { setupServer } from "msw/node";
 import { handlers } from "./mocks/handlers";
 
-// Make globals available
+// Make vitest globals available
 globalThis.describe = describe;
 globalThis.test = test;
 globalThis.it = it;
@@ -16,7 +16,7 @@ globalThis.afterAll = afterAll;
 globalThis.afterEach = afterEach;
 globalThis.vi = vi;
 
-// Make testing-library utilities globally available
+// Make Testing Library utilities globally available with correct types
 globalThis.screen = screen;
 globalThis.fireEvent = fireEvent;
 globalThis.waitFor = waitFor;
