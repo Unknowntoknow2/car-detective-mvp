@@ -1,92 +1,48 @@
-<<<<<<< HEAD
 
-import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
-// Import rules dynamically to avoid TypeScript error
-const rulesConfig = require('../../valuationRules.json');
+import { Calculator } from '../interfaces/Calculator';
+import { ValuationData, Adjustment } from '../types';
 
-export class TrimCalculator implements AdjustmentCalculator {
-  calculate(input: RulesEngineInput): AdjustmentBreakdown {
-    if (!input.make || !input.model || !input.trim) {
-      return {
-        factor: 'Trim Level',
-        impact: 0,
-        description: 'No trim level specified',
-        name: 'Trim Level',
-        value: 0,
-        percentAdjustment: 0
-      };
-    }
-    
-    const trimRules = rulesConfig.adjustments.trims as Record<string, Record<string, Array<{trim: string; percent: number}>>>;
-    
-    if (!trimRules[input.make] || !trimRules[input.make][input.model]) {
-      return {
-        factor: 'Trim Level',
-        impact: 0,
-        description: `No trim data for ${input.make} ${input.model}`,
-        name: 'Trim Level',
-        value: 0,
-        percentAdjustment: 0
-      };
-    }
-    
-    const trimData = trimRules[input.make][input.model].find(t => 
-      t.trim.toLowerCase() === input.trim?.toLowerCase()
-    );
-    
-    if (!trimData) {
-      return {
-        factor: 'Trim Level',
-        impact: 0,
-        description: `Unknown trim: ${input.trim}`,
-        name: 'Trim Level',
-        value: 0,
-        percentAdjustment: 0
-      };
-    }
-    
-    const basePrice = input.basePrice || 0;
-    const adjustment = basePrice * trimData.percent;
-    const factor = 'Trim Level';
-=======
-import {
-  AdjustmentBreakdown,
-  AdjustmentCalculator,
-  RulesEngineInput,
-} from "../types";
-import rulesConfig from "../../valuationRules.json";
-
-export class TrimCalculator implements AdjustmentCalculator {
-  calculate(input: RulesEngineInput): AdjustmentBreakdown | null {
-    if (!input.make || !input.model || !input.trim) return null;
-
-    const trimRules = rulesConfig.adjustments.trims as Record<
-      string,
-      Record<string, Array<{ trim: string; percent: number }>>
-    >;
-
-    if (!trimRules[input.make] || !trimRules[input.make][input.model]) {
+export const trimCalculator: Calculator = {
+  name: 'Trim Calculator',
+  description: 'Calculates adjustments based on vehicle trim level',
+  
+  calculate(data: ValuationData): Adjustment | null {
+    if (!data.trim) {
       return null;
     }
 
-    const trimData = trimRules[input.make][input.model].find((t) =>
-      t.trim.toLowerCase() === input.trim.toLowerCase()
-    );
+    const trim = data.trim.toLowerCase();
+    
+    // Premium trim indicators
+    const premiumIndicators = ['premium', 'luxury', 'platinum', 'limited', 'ultimate', 'signature'];
+    const sportIndicators = ['sport', 'performance', 'turbo', 'gt', 'ss', 'rs', 'amg', 'm3', 'm5'];
+    const baseIndicators = ['base', 'standard', 'lx', 'l', 'ls'];
 
-    if (!trimData) return null;
+    if (premiumIndicators.some(indicator => trim.includes(indicator))) {
+      return {
+        factor: 'Premium Trim',
+        impact: 2500,
+        description: `${data.trim} is a premium trim level with additional features (+$2,500)`
+      };
+    }
 
-    const adjustment = input.basePrice * trimData.percent;
-    const factor = "Trim Level";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-    const impact = Math.round(adjustment);
+    if (sportIndicators.some(indicator => trim.includes(indicator))) {
+      return {
+        factor: 'Sport/Performance Trim',
+        impact: 3000,
+        description: `${data.trim} is a performance-oriented trim with enhanced value (+$3,000)`
+      };
+    }
 
-    return {
-      name: "Trim Level",
-      value: Math.round(adjustment),
-      description: `${input.make} ${input.model} ${input.trim} trim package`,
-      percentAdjustment: trimData.percent,
-      factor,
-      impact,
-    };
+    if (baseIndicators.some(indicator => trim.includes(indicator))) {
+      return {
+        factor: 'Base Trim',
+        impact: -1000,
+        description: `${data.trim} is a base trim with fewer features (-$1,000)`
+      };
+    }
+
+    // No clear trim classification
+    return null;
   }
-}
+};

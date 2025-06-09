@@ -1,77 +1,47 @@
-<<<<<<< HEAD
 
-import { AdjustmentBreakdown, RulesEngineInput } from "../types";
+import { Calculator } from '../interfaces/Calculator';
+import { ValuationData, Adjustment } from '../types';
 
-export class ColorCalculator {
-  calculate(input: RulesEngineInput): AdjustmentBreakdown {
-    const defaultColor = "default";
-    const color = input.exteriorColor?.toLowerCase() || defaultColor;
-    const multiplier = input.colorMultiplier || this.getDefaultMultiplier(color);
-    const basePrice = input.basePrice || 20000; // Default if not provided
-    
-    // Calculate impact
-    const impact = Math.round(basePrice * multiplier);
-    
-    return {
-      factor: "Exterior Color",
-      impact,
-      description: this.getColorDescription(color, multiplier)
-=======
-import { AdjustmentCalculator, RulesEngineInput } from "../types";
-
-export class ColorCalculator implements AdjustmentCalculator {
-  calculate(input: RulesEngineInput) {
-    // Check if exteriorColor exists
-    const exteriorColor = input.exteriorColor || "";
-    const colorMultiplier = input.colorMultiplier || 1.0;
-
-    // Calculate the percentage impact based on the multiplier
-    // Subtract 1 to get the percentage change (e.g. 1.05 => 5%)
-    const impact = (colorMultiplier - 1.0) * 100;
-
-    return {
-      factor: "Exterior Color",
-      impact,
-      description: exteriorColor
-        ? `${exteriorColor} color adjustment`
-        : "Standard color",
-      name: "Exterior Color",
-      value: impact,
-      percentAdjustment: impact,
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-    };
-  }
+export const colorCalculator: Calculator = {
+  name: 'Color Calculator',
+  description: 'Calculates adjustments based on vehicle color popularity',
   
-  private getDefaultMultiplier(color: string): number {
-    // Premium colors have positive multipliers
-    const premiumColors = ["pearl", "metallic", "white pearl", "crystal"];
-    
-    // Standard colors have zero multiplier
-    const standardColors = ["white", "black", "silver", "gray"];
-    
-    // Less desirable colors have negative multipliers
-    const lessDesirableColors = ["purple", "yellow", "green", "brown"];
-    
-    if (premiumColors.some(c => color.includes(c))) {
-      return 0.02; // 2% premium
-    } else if (lessDesirableColors.some(c => color.includes(c))) {
-      return -0.01; // 1% discount
-    } else {
-      return 0; // No adjustment for standard colors
+  calculate(data: ValuationData): Adjustment | null {
+    if (!data.color) {
+      return null;
     }
-  }
-  
-  private getColorDescription(color: string, multiplier: number): string {
-    if (multiplier > 0) {
-      return `${this.capitalizeColor(color)} is a premium color that increases value`;
-    } else if (multiplier < 0) {
-      return `${this.capitalizeColor(color)} is less desirable in the current market`;
-    } else {
-      return `${this.capitalizeColor(color)} is a standard color with neutral market impact`;
+
+    const color = data.color.toLowerCase();
+    
+    // Popular colors that may add value
+    const popularColors = ['white', 'black', 'silver', 'gray', 'grey'];
+    const premiumColors = ['red', 'blue'];
+    const rareColors = ['yellow', 'orange', 'purple', 'green'];
+
+    if (popularColors.includes(color)) {
+      return {
+        factor: 'Popular Color',
+        impact: 200,
+        description: `${data.color} is a popular color choice (+$200)`
+      };
     }
+
+    if (premiumColors.includes(color)) {
+      return {
+        factor: 'Premium Color',
+        impact: 100,
+        description: `${data.color} is a premium color choice (+$100)`
+      };
+    }
+
+    if (rareColors.includes(color)) {
+      return {
+        factor: 'Rare Color',
+        impact: -300,
+        description: `${data.color} is a less popular color choice (-$300)`
+      };
+    }
+
+    return null;
   }
-  
-  private capitalizeColor(color: string): string {
-    return color.charAt(0).toUpperCase() + color.slice(1);
-  }
-}
+};

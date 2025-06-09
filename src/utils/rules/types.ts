@@ -1,74 +1,44 @@
-<<<<<<< HEAD
-=======
-export interface AdjustmentCalculator {
-  calculate: (input: RulesEngineInput) =>
-    | {
-      factor: string;
-      impact: number;
-      description: string;
-      name?: string;
-      value?: number;
-      percentAdjustment?: number;
-    }
-    | Promise<{
-      factor: string;
-      impact: number;
-      description: string;
-      name?: string;
-      value?: number;
-      percentAdjustment?: number;
-    }>;
-}
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
 
-export interface RulesEngineInput {
-  baseValue?: number;
-  basePrice?: number;
-  make: string;
-  model: string;
-  year: number;
-  mileage: number;
-  condition: string;
-  zipCode: string;
+export interface ValuationData {
+  make?: string;
+  model?: string;
+  year?: number;
+  mileage?: number;
+  condition?: string;
   trim?: string;
+  color?: string;
   fuelType?: string;
-  transmissionType?: string;
   transmission?: string;
-  accidentCount?: number;
-  exteriorColor?: string;
+  zipCode?: string;
   features?: string[];
-  premiumFeatures?: boolean[] | string[];
-  aiConditionOverride?: any;
   photoScore?: number;
-  carfaxData?: any;
-  // Additional fields needed by calculators
-  colorMultiplier?: number;
-  hasOpenRecall?: boolean;
-  warrantyStatus?: string;
-  drivingScore?: number;
-  bodyType?: string;
-  bodyStyle?: string;
-  transmissionMultiplier?: number;
+  carfax?: {
+    cleanTitle?: boolean;
+    accidentCount?: number;
+    serviceRecords?: number;
+  };
+  recalls?: Array<{
+    id: string;
+    severity: 'high' | 'medium' | 'low';
+    completed: boolean;
+  }>;
+  warranty?: {
+    factory?: {
+      active: boolean;
+      monthsRemaining?: number;
+    };
+    powertrain?: {
+      active: boolean;
+      monthsRemaining?: number;
+    };
+    extended?: {
+      active: boolean;
+    };
+  };
 }
 
-// Alias for backward compatibility
-export type EnhancedRulesEngineInput = RulesEngineInput;
-
-export interface AdjustmentBreakdown {
+export interface Adjustment {
   factor: string;
   impact: number;
   description: string;
-  name?: string; // Added to match usage in valuationEngine.ts
-  value?: number;
-  percentAdjustment?: number;
-}
-
-export interface AdjustmentCalculator {
-  calculate(input: RulesEngineInput): AdjustmentBreakdown | Promise<AdjustmentBreakdown>;
-}
-
-export interface Rule {
-  name: string;
-  description: string;
-  calculate: (input: RulesEngineInput) => AdjustmentBreakdown | Promise<AdjustmentBreakdown>;
 }
