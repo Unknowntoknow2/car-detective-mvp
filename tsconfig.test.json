@@ -3,8 +3,17 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "types": ["vitest/globals", "node", "jest", "@testing-library/jest-dom"],
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
   },
-  "include": ["src", "e2e", "__tests__", "src/**/*.test.tsx", "src/**/*.test.ts"],
+  "include": [
+    "src", 
+    "e2e", 
+    "__tests__", 
+    "src/**/*.test.tsx", 
+    "src/**/*.test.ts",
+    "src/types/globals.d.ts"
+  ],
   "exclude": ["node_modules"]
 }

@@ -16,7 +16,7 @@ globalThis.afterAll = afterAll;
 globalThis.afterEach = afterEach;
 globalThis.vi = vi;
 
-// Make testing-library utilities globally available - assign the actual screen object
+// Make testing-library utilities globally available - directly assign the imported objects
 globalThis.screen = screen;
 globalThis.fireEvent = fireEvent;
 globalThis.waitFor = waitFor;
