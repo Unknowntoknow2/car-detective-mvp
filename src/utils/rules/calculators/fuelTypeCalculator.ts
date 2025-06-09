@@ -1,64 +1,46 @@
-import {
-  AdjustmentBreakdown,
-  AdjustmentCalculator,
-  RulesEngineInput,
-} from "../types";
 
-export class FuelTypeCalculator implements AdjustmentCalculator {
-  public calculate(input: RulesEngineInput): AdjustmentBreakdown {
-    if (!input.fuelType) {
-      return {
-        factor: 'Fuel Type',
-        impact: 0,
-        description: 'No fuel type specified',
-        name: 'Fuel Type',
-        value: 0,
-        percentAdjustment: 0
-      };
+import { Calculator } from '../interfaces/Calculator';
+import { ValuationData, Adjustment } from '../types';
+
+export const fuelTypeCalculator: Calculator = {
+  name: 'Fuel Type Calculator',
+  description: 'Calculates adjustments based on fuel type efficiency and market demand',
+  
+  calculate(data: ValuationData): Adjustment | null {
+    if (!data.fuelType) {
+      return null;
     }
 
-    const fuelType = input.fuelType.toLowerCase();
-    let percentAdjustment = 0;
-
-    // Apply different adjustments based on fuel type
+    const fuelType = data.fuelType.toLowerCase();
+    
     switch (fuelType) {
-      case "electric":
-        percentAdjustment = 0.05; // +5% for electric
-        break;
-      case "hybrid":
-        percentAdjustment = 0.03; // +3% for hybrid
-        break;
-      case "diesel":
-        percentAdjustment = 0.02; // +2% for diesel
-        break;
-      case "gasoline":
-      case "gas":
-        percentAdjustment = 0; // No adjustment (baseline)
-        break;
+      case 'hybrid':
+        return {
+          factor: 'Hybrid Engine',
+          impact: 1500,
+          description: 'Hybrid vehicles have higher resale value due to fuel efficiency (+$1,500)'
+        };
+      
+      case 'electric':
+        return {
+          factor: 'Electric Vehicle',
+          impact: 2000,
+          description: 'Electric vehicles command premium due to environmental benefits (+$2,000)'
+        };
+      
+      case 'diesel':
+        return {
+          factor: 'Diesel Engine',
+          impact: 800,
+          description: 'Diesel engines offer superior fuel economy (+$800)'
+        };
+      
+      case 'gasoline':
+      case 'gas':
+        return null; // No adjustment for standard gasoline
+      
       default:
-        percentAdjustment = 0;
+        return null;
     }
-
-<<<<<<< HEAD
-    const basePrice = input.basePrice || 0;
-    const value = basePrice * percentAdjustment;
-    const name = 'Fuel Type';
-=======
-    const value = input.basePrice * percentAdjustment;
-    const name = "Fuel Type";
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-    const factor = name;
-    const impact = Math.round(value);
-
-    return {
-      name,
-      factor,
-      value,
-      impact,
-      percentAdjustment,
-      description: `${
-        fuelType.charAt(0).toUpperCase() + fuelType.slice(1)
-      } fuel type adjustment`,
-    };
   }
-}
+};

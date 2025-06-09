@@ -1,68 +1,47 @@
-<<<<<<< HEAD
 
-import { AdjustmentBreakdown, RulesEngineInput } from "../types";
+import { Calculator } from '../interfaces/Calculator';
+import { ValuationData, Adjustment } from '../types';
 
-export class RecallCalculator {
-  calculate(input: RulesEngineInput): AdjustmentBreakdown {
-    // Get recall status
-    const hasOpenRecall = input.hasOpenRecall || false;
-    const basePrice = input.basePrice || 20000; // Default if not provided
+export const recallCalculator: Calculator = {
+  name: 'Recall Calculator',
+  description: 'Calculates adjustments based on outstanding recalls',
+  
+  calculate(data: ValuationData): Adjustment | null {
+    if (!data.recalls || data.recalls.length === 0) {
+      return null;
+    }
+
+    const outstandingRecalls = data.recalls.filter(recall => !recall.completed);
     
-    // Only apply adjustment if there are open recalls
-    if (hasOpenRecall) {
-      // Apply a discount for open recalls
-      const impact = Math.round(basePrice * -0.05); // 5% discount for open recalls
-      
-      return {
-        factor: "Open Safety Recall",
-        impact,
-        description: "Vehicle has open safety recalls that need to be addressed"
-      };
-    } else {
-      // No impact if no open recalls
-      return {
-        factor: "Safety Recalls",
-        impact: 0,
-        description: "No open safety recalls detected"
-      };
-    }
-=======
-import { AdjustmentBreakdown, RulesEngineInput } from "../types";
-import { Calculator } from "../interfaces/Calculator";
-
-export class RecallCalculator implements Calculator {
-  private RECALL_ADJUSTMENT_PERCENTAGE = -0.02; // -2% per open recall
-
-  public async calculate(
-    input: RulesEngineInput,
-  ): Promise<AdjustmentBreakdown | null> {
-    if (input.hasOpenRecall === undefined) {
+    if (outstandingRecalls.length === 0) {
       return null;
     }
 
-    // No adjustment if there are no open recalls
-    if (input.hasOpenRecall === false) {
-      return null;
+    // Categorize recalls by severity
+    const safetyRecalls = outstandingRecalls.filter(r => r.severity === 'high');
+    const minorRecalls = outstandingRecalls.filter(r => r.severity === 'low');
+
+    let impact = 0;
+    const factors: string[] = [];
+
+    // Major safety recalls have significant impact
+    if (safetyRecalls.length > 0) {
+      const safetyPenalty = safetyRecalls.length * -800;
+      impact += safetyPenalty;
+      factors.push(`${safetyRecalls.length} safety recall(s) (${safetyPenalty})`);
     }
 
-    // Calculate value reduction (default to 1 recall if no specific count provided)
-    const recallCount = input.hasOpenRecall ? (input.recallCount ?? 1) : 0;
-    const percentAdjustment = this.RECALL_ADJUSTMENT_PERCENTAGE * recallCount;
-    const valueAdjustment = input.basePrice * percentAdjustment;
-    const factor = "Open Recalls";
-    const impact = valueAdjustment;
+    // Minor recalls have smaller impact
+    if (minorRecalls.length > 0) {
+      const minorPenalty = minorRecalls.length * -200;
+      impact += minorPenalty;
+      factors.push(`${minorRecalls.length} minor recall(s) (${minorPenalty})`);
+    }
 
     return {
-      name: "Open Recalls",
-      value: valueAdjustment,
-      percentAdjustment: percentAdjustment * 100, // Convert to percentage for display
-      description:
-        `Vehicle has ${recallCount} open recall(s), which affects value by ${
-          (percentAdjustment * 100).toFixed(1)
-        }%`,
-      factor,
+      factor: 'Outstanding Recalls',
       impact,
+      description: `Outstanding recalls: ${factors.join(', ')}`
     };
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
   }
-}
+};

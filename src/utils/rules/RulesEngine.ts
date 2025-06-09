@@ -1,104 +1,51 @@
-<<<<<<< HEAD
 
-import { RulesEngineInput, AdjustmentBreakdown } from './types';
-
-// Define the Rule type locally if it's missing from the types file
-interface Rule {
-  name: string;
-  description: string;
-  calculate: (input: RulesEngineInput) => AdjustmentBreakdown;
-=======
-import { AdjustmentBreakdown, Rule, RulesEngineInput } from "./types";
+import { Calculator } from './interfaces/Calculator';
+import { ValuationData, Adjustment } from './types';
+import { accidentCalculator } from './calculators/accidentCalculator';
+import { conditionCalculator } from './calculators/conditionCalculator';
+import { mileageCalculator } from './calculators/mileageCalculator';
+import { locationCalculator } from './calculators/locationCalculator';
 
 export class RulesEngine {
-  private rules: Rule[] = [];
+  private calculators: Calculator[] = [];
 
-  constructor(rules: Rule[] = []) {
-    this.rules = rules;
+  constructor() {
+    this.initializeCalculators();
   }
 
-  addRule(rule: Rule): void {
-    this.rules.push(rule);
+  private initializeCalculators(): void {
+    this.calculators = [
+      accidentCalculator,
+      conditionCalculator,
+      mileageCalculator,
+      locationCalculator,
+    ];
   }
 
-  addRules(rules: Rule[]): void {
-    this.rules = [...this.rules, ...rules];
-  }
+  public calculateAdjustments(data: ValuationData): Adjustment[] {
+    const adjustments: Adjustment[] = [];
 
-  evaluate(facts: RulesEngineInput): any {
-    // Sort rules by priority if defined
-    const sortedRules = [...this.rules].sort((a, b) => {
-      const priorityA = a.priority ?? 0;
-      const priorityB = b.priority ?? 0;
-      return priorityB - priorityA; // Higher priority first
-    });
-
-    // Apply rules in order
-    let result: any = null;
-    const auditTrail: AdjustmentBreakdown[] = [];
-
-    for (const rule of sortedRules) {
+    for (const calculator of this.calculators) {
       try {
-        // Check if condition is met
-        const conditionMet = typeof rule.condition === "function"
-          ? rule.condition(facts)
-          : rule.condition;
-
-        if (conditionMet) {
-          // Apply consequence
-          const consequence = typeof rule.consequence === "function"
-            ? rule.consequence(facts)
-            : rule.consequence;
-
-          result = consequence;
-
-          // Add to audit trail if consequence has adjustment data
-          if (
-            consequence && typeof consequence === "object" &&
-            "impact" in consequence
-          ) {
-            auditTrail.push({
-              name: rule.name,
-              value: consequence.impact,
-              description: rule.description || "",
-              percentAdjustment: 0, // Default percentAdjustment
-              factor: rule.name,
-              impact: consequence.impact,
-            });
-          }
+        const adjustment = calculator.calculate(data);
+        if (adjustment) {
+          adjustments.push(adjustment);
         }
       } catch (error) {
-        console.error(`Error evaluating rule '${rule.name}':`, error);
+        console.error(`Error in calculator ${calculator.name}:`, error);
       }
     }
 
-    return {
-      result,
-      auditTrail,
-    };
+    return adjustments;
   }
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-}
 
-export class RulesEngine {
-  private rules: Rule[];
-  
-  constructor(rules: Rule[]) {
-    this.rules = rules;
-  }
-  
-  // Run all rules and return the results
-  public evaluate(input: RulesEngineInput): AdjustmentBreakdown[] {
-    return this.rules.map(rule => rule.calculate(input));
-  }
-  
-  // Add a new rule to the engine
-  public addRule(rule: Rule): void {
-    this.rules.push(rule);
-  }
-  
-  // Get all rules
-  public getRules(): Rule[] {
-    return this.rules;
+  public calculateFinalValue(baseValue: number, adjustments: Adjustment[]): number {
+    let finalValue = baseValue;
+
+    for (const adjustment of adjustments) {
+      finalValue += adjustment.impact;
+    }
+
+    return Math.max(0, finalValue);
   }
 }
