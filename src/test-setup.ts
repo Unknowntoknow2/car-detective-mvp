@@ -1,6 +1,6 @@
 
 import "@testing-library/jest-dom";
-import { cleanup, screen, fireEvent, waitFor } from "@testing-library/react";
+import { cleanup, screen, fireEvent, waitFor, render } from "@testing-library/react";
 import { afterEach, vi, describe, test, it, expect, beforeEach, beforeAll, afterAll } from "vitest";
 import { setupServer } from "msw/node";
 import { handlers } from "./mocks/handlers";
@@ -16,10 +16,11 @@ globalThis.afterAll = afterAll;
 globalThis.afterEach = afterEach;
 globalThis.vi = vi;
 
-// Make testing-library utilities globally available - directly assign the imported objects
+// Make testing-library utilities globally available
 globalThis.screen = screen;
 globalThis.fireEvent = fireEvent;
 globalThis.waitFor = waitFor;
+globalThis.render = render;
 
 // Enhanced Jest compatibility with proper mock methods
 globalThis.jest = {

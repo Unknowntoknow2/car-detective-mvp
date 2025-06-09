@@ -1,9 +1,9 @@
 
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 export const handlers = [
-  // Mock any API endpoints that tests might use
-  rest.get('/api/*', (req, res, ctx) => {
-    return res(ctx.json({ message: 'Mock response' }));
+  // Mock API handlers for testing
+  http.get('/api/test', () => {
+    return HttpResponse.json({ message: 'Test API response' });
   }),
 ];
