@@ -1,35 +1,23 @@
 
-export interface Valuation {
-  id: string;
-  vin?: string;
-  make: string;
-  model: string;
-  year: number;
-  mileage?: number;
-  condition?: string;
-  estimatedValue: number;
-  confidenceScore?: number;
-  createdAt: string;
-  zipCode?: string;
-}
-
 export interface ValuationResult {
   id: string;
-  vehicle: {
-    vin?: string;
-    make: string;
-    model: string;
-    year: number;
-    trim?: string;
-  };
-  valuation: {
-    estimatedValue: number;
-    confidenceScore: number;
-    factors: Array<{
-      name: string;
-      impact: number;
-      description: string;
-    }>;
-  };
-  createdAt: string;
+  estimatedValue?: number;
+  estimated_value?: number;
+  confidenceScore?: number;
+  confidence_score?: number;
+  year?: number;
+  make?: string;
+  model?: string;
+  mileage?: number;
+  condition?: string;
+  basePrice?: number;
+  priceRange?: [number, number];
+  adjustments?: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
+  marketDemand?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }

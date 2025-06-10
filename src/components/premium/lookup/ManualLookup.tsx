@@ -1,7 +1,7 @@
 
 import React from "react";
 import { ManualLookup as StandardManualLookup } from "@/components/lookup/ManualLookup";
-import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
+import { ManualEntryFormData } from "@/types/manualEntry";
 
 interface PremiumManualLookupProps {
   onSubmit: (data: ManualEntryFormData) => void;

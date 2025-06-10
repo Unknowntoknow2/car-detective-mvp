@@ -1,146 +1,96 @@
+
+import React from "react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
-  CalendarClock,
-  Camera,
-  CarFront,
-  DollarSign,
-  FileClock,
+  Car,
   FileText,
-  Info,
-  LineChart,
+  Camera,
+  TrendingUp,
+  Calendar,
+  Shield,
+  Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { ValuationServiceId } from "./services";
 
 interface TabNavigationProps {
-  activeTab: string;
-  onTabChange: (tab: ValuationServiceId) => void;
+  activeTab: ValuationServiceId;
+  vehicleFound?: boolean;
 }
 
-export function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
-  const isMobile = useIsMobile();
-  const [overflowActive, setOverflowActive] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const tabsContainer = document.querySelector("[data-tabs-list]");
-      if (tabsContainer) {
-        const isOverflowing =
-          tabsContainer.scrollWidth > tabsContainer.clientWidth;
-        setOverflowActive(isOverflowing);
-      }
-    };
-
-    handleResize();
-    globalThis.addEventListener("resize", handleResize);
-    return () => globalThis.removeEventListener("resize", handleResize);
-  }, []);
+export function TabNavigation({ activeTab, vehicleFound }: TabNavigationProps) {
+  const tabs = [
+    {
+      id: "vin" as ValuationServiceId,
+      label: "VIN Lookup",
+      icon: Car,
+      badge: vehicleFound ? "Found" : undefined,
+    },
+    {
+      id: "plate" as ValuationServiceId,
+      label: "License Plate",
+      icon: FileText,
+    },
+    {
+      id: "manual" as ValuationServiceId,
+      label: "Manual Entry",
+      icon: FileText,
+    },
+    {
+      id: "photo" as ValuationServiceId,
+      label: "Photo Analysis",
+      icon: Camera,
+      premium: true,
+    },
+    {
+      id: "market" as ValuationServiceId,
+      label: "Market Analysis",
+      icon: TrendingUp,
+      premium: true,
+    },
+    {
+      id: "forecast" as ValuationServiceId,
+      label: "12-Month Forecast",
+      icon: Calendar,
+      premium: true,
+    },
+    {
+      id: "carfax" as ValuationServiceId,
+      label: "CARFAX® Report",
+      icon: Shield,
+      premium: true,
+    },
+  ];
 
   return (
-    <>
-      <TabsList
-        data-tabs-list
-        className={`w-full flex justify-start ${
-          overflowActive
-            ? "overflow-x-auto pb-3 hide-scrollbar"
-            : "justify-center"
-        }`}
-      >
-        <TabsTrigger
-          value="vin"
-          onClick={() => onTabChange("vin")}
-          className="min-w-max flex-shrink-0"
-        >
-          <div className="flex items-center gap-2">
-            <CarFront className="h-4 w-4" />
-            <span>{isMobile ? "VIN" : "VIN Lookup"}</span>
-          </div>
-        </TabsTrigger>
-
-        <TabsTrigger
-          value="plate"
-          onClick={() => onTabChange("plate")}
-          className="min-w-max flex-shrink-0"
-        >
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            <span>{isMobile ? "Plate" : "License Plate"}</span>
-          </div>
-        </TabsTrigger>
-
-        <TabsTrigger
-          value="manual"
-          onClick={() => onTabChange("manual")}
-          className="min-w-max flex-shrink-0"
-        >
-          <div className="flex items-center gap-2">
-            <Info className="h-4 w-4" />
-            <span>{isMobile ? "Manual" : "Manual Entry"}</span>
-          </div>
-        </TabsTrigger>
-
-        <TabsTrigger
-          value="photo"
-          onClick={() => onTabChange("photo")}
-          className="min-w-max flex-shrink-0"
-        >
-          <div className="flex items-center gap-2">
-            <Camera className="h-4 w-4" />
-            <span>{isMobile ? "Photo" : "Photo Upload"}</span>
-          </div>
-        </TabsTrigger>
-
-        <TabsTrigger
-          value="dealers"
-          onClick={() => onTabChange("dealers")}
-          className="min-w-max flex-shrink-0"
-        >
-          <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            <span>{isMobile ? "Dealers" : "Dealer Offers"}</span>
-          </div>
-        </TabsTrigger>
-
-        <TabsTrigger
-          value="market"
-          onClick={() => onTabChange("market")}
-          className="min-w-max flex-shrink-0"
-        >
-          <div className="flex items-center gap-2">
-            <LineChart className="h-4 w-4" />
-            <span>{isMobile ? "Market" : "Market Analysis"}</span>
-          </div>
-        </TabsTrigger>
-
-        <TabsTrigger
-          value="forecast"
-          onClick={() => onTabChange("forecast")}
-          className="min-w-max flex-shrink-0"
-        >
-          <div className="flex items-center gap-2">
-            <CalendarClock className="h-4 w-4" />
-            <span>{isMobile ? "Forecast" : "12-Month Forecast"}</span>
-          </div>
-        </TabsTrigger>
-
-        <TabsTrigger
-          value="carfax"
-          onClick={() => onTabChange("carfax")}
-          className="min-w-max flex-shrink-0"
-        >
-          <div className="flex items-center gap-2">
-            <FileClock className="h-4 w-4" />
-            <span>{isMobile ? "Carfax" : "Carfax Report"}</span>
-          </div>
-        </TabsTrigger>
-      </TabsList>
-
-      {overflowActive && (
-        <div className="w-full text-center text-xs text-muted-foreground mt-2">
-          <span>Swipe to see more options →</span>
-        </div>
-      )}
-    </>
+    <div className="border-b border-border bg-background">
+      <div className="container mx-auto px-4">
+        <TabsList className="h-auto p-0 bg-transparent space-x-6 overflow-x-auto">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.id}
+                className="relative flex items-center gap-2 px-4 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent bg-transparent text-muted-foreground data-[state=active]:text-primary hover:text-primary transition-colors"
+              >
+                <Icon className="h-4 w-4" />
+                <span className="whitespace-nowrap">{tab.label}</span>
+                {tab.premium && (
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
+                    Premium
+                  </Badge>
+                )}
+                {tab.badge && (
+                  <Badge variant="default" className="text-xs px-1.5 py-0.5">
+                    {tab.badge}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+      </div>
+    </div>
   );
 }

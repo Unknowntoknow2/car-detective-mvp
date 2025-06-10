@@ -35,7 +35,7 @@ export function LookupTabs({
       <TabsContent value="vin" className="space-y-4">
         <VINLookupForm
           onSubmit={formProps.onSubmit}
-          isLoading={formProps.isLoading}
+          isLoading={formProps.isLoading || false}
         />
       </TabsContent>
       
@@ -49,9 +49,8 @@ export function LookupTabs({
       <TabsContent value="manual" className="space-y-4">
         <ManualLookup
           onSubmit={formProps.onSubmit}
-          isLoading={formProps.isLoading}
-          submitButtonText={formProps.submitButtonText}
-          isPremium={true}
+          isLoading={formProps.isLoading || false}
+          submitButtonText={formProps.submitButtonText || "Continue"}
         />
       </TabsContent>
     </Tabs>

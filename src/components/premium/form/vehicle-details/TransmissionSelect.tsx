@@ -62,7 +62,7 @@ export function TransmissionSelect({
               <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
             </TooltipTrigger>
             <TooltipContent>
-              <p className="max-w-xs">
+              <p>
                 The transmission type affects your vehicle's valuation
               </p>
             </TooltipContent>
@@ -97,7 +97,7 @@ export function TransmissionSelect({
                       Learn more <HelpCircle className="h-3 w-3" />
                     </p>
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-[200px]">
+                  <TooltipContent side="right">
                     <p>{option.tooltip}</p>
                   </TooltipContent>
                 </Tooltip>

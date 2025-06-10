@@ -1,92 +1,79 @@
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/components/auth/AuthContext";
-import {
-  AlertTriangle,
-  Car,
-  Check,
-  FileText,
-  Shield,
-  Users,
-  X,
-} from "lucide-react";
+import React, { useState, useEffect } from "react";
 import { TabContentWrapper } from "./TabContentWrapper";
-import { VehicleHistoryTab } from "@/components/premium/VehicleHistoryTab";
+import { Button } from "@/components/ui/button";
+import { Download, Loader2, Shield } from "lucide-react";
 
-interface CarfaxReportProps {
+interface CarfaxReportTabProps {
   vin?: string;
 }
 
-export function CarfaxReportTab({ vin }: CarfaxReportProps) {
-  const { user } = useAuth();
+export function CarfaxReportTab({ vin }: CarfaxReportTabProps) {
+  const [isLoading, setIsLoading] = useState(false);
 
-  if (!user) {
-    return (
-      <TabContentWrapper
-        title="CARFAX Vehicle History Report"
-        description="Get a comprehensive vehicle history report with detailed accident data, service records, and title information"
-      >
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-          <Shield className="h-12 w-12 text-amber-600 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-amber-800 mb-2">
-            Authentication Required
-          </h3>
-          <p className="text-amber-700 mb-4">
-            You need to be logged in to view CARFAX reports.
-          </p>
-          <Button
-            asChild
-            className="bg-amber-600 hover:bg-amber-700 text-white"
-          >
-            <a href="/auth">Sign In / Register</a>
-          </Button>
-        </div>
-      </TabContentWrapper>
-    );
-  }
+  useEffect(() => {
+    if (vin) {
+      setIsLoading(true);
+      // Simulate fetching CARFAX report
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 2000);
+    }
+  }, [vin]);
+
+  const downloadReport = () => {
+    console.log("Downloading CARFAX report for VIN:", vin);
+  };
 
   if (!vin) {
     return (
       <TabContentWrapper
-        title="CARFAX Vehicle History Report"
-        description="Get a comprehensive vehicle history report with detailed accident data, service records, and title information"
+        title="CARFAX® Vehicle History Report"
+        description="Enter a VIN to access the complete vehicle history report"
       >
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-          <AlertTriangle className="h-12 w-12 text-amber-600 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-amber-800 mb-2">
-            Vehicle Information Required
-          </h3>
-          <p className="text-amber-700 mb-4">
-            Please first look up a vehicle using VIN, license plate, or manual
-            entry to generate a CARFAX report.
+        <div className="text-center py-8">
+          <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">
+            VIN required for CARFAX® report access
           </p>
         </div>
       </TabContentWrapper>
     );
   }
 
-  // Mock data for CARFAX report
-  const mockCarfaxData = {
-    reportUrl: `https://mock-carfax.com/report/${vin}`,
-    reportData: {
-      owners: 2,
-      accidentsReported: 1,
-      damageTypes: ["Minor collision"],
-      serviceRecords: 8,
-      titleEvents: ["Clean title"],
-      estimatedValueImpact: -500,
-    },
-  };
+  if (isLoading) {
+    return (
+      <TabContentWrapper
+        title="CARFAX® Vehicle History Report"
+        description="Fetching comprehensive vehicle history data"
+      >
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </TabContentWrapper>
+    );
+  }
 
   return (
     <TabContentWrapper
-      title="CARFAX Vehicle History Report"
-      description="Comprehensive vehicle history report with detailed accident data, service records, and title information"
+      title="CARFAX® Vehicle History Report"
+      description="Complete vehicle history and damage assessment"
     >
-      <VehicleHistoryTab
-        vin={vin}
-        valuationId="mock-valuation-id"
-        historyData={mockCarfaxData}
-      />
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Vehicle History Summary</h3>
+          <Button className="gap-2">
+            <Download className="h-4 w-4" />
+            Download Full Report
+          </Button>
+        </div>
+
+        {/* Report Content (Placeholder) */}
+        <div className="bg-gray-50 p-4 rounded-md">
+          <p className="text-sm text-gray-600">
+            CARFAX® report data will be displayed here.
+          </p>
+        </div>
+      </div>
     </TabContentWrapper>
   );
 }

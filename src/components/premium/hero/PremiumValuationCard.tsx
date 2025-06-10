@@ -73,7 +73,11 @@ export function PremiumValuationCard({
             </div>
           </div>
 
-          <CarfaxHighlights />
+          <CarfaxHighlights 
+            accidentCount={0}
+            owners={1}
+            serviceRecords={5}
+          />
         </div>
       </CardContent>
     </Card>
