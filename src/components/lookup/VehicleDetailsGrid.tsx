@@ -1,3 +1,4 @@
+
 import React from "react";
 import type { DecodedVehicleInfo } from "@/types/vehicle";
 
@@ -66,13 +67,13 @@ export const VehicleDetailsGrid = (
       <div className="space-y-1">
         <p className="text-sm font-medium text-muted-foreground">Drivetrain</p>
         <p className="text-lg font-semibold">
-          {displayField(vehicleInfo.drivetrain || "Unknown")}
+          {displayField(vehicleInfo.drivetrain)}
         </p>
       </div>
       <div className="space-y-1">
         <p className="text-sm font-medium text-muted-foreground">Body Type</p>
         <p className="text-lg font-semibold">
-          {displayField(vehicleInfo.bodyType)}
+          {displayField(vehicleInfo.bodyType || vehicleInfo.bodyStyle)}
         </p>
       </div>
     </div>
