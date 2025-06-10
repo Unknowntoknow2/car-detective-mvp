@@ -15,6 +15,8 @@ export interface OfferAcceptanceModalProps {
   onClose: () => void;
   offer: any;
   isProcessing: boolean;
+  // Add onConfirm prop
+  onConfirm: () => Promise<void>;
 }
 
 export const OfferAcceptanceModal: React.FC<OfferAcceptanceModalProps> = ({
@@ -22,6 +24,7 @@ export const OfferAcceptanceModal: React.FC<OfferAcceptanceModalProps> = ({
   onClose,
   offer,
   isProcessing,
+  onConfirm,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -49,7 +52,7 @@ export const OfferAcceptanceModal: React.FC<OfferAcceptanceModalProps> = ({
             <Button variant="outline" onClick={onClose} disabled={isProcessing}>
               Cancel
             </Button>
-            <Button disabled={isProcessing}>
+            <Button onClick={onConfirm} disabled={isProcessing}>
               {isProcessing ? 'Processing...' : 'Accept Offer'}
             </Button>
           </div>

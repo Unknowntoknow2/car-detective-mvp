@@ -19,7 +19,7 @@ export function usePremiumPayment(): UsePremiumPaymentResult {
   const createPaymentSession = async (
     valuationId: string,
     returnUrl?: string,
-  ) => {
+  ): Promise<void> => {
     setIsLoading(true);
     setError(null);
 
@@ -36,18 +36,17 @@ export function usePremiumPayment(): UsePremiumPaymentResult {
         `/premium-success?session_id=mock_session_123&valuation_id=${valuationId}`;
 
       // In production, this would open Stripe checkout
-      return { success: true, url: mockUrl };
+      toast.success("Payment session created successfully");
     } catch (err: any) {
       console.error("Error creating payment session:", err);
       setError(err.message || "Failed to initiate payment");
       toast.error(err.message || "Failed to initiate payment");
-      return { success: false, error: err.message };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const verifyPaymentSession = async (sessionId: string) => {
+  const verifyPaymentSession = async (sessionId: string): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
 
@@ -77,16 +76,16 @@ export function usePremiumPayment(): UsePremiumPaymentResult {
         if (mockResponse.valuationId) {
           navigate(`/valuation/${mockResponse.valuationId}`);
         }
+        return true;
       } else {
         toast.error("Payment verification failed.");
+        return false;
       }
-
-      return mockResponse;
     } catch (err: any) {
       console.error("Error verifying payment:", err);
       setError(err.message || "Failed to verify payment");
       toast.error(err.message || "Failed to verify payment");
-      return { success: false, error: err.message };
+      return false;
     } finally {
       setIsLoading(false);
     }
