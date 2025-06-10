@@ -1,18 +1,14 @@
-// Export components by category
 
-// Layout components
-export * from "./layout";
-export * from "./navbar";
-export * from "./footer";
+// Core valuation components only for MVP
+export * from './valuation';
+export * from './lookup';
+export * from './common';
+export * from './home';
+export * from './layout';
+export * from './ui';
 
-// UI components with namespaced exports
-export * as UI from "./ui";
-export * as Forms from "./form";
-export * as Dealer from "./dealer";
-export * as Valuation from "./valuation";
-export * as Premium from "./premium";
-export * as Service from "./service-history";
-export * as Stats from "./stats";
-export * as Animation from "./animations";
-export * as Marketing from "./marketing";
-export * as Theme from "./theme";
+// Disabled for MVP launch:
+// export * from './dealer';
+// export * from './admin';
+// export * from './chat';
+// export * from './auth';

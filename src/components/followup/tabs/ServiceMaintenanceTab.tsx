@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -44,6 +43,14 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
     const updatedData: ServiceHistoryDetails = {
       ...serviceData,
       [field]: value
+    };
+    updateFormData({ serviceHistory: updatedData });
+  };
+
+  const handleMaintenanceChange = (checked: boolean, serviceType: string) => {
+    const updatedData: ServiceHistoryDetails = {
+      ...serviceData,
+      [serviceType]: checked
     };
     updateFormData({ serviceHistory: updatedData });
   };

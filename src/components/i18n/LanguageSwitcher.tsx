@@ -1,46 +1,40 @@
-import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Languages } from "lucide-react";
 
-const languages = [
-  { code: "en", label: "English" },
-  { code: "es", label: "Español" },
-  { code: "ar", label: "العربية" },
-];
+// import { useTranslation } from 'react-i18next'; // Disabled for MVP
+import React from 'react';
+import { Button } from '@/components/ui/button';
 
 export function LanguageSwitcher() {
+  // Disabled for MVP launch
+  return null;
+  
+  /*
   const { i18n } = useTranslation();
-
-  const switchLanguage = (lng: string) => {
+  
+  const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
-    // Set RTL/LTR
-    document.documentElement.dir = lng === "ar" ? "rtl" : "ltr";
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Languages className="h-5 w-5" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {languages.map((lang) => (
-          <DropdownMenuItem
-            key={lang.code}
-            onClick={() => switchLanguage(lang.code)}
-            className={i18n.language === lang.code ? "bg-accent" : ""}
-          >
-            {lang.label}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => changeLanguage('en')}
+        className={i18n.language === 'en' ? 'bg-primary text-primary-foreground' : ''}
+      >
+        EN
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => changeLanguage('es')}
+        className={i18n.language === 'es' ? 'bg-primary text-primary-foreground' : ''}
+      >
+        ES
+      </Button>
+    </div>
   );
+  */
 }
+
+export default LanguageSwitcher;
