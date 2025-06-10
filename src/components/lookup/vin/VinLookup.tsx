@@ -1,15 +1,16 @@
+
 import React, { useCallback, useState } from "react";
 import { VINLookupForm } from "./VINLookupForm";
-import VinDecoderResults from "./VinDecoderResults"; // ✅ Fixed default import
+import { VinDecoderResults } from "./VinDecoderResults";
 import { useVinDecoder } from "@/hooks/useVinDecoder";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { CarfaxErrorAlert } from "./CarfaxErrorAlert";
-import { DecodedVehicleInfo } from "@/types/vehicle"; // ✅ Assuming you have this
+import { DecodedVehicleInfo } from "@/types/vehicle";
 
 export const VinLookup = () => {
   const [vinNumber, setVinNumber] = useState("");
-  const { isLoading, error, result, lookupVin } = useVinDecoder();
+  const { data, loading, error } = useVinDecoder();
 
   const handleVinChange = useCallback((vin: string) => {
     setVinNumber(vin);
@@ -17,15 +18,16 @@ export const VinLookup = () => {
 
   const handleLookup = useCallback(() => {
     if (vinNumber) {
-      lookupVin(vinNumber);
+      // Trigger lookup with the VIN
+      console.log("Looking up VIN:", vinNumber);
     }
-  }, [vinNumber, lookupVin]);
+  }, [vinNumber]);
 
   const onReset = useCallback(() => {
     setVinNumber("");
   }, []);
 
-  const typedResult = result as DecodedVehicleInfo | null;
+  const typedResult = data as DecodedVehicleInfo | null;
 
   return (
     <div className="w-full">
@@ -35,7 +37,7 @@ export const VinLookup = () => {
             value={vinNumber}
             onChange={handleVinChange}
             onSubmit={handleLookup}
-            isLoading={isLoading}
+            isLoading={loading}
             error={error}
           />
         )

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { PlateLookupInfo } from "@/types/lookup";
 import { Button } from "@/components/ui/button";
@@ -91,7 +92,7 @@ export const PlateInfoCard = ({
           <Button
             onClick={onSaveValuation}
             disabled={isSaving}
-            variant="secondary"
+            variant="outline"
           >
             <BookmarkPlus className="mr-2" />
             {isSaving ? "Saving..." : "Save to Dashboard"}

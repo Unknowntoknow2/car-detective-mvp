@@ -1,28 +1,36 @@
+
+import React from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 interface MarketingBannerProps {
-  headline: string;
-  subtext: string;
+  title: string;
+  description: string;
   ctaText: string;
-  ctaHref: string;
+  ctaLink: string;
 }
 
-export function MarketingBanner({
-  headline,
-  subtext,
+export const MarketingBanner = ({
+  title,
+  description,
   ctaText,
-  ctaHref,
-}: MarketingBannerProps) {
+  ctaLink,
+}: MarketingBannerProps) => {
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 transition-transform hover:translate-y-[-2px] hover:shadow-xl">
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-slate-900">{headline}</h3>
-        <p className="text-slate-600">{subtext}</p>
-        <Button asChild className="w-full sm:w-auto">
-          <Link to={ctaHref}>{ctaText}</Link>
-        </Button>
+    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-lg">
+      <div className="max-w-4xl mx-auto text-center">
+        <h2 className="text-2xl font-bold mb-2">{title}</h2>
+        <p className="text-blue-100 mb-4">{description}</p>
+        <Link href={ctaLink}>
+          <Button variant="outline" className="text-blue-600 bg-white hover:bg-blue-50">
+            {ctaText}
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </Link>
       </div>
     </div>
   );
-}
+};
+
+export default MarketingBanner;

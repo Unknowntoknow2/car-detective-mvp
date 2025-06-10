@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ManualEntryFormFree } from './ManualEntryFormFree';
 import { UnifiedFollowUpQuestions } from './form-parts/UnifiedFollowUpQuestions';
-import { ManualEntryFormData, ConditionLevel } from './types/manualEntry';
+import { ManualEntryFormData, ConditionLevel } from '@/types/manualEntry';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 

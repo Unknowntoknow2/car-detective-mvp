@@ -17,3 +17,17 @@ export interface ValuationBreakdownItem {
   adjustment: number;
   description: string;
 }
+
+export interface Valuation {
+  id: string;
+  vehicle_info: {
+    make: string;
+    model: string;
+    year: number;
+    vin?: string;
+  };
+  valuation_amount: number;
+  created_at: string;
+  is_premium: boolean;
+  breakdown?: ValuationBreakdownItem[];
+}

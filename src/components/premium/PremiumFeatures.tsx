@@ -1,92 +1,100 @@
+
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Valuation } from "@/types/valuation-history";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import { ValuationHistory } from "@/types/valuation-history";
+import { Star, TrendingUp, FileText, Shield } from "lucide-react";
 
 interface PremiumFeaturesProps {
-  valuation: Valuation;
+  valuations?: ValuationHistory[];
 }
 
-export function PremiumFeatures({ valuation }: PremiumFeaturesProps) {
-  // Define premium features based on valuation data
-  const features = [
-    {
-      name: "CARFAX Report",
-      available: valuation.premium_unlocked || valuation.is_premium,
-      description: "Full vehicle history and records",
-    },
-    {
-      name: "Market Analysis",
-      available: valuation.premium_unlocked || valuation.is_premium,
-      description: "Local market data and price comparisons",
-    },
-    {
-      name: "Confidence Score",
-      available: true,
-      value: valuation.confidence_score || 75,
-      description: "Accuracy of the valuation based on available data",
-    },
-    {
-      name: "Feature Adjustments",
-      available: valuation.premium_unlocked || valuation.is_premium,
-      description: "Individual value of each feature and option",
-    },
-    {
-      name: "Similar Listings",
-      available: valuation.premium_unlocked || valuation.is_premium,
-      description: "Comparable vehicles currently on the market",
-    },
-  ];
+const premiumFeatures = [
+  {
+    icon: TrendingUp,
+    title: "Advanced Market Analysis",
+    description: "Get detailed market trends and pricing insights for your vehicle type and region."
+  },
+  {
+    icon: FileText,
+    title: "Comprehensive Reports",
+    description: "Receive detailed PDF reports with breakdown of all valuation factors."
+  },
+  {
+    icon: Shield,
+    title: "Vehicle History Integration",
+    description: "Access integrated vehicle history reports from trusted sources."
+  },
+  {
+    icon: Star,
+    title: "Priority Support",
+    description: "Get priority customer support and faster response times."
+  }
+];
 
+export const PremiumFeatures = ({ valuations = [] }: PremiumFeaturesProps) => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          Premium Features
-          <Badge
-            variant="outline"
-            className="ml-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white"
-          >
-            Premium
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {features.map((feature, index) => (
-            <div key={index} className="p-4 border rounded-md bg-slate-50">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-medium">{feature.name}</h3>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">{feature.description}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              {feature.value !== undefined && (
-                <div className="text-lg font-bold">{feature.value}%</div>
-              )}
-              <div className="text-sm text-muted-foreground mt-1">
-                {feature.available
-                  ? <span className="text-green-600">Included</span>
-                  : <span className="text-amber-600">Upgrade to access</span>}
-              </div>
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold mb-2">Premium Features</h2>
+        <p className="text-muted-foreground">
+          Unlock advanced vehicle valuation capabilities
+        </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {premiumFeatures.map((feature, index) => {
+          const Icon = feature.icon;
+          return (
+            <Card key={index}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Icon className="h-5 w-5 text-primary" />
+                  {feature.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>{feature.description}</CardDescription>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {valuations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Premium Valuations</CardTitle>
+            <CardDescription>
+              Recent premium valuations you've completed
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {valuations.slice(0, 3).map((valuation) => (
+                <div key={valuation.id} className="flex items-center justify-between p-2 border rounded">
+                  <div>
+                    <p className="font-medium">
+                      {valuation.vehicle_info.year} {valuation.vehicle_info.make} {valuation.vehicle_info.model}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(valuation.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold">${valuation.valuation_amount.toLocaleString()}</p>
+                    {valuation.is_premium && (
+                      <Badge variant="default" className="bg-primary">Premium</Badge>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
-}
+};
+
+export default PremiumFeatures;
