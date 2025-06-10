@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Label } from "@/components/ui/label";
 import {
@@ -8,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { VehicleFormTooltip } from "@/components/form/VehicleFormToolTip";
-import { ConditionLevel } from "@/components/lookup/types/manualEntry";
+import { ConditionLevel } from "@/types/manualEntry";
 
 interface ConditionInputProps {
   condition: ConditionLevel;
