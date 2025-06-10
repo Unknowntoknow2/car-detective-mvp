@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -56,7 +56,7 @@ const handleServiceChange = (checked: boolean, serviceType: string) => {
             <Checkbox
               id={service.value}
               checked={formData.serviceHistory?.services?.includes(service.value) || false}
-              onCheckedChange={(checked) => handleServiceChange(checked, service.value)}
+              onCheckedChange={(checked: boolean) => handleServiceChange(checked, service.value)}
             />
             <Label htmlFor={service.value} className="cursor-pointer">
               {service.label}

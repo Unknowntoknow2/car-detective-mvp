@@ -31,6 +31,12 @@ export interface DecodedVehicleInfo {
   bodyType?: string;
   fuelType?: string;
   vin: string;
+  drivetrain?: string;
+}
+
+export interface VehicleTrim {
+  id: string;
+  trim_name: string;
 }
 
 export interface DealerVehicleFormData {

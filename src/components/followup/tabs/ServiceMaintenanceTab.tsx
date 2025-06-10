@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -125,7 +126,7 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
               <Switch
                 id="dealer-maintained-toggle"
                 checked={serviceData.dealerMaintained || false}
-                onCheckedChange={(checked) => handleFieldChange('dealerMaintained', checked)}
+                onCheckedChange={(checked: boolean) => handleFieldChange('dealerMaintained', checked)}
               />
               <Label htmlFor="dealer-maintained-toggle" className="text-xs font-medium flex items-center gap-1">
                 <Star className="h-3 w-3" />

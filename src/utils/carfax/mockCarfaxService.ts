@@ -29,3 +29,6 @@ export const mockCarfaxService = {
     return mockCarfaxService.getCarfaxData(vin);
   }
 };
+
+// Export getCarfaxReport as named export
+export const getCarfaxReport = mockCarfaxService.getCarfaxReport;

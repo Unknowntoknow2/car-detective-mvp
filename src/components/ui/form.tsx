@@ -1,23 +1,80 @@
 
-import React from 'react';
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cn } from "@/lib/utils"
 
-// Basic form components for MVP
-export const Form = ({ children, ...props }: React.FormHTMLAttributes<HTMLFormElement>) => (
-  <form {...props}>{children}</form>
-);
+const Form = React.forwardRef<
+  HTMLFormElement,
+  React.HTMLAttributes<HTMLFormElement>
+>(({ className, ...props }, ref) => (
+  <form
+    ref={ref}
+    className={cn("space-y-6", className)}
+    {...props}
+  />
+))
+Form.displayName = "Form"
 
-export const FormField = ({ children }: { children: React.ReactNode }) => (
-  <div className="space-y-2">{children}</div>
-);
+const FormItem = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("space-y-2", className)} {...props} />
+))
+FormItem.displayName = "FormItem"
 
-export const FormItem = ({ children }: { children: React.ReactNode }) => (
-  <div className="space-y-2">{children}</div>
-);
+const FormLabel = React.forwardRef<
+  HTMLLabelElement,
+  React.LabelHTMLAttributes<HTMLLabelElement>
+>(({ className, ...props }, ref) => (
+  <label
+    ref={ref}
+    className={cn(
+      "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+      className
+    )}
+    {...props}
+  />
+))
+FormLabel.displayName = "FormLabel"
 
-export const FormControl = ({ children }: { children: React.ReactNode }) => (
-  <div>{children}</div>
-);
+const FormControl = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ ...props }, ref) => (
+  <Slot ref={ref} {...props} />
+))
+FormControl.displayName = "FormControl"
 
-export const FormMessage = ({ children }: { children: React.ReactNode }) => (
-  <div className="text-sm text-red-600">{children}</div>
-);
+const FormDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+FormDescription.displayName = "FormDescription"
+
+const FormMessage = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn("text-sm font-medium text-destructive", className)}
+    {...props}
+  />
+))
+FormMessage.displayName = "FormMessage"
+
+export {
+  Form,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage,
+}

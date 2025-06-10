@@ -1,9 +1,9 @@
+
 import React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { FollowUpAnswers, ModificationDetails } from '@/types/follow-up-answers';
 
 interface ModificationsTabProps {
   formData: FollowUpAnswers;
@@ -21,8 +21,13 @@ const modificationTypes = [
 ];
 
 export function ModificationsTab({ formData, updateFormData }: ModificationsTabProps) {
+  const modData: ModificationDetails = formData.modifications || {
+    hasModifications: false,
+    types: []
+  };
+
   const handleModificationChange = (checked: boolean, modType: string) => {
-    const currentMods = formData.modifications?.types || [];
+    const currentMods = modData.types || [];
     let updatedMods;
 
     if (checked) {
@@ -31,22 +36,23 @@ export function ModificationsTab({ formData, updateFormData }: ModificationsTabP
       updatedMods = currentMods.filter((mod: string) => mod !== modType);
     }
 
-    updateFormData({
-      modifications: {
-        ...formData.modifications,
-        hasModifications: true,
-        types: updatedMods
-      }
-    });
+    const updatedData: ModificationDetails = {
+      ...modData,
+      hasModifications: true,
+      types: updatedMods
+    };
+
+    updateFormData({ modifications: updatedData });
   };
 
   const handleAdditionalNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    updateFormData({
-      modifications: {
-        ...formData.modifications,
-        additionalNotes: e.target.value
-      }
-    });
+    const updatedData: ModificationDetails = {
+      ...modData,
+      hasModifications: modData.hasModifications || false,
+      types: modData.types || [],
+      additionalNotes: e.target.value
+    };
+    updateFormData({ modifications: updatedData });
   };
 
   return (
@@ -59,8 +65,8 @@ export function ModificationsTab({ formData, updateFormData }: ModificationsTabP
           <div key={modType} className="flex items-center space-x-2">
             <Checkbox
               id={modType}
-              checked={formData.modifications?.types?.includes(modType) || false}
-              onCheckedChange={(checked) => handleModificationChange(checked, modType)}
+              checked={modData.types?.includes(modType) || false}
+              onCheckedChange={(checked: boolean) => handleModificationChange(checked, modType)}
             />
             <Label htmlFor={modType} className="cursor-pointer">
               {modType}
@@ -73,7 +79,7 @@ export function ModificationsTab({ formData, updateFormData }: ModificationsTabP
         <Textarea
           id="modification_notes"
           placeholder="Please provide details about the modifications."
-          value={formData.modifications?.additionalNotes || ''}
+          value={modData.additionalNotes || ''}
           onChange={handleAdditionalNotesChange}
         />
       </div>

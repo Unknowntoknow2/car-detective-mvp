@@ -1,5 +1,5 @@
 
-import { ValidationResult } from '@/utils/validation/types';
+import { ValidationResult } from '@/utils/validation/vin-validation';
 
 export interface VinServiceResponse {
   make: string;
@@ -30,5 +30,8 @@ export const vinService = {
     }
   }
 };
+
+// Named export for direct import
+export const decodeVin = vinService.decodeVin;
 
 export default vinService;
