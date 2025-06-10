@@ -1,3 +1,4 @@
+
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
 import {
@@ -36,7 +37,7 @@ export function AccidentHistoryStep({ form }: AccidentHistoryStepProps) {
               <FormLabel>Has this vehicle been in any accidents?</FormLabel>
               <FormControl>
                 <RadioGroup
-                  onValueChange={(value) => field.onChange(value === "yes")}
+                  onValueChange={(value: any) => field.onChange(value === "yes")}
                   value={field.value ? "yes" : "no"}
                   className="flex flex-col space-y-1"
                 >

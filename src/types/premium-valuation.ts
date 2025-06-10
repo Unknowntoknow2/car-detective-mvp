@@ -33,6 +33,13 @@ export interface FormData {
   dashboardLights?: string[];
   hasModifications?: boolean;
   modificationTypes?: string[];
+  // Additional properties used in forms
+  drivingBehavior?: string;
+  annualMileage?: number;
+  photos?: File[];
+  packageLevel?: string;
+  accidentHistory?: boolean;
+  accidentDescription?: string;
 }
 
 export type FormDataKey = keyof FormData;

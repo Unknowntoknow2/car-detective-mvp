@@ -38,7 +38,7 @@ export default function MileageStep(
       setInputValue(value);
 
       if (value === "") {
-        setFormData((prev) => ({ ...prev, mileage: null }));
+        setFormData((prev: FormData) => ({ ...prev, mileage: 0 }));
         setError("");
         updateValidity(step, false);
       } else {
@@ -51,7 +51,7 @@ export default function MileageStep(
           setError("Mileage seems too high");
           updateValidity(step, false);
         } else {
-          setFormData((prev) => ({ ...prev, mileage }));
+          setFormData((prev: FormData) => ({ ...prev, mileage }));
           setError("");
           updateValidity(step, true);
         }
@@ -60,8 +60,7 @@ export default function MileageStep(
   };
 
   useEffect(() => {
-    const isValid = formData.mileage !== null && formData.mileage >= 0 &&
-      formData.mileage <= 999999;
+    const isValid = formData.mileage > 0 && formData.mileage <= 999999;
     updateValidity(step, isValid);
   }, []);
 

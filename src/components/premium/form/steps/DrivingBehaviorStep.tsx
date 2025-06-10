@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormData } from "@/types/premium-valuation";
@@ -79,7 +80,7 @@ export function DrivingBehaviorStep({
               min={0}
               max={50000}
               step={1000}
-              onValueChange={(values) => handleAnnualMileageChange(values[0].toString())}
+              onValueChange={(values: number[]) => handleAnnualMileageChange(values[0].toString())}
             />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>0 miles</span>

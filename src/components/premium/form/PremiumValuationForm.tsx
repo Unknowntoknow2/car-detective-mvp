@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +11,7 @@ import { VehicleBasicInfoFields } from "@/components/lookup/manual/components/Ve
 import { ConditionAndZipFields } from "@/components/lookup/manual/components/ConditionAndZipFields";
 import { VehicleDetailsFields } from "@/components/lookup/manual/components/VehicleDetailsFields";
 import { VinInputField } from "@/components/lookup/manual/components/VinInputField";
-import { ConditionLevel } from "@/components/lookup/types/manualEntry";
+import { ConditionLevel } from "@/types/manualEntry";
 import { ManualEntryFormData } from '@/types/manualEntry';
 
 const premiumValuationSchema = z.object({
@@ -57,6 +58,9 @@ export function PremiumValuationForm() {
     },
   });
 
+  const { watch, setValue } = form;
+  const isLoading = isSubmitting;
+
   const onSubmit = async (data: PremiumValuationFormData) => {
     setIsSubmitting(true);
     try {
@@ -79,12 +83,12 @@ export function PremiumValuationForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <AutoCompleteVehicleSelector
           selectedMake={watch("make") as string}
-          setSelectedMake={(make) => setValue("make", make)}
+          setSelectedMake={(make: string) => setValue("make", make)}
           selectedModel={watch("model") as string}
-          setSelectedModel={(model) => setValue("model", model)}
+          setSelectedModel={(model: string) => setValue("model", model)}
           disabled={isLoading}
           required={true}
-          onValidationChange={(isValid) => console.log("Validation:", isValid)}
+          onValidationChange={(isValid: boolean) => console.log("Validation:", isValid)}
         />
         
         <VehicleBasicInfoFields form={form} />
