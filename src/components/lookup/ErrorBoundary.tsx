@@ -1,44 +1,39 @@
-
-import React from "react";
+import React from 'react';
 
 interface Props {
   children: React.ReactNode;
-  fallback?: React.ReactNode;
 }
 
 interface State {
+  hasError: boolean;
   error: Error | null;
+  errorInfo: React.ErrorInfo | null;
 }
 
-export class ErrorBoundary extends React.Component<Props, State> {
-  state = { error: null };
+class ErrorBoundary extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
 
   static getDerivedStateFromError(error: Error) {
-    return { error };
+    return { hasError: true, error: error, errorInfo: null };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("Component Error:", error);
-    console.error("Error Stack:", errorInfo.componentStack);
+    console.error('Lookup Error:', error.message);
+    console.error('Error Stack:', error.stack);
   }
 
   render() {
-    if (this.state.error) {
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
-      
+    if (this.state.hasError) {
       return (
-        <div style={{ padding: 20, background: "#fee", color: "#900" }}>
-          <h2>Component Error:</h2>
-          <pre>{this.state.error.message}</pre>
-          <pre>{this.state.error.stack}</pre>
-          <button
-            onClick={() => this.setState({ error: null })}
-            className="bg-primary text-white px-4 py-2 mt-4 rounded"
-          >
-            Try Again
-          </button>
+        <div>
+          <h2>Something went wrong in the lookup process.</h2>
+          <details style={{ whiteSpace: 'pre-wrap' }}>
+            {this.state.error && this.state.error.toString()}
+            <br />
+          </details>
         </div>
       );
     }
@@ -48,3 +43,4 @@ export class ErrorBoundary extends React.Component<Props, State> {
 }
 
 export default ErrorBoundary;
+

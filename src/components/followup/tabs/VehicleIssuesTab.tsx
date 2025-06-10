@@ -31,7 +31,7 @@ export function VehicleIssuesTab({ formData, updateFormData }: VehicleIssuesTabP
     if (checked) {
       updatedLights = [...currentLights, issueType];
     } else {
-      updatedLights = currentLights.filter(light => light !== issueType);
+      updatedLights = currentLights.filter((light: string) => light !== issueType);
     }
 
     updateFormData({ dashboard_lights: updatedLights });

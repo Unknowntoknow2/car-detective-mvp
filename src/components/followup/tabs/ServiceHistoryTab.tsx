@@ -1,121 +1,79 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { FollowUpAnswers, ServiceHistoryDetails } from '@/types/follow-up-answers';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface ServiceHistoryTabProps {
   formData: FollowUpAnswers;
-  onServiceHistoryChange: (serviceData: ServiceHistoryDetails) => void;
+  updateFormData: (updates: Partial<FollowUpAnswers>) => void;
+  onServiceHistoryChange: (updates: Partial<FollowUpAnswers>) => void;
 }
 
-export function ServiceHistoryTab({ formData, onServiceHistoryChange }: ServiceHistoryTabProps) {
-  const serviceData = formData.serviceHistory || {
-    hasRecords: false,
-    lastService: '',
-    frequency: undefined,
-    dealerMaintained: false,
-    description: ''
-  };
+const serviceOptions = [
+  { value: 'oil_change', label: 'Oil Changes' },
+  { value: 'tire_rotation', label: 'Tire Rotations' },
+  { value: 'brake_service', label: 'Brake Services' },
+  { value: 'transmission_service', label: 'Transmission Services' },
+  { value: 'engine_tune_up', label: 'Engine Tune-Ups' },
+  { value: 'regular_inspection', label: 'Regular Inspections' },
+];
 
-  const hasRecords = serviceData.hasRecords;
+export function ServiceHistoryTab({ formData, updateFormData, onServiceHistoryChange }: ServiceHistoryTabProps) {
 
-  const handleServiceChange = (checked: boolean, serviceType: string) => {
-    const updatedData: ServiceHistoryDetails = {
-      ...serviceData,
-      hasRecords: checked,
-      ...(checked ? {} : {
-        lastService: '',
-        frequency: undefined,
-        dealerMaintained: false,
-        description: ''
-      })
-    };
-    onServiceHistoryChange(updatedData);
-  };
+const handleMaintenanceChange = (checked: boolean, serviceType: string) => {
+  const currentServices = formData.serviceHistory?.services || [];
+  let updatedServices;
 
-  const handleFieldChange = (field: keyof ServiceHistoryDetails, value: any) => {
-    const updatedData: ServiceHistoryDetails = {
-      ...serviceData,
-      [field]: value
-    };
-    onServiceHistoryChange(updatedData);
-  };
+  if (checked) {
+    updatedServices = [...currentServices, serviceType];
+  } else {
+    updatedServices = currentServices.filter((service: string) => service !== serviceType);
+  }
+
+  updateFormData({
+    serviceHistory: {
+      ...formData.serviceHistory,
+      hasRecords: true,
+      services: updatedServices
+    }
+  });
+};
+
+const handleServiceChange = (checked: boolean, serviceType: string) => {
+  handleMaintenanceChange(checked, serviceType);
+};
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Service & Maintenance History</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="service-records-toggle"
-            checked={hasRecords}
-            onCheckedChange={(checked) => handleServiceChange(checked, 'service')}
-          />
-          <Label htmlFor="service-records-toggle">
-            Do you have service records for this vehicle?
-          </Label>
-        </div>
-
-        {hasRecords && (
-          <div className="space-y-4 pl-6 border-l-2 border-gray-200">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="last-service">Last Service Date</Label>
-                <Input
-                  id="last-service"
-                  type="date"
-                  value={serviceData.lastService || ''}
-                  onChange={(e) => handleFieldChange('lastService', e.target.value)}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="service-frequency">Service Frequency</Label>
-                <Select
-                  value={serviceData.frequency || ''}
-                  onValueChange={(value: 'regular' | 'occasional' | 'rare' | 'unknown') => handleFieldChange('frequency', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select frequency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="regular">Regular (Every 3-6 months)</SelectItem>
-                    <SelectItem value="occasional">Occasional (6-12 months)</SelectItem>
-                    <SelectItem value="rare">Rare (12+ months)</SelectItem>
-                    <SelectItem value="unknown">Unknown</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="dealer-maintained-toggle"
-                checked={serviceData.dealerMaintained || false}
-                onCheckedChange={(checked) => handleFieldChange('dealerMaintained', checked)}
-              />
-              <Label htmlFor="dealer-maintained-toggle">Dealer Maintained</Label>
-            </div>
-
-            <div>
-              <Label htmlFor="service-description">Service History Details</Label>
-              <Textarea
-                id="service-description"
-                value={serviceData.description || ''}
-                onChange={(e) => handleFieldChange('description', e.target.value)}
-                placeholder="Describe the service history, major repairs, maintenance schedules..."
-                rows={3}
-              />
-            </div>
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Has the vehicle received regular maintenance?
+      </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {serviceOptions.map((service) => (
+          <div key={service.value} className="flex items-center space-x-2">
+            <Checkbox
+              id={service.value}
+              checked={formData.serviceHistory?.services?.includes(service.value) || false}
+              onCheckedChange={(checked) => handleServiceChange(checked, service.value)}
+            />
+            <Label htmlFor={service.value} className="cursor-pointer">
+              {service.label}
+            </Label>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        ))}
+      </div>
+
+      <div>
+        <Label htmlFor="additional_notes">Additional Notes</Label>
+        <Textarea
+          id="additional_notes"
+          placeholder="Any notes about the vehicle's service history?"
+          value={formData.additional_notes || ''}
+          onChange={(e) => updateFormData({ additional_notes: e.target.value })}
+        />
+      </div>
+    </div>
   );
 }

@@ -26,9 +26,7 @@ export function OnboardingTour() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl">
-            Welcome to CarDetective!
-          </DialogTitle>
+          <DialogTitle>Welcome to Car Detective!</DialogTitle>
         </DialogHeader>
 
         <div className="py-6">
