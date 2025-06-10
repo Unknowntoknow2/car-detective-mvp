@@ -1,50 +1,62 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Download, Loader2 } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Download, Loader2, Lock } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 interface PDFDownloadButtonProps {
   valuationResult: any;
   isPremium: boolean;
 }
 
-export function PDFDownloadButton({ valuationResult, isPremium }: PDFDownloadButtonProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
+export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
+  valuationResult,
+  isPremium,
+}) => {
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleDownload = async () => {
-    if (!isPremium) {
-      toast({
-        description: "Upgrade to premium to download PDF reports",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!isPremium) return;
 
-    setIsGenerating(true);
+    setIsDownloading(true);
     try {
-      // Mock PDF generation for now
+      // MVP: Basic download simulation
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
-        description: "PDF report downloaded successfully",
+        description: "PDF downloaded successfully",
       });
     } catch (error) {
       toast({
-        description: "Failed to generate PDF report",
+        description: "Failed to generate PDF",
         variant: "destructive",
       });
     } finally {
-      setIsGenerating(false);
+      setIsDownloading(false);
     }
   };
 
+  if (!isPremium) {
+    return (
+      <div>
+        <Button disabled role="button" aria-label="Download report">
+          <Lock className="h-4 w-4 mr-2" />
+          Download Report
+        </Button>
+        <p className="text-sm text-muted-foreground mt-2">
+          Upgrade to premium to download detailed reports
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <Button
-      onClick={handleDownload}
-      disabled={!isPremium || isGenerating}
-      className="w-full"
+    <Button 
+      onClick={handleDownload} 
+      disabled={isDownloading}
+      role="button" 
+      aria-label="Download report"
     >
-      {isGenerating ? (
+      {isDownloading ? (
         <>
           <Loader2 className="h-4 w-4 mr-2 animate-spin" role="status" />
           Generating...
@@ -57,4 +69,4 @@ export function PDFDownloadButton({ valuationResult, isPremium }: PDFDownloadBut
       )}
     </Button>
   );
-}
+};

@@ -1,3 +1,4 @@
+
 {
   "adjustments": {
     "condition": {
@@ -43,19 +44,6 @@
         ]
       }
     },
-<<<<<<< HEAD
-    "features": {
-      "sunroof": 0.02,
-      "leatherSeats": 0.03,
-      "navigationSystem": 0.01,
-      "premiumAudio": 0.02,
-      "adaptiveCruiseControl": 0.01,
-      "blindSpotMonitoring": 0.01,
-      "heatedSeats": 0.02,
-      "cooledSeats": 0.01,
-      "parkingAssist": 0.01,
-      "laneDepartureWarning": 0.01
-=======
     "premiumFeatures": {
       "leather": { "value": 0.02, "description": "Leather Interior" },
       "sunroof": { "value": 0.01, "description": "Sunroof" },
@@ -76,7 +64,6 @@
       "hasAccidentData": 3,
       "hasPhotoAnalysis": 5,
       "hasPremiumFeatures": 2
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     }
   }
 }

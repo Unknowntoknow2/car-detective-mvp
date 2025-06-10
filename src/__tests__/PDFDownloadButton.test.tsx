@@ -29,7 +29,7 @@ describe("PDFDownloadButton", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (generateValuationPdf as jest.Mock).mockResolvedValue(
+    (generateValuationPdf as any).mockResolvedValue(
       new Uint8Array([1, 2, 3]),
     );
   });
@@ -86,7 +86,7 @@ describe("PDFDownloadButton", () => {
 
   test("shows loading spinner when generating PDF", async () => {
     // Mock a delay in PDF generation
-    (generateValuationPdf as jest.Mock).mockImplementation(() => {
+    (generateValuationPdf as any).mockImplementation(() => {
       return new Promise((resolve) => {
         setTimeout(() => resolve(new Uint8Array([1, 2, 3])), 100);
       });
@@ -113,7 +113,7 @@ describe("PDFDownloadButton", () => {
   });
 
   test("handles error during PDF generation", async () => {
-    (generateValuationPdf as jest.Mock).mockRejectedValue(
+    (generateValuationPdf as any).mockRejectedValue(
       new Error("PDF generation failed"),
     );
 
