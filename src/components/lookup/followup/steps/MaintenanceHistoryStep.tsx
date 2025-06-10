@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -83,6 +82,13 @@ export const MaintenanceHistoryStep: React.FC<MaintenanceHistoryStepProps> = ({
 
   const isBasicComplete = data.maintenanceFrequency && data.lastServiceDate;
 
+  const handleMaintenanceChange = (value: string) => {
+    setData(prev => ({
+      ...prev,
+      maintenanceFrequency: value
+    }));
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -102,7 +108,7 @@ export const MaintenanceHistoryStep: React.FC<MaintenanceHistoryStepProps> = ({
         <CardContent>
           <RadioGroup 
             value={data.maintenanceFrequency} 
-            onValueChange={(value) => setData(prev => ({ ...prev, maintenanceFrequency: value }))}
+            onValueChange={(value) => handleMaintenanceChange(value)}
           >
             {maintenanceFrequencyOptions.map((option) => (
               <div key={option.value} className="flex items-center space-x-2">
