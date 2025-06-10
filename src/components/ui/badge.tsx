@@ -4,19 +4,25 @@ import { cn } from '@/lib/utils';
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: 'default' | 'secondary' | 'outline';
+  variant?: 'default' | 'secondary' | 'outline' | 'destructive' | 'gold';
   className?: string;
+  removable?: boolean;
+  onRemove?: () => void;
 }
 
 export const Badge: React.FC<BadgeProps> = ({ 
   children, 
   variant = 'default', 
-  className 
+  className,
+  removable = false,
+  onRemove
 }) => {
   const variants = {
     default: 'bg-primary text-primary-foreground',
     secondary: 'bg-secondary text-secondary-foreground',
     outline: 'border border-input',
+    destructive: 'bg-red-500 text-white',
+    gold: 'bg-yellow-500 text-white',
   };
 
   return (
@@ -28,6 +34,14 @@ export const Badge: React.FC<BadgeProps> = ({
       )}
     >
       {children}
+      {removable && onRemove && (
+        <button
+          onClick={onRemove}
+          className="ml-1 text-xs hover:text-red-300"
+        >
+          ×
+        </button>
+      )}
     </span>
   );
 };

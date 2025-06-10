@@ -5,10 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
-import AINAssistantTrigger from '@/components/chat/AINAssistantTrigger';
 import routes from '@/App.routes';
 
 const queryClient = new QueryClient({
@@ -41,20 +39,17 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <div className="min-h-screen flex flex-col bg-background">
-            <Navbar />
-            <main className="flex-grow">
-              <Routes>{renderRoutes(routes)}</Routes>
-            </main>
-            <Footer />
-            <AINAssistantTrigger />
-          </div>
-          <Toaster />
-          <Sonner />
-        </TooltipProvider>
-      </AuthProvider>
+      <TooltipProvider>
+        <div className="min-h-screen flex flex-col bg-background">
+          <Navbar />
+          <main className="flex-grow">
+            <Routes>{renderRoutes(routes)}</Routes>
+          </main>
+          <Footer />
+        </div>
+        <Toaster />
+        <Sonner />
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

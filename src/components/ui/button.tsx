@@ -3,8 +3,8 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'outline' | 'ghost';
-  size?: 'default' | 'sm' | 'lg';
+  variant?: 'default' | 'outline' | 'ghost' | 'destructive';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
   children: React.ReactNode;
 }
 
@@ -21,12 +21,14 @@ export const Button: React.FC<ButtonProps> = ({
     default: 'bg-primary text-primary-foreground hover:bg-primary/90',
     outline: 'border border-input hover:bg-accent hover:text-accent-foreground',
     ghost: 'hover:bg-accent hover:text-accent-foreground',
+    destructive: 'bg-red-500 text-white hover:bg-red-600',
   };
   
   const sizes = {
     default: 'h-10 py-2 px-4',
     sm: 'h-9 px-3 rounded-md',
     lg: 'h-11 px-8 rounded-md',
+    icon: 'h-10 w-10',
   };
 
   return (

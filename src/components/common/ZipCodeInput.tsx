@@ -1,182 +1,98 @@
-import React, { useEffect, useRef, useState } from "react";
+
+import React, { useState, useEffect, ChangeEvent } from "react";
 import { Input } from "@/components/ui/input";
-import {
-  debounce,
-  validateZipCode,
-  ZipValidationResult,
-} from "@/utils/validation/zipCodeValidator";
-import { AlertCircle, CheckCircle, MapPin } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 interface ZipCodeInputProps {
   value: string;
-  onChange: (value: string, isValid?: boolean) => void;
+  onChange: (value: string) => void;
+  onBlur?: () => void;
   className?: string;
-  placeholder?: string;
+  error?: string;
   disabled?: boolean;
   required?: boolean;
-  showValidation?: boolean;
-  label?: React.ReactNode;
-  name?: string;
+  placeholder?: string;
+  label?: string;
+  showLabel?: boolean;
   id?: string;
-  autoFocus?: boolean;
+  name?: string;
 }
 
 export const ZipCodeInput: React.FC<ZipCodeInputProps> = ({
   value,
   onChange,
+  onBlur,
   className,
-  placeholder = "Enter ZIP code",
+  error,
   disabled = false,
   required = false,
-  showValidation = true,
-  label,
-  name = "zipCode",
+  placeholder = "Enter ZIP code",
+  label = "ZIP Code",
+  showLabel = true,
   id = "zipCode",
-  autoFocus = false,
+  name = "zipCode",
 }) => {
-  const [isValidating, setIsValidating] = useState(false);
-  const [validation, setValidation] = useState<ZipValidationResult | null>(
-    null,
-  );
-  const [touched, setTouched] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [localValue, setLocalValue] = useState(value);
+  const [isFocused, setIsFocused] = useState(false);
 
-  // Define the debounced validation function
-  const debouncedValidate = useRef(
-    debounce(async (zipToValidate: string) => {
-      if (!zipToValidate || zipToValidate.length !== 5) {
-        setValidation(null);
-        return;
-      }
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
 
-      setIsValidating(true);
-      const result = await validateZipCode(zipToValidate);
-      setValidation(result);
-      setIsValidating(false);
-
-      // Notify parent component about validation result
-      onChange(zipToValidate, result.isValid);
-    }, 300),
-  ).current;
-
-  // Handle input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow digits and limit to 5 characters
-    const sanitizedValue = e.target.value.replace(/\D/g, "").slice(0, 5);
-
-    // Update parent component with the new value
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const sanitizedValue = inputValue.replace(/\D/g, "").slice(0, 5);
+    setLocalValue(sanitizedValue);
     onChange(sanitizedValue);
-
-    // Validate if 5 digits entered
-    if (sanitizedValue.length === 5) {
-      debouncedValidate(sanitizedValue);
-    } else if (validation) {
-      // Clear validation if ZIP is no longer 5 digits
-      setValidation(null);
-    }
   };
 
-  // Validate on blur if value is 5 digits
+  const handleFocus = () => {
+    setIsFocused(true);
+  };
+
   const handleBlur = () => {
-    setTouched(true);
-    if (value && value.length === 5) {
-      debouncedValidate(value);
-    }
+    setIsFocused(false);
+    onBlur?.();
   };
 
-  // Validate initial value if provided
-  useEffect(() => {
-    if (value && value.length === 5 && touched) {
-      debouncedValidate(value);
-    }
-  }, [value, touched, debouncedValidate]);
-
-  // If autofocus is enabled, focus the input on mount
-  useEffect(() => {
-    if (autoFocus && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [autoFocus]);
-
-  // Determine validation status UI elements
-  const getValidationIcon = () => {
-    if (!showValidation || !touched || value.length !== 5) return null;
-
-    if (isValidating) {
-      return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
-    }
-
-    if (validation) {
-      return validation.isValid
-        ? <CheckCircle className="h-4 w-4 text-success" />
-        : <AlertCircle className="h-4 w-4 text-destructive" />;
-    }
-
-    return null;
-  };
+  const inputClasses = cn(
+    "transition-all duration-200",
+    error
+      ? "border-red-300 focus:ring-red-200"
+      : "focus:ring-primary/20 focus:border-primary hover:border-primary/30",
+    isFocused && !error && "ring-2 ring-primary/20",
+    className
+  );
 
   return (
     <div className="space-y-2">
-      {label && (
-        <label
-          htmlFor={id}
-          className="text-sm font-medium text-gray-700 flex items-center gap-1"
-        >
+      {showLabel && (
+        <Label htmlFor={id} className="text-sm font-medium text-slate-700">
           {label}
-          {required && <span className="text-destructive">*</span>}
-        </label>
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </Label>
       )}
-
-      <div className="relative">
-        <Input
-          ref={inputRef}
-          id={id}
-          name={name}
-          type="text"
-          placeholder={placeholder}
-          value={value}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          disabled={disabled}
-          className={cn(
-            "pl-10 pr-10",
-            validation && !validation.isValid && touched
-              ? "border-destructive focus:border-destructive"
-              : "",
-            validation?.isValid && touched
-              ? "border-success focus:border-success"
-              : "",
-            className,
-          )}
-          maxLength={5}
-          inputMode="numeric"
-          pattern="[0-9]*"
-          required={required}
-        />
-
-        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-          {getValidationIcon()}
-        </div>
-      </div>
-
-      {/* Validation message */}
-      {touched && validation && !validation.isValid && value.length === 5 && (
-        <p className="text-sm text-destructive flex items-center gap-1">
-          <AlertCircle className="h-3 w-3" />
-          Invalid ZIP code
-        </p>
-      )}
-
-      {/* City/State display when valid */}
-      {validation?.isValid && (
-        <p className="text-xs text-muted-foreground">
-          {validation.city}, {validation.state}
+      <Input
+        id={id}
+        name={name}
+        type="text"
+        placeholder={placeholder}
+        value={localValue}
+        onChange={handleChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        className={inputClasses}
+        disabled={disabled}
+        required={required}
+      />
+      {error && (
+        <p className="text-sm text-red-600 mt-1" role="alert">
+          {error}
         </p>
       )}
     </div>
   );
 };
+
+export default ZipCodeInput;
