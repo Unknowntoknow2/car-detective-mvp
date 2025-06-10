@@ -1,74 +1,75 @@
 
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DealerOfferCard } from '@/components/valuation/offers/DealerOfferCard';
+import { useDealerOfferComparison } from '@/hooks/useDealerOfferComparison';
 
-interface DealerOffer {
-  id: string;
-  dealerName: string;
-  amount: number;
-  status: "pending" | "accepted" | "declined";
-  createdAt: string;
+export interface DealerOffersListProps {
+  reportId?: string;
+  showActions?: boolean;
 }
 
-interface DealerOffersListProps {
-  offers?: DealerOffer[];
-  onAccept: (offerId: string) => void;
-  onDecline: (offerId: string) => void;
-}
+export const DealerOffersList: React.FC<DealerOffersListProps> = ({
+  reportId,
+  showActions = false,
+}) => {
+  const { offers, isLoading, error } = useDealerOfferComparison(reportId);
 
-export function DealerOffersList({ 
-  offers = [], 
-  onAccept, 
-  onDecline 
-}: DealerOffersListProps) {
-  if (offers.length === 0) {
+  if (isLoading) {
     return (
       <Card>
-        <CardContent className="p-6 text-center">
-          <p className="text-muted-foreground">No dealer offers yet.</p>
+        <CardHeader>
+          <CardTitle>Dealer Offers</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Loading offers...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Dealer Offers</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-red-600">Error loading offers: {error.message}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!offers?.length) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Dealer Offers</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">No offers available yet.</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {offers.map((offer) => (
-        <Card key={offer.id}>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-lg">{offer.dealerName}</CardTitle>
-              <Badge variant={offer.status === "pending" ? "default" : "secondary"}>
-                {offer.status}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center">
-              <p className="text-2xl font-bold">${offer.amount.toLocaleString()}</p>
-              {offer.status === "pending" && (
-                <div className="space-x-2">
-                  <Button 
-                    size="sm" 
-                    onClick={() => onAccept(offer.id)}
-                  >
-                    Accept
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => onDecline(offer.id)}
-                  >
-                    Decline
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Dealer Offers ({offers.length})</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {offers.map((offer, index) => (
+          <DealerOfferCard
+            key={offer.id}
+            offer={offer}
+            isBestOffer={index === 0}
+          />
+        ))}
+      </CardContent>
+    </Card>
   );
-}
+};
+
+export default DealerOffersList;
