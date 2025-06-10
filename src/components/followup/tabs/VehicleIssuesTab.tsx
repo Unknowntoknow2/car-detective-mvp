@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,11 +24,12 @@ const issues = [
 ];
 
 export function VehicleIssuesTab({ formData, updateFormData }: VehicleIssuesTabProps) {
-  const handleIssueChange = (checked: boolean, issueType: string) => {
+  const handleIssueChange = (checked: boolean | string, issueType: string) => {
+    const isChecked = checked === true || checked === 'on';
     const currentLights = formData.dashboard_lights || [];
     let updatedLights;
 
-    if (checked) {
+    if (isChecked) {
       updatedLights = [...currentLights, issueType];
     } else {
       updatedLights = currentLights.filter((light: string) => light !== issueType);

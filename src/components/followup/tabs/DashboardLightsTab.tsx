@@ -1,7 +1,7 @@
+
 import React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
 
 interface DashboardLightsTabProps {
   formData: any;
@@ -19,11 +19,12 @@ const lights = [
 ];
 
 export function DashboardLightsTab({ formData, updateFormData }: DashboardLightsTabProps) {
-  const handleLightChange = (checked: boolean, lightType: string) => {
+  const handleLightChange = (checked: boolean | string, lightType: string) => {
+    const isChecked = checked === true || checked === 'on';
     const currentLights = formData.dashboard_lights || [];
     let updatedLights;
 
-    if (checked) {
+    if (isChecked) {
       updatedLights = [...currentLights, lightType];
     } else {
       updatedLights = currentLights.filter((light: string) => light !== lightType);

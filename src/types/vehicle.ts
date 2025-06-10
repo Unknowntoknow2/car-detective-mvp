@@ -21,6 +21,18 @@ export interface DealerVehicle {
   updated_at?: string;
 }
 
+export interface DecodedVehicleInfo {
+  make: string;
+  model: string;
+  year: number;
+  trim?: string;
+  engine?: string;
+  transmission?: string;
+  bodyType?: string;
+  fuelType?: string;
+  vin: string;
+}
+
 export interface DealerVehicleFormData {
   make: string;
   model: string;

@@ -2,11 +2,11 @@
 // src/components/lookup/types/manualEntry.ts
 
 export enum ConditionLevel {
-  Excellent = "Excellent",
-  VeryGood = "Very Good",
-  Good = "Good",
-  Fair = "Fair",
-  Poor = "Poor",
+  Excellent = "excellent",
+  VeryGood = "very-good", 
+  Good = "good",
+  Fair = "fair",
+  Poor = "poor",
 }
 
 export interface AccidentDetails {
@@ -15,6 +15,7 @@ export interface AccidentDetails {
   repaired?: boolean;
   count?: string;
   area?: string;
+  description?: string;
 }
 
 export interface ManualEntryFormData {
@@ -27,7 +28,7 @@ export interface ManualEntryFormData {
   trimName?: string; // Display name for UI
   year: number;
   mileage: number;
-  condition: ConditionLevel;
+  condition: ConditionLevel | string;
   zipCode: string;
   fuelType?: string;
   transmission?: string;

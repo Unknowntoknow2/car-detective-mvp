@@ -1,42 +1,18 @@
 
-export interface VinValidationResult {
+export interface ValidationResult {
   isValid: boolean;
+  message?: string;
   error?: string;
 }
 
+export function validateVin(vin: string): boolean {
+  if (!vin || typeof vin !== 'string') return false;
+  if (vin.length !== 17) return false;
+  return /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin);
+}
+
 export function isValidVIN(vin: string): boolean {
-  if (!vin || vin.length !== 17) {
-    return false;
-  }
-
-  // VIN should not contain I, O, or Q
-  const vinRegex = /^[A-HJ-NPR-Za-hj-npr-z0-9]{17}$/;
-  return vinRegex.test(vin);
+  return validateVin(vin);
 }
 
-export function validateVin(vin: string): VinValidationResult {
-  if (!vin) {
-    return {
-      isValid: false,
-      error: "VIN is required"
-    };
-  }
-
-  if (vin.length !== 17) {
-    return {
-      isValid: false,
-      error: "VIN must be exactly 17 characters"
-    };
-  }
-
-  if (!isValidVIN(vin)) {
-    return {
-      isValid: false,
-      error: "Invalid VIN format (cannot contain I, O, or Q)"
-    };
-  }
-
-  return {
-    isValid: true
-  };
-}
+export const validateVIN = validateVin; // Alias for backwards compatibility
