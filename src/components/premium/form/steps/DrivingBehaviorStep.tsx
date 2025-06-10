@@ -1,117 +1,94 @@
-
-import React, { useEffect } from "react";
-import { FormData } from "@/types/premium-valuation";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormData } from "@/types/premium-valuation";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 
 interface DrivingBehaviorStepProps {
-  step: number;
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  updateValidity: (step: number, isValid: boolean) => void;
+  updateValidity: (isValid: boolean) => void;
 }
 
 export function DrivingBehaviorStep({
-  step,
   formData,
   setFormData,
   updateValidity,
 }: DrivingBehaviorStepProps) {
-  useEffect(() => {
-    const isValid = Boolean(formData.drivingType);
-    updateValidity(step, isValid);
-  }, [formData.drivingType, step, updateValidity]);
-
-  const handleDrivingTypeChange = (value: string) => {
-    setFormData(prev => ({
+  const handleDrivingBehaviorChange = (newValue: string) => {
+    setFormData((prev: FormData) => ({
       ...prev,
-      drivingType: value,
+      drivingBehavior: newValue
     }));
+    updateValidity(true);
   };
 
-  const handleDrivingNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData(prev => ({
+  const handleAnnualMileageChange = (value: string) => {
+    setFormData((prev: FormData) => ({
       ...prev,
-      drivingNotes: e.target.value,
+      annualMileage: parseInt(value)
     }));
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          Driving Behavior
-        </h2>
-        <p className="text-gray-600 mb-6">
-          Information about how the vehicle has been driven affects its valuation.
-        </p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Primary Driving Type</CardTitle>
-        </CardHeader>
-        <CardContent>
+    <Card>
+      <CardHeader>
+        <CardTitle>Driving Behavior</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div>
+          <h3 className="text-lg font-medium mb-4">How would you describe your driving style?</h3>
           <RadioGroup
-            value={formData.drivingType || ""}
-            onValueChange={handleDrivingTypeChange}
+            value={formData.drivingBehavior || "normal"}
+            onValueChange={handleDrivingBehaviorChange}
             className="space-y-3"
           >
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="city" id="city" />
-              <Label htmlFor="city">
-                Mostly city driving (stop-and-go traffic)
-              </Label>
+              <RadioGroupItem value="conservative" id="conservative" />
+              <Label htmlFor="conservative">Conservative - I drive carefully and avoid risks</Label>
             </div>
-
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="highway" id="highway" />
-              <Label htmlFor="highway">
-                Mostly highway driving (steady speeds)
-              </Label>
+              <RadioGroupItem value="normal" id="normal" />
+              <Label htmlFor="normal">Normal - I drive like most people</Label>
             </div>
-
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="mixed" id="mixed" />
-              <Label htmlFor="mixed">
-                Mixed city and highway driving
-              </Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="rural" id="rural" />
-              <Label htmlFor="rural">
-                Rural/country driving
-              </Label>
+              <RadioGroupItem value="aggressive" id="aggressive" />
+              <Label htmlFor="aggressive">Aggressive - I drive fast and take risks</Label>
             </div>
           </RadioGroup>
-        </CardContent>
-      </Card>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Additional Driving Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <Label htmlFor="driving-notes">
-              Additional details about vehicle usage (optional)
-            </Label>
-            <Textarea
-              id="driving-notes"
-              placeholder="e.g., gentle driving, aggressive driving, towing, commercial use..."
-              value={formData.drivingNotes || ""}
-              onChange={handleDrivingNotesChange}
-              className="min-h-[80px]"
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Annual Mileage</h3>
+          <p className="text-sm text-muted-foreground">
+            How many miles do you drive per year on average?
+          </p>
+          
+          <div className="space-y-2">
+            <Input
+              type="number"
+              value={formData.annualMileage || 12000}
+              onChange={(e) => handleAnnualMileageChange(e.target.value)}
+              min={0}
+              max={100000}
             />
-            <p className="text-sm text-gray-500">
-              Include any relevant information about how the vehicle was driven or used.
-            </p>
+            <Slider
+              value={[formData.annualMileage || 12000]}
+              min={0}
+              max={50000}
+              step={1000}
+              onValueChange={(values) => handleAnnualMileageChange(values[0].toString())}
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>0 miles</span>
+              <span>25,000 miles</span>
+              <span>50,000 miles</span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

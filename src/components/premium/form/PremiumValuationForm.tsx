@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +11,7 @@ import { ConditionAndZipFields } from "@/components/lookup/manual/components/Con
 import { VehicleDetailsFields } from "@/components/lookup/manual/components/VehicleDetailsFields";
 import { VinInputField } from "@/components/lookup/manual/components/VinInputField";
 import { ConditionLevel } from "@/components/lookup/types/manualEntry";
+import { ManualEntryFormData } from '@/types/manualEntry';
 
 const premiumValuationSchema = z.object({
   make: z.string().min(1, "Make is required"),
@@ -77,7 +77,15 @@ export function PremiumValuationForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <AutoCompleteVehicleSelector form={form} />
+        <AutoCompleteVehicleSelector
+          selectedMake={watch("make") as string}
+          setSelectedMake={(make) => setValue("make", make)}
+          selectedModel={watch("model") as string}
+          setSelectedModel={(model) => setValue("model", model)}
+          disabled={isLoading}
+          required={true}
+          onValidationChange={(isValid) => console.log("Validation:", isValid)}
+        />
         
         <VehicleBasicInfoFields form={form} />
         

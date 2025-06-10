@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import VinLookup from '@/components/lookup/VinLookup';
 import { PlateLookup } from '@/components/lookup/PlateLookup';
 import { ManualLookup } from '@/components/lookup/ManualLookup';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { ManualEntryFormData } from '@/types/manualEntry';
 
 interface LookupTabsProps {
   defaultTab?: string;

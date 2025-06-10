@@ -133,6 +133,11 @@ export function DetailedConditionRating(
     Object.keys(ratings).length;
   const overallConditionLabel = getConditionLabel(overallCondition);
 
+  const handleConditionChange = (value: any) => {
+    // Handle condition change logic
+    console.log("Condition changed:", value);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">

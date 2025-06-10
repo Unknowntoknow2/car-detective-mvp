@@ -1,22 +1,18 @@
 
 import React from 'react';
-import { UnifiedPlateLookup, UnifiedPlateLookupProps } from './plate/UnifiedPlateLookup';
+import { UnifiedPlateLookup } from './plate/UnifiedPlateLookup';
 
-export interface PlateLookupProps extends Omit<UnifiedPlateLookupProps, 'tier'> {
+export interface PlateLookupProps {
   tier?: 'free' | 'premium';
+  onVehicleFound?: (vehicle: any) => void;
 }
 
 export const PlateLookup: React.FC<PlateLookupProps> = ({ 
   tier = 'free',
-  ...props 
+  onVehicleFound
 }) => {
   return (
-    <UnifiedPlateLookup
-      tier={tier}
-      showPremiumFeatures={tier === 'free'}
-      includePremiumBadging={true}
-      {...props}
-    />
+    <UnifiedPlateLookup />
   );
 };
 

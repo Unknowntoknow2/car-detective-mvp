@@ -15,6 +15,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface FuelTypeStepProps {
   step: number;
@@ -71,7 +73,10 @@ export function FuelTypeStep(
   }, []);
 
   const handleFuelTypeChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, fuelType: value }));
+    setFormData((prev: FormData) => ({
+      ...prev,
+      fuelType: value
+    }));
     updateValidity(step, true);
   };
 
@@ -102,12 +107,14 @@ export function FuelTypeStep(
                   <HelpCircle className="h-4 w-4 text-muted-foreground" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p>
-                  The fuel type can significantly impact your vehicle's market
-                  value, especially with the growing popularity of alternative
-                  fuel vehicles.
-                </p>
+              <TooltipContent>
+                <div className="p-2 max-w-xs">
+                  <p>
+                    The fuel type can significantly impact your vehicle's market
+                    value, especially with the growing popularity of alternative
+                    fuel vehicles.
+                  </p>
+                </div>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

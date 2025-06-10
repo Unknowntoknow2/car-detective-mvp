@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { FormData } from "@/types/premium-valuation";
 import { toast } from "sonner";
@@ -19,16 +20,13 @@ export function FormInitializer({
 }: FormInitializerProps) {
   useEffect(() => {
     if (initialLoad) {
-      // First, try to load from formData autosave
       const savedFormData = loadSavedData();
-
-      // Then, check if we have vehicle data from the lookup tabs
       const savedVehicleData = localStorage.getItem("premium_vehicle");
 
       if (savedVehicleData) {
         try {
           const vehicleData = JSON.parse(savedVehicleData);
-          setFormData((prev) => ({
+          setFormData((prev: FormData) => ({
             ...prev,
             ...vehicleData,
           }));

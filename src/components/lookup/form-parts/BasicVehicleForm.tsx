@@ -1,8 +1,7 @@
-
 import React, { useEffect } from 'react';
 import { MakeModelSelect } from '@/components/common/MakeModelSelect';
 import { useMakeModels } from '@/hooks/useMakeModels';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { ManualEntryFormData } from '@/types/manualEntry';
 
 interface BasicVehicleFormProps {
   formData: ManualEntryFormData;
