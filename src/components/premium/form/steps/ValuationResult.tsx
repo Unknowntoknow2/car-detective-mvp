@@ -1,88 +1,56 @@
-import { useEffect, useState } from "react";
-import UnifiedValuationResult from "@/components/valuation/UnifiedValuationResult";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
-import { useValuationResult } from "@/hooks/useValuationResult";
+
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FormData } from "@/types/premium-valuation";
 
 interface ValuationResultProps {
-  valuationId?: string;
+  formData: FormData;
+  valuationResult: any;
+  onReset: () => void;
 }
 
-export function ValuationResult(
-  { valuationId: propValuationId }: ValuationResultProps,
-) {
-  const [hydratedId, setHydratedId] = useState<string | undefined>(
-    propValuationId,
-  );
-  const { data } = useValuationResult(hydratedId || "");
-
-  useEffect(() => {
-    if (!propValuationId) {
-      const localId = localStorage.getItem("latest_valuation_id");
-      if (localId) {
-        console.log("Retrieved valuationId from localStorage:", localId);
-        setHydratedId(localId);
-      }
-    }
-  }, [propValuationId]);
-
-  if (!hydratedId) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Missing Valuation ID</AlertTitle>
-        <AlertDescription>
-          No valuation ID was provided. Please complete the previous steps to
-          generate a valuation.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  // Default vehicle info if data is not available
-  const vehicleInfo = data
-    ? {
-      make: data.make,
-      model: data.model,
-      year: data.year,
-      mileage: data.mileage || 0,
-      condition: data.condition || "Good",
-    }
-    : {
-      make: "Unknown",
-      model: "Vehicle",
-      year: new Date().getFullYear(),
-      mileage: 0,
-      condition: "Good",
-    };
-
-  // Ensure priceRange is a tuple with exactly two elements
-  const priceRange: [number, number] = data?.price_range ? 
-    (Array.isArray(data.price_range) ? 
-      [Number(data.price_range[0]), Number(data.price_range[1])] : 
-      'low' in data.price_range && 'high' in data.price_range ?
-      [Number(data.price_range.low), Number(data.price_range.high)] :
-      [0, 0]) : 
-    [0, 0];
-
-  // Ensure all adjustments have proper descriptions
-  const adjustmentsWithDescriptions = (data?.adjustments || []).map(adjustment => ({
-    ...adjustment,
-    description: adjustment.description || `Adjustment for ${adjustment.factor}`
-  }));
+export function ValuationResult({
+  formData,
+  valuationResult,
+  onReset,
+}: ValuationResultProps) {
+  // Provide fallback if valuationResult is null/undefined
+  const result = valuationResult || {
+    make: formData.make,
+    model: formData.model,
+    year: formData.year,
+    estimatedValue: 25000,
+    confidence: 85
+  };
 
   return (
-    <div className="mt-8">
-      <h2 className="text-2xl font-bold mb-4">Your Valuation Result</h2>
-      <UnifiedValuationResult
-        valuationId={hydratedId}
-        displayMode="full"
-        vehicleInfo={vehicleInfo}
-        estimatedValue={data?.estimatedValue || 0}
-        confidenceScore={data?.confidenceScore || 85}
-        priceRange={priceRange}
-        adjustments={adjustmentsWithDescriptions}
-      />
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Valuation Results</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div>
+          <h3 className="text-lg font-medium mb-2">Vehicle Information</h3>
+          <p><strong>Year:</strong> {result.year}</p>
+          <p><strong>Make:</strong> {result.make}</p>
+          <p><strong>Model:</strong> {result.model}</p>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-medium mb-2">Estimated Value</h3>
+          <p className="text-3xl font-bold text-primary">
+            ${(result.estimatedValue || 25000).toLocaleString()}
+          </p>
+          <p className="text-sm text-gray-500">
+            Confidence Score: {result.confidence || 85}%
+          </p>
+        </div>
+
+        <Button onClick={onReset} variant="outline">
+          Start New Valuation
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

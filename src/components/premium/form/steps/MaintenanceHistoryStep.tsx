@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ export function MaintenanceHistoryStep({
 }: MaintenanceHistoryStepProps) {
   const [maintenanceRecords, setMaintenanceRecords] = useState<any[]>([]);
 
-  const handleHistoryChange = (newHistory: string) => {
+  const handleHistoryChange = (newHistory: 'dealer' | 'independent' | 'owner' | 'unknown') => {
     setFormData((prev: FormData) => ({
       ...prev,
       serviceHistory: newHistory
@@ -53,20 +54,25 @@ export function MaintenanceHistoryStep({
       <CardContent className="space-y-4">
         <div>
           <Label htmlFor="service-history">Service History</Label>
-          <Input
-            type="text"
+          <select
             id="service-history"
             value={formData.serviceHistory || ""}
-            onChange={(e) => handleHistoryChange(e.target.value)}
-            placeholder="Enter service history"
-          />
+            onChange={(e) => handleHistoryChange(e.target.value as 'dealer' | 'independent' | 'owner' | 'unknown')}
+            className="w-full border rounded-md py-2 px-3"
+          >
+            <option value="">Select</option>
+            <option value="dealer">Dealer</option>
+            <option value="independent">Independent</option>
+            <option value="owner">Owner</option>
+            <option value="unknown">Unknown</option>
+          </select>
         </div>
 
         <div>
           <Label htmlFor="regular-maintenance">Regular Maintenance</Label>
           <select
             id="regular-maintenance"
-            value={formData.hasRegularMaintenance !== null ? formData.hasRegularMaintenance.toString() : ""}
+            value={formData.hasRegularMaintenance !== null ? formData.hasRegularMaintenance?.toString() : ""}
             onChange={(e) => handleMaintenanceChange(e.target.value === "true")}
             className="w-full border rounded-md py-2 px-3"
           >
@@ -89,7 +95,7 @@ export function MaintenanceHistoryStep({
 
         <div>
           <Button onClick={() => addMaintenanceRecord(null)}>Add Maintenance Record</Button>
-          {maintenanceRecords.map((record, index) => (
+          {maintenanceRecords.map((record: any, index: number) => (
             <div key={index}>
               {/* Display maintenance record details */}
             </div>
