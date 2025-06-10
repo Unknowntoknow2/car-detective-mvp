@@ -24,12 +24,11 @@ const issues = [
 ];
 
 export function VehicleIssuesTab({ formData, updateFormData }: VehicleIssuesTabProps) {
-  const handleIssueChange = (checked: boolean | string, issueType: string) => {
-    const isChecked = checked === true || checked === 'on';
+  const handleIssueChange = (checked: boolean, issueType: string) => {
     const currentLights = formData.dashboard_lights || [];
     let updatedLights;
 
-    if (isChecked) {
+    if (checked) {
       updatedLights = [...currentLights, issueType];
     } else {
       updatedLights = currentLights.filter((light: string) => light !== issueType);
@@ -46,7 +45,7 @@ export function VehicleIssuesTab({ formData, updateFormData }: VehicleIssuesTabP
             <Checkbox
               id={issue.value}
               checked={formData.dashboard_lights?.includes(issue.value) || false}
-              onCheckedChange={(checked) => handleIssueChange(checked, issue.value)}
+              onCheckedChange={(checked: boolean) => handleIssueChange(checked, issue.value)}
             />
             <Label htmlFor={issue.value} className="cursor-pointer">
               {issue.label}

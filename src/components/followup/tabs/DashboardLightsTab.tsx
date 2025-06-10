@@ -19,12 +19,11 @@ const lights = [
 ];
 
 export function DashboardLightsTab({ formData, updateFormData }: DashboardLightsTabProps) {
-  const handleLightChange = (checked: boolean | string, lightType: string) => {
-    const isChecked = checked === true || checked === 'on';
+  const handleLightChange = (checked: boolean, lightType: string) => {
     const currentLights = formData.dashboard_lights || [];
     let updatedLights;
 
-    if (isChecked) {
+    if (checked) {
       updatedLights = [...currentLights, lightType];
     } else {
       updatedLights = currentLights.filter((light: string) => light !== lightType);
@@ -44,7 +43,7 @@ export function DashboardLightsTab({ formData, updateFormData }: DashboardLights
             <Checkbox
               id={light.value}
               checked={formData.dashboard_lights?.includes(light.value)}
-              onCheckedChange={(checked) => handleLightChange(checked, light.value)}
+              onCheckedChange={(checked: boolean) => handleLightChange(checked, light.value)}
             />
             <Label htmlFor={light.value} className="cursor-pointer">
               {light.label}

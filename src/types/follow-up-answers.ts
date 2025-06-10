@@ -1,4 +1,3 @@
-
 export interface FollowUpAnswers {
   vin: string;
   zip_code?: string;
