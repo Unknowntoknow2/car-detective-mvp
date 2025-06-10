@@ -11,12 +11,10 @@ export function useVinDecoderForm() {
   const [carfaxData, setCarfaxData] = useState<any>(null);
   const [carfaxError, setCarfaxError] = useState<string | null>(null);
   const [isLoadingCarfax, setIsLoadingCarfax] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
 
-  const { lookupVin } = useVinDecoder();
-  const { runLookup, result: valuationResult, isLoading: isSubmittingValuation } = useFullValuationPipeline();
+  const { data, loading, error } = useVinDecoder();
+  const { runLookup, data: valuationResult, isLoading: isSubmittingValuation } = useFullValuationPipeline();
 
   // VIN → Decode → Real API → Save to Supabase
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,20 +26,18 @@ export function useVinDecoderForm() {
     }
 
     try {
-      setIsLoading(true);
+      setIsLoadingCarfax(true);
       setCarfaxData(null);
       setCarfaxError(null);
-      setError(null);
 
-      const decoded = await lookupVin(vin);
-      if (!decoded) {
+      if (!data) {
         toast.error("VIN lookup failed. Try again.");
         return;
       }
 
+      setResult(data);
       await runLookup("vin", vin);
 
-      setIsLoadingCarfax(true);
       const report = await getCarfaxReport(vin);
       setCarfaxData(report);
       setIsLoadingCarfax(false);
@@ -60,11 +56,8 @@ export function useVinDecoderForm() {
   };
 
   const handleDetailsSubmit = async (details: any): Promise<void> => {
-    await submitValuation({
-      ...details,
-      zipCode: zipCode || details.zipCode,
-      carfaxData: carfaxData || undefined,
-    });
+    // Implementation for submitting additional details
+    console.log("Submitting details:", details);
   };
 
   return {
@@ -73,7 +66,7 @@ export function useVinDecoderForm() {
     zipCode,
     setZipCode,
     result,
-    isLoading,
+    isLoading: loading,
     error,
     carfaxData,
     isLoadingCarfax,

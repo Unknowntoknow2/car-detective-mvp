@@ -4,7 +4,7 @@ import { TitleStatusSection } from './TitleStatusSection';
 import { ServiceHistorySection } from './ServiceHistorySection';
 import { AccidentHistorySection } from './AccidentHistorySection';
 import { AdditionalDetailsSection } from './AdditionalDetailsSection';
-import { ManualEntryFormData, AccidentDetails } from '../types/manualEntry';
+import { ManualEntryFormData, AccidentDetails } from '@/types/manualEntry';
 
 interface UnifiedFollowUpQuestionsProps {
   formData: ManualEntryFormData;
@@ -17,11 +17,11 @@ export function UnifiedFollowUpQuestions({
 }: UnifiedFollowUpQuestionsProps) {
   // Default accident details
   const defaultAccidentDetails: AccidentDetails = {
-    hasAccident: false,
+    hadAccident: false,
     severity: 'minor',
     repaired: false,
     count: 0,
-    area: '',
+    location: '',
     description: ''
   };
 
@@ -56,7 +56,7 @@ export function UnifiedFollowUpQuestions({
     const updatedDetails: AccidentDetails = {
       ...defaultAccidentDetails,
       ...formData.accidentDetails,
-      hasAccident: value !== null ? value : false
+      hadAccident: value !== null ? value : false
     };
     updateFormData({ accidentDetails: updatedDetails });
   };
@@ -65,7 +65,7 @@ export function UnifiedFollowUpQuestions({
     const updatedDetails: AccidentDetails = {
       ...defaultAccidentDetails,
       ...formData.accidentDetails,
-      hasAccident: formData.accidentDetails?.hasAccident || false,
+      hadAccident: formData.accidentDetails?.hadAccident || false,
       severity: value
     };
     updateFormData({ accidentDetails: updatedDetails });
@@ -75,7 +75,7 @@ export function UnifiedFollowUpQuestions({
     const updatedDetails: AccidentDetails = {
       ...defaultAccidentDetails,
       ...formData.accidentDetails,
-      hasAccident: formData.accidentDetails?.hasAccident || false,
+      hadAccident: formData.accidentDetails?.hadAccident || false,
       repaired: value
     };
     updateFormData({ accidentDetails: updatedDetails });
@@ -85,7 +85,7 @@ export function UnifiedFollowUpQuestions({
     const updatedDetails: AccidentDetails = {
       ...defaultAccidentDetails,
       ...formData.accidentDetails,
-      hasAccident: formData.accidentDetails?.hasAccident || false,
+      hadAccident: formData.accidentDetails?.hadAccident || false,
       description: value
     };
     updateFormData({ accidentDetails: updatedDetails });
@@ -129,7 +129,7 @@ export function UnifiedFollowUpQuestions({
       />
 
       <AccidentHistorySection
-        hasAccident={formData.accidentDetails?.hasAccident !== undefined ? formData.accidentDetails.hasAccident : null}
+        hasAccident={formData.accidentDetails?.hadAccident !== undefined ? formData.accidentDetails.hadAccident : null}
         setHasAccident={setHasAccident}
         accidentSeverity={formData.accidentDetails?.severity || 'minor'}
         setAccidentSeverity={setAccidentSeverity}

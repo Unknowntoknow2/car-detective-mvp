@@ -1,119 +1,76 @@
+
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Valuation } from "@/types/valuation-history";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ValuationHistory, ValuationBreakdownItem } from "@/types/valuation-history";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 interface ValuationBreakdownProps {
-  valuation: Valuation;
+  valuation: ValuationHistory;
+  breakdown?: ValuationBreakdownItem[];
 }
 
-export function ValuationBreakdown({ valuation }: ValuationBreakdownProps) {
-  // Define some common adjustment factors based on valuation data
-  const adjustmentFactors = [
-    {
-      name: "Base Value",
-      percentage: 100,
-      value: valuation.estimated_value ? valuation.estimated_value * 0.8 : 0,
-      description: "Starting point based on make, model, and year",
-    },
-    {
-      name: "Mileage",
-      percentage: valuation.mileage && valuation.mileage > 50000 ? -10 : 5,
-      value: valuation.estimated_value
-        ? (valuation.estimated_value *
-          (valuation.mileage && valuation.mileage > 50000 ? -0.1 : 0.05))
-        : 0,
-      description: `${valuation.mileage?.toLocaleString() || "Unknown"} miles`,
-    },
-    {
-      name: "Condition",
-      percentage: valuation.condition === "Excellent"
-        ? 15
-        : valuation.condition === "Good"
-        ? 5
-        : valuation.condition === "Fair"
-        ? -5
-        : -15,
-      value: valuation.estimated_value
-        ? (valuation.estimated_value *
-          (valuation.condition === "Excellent"
-            ? 0.15
-            : valuation.condition === "Good"
-            ? 0.05
-            : valuation.condition === "Fair"
-            ? -0.05
-            : -0.15))
-        : 0,
-      description: valuation.condition || "Unknown",
-    },
-    {
-      name: "Market Demand",
-      percentage: 7,
-      value: valuation.estimated_value ? valuation.estimated_value * 0.07 : 0,
-      description: "Current market conditions",
-    },
-  ];
+export const ValuationBreakdown = ({ valuation, breakdown = [] }: ValuationBreakdownProps) => {
+  const getAdjustmentIcon = (adjustment: number) => {
+    if (adjustment > 0) return <TrendingUp className="h-4 w-4 text-green-600" />;
+    if (adjustment < 0) return <TrendingDown className="h-4 w-4 text-red-600" />;
+    return <Minus className="h-4 w-4 text-gray-400" />;
+  };
 
-  // Format currency values
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(value);
+  const formatAdjustment = (adjustment: number) => {
+    if (adjustment === 0) return "No impact";
+    const sign = adjustment > 0 ? "+" : "";
+    return `${sign}$${adjustment.toLocaleString()}`;
   };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Valuation Breakdown</CardTitle>
+        <CardDescription>
+          Detailed breakdown of factors affecting your {valuation.vehicle_info.year} {valuation.vehicle_info.make} {valuation.vehicle_info.model} valuation
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {adjustmentFactors.map((factor, index) => (
-            <div key={index} className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span>{factor.name}</span>
-                <span
-                  className={`font-medium ${
-                    factor.percentage > 0
-                      ? "text-green-600"
-                      : factor.percentage < 0
-                      ? "text-red-600"
-                      : ""
-                  }`}
-                >
-                  {factor.percentage > 0 ? "+" : ""}
-                  {factor.percentage}%
-                </span>
-              </div>
-              <Progress
-                value={50 + factor.percentage}
-                className={`h-2 ${
-                  factor.percentage > 0
-                    ? "bg-green-200"
-                    : factor.percentage < 0
-                    ? "bg-red-200"
-                    : "bg-gray-200"
-                }`}
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{factor.description}</span>
-                <span>{formatCurrency(factor.value)}</span>
-              </div>
-            </div>
-          ))}
-
-          <div className="mt-6 pt-4 border-t">
-            <div className="flex justify-between font-medium">
-              <span>Final Valuation</span>
-              <span className="text-primary">
-                {formatCurrency(valuation.estimated_value || 0)}
-              </span>
-            </div>
+      <CardContent className="space-y-4">
+        <div className="p-4 bg-primary/10 rounded-lg">
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">Final Valuation</p>
+            <p className="text-3xl font-bold text-primary">
+              ${valuation.valuation_amount.toLocaleString()}
+            </p>
           </div>
         </div>
+
+        {breakdown.length > 0 ? (
+          <div className="space-y-3">
+            <h4 className="font-semibold">Adjustment Factors</h4>
+            {breakdown.map((item, index) => (
+              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  {getAdjustmentIcon(item.adjustment)}
+                  <div>
+                    <p className="font-medium">{item.factor}</p>
+                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className={`font-semibold ${
+                    item.adjustment > 0 ? 'text-green-600' : 
+                    item.adjustment < 0 ? 'text-red-600' : 'text-gray-600'
+                  }`}>
+                    {formatAdjustment(item.adjustment)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>Detailed breakdown not available for this valuation.</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
-}
+};
+
+export default ValuationBreakdown;

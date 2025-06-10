@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ManualEntryFormData, ConditionLevel } from './types/manualEntry';
+import { ManualEntryFormData, ConditionLevel } from '@/types/manualEntry';
 import { AccidentDetailsForm } from './form-parts/AccidentDetailsForm';
 
 interface ManualEntryFormFreeProps {
@@ -130,36 +130,36 @@ export function ManualEntryFormFree({
 
         <AccidentDetailsForm
           accidentCount={formData.accidentDetails?.count}
-          accidentLocation={formData.accidentDetails?.area}
+          accidentLocation={formData.accidentDetails?.location}
           accidentSeverity={formData.accidentDetails?.severity}
           accidentDescription={formData.accidentDetails?.description}
           onAccidentCountChange={(count) => updateFormData({ 
             accidentDetails: { 
               ...formData.accidentDetails, 
-              hasAccident: count !== undefined && count > 0,
+              hadAccident: count !== undefined && count > 0,
               severity: formData.accidentDetails?.severity || 'minor',
               count 
             } 
           })}
-          onAccidentLocationChange={(area) => updateFormData({ 
+          onAccidentLocationChange={(location) => updateFormData({ 
             accidentDetails: { 
               ...formData.accidentDetails, 
-              hasAccident: formData.accidentDetails?.hasAccident || false,
+              hadAccident: formData.accidentDetails?.hadAccident || false,
               severity: formData.accidentDetails?.severity || 'minor',
-              area 
+              location 
             } 
           })}
           onAccidentSeverityChange={(severity) => updateFormData({ 
             accidentDetails: { 
               ...formData.accidentDetails, 
-              hasAccident: formData.accidentDetails?.hasAccident || false,
+              hadAccident: formData.accidentDetails?.hadAccident || false,
               severity: severity as 'minor' | 'moderate' | 'severe'
             } 
           })}
           onAccidentDescriptionChange={(description) => updateFormData({ 
             accidentDetails: { 
               ...formData.accidentDetails, 
-              hasAccident: formData.accidentDetails?.hasAccident || false,
+              hadAccident: formData.accidentDetails?.hadAccident || false,
               severity: formData.accidentDetails?.severity || 'minor',
               description 
             } 

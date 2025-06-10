@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Info } from "lucide-react";
 import {
@@ -25,7 +26,7 @@ export const ConfidenceScore = (
           <TooltipTrigger>
             <Info className="h-4 w-4 text-muted-foreground hover:text-primary" />
           </TooltipTrigger>
-          <TooltipContent className="max-w-xs">
+          <TooltipContent>
             <div>
               <p className="font-medium mb-1">Data Confidence Rating</p>
               <p className="text-sm">

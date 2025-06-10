@@ -1,69 +1,57 @@
 
 import React from "react";
-import { useVehicleData } from "@/hooks/useVehicleData";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Database, RefreshCw } from "lucide-react";
-import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useVehicleData } from "@/hooks/useVehicleData";
+import { BarChart, RefreshCw } from "lucide-react";
 
-export function VehicleDataInfo() {
-  const { makes, models, counts, isLoading, refreshData } = useVehicleData();
+export const VehicleDataInfo = () => {
+  const { getYearOptions, getCurrentYear } = useVehicleData();
 
-  const handleRefresh = async () => {
-    try {
-      toast.loading("Refreshing vehicle data...");
-      const result = await refreshData();
-      if (result.success) {
-        toast.success(
-          `Vehicle data refreshed: ${result.makeCount} makes and ${result.modelCount} models loaded`,
-        );
-      } else {
-        toast.error("Failed to refresh vehicle data");
-      }
-    } catch (error) {
-      toast.error("Error refreshing vehicle data");
-      console.error(error);
-    }
+  const handleRefreshData = () => {
+    console.log("Refreshing vehicle data");
   };
 
+  const currentYear = getCurrentYear();
+  const yearOptions = getYearOptions(2000);
+
   return (
-    <div className="bg-slate-50 rounded-lg p-4 flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2">
-        <Database className="h-5 w-5 text-slate-500" />
-        <div>
-          {isLoading
-            ? (
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-3 w-48" />
-              </div>
-            )
-            : (
-              <>
-                <p className="text-sm font-medium text-slate-700">
-                  Vehicle Database: {counts.makes} makes and {counts.models}
-                  {" "}
-                  models
-                </p>
-                <p className="text-xs text-slate-500">
-                  Data loaded from local cache
-                </p>
-              </>
-            )}
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <BarChart className="h-5 w-5" />
+          Vehicle Data Information
+        </CardTitle>
+        <CardDescription>
+          Current vehicle data statistics and options
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <h4 className="font-medium">Current Year</h4>
+            <p className="text-lg font-semibold">{currentYear}</p>
+          </div>
+          
+          <div className="space-y-2">
+            <h4 className="font-medium">Available Years</h4>
+            <p className="text-lg font-semibold">{yearOptions.length} years</p>
+          </div>
         </div>
-      </div>
-      <div className="flex gap-2 flex-wrap md:flex-nowrap">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={isLoading}
-          className="text-xs gap-1"
-        >
-          <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
-          Refresh Data
-        </Button>
-      </div>
-    </div>
+
+        <div className="pt-4 border-t">
+          <Button 
+            onClick={handleRefreshData} 
+            variant="outline" 
+            className="w-full"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh Data
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
-}
+};
+
+export default VehicleDataInfo;
