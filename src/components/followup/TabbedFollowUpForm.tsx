@@ -1,10 +1,10 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ProgressBar } from "@/components/ui/progress";
 import { BasicInfoTab } from './tabs/BasicInfoTab';
 import { ConditionTab } from './tabs/ConditionTab';
-import { IssuesTab } from './tabs/IssuesTab';
+import { VehicleIssuesTab } from './tabs/VehicleIssuesTab';
 import { ServiceHistoryTab } from './tabs/ServiceHistoryTab';
 import { AccidentsTab } from './tabs/AccidentsTab';
 import { ModificationsTab } from './tabs/ModificationsTab';
@@ -35,7 +35,12 @@ export function TabbedFollowUpForm({
   return (
     <div className="w-full max-w-6xl mx-auto p-6">
       <div className="mb-4">
-        <ProgressBar value={formData.completion_percentage || 0} />
+        <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div 
+            className="bg-blue-600 h-2.5 rounded-full" 
+            style={{ width: `${formData.completion_percentage || 0}%` }}
+          ></div>
+        </div>
         <p className="text-sm text-muted-foreground mt-2">
           {formData.completion_percentage || 0}% Complete
         </p>
@@ -68,7 +73,7 @@ export function TabbedFollowUpForm({
           </TabsContent>
           
           <TabsContent value="issues" className="space-y-6">
-            <IssuesTab
+            <VehicleIssuesTab
               formData={formData}
               updateFormData={updateFormData}
             />
@@ -106,7 +111,7 @@ export function TabbedFollowUpForm({
       </Tabs>
       
       <div className="flex justify-between mt-8">
-        <Button variant="secondary" onClick={onSave}>
+        <Button variant="outline" onClick={onSave}>
           Save Progress
         </Button>
         <Button onClick={onSubmit} disabled={isLoading}>

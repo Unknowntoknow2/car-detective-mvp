@@ -1,27 +1,28 @@
 import React from 'react';
-import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface ModificationsTabProps {
-  formData: any;
-  updateFormData: (updates: Partial<any>) => void;
+  formData: FollowUpAnswers;
+  updateFormData: (updates: Partial<FollowUpAnswers>) => void;
 }
 
-const modificationOptions = [
-  { label: 'Lift Kit', value: 'lift_kit' },
-  { label: 'Oversized Tires', value: 'oversized_tires' },
-  { label: 'Performance Exhaust', value: 'performance_exhaust' },
-  { label: 'Engine Tuning', value: 'engine_tuning' },
-  { label: 'Aftermarket Audio', value: 'aftermarket_audio' },
-  { label: 'Tinted Windows', value: 'tinted_windows' },
-  { label: 'Custom Paint', value: 'custom_paint' },
-  { label: 'Other', value: 'other' },
+const modificationTypes = [
+  'Lift Kit',
+  'Performance Tune',
+  'Custom Paint Job',
+  'Tinted Windows',
+  'Upgraded Sound System',
+  'Custom Wheels',
+  'Other'
 ];
 
 export function ModificationsTab({ formData, updateFormData }: ModificationsTabProps) {
   const handleModificationChange = (checked: boolean, modType: string) => {
-    const currentMods = formData.modifications || [];
+    const currentMods = formData.modifications?.types || [];
     let updatedMods;
 
     if (checked) {
@@ -30,56 +31,51 @@ export function ModificationsTab({ formData, updateFormData }: ModificationsTabP
       updatedMods = currentMods.filter((mod: string) => mod !== modType);
     }
 
-    updateFormData({ modifications: updatedMods });
+    updateFormData({
+      modifications: {
+        ...formData.modifications,
+        hasModifications: true,
+        types: updatedMods
+      }
+    });
   };
 
   const handleAdditionalNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    updateFormData({ additional_notes: e.target.value });
+    updateFormData({
+      modifications: {
+        ...formData.modifications,
+        additionalNotes: e.target.value
+      }
+    });
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Modifications</h3>
-        <p className="text-sm text-muted-foreground">
-          Select any modifications that have been made to the vehicle.
-        </p>
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {modificationOptions.map((mod) => (
-            <div key={mod.value} className="flex items-center space-x-2">
-              <Checkbox
-                id={`mod-${mod.value}`}
-                checked={formData.modifications?.includes(mod.value)}
-                onCheckedChange={(checked) => handleModificationChange(checked, mod.value)}
-              />
-              <label
-                htmlFor={`mod-${mod.value}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {mod.label}
-              </label>
-            </div>
-          ))}
-        </div>
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Has the vehicle been modified from its original factory condition?
+      </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {modificationTypes.map((modType) => (
+          <div key={modType} className="flex items-center space-x-2">
+            <Checkbox
+              id={modType}
+              checked={formData.modifications?.types?.includes(modType) || false}
+              onCheckedChange={(checked) => handleModificationChange(checked, modType)}
+            />
+            <Label htmlFor={modType} className="cursor-pointer">
+              {modType}
+            </Label>
+          </div>
+        ))}
       </div>
-
       <div>
-        <label htmlFor="additional-notes" className="block text-sm font-medium text-gray-700">
-          Additional Notes
-        </label>
-        <div className="mt-1">
-          <Textarea
-            id="additional-notes"
-            rows={3}
-            className="shadow-sm focus:ring-primary focus:border-primary block w-full sm:text-sm border-gray-300 rounded-md"
-            value={formData.additional_notes || ''}
-            onChange={handleAdditionalNotesChange}
-            placeholder="Any other relevant information about the vehicle's condition or history?"
-          />
-        </div>
-        <p className="mt-2 text-sm text-gray-500">
-          Provide any additional details about the vehicle's modifications or condition.
-        </p>
+        <Label htmlFor="modification_notes">Additional Notes</Label>
+        <Textarea
+          id="modification_notes"
+          placeholder="Please provide details about the modifications."
+          value={formData.modifications?.additionalNotes || ''}
+          onChange={handleAdditionalNotesChange}
+        />
       </div>
     </div>
   );

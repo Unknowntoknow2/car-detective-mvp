@@ -1,8 +1,10 @@
-import React from "react";
-import ManualEntryFormFree from "@/components/lookup/manual/ManualEntryFormFree"; // or adjust path if needed
-import { supabase } from "@/lib/supabaseClient";
-import { toast } from "@/hooks/use-toast";
-import { ConditionLevel, ManualEntryFormData } from "@/types/manualEntry";
+
+import React, { useState } from 'react';
+import { ManualEntryFormFree } from './ManualEntryFormFree';
+import { UnifiedFollowUpQuestions } from './form-parts/UnifiedFollowUpQuestions';
+import { ManualEntryFormData } from './types/manualEntry';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface ManualLookupProps {
   onSubmit: (data: ManualEntryFormData) => void;
@@ -21,73 +23,58 @@ export function ManualLookup({
   initialData,
   onCancel,
 }: ManualLookupProps) {
-  const handleSubmit = async (formData: ManualEntryFormData) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
+  const [formData, setFormData] = useState<ManualEntryFormData>({
+    make: '',
+    model: '',
+    year: new Date().getFullYear(),
+    mileage: 0,
+    condition: 'good',
+    zipCode: '',
+    ...initialData,
+  });
 
-      if (user) {
-        const { error } = await supabase
-          .from("manual_entry_valuations")
-          .insert({
-            make: formData.make,
-            model: formData.model,
-            year: formData.year,
-            mileage: formData.mileage,
-            condition: formData.condition,
-            zip_code: formData.zipCode,
-            user_id: user.id,
-            fuel_type: formData.fuelType,
-            transmission: formData.transmission,
-            trim: formData.trim || null,
-            vin: formData.vin || null,
-            accident: formData.accidentDetails?.hasAccident || false,
-            accident_severity: formData.accidentDetails?.severity || null,
-            selected_features: formData.selectedFeatures || [],
-          });
+  const updateFormData = (updates: Partial<ManualEntryFormData>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
+  };
 
-        if (error) {
-          console.error("Error saving to Supabase:", error);
-          toast({
-            title: "Error",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Success",
-            description: "Data saved successfully",
-            variant: "success",
-          });
-        }
-      } else {
-        toast({
-          title: "Not Logged In",
-          description: "Your data is not being saved. Sign in to save your entries.",
-          variant: "default",
-        });
-      }
-
-      onSubmit(formData);
-    } catch (error: any) {
-      console.error("Error in ManualLookup:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Could not process your request",
-        variant: "destructive",
-      });
-      onSubmit(formData); // Proceed with valuation even on Supabase error
-    }
+  const handleSubmit = () => {
+    onSubmit(formData);
   };
 
   return (
-    <ManualEntryFormFree
-      onSubmit={handleSubmit}
-      isLoading={isLoading}
-      submitButtonText={submitButtonText}
-      isPremium={isPremium}
-      initialData={initialData}
-      onCancel={onCancel}
-    />
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle>{isPremium ? 'Premium' : 'Free'} Vehicle Valuation</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <ManualEntryFormFree
+          formData={formData}
+          updateFormData={updateFormData}
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+          submitButtonText={submitButtonText}
+          isPremium={isPremium}
+        />
+        
+        {isPremium && (
+          <UnifiedFollowUpQuestions
+            formData={formData}
+            updateFormData={updateFormData}
+          />
+        )}
+        
+        <div className="flex gap-4">
+          {onCancel && (
+            <Button variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+          )}
+          <Button onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? 'Processing...' : submitButtonText}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

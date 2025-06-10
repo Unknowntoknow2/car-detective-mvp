@@ -42,7 +42,9 @@ export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistory
     severity: 'minor',
     repaired: false,
     frameDamage: false,
-    description: ''
+    description: '',
+    types: [],
+    repairShops: []
   };
 
   const handleAccidentToggle = (checked: boolean) => {
@@ -56,7 +58,9 @@ export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistory
           severity: 'minor',
           repaired: false,
           frameDamage: false,
-          description: ''
+          description: '',
+          types: [],
+          repairShops: []
         })
       }
     });
@@ -72,19 +76,38 @@ export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistory
   };
 
   const handleAccidentTypeChange = (checked: boolean, type: string) => {
+    const currentTypes = formData.accident_history?.types || [];
+    let updatedTypes;
+
+    if (checked) {
+      updatedTypes = [...currentTypes, type];
+    } else {
+      updatedTypes = currentTypes.filter((t: string) => t !== type);
+    }
+
     updateFormData({
       accident_history: {
-        ...accidentData,
-        [type]: checked
+        ...formData.accident_history,
+        hadAccident: true,
+        types: updatedTypes
       }
     });
   };
 
   const handleRepairShopChange = (checked: boolean, shopType: string) => {
+    const currentShops = formData.accident_history?.repairShops || [];
+    let updatedShops;
+
+    if (checked) {
+      updatedShops = [...currentShops, shopType];
+    } else {
+      updatedShops = currentShops.filter((shop: string) => shop !== shopType);
+    }
+
     updateFormData({
       accident_history: {
-        ...accidentData,
-        [shopType]: checked
+        ...formData.accident_history,
+        repairShops: updatedShops
       }
     });
   };

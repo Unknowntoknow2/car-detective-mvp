@@ -1,40 +1,33 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
+
+export interface FollowUpFormData {
+  vin: string;
+  mileage: number;
+  condition: string;
+  zipCode: string;
+  previousUse: string;
+  exteriorCondition: string;
+  interiorCondition: string;
+  tireCondition: string;
+  serviceHistory: string;
+  accidentHistory: boolean;
+  additionalNotes: string;
+}
 
 interface FollowUpFormProps {
-  vin?: string;
-  onSubmit: (data: any) => Promise<void>;
+  vin: string;
+  onSubmit: (data: FollowUpFormData) => Promise<void>;
   onCancel?: () => void;
   isLoading?: boolean;
 }
-
-interface FollowUpFormData {
-  vin: string;
-  zipCode: string;
-  mileage: number;
-  condition: string;
-  transmission: string;
-  titleStatus: string;
-  previousUse: string;
-  previousOwners: number;
-  serviceHistory: string;
-}
-
-const defaultFormData: FollowUpFormData = {
-  vin: '',
-  zipCode: '',
-  mileage: 0,
-  condition: 'good',
-  transmission: 'automatic',
-  titleStatus: 'clean',
-  previousUse: 'personal',
-  previousOwners: 1,
-  serviceHistory: 'yes',
-};
 
 export function FollowUpForm({ 
   vin, 
@@ -43,57 +36,51 @@ export function FollowUpForm({
   isLoading = false 
 }: FollowUpFormProps) {
   const [formData, setFormData] = useState<FollowUpFormData>({
-    ...defaultFormData,
-    vin: vin || '',
+    vin,
+    mileage: 0,
+    condition: 'good',
+    zipCode: '',
+    previousUse: 'personal',
+    exteriorCondition: 'good',
+    interiorCondition: 'good',
+    tireCondition: 'good',
+    serviceHistory: 'unknown',
+    accidentHistory: false,
+    additionalNotes: ''
   });
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleInputChange = (field: keyof FollowUpFormData, value: any) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [field]: value
     }));
   };
 
   const handleVehicleUsageChange = (value: string) => {
-    setFormData(prev => ({ ...prev, previousUse: value as any }));
+    setFormData(prev => ({ ...prev, previousUse: value }));
   };
 
-  const handleConditionChange = (conditionType: string, value: any) => {
+  const handleConditionChange = (conditionType: keyof FollowUpFormData, value: any) => {
     setFormData(prev => ({
       ...prev,
       [conditionType]: value
     }));
   };
 
-  const validateField = (fieldName: string, value: string) => {
-    switch (fieldName) {
-      case 'zipCode':
-        if (!/^\d{5}(-\d{4})?$/.test(value)) {
-          return 'Invalid ZIP code';
-        }
-        break;
-      case 'mileage':
-        if (isNaN(Number(value)) || Number(value) < 0) {
-          return 'Mileage must be a positive number';
-        }
-        break;
-      default:
-        return '';
+  const validateForm = (data: FollowUpFormData): Record<string, string> => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!data.zipCode || data.zipCode.length !== 5) {
+      newErrors.zipCode = 'Please enter a valid 5-digit ZIP code';
     }
-    return '';
-  };
-
-  const validateForm = (data: FollowUpFormData) => {
-    const errors: { [key: string]: string } = {};
-    for (const key in data) {
-      const error = validateField(key, String(data[key]));
-      if (error) {
-        errors[key] = error;
-      }
+    
+    if (!data.mileage || data.mileage <= 0) {
+      newErrors.mileage = 'Please enter a valid mileage';
     }
-    return errors;
+    
+    return newErrors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,50 +101,39 @@ export function FollowUpForm({
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle>Vehicle Details</CardTitle>
+        <CardTitle>Vehicle Follow-up Questions</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="vin">VIN</Label>
-            <Input
-              type="text"
-              id="vin"
-              name="vin"
-              value={formData.vin}
-              onChange={handleChange}
-              disabled
-            />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="mileage">Current Mileage</Label>
+              <Input
+                type="number"
+                value={formData.mileage}
+                onChange={(e) => handleInputChange('mileage', parseInt(e.target.value) || 0)}
+                placeholder="Enter mileage"
+              />
+              {errors.mileage && <p className="text-red-500 text-sm">{errors.mileage}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor="zipCode">ZIP Code</Label>
+              <Input
+                value={formData.zipCode}
+                onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                placeholder="Enter ZIP code"
+                maxLength={5}
+              />
+              {errors.zipCode && <p className="text-red-500 text-sm">{errors.zipCode}</p>}
+            </div>
           </div>
+
           <div>
-            <Label htmlFor="zipCode">ZIP Code</Label>
-            <Input
-              type="text"
-              id="zipCode"
-              name="zipCode"
-              value={formData.zipCode}
-              onChange={handleChange}
-            />
-            {errors.zipCode && <p className="text-red-500">{errors.zipCode}</p>}
-          </div>
-          <div>
-            <Label htmlFor="mileage">Mileage</Label>
-            <Input
-              type="number"
-              id="mileage"
-              name="mileage"
-              value={formData.mileage}
-              onChange={handleChange}
-            />
-            {errors.mileage && <p className="text-red-500">{errors.mileage}</p>}
-          </div>
-          <div>
-            <Label htmlFor="condition">Condition</Label>
-            <Select
-              id="condition"
-              name="condition"
-              value={formData.condition}
-              onValueChange={(value) => handleConditionChange('condition', value)}
+            <Label>Overall Condition</Label>
+            <Select 
+              value={formData.condition} 
+              onValueChange={(value) => handleInputChange('condition', value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select condition" />
@@ -170,89 +146,74 @@ export function FollowUpForm({
               </SelectContent>
             </Select>
           </div>
+
           <div>
-            <Label htmlFor="transmission">Transmission</Label>
-            <Select
-              id="transmission"
-              name="transmission"
-              value={formData.transmission}
-              onValueChange={(value) => handleChange({ target: { name: 'transmission', value } } as any)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select transmission" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="automatic">Automatic</SelectItem>
-                <SelectItem value="manual">Manual</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="titleStatus">Title Status</Label>
-            <Select
-              id="titleStatus"
-              name="titleStatus"
-              value={formData.titleStatus}
-              onValueChange={(value) => handleChange({ target: { name: 'titleStatus', value } } as any)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select title status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="clean">Clean</SelectItem>
-                <SelectItem value="salvage">Salvage</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="previousUse">Previous Use</Label>
-            <Select
-              id="previousUse"
-              name="previousUse"
-              value={formData.previousUse}
-              onValueChange={(value) => handleVehicleUsageChange(value)}
+            <Label>Previous Use</Label>
+            <Select 
+              value={formData.previousUse} 
+              onValueChange={handleVehicleUsageChange}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select previous use" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="personal">Personal</SelectItem>
-                <SelectItem value="rental">Rental</SelectItem>
                 <SelectItem value="commercial">Commercial</SelectItem>
+                <SelectItem value="rental">Rental</SelectItem>
+                <SelectItem value="fleet">Fleet</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
           <div>
-            <Label htmlFor="previousOwners">Previous Owners</Label>
-            <Input
-              type="number"
-              id="previousOwners"
-              name="previousOwners"
-              value={formData.previousOwners}
-              onChange={handleChange}
-            />
+            <Label>Exterior Condition</Label>
+            <Select 
+              value={formData.exteriorCondition} 
+              onValueChange={(value) => handleConditionChange('exteriorCondition', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select exterior condition" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="excellent">Excellent</SelectItem>
+                <SelectItem value="good">Good</SelectItem>
+                <SelectItem value="fair">Fair</SelectItem>
+                <SelectItem value="poor">Poor</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
           <div>
-            <Label htmlFor="serviceHistory">Service History</Label>
-            <Select
-              id="serviceHistory"
-              name="serviceHistory"
-              value={formData.serviceHistory}
-              onValueChange={(value) => handleChange({ target: { name: 'serviceHistory', value } } as any)}
+            <Label>Service History</Label>
+            <Select 
+              value={formData.serviceHistory} 
+              onValueChange={(value) => handleInputChange('serviceHistory', value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select service history" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="yes">Yes</SelectItem>
-                <SelectItem value="no">No</SelectItem>
+                <SelectItem value="dealer">Dealer maintained</SelectItem>
+                <SelectItem value="independent">Independent mechanic</SelectItem>
+                <SelectItem value="owner">Owner maintained</SelectItem>
                 <SelectItem value="unknown">Unknown</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <div className="flex justify-end">
+
+          <div>
+            <Label htmlFor="notes">Additional Notes</Label>
+            <Textarea
+              value={formData.additionalNotes}
+              onChange={(e) => handleInputChange('additionalNotes', e.target.value)}
+              placeholder="Any additional information about the vehicle"
+              rows={3}
+            />
+          </div>
+
+          <div className="flex gap-4 pt-6">
             {onCancel && (
-              <Button variant="ghost" onClick={onCancel} disabled={isLoading}>
+              <Button type="button" variant="outline" onClick={onCancel}>
                 Cancel
               </Button>
             )}

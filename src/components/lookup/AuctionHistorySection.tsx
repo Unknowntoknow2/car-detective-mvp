@@ -136,7 +136,7 @@ const AuctionHistorySection = ({ vin }: AuctionHistorySectionProps) => {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue={Object.keys(groupedBySource)[0]} className="w-full">
-          <TabsList className="grid" style={{ gridTemplateColumns: `repeat(${Object.keys(groupedBySource).length}, 1fr)` }}>
+          <TabsList className="grid w-full grid-cols-3">
             {Object.keys(groupedBySource).map(source => (
               <TabsTrigger key={source} value={source} className="capitalize">
                 {source}

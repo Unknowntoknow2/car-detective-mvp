@@ -48,11 +48,22 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
   };
 
   const handleMaintenanceChange = (checked: boolean, serviceType: string) => {
-    const updatedData: ServiceHistoryDetails = {
-      ...serviceData,
-      [serviceType]: checked
-    };
-    updateFormData({ serviceHistory: updatedData });
+    const currentServices = formData.serviceHistory?.services || [];
+    let updatedServices;
+
+    if (checked) {
+      updatedServices = [...currentServices, serviceType];
+    } else {
+      updatedServices = currentServices.filter((service: string) => service !== serviceType);
+    }
+
+    updateFormData({
+      serviceHistory: {
+        ...formData.serviceHistory,
+        hasRecords: true,
+        services: updatedServices
+      }
+    });
   };
 
   return (
