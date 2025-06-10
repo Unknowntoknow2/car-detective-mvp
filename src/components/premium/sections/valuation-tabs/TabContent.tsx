@@ -1,113 +1,75 @@
 
 import React from "react";
-import { TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VinLookupTab } from "./VinLookupTab";
 import { PlateLookupTab } from "./PlateLookupTab";
-import { ManualEntryTab } from "./ManualEntryTab";
-import { PhotoLookupTab } from "./PhotoLookupTab";
-import { MarketAnalysisTab } from "./MarketAnalysisTab";
+import { PhotoUploadTab } from "./PhotoUploadTab";
 import { TwelveMonthForecastTab } from "./TwelveMonthForecastTab";
-import { CarfaxReportTab } from "./CarfaxReportTab";
-import { ValuationServiceId } from "./services";
+import { useValuationState } from "./hooks/useValuationState";
 
-export interface TabContentProps {
-  activeTab: ValuationServiceId;
-  setActiveTab: (tab: ValuationServiceId) => void;
-  vinValue: string;
-  plateValue: string;
-  plateState: string;
-  isLoading: boolean;
-  vehicle: any;
-  onVinChange: (value: string) => void;
-  onPlateChange: (value: string) => void;
-  onStateChange: (value: string) => void;
-  onVinLookup: () => void;
-  onPlateLookup: () => void;
-  onManualSubmit: (data: any) => void;
-}
+export function TabContent() {
+  const {
+    activeTab,
+    setActiveTab,
+    vinData,
+    setVinData,
+    plateData,
+    setPlateData,
+    vehicleData,
+    isLoading,
+    handleVinLookup,
+    handlePlateLookup,
+  } = useValuationState();
 
-export function TabContent({
-  activeTab,
-  setActiveTab,
-  vinValue,
-  plateValue,
-  plateState,
-  isLoading,
-  vehicle,
-  onVinChange,
-  onPlateChange,
-  onStateChange,
-  onVinLookup,
-  onPlateLookup,
-  onManualSubmit
-}: TabContentProps) {
   return (
-    <div className="space-y-6">
-      <TabsContent value="vin" className="mt-0">
+    <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <TabsList className="grid w-full grid-cols-4">
+        <TabsTrigger value="vin">VIN Lookup</TabsTrigger>
+        <TabsTrigger value="plate">License Plate</TabsTrigger>
+        <TabsTrigger value="photos">Photo Analysis</TabsTrigger>
+        <TabsTrigger value="forecast">12-Month Forecast</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="vin">
         <VinLookupTab
-          vinValue={vinValue}
+          value={vinData}
+          onChange={setVinData}
+          onLookup={handleVinLookup}
           isLoading={isLoading}
-          vehicle={vehicle}
-          onVinChange={onVinChange}
-          onLookup={onVinLookup}
         />
       </TabsContent>
-      
-      <TabsContent value="plate" className="mt-0">
+
+      <TabsContent value="plate">
         <PlateLookupTab
-          plateValue={plateValue}
-          plateState={plateState}
+          value={plateData.plate}
+          state={plateData.state}
+          onPlateChange={(plate) => setPlateData(prev => ({ ...prev, plate }))}
+          onStateChange={(state) => setPlateData(prev => ({ ...prev, state }))}
+          onLookup={handlePlateLookup}
           isLoading={isLoading}
-          vehicle={vehicle}
-          onPlateChange={onPlateChange}
-          onStateChange={onStateChange}
-          onLookup={onPlateLookup}
+          vehicle={vehicleData}
         />
       </TabsContent>
 
-      <TabsContent value="manual" className="mt-0">
-        <ManualEntryTab
-          onSubmit={onManualSubmit}
+      <TabsContent value="photos">
+        <PhotoUploadTab
           isLoading={isLoading}
+          vehicle={vehicleData}
+          onPhotoUpload={(files) => console.log("Photos uploaded:", files)}
         />
       </TabsContent>
 
-      <TabsContent value="photo" className="mt-0">
-        <PhotoLookupTab />
-      </TabsContent>
-
-      <TabsContent value="market" className="mt-0">
-        <MarketAnalysisTab
-          vehicleData={vehicle
-            ? {
-              make: vehicle.make,
-              model: vehicle.model,
-              year: vehicle.year,
-              trim: vehicle.trim,
-            }
-            : undefined}
-        />
-      </TabsContent>
-
-      <TabsContent value="forecast" className="mt-0">
+      <TabsContent value="forecast">
         <TwelveMonthForecastTab
-          vehicleData={vehicle
-            ? {
-              make: vehicle.make,
-              model: vehicle.model,
-              year: vehicle.year,
-              trim: vehicle.trim,
-              vin: vinValue.length === 17 ? vinValue : undefined,
-            }
-            : undefined}
+          vehicleData={vehicleData ? {
+            make: vehicleData.make,
+            model: vehicleData.model,
+            year: vehicleData.year,
+            trim: vehicleData.trim,
+            vin: vehicleData.vin,
+          } : undefined}
         />
       </TabsContent>
-
-      <TabsContent value="carfax" className="mt-0">
-        <CarfaxReportTab
-          vin={vinValue.length === 17 ? vinValue : undefined}
-        />
-      </TabsContent>
-    </div>
+    </Tabs>
   );
 }
