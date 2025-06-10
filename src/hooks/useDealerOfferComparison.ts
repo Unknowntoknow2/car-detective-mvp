@@ -52,9 +52,16 @@ export function useDealerOfferComparison(reportId?: string) {
     fetchOffers();
   }, [reportId]);
 
+  // Add getBestOffer function
+  const getBestOffer = () => {
+    if (!offers || offers.length === 0) return null;
+    return [...offers].sort((a, b) => (b.score || 0) - (a.score || 0))[0];
+  };
+
   return {
     offers,
     isLoading,
-    error
+    error,
+    getBestOffer
   };
 }

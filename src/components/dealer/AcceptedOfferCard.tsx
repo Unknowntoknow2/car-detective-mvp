@@ -8,6 +8,7 @@ import { formatCurrency } from '@/utils/formatters';
 export interface AcceptedOfferCardProps {
   offer: any;
   onCancelled: () => Promise<any>;
+  // Remove acceptedOffer prop as it's not used
 }
 
 export const AcceptedOfferCard: React.FC<AcceptedOfferCardProps> = ({

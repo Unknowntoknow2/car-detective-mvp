@@ -21,6 +21,7 @@ export interface ValuationResultProps {
   manualValuationData?: any;
   estimatedValue?: number;
   confidenceScore?: number;
+  // Add missing basePrice prop
   basePrice?: number;
   adjustments?: any[];
   priceRange?: any;

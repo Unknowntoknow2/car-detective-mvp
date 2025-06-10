@@ -7,15 +7,25 @@ import { useDealerOfferComparison } from '@/hooks/useDealerOfferComparison';
 export interface DealerOffersListProps {
   reportId?: string;
   showActions?: boolean;
+  // Add support for external offers prop
+  offers?: any[];
+  onAccept?: (offerId: string) => void;
+  onDecline?: (offerId: string) => void;
 }
 
 export const DealerOffersList: React.FC<DealerOffersListProps> = ({
   reportId,
   showActions = false,
+  offers: externalOffers,
+  onAccept,
+  onDecline,
 }) => {
-  const { offers, isLoading, error } = useDealerOfferComparison(reportId);
+  const { offers: hookOffers, isLoading, error } = useDealerOfferComparison(reportId);
+  
+  // Use external offers if provided, otherwise use hook offers
+  const offers = externalOffers || hookOffers;
 
-  if (isLoading) {
+  if (isLoading && !externalOffers) {
     return (
       <Card>
         <CardHeader>
@@ -28,7 +38,7 @@ export const DealerOffersList: React.FC<DealerOffersListProps> = ({
     );
   }
 
-  if (error) {
+  if (error && !externalOffers) {
     return (
       <Card>
         <CardHeader>
