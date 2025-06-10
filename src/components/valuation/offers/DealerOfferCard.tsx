@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,8 @@ export const DealerOfferCard: React.FC<DealerOfferCardProps> = ({
   offer,
   isBestOffer = false,
 }) => {
+  const score = offer.score ?? 0;
+
   return (
     <Card
       className={`overflow-hidden ${
@@ -42,9 +45,8 @@ export const DealerOfferCard: React.FC<DealerOfferCardProps> = ({
               )}
 
               <OfferScoreBadge
-                label={offer.label}
-                insight={offer.insight}
-                score={offer.score}
+                score={score}
+                recommendation={offer.recommendation}
                 isBestOffer={isBestOffer}
               />
             </div>
@@ -83,15 +85,6 @@ export const DealerOfferCard: React.FC<DealerOfferCardProps> = ({
                 </p>
               </div>
             )}
-
-          {offer.insight && (
-            <div>
-              <p className="text-sm font-medium text-slate-500 mb-1">
-                AI Insight
-              </p>
-              <p className="text-sm">{offer.insight}</p>
-            </div>
-          )}
         </div>
       </div>
     </Card>

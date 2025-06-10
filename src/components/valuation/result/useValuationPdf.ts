@@ -26,12 +26,14 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
       
       // Format report data
       const reportData: ReportData = {
+        id: valuationId || Date.now().toString(),
         make: valuationData.make,
         model: valuationData.model,
         year: valuationData.year,
         mileage: valuationData.mileage,
         condition: valuationData.condition,
         estimatedValue: valuationData.estimatedValue,
+        price: valuationData.estimatedValue,
         confidenceScore: valuationData.confidenceScore || 0,
         vin: valuationData.vin,
         zipCode: valuationData.zipCode || valuationData.zip_code,
@@ -129,12 +131,14 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
       
       // Create sample report data
       const sampleReportData: ReportData = {
+        id: 'sample-' + Date.now().toString(),
         make: 'Toyota',
         model: 'Camry',
         year: 2022,
         mileage: 25000,
         condition: 'Excellent',
         estimatedValue: 26500,
+        price: 26500,
         confidenceScore: 92,
         vin: 'SAMPLE1234567890',
         zipCode: '90210',

@@ -1,64 +1,60 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { formatCurrency } from "@/utils/formatters";
+
+import { useState, useEffect } from 'react';
 
 export interface DealerOffer {
   id: string;
-  report_id: string;
-  dealer_id: string;
   offer_amount: number;
   message?: string;
-  status: "sent" | "viewed" | "accepted" | "rejected" | "pending"; // Added 'pending' status
+  dealer_id: string;
   created_at: string;
+  status: 'sent' | 'viewed' | 'accepted' | 'rejected';
   score?: number;
-  label?: string;
-  insight?: string;
+  recommendation?: 'excellent' | 'good' | 'fair' | 'below_market';
 }
 
-export function useDealerOfferComparison(valuationId?: string) {
-  const { data: offers = [], isLoading, error, refetch } = useQuery({
-    queryKey: ["dealer-offers", valuationId],
-    queryFn: async (): Promise<DealerOffer[]> => {
-      if (!valuationId) return [];
+export function useDealerOfferComparison(reportId?: string) {
+  const [offers, setOffers] = useState<DealerOffer[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
+  useEffect(() => {
+    if (!reportId) return;
+
+    const fetchOffers = async () => {
+      setIsLoading(true);
+      setError(null);
+      
       try {
-        const { data, error } = await supabase
-          .from("dealer_offers")
-          .select("*")
-          .eq("report_id", valuationId)
-          .order("score", { ascending: false });
-
-        if (error) throw error;
-
-        // Ensure the status is one of the allowed values in our type
-        const typedData = data?.map((offer) => ({
-          ...offer,
-          status: offer.status as DealerOffer["status"],
-        })) || [];
-
-        return typedData;
-      } catch (error) {
-        console.error("Error fetching dealer offers:", error);
-        toast.error("Failed to load dealer offers");
-        throw error;
+        // Mock data for now
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const mockOffers: DealerOffer[] = [
+          {
+            id: '1',
+            offer_amount: 25000,
+            message: 'Great condition vehicle, we can offer competitive pricing',
+            dealer_id: 'dealer1',
+            created_at: new Date().toISOString(),
+            status: 'sent',
+            score: 95,
+            recommendation: 'excellent'
+          }
+        ];
+        
+        setOffers(mockOffers);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed to fetch offers'));
+      } finally {
+        setIsLoading(false);
       }
-    },
-    enabled: !!valuationId,
-    refetchInterval: 30000, // Refetch every 30 seconds to get new offers
-  });
+    };
 
-  const getBestOffer = (): DealerOffer | null => {
-    if (!offers || offers.length === 0) return null;
-    return offers[0]; // Already sorted by score DESC
-  };
+    fetchOffers();
+  }, [reportId]);
 
   return {
     offers,
     isLoading,
-    error,
-    refetch,
-    getBestOffer,
-    formatOfferAmount: (amount: number) => formatCurrency(amount),
+    error
   };
 }

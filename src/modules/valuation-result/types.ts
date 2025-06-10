@@ -1,3 +1,4 @@
+
 import { AICondition } from "@/types/photo";
 import { ValuationResult } from "@/types/valuation";
 
@@ -18,6 +19,21 @@ export interface ValuationResultProps {
   valuationId?: string;
   isManualValuation?: boolean;
   manualValuationData?: any;
+  estimatedValue?: number;
+  confidenceScore?: number;
+  basePrice?: number;
+  adjustments?: any[];
+  priceRange?: any;
+  demandFactor?: number;
+  vehicleInfo?: {
+    year: number;
+    make: string;
+    model: string;
+    trim?: string;
+    mileage: number;
+    condition: string;
+  };
+  onEmailReport?: () => void;
 }
 
 export interface HeaderProps {

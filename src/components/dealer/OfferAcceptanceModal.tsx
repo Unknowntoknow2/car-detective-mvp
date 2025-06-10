@@ -1,27 +1,28 @@
 
-import React from "react";
+import React from 'react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/utils/formatters';
 
-interface OfferAcceptanceModalProps {
+export interface OfferAcceptanceModalProps {
   isOpen: boolean;
   onClose: () => void;
   offer: any;
-  onAccept: () => void;
+  isProcessing: boolean;
 }
 
-export function OfferAcceptanceModal({
+export const OfferAcceptanceModal: React.FC<OfferAcceptanceModalProps> = ({
   isOpen,
   onClose,
   offer,
-  onAccept,
-}: OfferAcceptanceModalProps) {
+  isProcessing,
+}) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
@@ -31,14 +32,31 @@ export function OfferAcceptanceModal({
             Are you sure you want to accept this offer?
           </DialogDescription>
         </DialogHeader>
+        
         <div className="space-y-4">
-          <p>Offer Amount: ${offer?.offer_amount?.toLocaleString()}</p>
-          <div className="flex gap-2">
-            <Button onClick={onAccept}>Accept Offer</Button>
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <div className="p-4 bg-muted rounded-lg">
+            <p className="text-lg font-semibold">
+              Offer Amount: {formatCurrency(offer?.offer_amount || 0)}
+            </p>
+            {offer?.message && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Message: {offer.message}
+              </p>
+            )}
+          </div>
+          
+          <div className="flex gap-3 justify-end">
+            <Button variant="outline" onClick={onClose} disabled={isProcessing}>
+              Cancel
+            </Button>
+            <Button disabled={isProcessing}>
+              {isProcessing ? 'Processing...' : 'Accept Offer'}
+            </Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default OfferAcceptanceModal;

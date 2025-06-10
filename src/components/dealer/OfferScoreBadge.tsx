@@ -1,21 +1,61 @@
 
-import React from "react";
-import { Badge } from "@/components/ui/badge";
+import React from 'react';
+import { Badge } from '@/components/ui/badge';
 
-interface OfferScoreBadgeProps {
+export interface OfferScoreBadgeProps {
+  label?: string;
+  insight?: string;
   score: number;
+  recommendation?: 'excellent' | 'good' | 'fair' | 'below_market';
+  isBestOffer?: boolean;
 }
 
-export function OfferScoreBadge({ score }: OfferScoreBadgeProps) {
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return "default";
-    if (score >= 70) return "secondary";
-    return "destructive";
+export const OfferScoreBadge: React.FC<OfferScoreBadgeProps> = ({
+  label,
+  insight,
+  score,
+  recommendation,
+  isBestOffer = false,
+}) => {
+  const getVariant = () => {
+    if (isBestOffer) return 'default';
+    
+    switch (recommendation) {
+      case 'excellent':
+        return 'default';
+      case 'good':
+        return 'secondary';
+      case 'fair':
+        return 'outline';
+      case 'below_market':
+        return 'destructive';
+      default:
+        return 'secondary';
+    }
+  };
+
+  const getLabel = () => {
+    if (label) return label;
+    
+    switch (recommendation) {
+      case 'excellent':
+        return 'Excellent';
+      case 'good':
+        return 'Good';
+      case 'fair':
+        return 'Fair';
+      case 'below_market':
+        return 'Below Market';
+      default:
+        return `${score}% Match`;
+    }
   };
 
   return (
-    <Badge variant={getScoreColor(score)}>
-      Score: {score}%
+    <Badge variant={getVariant()}>
+      {getLabel()}
     </Badge>
   );
-}
+};
+
+export default OfferScoreBadge;
