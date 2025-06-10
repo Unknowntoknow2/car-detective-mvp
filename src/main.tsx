@@ -4,7 +4,6 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AppProviders } from './providers/AppProviders';
-import { AuthProvider } from '@/components/auth/AuthContext';
 import { initSentry } from './lib/sentry';
 import { loadFonts } from './lib/fonts';
 import { setupTrackingErrorHandler } from './utils/errorHandling';
@@ -37,11 +36,9 @@ const renderApp = () => {
     ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
         <BrowserRouter>
-          <AuthProvider>
-            <AppProviders>
-              <App />
-            </AppProviders>
-          </AuthProvider>
+          <AppProviders>
+            <App />
+          </AppProviders>
         </BrowserRouter>
       </React.StrictMode>
     );
