@@ -1,62 +1,38 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import Logo from "./Logo";
-import { MobileMenu } from "./MobileMenu";
-import { useAuth } from "@/hooks/useAuth";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Container } from '@/components/ui/container';
+import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 
 export const Navbar: React.FC = () => {
-  const { user } = useAuth();
-
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        <div className="mr-4 hidden md:flex">
-          <Logo />
-          <nav className="flex items-center space-x-6 text-sm font-medium">
-            <Link
-              to="/"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              Home
-            </Link>
-            <Link
-              to="/valuation"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              Valuation
-            </Link>
-            <Link
-              to="/premium"
-              className="transition-colors hover:text-foreground/80 text-foreground/60"
-            >
-              Premium
-            </Link>
-          </nav>
-        </div>
-        <MobileMenu />
-        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <div className="w-full flex-1 md:w-auto md:flex-none">
-            {/* Search or other components can go here */}
+    <div className="bg-background border-b border-border">
+      <Container>
+        <div className="flex items-center justify-between py-4">
+          <Link to="/" className="font-bold text-2xl">
+            Valuation MVP
+          </Link>
+          <div className="flex items-center space-x-4">
+            <Button variant="ghost">
+              <Link to="/about" className="text-foreground/80 hover:text-foreground">
+                About
+              </Link>
+            </Button>
+
+            <Button variant="ghost">
+              <Link to="/vin-lookup" className="text-foreground/80 hover:text-foreground">
+                VIN Lookup
+              </Link>
+            </Button>
+
+            <Button>
+              <Link to="/premium-valuation" className="text-background hover:text-background/80">
+                Get Premium Report
+              </Link>
+            </Button>
           </div>
-          <nav className="flex items-center">
-            {user ? (
-              <Button variant="ghost" asChild>
-                <Link to="/dashboard">Dashboard</Link>
-              </Button>
-            ) : (
-              <>
-                <Button variant="ghost" asChild>
-                  <Link to="/auth">Sign In</Link>
-                </Button>
-                <Button asChild>
-                  <Link to="/auth">Sign Up</Link>
-                </Button>
-              </>
-            )}
-          </nav>
         </div>
-      </div>
-    </header>
+      </Container>
+    </div>
   );
 };

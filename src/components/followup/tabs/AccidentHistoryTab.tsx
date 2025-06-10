@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -68,6 +67,24 @@ export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistory
       accident_history: {
         ...accidentData,
         [field]: value
+      }
+    });
+  };
+
+  const handleAccidentTypeChange = (checked: boolean, type: string) => {
+    updateFormData({
+      accident_history: {
+        ...accidentData,
+        [type]: checked
+      }
+    });
+  };
+
+  const handleRepairShopChange = (checked: boolean, shopType: string) => {
+    updateFormData({
+      accident_history: {
+        ...accidentData,
+        [shopType]: checked
       }
     });
   };

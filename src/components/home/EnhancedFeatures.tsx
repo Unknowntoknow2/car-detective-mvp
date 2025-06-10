@@ -1,69 +1,61 @@
-import { motion } from "framer-motion";
-import { Car, ChartBar, FileBarChart, Shield } from "lucide-react";
-import { DesignCard, SectionHeader } from "../ui/design-system";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Rocket, ShieldCheck, Search } from 'lucide-react';
 
 const features = [
   {
-    icon: <Car className="h-6 w-6" />,
-    title: "Comprehensive Protection",
-    description:
-      "Ensure your property is safeguarded with comprehensive insurance coverage tailored to your specific needs.",
+    title: 'Instant Valuation',
+    description: 'Get an accurate vehicle valuation in seconds.',
+    icon: Rocket,
   },
   {
-    icon: <ChartBar className="h-6 w-6" />,
-    title: "Advanced Analytics",
-    description:
-      "Get detailed insights into market trends and valuation patterns with our advanced analytics engine.",
+    title: 'Comprehensive Data',
+    description: 'Access detailed vehicle information and history.',
+    icon: ShieldCheck,
   },
   {
-    icon: <Shield className="h-6 w-6" />,
-    title: "Secure Data Storage",
-    description:
-      "Your information is securely stored and protected with state-of-the-art encryption technology.",
-  },
-  {
-    icon: <FileBarChart className="h-6 w-6" />,
-    title: "Real-Time Updates",
-    description:
-      "Stay informed with real-time market data and instant valuations based on current conditions.",
+    title: 'Market Insights',
+    description: 'Understand market trends and pricing dynamics.',
+    icon: Search,
   },
 ];
 
 export function EnhancedFeatures() {
   return (
-    <section className="py-24 bg-gradient-to-b from-surface to-surface-dark">
+    <section className="py-12 md:py-24 bg-gray-50">
       <div className="container mx-auto px-4">
-        <SectionHeader
-          title="Key Features"
-          description="Our platform offers a comprehensive set of features designed to provide accurate vehicle valuations"
-          align="center"
-          size="lg"
-          className="mb-16"
-        />
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {features.map((feature, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              viewport={{ once: true }}
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900">
+            Unlock the Power of Vehicle Intelligence
+          </h2>
+          <p className="mt-2 text-gray-600">
+            Explore our advanced features designed to empower your decisions.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {features.map((feature, index) => (
+            <div
+              key={index}
+              className="p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"
             >
-              <DesignCard
-                variant="glass"
-                className="h-full card-3d hover:border-primary/30 transition-all"
-              >
-                <div className="space-y-4">
-                  <div className="h-12 w-12 rounded-full bg-primary-light flex items-center justify-center text-primary">
-                    {feature.icon}
-                  </div>
-                  <h3 className="text-xl font-semibold">{feature.title}</h3>
-                  <p className="text-text-secondary">{feature.description}</p>
-                </div>
-              </DesignCard>
-            </motion.div>
+              <div className="flex items-center mb-4">
+                <feature.icon className="h-6 w-6 text-primary mr-2" />
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {feature.title}
+                </h3>
+              </div>
+              <p className="text-gray-700">{feature.description}</p>
+            </div>
           ))}
+        </div>
+        <div className="mt-12 text-center">
+          <Button
+            variant="outline"
+            size="lg"
+            className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+          >
+            Explore Premium Features
+          </Button>
         </div>
       </div>
     </section>

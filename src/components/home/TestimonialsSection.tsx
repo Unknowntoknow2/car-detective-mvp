@@ -1,95 +1,99 @@
-import { Card } from "@/components/ui/card";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { Star } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+
+interface Testimonial {
+  id: number;
+  author: string;
+  title: string;
+  content: string;
+  rating: number;
+}
+
+const testimonials: Testimonial[] = [
+  {
+    id: 1,
+    author: 'Alice Johnson',
+    title: 'Excellent Service',
+    content: 'I was impressed with the accuracy and speed of the valuation. Highly recommended!',
+    rating: 5,
+  },
+  {
+    id: 2,
+    author: 'Bob Williams',
+    title: 'Great Experience',
+    content: 'The platform is user-friendly and provided a comprehensive report. Very satisfied.',
+    rating: 4,
+  },
+  {
+    id: 3,
+    author: 'Charlie Brown',
+    title: 'Highly Accurate',
+    content: 'I found the valuation to be very close to the actual market value. A great tool for sellers.',
+    rating: 5,
+  },
+];
 
 export function TestimonialsSection() {
-  const testimonials = [
-    {
-      quote:
-        "This service nailed our car's market value – saved us thousands when selling our Honda Accord.",
-      author: "Jane D.",
-      role: "Seller",
-      rating: 5,
-    },
-    {
-      quote:
-        "The premium report helped me price my trade-in perfectly. The dealer was shocked by how accurate my numbers were!",
-      author: "Bob S.",
-      role: "Customer",
-      rating: 5,
-    },
-    {
-      quote:
-        "As a dealer, we've integrated this into our workflow. The AI photo scoring is a game-changer for online trades.",
-      author: "Michael T.",
-      role: "Dealer",
-      rating: 5,
-    },
-    {
-      quote:
-        "I used the premium service before buying. Found out the car had hidden damage not disclosed by the seller.",
-      author: "Sarah K.",
-      role: "Buyer",
-      rating: 5,
-    },
-  ];
+  const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentTestimonialIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const goToPrevious = () => {
+    setCurrentTestimonialIndex((prevIndex) => (prevIndex - 1 + testimonials.length) % testimonials.length);
+  };
+
+  const goToNext = () => {
+    setCurrentTestimonialIndex((prevIndex) => (prevIndex + 1) % testimonials.length);
+  };
+
+  const currentTestimonial = testimonials[currentTestimonialIndex];
 
   return (
-    <section className="py-16 bg-surface">
-      <div className="container mx-auto max-w-6xl px-4">
-        <h2 className="text-3xl font-semibold text-center mb-4">
-          What Our Customers Say
-        </h2>
-        <p className="text-center text-text-secondary mb-12 max-w-2xl mx-auto">
-          Join thousands of satisfied users who have found the true value of
-          their vehicles
-        </p>
-
-        <Carousel className="mx-auto">
-          <CarouselContent>
-            {testimonials.map((testimonial, index) => (
-              <CarouselItem
-                key={index}
-                className="md:basis-1/2 lg:basis-1/3 p-1"
-              >
-                <Card className="p-6 h-full border border-border/50 hover:shadow-md transition-shadow">
-                  <div className="flex mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="h-4 w-4 fill-primary text-primary"
-                      />
-                    ))}
-                  </div>
-                  <p className="italic text-text-secondary mb-6">
-                    {testimonial.quote}
-                  </p>
-                  <div className="flex items-center justify-between mt-auto">
-                    <div>
-                      <p className="font-semibold text-text-primary">
-                        {testimonial.author}
-                      </p>
-                      <p className="text-sm text-text-secondary">
-                        {testimonial.role}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <div className="hidden md:flex justify-end gap-2 mt-6">
-            <CarouselPrevious className="static translate-y-0 mr-2" />
-            <CarouselNext className="static translate-y-0" />
-          </div>
-        </Carousel>
+    <section className="relative py-12 md:py-20 bg-gray-50">
+      <div className="container mx-auto text-center">
+        <h2 className="text-3xl font-bold mb-8">What Our Users Say</h2>
+        <div className="relative max-w-2xl mx-auto">
+          <Card className="bg-white shadow-xl rounded-lg overflow-hidden">
+            <CardContent className="p-8">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-left">
+                  <h3 className="text-xl font-semibold">{currentTestimonial.title}</h3>
+                  <p className="text-gray-600">{currentTestimonial.author}</p>
+                </div>
+                <div className="flex items-center">
+                  {Array.from({ length: currentTestimonial.rating }, (_, i) => (
+                    <Star key={i} className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                  ))}
+                </div>
+              </div>
+              <p className="text-gray-700">{currentTestimonial.content}</p>
+            </CardContent>
+          </Card>
+          <Button
+            className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2"
+            onClick={goToPrevious}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2"
+            onClick={goToNext}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </section>
   );
 }
+
+export default TestimonialsSection;

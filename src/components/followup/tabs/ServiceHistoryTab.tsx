@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -24,7 +23,7 @@ export function ServiceHistoryTab({ formData, onServiceHistoryChange }: ServiceH
 
   const hasRecords = serviceData.hasRecords;
 
-  const handleServiceToggle = (checked: boolean) => {
+  const handleServiceChange = (checked: boolean, serviceType: string) => {
     const updatedData: ServiceHistoryDetails = {
       ...serviceData,
       hasRecords: checked,
@@ -56,7 +55,7 @@ export function ServiceHistoryTab({ formData, onServiceHistoryChange }: ServiceH
           <Switch
             id="service-records-toggle"
             checked={hasRecords}
-            onCheckedChange={handleServiceToggle}
+            onCheckedChange={(checked) => handleServiceChange(checked, 'service')}
           />
           <Label htmlFor="service-records-toggle">
             Do you have service records for this vehicle?

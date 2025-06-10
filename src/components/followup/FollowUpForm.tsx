@@ -1,262 +1,269 @@
-// ✅ File: src/components/lookup/followup/FollowUpForm.tsx
-
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Button } from "@/components/ui/button";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface FollowUpFormProps {
-  onSubmit: (data: any) => void;
-  apiData?: {
-    make: string;
-    model: string;
-    year: number;
-    trim?: string;
-    engine?: string;
-    drivetrain?: string;
-    fuelType?: string;
-    zipCode?: string;
-  };
+  vin?: string;
+  onSubmit: (data: any) => Promise<void>;
+  onCancel?: () => void;
+  isLoading?: boolean;
 }
 
-const featureList = [
-  { label: "Sunroof", valueImpact: 400 },
-  { label: "Leather Seats", valueImpact: 600 },
-  { label: "Navigation System", valueImpact: 300 },
-  { label: "Bluetooth", valueImpact: 150 },
-  { label: "Backup Camera", valueImpact: 250 },
-  { label: "Heated Seats", valueImpact: 200 },
-  { label: "Premium Sound", valueImpact: 350 },
-];
+interface FollowUpFormData {
+  vin: string;
+  zipCode: string;
+  mileage: number;
+  condition: string;
+  transmission: string;
+  titleStatus: string;
+  previousUse: string;
+  previousOwners: number;
+  serviceHistory: string;
+}
 
-const FollowUpForm: React.FC<FollowUpFormProps> = ({ onSubmit, apiData }) => {
-  const [mileage, setMileage] = useState("");
-  const [tireCondition, setTireCondition] = useState(75);
-  const [vehicleCondition, setVehicleCondition] = useState(80);
-  const [usageType, setUsageType] = useState("personal");
-  const [ownership, setOwnership] = useState("first-owner");
-  const [loanStatus, setLoanStatus] = useState("paid");
-  const [hadAccident, setHadAccident] = useState("no");
-  const [accidentCount, setAccidentCount] = useState("");
-  const [accidentSeverity, setAccidentSeverity] = useState("minor");
-  const [accidentArea, setAccidentArea] = useState("");
-  const [features, setFeatures] = useState<string[]>([]);
+const defaultFormData: FollowUpFormData = {
+  vin: '',
+  zipCode: '',
+  mileage: 0,
+  condition: 'good',
+  transmission: 'automatic',
+  titleStatus: 'clean',
+  previousUse: 'personal',
+  previousOwners: 1,
+  serviceHistory: 'yes',
+};
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({
-      mileage,
-      tireCondition,
-      vehicleCondition,
-      usageType,
-      ownership,
-      loanStatus,
-      hadAccident,
-      accidentDetails: hadAccident === "yes"
-        ? { accidentCount, accidentSeverity, accidentArea }
-        : null,
-      features,
-    });
+export function FollowUpForm({ 
+  vin, 
+  onSubmit, 
+  onCancel,
+  isLoading = false 
+}: FollowUpFormProps) {
+  const [formData, setFormData] = useState<FollowUpFormData>({
+    ...defaultFormData,
+    vin: vin || '',
+  });
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  const handleFeatureChange = (feature: string) => {
-    setFeatures((prev) =>
-      prev.includes(feature)
-        ? prev.filter((f) => f !== feature)
-        : [...prev, feature]
-    );
+  const handleVehicleUsageChange = (value: string) => {
+    setFormData(prev => ({ ...prev, previousUse: value as any }));
+  };
+
+  const handleConditionChange = (conditionType: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [conditionType]: value
+    }));
+  };
+
+  const validateField = (fieldName: string, value: string) => {
+    switch (fieldName) {
+      case 'zipCode':
+        if (!/^\d{5}(-\d{4})?$/.test(value)) {
+          return 'Invalid ZIP code';
+        }
+        break;
+      case 'mileage':
+        if (isNaN(Number(value)) || Number(value) < 0) {
+          return 'Mileage must be a positive number';
+        }
+        break;
+      default:
+        return '';
+    }
+    return '';
+  };
+
+  const validateForm = (data: FollowUpFormData) => {
+    const errors: { [key: string]: string } = {};
+    for (const key in data) {
+      const error = validateField(key, String(data[key]));
+      if (error) {
+        errors[key] = error;
+      }
+    }
+    return errors;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const validationErrors = validateForm(formData);
+    setErrors(validationErrors);
+    
+    if (Object.keys(validationErrors).length === 0) {
+      try {
+        await onSubmit(formData);
+      } catch (error) {
+        console.error('Submit error:', error);
+      }
+    }
   };
 
   return (
-    <Card>
+    <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle>Refine Your Valuation Details</CardTitle>
-        {apiData && (
-          <p className="text-sm text-muted-foreground">
-            {apiData.year} {apiData.make} {apiData.model}{" "}
-            {apiData.trim ? `- ${apiData.trim}` : ""}
-            {apiData.engine ? ` • ${apiData.engine}` : ""}
-            {apiData.drivetrain ? ` • ${apiData.drivetrain}` : ""}
-            {apiData.fuelType ? ` • ${apiData.fuelType}` : ""}
-            {apiData.zipCode ? ` • ZIP ${apiData.zipCode}` : ""}
-          </p>
-        )}
+        <CardTitle>Vehicle Details</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="vin">VIN</Label>
+            <Input
+              type="text"
+              id="vin"
+              name="vin"
+              value={formData.vin}
+              onChange={handleChange}
+              disabled
+            />
+          </div>
+          <div>
+            <Label htmlFor="zipCode">ZIP Code</Label>
+            <Input
+              type="text"
+              id="zipCode"
+              name="zipCode"
+              value={formData.zipCode}
+              onChange={handleChange}
+            />
+            {errors.zipCode && <p className="text-red-500">{errors.zipCode}</p>}
+          </div>
           <div>
             <Label htmlFor="mileage">Mileage</Label>
             <Input
-              id="mileage"
               type="number"
-              value={mileage}
-              onChange={(e) => setMileage(e.target.value)}
-              placeholder="e.g., 42000"
-              required
+              id="mileage"
+              name="mileage"
+              value={formData.mileage}
+              onChange={handleChange}
+            />
+            {errors.mileage && <p className="text-red-500">{errors.mileage}</p>}
+          </div>
+          <div>
+            <Label htmlFor="condition">Condition</Label>
+            <Select
+              id="condition"
+              name="condition"
+              value={formData.condition}
+              onValueChange={(value) => handleConditionChange('condition', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select condition" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="excellent">Excellent</SelectItem>
+                <SelectItem value="good">Good</SelectItem>
+                <SelectItem value="fair">Fair</SelectItem>
+                <SelectItem value="poor">Poor</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="transmission">Transmission</Label>
+            <Select
+              id="transmission"
+              name="transmission"
+              value={formData.transmission}
+              onValueChange={(value) => handleChange({ target: { name: 'transmission', value } } as any)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select transmission" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="automatic">Automatic</SelectItem>
+                <SelectItem value="manual">Manual</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="titleStatus">Title Status</Label>
+            <Select
+              id="titleStatus"
+              name="titleStatus"
+              value={formData.titleStatus}
+              onValueChange={(value) => handleChange({ target: { name: 'titleStatus', value } } as any)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select title status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="clean">Clean</SelectItem>
+                <SelectItem value="salvage">Salvage</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="previousUse">Previous Use</Label>
+            <Select
+              id="previousUse"
+              name="previousUse"
+              value={formData.previousUse}
+              onValueChange={(value) => handleVehicleUsageChange(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select previous use" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="personal">Personal</SelectItem>
+                <SelectItem value="rental">Rental</SelectItem>
+                <SelectItem value="commercial">Commercial</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="previousOwners">Previous Owners</Label>
+            <Input
+              type="number"
+              id="previousOwners"
+              name="previousOwners"
+              value={formData.previousOwners}
+              onChange={handleChange}
             />
           </div>
-
           <div>
-            <Label>Vehicle Condition</Label>
-            <Slider
-              min={25}
-              max={90}
-              step={5}
-              value={[vehicleCondition]}
-              onValueChange={([v]) => setVehicleCondition(v)}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Visual + mechanical condition — replacing damaged body panels or
-              fixing engine issues can raise value.
-            </p>
-          </div>
-
-          <div>
-            <Label>Tire Condition</Label>
-            <Slider
-              min={25}
-              max={90}
-              step={5}
-              value={[tireCondition]}
-              onValueChange={([v]) => setTireCondition(v)}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Tire replacement can add up to $400 in value.
-            </p>
-          </div>
-
-          <div>
-            <Label>Vehicle Usage Type</Label>
-            <RadioGroup
-              value={usageType}
-              onValueChange={setUsageType}
-              className="mt-2 space-y-2"
+            <Label htmlFor="serviceHistory">Service History</Label>
+            <Select
+              id="serviceHistory"
+              name="serviceHistory"
+              value={formData.serviceHistory}
+              onValueChange={(value) => handleChange({ target: { name: 'serviceHistory', value } } as any)}
             >
-              <RadioGroupItem value="personal" id="personal" />{" "}
-              <Label htmlFor="personal">Personal</Label>
-              <RadioGroupItem value="fleet" id="fleet" />{" "}
-              <Label htmlFor="fleet">Fleet / Company</Label>
-              <RadioGroupItem value="rideshare" id="rideshare" />{" "}
-              <Label htmlFor="rideshare">Rideshare / Delivery</Label>
-            </RadioGroup>
+              <SelectTrigger>
+                <SelectValue placeholder="Select service history" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="yes">Yes</SelectItem>
+                <SelectItem value="no">No</SelectItem>
+                <SelectItem value="unknown">Unknown</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-
-          <div>
-            <Label>Ownership History</Label>
-            <RadioGroup
-              value={ownership}
-              onValueChange={setOwnership}
-              className="mt-2 space-y-2"
-            >
-              <RadioGroupItem value="first-owner" id="first-owner" />{" "}
-              <Label htmlFor="first-owner">First Owner</Label>
-              <RadioGroupItem value="multiple-owners" id="multiple-owners" />
-              {" "}
-              <Label htmlFor="multiple-owners">Multiple Owners</Label>
-            </RadioGroup>
+          <div className="flex justify-end">
+            {onCancel && (
+              <Button variant="ghost" onClick={onCancel} disabled={isLoading}>
+                Cancel
+              </Button>
+            )}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Submitting...' : 'Submit'}
+            </Button>
           </div>
-
-          <div>
-            <Label>Loan / Lease Status</Label>
-            <RadioGroup
-              value={loanStatus}
-              onValueChange={setLoanStatus}
-              className="mt-2 space-y-2"
-            >
-              <RadioGroupItem value="paid" id="paid" />{" "}
-              <Label htmlFor="paid">Paid Off</Label>
-              <RadioGroupItem value="financed" id="financed" />{" "}
-              <Label htmlFor="financed">Financed / Leased</Label>
-            </RadioGroup>
-          </div>
-
-          <div>
-            <Label>Has the vehicle been in any accidents?</Label>
-            <RadioGroup
-              value={hadAccident}
-              onValueChange={setHadAccident}
-              className="mt-2 space-y-2"
-            >
-              <RadioGroupItem value="no" id="acc-no" />{" "}
-              <Label htmlFor="acc-no">No</Label>
-              <RadioGroupItem value="yes" id="acc-yes" />{" "}
-              <Label htmlFor="acc-yes">Yes</Label>
-            </RadioGroup>
-          </div>
-
-          {hadAccident === "yes" && (
-            <div className="pl-4 mt-2 border-l-2 border-yellow-400 bg-yellow-50 p-4 rounded-md space-y-4">
-              <div>
-                <Label htmlFor="accidentCount">How many accidents?</Label>
-                <Input
-                  id="accidentCount"
-                  type="number"
-                  placeholder="e.g., 2"
-                  value={accidentCount}
-                  onChange={(e) => setAccidentCount(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label>Most Severe Accident</Label>
-                <RadioGroup
-                  value={accidentSeverity}
-                  onValueChange={setAccidentSeverity}
-                  className="mt-2 space-y-2"
-                >
-                  <RadioGroupItem value="minor" id="minor" />{" "}
-                  <Label htmlFor="minor">Minor</Label>
-                  <RadioGroupItem value="moderate" id="moderate" />{" "}
-                  <Label htmlFor="moderate">Moderate</Label>
-                  <RadioGroupItem value="major" id="major" />{" "}
-                  <Label htmlFor="major">Major</Label>
-                </RadioGroup>
-              </div>
-              <div>
-                <Label htmlFor="accidentArea">Where was it hit?</Label>
-                <Textarea
-                  id="accidentArea"
-                  placeholder="e.g., Rear bumper, driver-side door"
-                  value={accidentArea}
-                  onChange={(e) => setAccidentArea(e.target.value)}
-                />
-              </div>
-            </div>
-          )}
-
-          <div>
-            <Label>Select Optional Features</Label>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {featureList.map(({ label, valueImpact }) => (
-                <div key={label} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={label}
-                    checked={features.includes(label)}
-                    onCheckedChange={() =>
-                      handleFeatureChange(label)}
-                  />
-                  <Label htmlFor={label}>
-                    {label}{" "}
-                    <span className="text-xs text-muted-foreground">
-                      (+${valueImpact})
-                    </span>
-                  </Label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Button type="submit" className="w-full mt-4">
-            Submit Refinements
-          </Button>
         </form>
       </CardContent>
     </Card>
   );
-};
+}
 
 export default FollowUpForm;

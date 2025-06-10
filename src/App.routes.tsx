@@ -11,9 +11,6 @@ import ValuationPage from "./pages/ValuationPage";
 import PremiumValuationPage from "./pages/PremiumValuationPage";
 import ValuationResultPage from "./pages/ValuationResultPage";
 import ResultPage from "./pages/ResultPage";
-import DealerDashboardPage from "./pages/dealer/DealerDashboardPage";
-import DealerVehicleDetailsPage from "./pages/dealer/DealerVehicleDetailsPage";
-import DealerLayoutPage from "./pages/dealer/DealerLayoutPage";
 import ProfilePage from "./pages/ProfilePage";
 import AccountPage from "./pages/AccountPage";
 import ServiceHistoryPage from "./pages/ServiceHistoryPage";
@@ -71,20 +68,6 @@ const routes: RouteObject[] = [
       {
         path: "service-history",
         element: <ServiceHistoryPage />,
-      },
-      {
-        path: "dealer",
-        element: <DealerLayoutPage />,
-        children: [
-          {
-            index: true,
-            element: <DealerDashboardPage />,
-          },
-          {
-            path: "vehicle/:id",
-            element: <DealerVehicleDetailsPage />,
-          },
-        ],
       },
       {
         path: "*",

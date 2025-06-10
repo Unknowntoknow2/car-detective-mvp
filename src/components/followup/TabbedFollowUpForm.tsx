@@ -1,111 +1,120 @@
-
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { ProgressBar } from "@/components/ui/progress";
 import { BasicInfoTab } from './tabs/BasicInfoTab';
-import { VehicleConditionTab } from './tabs/VehicleConditionTab';
-import { FeaturesTab } from './tabs/FeaturesTab';
+import { ConditionTab } from './tabs/ConditionTab';
+import { IssuesTab } from './tabs/IssuesTab';
 import { ServiceHistoryTab } from './tabs/ServiceHistoryTab';
 import { AccidentsTab } from './tabs/AccidentsTab';
-import { TitleOwnershipTab } from './tabs/TitleOwnershipTab';
-import { VehicleIssuesTab } from './tabs/VehicleIssuesTab';
-import { Loader2, Save } from 'lucide-react';
+import { ModificationsTab } from './tabs/ModificationsTab';
+import { FeaturesTab } from './tabs/FeaturesTab';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface TabbedFollowUpFormProps {
   formData: FollowUpAnswers;
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
   onSubmit: () => Promise<void>;
-  onSave?: () => void;
-  isLoading: boolean;
+  onSave: () => void;
+  isLoading?: boolean;
 }
 
-export default function TabbedFollowUpForm({
+export function TabbedFollowUpForm({
   formData,
   updateFormData,
   onSubmit,
   onSave,
-  isLoading
+  isLoading = false
 }: TabbedFollowUpFormProps) {
-  const [activeTab, setActiveTab] = useState('basic-info');
+  const [activeTab, setActiveTab] = useState("basic");
 
-  const tabs = [
-    { id: 'basic-info', label: 'Basic Info', component: BasicInfoTab },
-    { id: 'condition', label: 'Condition', component: VehicleConditionTab },
-    { id: 'features', label: 'Features', component: FeaturesTab },
-    { id: 'service', label: 'Service History', component: ServiceHistoryTab },
-    { id: 'accidents', label: 'Accidents', component: AccidentsTab },
-    { id: 'title', label: 'Title & Ownership', component: TitleOwnershipTab },
-    { id: 'issues', label: 'Issues', component: VehicleIssuesTab },
-  ];
-
-  const completionPercentage = formData.completion_percentage || 0;
-  const canSubmit = formData.is_complete && completionPercentage >= 60;
+  const handleServiceHistoryChange = (updates: Partial<FollowUpAnswers>) => {
+    updateFormData(updates);
+  };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Vehicle Follow-Up Questions</span>
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-muted-foreground">
-              {completionPercentage}% Complete
-            </div>
-            <Progress value={completionPercentage} className="w-32" />
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-7">
-            {tabs.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id}>
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {tabs.map((tab) => {
-            const TabComponent = tab.component;
-            return (
-              <TabsContent key={tab.id} value={tab.id} className="mt-6">
-                <TabComponent
-                  formData={formData}
-                  updateFormData={updateFormData}
-                />
-              </TabsContent>
-            );
-          })}
-        </Tabs>
-
-        <div className="flex justify-between mt-8 pt-6 border-t">
-          <Button
-            variant="outline"
-            onClick={onSave}
-            disabled={isLoading}
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Save Progress
-          </Button>
-
-          <Button
-            onClick={onSubmit}
-            disabled={!canSubmit || isLoading}
-            size="lg"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              'Complete Valuation'
-            )}
-          </Button>
+    <div className="w-full max-w-6xl mx-auto p-6">
+      <div className="mb-4">
+        <ProgressBar value={formData.completion_percentage || 0} />
+        <p className="text-sm text-muted-foreground mt-2">
+          {formData.completion_percentage || 0}% Complete
+        </p>
+      </div>
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="basic">Basic Info</TabsTrigger>
+          <TabsTrigger value="condition">Condition</TabsTrigger>
+          <TabsTrigger value="issues">Issues</TabsTrigger>
+          <TabsTrigger value="service">Service History</TabsTrigger>
+          <TabsTrigger value="accidents">Accidents</TabsTrigger>
+          <TabsTrigger value="modifications">Modifications</TabsTrigger>
+          <TabsTrigger value="features">Features</TabsTrigger>
+        </TabsList>
+        
+        <div className="mt-6">
+          <TabsContent value="basic" className="space-y-6">
+            <BasicInfoTab
+              formData={formData}
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+          
+          <TabsContent value="condition" className="space-y-6">
+            <ConditionTab
+              formData={formData}
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+          
+          <TabsContent value="issues" className="space-y-6">
+            <IssuesTab
+              formData={formData}
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+          
+          <TabsContent value="service" className="space-y-6">
+            <ServiceHistoryTab
+              formData={formData}
+              updateFormData={updateFormData}
+              onServiceHistoryChange={handleServiceHistoryChange}
+            />
+          </TabsContent>
+          
+          <TabsContent value="accidents" className="space-y-6">
+            <AccidentsTab
+              formData={formData}
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+          
+          <TabsContent value="modifications" className="space-y-6">
+            <ModificationsTab
+              formData={formData}
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
+          
+          <TabsContent value="features" className="space-y-6">
+            <FeaturesTab
+              formData={formData}
+              updateFormData={updateFormData}
+            />
+          </TabsContent>
         </div>
-      </CardContent>
-    </Card>
+      </Tabs>
+      
+      <div className="flex justify-between mt-8">
+        <Button variant="secondary" onClick={onSave}>
+          Save Progress
+        </Button>
+        <Button onClick={onSubmit} disabled={isLoading}>
+          {isLoading ? "Submitting..." : "Submit Valuation"}
+        </Button>
+      </div>
+    </div>
   );
 }
+
+export default TabbedFollowUpForm;
