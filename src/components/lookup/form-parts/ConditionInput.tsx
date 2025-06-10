@@ -14,12 +14,16 @@ export function ConditionInput({
   setCondition,
   disabled = false 
 }: ConditionInputProps) {
+  const handleChange = (value: string) => {
+    setCondition(value as ConditionLevel);
+  };
+
   return (
     <div>
       <Label htmlFor="condition">Condition</Label>
       <ConditionSelectorBar
         value={condition}
-        onChange={setCondition}
+        onChange={handleChange}
         disabled={disabled}
       />
     </div>

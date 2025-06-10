@@ -7,9 +7,10 @@ interface LoadingButtonProps {
   isLoading?: boolean;
   loadingText?: string;
   onClick?: () => void;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost";
+  variant?: "default" | "destructive" | "outline" | "ghost";
   className?: string;
   children: React.ReactNode;
+  disabled?: boolean;
 }
 
 export function LoadingButton({
@@ -19,12 +20,13 @@ export function LoadingButton({
   variant = "default",
   className,
   children,
+  disabled = false,
 }: LoadingButtonProps) {
   return (
     <Button
       onClick={onClick}
       variant={variant}
-      disabled={isLoading}
+      disabled={isLoading || disabled}
       className={className}
     >
       {isLoading ? (
@@ -38,3 +40,5 @@ export function LoadingButton({
     </Button>
   );
 }
+
+export default LoadingButton;
