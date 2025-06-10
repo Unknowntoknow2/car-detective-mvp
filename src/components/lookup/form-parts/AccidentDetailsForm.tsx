@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AccidentDetails } from '../types/manualEntry';
 
 interface AccidentDetailsFormProps {
   accidentCount: number | undefined;
@@ -25,11 +27,6 @@ export function AccidentDetailsForm({
   onAccidentDescriptionChange
 }: AccidentDetailsFormProps) {
 
-  const handleInputChange = (val: string) => {
-    const parsedValue = val === '' ? undefined : parseInt(val, 10);
-    onAccidentCountChange(isNaN(parsedValue) ? undefined : parsedValue);
-  };
-
   return (
     <div className="space-y-4">
       <div>
@@ -40,7 +37,7 @@ export function AccidentDetailsForm({
           value={accidentCount === undefined ? '' : accidentCount.toString()}
           onChange={(e) => {
             const parsedValue = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
-            onAccidentCountChange(isNaN(parsedValue) ? undefined : parsedValue);
+            onAccidentCountChange(isNaN(parsedValue || 0) ? undefined : parsedValue);
           }}
           placeholder="Enter number of accidents"
         />

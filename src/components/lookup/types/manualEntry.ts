@@ -11,9 +11,9 @@ export enum ConditionLevel {
 
 export interface AccidentDetails {
   hasAccident: boolean;
-  severity?: 'minor' | 'moderate' | 'severe';
+  severity: 'minor' | 'moderate' | 'severe';
   repaired?: boolean;
-  count?: string;
+  count?: number;
   area?: string;
   description?: string;
 }
