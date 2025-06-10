@@ -8,9 +8,14 @@ import { FormData } from "@/types/premium-valuation";
 interface DetailedConditionRatingProps {
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  onConditionChange?: (value: number, category: string) => void;
 }
 
-export const DetailedConditionRating = ({ formData, setFormData }: DetailedConditionRatingProps) => {
+export const DetailedConditionRating = ({ 
+  formData, 
+  setFormData,
+  onConditionChange
+}: DetailedConditionRatingProps) => {
   const conditionCategories = [
     "exterior",
     "interior", 
@@ -26,6 +31,10 @@ export const DetailedConditionRating = ({ formData, setFormData }: DetailedCondi
         [category]: value,
       },
     }));
+    
+    if (onConditionChange) {
+      onConditionChange(value, category);
+    }
   };
 
   return (

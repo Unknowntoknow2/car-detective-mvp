@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   FormControl,
@@ -60,7 +61,6 @@ export const ZipCodeField: React.FC<ZipCodeFieldProps> = ({
               disabled={disabled || field.disabled}
               placeholder={placeholder}
               required={required}
-              showValidation
             />
           </FormControl>
           <FormMessage />
