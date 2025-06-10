@@ -2,60 +2,95 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { Label } from "@/components/ui/label";
-import { FormData } from "@/types/premium-valuation";
 
-interface DetailedConditionRatingProps {
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  onConditionChange?: (value: number, category: string) => void;
+export interface DetailedConditionRatingProps {
+  formData: {
+    exteriorCondition: number;
+    interiorCondition: number;
+    mechanicalCondition: number;
+    tireCondition: number;
+  };
+  setFormData: (data: any) => void;
 }
 
-export const DetailedConditionRating = ({ 
-  formData, 
-  setFormData,
-  onConditionChange
-}: DetailedConditionRatingProps) => {
-  const conditionCategories = [
-    "exterior",
-    "interior", 
-    "mechanical",
-    "tires",
-  ];
-
-  const handleConditionChange = (category: string, value: any) => {
-    setFormData((prev: FormData) => ({
+export function DetailedConditionRating({ formData, setFormData }: DetailedConditionRatingProps) {
+  const handleConditionChange = (value: number, category: string) => {
+    setFormData((prev: any) => ({
       ...prev,
-      conditionRatings: {
-        ...prev.conditionRatings,
-        [category]: value,
-      },
+      [`${category}Condition`]: value
     }));
-    
-    if (onConditionChange) {
-      onConditionChange(value, category);
-    }
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Detailed Condition Rating</CardTitle>
+        <CardTitle>Detailed Condition Assessment</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {conditionCategories.map((category) => (
-          <div key={category} className="space-y-2">
-            <Label>{`${category.charAt(0).toUpperCase() + category.slice(1)} Condition`}</Label>
-            <Slider
-              defaultValue={[3]}
-              max={5}
-              min={1}
-              step={1}
-              onValueChange={(value: number[]) => handleConditionChange(category, value[0])}
-            />
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Exterior Condition</label>
+          <Slider
+            value={[formData.exteriorCondition]}
+            onValueChange={(value) => handleConditionChange(value[0], 'exterior')}
+            max={10}
+            min={1}
+            step={1}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>Poor</span>
+            <span>Excellent</span>
           </div>
-        ))}
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Interior Condition</label>
+          <Slider
+            value={[formData.interiorCondition]}
+            onValueChange={(value) => handleConditionChange(value[0], 'interior')}
+            max={10}
+            min={1}
+            step={1}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>Poor</span>
+            <span>Excellent</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Mechanical Condition</label>
+          <Slider
+            value={[formData.mechanicalCondition]}
+            onValueChange={(value) => handleConditionChange(value[0], 'mechanical')}
+            max={10}
+            min={1}
+            step={1}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>Poor</span>
+            <span>Excellent</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Tire Condition</label>
+          <Slider
+            value={[formData.tireCondition]}
+            onValueChange={(value) => handleConditionChange(value[0], 'tire')}
+            max={10}
+            min={1}
+            step={1}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>Replace Soon</span>
+            <span>Like New</span>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
-};
+}

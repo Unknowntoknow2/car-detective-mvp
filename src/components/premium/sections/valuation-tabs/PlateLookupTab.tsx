@@ -1,41 +1,64 @@
 
 import React from "react";
-import { TabContentWrapper } from "./TabContentWrapper";
-import { EnhancedPlateLookup } from "@/components/premium/lookup/EnhancedPlateLookup";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-interface PlateLookupTabProps {
-  plateValue: string;
-  plateState: string;
-  isLoading: boolean;
-  vehicle: any;
+interface EnhancedPlateLookupProps {
+  plate: string;
+  state: string;
   onPlateChange: (value: string) => void;
   onStateChange: (value: string) => void;
   onLookup: () => void;
+  isLoading: boolean;
+  vehicle?: any;
 }
 
-export function PlateLookupTab({
-  plateValue,
-  plateState,
-  isLoading,
-  vehicle,
-  onPlateChange,
-  onStateChange,
-  onLookup
-}: PlateLookupTabProps) {
+interface PlateLookupTabProps {
+  value: string;
+  state: string;
+  onPlateChange: (value: string) => void;
+  onStateChange: (value: string) => void;
+  onLookup: () => void;
+  isLoading: boolean;
+  vehicle: any;
+}
+
+export function PlateLookupTab({ value, state, onPlateChange, onStateChange, onLookup, isLoading, vehicle }: PlateLookupTabProps) {
   return (
-    <TabContentWrapper
-      title="License Plate Lookup"
-      description="Enter your license plate number for quick vehicle identification"
-    >
-      <EnhancedPlateLookup
-        value={plateValue}
-        state={plateState}
-        onPlateChange={onPlateChange}
-        onStateChange={onStateChange}
-        onLookup={onLookup}
-        isLoading={isLoading}
-        vehicle={vehicle}
-      />
-    </TabContentWrapper>
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm font-medium">License Plate</label>
+          <Input
+            value={value}
+            onChange={(e) => onPlateChange(e.target.value)}
+            placeholder="Enter license plate"
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium">State</label>
+          <Select value={state} onValueChange={onStateChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select state" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="CA">California</SelectItem>
+              <SelectItem value="TX">Texas</SelectItem>
+              <SelectItem value="FL">Florida</SelectItem>
+              <SelectItem value="NY">New York</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <Button onClick={onLookup} disabled={isLoading || !value || !state} className="w-full">
+        {isLoading ? "Looking up..." : "Lookup Vehicle"}
+      </Button>
+      {vehicle && (
+        <div className="mt-4 p-4 border rounded-md bg-gray-50">
+          <p className="font-medium">{vehicle.year} {vehicle.make} {vehicle.model}</p>
+        </div>
+      )}
+    </div>
   );
 }
