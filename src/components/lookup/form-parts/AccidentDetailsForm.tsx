@@ -1,18 +1,19 @@
 
 import React from 'react';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 interface AccidentDetailsFormProps {
-  accidentCount: number | undefined;
-  accidentLocation: string | undefined;
-  accidentSeverity: string | undefined;
-  accidentDescription: string | undefined;
-  onAccidentCountChange: (value: number | undefined) => void;
-  onAccidentLocationChange: (value: string) => void;
-  onAccidentSeverityChange: (value: string) => void;
-  onAccidentDescriptionChange: (value: string) => void;
+  accidentCount?: number;
+  accidentLocation?: string;
+  accidentSeverity?: 'minor' | 'moderate' | 'severe';
+  accidentDescription?: string;
+  onAccidentCountChange: (count: number) => void;
+  onAccidentLocationChange: (location: string) => void;
+  onAccidentSeverityChange: (severity: string) => void;
+  onAccidentDescriptionChange: (description: string) => void;
 }
 
 export function AccidentDetailsForm({
@@ -23,54 +24,56 @@ export function AccidentDetailsForm({
   onAccidentCountChange,
   onAccidentLocationChange,
   onAccidentSeverityChange,
-  onAccidentDescriptionChange
+  onAccidentDescriptionChange,
 }: AccidentDetailsFormProps) {
-
   return (
     <div className="space-y-4">
+      <h4 className="text-sm font-medium">Accident Details</h4>
+      
       <div>
-        <Label htmlFor="accident-count">Number of Accidents</Label>
+        <Label htmlFor="accidentCount">Number of Accidents</Label>
         <Input
           type="number"
-          id="accident-count"
-          value={accidentCount === undefined ? '' : accidentCount.toString()}
-          onChange={(e) => {
-            const parsedValue = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
-            onAccidentCountChange(isNaN(parsedValue || 0) ? undefined : parsedValue);
-          }}
-          placeholder="Enter number of accidents"
+          id="accidentCount"
+          value={accidentCount || 0}
+          onChange={(e) => onAccidentCountChange(parseInt(e.target.value) || 0)}
+          placeholder="0"
         />
       </div>
-
+      
       <div>
-        <Label htmlFor="accident-location">Accident Location</Label>
+        <Label htmlFor="accidentLocation">Location of Damage</Label>
         <Input
           type="text"
-          id="accident-location"
+          id="accidentLocation"
           value={accidentLocation || ''}
           onChange={(e) => onAccidentLocationChange(e.target.value)}
-          placeholder="Enter accident location"
+          placeholder="e.g., Front bumper, rear quarter panel"
         />
       </div>
-
+      
       <div>
-        <Label htmlFor="accident-severity">Accident Severity</Label>
-        <Input
-          type="text"
-          id="accident-severity"
-          value={accidentSeverity || ''}
-          onChange={(e) => onAccidentSeverityChange(e.target.value)}
-          placeholder="Enter accident severity"
-        />
+        <Label htmlFor="accidentSeverity">Severity</Label>
+        <Select value={accidentSeverity || 'minor'} onValueChange={onAccidentSeverityChange}>
+          <SelectTrigger id="accidentSeverity">
+            <SelectValue placeholder="Select severity" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="minor">Minor</SelectItem>
+            <SelectItem value="moderate">Moderate</SelectItem>
+            <SelectItem value="severe">Severe</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-
+      
       <div>
-        <Label htmlFor="accident-description">Accident Description</Label>
+        <Label htmlFor="accidentDescription">Description</Label>
         <Textarea
-          id="accident-description"
+          id="accidentDescription"
           value={accidentDescription || ''}
           onChange={(e) => onAccidentDescriptionChange(e.target.value)}
-          placeholder="Enter accident description"
+          placeholder="Describe the accident and repairs"
+          rows={3}
         />
       </div>
     </div>
