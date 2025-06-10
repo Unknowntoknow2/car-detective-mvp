@@ -1,72 +1,65 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 interface User {
   id: string;
   email: string;
-  role: 'user' | 'dealer' | 'admin';
+}
+
+interface UserDetails {
+  id: string;
+  name?: string;
+  role?: string;
 }
 
 interface AuthContextType {
   user: User | null;
+  userDetails: UserDetails | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  register: (email: string, password: string) => Promise<void>;
+  userRole: string | null;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    // Simulate checking for existing session
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 100);
-  }, []);
-
-  const login = async (email: string, password: string) => {
-    // Mock login implementation
-    setUser({
-      id: '1',
-      email,
-      role: 'user'
-    });
+  const signIn = async (email: string, password: string) => {
+    setIsLoading(true);
+    // Placeholder implementation
+    setUser({ id: '1', email });
+    setIsLoading(false);
   };
 
-  const logout = () => {
+  const signOut = async () => {
     setUser(null);
-  };
-
-  const register = async (email: string, password: string) => {
-    // Mock register implementation
-    setUser({
-      id: '1',
-      email,
-      role: 'user'
-    });
+    setUserDetails(null);
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isLoading,
-      login,
-      logout,
-      register
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        userDetails,
+        isLoading,
+        userRole: userDetails?.role || null,
+        signIn,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}
+};
