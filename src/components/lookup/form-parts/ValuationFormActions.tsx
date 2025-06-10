@@ -1,56 +1,45 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { LoadingButton } from '@/components/ui/loading-button';
+import { LoadingButton } from '@/components/common/LoadingButton';
 
 interface ValuationFormActionsProps {
-  onNewSearch: () => void;
-  onStartOver: () => void;
-  isNewSearch: boolean;
-  isResetting: boolean;
+  onGetValuation: () => void;
+  onGetPremiumValuation: () => void;
+  isLoading?: boolean;
+  isSubmitting?: boolean;
+  showPremiumOption?: boolean;
 }
 
-export const ValuationFormActions: React.FC<ValuationFormActionsProps> = ({
-  onNewSearch,
-  onStartOver,
-  isNewSearch,
-  isResetting
-}) => {
-  const navigate = useNavigate();
-
-  const handleNewSearch = () => {
-    toast.success('Starting a new search!');
-    onNewSearch();
-    navigate('/valuation');
-  };
-
-  const handleStartOver = () => {
-    toast.success('Resetting the form!');
-    onStartOver();
-  };
-
+export function ValuationFormActions({
+  onGetValuation,
+  onGetPremiumValuation,
+  isLoading = false,
+  isSubmitting = false,
+  showPremiumOption = true,
+}: ValuationFormActionsProps) {
   return (
-    <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+    <div className="flex flex-col sm:flex-row gap-4 pt-6">
       <LoadingButton
-        onClick={handleNewSearch}
-        variant="default"
-        isLoading={isNewSearch}
-        loadingText="Searching..."
-        className="w-full"
-      >
-        New Search
-      </LoadingButton>
-      <LoadingButton
-        onClick={handleStartOver}
+        onClick={onGetValuation}
         variant="outline"
-        isLoading={isResetting}
-        loadingText="Resetting..."
-        className="w-full"
+        isLoading={isLoading && !isSubmitting}
+        loadingText="Getting Free Valuation..."
+        className="flex-1"
       >
-        Start Over
+        Get Free Valuation
       </LoadingButton>
+      
+      {showPremiumOption && (
+        <LoadingButton
+          onClick={onGetPremiumValuation}
+          variant="default"
+          isLoading={isSubmitting}
+          loadingText="Getting Premium Valuation..."
+          className="flex-1"
+        >
+          Get Premium Valuation
+        </LoadingButton>
+      )}
     </div>
   );
-};
+}
