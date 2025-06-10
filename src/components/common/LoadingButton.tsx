@@ -7,7 +7,7 @@ interface LoadingButtonProps {
   isLoading?: boolean;
   loadingText?: string;
   onClick?: () => void;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost";
   className?: string;
   children: React.ReactNode;
 }
