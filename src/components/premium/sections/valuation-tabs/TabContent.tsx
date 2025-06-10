@@ -55,7 +55,7 @@ export function TabContent() {
         <PhotoUploadTab
           isLoading={isLoading}
           vehicle={vehicleData}
-          onPhotoUpload={(files) => console.log("Photos uploaded:", files)}
+          onPhotoUpload={(files: File[]) => console.log("Photos uploaded:", files)}
         />
       </TabsContent>
 
