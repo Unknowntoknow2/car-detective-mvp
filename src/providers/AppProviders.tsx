@@ -1,33 +1,17 @@
 
-import React from "react";
-import { BrowserRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HelmetProvider } from "react-helmet-async";
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { AuthProvider } from "@/contexts/AuthContext";
+import React from 'react';
+import { ToastProvider } from '@/components/ui/use-toast';
 
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 1000 * 60 * 5, // 5 minutes
-    },
-  },
-});
+interface AppProvidersProps {
+  children: React.ReactNode;
+}
 
-export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
   return (
-    <BrowserRouter>
-      <HelmetProvider>
-        <ThemeProvider>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
-          </QueryClientProvider>
-        </ThemeProvider>
-      </HelmetProvider>
-    </BrowserRouter>
+    <ToastProvider>
+      {children}
+    </ToastProvider>
   );
 };
+
+export default AppProviders;

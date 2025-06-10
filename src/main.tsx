@@ -4,28 +4,9 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AppProviders } from './providers/AppProviders';
-import { initSentry } from './lib/sentry';
-import { loadFonts } from './lib/fonts';
-import { setupTrackingErrorHandler } from './utils/errorHandling';
 import './index.css';
 
-// Initialize third-party tools
-initSentry();
-loadFonts();
-
-if (typeof window !== 'undefined') {
-  setupTrackingErrorHandler();
-}
-
-// Enable React Router future flags for better performance
-if (import.meta.env.VITE_ROUTER_FUTURE_FLAGS) {
-  (window as any).__reactRouterFutureFlags = {
-    v7_startTransition: true,
-    v7_relativeSplatPath: true,
-  };
-}
-
-// Render the app with error handling
+// Render the app with minimal setup for MVP
 const renderApp = () => {
   try {
     const rootElement = document.getElementById('root');
