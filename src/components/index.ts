@@ -1,14 +1,13 @@
 
-// Core valuation components only for MVP
-export * from './valuation';
-export * from './lookup';
-export * from './common';
-export * from './home';
-export * from './layout';
-export * from './ui';
+export { ConditionSelector } from './common/ConditionSelector';
+export { ConditionSelectorBar } from './common/ConditionSelectorBar';
+export { ZipCodeInput } from './common/ZipCodeInput';
 
-// Disabled for MVP launch:
-// export * from './dealer';
-// export * from './admin';
-// export * from './chat';
-// export * from './auth';
+export { EnhancedHomePage } from './home/EnhancedHomePage';
+export { EnhancedFeatures } from './home/EnhancedFeatures';
+export { HeroSection } from './home/HeroSection';
+
+// Export specific components from lookup to avoid conflicts
+export { VinLookup } from './lookup/VinLookup';
+export { PlateLookup } from './lookup/PlateLookup';
+export { ManualLookup } from './lookup/ManualLookup';

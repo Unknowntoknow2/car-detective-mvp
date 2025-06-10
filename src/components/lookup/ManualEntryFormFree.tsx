@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ManualEntryFormData } from './types/manualEntry';
+import { ManualEntryFormData, ConditionLevel } from './types/manualEntry';
 import { AccidentDetailsForm } from './form-parts/AccidentDetailsForm';
 
 interface ManualEntryFormFreeProps {
@@ -26,7 +26,6 @@ export function ManualEntryFormFree({
   const [activeTab, setActiveTab] = useState("details");
   const [accidentHistory, setAccidentHistory] = useState<string>(formData.accidentDetails?.hasAccident ? 'yes' : 'no');
   const [accidentSeverity, setAccidentSeverity] = useState<string>(formData.accidentDetails?.severity || 'minor');
-  const [accidentDescription, setAccidentDescription] = useState<string>(formData.accidentDetails?.description || '');
 
   const handleMakeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateFormData({ make: e.target.value });
@@ -47,7 +46,7 @@ export function ManualEntryFormFree({
   };
 
   const handleConditionChange = (value: string) => {
-    updateFormData({ condition: value });
+    updateFormData({ condition: value as ConditionLevel });
   };
 
   const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,7 +64,7 @@ export function ManualEntryFormFree({
 
   const accidentDetails = {
     hasAccident: accidentHistory === 'yes',
-    severity: accidentSeverity,
+    severity: accidentSeverity as 'minor' | 'moderate' | 'severe',
   };
 
   return (
@@ -121,15 +120,15 @@ export function ManualEntryFormFree({
         </div>
         <div>
           <Label htmlFor="condition">Condition</Label>
-          <Select value={formData.condition || 'good'} onValueChange={handleConditionChange}>
+          <Select value={formData.condition || ConditionLevel.Good} onValueChange={handleConditionChange}>
             <SelectTrigger id="condition">
               <SelectValue placeholder="Select condition" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="excellent">Excellent</SelectItem>
-              <SelectItem value="good">Good</SelectItem>
-              <SelectItem value="fair">Fair</SelectItem>
-              <SelectItem value="poor">Poor</SelectItem>
+              <SelectItem value={ConditionLevel.Excellent}>Excellent</SelectItem>
+              <SelectItem value={ConditionLevel.Good}>Good</SelectItem>
+              <SelectItem value={ConditionLevel.Fair}>Fair</SelectItem>
+              <SelectItem value={ConditionLevel.Poor}>Poor</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -146,7 +145,7 @@ export function ManualEntryFormFree({
 
         <AccidentDetailsForm
           value={formData.accidentDetails || accidentDetails}
-          onChange={handleAccidentDetailsChange}
+          onChange={(details) => updateFormData({ accidentDetails: details })}
         />
       </TabsContent>
     </Tabs>

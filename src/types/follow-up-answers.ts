@@ -16,7 +16,7 @@ export interface FollowUpAnswers {
   dashboard_lights?: string[];
   accident_history?: AccidentDetails;
   modifications?: ModificationDetails;
-  features?: string[]; // Enhanced features system - array of feature IDs
+  features?: string[];
   additional_notes?: string;
   service_history?: string;
   loan_balance?: number;
@@ -77,6 +77,7 @@ export interface ServiceHistoryDetails {
   frequency?: 'regular' | 'occasional' | 'rare' | 'unknown';
   dealerMaintained?: boolean;
   description?: string;
+  services?: string[];
 }
 
 export interface AccidentDetails {
@@ -87,12 +88,15 @@ export interface AccidentDetails {
   repaired?: boolean;
   frameDamage?: boolean;
   description?: string;
+  types?: string[];
+  repairShops?: string[];
 }
 
 export interface ModificationDetails {
   hasModifications: boolean;
   modified?: boolean;
   types: string[];
+  additionalNotes?: string;
 }
 
 export const CONDITION_OPTIONS: ConditionOption[] = [

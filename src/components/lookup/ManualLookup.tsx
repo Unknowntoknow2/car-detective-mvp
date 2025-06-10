@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ManualEntryFormFree } from './ManualEntryFormFree';
 import { UnifiedFollowUpQuestions } from './form-parts/UnifiedFollowUpQuestions';
-import { ManualEntryFormData } from './types/manualEntry';
+import { ManualEntryFormData, ConditionLevel } from './types/manualEntry';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -28,7 +28,7 @@ export function ManualLookup({
     model: '',
     year: new Date().getFullYear(),
     mileage: 0,
-    condition: 'good',
+    condition: ConditionLevel.Good,
     zipCode: '',
     ...initialData,
   });
