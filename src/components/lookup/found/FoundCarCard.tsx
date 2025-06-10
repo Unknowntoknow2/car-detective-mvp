@@ -23,6 +23,7 @@ const FoundCarCard: React.FC<FoundCarCardProps> = ({ vehicle, readonly = true })
     model,
     trim,
     bodyType,
+    bodyStyle,
     fuelType,
     transmission,
   } = vehicle;
@@ -44,17 +45,19 @@ const FoundCarCard: React.FC<FoundCarCardProps> = ({ vehicle, readonly = true })
         <CardTitle className="text-2xl font-bold text-gray-800 mb-1">
           {title}
         </CardTitle>
-        <div className="text-xs text-gray-500 mb-2">
-          VIN: <span className="font-mono">{vin}</span>
-        </div>
+        {vin && (
+          <div className="text-xs text-gray-500 mb-2">
+            VIN: <span className="font-mono">{vin}</span>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-3">
-          {bodyType && (
+          {(bodyType || bodyStyle) && (
             <div className="flex items-center gap-2 text-gray-700">
               <CarIcon className="w-5 h-5 text-blue-600" />
               <span>
-                <strong>Body Type:</strong> {bodyType}
+                <strong>Body Type:</strong> {bodyType || bodyStyle}
               </span>
             </div>
           )}
