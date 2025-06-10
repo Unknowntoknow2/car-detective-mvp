@@ -1,52 +1,58 @@
 
 import { useState, useEffect } from 'react';
+import { DecodedVehicleInfo } from '@/types/vehicle';
 
-interface UseVinDecoderProps {
-  vin?: string;
-}
-
-interface UseVinDecoderReturn {
-  data: any;
-  loading: boolean;
-  error: string | null;
-}
-
-export function useVinDecoder(vin?: string): UseVinDecoderReturn {
-  const [data, setData] = useState(null);
+export function useVinDecoder(vin: string) {
+  const [data, setData] = useState<DecodedVehicleInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!vin || vin.length !== 17) {
+    if (!vin || vin.length < 17) {
       setData(null);
       setError(null);
       return;
     }
 
-    setLoading(true);
-    setError(null);
-
-    // Mock VIN decoder implementation
-    setTimeout(() => {
+    const decodeVin = async () => {
+      setLoading(true);
+      setError(null);
+      
       try {
-        // Mock decoded vehicle data
-        const mockData = {
-          make: "Toyota",
-          model: "Camry", 
+        // Mock implementation - replace with actual VIN decoder service
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const mockData: DecodedVehicleInfo = {
+          vin,
+          make: 'Toyota',
+          model: 'Camry',
           year: 2020,
-          engine: "2.5L 4-Cylinder",
-          transmission: "Automatic",
-          bodyStyle: "Sedan",
-          fuelType: "Gasoline"
+          trim: 'LE',
+          engine: '2.5L 4-Cylinder',
+          transmission: 'CVT Automatic',
+          drivetrain: 'FWD',
+          bodyStyle: 'Sedan',
+          bodyType: 'Sedan',
+          fuelType: 'Gasoline',
+          engineCylinders: '4',
+          displacementL: '2.5',
+          seats: '5',
+          doors: '4',
+          mileage: 45000,
+          condition: 'Good',
+          estimatedValue: 22000,
+          confidenceScore: 85
         };
         
         setData(mockData);
-        setLoading(false);
       } catch (err) {
-        setError("Failed to decode VIN");
+        setError(err instanceof Error ? err.message : 'Failed to decode VIN');
+      } finally {
         setLoading(false);
       }
-    }, 1000);
+    };
+
+    decodeVin();
   }, [vin]);
 
   return { data, loading, error };

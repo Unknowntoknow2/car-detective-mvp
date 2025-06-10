@@ -1,107 +1,83 @@
 
-import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
-import { isValidVIN } from "@/utils/validation/vin-validation";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 
 interface VINLookupFormProps {
-  onSubmit: (vin: string) => void;
+  value: string;
+  onChange: (vin: string) => void;
+  onSubmit: () => void;
   isLoading: boolean;
-  existingVehicle?: {
-    make?: string;
-    model?: string;
-    year?: number;
-  };
-  value?: string;
-  onChange?: (vin: string) => void;
-  error?: string | null;
-  submitButtonText?: string;
+  error: string | null;
 }
 
 export const VINLookupForm: React.FC<VINLookupFormProps> = ({
+  value,
+  onChange,
   onSubmit,
   isLoading,
-  existingVehicle,
-  value: externalValue,
-  onChange: externalOnChange,
-  error: externalError,
-  submitButtonText = "Lookup VIN",
+  error,
 }) => {
-  const [vin, setVin] = useState(externalValue || "");
-  const [error, setError] = useState<string | null>(externalError || null);
-
-  // Update local state when external value changes
-  React.useEffect(() => {
-    if (externalValue !== undefined && externalValue !== vin) {
-      setVin(externalValue);
-    }
-  }, [externalValue]);
-
-  // Update local error when external error changes
-  React.useEffect(() => {
-    if (externalError !== undefined) {
-      setError(externalError);
-    }
-  }, [externalError]);
-
-  const handleVinChange = (newVin: string) => {
-    setVin(newVin);
-    if (externalOnChange) {
-      externalOnChange(newVin);
-    }
-  };
+  const [localVin, setLocalVin] = useState(value);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!vin) {
-      setError("VIN is required");
-      return;
-    }
-
-    if (!isValidVIN(vin)) {
-      setError("Invalid VIN format");
-      return;
-    }
-
-    setError(null);
-    onSubmit(vin);
+    onChange(localVin);
+    onSubmit();
   };
 
+  const isValidVin = localVin.length === 17;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="vin">Vehicle Identification Number (VIN)</Label>
-        <Input
-          id="vin"
-          type="text"
-          placeholder="Enter 17-character VIN"
-          value={vin}
-          onChange={(e) => handleVinChange(e.target.value.toUpperCase())}
-          disabled={isLoading}
-        />
-        {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
-      </div>
-      <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading
-          ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Looking Up VIN...
-            </>
-          )
-          : submitButtonText}
-      </Button>
-      {existingVehicle && (
-        <div className="mt-4 p-4 border rounded-md bg-gray-50">
-          <p className="text-sm text-gray-500">
-            Detected Vehicle: {existingVehicle.year} {existingVehicle.make}{" "}
-            {existingVehicle.model}
-          </p>
-        </div>
-      )}
-    </form>
+    <Card>
+      <CardHeader>
+        <CardTitle>VIN Lookup</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="vin">Vehicle Identification Number (VIN)</Label>
+            <Input
+              id="vin"
+              type="text"
+              value={localVin}
+              onChange={(e) => setLocalVin(e.target.value.toUpperCase())}
+              placeholder="Enter 17-character VIN"
+              maxLength={17}
+              className="font-mono"
+            />
+            <p className="text-sm text-muted-foreground mt-1">
+              Enter the complete 17-character VIN
+            </p>
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-md text-red-700">
+              <AlertTriangle className="h-5 w-5" />
+              <p className="text-sm">{error}</p>
+            </div>
+          )}
+
+          <Button 
+            type="submit" 
+            disabled={!isValidVin || isLoading}
+            className="w-full"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Decoding VIN...
+              </>
+            ) : (
+              'Decode VIN'
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 
