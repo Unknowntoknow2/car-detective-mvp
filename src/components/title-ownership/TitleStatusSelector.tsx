@@ -82,8 +82,8 @@ export function TitleStatusSelector(
             <TooltipTrigger asChild>
               <Info className="h-4 w-4 text-muted-foreground cursor-help" />
             </TooltipTrigger>
-            <TooltipContent className="max-w-sm">
-              <p className="text-sm">
+            <TooltipContent>
+              <p className="text-sm max-w-sm">
                 The title status can significantly impact your vehicle's value.
                 Salvage, rebuilt, or flood titles can reduce value by 20-60%.
               </p>

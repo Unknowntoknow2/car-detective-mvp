@@ -1,121 +1,49 @@
-import { Button } from "@/components/ui/button";
-import { Calendar } from "lucide-react";
+
+import React from "react";
 import { TabContentWrapper } from "./TabContentWrapper";
-import { useAuth } from "@/components/auth/AuthContext";
-import { useForecastData } from "./forecast/useForecastData";
-import { ForecastChart } from "./forecast/ForecastChart";
-import { ForecastSummary } from "./forecast/ForecastSummary";
-import { ForecastError } from "./forecast/ForecastError";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TrendingUp, Download } from "lucide-react";
 
 interface TwelveMonthForecastTabProps {
-  vehicleData?: {
-    make: string;
-    model: string;
-    year: number;
-    trim?: string;
-    vin?: string;
-  };
-  valuationId?: string;
-  estimatedValue?: number;
+  vehicle?: any;
 }
 
-export function TwelveMonthForecastTab({
-  vehicleData,
-  valuationId = "mock-id",
-  estimatedValue = 25000,
-}: TwelveMonthForecastTabProps) {
-  const { user } = useAuth();
-  const { forecastData, isLoading, error } = useForecastData(valuationId);
-
-  if (!user) {
-    return (
-      <TabContentWrapper
-        title="12-Month Value Forecast"
-        description="Forecast your vehicle's future value based on market trends and historical data"
-      >
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-          <Calendar className="h-12 w-12 text-amber-600 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-amber-800 mb-2">
-            Authentication Required
-          </h3>
-          <p className="text-amber-700 mb-4">
-            You need to be logged in to view forecasting data.
-          </p>
-          <Button
-            asChild
-            className="bg-amber-600 hover:bg-amber-700 text-white"
-          >
-            <a href="/auth">Sign In / Register</a>
-          </Button>
-        </div>
-      </TabContentWrapper>
-    );
-  }
-
-  if (!vehicleData) {
-    return (
-      <TabContentWrapper
-        title="12-Month Value Forecast"
-        description="Forecast your vehicle's future value based on market trends and historical data"
-      >
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-          <Calendar className="h-12 w-12 text-amber-600 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-amber-800 mb-2">
-            Vehicle Information Required
-          </h3>
-          <p className="text-amber-700 mb-4">
-            Please first look up a vehicle using VIN, license plate, or manual
-            entry to generate a 12-month forecast.
-          </p>
-        </div>
-      </TabContentWrapper>
-    );
-  }
-
-  const chartData = forecastData?.months.map((month, index) => ({
-    month,
-    value: forecastData.values[index],
-  })) || [];
+export function TwelveMonthForecastTab({ vehicle }: TwelveMonthForecastTabProps) {
+  const downloadForecast = () => {
+    console.log("Downloading 12-month forecast for vehicle:", vehicle);
+  };
 
   return (
     <TabContentWrapper
       title="12-Month Value Forecast"
-      description={`Value forecast for ${vehicleData.year} ${vehicleData.make} ${vehicleData.model} ${
-        vehicleData.trim || ""
-      }`}
+      description="Projected value changes over the next year"
     >
       <div className="space-y-6">
-        {error
-          ? (
-            <ForecastError
-              error={error}
-              onRetry={() => globalThis.location.reload()}
-            />
-          )
-          : (
-            <>
-              <ForecastChart
-                data={chartData}
-                isLoading={isLoading}
-                basePrice={estimatedValue}
-              />
-
-              {forecastData && (
-                <ForecastSummary
-                  trend={forecastData.trend}
-                  percentageChange={forecastData.percentageChange}
-                  confidenceScore={forecastData.confidenceScore}
-                  bestTimeToSell={forecastData.bestTimeToSell}
-                />
-              )}
-
-              <div className="flex justify-end">
-                <Button className="bg-primary">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Value Projection
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">
+                  12-month forecast data will be displayed here.
+                </p>
+              </div>
+              
+              <div className="flex justify-center">
+                <Button className="gap-2" onClick={downloadForecast}>
+                  <Download className="h-4 w-4" />
                   Download Forecast Report
                 </Button>
               </div>
-            </>
-          )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </TabContentWrapper>
   );

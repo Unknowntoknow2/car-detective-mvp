@@ -29,7 +29,6 @@ export function OwnershipHistory(
     }
   };
 
-  // Calculate impact text based on number of owners
   const getImpactText = () => {
     if (numberOfOwners === 1) {
       return { text: "Optimal for resale value", color: "text-green-600" };
@@ -55,8 +54,8 @@ export function OwnershipHistory(
             <TooltipTrigger asChild>
               <Info className="h-4 w-4 text-muted-foreground cursor-help" />
             </TooltipTrigger>
-            <TooltipContent className="max-w-sm">
-              <p className="text-sm">
+            <TooltipContent>
+              <p className="text-sm max-w-sm">
                 Fewer previous owners generally means higher resale value.
                 One-owner vehicles typically command a premium.
               </p>
