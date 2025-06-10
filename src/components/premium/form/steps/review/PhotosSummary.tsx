@@ -1,53 +1,45 @@
+
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { FormData } from "@/types/premium-valuation";
-import { Image } from "lucide-react";
 
 interface PhotosSummaryProps {
   formData: FormData;
 }
 
 export function PhotosSummary({ formData }: PhotosSummaryProps) {
-  const photoCount = formData.photos?.length || 0;
+  const photos = formData.photos || [];
+  
+  if (photos.length === 0) {
+    return (
+      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <h3 className="text-md font-medium mb-2">Vehicle Photos</h3>
+        <p className="text-sm text-gray-500">No photos uploaded</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold mb-3">Photos</h3>
-      <Card className="border-gray-200 shadow-sm">
-        <CardContent className="p-6">
-          {photoCount > 0
-            ? (
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">
-                    Photos Uploaded:
-                  </span>
-                  <span className="text-right font-medium text-gray-800">
-                    {photoCount}
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {Array.from({ length: Math.min(photoCount, 3) }).map((
-                    _,
-                    index,
-                  ) => (
-                    <div
-                      key={index}
-                      className="aspect-square bg-gray-100 rounded-md flex items-center justify-center"
-                    >
-                      <Image className="h-8 w-8 text-gray-400" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
-            : (
-              <div className="text-center text-muted-foreground">
-                No photos uploaded
-              </div>
-            )}
-        </CardContent>
-      </Card>
+    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+      <h3 className="text-md font-medium mb-2">Vehicle Photos</h3>
+      <p className="text-sm text-gray-600 mb-3">
+        {photos.length} photo{photos.length !== 1 ? 's' : ''} uploaded
+      </p>
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+        {photos.slice(0, 6).map((photo: any, index: number) => (
+          <div key={index} className="aspect-square bg-gray-200 rounded border">
+            <img
+              src={photo instanceof File ? URL.createObjectURL(photo) : photo}
+              alt={`Vehicle photo ${index + 1}`}
+              className="w-full h-full object-cover rounded"
+            />
+          </div>
+        ))}
+        {photos.length > 6 && (
+          <div className="aspect-square bg-gray-300 rounded border flex items-center justify-center">
+            <span className="text-xs text-gray-600">+{photos.length - 6}</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

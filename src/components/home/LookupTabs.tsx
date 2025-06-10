@@ -9,7 +9,7 @@ interface LookupTabsProps {
 export function LookupTabs({ defaultTab = "vin" }: LookupTabsProps) {
   return (
     <div className="w-full">
-      <BaseLookupTabs defaultTab={defaultTab} />
+      <BaseLookupTabs />
     </div>
   );
 }

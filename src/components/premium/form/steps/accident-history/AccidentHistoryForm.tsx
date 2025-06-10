@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { FormData } from "@/types/premium-valuation";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -29,8 +30,9 @@ export function AccidentHistoryForm({
     updateValidity(isValid);
   }, [formData.hasAccident, formData.accidentDescription, updateValidity]);
 
-  const handleAccidentChange = (value: "yes" | "no") => {
-    setFormData((prev) => ({
+  const handleAccidentChange = (val: any) => {
+    const value = val as "yes" | "no";
+    setFormData((prev: FormData) => ({
       ...prev,
       hasAccident: value,
       accidentDescription: value === "yes" ? prev.accidentDescription : "",
@@ -38,7 +40,7 @@ export function AccidentHistoryForm({
   };
 
   const handleDetailsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData((prev) => ({
+    setFormData((prev: FormData) => ({
       ...prev,
       accidentDescription: e.target.value,
     }));
@@ -68,7 +70,7 @@ export function AccidentHistoryForm({
           </Label>
           <RadioGroup
             value={hasAccidentStr}
-            onValueChange={(val) => handleAccidentChange(val as "yes" | "no")}
+            onValueChange={handleAccidentChange}
             className="flex space-x-4 mt-2"
           >
             <div className="flex items-center space-x-2">

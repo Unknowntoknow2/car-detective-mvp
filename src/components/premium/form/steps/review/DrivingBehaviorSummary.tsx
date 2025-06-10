@@ -1,50 +1,46 @@
+
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { FormData } from "@/types/premium-valuation";
-import { Car } from "lucide-react";
 
 interface DrivingBehaviorSummaryProps {
   formData: FormData;
 }
 
-export function DrivingBehaviorSummary(
-  { formData }: DrivingBehaviorSummaryProps,
-) {
-  const getDrivingLabel = (profile: string) => {
-    switch (profile) {
-      case "light":
-        return "Light (mostly city driving, short distances)";
-      case "average":
-        return "Average (mix of city and highway driving)";
-      case "heavy":
-        return "Heavy (mostly highway, long distances)";
-      default:
-        return profile;
-    }
-  };
+export function DrivingBehaviorSummary({ formData }: DrivingBehaviorSummaryProps) {
+  const hasDrivingData = formData.drivingBehavior || formData.drivingProfile || formData.annualMileage;
+
+  if (!hasDrivingData) {
+    return (
+      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <h3 className="text-md font-medium mb-2">Driving Behavior</h3>
+        <p className="text-sm text-gray-500">No driving behavior information provided</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold mb-3">Driving Behavior</h3>
-      <Card className="border-gray-200 shadow-sm">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <Car className="h-10 w-10 text-primary/50" />
-            <div>
-              <div className="font-medium text-gray-900">
-                {getDrivingLabel(formData.drivingProfile || "average")}
-              </div>
-              <div className="text-sm text-muted-foreground mt-1">
-                {formData.drivingProfile === "light"
-                  ? "Typically results in less wear and tear"
-                  : formData.drivingProfile === "heavy"
-                  ? "May result in more wear and tear"
-                  : "Balanced driving profile"}
-              </div>
-            </div>
+    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+      <h3 className="text-md font-medium mb-2">Driving Behavior</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        {formData.drivingBehavior && (
+          <div>
+            <span className="text-gray-500 block">Driving Style</span>
+            <span className="font-medium capitalize">{formData.drivingBehavior}</span>
           </div>
-        </CardContent>
-      </Card>
+        )}
+        {formData.drivingProfile && (
+          <div>
+            <span className="text-gray-500 block">Driving Profile</span>
+            <span className="font-medium">{formData.drivingProfile}</span>
+          </div>
+        )}
+        {formData.annualMileage && (
+          <div>
+            <span className="text-gray-500 block">Annual Mileage</span>
+            <span className="font-medium">{formData.annualMileage.toLocaleString()} miles/year</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

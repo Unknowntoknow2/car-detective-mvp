@@ -1,3 +1,4 @@
+
 import React from "react";
 import { FormData } from "@/types/premium-valuation";
 import { AccidentHistoryForm } from "./accident-history/AccidentHistoryForm";
@@ -44,7 +45,7 @@ export function StepContent({
         <VehicleDetailsForm
           formData={formData}
           setFormData={setFormData}
-          updateStepValidity={(isValid) =>
+          updateStepValidity={(step, isValid) =>
             updateStepValidity(currentStep, isValid)}
           step={currentStep}
         />
@@ -54,7 +55,7 @@ export function StepContent({
         <AccidentHistoryForm
           formData={formData}
           setFormData={setFormData}
-          updateValidity={(isValid) => updateStepValidity(currentStep, isValid)}
+          updateValidity={(isValid: boolean) => updateStepValidity(currentStep, isValid)}
           step={currentStep}
         />
       );

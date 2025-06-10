@@ -1,44 +1,36 @@
+
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { FormData } from "@/types/premium-valuation";
-import { CheckCircle } from "lucide-react";
 
 interface FeaturesSummaryProps {
   formData: FormData;
 }
 
 export function FeaturesSummary({ formData }: FeaturesSummaryProps) {
-  if (!formData.features || formData.features.length === 0) {
+  const features = formData.features || formData.selectedFeatures || [];
+  
+  if (!features || features.length === 0) {
     return (
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-3">Features</h3>
-        <Card className="border-gray-200 shadow-sm">
-          <CardContent className="p-6 text-center text-muted-foreground">
-            No features selected
-          </CardContent>
-        </Card>
+      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <h3 className="text-md font-medium mb-2">Vehicle Features</h3>
+        <p className="text-sm text-gray-500">No additional features selected</p>
       </div>
     );
   }
 
   return (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold mb-3">Features</h3>
-      <Card className="border-gray-200 shadow-sm">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {formData.features.map((feature, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-2 py-2"
-              >
-                <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                <span className="text-gray-700">{feature}</span>
-              </div>
-            ))}
+    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+      <h3 className="text-md font-medium mb-2">Vehicle Features</h3>
+      <p className="text-sm text-gray-600 mb-2">
+        Selected {features.length} premium features:
+      </p>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+        {features.map((feature: any, index: number) => (
+          <div key={index} className="text-sm">
+            <span className="font-medium">{typeof feature === 'string' ? feature : feature.name}</span>
           </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
     </div>
   );
 }

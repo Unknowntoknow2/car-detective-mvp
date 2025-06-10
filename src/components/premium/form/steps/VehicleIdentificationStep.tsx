@@ -42,29 +42,30 @@ export function VehicleIdentificationStep({
 
   const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const vin = e.target.value.toUpperCase();
-    setFormData(prev => ({ ...prev, vin }));
+    setFormData((prev: FormData) => ({ ...prev, vin }));
   };
 
   const handlePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const plate = e.target.value.toUpperCase();
-    setFormData(prev => ({ ...prev, plate }));
+    setFormData((prev: FormData) => ({ ...prev, plate }));
   };
 
   const handleStateChange = (value: string) => {
-    setFormData(prev => ({ ...prev, stateCode: value }));
+    setFormData((prev: FormData) => ({ ...prev, stateCode: value }));
   };
 
   const handleMakeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, make: e.target.value }));
+    setFormData((prev: FormData) => ({ ...prev, make: e.target.value }));
   };
 
   const handleModelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, model: e.target.value }));
+    setFormData((prev: FormData) => ({ ...prev, model: e.target.value }));
   };
 
   const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const year = parseInt(e.target.value);
-    setFormData(prev => ({ ...prev, year: isNaN(year) ? undefined : year }));
+    const yearValue = e.target.value;
+    const year = yearValue ? parseInt(yearValue, 10) : new Date().getFullYear();
+    setFormData((prev: FormData) => ({ ...prev, year }));
   };
 
   const states = [
