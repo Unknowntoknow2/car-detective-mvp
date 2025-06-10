@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Refresh } from "lucide-react";
+import { ExternalLink, RefreshCw } from "lucide-react";
 import { fetchMarketplaceListings } from "@/services/auctionDataService";
 
 interface MarketplaceDataSectionProps {
@@ -40,7 +40,7 @@ export function MarketplaceDataSection({ make, model, year, zipCode }: Marketpla
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Live Marketplace Data</CardTitle>
         <Button variant="outline" size="sm" onClick={loadMarketplaceData} disabled={isLoading}>
-          <Refresh className="h-4 w-4 mr-2" />
+          <RefreshCw className="h-4 w-4 mr-2" />
           {isLoading ? "Scanning..." : "Refresh"}
         </Button>
       </CardHeader>

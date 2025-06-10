@@ -45,7 +45,7 @@ export function ManualEntryFormFree({
   };
 
   const handleConditionChange = (value: string) => {
-    updateFormData({ condition: value });
+    updateFormData({ condition: value as ConditionLevel });
   };
 
   const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,7 +120,7 @@ export function ManualEntryFormFree({
         <div>
           <Label htmlFor="zipCode">ZIP Code</Label>
           <Input
-            type="number"
+            type="text"
             id="zipCode"
             value={formData.zipCode || ''}
             onChange={handleZipCodeChange}
@@ -128,43 +128,38 @@ export function ManualEntryFormFree({
           />
         </div>
 
-        <AccidentDetailsForm
-          accidentCount={formData.accidentDetails?.count}
-          accidentLocation={formData.accidentDetails?.location}
-          accidentSeverity={formData.accidentDetails?.severity}
-          accidentDescription={formData.accidentDetails?.description}
-          onAccidentCountChange={(count) => updateFormData({ 
-            accidentDetails: { 
-              ...formData.accidentDetails, 
-              hadAccident: count !== undefined && count > 0,
-              severity: formData.accidentDetails?.severity || 'minor',
-              count 
-            } 
-          })}
-          onAccidentLocationChange={(location) => updateFormData({ 
-            accidentDetails: { 
-              ...formData.accidentDetails, 
-              hadAccident: formData.accidentDetails?.hadAccident || false,
-              severity: formData.accidentDetails?.severity || 'minor',
-              location 
-            } 
-          })}
-          onAccidentSeverityChange={(severity) => updateFormData({ 
-            accidentDetails: { 
-              ...formData.accidentDetails, 
-              hadAccident: formData.accidentDetails?.hadAccident || false,
-              severity: severity as 'minor' | 'moderate' | 'severe'
-            } 
-          })}
-          onAccidentDescriptionChange={(description) => updateFormData({ 
-            accidentDetails: { 
-              ...formData.accidentDetails, 
-              hadAccident: formData.accidentDetails?.hadAccident || false,
-              severity: formData.accidentDetails?.severity || 'minor',
-              description 
-            } 
-          })}
-        />
+        {formData.accidentDetails && (
+          <AccidentDetailsForm
+            accidentCount={formData.accidentDetails.count}
+            accidentLocation={formData.accidentDetails.location}
+            accidentSeverity={formData.accidentDetails.severity}
+            accidentDescription={formData.accidentDetails.description}
+            onAccidentCountChange={(count) => updateFormData({ 
+              accidentDetails: { 
+                ...formData.accidentDetails!, 
+                count 
+              } 
+            })}
+            onAccidentLocationChange={(location) => updateFormData({ 
+              accidentDetails: { 
+                ...formData.accidentDetails!, 
+                location 
+              } 
+            })}
+            onAccidentSeverityChange={(severity) => updateFormData({ 
+              accidentDetails: { 
+                ...formData.accidentDetails!, 
+                severity: severity as 'minor' | 'moderate' | 'severe'
+              } 
+            })}
+            onAccidentDescriptionChange={(description) => updateFormData({ 
+              accidentDetails: { 
+                ...formData.accidentDetails!, 
+                description 
+              } 
+            })}
+          />
+        )}
       </TabsContent>
     </Tabs>
   );
