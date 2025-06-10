@@ -1,43 +1,45 @@
 
 import React from "react";
 import { FormData } from "@/types/premium-valuation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 interface ConditionSummaryProps {
   formData: FormData;
 }
 
 export function ConditionSummary({ formData }: ConditionSummaryProps) {
+  const hasDetailedRatings = formData.conditionRatings && Object.keys(formData.conditionRatings).length > 0;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Condition Summary</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Overall Condition:</span>
-            <Badge variant="secondary">{formData.condition}</Badge>
-          </div>
-          
-          {formData.mileage && (
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Mileage:</span>
-              <span className="text-sm">{formData.mileage.toLocaleString()} miles</span>
-            </div>
-          )}
-          
-          {formData.accidentHistory !== undefined && (
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Accident History:</span>
-              <Badge variant={formData.accidentHistory ? "destructive" : "secondary"}>
-                {formData.accidentHistory ? "Yes" : "No"}
-              </Badge>
-            </div>
-          )}
+    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+      <h3 className="text-md font-medium mb-2">Vehicle Condition</h3>
+      <div className="space-y-2">
+        <div>
+          <span className="text-gray-500">Overall Condition: </span>
+          <span className="font-medium">{formData.condition}</span>
         </div>
-      </CardContent>
-    </Card>
+        {hasDetailedRatings && (
+          <div>
+            <span className="text-gray-500 block mb-1">Detailed Ratings:</span>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {Object.entries(formData.conditionRatings!).map(([key, value]) => (
+                <div key={key}>
+                  <span className="capitalize">{key}: </span>
+                  <span className="font-medium">{value}/5</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {formData.hasAccident && (
+          <div>
+            <span className="text-gray-500">Accident History: </span>
+            <span className="font-medium text-orange-600">Yes</span>
+            {formData.accidentDescription && (
+              <p className="text-xs text-gray-600 mt-1">{formData.accidentDescription}</p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

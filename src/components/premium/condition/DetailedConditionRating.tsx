@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
@@ -12,7 +13,7 @@ interface DetailedConditionRatingProps {
 export const DetailedConditionRating = ({ formData, setFormData }: DetailedConditionRatingProps) => {
   const conditionCategories = [
     "exterior",
-    "interior",
+    "interior", 
     "mechanical",
     "tires",
   ];
@@ -41,7 +42,7 @@ export const DetailedConditionRating = ({ formData, setFormData }: DetailedCondi
               max={5}
               min={1}
               step={1}
-              onValueChange={(value) => handleConditionChange(category, value[0])}
+              onValueChange={(value: number[]) => handleConditionChange(category, value[0])}
             />
           </div>
         ))}

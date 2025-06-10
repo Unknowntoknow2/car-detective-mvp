@@ -1,59 +1,47 @@
+
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { FormData } from "@/types/premium-valuation";
 
 interface VehicleDetailsSummaryProps {
   formData: FormData;
 }
 
-export function VehicleDetailsSummary(
-  { formData }: VehicleDetailsSummaryProps,
-) {
+export function VehicleDetailsSummary({ formData }: VehicleDetailsSummaryProps) {
   return (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold mb-3">Vehicle Details</h3>
-      <Card className="border-gray-200 shadow-sm">
-        <CardContent className="p-6">
-          <div className="grid gap-4">
-            {formData.bodyType && (
-              <div className="flex justify-between items-start py-3 border-b border-gray-100">
-                <span className="text-gray-600 font-medium">Body Type:</span>
-                <span className="text-right font-medium text-gray-800">
-                  {formData.bodyType}
-                </span>
-              </div>
-            )}
-            {formData.exteriorColor && (
-              <div className="flex justify-between items-start py-3 border-b border-gray-100">
-                <span className="text-gray-600 font-medium">
-                  Exterior Color:
-                </span>
-                <span className="text-right font-medium text-gray-800">
-                  {formData.exteriorColor}
-                </span>
-              </div>
-            )}
-            {formData.interiorColor && (
-              <div className="flex justify-between items-start py-3 border-b border-gray-100">
-                <span className="text-gray-600 font-medium">
-                  Interior Color:
-                </span>
-                <span className="text-right font-medium text-gray-800">
-                  {formData.interiorColor}
-                </span>
-              </div>
-            )}
-            {formData.transmission && (
-              <div className="flex justify-between items-start py-3 border-b border-gray-100 last:border-0">
-                <span className="text-gray-600 font-medium">Transmission:</span>
-                <span className="text-right font-medium text-gray-800">
-                  {formData.transmission}
-                </span>
-              </div>
-            )}
+    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+      <h3 className="text-md font-medium mb-2">Vehicle Details</h3>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+        {formData.transmission && (
+          <div>
+            <span className="text-gray-500 block">Transmission</span>
+            <span className="font-medium capitalize">{formData.transmission}</span>
           </div>
-        </CardContent>
-      </Card>
+        )}
+        {formData.fuelType && (
+          <div>
+            <span className="text-gray-500 block">Fuel Type</span>
+            <span className="font-medium capitalize">{formData.fuelType}</span>
+          </div>
+        )}
+        {formData.bodyStyle && (
+          <div>
+            <span className="text-gray-500 block">Body Style</span>
+            <span className="font-medium">{formData.bodyStyle}</span>
+          </div>
+        )}
+        {formData.color && (
+          <div>
+            <span className="text-gray-500 block">Color</span>
+            <span className="font-medium">{formData.color}</span>
+          </div>
+        )}
+        {formData.trim && (
+          <div>
+            <span className="text-gray-500 block">Trim</span>
+            <span className="font-medium">{formData.trim}</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

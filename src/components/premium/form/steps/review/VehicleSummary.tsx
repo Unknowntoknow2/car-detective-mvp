@@ -1,7 +1,6 @@
 
 import React from "react";
 import { FormData } from "@/types/premium-valuation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface VehicleSummaryProps {
   formData: FormData;
@@ -9,46 +8,36 @@ interface VehicleSummaryProps {
 
 export function VehicleSummary({ formData }: VehicleSummaryProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Vehicle Summary</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="font-medium">Make:</span> {formData.make}
-          </div>
-          <div>
-            <span className="font-medium">Model:</span> {formData.model}
-          </div>
-          <div>
-            <span className="font-medium">Year:</span> {formData.year}
-          </div>
-          <div>
-            <span className="font-medium">Mileage:</span> {formData.mileage?.toLocaleString()} miles
-          </div>
-          {formData.trim && (
-            <div>
-              <span className="font-medium">Trim:</span> {formData.trim}
-            </div>
-          )}
-          {formData.transmission && (
-            <div>
-              <span className="font-medium">Transmission:</span> {formData.transmission}
-            </div>
-          )}
-          {formData.fuelType && (
-            <div>
-              <span className="font-medium">Fuel Type:</span> {formData.fuelType}
-            </div>
-          )}
-          {formData.color && (
-            <div>
-              <span className="font-medium">Color:</span> {formData.color}
-            </div>
-          )}
+    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+      <h3 className="text-md font-medium mb-2">Vehicle Information</h3>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+        <div>
+          <span className="text-gray-500 block">Year, Make, Model</span>
+          <span className="font-medium">
+            {formData.year} {formData.make} {formData.model}
+          </span>
         </div>
-      </CardContent>
-    </Card>
+        <div>
+          <span className="text-gray-500 block">Mileage</span>
+          <span className="font-medium">
+            {formData.mileage?.toLocaleString() || "N/A"} miles
+          </span>
+        </div>
+        <div>
+          <span className="text-gray-500 block">Condition</span>
+          <span className="font-medium">{formData.condition}</span>
+        </div>
+        <div>
+          <span className="text-gray-500 block">ZIP Code</span>
+          <span className="font-medium">{formData.zipCode || "N/A"}</span>
+        </div>
+        {formData.vin && (
+          <div className="col-span-2">
+            <span className="text-gray-500 block">VIN</span>
+            <span className="font-medium font-mono">{formData.vin}</span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

@@ -25,19 +25,19 @@ export function VehicleDetailsStep({
   }, [formData.transmission, formData.fuelType, step, updateValidity]);
 
   const handleTransmissionChange = (value: string) => {
-    setFormData(prev => ({ ...prev, transmission: value }));
+    setFormData((prev: FormData) => ({ ...prev, transmission: value }));
   };
 
   const handleFuelTypeChange = (value: string) => {
-    setFormData(prev => ({ ...prev, fuelType: value }));
+    setFormData((prev: FormData) => ({ ...prev, fuelType: value }));
   };
 
   const handleTrimChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, trim: e.target.value }));
+    setFormData((prev: FormData) => ({ ...prev, trim: e.target.value }));
   };
 
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, color: e.target.value }));
+    setFormData((prev: FormData) => ({ ...prev, color: e.target.value }));
   };
 
   return (

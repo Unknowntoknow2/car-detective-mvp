@@ -1,3 +1,4 @@
+
 import React from "react";
 import { FormData } from "@/types/premium-valuation";
 
@@ -41,7 +42,7 @@ export function VehicleSummary(
         <div>
           <span className="text-gray-500 block">Condition</span>
           <span className="font-medium">
-            {formData.conditionLabel}
+            {formData.conditionLabel || formData.condition}
             {aiConditionUsed && (
               <span className="ml-1 text-xs text-blue-600 bg-blue-50 px-1 py-0.5 rounded">
                 AI Verified
@@ -69,12 +70,10 @@ export function VehicleSummary(
             <span className="font-medium">{formData.interiorColor}</span>
           </div>
         )}
-        {(formData.bodyStyle || formData.bodyType) && (
+        {formData.bodyStyle && (
           <div>
             <span className="text-gray-500 block">Body Style</span>
-            <span className="font-medium">
-              {formData.bodyStyle || formData.bodyType}
-            </span>
+            <span className="font-medium">{formData.bodyStyle}</span>
           </div>
         )}
         <div>
