@@ -10,6 +10,16 @@ export interface ManualValuationData {
   zipCode: string;
 }
 
+export interface ManualVehicleInfo {
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  zipCode: string;
+  vin?: string;
+}
+
 export const useManualValuation = () => {
   const [data, setData] = useState<ManualValuationData | null>(null);
   const [loading, setLoading] = useState(false);
