@@ -61,11 +61,13 @@ export function AccuracyMeter(
               <TooltipTrigger>
                 <Info className="h-4 w-4 text-gray-400 cursor-help" />
               </TooltipTrigger>
-              <TooltipContent side="right" className="max-w-xs">
-                <p>
-                  Higher accuracy leads to more precise valuation estimates.
-                  Complete all steps for the best results.
-                </p>
+              <TooltipContent side="right">
+                <div className="p-2 max-w-xs">
+                  <p>
+                    Higher accuracy leads to more precise valuation estimates.
+                    Complete all steps for the best results.
+                  </p>
+                </div>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
 import {
@@ -18,6 +17,10 @@ interface AccidentHistoryStepProps {
 
 export function AccidentHistoryStep({ form }: AccidentHistoryStepProps) {
   const hasAccident = form.watch("hasAccident");
+
+  const handleAccidentChange = (value: any) => {
+    console.log("Accident changed:", value);
+  };
 
   return (
     <Card>

@@ -1,6 +1,5 @@
-
 import React from "react";
-import { ConditionLevel } from "@/components/lookup/types/manualEntry";
+import { ConditionLevel } from '@/types/manualEntry';
 import { cn } from "@/lib/utils";
 import {
   Tooltip,

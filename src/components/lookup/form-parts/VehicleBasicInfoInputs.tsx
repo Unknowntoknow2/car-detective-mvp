@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
-import { ManualEntryFormData } from "../types/manualEntry";
+import { ManualEntryFormData } from '@/types/manualEntry';
 import { ZipCodeInput } from "./ZipCodeInput";
 
 interface VehicleBasicInfoInputsProps {

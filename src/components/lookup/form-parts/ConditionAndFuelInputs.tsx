@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Select,
@@ -8,7 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { ConditionLevel } from "../types/manualEntry";
+import { ConditionLevel } from '@/types/manualEntry';
 
 interface ConditionAndFuelInputsProps {
   condition: ConditionLevel;

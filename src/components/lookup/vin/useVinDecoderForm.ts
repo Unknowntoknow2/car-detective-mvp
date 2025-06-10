@@ -13,10 +13,9 @@ export function useVinDecoderForm() {
   const [isLoadingCarfax, setIsLoadingCarfax] = useState(false);
   const [result, setResult] = useState<any>(null);
 
-  const { data, loading, error } = useVinDecoder();
-  const { runLookup, data: valuationResult, isLoading: isSubmittingValuation } = useFullValuationPipeline();
+  const { data, loading, error } = useVinDecoder(vin);
+  const { runLookup, valuationResult, isLoading: isSubmittingValuation } = useFullValuationPipeline();
 
-  // VIN → Decode → Real API → Save to Supabase
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -56,7 +55,6 @@ export function useVinDecoderForm() {
   };
 
   const handleDetailsSubmit = async (details: any): Promise<void> => {
-    // Implementation for submitting additional details
     console.log("Submitting details:", details);
   };
 

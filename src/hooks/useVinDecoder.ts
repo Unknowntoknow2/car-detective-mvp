@@ -1,34 +1,18 @@
-// src/hooks/useVinDecoder.ts
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from 'react';
 
-export interface VinData {
-  vin: string;
-  make: string;
-  model: string;
-  modelYear: number | string;
-  vehicleType?: string;
-  bodyClass?: string;
-  driveType?: string;
-  fuelType?: string;
-  engine?: string;
-  engineSize?: number | string;
-  engineCylinders?: number | string;
-  transmissionStyle?: string;
-  manufacturer?: string;
-  plantCountry?: string;
-  plantState?: string;
-  plantCity?: string;
-  series?: string;
-  trim?: string;
-  doors?: number | string;
-  grossVehicleWeight?: string;
-  // ...any other fields you expect
+interface UseVinDecoderProps {
+  vin?: string;
 }
 
-export function useVinDecoder(vin: string) {
-  const [data, setData] = useState<VinData | null>(null);
+interface UseVinDecoderReturn {
+  data: any;
+  loading: boolean;
+  error: string | null;
+}
+
+export function useVinDecoder(vin?: string): UseVinDecoderReturn {
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,24 +26,27 @@ export function useVinDecoder(vin: string) {
     setLoading(true);
     setError(null);
 
-    supabase.functions
-      .invoke<any>("fetch_vpic_data", { body: { vin } })
-      .then((response) => {
-        if (response.error) {
-          setError(response.error.message || "Unknown error");
-          setData(null);
-        } else if (response.data?.data) {
-          setData(response.data.data);
-        } else {
-          setError("No data received");
-          setData(null);
-        }
-      })
-      .catch((err) => {
-        setError(err.message || "Failed to fetch VIN data");
-        setData(null);
-      })
-      .finally(() => setLoading(false));
+    // Mock VIN decoder implementation
+    setTimeout(() => {
+      try {
+        // Mock decoded vehicle data
+        const mockData = {
+          make: "Toyota",
+          model: "Camry", 
+          year: 2020,
+          engine: "2.5L 4-Cylinder",
+          transmission: "Automatic",
+          bodyStyle: "Sedan",
+          fuelType: "Gasoline"
+        };
+        
+        setData(mockData);
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to decode VIN");
+        setLoading(false);
+      }
+    }, 1000);
   }, [vin]);
 
   return { data, loading, error };

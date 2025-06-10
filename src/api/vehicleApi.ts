@@ -1,6 +1,6 @@
 // src/api/vehicleApi.ts
 
-import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
+import { ManualEntryFormData } from '@/types/manualEntry';
 import { Make, Model } from "@/hooks/types/vehicle";
 import { toast } from "sonner";
 import { createClient } from "@supabase/supabase-js";

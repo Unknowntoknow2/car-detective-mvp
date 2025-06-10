@@ -6,7 +6,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { UseFormReturn } from "react-hook-form";
-import { ManualEntryFormData } from "../types/manualEntry";
+import { ManualEntryFormData } from '@/types/manualEntry';
 import { useMakeModels } from "@/hooks/useMakeModels";
 import CommonMakeModelSelect from "@/components/common/MakeModelSelect";
 import { Skeleton } from "@/components/ui/skeleton";

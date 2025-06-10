@@ -1,7 +1,6 @@
-
-import React, { useEffect } from "react";
-import { FormData } from "@/types/premium-valuation";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormData } from "@/types/premium-valuation";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
@@ -24,7 +23,7 @@ export function ConditionStep({
   }, [formData.condition, step, updateValidity]);
 
   const handleConditionChange = (value: string) => {
-    setFormData(prev => ({
+    setFormData((prev: FormData) => ({
       ...prev,
       condition: value,
     }));

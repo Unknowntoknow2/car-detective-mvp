@@ -1,105 +1,108 @@
-
-import { useEffect } from 'react';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Textarea } from '@/components/ui/textarea';
-import { FormData } from '@/types/premium-valuation';
-import { Wrench } from 'lucide-react';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { FormData } from "@/types/premium-valuation";
 
 interface MaintenanceHistoryStepProps {
-  step: number;
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  updateValidity: (step: number, isValid: boolean) => void;
+  onNext: () => void;
+  onBack: () => void;
 }
 
 export function MaintenanceHistoryStep({
-  step,
   formData,
   setFormData,
-  updateValidity
+  onNext,
+  onBack,
 }: MaintenanceHistoryStepProps) {
-  useEffect(() => {
-    // Convert boolean or string to boolean for validation
-    const hasRegularMaintenanceBool = typeof formData.hasRegularMaintenance === 'string'
-      ? formData.hasRegularMaintenance === 'yes'
-      : !!formData.hasRegularMaintenance;
-      
-    const isValid = hasRegularMaintenanceBool !== undefined;
-    updateValidity(step, isValid);
-  }, [formData.hasRegularMaintenance, formData.maintenanceNotes, step, updateValidity]);
+  const [maintenanceRecords, setMaintenanceRecords] = useState<any[]>([]);
 
-  const handleMaintenanceChange = (value: 'yes' | 'no') => {
-    setFormData(prev => ({
+  const handleHistoryChange = (newHistory: string) => {
+    setFormData((prev: FormData) => ({
       ...prev,
-      hasRegularMaintenance: value,
-      maintenanceNotes: value === 'no' ? prev.maintenanceNotes : ''
+      serviceHistory: newHistory
     }));
   };
 
-  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData(prev => ({
+  const handleMaintenanceChange = (hasRegular: boolean) => {
+    setFormData((prev: FormData) => ({
       ...prev,
-      maintenanceNotes: e.target.value
+      hasRegularMaintenance: hasRegular
     }));
   };
 
-  // Convert the hasRegularMaintenance value to string for RadioGroup
-  const hasMaintenanceStr = typeof formData.hasRegularMaintenance === 'boolean'
-    ? formData.hasRegularMaintenance ? 'yes' : 'no'
-    : formData.hasRegularMaintenance || 'no';
+  const handleNotesChange = (notes: string) => {
+    setFormData((prev: FormData) => ({
+      ...prev,
+      maintenanceNotes: notes
+    }));
+  };
+
+  const addMaintenanceRecord = (val: any) => {
+    console.log("Adding maintenance record:", val);
+  };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Maintenance History</h2>
-        <p className="text-gray-600 mb-6">
-          Regular maintenance significantly impacts vehicle value and reliability.
-        </p>
-      </div>
-
-      <div className="space-y-6">
+    <Card>
+      <CardHeader>
+        <CardTitle>Maintenance History</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
         <div>
-          <Label className="text-gray-700 mb-3 block">
-            Has this vehicle received regular maintenance?
-          </Label>
-          <RadioGroup
-            value={hasMaintenanceStr}
-            onValueChange={(val) => handleMaintenanceChange(val as 'yes' | 'no')}
-            className="flex space-x-4 mt-2"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="yes" id="maint-yes" />
-              <Label htmlFor="maint-yes">Yes, regularly maintained</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="no" id="maint-no" />
-              <Label htmlFor="maint-no">No, irregular maintenance</Label>
-            </div>
-          </RadioGroup>
+          <Label htmlFor="service-history">Service History</Label>
+          <Input
+            type="text"
+            id="service-history"
+            value={formData.serviceHistory || ""}
+            onChange={(e) => handleHistoryChange(e.target.value)}
+            placeholder="Enter service history"
+          />
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-start space-x-2">
-            <Wrench className="h-4 w-4 text-blue-600 mt-1" />
-            <Label htmlFor="maint-notes" className="text-gray-700">
-              Additional maintenance notes (optional)
-            </Label>
-          </div>
-          
-          <Textarea
-            id="maint-notes"
-            placeholder="Recent services, repairs, or maintenance records..."
-            value={formData.maintenanceNotes || ''}
-            onChange={handleNotesChange}
-            className="min-h-[80px]"
-          />
-          
-          <p className="text-sm text-gray-500">
-            Include information about recent oil changes, tire replacements, major repairs, etc.
-          </p>
+        <div>
+          <Label htmlFor="regular-maintenance">Regular Maintenance</Label>
+          <select
+            id="regular-maintenance"
+            value={formData.hasRegularMaintenance !== null ? formData.hasRegularMaintenance.toString() : ""}
+            onChange={(e) => handleMaintenanceChange(e.target.value === "true")}
+            className="w-full border rounded-md py-2 px-3"
+          >
+            <option value="">Select</option>
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
         </div>
-      </div>
-    </div>
+
+        <div>
+          <Label htmlFor="maintenance-notes">Maintenance Notes</Label>
+          <Input
+            type="text"
+            id="maintenance-notes"
+            value={formData.maintenanceNotes || ""}
+            onChange={(e) => handleNotesChange(e.target.value)}
+            placeholder="Enter maintenance notes"
+          />
+        </div>
+
+        <div>
+          <Button onClick={() => addMaintenanceRecord(null)}>Add Maintenance Record</Button>
+          {maintenanceRecords.map((record, index) => (
+            <div key={index}>
+              {/* Display maintenance record details */}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-between">
+          <Button variant="outline" onClick={onBack}>
+            Back
+          </Button>
+          <Button onClick={onNext}>Next</Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

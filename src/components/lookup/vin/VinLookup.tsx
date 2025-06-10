@@ -10,7 +10,7 @@ import { DecodedVehicleInfo } from "@/types/vehicle";
 
 export const VinLookup = () => {
   const [vinNumber, setVinNumber] = useState("");
-  const { data, loading, error } = useVinDecoder();
+  const { data, loading, error } = useVinDecoder(vinNumber);
 
   const handleVinChange = useCallback((vin: string) => {
     setVinNumber(vin);
@@ -18,7 +18,6 @@ export const VinLookup = () => {
 
   const handleLookup = useCallback(() => {
     if (vinNumber) {
-      // Trigger lookup with the VIN
       console.log("Looking up VIN:", vinNumber);
     }
   }, [vinNumber]);
@@ -44,17 +43,8 @@ export const VinLookup = () => {
         : (
           <>
             <VinDecoderResults
-              stage="initial"
-              result={typedResult}
-              pipelineVehicle={null}
-              requiredInputs={null}
-              valuationResult={null}
-              valuationError={null}
-              pipelineLoading={false}
-              submitValuation={async () => {}}
-              vin={vinNumber}
-              carfaxData={null}
-              onDownloadPdf={() => {}}
+              data={typedResult}
+              isLoading={loading}
             />
             <Button
               variant="outline"
