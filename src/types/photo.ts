@@ -2,6 +2,7 @@
 export interface AICondition {
   condition: string;
   confidence: number;
+  confidenceScore?: number; // For backward compatibility
   issuesDetected: string[];
   summary: string;
 }
