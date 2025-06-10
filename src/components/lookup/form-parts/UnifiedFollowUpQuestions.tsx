@@ -4,7 +4,7 @@ import { TitleStatusSection } from './TitleStatusSection';
 import { ServiceHistorySection } from './ServiceHistorySection';
 import { AccidentHistorySection } from './AccidentHistorySection';
 import { AdditionalDetailsSection } from './AdditionalDetailsSection';
-import { ManualEntryFormData } from '../types/manualEntry';
+import { ManualEntryFormData, AccidentDetails } from '../types/manualEntry';
 
 interface UnifiedFollowUpQuestionsProps {
   formData: ManualEntryFormData;
@@ -15,6 +15,16 @@ export function UnifiedFollowUpQuestions({
   formData,
   updateFormData
 }: UnifiedFollowUpQuestionsProps) {
+  // Default accident details
+  const defaultAccidentDetails: AccidentDetails = {
+    hasAccident: false,
+    severity: 'minor',
+    repaired: false,
+    count: 0,
+    area: '',
+    description: ''
+  };
+
   // Title Status handlers
   const setTitleStatus = (value: 'clean' | 'salvage' | 'rebuilt' | 'branded' | 'lemon') => {
     updateFormData({ titleStatus: value });
@@ -43,42 +53,42 @@ export function UnifiedFollowUpQuestions({
 
   // Accident History handlers
   const setHasAccident = (value: boolean | null) => {
-    updateFormData({
-      accidentDetails: {
-        ...formData.accidentDetails,
-        hasAccident: value !== null ? value : false
-      }
-    });
+    const updatedDetails: AccidentDetails = {
+      ...defaultAccidentDetails,
+      ...formData.accidentDetails,
+      hasAccident: value !== null ? value : false
+    };
+    updateFormData({ accidentDetails: updatedDetails });
   };
 
   const setAccidentSeverity = (value: 'minor' | 'moderate' | 'severe') => {
-    updateFormData({
-      accidentDetails: {
-        hasAccident: formData.accidentDetails?.hasAccident || false,
-        ...formData.accidentDetails,
-        severity: value
-      }
-    });
+    const updatedDetails: AccidentDetails = {
+      ...defaultAccidentDetails,
+      ...formData.accidentDetails,
+      hasAccident: formData.accidentDetails?.hasAccident || false,
+      severity: value
+    };
+    updateFormData({ accidentDetails: updatedDetails });
   };
 
   const setAccidentRepaired = (value: boolean) => {
-    updateFormData({
-      accidentDetails: {
-        hasAccident: formData.accidentDetails?.hasAccident || false,
-        ...formData.accidentDetails,
-        repaired: value
-      }
-    });
+    const updatedDetails: AccidentDetails = {
+      ...defaultAccidentDetails,
+      ...formData.accidentDetails,
+      hasAccident: formData.accidentDetails?.hasAccident || false,
+      repaired: value
+    };
+    updateFormData({ accidentDetails: updatedDetails });
   };
 
   const setAccidentDescription = (value: string) => {
-    updateFormData({
-      accidentDetails: {
-        hasAccident: formData.accidentDetails?.hasAccident || false,
-        ...formData.accidentDetails,
-        description: value
-      }
-    });
+    const updatedDetails: AccidentDetails = {
+      ...defaultAccidentDetails,
+      ...formData.accidentDetails,
+      hasAccident: formData.accidentDetails?.hasAccident || false,
+      description: value
+    };
+    updateFormData({ accidentDetails: updatedDetails });
   };
 
   // Additional Details handlers
@@ -129,16 +139,56 @@ export function UnifiedFollowUpQuestions({
         setAccidentDescription={setAccidentDescription}
       />
 
-      <AdditionalDetailsSection
-        tireCondition={formData.tireCondition || 'good'}
-        setTireCondition={setTireCondition}
-        dashboardLights={formData.dashboardLights || []}
-        setDashboardLights={setDashboardLights}
-        hasModifications={formData.hasModifications || false}
-        setHasModifications={setHasModifications}
-        modificationTypes={formData.modificationTypes || []}
-        setModificationTypes={setModificationTypes}
-      />
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Additional Details</h3>
+        
+        <div>
+          <label className="block text-sm font-medium mb-2">Tire Condition</label>
+          <select 
+            value={formData.tireCondition || 'good'} 
+            onChange={(e) => setTireCondition(e.target.value as 'excellent' | 'good' | 'worn' | 'replacement')}
+            className="w-full p-2 border rounded"
+          >
+            <option value="excellent">Excellent</option>
+            <option value="good">Good</option>
+            <option value="worn">Worn</option>
+            <option value="replacement">Needs Replacement</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">Dashboard Warning Lights</label>
+          <textarea
+            value={formData.dashboardLights?.join(', ') || ''}
+            onChange={(e) => setDashboardLights(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+            placeholder="Enter any dashboard warning lights"
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
+        <div>
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={formData.hasModifications || false}
+              onChange={(e) => setHasModifications(e.target.checked)}
+            />
+            <span>Vehicle has modifications</span>
+          </label>
+        </div>
+
+        {formData.hasModifications && (
+          <div>
+            <label className="block text-sm font-medium mb-2">Modification Types</label>
+            <textarea
+              value={formData.modificationTypes?.join(', ') || ''}
+              onChange={(e) => setModificationTypes(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+              placeholder="Describe modifications"
+              className="w-full p-2 border rounded"
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

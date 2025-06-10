@@ -2,6 +2,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cn } from "@/lib/utils"
+import { Controller, Control, FieldPath, FieldValues } from "react-hook-form"
 
 const Form = React.forwardRef<
   HTMLFormElement,
@@ -70,13 +71,31 @@ const FormMessage = React.forwardRef<
 ))
 FormMessage.displayName = "FormMessage"
 
-interface FormFieldProps {
-  children: (field: any) => React.ReactNode;
+interface FormFieldProps<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+> {
+  control: Control<TFieldValues>;
+  name: TName;
+  render: ({ field }: { field: any }) => React.ReactElement;
 }
 
-const FormField: React.FC<FormFieldProps> = ({ children }) => {
-  return <>{children({ value: '', onChange: () => {} })}</>;
-}
+const FormField = <
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+>({
+  control,
+  name,
+  render,
+}: FormFieldProps<TFieldValues, TName>) => {
+  return (
+    <Controller
+      control={control}
+      name={name}
+      render={({ field }) => render({ field })}
+    />
+  );
+};
 
 export {
   Form,
