@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Info } from "lucide-react";
@@ -40,8 +41,8 @@ export function FormHeader({
               <Info className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="left" className="max-w-xs">
-            <p className="text-sm">{tooltipContent}</p>
+          <TooltipContent side="left">
+            <p className="text-sm max-w-xs">{tooltipContent}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
