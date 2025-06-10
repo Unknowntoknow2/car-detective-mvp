@@ -1,65 +1,53 @@
-// src/components/premium/hero/CarfaxHighlights.tsx
 
 import React from "react";
-import { ShieldCheck, AlertTriangle, BadgeCheck, Wrench, User2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, AlertTriangle, Users } from "lucide-react";
 
 export interface CarfaxHighlightsProps {
-  accidentCount: number;
-  accidentSeverity?: "minor" | "moderate" | "major";
-  owners: number;
-  serviceRecords: number;
-  brandedTitle?: boolean;
-  lastReportedMileage?: number;
+  accidentCount?: number;
+  owners?: number;
+  serviceRecords?: number;
 }
 
-export const CarfaxHighlights: React.FC<CarfaxHighlightsProps> = ({
-  accidentCount,
-  accidentSeverity,
-  owners,
-  serviceRecords,
-  brandedTitle,
-  lastReportedMileage,
-}) => (
-  <div className="rounded-xl border bg-background p-4 shadow-lg space-y-2">
-    <h3 className="text-lg font-semibold flex items-center mb-2">
-      <ShieldCheck className="h-5 w-5 text-primary mr-2" />
-      CARFAX Highlights
-    </h3>
-    <div className="flex flex-wrap gap-3">
-      <div className="flex items-center gap-2">
-        <User2 className="h-4 w-4 text-muted" />
-        <span className="text-sm">{owners} Owner{owners === 1 ? "" : "s"}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <Wrench className="h-4 w-4 text-muted" />
-        <span className="text-sm">{serviceRecords} Service Record{serviceRecords === 1 ? "" : "s"}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <AlertTriangle
-          className={`h-4 w-4 ${
-            accidentCount > 0 ? "text-destructive" : "text-success"
-          }`}
-        />
-        <span className="text-sm">
-          {accidentCount > 0
-            ? `${accidentCount} Accident${accidentCount > 1 ? "s" : ""} (${accidentSeverity ?? "Reported"})`
-            : "No Accidents"}
-        </span>
-      </div>
-      {brandedTitle && (
-        <div className="flex items-center gap-2">
-          <BadgeCheck className="h-4 w-4 text-warning" />
-          <span className="text-sm text-warning">Branded Title</span>
+export function CarfaxHighlights({ 
+  accidentCount = 0, 
+  owners = 1, 
+  serviceRecords = 5 
+}: CarfaxHighlightsProps) {
+  return (
+    <div className="space-y-3">
+      <h4 className="text-sm font-medium text-text-secondary">CARFAX® Highlights</h4>
+      <div className="grid grid-cols-1 gap-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {accidentCount === 0 ? (
+              <CheckCircle className="h-4 w-4 text-success" />
+            ) : (
+              <AlertTriangle className="h-4 w-4 text-warning" />
+            )}
+            <span className="text-sm">Accidents</span>
+          </div>
+          <Badge variant={accidentCount === 0 ? "default" : "destructive"}>
+            {accidentCount === 0 ? "No accidents" : `${accidentCount} reported`}
+          </Badge>
         </div>
-      )}
-      {lastReportedMileage && (
-        <div className="flex items-center gap-2">
-          <Wrench className="h-4 w-4 text-muted" />
-          <span className="text-sm">Mileage: {lastReportedMileage.toLocaleString()} mi</span>
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-primary" />
+            <span className="text-sm">Owners</span>
+          </div>
+          <Badge variant="outline">{owners}</Badge>
         </div>
-      )}
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-success" />
+            <span className="text-sm">Service Records</span>
+          </div>
+          <Badge variant="outline">{serviceRecords}</Badge>
+        </div>
+      </div>
     </div>
-  </div>
-);
-
-export default CarfaxHighlights;
+  );
+}
