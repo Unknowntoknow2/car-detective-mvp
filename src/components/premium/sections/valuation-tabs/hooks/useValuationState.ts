@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useVehicleLookup } from "@/hooks/useVehicleLookup";
-import { ManualEntryFormData, VehicleData } from "@/types/manualEntry";
+import { ManualEntryFormData, VehicleData, ConditionLevel } from "@/types/manualEntry";
 
 export function useValuationState() {
   const [activeTab, setActiveTab] = useState("vin");
@@ -10,9 +10,9 @@ export function useValuationState() {
   const [manualData, setManualData] = useState<ManualEntryFormData>({
     make: "",
     model: "",
-    year: "",
-    mileage: "",
-    condition: "",
+    year: new Date().getFullYear(),
+    mileage: 0,
+    condition: ConditionLevel.Good,
     zipCode: "",
   });
   const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
