@@ -1,89 +1,82 @@
-
 import React from 'react';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AccidentDetails } from '../types/manualEntry';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface AccidentDetailsFormProps {
-  value: AccidentDetails;
-  onChange: (details: AccidentDetails) => void;
+  accidentCount: number | undefined;
+  accidentLocation: string | undefined;
+  accidentSeverity: string | undefined;
+  accidentDescription: string | undefined;
+  onAccidentCountChange: (value: number | undefined) => void;
+  onAccidentLocationChange: (value: string) => void;
+  onAccidentSeverityChange: (value: string) => void;
+  onAccidentDescriptionChange: (value: string) => void;
 }
 
-export const AccidentDetailsForm: React.FC<AccidentDetailsFormProps> = ({ value, onChange }) => {
-  const handleHasAccidentChange = (hasAccident: boolean) => {
-    onChange({
-      ...value,
-      hasAccident
-    });
-  };
+export function AccidentDetailsForm({
+  accidentCount,
+  accidentLocation,
+  accidentSeverity,
+  accidentDescription,
+  onAccidentCountChange,
+  onAccidentLocationChange,
+  onAccidentSeverityChange,
+  onAccidentDescriptionChange
+}: AccidentDetailsFormProps) {
 
-  const handleSeverityChange = (severity: 'minor' | 'moderate' | 'severe') => {
-    onChange({
-      ...value,
-      severity
-    });
-  };
-
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onChange({
-      ...value,
-      description: e.target.value
-    });
+  const handleInputChange = (val: string) => {
+    const parsedValue = val === '' ? undefined : parseInt(val, 10);
+    onAccidentCountChange(isNaN(parsedValue) ? undefined : parsedValue);
   };
 
   return (
     <div className="space-y-4">
       <div>
-        <Label>Has this vehicle been in an accident?</Label>
-        <RadioGroup 
-          value={value.hasAccident ? 'yes' : 'no'} 
-          onValueChange={(val) => handleHasAccidentChange(val === 'yes')}
-          className="flex space-x-4 mt-2"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="yes" id="accident-yes" />
-            <Label htmlFor="accident-yes" className="cursor-pointer">Yes</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="no" id="accident-no" />
-            <Label htmlFor="accident-no" className="cursor-pointer">No</Label>
-          </div>
-        </RadioGroup>
+        <Label htmlFor="accident-count">Number of Accidents</Label>
+        <Input
+          type="number"
+          id="accident-count"
+          value={accidentCount === undefined ? '' : accidentCount.toString()}
+          onChange={(e) => {
+            const parsedValue = e.target.value === '' ? undefined : parseInt(e.target.value, 10);
+            onAccidentCountChange(isNaN(parsedValue) ? undefined : parsedValue);
+          }}
+          placeholder="Enter number of accidents"
+        />
       </div>
 
-      {value.hasAccident && (
-        <>
-          <div>
-            <Label htmlFor="accident-severity">Severity</Label>
-            <Select 
-              value={value.severity || 'minor'} 
-              onValueChange={(val) => handleSeverityChange(val as 'minor' | 'moderate' | 'severe')}
-            >
-              <SelectTrigger id="accident-severity" className="w-full mt-1">
-                <SelectValue placeholder="Select severity" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="minor">Minor</SelectItem>
-                <SelectItem value="moderate">Moderate</SelectItem>
-                <SelectItem value="severe">Severe</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+      <div>
+        <Label htmlFor="accident-location">Accident Location</Label>
+        <Input
+          type="text"
+          id="accident-location"
+          value={accidentLocation || ''}
+          onChange={(e) => onAccidentLocationChange(e.target.value)}
+          placeholder="Enter accident location"
+        />
+      </div>
 
-          <div>
-            <Label htmlFor="accident-description">Description (optional)</Label>
-            <Textarea
-              id="accident-description"
-              className="mt-1"
-              placeholder="Please briefly describe the accident..."
-              value={value.description || ''}
-              onChange={handleDescriptionChange}
-            />
-          </div>
-        </>
-      )}
+      <div>
+        <Label htmlFor="accident-severity">Accident Severity</Label>
+        <Input
+          type="text"
+          id="accident-severity"
+          value={accidentSeverity || ''}
+          onChange={(e) => onAccidentSeverityChange(e.target.value)}
+          placeholder="Enter accident severity"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="accident-description">Accident Description</Label>
+        <Textarea
+          id="accident-description"
+          value={accidentDescription || ''}
+          onChange={(e) => onAccidentDescriptionChange(e.target.value)}
+          placeholder="Enter accident description"
+        />
+      </div>
     </div>
   );
-};
+}

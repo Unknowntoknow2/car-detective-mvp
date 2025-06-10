@@ -70,6 +70,14 @@ const FormMessage = React.forwardRef<
 ))
 FormMessage.displayName = "FormMessage"
 
+interface FormFieldProps {
+  children: (field: any) => React.ReactNode;
+}
+
+const FormField: React.FC<FormFieldProps> = ({ children }) => {
+  return <>{children({ value: '', onChange: () => {} })}</>;
+}
+
 export {
   Form,
   FormItem,
@@ -77,4 +85,5 @@ export {
   FormControl,
   FormDescription,
   FormMessage,
+  FormField,
 }

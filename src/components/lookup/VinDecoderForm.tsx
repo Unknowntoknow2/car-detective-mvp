@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Search, Loader2, Info } from 'lucide-react';
-import { validateVIN } from '@/utils/validation/vin-validation';
+import { validateVin } from '@/utils/validation/vin-validation';
 import { toast } from 'sonner';
 import { decodeVin } from '@/services/vehicleDecodeService';
 
@@ -28,7 +28,7 @@ export default function VinDecoderForm() {
     console.log('🔍 VinDecoderForm: Starting VIN decode for:', vin);
     
     // Validate VIN format
-    const validation = validateVIN(vin);
+    const validation = validateVin(vin);
     if (!validation.isValid) {
       setError(validation.error || 'Invalid VIN format');
       toast.error('Invalid VIN format');

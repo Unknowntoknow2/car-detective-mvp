@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Search, Loader2, Info } from 'lucide-react';
-import { validateVIN } from '@/utils/validation/vin-validation';
+import { validateVin } from '@/utils/validation/vin-validation';
 import { toast } from 'sonner';
 import { decodeVin } from '@/services/vinService';
 
@@ -38,7 +38,7 @@ export function UnifiedVinLookup({
     console.log('🔍 UnifiedVinLookup: Starting VIN decode for:', vin);
     
     // Validate VIN format
-    const validation = validateVIN(vin);
+    const validation = validateVin(vin);
     if (!validation.isValid) {
       setError(validation.error || 'Invalid VIN format');
       toast.error('Invalid VIN format');
@@ -52,7 +52,7 @@ export function UnifiedVinLookup({
       // Decode the VIN
       const result = await decodeVin(vin);
       
-      if (result.success && result.data) {
+      if (result && result.success && result.data) {
         console.log('✅ VIN decoded successfully:', result.data);
         toast.success('Vehicle found! Redirecting to valuation...');
         
@@ -64,9 +64,9 @@ export function UnifiedVinLookup({
         // Navigate to the valuation page with the VIN
         navigate(`/valuation/${vin}`);
       } else {
-        console.error('❌ VIN decode failed:', result.error);
-        setError(result.error || 'Failed to decode VIN');
-        toast.error(result.error || 'Failed to decode VIN');
+        console.error('❌ VIN decode failed:', result?.error);
+        setError(result?.error || 'Failed to decode VIN');
+        toast.error(result?.error || 'Failed to decode VIN');
       }
     } catch (error: any) {
       console.error('❌ VIN lookup error:', error);
