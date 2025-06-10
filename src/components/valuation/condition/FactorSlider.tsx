@@ -92,9 +92,11 @@ export const FactorSlider = ({
                 ? (
                   <TooltipProvider>
                     <Tooltip>
-                      <TooltipTrigger className="text-xs flex items-center">
-                        {option.label}
-                        <Info className="h-3 w-3 ml-0.5 inline" />
+                      <TooltipTrigger asChild>
+                        <span className="text-xs flex items-center cursor-help">
+                          {option.label}
+                          <Info className="h-3 w-3 ml-0.5 inline" />
+                        </span>
                       </TooltipTrigger>
                       <TooltipContent>
                         <p className="text-xs">{option.tip}</p>

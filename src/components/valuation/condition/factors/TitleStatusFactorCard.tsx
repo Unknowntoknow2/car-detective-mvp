@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -97,9 +98,11 @@ export function TitleStatusFactorCard(
 
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger className="text-sm flex items-center text-muted-foreground underline underline-offset-2">
-              <Info className="h-3.5 w-3.5 mr-1" />
-              Value Impact
+            <TooltipTrigger asChild>
+              <span className="text-sm flex items-center text-muted-foreground underline underline-offset-2 cursor-help">
+                <Info className="h-3.5 w-3.5 mr-1" />
+                Value Impact
+              </span>
             </TooltipTrigger>
             <TooltipContent>
               <p className="text-sm">{statusInfo.impact}</p>
