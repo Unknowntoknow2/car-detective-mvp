@@ -14,6 +14,7 @@ export interface ReportData {
   adjustments: any[];
   generatedAt: string;
   vin?: string;
+  isPremium?: boolean;
   aiCondition?: {
     condition: string;
     confidenceScore: number;

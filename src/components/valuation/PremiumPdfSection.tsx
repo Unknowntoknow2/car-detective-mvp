@@ -22,17 +22,21 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
     setIsDownloading(true);
     try {
       const reportData: ReportData = {
+        id: valuationResult.id || Date.now().toString(),
         make: valuationResult.make || 'Unknown',
         model: valuationResult.model || 'Unknown',
         year: valuationResult.year || 2020,
         mileage: valuationResult.mileage || 0,
         condition: valuationResult.condition || 'Good',
         estimatedValue: valuationResult.estimatedValue || 0,
+        price: valuationResult.estimatedValue || 0,
+        priceRange: valuationResult.priceRange || [0, 0],
         confidenceScore: valuationResult.confidenceScore || 75,
         zipCode: valuationResult.zipCode || '90210',
         adjustments: valuationResult.adjustments || [],
         generatedAt: new Date().toISOString(),
         vin: valuationResult.vin,
+        isPremium: isPremium,
         aiCondition: {
           condition: valuationResult.condition || 'Good',
           confidenceScore: valuationResult.confidenceScore || 75,
@@ -58,17 +62,21 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
     }
 
     const reportData: ReportData = {
+      id: valuationResult.id || Date.now().toString(),
       make: valuationResult.make || 'Unknown',
       model: valuationResult.model || 'Unknown',
       year: valuationResult.year || 2020,
       mileage: valuationResult.mileage || 0,
       condition: valuationResult.condition || 'Good',
       estimatedValue: valuationResult.estimatedValue || 0,
+      price: valuationResult.estimatedValue || 0,
+      priceRange: valuationResult.priceRange || [0, 0],
       confidenceScore: valuationResult.confidenceScore || 75,
       zipCode: valuationResult.zipCode,
       adjustments: valuationResult.adjustments || [],
       generatedAt: new Date().toISOString(),
       vin: valuationResult.vin,
+      isPremium: isPremium,
       aiCondition: {
         condition: valuationResult.condition || 'Good',
         confidenceScore: valuationResult.confidenceScore || 75,
