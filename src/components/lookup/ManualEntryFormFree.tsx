@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,8 +25,6 @@ export function ManualEntryFormFree({
   isPremium = false,
 }: ManualEntryFormFreeProps) {
   const [activeTab, setActiveTab] = useState("details");
-  const [accidentHistory, setAccidentHistory] = useState<string>(formData.accidentDetails?.hasAccident ? 'yes' : 'no');
-  const [accidentSeverity, setAccidentSeverity] = useState<string>(formData.accidentDetails?.severity || 'minor');
 
   const handleMakeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateFormData({ make: e.target.value });
@@ -46,25 +45,11 @@ export function ManualEntryFormFree({
   };
 
   const handleConditionChange = (value: string) => {
-    updateFormData({ condition: value as ConditionLevel });
+    updateFormData({ condition: value });
   };
 
   const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateFormData({ zipCode: e.target.value });
-  };
-
-  const handleAccidentDetailsChange = (details: any) => {
-    updateFormData({
-      accidentDetails: {
-        ...formData.accidentDetails,
-        ...details
-      }
-    });
-  };
-
-  const accidentDetails = {
-    hasAccident: accidentHistory === 'yes',
-    severity: accidentSeverity as 'minor' | 'moderate' | 'severe',
   };
 
   return (
@@ -144,8 +129,41 @@ export function ManualEntryFormFree({
         </div>
 
         <AccidentDetailsForm
-          value={formData.accidentDetails || accidentDetails}
-          onChange={(details) => updateFormData({ accidentDetails: details })}
+          accidentCount={formData.accidentDetails?.count}
+          accidentLocation={formData.accidentDetails?.area}
+          accidentSeverity={formData.accidentDetails?.severity}
+          accidentDescription={formData.accidentDetails?.description}
+          onAccidentCountChange={(count) => updateFormData({ 
+            accidentDetails: { 
+              ...formData.accidentDetails, 
+              hasAccident: count !== undefined && count > 0,
+              severity: formData.accidentDetails?.severity || 'minor',
+              count 
+            } 
+          })}
+          onAccidentLocationChange={(area) => updateFormData({ 
+            accidentDetails: { 
+              ...formData.accidentDetails, 
+              hasAccident: formData.accidentDetails?.hasAccident || false,
+              severity: formData.accidentDetails?.severity || 'minor',
+              area 
+            } 
+          })}
+          onAccidentSeverityChange={(severity) => updateFormData({ 
+            accidentDetails: { 
+              ...formData.accidentDetails, 
+              hasAccident: formData.accidentDetails?.hasAccident || false,
+              severity: severity as 'minor' | 'moderate' | 'severe'
+            } 
+          })}
+          onAccidentDescriptionChange={(description) => updateFormData({ 
+            accidentDetails: { 
+              ...formData.accidentDetails, 
+              hasAccident: formData.accidentDetails?.hasAccident || false,
+              severity: formData.accidentDetails?.severity || 'minor',
+              description 
+            } 
+          })}
         />
       </TabsContent>
     </Tabs>
