@@ -1,60 +1,50 @@
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-import React, { createContext, useContext, useState } from 'react';
+type Toast = {
+  id: string;
+  message: string;
+};
 
-interface ToastProps {
-  description: string;
-  variant?: 'default' | 'destructive';
-}
-
-interface ToastContextType {
-  toast: (props: ToastProps) => void;
-}
+type ToastContextType = {
+  toasts: Toast[];
+  addToast: (message: string) => void;
+};
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [toasts, setToasts] = useState<ToastProps[]>([]);
+export const ToastProvider = ({ children }: { children: ReactNode }) => {
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const toast = (props: ToastProps) => {
-    setToasts(prev => [...prev, props]);
-    // Auto remove after 3 seconds
+  const addToast = (message: string) => {
+    const id = crypto.randomUUID();
+    setToasts((prev) => [...prev, { id, message }]);
+
     setTimeout(() => {
-      setToasts(prev => prev.slice(1));
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
     }, 3000);
   };
 
   return (
-    <ToastContext.Provider value={{ toast }}>
+    <ToastContext.Provider value={{ toasts, addToast }}>
       {children}
-      {toasts.length > 0 && (
-        <div className="fixed top-4 right-4 z-50 space-y-2">
-          {toasts.map((toast, index) => (
-            <div
-              key={index}
-              className={`p-4 rounded-lg shadow-lg ${
-                toast.variant === 'destructive' 
-                  ? 'bg-red-600 text-white' 
-                  : 'bg-green-600 text-white'
-              }`}
-            >
-              {toast.description}
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="fixed bottom-4 right-4 space-y-2 z-50">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className="bg-black text-white px-4 py-2 rounded shadow"
+          >
+            {toast.message}
+          </div>
+        ))}
+      </div>
     </ToastContext.Provider>
   );
-};
-
-export const toast = (props: ToastProps) => {
-  // For tests and simple usage
-  console.log('Toast:', props);
 };
 
 export const useToast = () => {
   const context = useContext(ToastContext);
   if (!context) {
-    return { toast };
+    throw new Error('useToast must be used within a ToastProvider');
   }
   return context;
 };

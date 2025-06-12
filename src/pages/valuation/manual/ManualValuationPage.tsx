@@ -9,11 +9,10 @@ const ManualValuationPage: React.FC = () => {
 
   const handleSubmit = async (data: ManualEntryFormData) => {
     try {
-      const valuationId = await submitManualValuation(data); // no userId for guest
+      const valuationId = await submitManualValuation(data);
       navigate(`/valuation/result/${valuationId}`);
     } catch (error) {
       console.error('Valuation submission failed:', error);
-      // TODO: Show toast for user feedback
     }
   };
 
@@ -25,4 +24,4 @@ const ManualValuationPage: React.FC = () => {
   );
 };
 
-export default ManualValuationPage;
+export default ManualValuationPage; // ✅ DEFAULT EXPORT

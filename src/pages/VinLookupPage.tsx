@@ -2,7 +2,11 @@
 import React, { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+<<<<<<< HEAD
 import VinDecoderForm from "@/components/lookup/VinDecoderForm";
+=======
+import VinDecoderForm from "@/components/lookup/VinDecoderForm"; // ✅ FIXED HERE
+>>>>>>> 28d6cba1 (fix: resolve merge conflict and update VIN decoding & toast setup)
 import ManualEntryForm from "@/components/lookup/manual/ManualEntryForm";
 import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
 import { Button } from "@/components/ui/button";
@@ -17,25 +21,17 @@ export default function VinLookupPage() {
     setShowManualEntry(!showManualEntry);
   };
 
-  // Add a handler for the ManualEntryForm
   const handleManualSubmit = (data: any) => {
     console.log("Manual entry form submitted:", data);
-    // Here you would typically handle the form submission
+    // Process manual data here
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Add Auth Button at the top if not logged in */}
       {!user && (
         <div className="flex justify-end mb-6">
-          <Button
-            variant="outline"
-            className="flex items-center gap-2"
-            asChild
-          >
-            <Link to="/auth">
-              Sign In / Register
-            </Link>
+          <Button variant="outline" className="flex items-center gap-2" asChild>
+            <Link to="/auth">Sign In / Register</Link>
           </Button>
         </div>
       )}
