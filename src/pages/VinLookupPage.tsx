@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import VinDecoderForm from "@/components/lookup/VinDecoderForm";
+import VinDecoderForm from "@/components/lookup/VinDecoderForm"; // ✅ CORRECT import
 import ManualEntryForm from "@/components/lookup/manual/ManualEntryForm";
 import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,6 @@ export default function VinLookupPage() {
 
   const handleManualSubmit = (data: any) => {
     console.log("Manual entry form submitted:", data);
-    // Here you would typically handle the form submission
   };
 
   return (
