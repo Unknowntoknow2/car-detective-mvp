@@ -31,7 +31,7 @@ export function DetailedConditionRating({ formData, setFormData }: DetailedCondi
           <label className="text-sm font-medium">Exterior Condition</label>
           <Slider
             value={[formData.exteriorCondition]}
-            onValueChange={(value) => handleConditionChange(value[0], 'exterior')}
+            onValueChange={(value: number[]) => handleConditionChange(value[0], 'exterior')}
             max={10}
             min={1}
             step={1}
@@ -47,7 +47,7 @@ export function DetailedConditionRating({ formData, setFormData }: DetailedCondi
           <label className="text-sm font-medium">Interior Condition</label>
           <Slider
             value={[formData.interiorCondition]}
-            onValueChange={(value) => handleConditionChange(value[0], 'interior')}
+            onValueChange={(value: number[]) => handleConditionChange(value[0], 'interior')}
             max={10}
             min={1}
             step={1}
@@ -63,7 +63,7 @@ export function DetailedConditionRating({ formData, setFormData }: DetailedCondi
           <label className="text-sm font-medium">Mechanical Condition</label>
           <Slider
             value={[formData.mechanicalCondition]}
-            onValueChange={(value) => handleConditionChange(value[0], 'mechanical')}
+            onValueChange={(value: number[]) => handleConditionChange(value[0], 'mechanical')}
             max={10}
             min={1}
             step={1}
@@ -79,7 +79,7 @@ export function DetailedConditionRating({ formData, setFormData }: DetailedCondi
           <label className="text-sm font-medium">Tire Condition</label>
           <Slider
             value={[formData.tireCondition]}
-            onValueChange={(value) => handleConditionChange(value[0], 'tire')}
+            onValueChange={(value: number[]) => handleConditionChange(value[0], 'tire')}
             max={10}
             min={1}
             step={1}
