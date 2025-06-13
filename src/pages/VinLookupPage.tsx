@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import VinDecoderForm from "@/components/lookup/VinDecoderForm"; // ✅ CORRECT import
+import VinDecoderForm from "@/components/lookup/vin-core/VinLookup"; // ✅ CORRECT import
 import ManualEntryForm from "@/components/lookup/manual-core/ManualEntryForm";
 import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
 import { Button } from "@/components/ui/button";
