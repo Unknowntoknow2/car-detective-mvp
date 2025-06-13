@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/components/ui/use-toast";
 // Fix the import to use default export
-import UnifiedValuationResult from "@/components/valuation/valuation-core/UnifiedValuationResult";
+import UnifiedValuationResult from "@/components/valuation/valuation-core/ValuationResult";
 
 const conditions = [
   { label: "Excellent", value: "excellent" },
