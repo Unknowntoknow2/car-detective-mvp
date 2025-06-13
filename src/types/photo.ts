@@ -6,6 +6,10 @@ export interface PhotoUploadProps {
   maxFileSize?: number;
   disabled?: boolean;
   className?: string;
+  onPhotoAnalysisComplete?: (vehicle: any) => void;
+  onPhotoUpload?: (files: File[]) => void;
+  isLoading?: boolean;
+  vehicle?: any;
 }
 
 export interface PhotoData {
@@ -14,4 +18,25 @@ export interface PhotoData {
   filename: string;
   size: number;
   uploadedAt: Date;
+}
+
+export interface AICondition {
+  condition: string;
+  confidence: number;
+  details: string[];
+}
+
+export interface PhotoScore {
+  url: string;
+  score: number;
+  issues?: string[];
+}
+
+export interface Photo {
+  id: string;
+  url: string;
+  analysis?: {
+    condition: AICondition;
+    score: number;
+  };
 }
