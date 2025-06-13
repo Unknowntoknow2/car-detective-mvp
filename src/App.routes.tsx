@@ -1,7 +1,10 @@
-
 import React from "react";
 import { RouteObject } from "react-router-dom";
-import { EnhancedHomePage } from "./components/home/EnhancedHomePage";
+
+// ✅ Advanced homepage
+import IndexPage from "./pages/index";
+
+// 🌐 Other page components
 import AboutPage from "./pages/AboutPage";
 import VinLookupPage from "./pages/VinLookupPage";
 import LoginPage from "./pages/LoginPage";
@@ -14,6 +17,7 @@ import ResultPage from "./pages/ResultPage";
 import ProfilePage from "./pages/ProfilePage";
 import AccountPage from "./pages/AccountPage";
 import ServiceHistoryPage from "./pages/ServiceHistoryPage";
+
 import Layout from "./components/layout/Layout";
 
 const routes: RouteObject[] = [
@@ -23,7 +27,7 @@ const routes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <EnhancedHomePage />,
+        element: <IndexPage />,
       },
       {
         path: "about",
