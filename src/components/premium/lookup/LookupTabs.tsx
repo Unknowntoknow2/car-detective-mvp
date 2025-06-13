@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VINLookupForm } from "@/components/lookup/vin/VINLookupForm";
+import { VINLookupForm } from "@/components/lookup/vin-core/VINLookupForm";
 import { PlateLookup } from "@/components/lookup/PlateLookup";
 import { ManualLookup } from "@/components/premium/lookup/ManualLookup";
 

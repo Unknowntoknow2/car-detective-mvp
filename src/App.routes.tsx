@@ -1,24 +1,27 @@
+// src/App.routes.tsx
+
 import React from "react";
 import { RouteObject } from "react-router-dom";
 
-// ✅ Advanced homepage
-import IndexPage from "./pages/index";
+// ✅ Correct homepage using EnhancedHomePage
+import IndexPage from "@/pages/EnhancedHomePage";
 
 // 🌐 Other page components
-import AboutPage from "./pages/AboutPage";
-import VinLookupPage from "./pages/VinLookupPage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import NotFoundPage from "./pages/NotFoundPage";
-import ValuationPage from "./pages/ValuationPage";
-import PremiumValuationPage from "./pages/PremiumValuationPage";
-import ValuationResultPage from "./pages/ValuationResultPage";
-import ResultPage from "./pages/ResultPage";
-import ProfilePage from "./pages/ProfilePage";
-import AccountPage from "./pages/AccountPage";
-import ServiceHistoryPage from "./pages/ServiceHistoryPage";
+import AboutPage from "@/pages/AboutPage";
+import VinLookupPage from "@/pages/VinLookupPage";
+import LoginPage from "@/pages/LoginPage";
+import RegisterPage from "@/pages/RegisterPage";
+import NotFoundPage from "@/pages/NotFoundPage";
+import ValuationPage from "@/pages/ValuationPage";
+import PremiumValuationPage from "@/pages/PremiumValuationPage";
+import ValuationResultPage from "@/pages/ValuationResultPage";
+import ResultPage from "@/pages/ResultPage";
+import ProfilePage from "@/pages/ProfilePage";
+import AccountPage from "@/pages/AccountPage";
+import ServiceHistoryPage from "@/pages/ServiceHistoryPage";
 
-import Layout from "./components/layout/Layout";
+// 🧱 Shared layout
+import Layout from "@/components/layout/Layout";
 
 const routes: RouteObject[] = [
   {
