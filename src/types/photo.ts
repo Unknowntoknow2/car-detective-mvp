@@ -1,16 +1,17 @@
 
-export interface AICondition {
-  overall: string;
-  exterior: string;
-  interior: string;
-  mechanical: string;
-  score: number;
-  confidence: number;
+export interface PhotoUploadProps {
+  onUpload?: (files: File[]) => void;
+  maxFiles?: number;
+  acceptedFileTypes?: string[];
+  maxFileSize?: number;
+  disabled?: boolean;
+  className?: string;
 }
 
-export interface PhotoAnalysis {
+export interface PhotoData {
   id: string;
-  photoUrl: string;
-  condition: AICondition;
-  timestamp: string;
+  url: string;
+  filename: string;
+  size: number;
+  uploadedAt: Date;
 }
