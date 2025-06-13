@@ -1,12 +1,7 @@
-
 import React, { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-<<<<<<< HEAD
 import VinDecoderForm from "@/components/lookup/VinDecoderForm";
-=======
-import VinDecoderForm from "@/components/lookup/VinDecoderForm"; // ✅ FIXED HERE
->>>>>>> 28d6cba1 (fix: resolve merge conflict and update VIN decoding & toast setup)
 import ManualEntryForm from "@/components/lookup/manual/ManualEntryForm";
 import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
 import { Button } from "@/components/ui/button";
@@ -23,7 +18,7 @@ export default function VinLookupPage() {
 
   const handleManualSubmit = (data: any) => {
     console.log("Manual entry form submitted:", data);
-    // Process manual data here
+    // Here you would typically handle the form submission
   };
 
   return (
@@ -38,6 +33,7 @@ export default function VinLookupPage() {
 
       <AnnouncementBar />
       <Navbar />
+
       <main className="flex-1 container max-w-2xl py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
         <div className="space-y-6 sm:space-y-8">
           <div className="text-center">
@@ -45,8 +41,7 @@ export default function VinLookupPage() {
               VIN Lookup
             </h1>
             <p className="mt-3 sm:mt-4 text-base sm:text-lg text-gray-600">
-              Enter your Vehicle Identification Number (VIN) to get detailed
-              information.
+              Enter your Vehicle Identification Number (VIN) to get detailed information.
             </p>
           </div>
 
@@ -64,14 +59,14 @@ export default function VinLookupPage() {
             <div className="mt-8">
               <h2 className="text-xl font-semibold mb-4">Manual Entry</h2>
               <p className="text-gray-600 mb-6">
-                If you prefer, you can manually enter your vehicle details
-                below.
+                If you prefer, you can manually enter your vehicle details below.
               </p>
               <ManualEntryForm onSubmit={handleManualSubmit} />
             </div>
           )}
         </div>
       </main>
+
       <Footer />
     </div>
   );
