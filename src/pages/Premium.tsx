@@ -6,7 +6,7 @@ import { EnhancedPremiumFeaturesTabs } from "@/components/premium/features/Enhan
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { PremiumHero } from "@/components/premium/PremiumHero";
-import { PremiumTabs } from "@/components/premium/PremiumTabs";
+import { PremiumTabs } from "@/components/premium/premium-core/PremiumTabs";
 import MainLayout from "@/components/layout/MainLayout";
 
 export default function Premium() {
