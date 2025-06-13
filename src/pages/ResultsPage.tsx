@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout";
 import { useParams, useSearchParams } from "react-router-dom";
-import ValuationResult from "@/components/valuation/ValuationResult";
+import ValuationResult from "@/components/valuation/ValuationResults";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
