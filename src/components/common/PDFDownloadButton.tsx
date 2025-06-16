@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2, Lock } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface PDFDownloadButtonProps {
   valuationResult: any;
@@ -14,6 +14,7 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
   isPremium,
 }) => {
   const [isDownloading, setIsDownloading] = useState(false);
+  const { toast } = useToast();
 
   const handleDownload = async () => {
     if (!isPremium) return;
@@ -23,10 +24,12 @@ export const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({
       // MVP: Basic download simulation
       await new Promise(resolve => setTimeout(resolve, 1000));
       toast({
+        title: "Success",
         description: "PDF downloaded successfully",
       });
     } catch (error) {
       toast({
+        title: "Error",
         description: "Failed to generate PDF",
         variant: "destructive",
       });
