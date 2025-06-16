@@ -1,4 +1,3 @@
-
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
@@ -83,8 +82,9 @@ i18n
     },
     react: {
       useSuspense: false,
-      transSupportBasicHtmlNodes: true,
-      transKeepBasicHtmlNodesFor: ['br', 'strong', 'i', 'p'],
+      // Temporarily remove these settings to fix type conflicts
+      // transSupportBasicHtmlNodes: true,
+      // transKeepBasicHtmlNodesFor: ['br', 'strong', 'i', 'p'],
     },
   });
 
