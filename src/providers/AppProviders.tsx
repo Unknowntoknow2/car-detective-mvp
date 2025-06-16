@@ -6,10 +6,10 @@ export const AppProviders = ({ children }: { children: React.ReactNode }) => {
   return (
     <HelmetProvider>
       <ThemeProvider attribute="class" defaultTheme="system">
-        <ToastProvider>
-          {children}
-        </ToastProvider>
+        <ToastProvider>{children}</ToastProvider>
       </ThemeProvider>
     </HelmetProvider>
   );
 };
+
+export default AppProviders; // ✅ This line fixes your error
