@@ -1,10 +1,10 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
 import AppProviders from './providers/AppProviders';
+import Layout from './components/layout/Layout';
 import routes from '@/App.routes';
 
 const queryClient = new QueryClient({
@@ -35,9 +35,9 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AppProviders>
           <TooltipProvider>
-            <Routes>{renderRoutes(routes)}</Routes>
-            <Toaster />
-            <Sonner />
+            <Layout>
+              <Routes>{renderRoutes(routes)}</Routes>
+            </Layout>
           </TooltipProvider>
         </AppProviders>
       </QueryClientProvider>
