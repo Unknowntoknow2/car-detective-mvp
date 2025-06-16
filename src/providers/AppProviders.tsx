@@ -1,6 +1,7 @@
+
 import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from '@/components/ui/theme-provider';
-import { ToastProvider } from '@/components/ui/use-toast';
+import { ToastProvider } from '@/hooks/use-toast';
 
 export const AppProviders = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -12,4 +13,4 @@ export const AppProviders = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export default AppProviders; // ✅ This line fixes your error
+export default AppProviders;
