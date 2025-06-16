@@ -38,18 +38,18 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
     <ToastContext.Provider value={{ toasts, toast, dismiss }}>
       {children}
       <div className="fixed bottom-4 right-4 space-y-2 z-50">
-        {toasts.map((toast) => (
+        {toasts.map((toastItem) => (
           <div
-            key={toast.id}
+            key={toastItem.id}
             className={`p-4 rounded shadow-lg ${
-              toast.variant === 'destructive' 
+              toastItem.variant === 'destructive' 
                 ? 'bg-red-600 text-white' 
                 : 'bg-black text-white'
             }`}
           >
-            {toast.title && <div className="font-semibold">{toast.title}</div>}
-            {toast.description && <div>{toast.description}</div>}
-            {toast.action}
+            {toastItem.title && <div className="font-semibold">{toastItem.title}</div>}
+            {toastItem.description && <div>{toastItem.description}</div>}
+            {toastItem.action}
           </div>
         ))}
       </div>
