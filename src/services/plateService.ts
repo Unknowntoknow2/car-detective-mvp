@@ -1,4 +1,3 @@
-
 export interface PlateServiceResponse {
   vehicle: {
     make: string;
@@ -26,3 +25,5 @@ export const plateService = {
     };
   }
 };
+
+export const mockPlateLookup = plateService.lookupPlate;

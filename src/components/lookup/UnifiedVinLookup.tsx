@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,10 +15,10 @@ interface UnifiedVinLookupProps {
   className?: string;
 }
 
-export function UnifiedVinLookup({ 
-  onSubmit, 
-  showHeader = false, 
-  className = '' 
+export function UnifiedVinLookup({
+  onSubmit,
+  showHeader = false,
+  className = ''
 }: UnifiedVinLookupProps) {
   const [vin, setVin] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -34,14 +33,11 @@ export function UnifiedVinLookup({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log('🔍 UnifiedVinLookup: Starting VIN decode for:', vin);
-    
-    // Validate VIN format
+
     const validation = validateVin(vin);
     if (!validation.isValid) {
       setError(validation.error || 'Invalid VIN format');
-      toast.error('Invalid VIN format');
+      toast.error(validation.error || 'Invalid VIN format');
       return;
     }
 
@@ -49,27 +45,17 @@ export function UnifiedVinLookup({
     setError(null);
 
     try {
-      // Decode the VIN
       const result = await decodeVin(vin);
-      
-      if (result && result.success && result.data) {
-        console.log('✅ VIN decoded successfully:', result.data);
-        toast.success('Vehicle found! Redirecting to valuation...');
-        
-        // Call onSubmit if provided
-        if (onSubmit) {
-          onSubmit(vin);
-        }
-        
-        // Navigate to the valuation page with the VIN
+
+      if (result?.success && result.data) {
+        toast.success('Vehicle found! Redirecting...');
+        onSubmit?.(vin);
         navigate(`/valuation/${vin}`);
       } else {
-        console.error('❌ VIN decode failed:', result?.error);
         setError(result?.error || 'Failed to decode VIN');
         toast.error(result?.error || 'Failed to decode VIN');
       }
-    } catch (error: any) {
-      console.error('❌ VIN lookup error:', error);
+    } catch (err) {
       setError('Failed to lookup VIN. Please try again.');
       toast.error('Failed to lookup VIN. Please try again.');
     } finally {
@@ -90,49 +76,45 @@ export function UnifiedVinLookup({
         )}
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="vin-input" className="text-sm font-medium">
-              Vehicle Identification Number (VIN)
-            </Label>
+            <Label htmlFor="vin-input">Vehicle Identification Number (VIN)</Label>
             <p className="text-xs text-muted-foreground mt-1 mb-2">
-              Find your VIN on your dashboard, driver's side door, or vehicle registration
+              Typically found on your dashboard, driver’s side door, or registration
             </p>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                id="vin-input"
-                type="text"
-                placeholder="Enter 17-character VIN"
-                value={vin}
-                onChange={(e) => handleVinChange(e.target.value)}
-                maxLength={17}
-                className={`font-mono ${error ? 'border-red-500' : ''}`}
-                disabled={isLoading}
-              />
-              
-              <div className="flex justify-between items-center text-xs text-muted-foreground">
-                <span>{vin.length}/17 characters</span>
-                <span>VIN format: letters and numbers only (no I, O, Q)</span>
-              </div>
-              
-              {error && (
-                <div className="flex items-start gap-2 text-red-500 text-sm">
-                  <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                  <span>{error}</span>
-                </div>
-              )}
-              
-              {vin && !hasValidFormat && vin.length === 17 && (
-                <div className="flex items-start gap-2 text-orange-500 text-sm">
-                  <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                  <span>VIN contains invalid characters (I, O, Q not allowed)</span>
-                </div>
-              )}
+            <Input
+              id="vin-input"
+              type="text"
+              placeholder="Enter 17-character VIN"
+              value={vin}
+              onChange={(e) => handleVinChange(e.target.value)}
+              maxLength={17}
+              className={`font-mono ${error ? 'border-red-500' : ''}`}
+              disabled={isLoading}
+            />
+
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{vin.length}/17 characters</span>
+              <span>No I, O, or Q allowed</span>
             </div>
-            
-            <Button 
-              type="submit" 
+
+            {error && (
+              <div className="flex items-start gap-2 text-red-500 text-sm">
+                <AlertCircle className="h-4 w-4 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {vin && !hasValidFormat && vin.length === 17 && (
+              <div className="flex items-start gap-2 text-orange-500 text-sm">
+                <Info className="h-4 w-4 mt-0.5" />
+                <span>VIN contains invalid characters (I, O, Q not allowed)</span>
+              </div>
+            )}
+
+            <Button
+              type="submit"
               disabled={!isValidLength || !hasValidFormat || isLoading}
               className="w-full"
             >

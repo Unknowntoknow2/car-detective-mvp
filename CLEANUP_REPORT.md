@@ -1,0 +1,84 @@
+- [x] 9ccb0311 Final MVP layout and routing cleanup
+- [x] f4b6df6a Final MVP layout and routing cleanup
+- [x] 1d316102 Refactor: Clean codebase for type safety and integrity
+- [x] fa9bbe35 Remove non-MVP code for launch
+- [x] bc0c8c55 Remove non-MVP code and tests
+- [x] 87266cf4 Refactor: Implement homepage cleanup and component creation
+- [x] e5f0928b 🧹 Clean merge conflict in ManualLookup.tsx
+- [x] 395776d9 ✅ Unified VehicleFoundCard: kept shared version, removed legacy files, injected into all result flows with safe conditions
+- [x] 8de15e19 🔧 Fix: Clean merge and logic refinement in carfaxCalculator.ts (validated fallback & uplift)
+- [x] aa7b5e11 🔧 Fix: Fully resolved merge conflict in conditionCalculator.ts (FANG-standard clean merge)
+- [x] 1f52aa4f fix: merge valuation result page and detail page, types cleanup, Vite config restore
+- [x] 34302189 Remove pill selector from FeaturesTab
+- [x] cd83ebbd Remove legacy follow-up files
+- [x] 46642211 Remove key features section from landing page
+- [x] 16be4647 🧹 FANG-Grade Routing Cleanup Phase 1
+- [x] 74d5a32b Audit for MakeModelSelect duplicates
+- [x] b859823e Fix: Remove created_at from initial state
+- [x] 963f6c70 Fix: Remove unused initialData prop from UnifiedFollowUpForm
+- [x] f53b8d67 Fix: Remove nested router instances
+- [x] 826bc44b Fix: Remove nested Router components
+- [x] 4b1613c6 Fix: Remove nested router
+- [x] ad502c41 feat: Migrate to UnifiedAuthPage and cleanup
+- [x] 5a87fe16 Remove broken scraper scripts and empty folders
+- [x] fb5248e6 Refactor: Remove outdated scraper files
+- [x] fd2d7e1d Fix: Remove temporary fields and fix model population
+- [x] 2ef57a45 Remove unused follow-up question files
+- [x] 0341ead6 Remove unused files
+- [x] 64938ff3 Fix: Remove duplicate useAuth hook
+- [x] 8196f925 Refactor: Remove duplicate auth components and routes
+- [x] fae229b2 chore: Clean up code and apply linting fixes
+- [x] 8183a290 chore: full repo cleanup
+- [x] 0ed538bf fix: separate and clean ManualEntryForm versions
+- [x] 4c85be8d Remove mock and test files
+- [x] e85645a7 Clean up and lock down phase 1
+- [x] 0f6981f3 Remove unused files
+- [x] c05a83d0 Fix: Remove nested BrowserRouter
+- [x] f9e86fc7 Fix: Remove unreachable code in ServiceStatus
+- [x] 6f57410b Fix: Remove nested BrowserRouter
+- [x] a4c49b07 Fix: Remove unintended sidebar
+- [x] d4d4a4ea Refactor: Clean up and consolidate routes
+- [x] 6db7a1bb Fix: UseAuth import and file cleanup
+- [x] 1d2292f9 Refactor: Clean up auth files and routes
+- [x] 49ba5200 Remove duplicate VinDecoderResults.tsx
+- [x] d7d19acc Fix: Remove duplicate PhotoUploadStep declaration
+- [x] 486684d6 Fix core issues and clean up codebase
+- [x] 133c107a Fix: Remove invalid toast properties
+- [x] 438f4856 Fix: Remove nested Router components
+- [x] 0df10ef7 Fix: Remove extraneous props in AuthForm
+- [x] d6a2ad50 Replace broken npm-shrinkwrap.json with clean package-lock.json
+- [x] af466403 Refactor: Remove unused code and restore pages
+- [x] c0c9bf3c Remove useAuth.ts and rename auth pages
+- [x] a5aa5413 Fix: Remove nested Router components
+- [x] 18a48c53 Fix: Resolve duplicate attribute error in carousel
+- [x] 59c293a1 Fix: Remove duplicate content in homepage
+- [x] ee1fd6e6 Refactor: Deduplicate UI components and types
+- [x] 6d1bf6c2 Delete unused duplicate files
+- [x] 6cf0813e Add edit and delete actions to inventory table
+- [x] 575d3ca0 Refactor: Make DeleteConfirmationDialog reusable
+- [x] acdc686e Remove error display logic
+- [x] ef4b6fee Delete requirements.txt
+- [x] 7a63a51e Fix: Remove redundant vehicle lookup step
+- [x] 03bf5035 Refactor: Remove unnecessary code
+- [x] b688a99a Fix: Remove duplicate lookup components
+- [x] b2a04606 Remove duplicate VIN validation code
+- [x] ac5e421a Remove corrupted validation files
+- [x] 651a68f9 Remove and recreate enhanced validation file
+- [x] d97755d3 Fix: Remove shebang from generate-test-data.ts
+- [x] 95cebf10 Fix: Resolve duplicate links and view issues
+- [x] abba71cc Fix: Remove invalid PDF text option
+- [x] f8372a1f Fix: Remove non-existent test file
+- [x] d5f9a6d2 Remove useEpaMpg test file
+- [x] f6df769d Fix: Remove nested BrowserRouter
+- [x] 85b5844d Refactor: Remove duplicate files and folders
+- [x] 69b44a30 Refactor: remove mock data from useVehicleData.ts and use Supabase
+- [x] 0e8e074e Refactor: Apply code formatting and cleanup
+- [x] c2940469 Refactor: Remove fallback/mock vehicle data
+- [x] 85e9794c Remove unused vehicle data functions
+- [x] 5d252dd9 Refactor: Remove unnecessary code
+- [x] 65a354e5 Refactor: Remove unused code
+- [x] ac28c61c Refactor: Remove unused code
+- [x] d623efde Remove unused code
+- [x] ad22c1c6 Remove unused code
+- [x] b8963cd5 Remove lookup links from navbar
+- [x] 5d48d437 Fix: Implement duplicate account checks

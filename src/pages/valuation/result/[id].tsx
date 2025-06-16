@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useValuationResult } from "@/hooks/useValuationResult";
-import UnifiedValuationResult from "@/components/valuation/UnifiedValuationResult";
+import UnifiedValuationResult from "@/components/valuation/valuation-core/ValuationResult";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { MainLayout } from "@/components/layout";

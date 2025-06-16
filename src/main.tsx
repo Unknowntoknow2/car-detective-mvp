@@ -1,12 +1,10 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AppProviders } from './providers/AppProviders';
+import { ThemeProvider } from '@/components/theme/ThemeProvider'; // ✅ Use the correct theme provider
 import './index.css';
 
-// Render the app with minimal setup for MVP
 const renderApp = () => {
   try {
     const rootElement = document.getElementById('root');
@@ -16,11 +14,11 @@ const renderApp = () => {
 
     ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
-        <BrowserRouter>
+        <ThemeProvider> {/* ✅ Wrap the entire app */}
           <AppProviders>
             <App />
           </AppProviders>
-        </BrowserRouter>
+        </ThemeProvider>
       </React.StrictMode>
     );
   } catch (error) {
