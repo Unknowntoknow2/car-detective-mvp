@@ -1,16 +1,15 @@
-import React from 'react';
+import { HelmetProvider } from 'react-helmet-async';
+import { ThemeProvider } from '@/components/ui/theme-provider';
 import { ToastProvider } from '@/components/ui/use-toast';
 
-interface AppProvidersProps {
-  children: React.ReactNode;
-}
-
-export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
+export const AppProviders = ({ children }: { children: React.ReactNode }) => {
   return (
-    <ToastProvider>
-      {children}
-    </ToastProvider>
+    <HelmetProvider>
+      <ThemeProvider attribute="class" defaultTheme="system">
+        <ToastProvider>
+          {children}
+        </ToastProvider>
+      </ThemeProvider>
+    </HelmetProvider>
   );
 };
-
-export default AppProviders;
