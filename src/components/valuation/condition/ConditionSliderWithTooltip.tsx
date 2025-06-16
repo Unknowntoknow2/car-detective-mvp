@@ -5,38 +5,39 @@ import { Slider } from '@/components/ui/slider';
 export interface ConditionSliderWithTooltipProps {
   value: number;
   onValueChange: (value: number) => void;
-  // Add missing score prop
-  score?: number;
-  onScoreChange?: (score: any) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  className?: string;
 }
 
 export const ConditionSliderWithTooltip: React.FC<ConditionSliderWithTooltipProps> = ({
   value,
   onValueChange,
-  score,
-  onScoreChange,
+  min = 0,
+  max = 100,
+  step = 1,
+  className = ''
 }) => {
-  const handleChange = (values: number[]) => {
+  const handleValueChange = (values: number[]) => {
     onValueChange(values[0]);
-    if (onScoreChange) {
-      onScoreChange(values[0]);
-    }
   };
 
-  const displayValue = score !== undefined ? score : value;
-
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 ${className}`}>
       <Slider
-        value={[displayValue]}
-        onValueChange={handleChange}
-        max={100}
-        min={0}
-        step={1}
+        value={[value]}
+        onValueChange={handleValueChange}
+        min={min}
+        max={max}
+        step={step}
         className="w-full"
       />
-      <div className="text-sm text-muted-foreground text-center">
-        Condition Score: {displayValue}%
+      <div className="flex justify-between text-xs text-gray-500">
+        <span>Poor</span>
+        <span>Fair</span>
+        <span>Good</span>
+        <span>Excellent</span>
       </div>
     </div>
   );
