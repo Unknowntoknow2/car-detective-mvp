@@ -1,18 +1,24 @@
 
-// Simplified i18n configuration to avoid build issues
-// Will be properly implemented when i18next dependencies are resolved
-
 export const i18n = {
   language: 'en',
   fallbackLng: 'en',
+  dir: 'ltr',
   interpolation: {
     escapeValue: false,
   },
+  on: (event: string, callback: () => void) => {
+    // Mock implementation
+  },
+  off: (event: string, callback: () => void) => {
+    // Mock implementation  
+  },
+  changeLanguage: (lang: string) => {
+    // Mock implementation
+    return Promise.resolve();
+  }
 };
 
-// Mock translation function
 export const t = (key: string, options?: any) => {
-  // Return the key as fallback
   return key;
 };
 

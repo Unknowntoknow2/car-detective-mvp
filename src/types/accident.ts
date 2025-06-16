@@ -1,15 +1,16 @@
-export interface Accident {
-  id: string;
-  date: string;
-  description: string;
-  location: string;
-  severity: 'minor' | 'moderate' | 'severe';
-}
 
 export interface AccidentImpact {
-  severity: 'minor' | 'moderate' | 'severe';
-  impact: number;
   percentImpact: number;
   dollarImpact: number;
+  severity: 'minor' | 'moderate' | 'major' | 'severe';
   description: string;
+}
+
+export interface AccidentDetails {
+  hadAccident: boolean;
+  count?: number;
+  severity?: string;
+  frameDamage?: boolean;
+  repaired?: boolean;
+  impact?: AccidentImpact;
 }

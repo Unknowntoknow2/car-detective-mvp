@@ -20,9 +20,9 @@ const toastVariants = cva(
   },
 );
 
-interface ToastProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof toastVariants> {}
+interface ToastComponentProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof toastVariants> {}
 
-const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
+const Toast = React.forwardRef<HTMLDivElement, ToastComponentProps>(
   ({ className, variant, ...props }, ref) => {
     return (
       <div
