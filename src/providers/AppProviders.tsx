@@ -1,7 +1,6 @@
-
 import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from '@/components/ui/theme-provider';
-import { ToastProvider } from '@/hooks/use-toast';
+import { ToastProvider } from "@/hooks/use-toast";
 
 export const AppProviders = ({ children }: { children: React.ReactNode }) => {
   return (
