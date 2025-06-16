@@ -3,7 +3,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { expect, describe, it, beforeEach } from 'vitest';
-import { EnhancedHomePage } from '@/components/home/EnhancedHomePage';
+import EnhancedHomePage from '@/components/home/EnhancedHomePage';
 import PremiumPage from '@/pages/PremiumPage';
 import { AppProviders } from '@/providers/AppProviders';
 import ToastProvider from '@/providers/ToastProvider';
