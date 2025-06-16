@@ -1,3 +1,4 @@
+
 // src/App.routes.tsx
 
 import React from "react";
@@ -19,6 +20,7 @@ import ResultPage from "@/pages/ResultPage";
 import ProfilePage from "@/pages/ProfilePage";
 import AccountPage from "@/pages/AccountPage";
 import ServiceHistoryPage from "@/pages/ServiceHistoryPage";
+import ManualValuationPage from "@/pages/valuation/manual/ManualValuationPage";
 
 // 🧱 Shared layout
 import Layout from "@/components/layout/Layout";
@@ -51,6 +53,10 @@ const routes: RouteObject[] = [
       {
         path: "valuation",
         element: <ValuationPage />,
+      },
+      {
+        path: "manual-valuation",
+        element: <ManualValuationPage />,
       },
       {
         path: "premium-valuation",
