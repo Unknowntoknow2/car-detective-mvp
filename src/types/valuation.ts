@@ -1,3 +1,4 @@
+
 export interface ValuationResult {
   id: string;
   estimatedValue?: number;
@@ -27,4 +28,20 @@ export interface AICondition {
   confidence: number;
   summary?: string;
   issuesDetected?: string[];
+}
+
+export interface Valuation {
+  id: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  vin?: string;
+  estimatedValue?: number;
+  estimated_value?: number;
+  confidenceScore?: number;
+  confidence_score?: number;
+  mileage?: number;
+  condition?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }

@@ -1,5 +1,9 @@
+
 import { useState, useEffect } from 'react';
-import { Valuation } from '@/types/valuation';
+import { ValuationResult } from '@/types/valuation';
+
+// Create alias for backward compatibility
+type Valuation = ValuationResult;
 
 export interface UseValuationHistoryReturn {
   valuations: Valuation[];
