@@ -9,7 +9,7 @@ import {
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
-import { supabase } from "@/utils/supabaseClient";
+import { supabase } from "@/lib/supabaseClient"; // ✅ Fixed import
 
 interface MarketTrend {
   month: string;
@@ -41,13 +41,11 @@ export function MarketSnapshot() {
     current: 23100,
   });
 
-  // Handle ZIP code change and fetch data
   const handleZipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newZip = e.target.value.slice(0, 5);
     setZipCode(newZip);
   };
 
-  // Fetch market data when zip is valid
   useEffect(() => {
     const fetchMarketData = async () => {
       if (!isValidZip) return;
@@ -55,7 +53,6 @@ export function MarketSnapshot() {
       setIsLoading(true);
 
       try {
-        // In a real implementation, this would call the Supabase function
         const response = await supabase.functions.invoke(
           "fetch-market-listings",
           {
@@ -68,7 +65,6 @@ export function MarketSnapshot() {
           },
         );
 
-        // For now, simulate response data with random variations based on ZIP
         const zipSum = zipCode.split("").reduce(
           (sum, digit) => sum + parseInt(digit),
           0,
@@ -80,7 +76,6 @@ export function MarketSnapshot() {
           : "stable";
         const percentage = (1 + zipSum % 5) + Math.random();
 
-        // Set timeout to simulate network delay
         setTimeout(() => {
           setMarketData({
             trend: trend as "up" | "down" | "stable",
@@ -109,7 +104,6 @@ export function MarketSnapshot() {
     }
   }, [isValidZip, zipCode]);
 
-  // Helper function to format currency
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -160,133 +154,127 @@ export function MarketSnapshot() {
           </div>
         </div>
 
-        {isLoading
-          ? (
-            <div className="flex items-center justify-center h-40">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-40">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          </div>
+        ) : isValidZip ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-muted/30 rounded-md p-3">
+                <p className="text-xs text-muted-foreground mb-1">
+                  Current Average
+                </p>
+                <p className="text-xl font-semibold">
+                  {formatCurrency(marketData.current)}
+                </p>
+                <div className="flex items-center gap-1 mt-1">
+                  {marketData.trend === "up" && (
+                    <>
+                      <TrendingUp className="h-4 w-4 text-green-500" />
+                      <span className="text-xs text-green-600">
+                        +{marketData.percentage}% past 3mo
+                      </span>
+                    </>
+                  )}
+                  {marketData.trend === "down" && (
+                    <>
+                      <TrendingDown className="h-4 w-4 text-red-500" />
+                      <span className="text-xs text-red-600">
+                        -{marketData.percentage}% past 3mo
+                      </span>
+                    </>
+                  )}
+                  {marketData.trend === "stable" && (
+                    <>
+                      <ChevronsUpDown className="h-4 w-4 text-yellow-500" />
+                      <span className="text-xs text-yellow-600">
+                        ±{marketData.percentage}% past 3mo
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-muted/30 rounded-md p-3">
+                <p className="text-xs text-muted-foreground mb-1">
+                  12-Month Forecast
+                </p>
+                <p className="text-xl font-semibold">
+                  {formatCurrency(marketData.forecast)}
+                </p>
+                <div className="flex items-center gap-1 mt-1">
+                  {marketData.forecast > marketData.current ? (
+                    <>
+                      <TrendingUp className="h-4 w-4 text-green-500" />
+                      <span className="text-xs text-green-600">
+                        +{((marketData.forecast - marketData.current) /
+                          marketData.current *
+                          100).toFixed(1)}% projected
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <TrendingDown className="h-4 w-4 text-red-500" />
+                      <span className="text-xs text-red-600">
+                        {((marketData.forecast - marketData.current) /
+                          marketData.current *
+                          100).toFixed(1)}% projected
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          )
-          : isValidZip
-          ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-muted/30 rounded-md p-3">
-                  <p className="text-xs text-muted-foreground mb-1">
-                    Current Average
-                  </p>
-                  <p className="text-xl font-semibold">
-                    {formatCurrency(marketData.current)}
-                  </p>
-                  <div className="flex items-center gap-1 mt-1">
-                    {marketData.trend === "up" && (
-                      <>
-                        <TrendingUp className="h-4 w-4 text-green-500" />
-                        <span className="text-xs text-green-600">
-                          +{marketData.percentage}% past 3mo
-                        </span>
-                      </>
-                    )}
-                    {marketData.trend === "down" && (
-                      <>
-                        <TrendingDown className="h-4 w-4 text-red-500" />
-                        <span className="text-xs text-red-600">
-                          -{marketData.percentage}% past 3mo
-                        </span>
-                      </>
-                    )}
-                    {marketData.trend === "stable" && (
-                      <>
-                        <ChevronsUpDown className="h-4 w-4 text-yellow-500" />
-                        <span className="text-xs text-yellow-600">
-                          ±{marketData.percentage}% past 3mo
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
 
-                <div className="bg-muted/30 rounded-md p-3">
-                  <p className="text-xs text-muted-foreground mb-1">
-                    12-Month Forecast
-                  </p>
-                  <p className="text-xl font-semibold">
-                    {formatCurrency(marketData.forecast)}
-                  </p>
-                  <div className="flex items-center gap-1 mt-1">
-                    {marketData.forecast > marketData.current
-                      ? (
-                        <>
-                          <TrendingUp className="h-4 w-4 text-green-500" />
-                          <span className="text-xs text-green-600">
-                            +{((marketData.forecast - marketData.current) /
-                              marketData.current * 100).toFixed(1)}% projected
-                          </span>
-                        </>
-                      )
-                      : (
-                        <>
-                          <TrendingDown className="h-4 w-4 text-red-500" />
-                          <span className="text-xs text-red-600">
-                            {((marketData.forecast - marketData.current) /
-                              marketData.current * 100).toFixed(1)}% projected
-                          </span>
-                        </>
-                      )}
-                  </div>
-                </div>
-              </div>
+            <div className="pt-2">
+              <p className="text-xs font-medium mb-2">6-Month Price Trend</p>
+              <div className="h-24 flex items-end justify-between gap-1">
+                {marketData.trends.map((point, index) => {
+                  const minValue = Math.min(
+                    ...marketData.trends.map((t) => t.value),
+                  );
+                  const maxValue = Math.max(
+                    ...marketData.trends.map((t) => t.value),
+                  );
+                  const range = maxValue - minValue;
+                  const normalizedHeight =
+                    ((point.value - minValue) / (range || 1)) * 100;
+                  const heightPercent = 30 + (normalizedHeight * 0.6);
 
-              <div className="pt-2">
-                <p className="text-xs font-medium mb-2">6-Month Price Trend</p>
-                <div className="h-24 flex items-end justify-between gap-1">
-                  {marketData.trends.map((point, index) => {
-                    const minValue = Math.min(
-                      ...marketData.trends.map((t) => t.value),
-                    );
-                    const maxValue = Math.max(
-                      ...marketData.trends.map((t) => t.value),
-                    );
-                    const range = maxValue - minValue;
-                    const normalizedHeight =
-                      ((point.value - minValue) / (range || 1)) * 100;
-                    const heightPercent = 30 + (normalizedHeight * 0.6); // Min 30%, max 90%
-
-                    return (
+                  return (
+                    <div
+                      key={index}
+                      className="flex flex-col items-center flex-1"
+                    >
                       <div
-                        key={index}
-                        className="flex flex-col items-center flex-1"
-                      >
-                        <div
-                          className={`w-full rounded-t-sm ${
-                            index === marketData.trends.length - 1
-                              ? "bg-primary"
-                              : "bg-primary/60"
-                          }`}
-                          style={{ height: `${heightPercent}%` }}
-                        >
-                        </div>
-                        <p className="text-xs mt-1 text-muted-foreground">
-                          {point.month}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
+                        className={`w-full rounded-t-sm ${
+                          index === marketData.trends.length - 1
+                            ? "bg-primary"
+                            : "bg-primary/60"
+                        }`}
+                        style={{ height: `${heightPercent}%` }}
+                      />
+                      <p className="text-xs mt-1 text-muted-foreground">
+                        {point.month}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          )
-          : (
-            <div className="bg-muted/20 rounded-md p-4 text-center h-40 flex flex-col items-center justify-center">
-              <ChartLine className="h-8 w-8 text-muted-foreground/60 mb-2" />
-              <p className="text-sm text-muted-foreground">
-                Enter your ZIP code to see local market trends
-              </p>
-              <p className="text-xs text-muted-foreground/70 mt-1">
-                Prices can vary by up to 15% based on location
-              </p>
-            </div>
-          )}
+          </div>
+        ) : (
+          <div className="bg-muted/20 rounded-md p-4 text-center h-40 flex flex-col items-center justify-center">
+            <ChartLine className="h-8 w-8 text-muted-foreground/60 mb-2" />
+            <p className="text-sm text-muted-foreground">
+              Enter your ZIP code to see local market trends
+            </p>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              Prices can vary by up to 15% based on location
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
