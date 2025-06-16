@@ -34,7 +34,7 @@ export function LookupTabs({
       
       <TabsContent value="vin" className="space-y-4">
         <VINLookupForm
-          onSubmit={formProps.onSubmit}
+          onSubmit={(vin: string) => formProps.onSubmit({ vin })}
           isLoading={formProps.isLoading || false}
         />
       </TabsContent>
@@ -42,7 +42,7 @@ export function LookupTabs({
       <TabsContent value="plate" className="space-y-4">
         <PlateLookup
           tier="premium"
-          onVehicleFound={formProps.onSubmit}
+          onVehicleFound={(data: any) => formProps.onSubmit(data)}
         />
       </TabsContent>
       

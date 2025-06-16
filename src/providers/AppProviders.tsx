@@ -1,8 +1,5 @@
-// /src/providers/AppProviders.tsx
-import React from "react";
-import { HelmetProvider } from "react-helmet-async";
-import { ToastProvider } from "@/components/ui/use-toast";
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import React from 'react';
+import { ToastProvider } from '@/components/ui/use-toast';
 
 interface AppProvidersProps {
   children: React.ReactNode;
@@ -10,11 +7,9 @@ interface AppProvidersProps {
 
 export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
   return (
-    <HelmetProvider>
-      <ThemeProvider>
-        <ToastProvider>{children}</ToastProvider>
-      </ThemeProvider>
-    </HelmetProvider>
+    <ToastProvider>
+      {children}
+    </ToastProvider>
   );
 };
 
