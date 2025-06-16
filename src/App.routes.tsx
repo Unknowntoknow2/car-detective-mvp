@@ -1,6 +1,4 @@
 
-// src/App.routes.tsx
-
 import React from "react";
 import { RouteObject } from "react-router-dom";
 
@@ -52,6 +50,10 @@ const routes: RouteObject[] = [
       },
       {
         path: "valuation",
+        element: <ValuationPage />,
+      },
+      {
+        path: "valuation/:vin",
         element: <ValuationPage />,
       },
       {

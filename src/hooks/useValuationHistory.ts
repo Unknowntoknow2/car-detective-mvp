@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Valuation } from '@/types/valuation';
 
@@ -26,3 +25,10 @@ export function useValuationHistory(): UseValuationHistoryReturn {
     error,
   };
 }
+
+export const testDeduplication = (valuations: any[]) => {
+  // Test utility function for deduplication logic
+  return valuations.filter((valuation, index, array) => 
+    array.findIndex(v => v.id === valuation.id) === index
+  );
+};

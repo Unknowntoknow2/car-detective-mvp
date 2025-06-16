@@ -1,4 +1,3 @@
-
 export interface ValuationResult {
   id: string;
   estimatedValue?: number;
@@ -20,4 +19,12 @@ export interface ValuationResult {
   marketDemand?: number;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface AICondition {
+  score: number;
+  category: string;
+  confidence: number;
+  summary?: string;
+  issuesDetected?: string[];
 }

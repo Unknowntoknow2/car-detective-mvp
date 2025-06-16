@@ -1,17 +1,15 @@
 
-export interface PremiumServiceResponse {
-  isPremium: boolean;
-  features: string[];
-}
+export const checkPremiumAccess = async (userId: string): Promise<boolean> => {
+  // Mock implementation - replace with actual Supabase query
+  return false;
+};
 
-export const premiumService = {
-  checkPremiumStatus: async (userId: string): Promise<PremiumServiceResponse> => {
-    // Mock implementation
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    return {
-      isPremium: false,
-      features: []
-    };
-  }
+export const getPremiumCredits = async (userId: string): Promise<number> => {
+  // Mock implementation
+  return 0;
+};
+
+export const consumePremiumCredit = async (userId: string): Promise<boolean> => {
+  // Mock implementation
+  return true;
 };
