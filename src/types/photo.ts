@@ -30,3 +30,25 @@ export interface PhotoUploadActions {
   clearPhotos: () => void;
   uploadPhotos: () => Promise<void>;
 }
+
+export interface PhotoUploadProps {
+  onPhotoAnalysisComplete?: (vehicle: any) => void;
+  onPhotoUpload?: (files: File[]) => void;
+  isLoading?: boolean;
+  vehicle?: any;
+}
+
+export interface AICondition {
+  score: number;
+  category: string;
+  confidence: number;
+  summary?: string;
+  issuesDetected?: string[];
+}
+
+export interface PhotoScore {
+  overall: number;
+  exterior: number;
+  interior: number;
+  issues: string[];
+}
