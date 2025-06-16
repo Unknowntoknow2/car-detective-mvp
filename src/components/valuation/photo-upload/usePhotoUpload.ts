@@ -20,11 +20,14 @@ export function usePhotoUpload(): UsePhotoUploadReturn {
   const addPhotos = useCallback((files: File[]) => {
     const newPhotos: Photo[] = files.map(file => ({
       id: uuidv4(),
+      url: URL.createObjectURL(file), // Add required url property
       file,
       name: file.name,
       preview: URL.createObjectURL(file),
       uploading: false,
       uploaded: false,
+      size: file.size,
+      type: file.type,
     }));
 
     setPhotos(prev => [...prev, ...newPhotos]);

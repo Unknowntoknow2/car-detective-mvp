@@ -8,10 +8,12 @@ export interface ValuationResult {
   year?: number;
   make?: string;
   model?: string;
+  vin?: string;
   mileage?: number;
   condition?: string;
   basePrice?: number;
   priceRange?: [number, number];
+  price_range?: { low: number; high: number } | [number, number];
   adjustments?: Array<{
     factor: string;
     impact: number;
@@ -26,6 +28,7 @@ export interface AICondition {
   score: number;
   category: string;
   confidence: number;
+  condition?: string; // Add missing condition property
   summary?: string;
   issuesDetected?: string[];
 }
