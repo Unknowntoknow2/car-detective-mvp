@@ -5,15 +5,24 @@ import { VINLookupForm } from '../vin-core/VINLookupForm';
 
 interface EnhancedVinLookupProps {
   onVehicleFound?: (data: any) => void;
+  onSubmit?: () => void;
+  isLoading?: boolean;
 }
 
 export const EnhancedVinLookup: React.FC<EnhancedVinLookupProps> = ({ 
-  onVehicleFound 
+  onVehicleFound,
+  onSubmit,
+  isLoading: externalLoading = false
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (vin: string) => {
+    if (onSubmit) {
+      onSubmit();
+      return;
+    }
+
     setIsLoading(true);
     
     try {
@@ -39,7 +48,7 @@ export const EnhancedVinLookup: React.FC<EnhancedVinLookupProps> = ({
 
   return (
     <div className="space-y-4">
-      <VINLookupForm onSubmit={handleSubmit} isLoading={isLoading} />
+      <VINLookupForm onSubmit={handleSubmit} isLoading={isLoading || externalLoading} />
     </div>
   );
 };
