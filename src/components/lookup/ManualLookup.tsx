@@ -1,81 +1,32 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ManualEntryFormFree } from './ManualEntryFormFree';
-import { UnifiedFollowUpQuestions } from './form-parts/UnifiedFollowUpQuestions';
-import { ManualEntryFormData, ConditionLevel } from '@/types/manualEntry';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 
 interface ManualLookupProps {
-  onSubmit: (data: ManualEntryFormData) => void;
+  onSubmit?: (data: any) => void;
   isLoading?: boolean;
   submitButtonText?: string;
-  isPremium?: boolean;
-  initialData?: Partial<ManualEntryFormData>;
-  onCancel?: () => void;
 }
 
-export function ManualLookup({
+export const ManualLookup: React.FC<ManualLookupProps> = ({ 
   onSubmit,
   isLoading = false,
-  submitButtonText = "Get Valuation",
-  isPremium = false,
-  initialData,
-  onCancel,
-}: ManualLookupProps) {
-  const [formData, setFormData] = useState<ManualEntryFormData>({
-    make: '',
-    model: '',
-    year: new Date().getFullYear(),
-    mileage: 0,
-    condition: ConditionLevel.Good,
-    zipCode: '',
-    ...initialData,
-  });
-
-  const updateFormData = (updates: Partial<ManualEntryFormData>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
-  };
+  submitButtonText = "Continue"
+}) => {
+  const navigate = useNavigate();
 
   const handleSubmit = () => {
-    onSubmit(formData);
+    if (onSubmit) {
+      onSubmit({});
+    } else {
+      navigate('/manual-valuation');
+    }
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle>{isPremium ? 'Premium' : 'Free'} Vehicle Valuation</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <ManualEntryFormFree
-          formData={formData}
-          updateFormData={updateFormData}
-          onSubmit={handleSubmit}
-          isLoading={isLoading}
-          submitButtonText={submitButtonText}
-          isPremium={isPremium}
-        />
-        
-        {isPremium && (
-          <UnifiedFollowUpQuestions
-            formData={formData}
-            updateFormData={updateFormData}
-          />
-        )}
-        
-        <div className="flex gap-4">
-          {onCancel && (
-            <Button variant="outline" onClick={onCancel}>
-              Cancel
-            </Button>
-          )}
-          <Button onClick={handleSubmit} disabled={isLoading}>
-            {isLoading ? 'Processing...' : submitButtonText}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="space-y-4">
+      <ManualEntryFormFree onSubmit={handleSubmit} />
+    </div>
   );
-}
-
-export default ManualLookup;
+};
