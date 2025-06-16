@@ -83,6 +83,8 @@ i18n
     },
     react: {
       useSuspense: false,
+      transSupportBasicHtmlNodes: true,
+      transKeepBasicHtmlNodesFor: ['br', 'strong', 'i', 'p'],
     },
   });
 
