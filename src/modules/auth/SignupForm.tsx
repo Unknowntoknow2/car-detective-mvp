@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,7 @@ const SignupForm = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,17 +23,32 @@ const SignupForm = () => {
       return;
     }
 
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // In a real app, you would have a signup API call here
-      // For this demo, we'll just sign the user in after "signup"
-      await signIn(email, password);
-      toast.success("Account created successfully!");
-      navigate("/dashboard");
+      const { error } = await signUp(email, password);
+      
+      if (error) {
+        if (error.message.includes('User already registered')) {
+          toast.error("An account with this email already exists. Please sign in instead.");
+        } else if (error.message.includes('Password should be')) {
+          toast.error("Password should be at least 6 characters long");
+        } else {
+          toast.error(error.message || "Failed to create account");
+        }
+        return;
+      }
+      
+      toast.success("Account created successfully! Please check your email to confirm your account.");
+      navigate("/auth");
     } catch (error) {
       console.error("Signup error:", error);
-      toast.error("Failed to create account");
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +77,7 @@ const SignupForm = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            minLength={6}
           />
         </div>
 
@@ -72,6 +89,7 @@ const SignupForm = () => {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
+            minLength={6}
           />
         </div>
 

@@ -3,10 +3,10 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut, UserCircle, GaugeCircle, Star } from 'lucide-react';
+import { Menu, LogOut, UserCircle, GaugeCircle } from 'lucide-react';
 
 export const Header: React.FC = () => {
-  const { user, signOut, userRole } = useAuth();
+  const { user, userDetails, signOut } = useAuth();
   
   // Wrap router hooks in error boundary
   let navigate: any;
@@ -33,12 +33,12 @@ export const Header: React.FC = () => {
 
   const goToDashboard = () => {
     try {
-      if (userRole === 'dealer') return navigate('/dealer/dashboard');
-      if (userRole === 'admin') return navigate('/admin/dashboard');
+      if (userDetails?.role === 'dealer') return navigate('/dealer-dashboard');
+      if (userDetails?.role === 'admin') return navigate('/admin/dashboard');
       return navigate('/dashboard');
     } catch (error) {
-      if (userRole === 'dealer') window.location.href = '/dealer/dashboard';
-      else if (userRole === 'admin') window.location.href = '/admin/dashboard';
+      if (userDetails?.role === 'dealer') window.location.href = '/dealer-dashboard';
+      else if (userDetails?.role === 'admin') window.location.href = '/admin/dashboard';
       else window.location.href = '/dashboard';
     }
   };
@@ -66,15 +66,25 @@ export const Header: React.FC = () => {
         {/* Auth Buttons or Profile */}
         <div className="flex items-center gap-4">
           {user ? (
-            <>
+            <div className="flex items-center gap-2">
+              <span className="hidden md:inline text-sm text-muted-foreground">
+                {userDetails?.full_name || user.email}
+              </span>
+              {userDetails?.role && (
+                <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                  {userDetails.role}
+                </span>
+              )}
               <Button variant="ghost" onClick={handleLogout} className="flex items-center gap-1">
                 <LogOut className="h-4 w-4" /> Logout
               </Button>
-            </>
+            </div>
           ) : (
             <>
               <Link to="/auth" className="text-sm font-medium hover:text-primary">Sign In</Link>
-              <Link to="/auth" className="text-sm font-medium hover:text-primary">Sign Up</Link>
+              <Button asChild size="sm">
+                <Link to="/auth">Get Started</Link>
+              </Button>
             </>
           )}
         </div>

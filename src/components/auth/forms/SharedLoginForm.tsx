@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -34,6 +35,7 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
   alternateLoginText,
 }) => {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
   
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -46,13 +48,24 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      console.log('Login attempt:', { ...data, role: expectedRole });
-      // Handle login logic here
+      const { error } = await signIn(data.email, data.password);
+      
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error('Invalid email or password. Please try again.');
+        } else if (error.message.includes('Email not confirmed')) {
+          toast.error('Please check your email and click the confirmation link.');
+        } else {
+          toast.error(error.message || 'Login failed. Please try again.');
+        }
+        return;
+      }
+      
       toast.success('Login successful!');
       navigate(redirectPath);
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('Login failed. Please try again.');
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
