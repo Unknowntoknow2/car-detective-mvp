@@ -1,11 +1,11 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { FollowUpAnswers, AccidentDetails, ServiceHistoryDetails, ModificationDetails } from '@/types/follow-up-answers';
 import { toast } from 'sonner';
 
 export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswers>) {
-  const [formData, setFormData] = useState<FollowUpAnswers>({
+  const [formData, setFormData] = useState<FollowUpAnswers>(() => ({
     vin,
     zip_code: '',
     mileage: 0,
@@ -13,7 +13,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     transmission: 'automatic',
     title_status: 'clean',
     previous_use: 'personal',
-    serviceHistory: { hasRecords: false },
+    serviceHistory: { hasRecords: false } as ServiceHistoryDetails,
     tire_condition: 'good',
     exterior_condition: 'good',
     interior_condition: 'good',
@@ -26,17 +26,19 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       repaired: false,
       frameDamage: false,
       description: ''
-    },
+    } as AccidentDetails,
     modifications: {
       hasModifications: false,
       modified: false,
       types: []
-    },
+    } as ModificationDetails,
     features: [],
+    additional_notes: '',
+    service_history: '',
     completion_percentage: 0,
     is_complete: false,
     ...initialData
-  });
+  }));
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -69,6 +71,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
           // Ensure proper structure for complex fields
           accident_history: data.accident_history || prev.accident_history,
           modifications: data.modifications || prev.modifications,
+          serviceHistory: data.serviceHistory || prev.serviceHistory,
           dashboard_lights: data.dashboard_lights || prev.dashboard_lights,
           features: data.features || prev.features
         }));

@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, AlertCircle, Info } from 'lucide-react';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { FollowUpAnswers, AccidentDetails, ModificationDetails } from '@/types/follow-up-answers';
 
 interface ReviewTabProps {
   formData: FollowUpAnswers;
@@ -11,8 +11,26 @@ interface ReviewTabProps {
 }
 
 export function ReviewTab({ formData }: ReviewTabProps) {
-  const hasAccident = formData.accident_history?.hadAccident;
-  const hasModifications = formData.modifications?.hasModifications;
+  // Type guards to safely access properties
+  const getAccidentData = (): AccidentDetails => {
+    if (typeof formData.accident_history === 'object' && formData.accident_history !== null) {
+      return formData.accident_history;
+    }
+    return { hadAccident: false };
+  };
+
+  const getModificationData = (): ModificationDetails => {
+    if (typeof formData.modifications === 'object' && formData.modifications !== null) {
+      return formData.modifications;
+    }
+    return { hasModifications: false };
+  };
+
+  const accidentData = getAccidentData();
+  const modificationData = getModificationData();
+
+  const hasAccident = accidentData.hadAccident;
+  const hasModifications = modificationData.hasModifications;
 
   return (
     <div className="space-y-6">
@@ -96,9 +114,9 @@ export function ReviewTab({ formData }: ReviewTabProps) {
                   <AlertCircle className="h-4 w-4 text-orange-500" />
                   <span className="text-orange-700">Has accident history</span>
                 </div>
-                {formData.accident_history?.severity && (
+                {accidentData.severity && (
                   <p className="text-sm text-gray-600">
-                    Severity: {formData.accident_history.severity}
+                    Severity: {accidentData.severity}
                   </p>
                 )}
               </div>

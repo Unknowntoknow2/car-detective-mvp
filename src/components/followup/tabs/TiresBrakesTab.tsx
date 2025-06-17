@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { FollowUpAnswers, TireConditionOption } from '@/types/follow-up-answers';
 import { CircleDot, StopCircle } from 'lucide-react';
 
 interface TiresBrakesTabProps {
@@ -9,17 +9,17 @@ interface TiresBrakesTabProps {
 }
 
 const TIRE_CONDITIONS = [
-  { value: 'excellent' as const, label: 'Excellent', description: 'Like new, minimal wear', color: 'bg-green-50 border-green-200 text-green-700' },
-  { value: 'good' as const, label: 'Good', description: 'Normal wear', color: 'bg-blue-50 border-blue-200 text-blue-700' },
-  { value: 'fair' as const, label: 'Fair', description: 'Moderate wear', color: 'bg-yellow-50 border-yellow-200 text-yellow-700' },
-  { value: 'poor' as const, label: 'Poor', description: 'Needs replacement', color: 'bg-red-50 border-red-200 text-red-700' },
+  { value: 'excellent' as TireConditionOption, label: 'Excellent', description: 'Like new, minimal wear', color: 'bg-green-50 border-green-200 text-green-700' },
+  { value: 'good' as TireConditionOption, label: 'Good', description: 'Normal wear', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+  { value: 'worn' as TireConditionOption, label: 'Worn', description: 'Moderate wear', color: 'bg-yellow-50 border-yellow-200 text-yellow-700' },
+  { value: 'replacement' as TireConditionOption, label: 'Needs Replacement', description: 'Requires immediate replacement', color: 'bg-red-50 border-red-200 text-red-700' },
 ];
 
 const BRAKE_CONDITIONS = [
-  { value: 'excellent' as const, label: 'Excellent', description: 'Like new', color: 'bg-green-50 border-green-200 text-green-700' },
-  { value: 'good' as const, label: 'Good', description: 'Good stopping', color: 'bg-blue-50 border-blue-200 text-blue-700' },
-  { value: 'fair' as const, label: 'Fair', description: 'Service soon', color: 'bg-yellow-50 border-yellow-200 text-yellow-700' },
-  { value: 'poor' as const, label: 'Poor', description: 'Needs replacement', color: 'bg-red-50 border-red-200 text-red-700' },
+  { value: 'excellent', label: 'Excellent', description: 'Like new', color: 'bg-green-50 border-green-200 text-green-700' },
+  { value: 'good', label: 'Good', description: 'Good stopping', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+  { value: 'worn', label: 'Worn', description: 'Service soon', color: 'bg-yellow-50 border-yellow-200 text-yellow-700' },
+  { value: 'replacement', label: 'Poor', description: 'Needs replacement', color: 'bg-red-50 border-red-200 text-red-700' },
 ];
 
 export function TiresBrakesTab({ formData, updateFormData }: TiresBrakesTabProps) {

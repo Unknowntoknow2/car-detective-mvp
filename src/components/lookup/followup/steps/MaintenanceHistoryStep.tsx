@@ -22,7 +22,15 @@ export function MaintenanceHistoryStep({ formData, updateFormData }: Maintenance
     services: []
   };
 
-  const serviceHistory = formData.serviceHistory || defaultServiceHistory;
+  // Type guard to ensure we have a ServiceHistoryDetails object
+  const getServiceHistory = (): ServiceHistoryDetails => {
+    if (typeof formData.serviceHistory === 'object' && formData.serviceHistory !== null) {
+      return { ...defaultServiceHistory, ...formData.serviceHistory };
+    }
+    return defaultServiceHistory;
+  };
+
+  const serviceHistory = getServiceHistory();
 
   const updateServiceHistory = (updates: Partial<ServiceHistoryDetails>) => {
     const updatedDetails: ServiceHistoryDetails = {

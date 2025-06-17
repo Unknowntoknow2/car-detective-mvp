@@ -25,7 +25,15 @@ export function AccidentHistoryStep({ formData, updateFormData }: AccidentHistor
     repairShops: []
   };
 
-  const accidentHistory = formData.accident_history || defaultAccidentDetails;
+  // Type guard to ensure we have an AccidentDetails object
+  const getAccidentHistory = (): AccidentDetails => {
+    if (typeof formData.accident_history === 'object' && formData.accident_history !== null) {
+      return { ...defaultAccidentDetails, ...formData.accident_history };
+    }
+    return defaultAccidentDetails;
+  };
+
+  const accidentHistory = getAccidentHistory();
 
   const updateAccidentHistory = (updates: Partial<AccidentDetails>) => {
     const updatedDetails: AccidentDetails = {
