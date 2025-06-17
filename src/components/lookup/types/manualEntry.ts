@@ -1,24 +1,3 @@
 
-export interface AccidentDetails {
-  hadAccident: boolean;
-  severity?: 'minor' | 'moderate' | 'severe';
-}
-
-export interface ManualEntryFormData {
-  make: string;
-  model: string;
-  year: number;
-  mileage?: number;
-  condition: string;
-  zipCode: string;
-  fuelType: string;
-  transmission: string;
-  accidentDetails: AccidentDetails;
-  selectedFeatures?: string[];
-  bodyStyle?: string;
-  vin?: string;
-  fuel_type?: string;
-  zip_code?: string;
-  plate?: string;
-  state?: string;
-}
+// Re-export from the main types file to maintain compatibility
+export type { AccidentDetails, ManualEntryFormData } from '@/types/manual-entry';

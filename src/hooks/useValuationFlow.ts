@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { ValuationResult } from '@/hooks/useValuationResult';
 import { DecodedVehicleInfo } from '@/types/vehicle';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
+import { ManualEntryFormData } from '@/types/manual-entry';
 
 interface ValuationFlowState {
   isLoading: boolean;
