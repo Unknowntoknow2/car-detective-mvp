@@ -1,152 +1,54 @@
 
-import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { SectionHeader } from "@/components/ui/design-system";
-import { Button } from "@/components/ui/button";
-import { PremiumValuationForm } from "./form/PremiumValuationForm";
-import { useAuth } from "@/components/auth/AuthContext";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-import { EquipmentSummary } from "../valuation/equipment/EquipmentSummary";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Crown, Star, TrendingUp } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
-interface PremiumValuationSectionProps {
-  equipmentData?: {
-    ids: number[];
-    multiplier: number;
-    valueAdd: number;
-  };
-}
+const PremiumValuationSection = () => {
+  const { user, userDetails } = useAuth();
+  
+  const isPremium = userDetails?.is_premium_dealer || 
+    ['admin', 'dealer'].includes(userDetails?.role || '') ||
+    (userDetails?.premium_expires_at && new Date(userDetails.premium_expires_at) > new Date());
 
-export default function PremiumValuationSection(
-  { equipmentData }: PremiumValuationSectionProps,
-) {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [valuationResult, setValuationResult] = useState<any>(null);
-  const [valuationId, setValuationId] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
-  const handleSubmitValuation = async (values: any) => {
-    setIsSubmitting(true);
-    setSubmitError(null);
-
-    try {
-      // Basic validation
-      if (!values.make || !values.model || !values.year) {
-        throw new Error("Make, model, and year are required");
-      }
-
-      // Create the valuation request payload
-      const valuationRequest: any = {
-        make: values.make,
-        model: values.model,
-        year: values.year,
-        mileage: values.mileage,
-        condition: values.conditionLabel?.toLowerCase() || "good",
-        fuelType: values.fuelType,
-        zipCode: values.zipCode,
-        accident: values.hasAccident ? "yes" : "no",
-        accidentDetails: values.accidentDescription
-          ? {
-            count: "1",
-            severity: "minor",
-            area: "front",
-          }
-          : undefined,
-        includeCarfax: true,
-        titleStatus: values.titleStatus,
-      };
-
-      // Include equipment data in valuation request if available
-      if (equipmentData && equipmentData.ids.length > 0) {
-        valuationRequest.equipmentIds = equipmentData.ids;
-      }
-
-      // Store the valuation ID
-      setValuationId(valuationRequest.id);
-
-      // Store the valuation result
-      setValuationResult(valuationRequest);
-
-      toast.success("Valuation completed successfully!");
-      navigate("/results");
-    } catch (error: any) {
-      console.error("Valuation submission error:", error);
-      setSubmitError(
-        error.message || "An error occurred while submitting the valuation.",
-      );
-      toast.error(
-        error.message || "An error occurred while submitting the valuation.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  if (!user || !isPremium) {
+    return (
+      <Card className="border-2 border-dashed border-gray-300">
+        <CardContent className="p-6 text-center">
+          <Crown className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Premium Valuation</h3>
+          <p className="text-gray-600 mb-4">
+            Upgrade to access advanced valuation features
+          </p>
+          <Button>Upgrade to Premium</Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <section className="container grid items-center justify-center gap-6 pt-6 md:pt-10 pb-8 md:pb-14">
-      <SectionHeader
-        title="Get Your Premium Valuation"
-        description="Enter your vehicle details to get started"
-      />
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="col-span-2">
-          <CardHeader>
-            <h3 className="text-lg font-semibold">Valuation Form</h3>
-          </CardHeader>
-          <CardContent>
-            <PremiumValuationForm />
-          </CardContent>
-        </Card>
-
-        {/* Add Equipment Summary */}
-        {equipmentData && equipmentData.ids.length > 0 && (
-          <EquipmentSummary
-            selectedEquipmentIds={equipmentData.ids}
-            combinedMultiplier={equipmentData.multiplier}
-            totalValueAdd={equipmentData.valueAdd}
-          />
-        )}
-      </div>
-
-      {valuationResult && (
-        <div className="mt-8 p-6 bg-white rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold mb-4">Valuation Results</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-lg font-medium mb-2">Vehicle Information</h3>
-              <p>
-                <strong>Year:</strong> {valuationResult.year}
-              </p>
-              <p>
-                <strong>Make:</strong> {valuationResult.make}
-              </p>
-              <p>
-                <strong>Model:</strong> {valuationResult.model}
-              </p>
-              <p>
-                <strong>Condition:</strong> {valuationResult.condition}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-medium mb-2">Estimated Value</h3>
-              <p className="text-3xl font-bold text-primary">
-                ${(25000).toLocaleString()}
-              </p>
-              <p className="text-sm text-gray-500">
-                Range: ${(23500).toLocaleString()} - ${(26500).toLocaleString()}
-              </p>
-              <div className="mt-4">
-                <p>
-                  <strong>Confidence Score:</strong> 85%
-                </p>
-              </div>
-            </div>
+    <Card className="border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 to-orange-50">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Crown className="h-5 w-5 text-yellow-600" />
+          Premium Valuation Features
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-4">
+          <div className="flex items-center gap-3">
+            <Star className="h-5 w-5 text-yellow-600" />
+            <span>Advanced market analysis</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <TrendingUp className="h-5 w-5 text-yellow-600" />
+            <span>12-month value forecast</span>
           </div>
         </div>
-      )}
-    </section>
+      </CardContent>
+    </Card>
   );
-}
+};
+
+export default PremiumValuationSection;

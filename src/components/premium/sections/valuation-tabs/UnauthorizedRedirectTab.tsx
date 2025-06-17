@@ -1,74 +1,52 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { ChevronLeft, Lock } from "lucide-react";
-import { useAuth } from "@/components/auth/AuthContext";
-import { useNavigate } from "react-router-dom";
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Lock, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 interface UnauthorizedRedirectTabProps {
-  setActiveTab: (tab: string) => void;
+  title: string;
+  description: string;
+  redirectTo?: string;
 }
 
-export function UnauthorizedRedirectTab(
-  { setActiveTab }: UnauthorizedRedirectTabProps,
-) {
-  const { user } = useAuth();
+const UnauthorizedRedirectTab: React.FC<UnauthorizedRedirectTabProps> = ({
+  title,
+  description,
+  redirectTo = '/auth'
+}) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const handleGetPremium = () => {
-    // If user is logged in, navigate to premium purchase page
-    if (user) {
-      navigate("/premium-valuation");
+  const handleRedirect = () => {
+    if (!user) {
+      navigate('/auth');
     } else {
-      // If not logged in, navigate to auth page
-      navigate("/auth");
+      navigate(redirectTo);
     }
   };
 
-  const handleGoBack = () => {
-    setActiveTab("vin");
-  };
-
   return (
-    <Card className="border-amber-200 bg-amber-50">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-amber-800">
-          <Lock className="h-5 w-5" />
-          Premium Feature
-        </CardTitle>
-        <CardDescription className="text-amber-700">
-          This feature requires premium access
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="text-amber-700">
-        <p>
-          Upgrade to our premium valuation package to unlock this feature along
-          with comprehensive vehicle valuation reports, CARFAX history, dealer
-          offers, and more.
-        </p>
-      </CardContent>
-      <CardFooter className="flex gap-3 pt-0">
-        <Button
-          variant="outline"
-          onClick={handleGoBack}
-          className="border-amber-300 text-amber-800 hover:bg-amber-100"
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back
-        </Button>
-        <Button
-          onClick={handleGetPremium}
-          className="bg-amber-600 hover:bg-amber-700 text-white"
-        >
-          Get Premium Access
-        </Button>
-      </CardFooter>
-    </Card>
+    <div className="flex items-center justify-center min-h-[400px]">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+            <Lock className="h-6 w-6 text-gray-600" />
+          </div>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="text-gray-600 mb-6">{description}</p>
+          <Button onClick={handleRedirect} className="w-full">
+            {!user ? 'Sign In' : 'Get Access'}
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   );
-}
+};
+
+export default UnauthorizedRedirectTab;

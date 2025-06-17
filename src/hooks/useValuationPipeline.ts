@@ -1,35 +1,22 @@
-import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/auth/AuthContext";
 
-export function useValuationPipeline() {
+import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+
+export const useValuationPipeline = () => {
   const { user } = useAuth();
+  const [pipeline, setPipeline] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // Mark referral as earned when a user purchases premium
-  const markReferralEarnedForPremium = async (userId: string) => {
-    try {
-      await supabase.functions.invoke("process-referral", {
-        body: {
-          action: "mark-earned",
-          userId,
-          rewardType: "premium",
-          rewardAmount: 10.00,
-        },
-      });
-    } catch (error) {
-      console.error("Error marking premium referral as earned:", error);
-      // Don't show error to user
-    }
+  const startPipeline = async (vehicleData: any) => {
+    if (!user) return null;
+    
+    setLoading(true);
+    // Mock pipeline functionality
+    setPipeline({ status: 'processing', data: vehicleData });
+    setLoading(false);
+    
+    return pipeline;
   };
 
-  // Mark referral as earned for premium purchase
-  const handlePremiumPurchase = () => {
-    if (user) {
-      markReferralEarnedForPremium(user.id);
-    }
-  };
-
-  return {
-    handlePremiumPurchase,
-  };
-}
+  return { pipeline, startPipeline, loading };
+};

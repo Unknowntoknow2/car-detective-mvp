@@ -1,41 +1,40 @@
 
-export interface PlateServiceResponse {
-  vehicle?: {
-    make: string;
-    model: string;
-    year: number;
-    vin?: string;
-  };
-  data?: {
-    make: string;
-    model: string;
-    year: number;
-    vin?: string;
-    estimatedValue?: number;
-  };
+import { PlateLookupInfo } from '@/types/vehicle';
+
+interface PlateLookupResponse {
   success: boolean;
+  data?: PlateLookupInfo;
   error?: string;
 }
 
-export const plateService = {
-  lookupPlate: async (plateNumber: string, state: string): Promise<PlateServiceResponse> => {
-    // Mock implementation
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const mockVehicle = {
-      make: "Toyota",
-      model: "Camry",
+export async function mockPlateLookup(
+  plate: string,
+  state: string
+): Promise<PlateLookupResponse> {
+  try {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Mock data
+    const mockData: PlateLookupInfo = {
+      plate,
+      state,
+      make: 'Toyota',
+      model: 'Camry',
       year: 2020,
-      vin: "MOCK123456789",
-      estimatedValue: 24500
+      color: 'Silver',
+      estimatedValue: 24500,
+      vin: '1HGBH41JXMN109186'
     };
-    
+
     return {
-      vehicle: mockVehicle,
-      data: mockVehicle,
-      success: true
+      success: true,
+      data: mockData
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Plate lookup failed'
     };
   }
-};
-
-export const mockPlateLookup = plateService.lookupPlate;
+}
