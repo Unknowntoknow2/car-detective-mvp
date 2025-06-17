@@ -10,6 +10,7 @@ export interface DecodedVehicleInfo {
   engine?: string;
   transmission?: string;
   bodyType?: string;
+  bodyStyle?: string;
   fuelType?: string;
   drivetrain?: string;
   exteriorColor?: string;
@@ -22,4 +23,24 @@ export interface DecodedVehicleInfo {
   photos?: string[];
   primaryPhoto?: string;
   confidenceScore?: number;
+  color?: string;
+  estimatedValue?: number;
+}
+
+export interface VehicleTrim {
+  id: string;
+  trim_name: string;
+  make_id?: string;
+  model_id?: string;
+}
+
+export interface PlateLookupInfo {
+  plate: string;
+  state: string;
+  make: string;
+  model: string;
+  year: number;
+  vin?: string;
+  estimatedValue?: number;
+  color?: string;
 }

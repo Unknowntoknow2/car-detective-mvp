@@ -3,47 +3,48 @@ import { useState, useCallback } from 'react';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 
 export const useVinLookup = () => {
-  const [vehicleInfo, setVehicleInfo] = useState<DecodedVehicleInfo | null>(null);
+  const [decodedInfo, setDecodedInfo] = useState<DecodedVehicleInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const lookupVin = useCallback(async (vin: string) => {
+  const lookupVin = useCallback(async (vin: string): Promise<DecodedVehicleInfo | null> => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // Mock VIN lookup
+      // Mock VIN lookup logic
       const mockData: DecodedVehicleInfo = {
+        vin,
         make: 'Honda',
         model: 'Civic',
-        year: 2019,
-        trim: 'LX',
+        year: 2021,
+        trim: 'Sport',
         bodyType: 'Sedan',
         fuelType: 'Gasoline',
         transmission: 'CVT',
         engine: '2.0L I4',
         color: 'Blue',
-        vin: vin
+        exteriorColor: 'Blue'
       };
       
-      setVehicleInfo(mockData);
+      setDecodedInfo(mockData);
       return mockData;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'VIN lookup failed';
       setError(errorMessage);
-      throw err;
+      return null;
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   return {
-    vehicleInfo,
+    decodedInfo,
     isLoading,
     error,
     lookupVin,
     clearData: () => {
-      setVehicleInfo(null);
+      setDecodedInfo(null);
       setError(null);
     }
   };

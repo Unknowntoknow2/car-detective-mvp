@@ -23,6 +23,7 @@ export const useUnifiedDecoder = () => {
         transmission: 'Automatic',
         engine: '2.5L I4',
         color: 'Silver',
+        exteriorColor: 'Silver'
       };
       
       setDecodedInfo(mockData);
