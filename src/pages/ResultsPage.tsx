@@ -1,40 +1,25 @@
 
-import React, { useEffect, useState } from "react";
-import { MainLayout } from "@/components/layout";
-import { useParams, useSearchParams } from "react-router-dom";
-import ValuationResult from "@/components/valuation/valuation-core/ValuationResult";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import MainLayout from '@/components/layout/MainLayout';
 
-const ResultsPage = () => {
+export default function ResultsPage() {
   const { id } = useParams<{ id: string }>();
-  const [searchParams] = useSearchParams();
-  const valuationId = searchParams.get("valuationId") || id;
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!valuationId) {
-      setError("No valuation ID provided.");
-    }
-  }, [valuationId]);
 
   return (
     <MainLayout>
-      <main className="py-8">
-        {error ? (
-          <div className="container mx-auto px-4">
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          </div>
-        ) : (
-          <ValuationResult valuationId={valuationId || undefined} />
-        )}
-      </main>
+      <div className="container mx-auto py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Valuation Results</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Valuation ID: {id}</p>
+            <p>Your valuation results will be displayed here.</p>
+          </CardContent>
+        </Card>
+      </div>
     </MainLayout>
   );
-};
-
-export default ResultsPage;
+}

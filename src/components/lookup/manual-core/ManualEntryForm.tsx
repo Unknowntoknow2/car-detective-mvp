@@ -9,7 +9,7 @@ import { VehicleBasicInfoInputs } from '@/components/lookup/form-parts/VehicleBa
 
 interface UnifiedManualEntryFormProps {
   mode?: 'free' | 'premium';
-  onSubmit: (data: ManualEntryFormData) => void;
+  onSubmit: (data: ManualEntryFormData) => void | Promise<void>;
   initialData?: Partial<ManualEntryFormData>;
   isLoading?: boolean;
 }
@@ -33,8 +33,8 @@ export const UnifiedManualEntryForm: React.FC<UnifiedManualEntryFormProps> = ({
     }
   });
 
-  const handleSubmit = (data: ManualEntryFormData) => {
-    onSubmit(data);
+  const handleSubmit = async (data: ManualEntryFormData) => {
+    await onSubmit(data);
   };
 
   return (

@@ -1,144 +1,74 @@
-import React, { useEffect, useState } from 'react';
-import MainLayout from '@/components/layout/MainLayout';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Container } from '@/components/ui/container';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { ManualEntryForm } from '@/components/lookup/ManualEntryForm';
-import { toast } from 'sonner';
-import { supabase } from '@/lib/supabaseClient';
-import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
-export default function ValuationFollowUp() {
+import React from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import FollowUpForm from "@/components/followup/FollowUpForm";
+import { ManualEntryFormData } from "@/types/manual-entry";
+
+const ValuationFollowUpPage = () => {
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [vin, setVin] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const vinParam = params.get('vin');
-    
-    if (vinParam) {
-      setVin(vinParam);
-    } else {
-      const storedVin = localStorage.getItem('current_vin');
-      if (storedVin) {
-        setVin(storedVin);
-      }
+  const vin = searchParams.get("vin");
+
+  const handleSubmit = async (followUpData: any) => {
+    if (!vin) {
+      alert("VIN is missing from URL.");
+      return;
     }
-  }, [location.search]);
-  
-  const handleSubmit = async (data: ManualEntryFormData) => {
-    setLoading(true);
-    
+
+    const storedData = localStorage.getItem(`vin_lookup_${vin}`);
+    if (!storedData) {
+      alert("Cached VIN data not found.");
+      return;
+    }
+
+    const baseData = JSON.parse(storedData);
+    const { make, model, year, trim, engine, drivetrain, fuelType, zipCode } = baseData;
+    const payload: ManualEntryFormData = {
+      make,
+      model,
+      year,
+      trim,
+      fuelType,
+      zipCode,
+      vin,
+      ...followUpData,
+    };
+
     try {
-      const formDataWithVin = {
-        ...data,
-        vin: vin || data.vin
-      };
-      
-      localStorage.setItem('vehicle_data', JSON.stringify(formDataWithVin));
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        const { error } = await supabase
-          .from('manual_entry_valuations')
-          .insert({
-            make: data.make,
-            model: data.model,
-            year: data.year,
-            mileage: data.mileage,
-            condition: data.condition,
-            zip_code: data.zipCode,
-            user_id: user.id,
-            fuel_type: data.fuelType,
-            transmission: data.transmission,
-            vin: vin || data.vin || null,
-            accident: data.accidentDetails?.hadAccident || false,
-            accident_severity: data.accidentDetails?.severity || null,
-            selected_features: data.selectedFeatures || []
-          });
-          
-        if (error) {
-          console.error('Error saving to Supabase:', error);
-          toast.error("Error saving data: " + error.message);
-        } else {
-          toast.success("Vehicle details saved");
-        }
+      const response = await fetch("https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/submit-followup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result?.id) {
+        console.error("Submit error:", result?.error || "Unknown");
+        alert("Failed to submit valuation. Please try again.");
+        return;
       }
-      
-      setTimeout(() => {
-        setLoading(false);
-        navigate('/valuation-result');
-      }, 1000);
-    } catch (error: any) {
-      console.error('Error in submit:', error);
-      toast.error("Error: " + (error.message || "Something went wrong"));
-      setLoading(false);
+
+      navigate(`/valuation/result/${result.id}`);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      alert("Network error. Try again.");
     }
   };
-  
-  const handleSkip = () => {
-    if (vin) {
-      localStorage.setItem('vehicle_data', JSON.stringify({
-        vin,
-        year: new Date().getFullYear(),
-        make: 'Unknown',
-        model: 'Unknown',
-        mileage: 0,
-        condition: 'good',
-        zipCode: ''
-      }));
-      
-      navigate('/valuation-result');
-    } else {
-      toast.error("Cannot skip without VIN information");
-    }
-  };
-  
+
   return (
-    <MainLayout>
-      <Container className="py-12">
-        <div className="max-w-3xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Additional Vehicle Details</h1>
-            <p className="text-muted-foreground">
-              We need a few more details to provide an accurate valuation for your vehicle.
-            </p>
-          </div>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Vehicle Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {vin && (
-                <div className="mb-6 p-4 bg-primary/5 rounded-md">
-                  <p className="text-sm font-medium">VIN: {vin}</p>
-                </div>
-              )}
-              
-              <ManualEntryForm 
-                onSubmit={handleSubmit}
-                isLoading={loading}
-                submitButtonText="Continue to Valuation"
-              />
-              
-              <div className="mt-4 text-center">
-                <Button 
-                  variant="link" 
-                  onClick={handleSkip} 
-                  disabled={!vin || loading}
-                >
-                  Skip for now
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </Container>
-    </MainLayout>
+    <div className="max-w-4xl mx-auto mt-10 px-4">
+      <FollowUpForm
+        onSubmit={handleSubmit}
+        apiData={{
+          make: "",
+          model: "",
+          year: new Date().getFullYear(),
+          zipCode: "",
+        }}
+      />
+    </div>
   );
-}
+};
+
+export default ValuationFollowUpPage;

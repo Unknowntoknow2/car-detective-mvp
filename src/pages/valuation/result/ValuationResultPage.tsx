@@ -16,7 +16,7 @@ export default function ValuationResultPage() {
 
   const [hydratedId, setHydratedId] = useState<string | undefined>(id);
 
-  const { result, isLoading, error } = useValuationResult(hydratedId);
+  const { result, isLoading, error } = useValuationResult();
 
   useEffect(() => {
     if (!hydratedId) {
