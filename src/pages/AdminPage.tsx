@@ -1,3 +1,4 @@
+
 import React from "react";
 import { AuthTestPanel } from "@/components/admin/testing/AuthTestPanel";
 
@@ -6,7 +7,9 @@ export default function AdminPage() {
   const authTestProps = {
     results: [],
     isRunning: false,
-    runTests: () => console.log("Running auth tests from AdminPage"),
+    runTests: async () => {
+      console.log("Running auth tests from AdminPage");
+    },
   };
 
   return (
