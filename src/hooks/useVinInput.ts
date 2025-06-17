@@ -1,10 +1,17 @@
 
 import { useState, useCallback } from 'react';
 
-export const useVinInput = () => {
-  const [vin, setVin] = useState<string | null>(null);
+interface UseVinInputProps {
+  initialValue?: string;
+  onValidChange?: (valid: boolean) => void;
+}
+
+export const useVinInput = (props?: UseVinInputProps) => {
+  const [vin, setVin] = useState<string>(props?.initialValue || '');
   const [isValid, setIsValid] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [touched, setTouched] = useState(false);
 
   const validateVin = useCallback((vinValue: string): boolean => {
     if (!vinValue) return false;
@@ -19,23 +26,36 @@ export const useVinInput = () => {
 
   const handleVinChange = useCallback((newVin: string) => {
     const cleanVin = newVin?.trim() || '';
-    setVin(cleanVin || null);
+    setVin(cleanVin);
+    setTouched(true);
     
     if (cleanVin) {
       const valid = validateVin(cleanVin);
       setIsValid(valid);
-      setError(valid ? null : 'Invalid VIN format');
+      const errorMsg = valid ? null : 'Invalid VIN format';
+      setError(errorMsg);
+      setValidationError(errorMsg);
+      props?.onValidChange?.(valid);
     } else {
       setIsValid(false);
       setError(null);
+      setValidationError(null);
+      props?.onValidChange?.(false);
     }
-  }, [validateVin]);
+  }, [validateVin, props]);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    handleVinChange(e.target.value);
+  }, [handleVinChange]);
 
   return {
     vin,
     isValid,
     error,
+    validationError,
+    touched,
     handleVinChange,
+    handleInputChange,
     validateVin
   };
 };

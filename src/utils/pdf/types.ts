@@ -1,5 +1,6 @@
 
 export interface ReportData {
+  id?: string;
   estimatedValue: number;
   make: string;
   model: string;
@@ -9,6 +10,16 @@ export interface ReportData {
   condition?: string;
   confidenceScore?: number;
   priceRange?: [number, number];
+  price?: number;
+  zipCode?: string;
+  generatedAt?: string;
+  isPremium?: boolean;
+  aiCondition?: {
+    condition: string;
+    confidenceScore: number;
+    issuesDetected?: string[];
+    summary?: string;
+  };
   adjustments?: Array<{
     factor: string;
     impact: number;
@@ -28,4 +39,10 @@ export interface PdfOptions {
   isPremium?: boolean;
   includeExplanation?: boolean;
   marketplaceListings?: any[];
+}
+
+export interface AdjustmentItem {
+  factor: string;
+  impact: number;
+  description: string;
 }

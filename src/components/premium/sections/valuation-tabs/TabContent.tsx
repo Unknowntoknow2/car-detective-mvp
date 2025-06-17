@@ -1,75 +1,65 @@
+import React, { useState, useCallback } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AICondition } from "@/types/photo";
+import { PhotoUpload } from "@/components/photo/PhotoUpload";
 
-import React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VinLookupTab } from "./VinLookupTab";
-import { PlateLookupTab } from "./PlateLookupTab";
-import { PhotoUploadTab } from "./PhotoUploadTab";
-import { TwelveMonthForecastTab } from "./TwelveMonthForecastTab";
-import { useValuationState } from "./hooks/useValuationState";
+interface TabContentProps {
+  vehicle: any;
+  isLoading: boolean;
+  onConditionAnalysisComplete: (analysis: AICondition) => void;
+  onPhotoUpload: (files: File[]) => void;
+}
 
-export function TabContent() {
-  const {
-    activeTab,
-    setActiveTab,
-    vinData,
-    setVinData,
-    plateData,
-    setPlateData,
-    vehicleData,
-    isLoading,
-    handleVinLookup,
-    handlePlateLookup,
-  } = useValuationState();
+export const TabContent: React.FC<TabContentProps> = ({
+  vehicle,
+  isLoading,
+  onConditionAnalysisComplete,
+  onPhotoUpload
+}) => {
+  const [conditionOverride, setConditionOverride] = useState('');
+
+  const handleConditionOverrideChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setConditionOverride(e.target.value);
+  }, []);
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <TabsList className="grid w-full grid-cols-4">
-        <TabsTrigger value="vin">VIN Lookup</TabsTrigger>
-        <TabsTrigger value="plate">License Plate</TabsTrigger>
-        <TabsTrigger value="photos">Photo Analysis</TabsTrigger>
-        <TabsTrigger value="forecast">12-Month Forecast</TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="vin">
-        <VinLookupTab
-          value={vinData}
-          onChange={setVinData}
-          onLookup={handleVinLookup}
-          isLoading={isLoading}
+    <div className="space-y-6">
+      <div>
+        <Label htmlFor="condition-override">Override AI Condition</Label>
+        <Input
+          type="text"
+          id="condition-override"
+          placeholder="Enter condition (e.g., Excellent, Good, Fair)"
+          value={conditionOverride}
+          onChange={handleConditionOverrideChange}
+          disabled={isLoading}
         />
-      </TabsContent>
+      </div>
 
-      <TabsContent value="plate">
-        <PlateLookupTab
-          value={plateData.plate}
-          state={plateData.state}
-          onPlateChange={(plate) => setPlateData(prev => ({ ...prev, plate }))}
-          onStateChange={(state) => setPlateData(prev => ({ ...prev, state }))}
-          onLookup={handlePlateLookup}
-          isLoading={isLoading}
-          vehicle={vehicleData}
-        />
-      </TabsContent>
+      <div>
+        <Label>Upload Photos</Label>
+        {/* Fix the PhotoUpload component usage */}
+          <PhotoUpload
+            isLoading={isLoading}
+            vehicle={vehicle}
+            onPhotosChange={(photos) => {
+              console.log('Photos changed:', photos);
+              // Handle photo changes here
+            }}
+            onPhotoUpload={(files: File[]) => {
+              console.log('Photos uploaded:', files);
+              onPhotoUpload(files);
+            }}
+          />
+      </div>
 
-      <TabsContent value="photos">
-        <PhotoUploadTab
-          isLoading={isLoading}
-          vehicle={vehicleData}
-          onPhotoUpload={(files: File[]) => console.log("Photos uploaded:", files)}
-        />
-      </TabsContent>
-
-      <TabsContent value="forecast">
-        <TwelveMonthForecastTab
-          vehicleData={vehicleData ? {
-            make: vehicleData.make,
-            model: vehicleData.model,
-            year: vehicleData.year,
-            trim: vehicleData.trim,
-            vin: vehicleData.vin,
-          } : undefined}
-        />
-      </TabsContent>
-    </Tabs>
+      <div>
+        <Button disabled={isLoading}>
+          Analyze Vehicle
+        </Button>
+      </div>
+    </div>
   );
-}
+};

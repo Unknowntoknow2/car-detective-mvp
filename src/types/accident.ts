@@ -5,6 +5,8 @@ export interface AccidentImpact {
   dollarImpact: number;
   severity: 'minor' | 'moderate' | 'major';
   description: string;
+  recommendations?: string[];
+  isPremium?: boolean;
 }
 
 export interface AccidentHistory {
