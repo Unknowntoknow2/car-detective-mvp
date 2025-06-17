@@ -46,6 +46,7 @@ export interface ManualEntryFormData {
   fuelType?: string;
   transmission?: string;
   bodyStyle?: string;
+  bodyType?: string;
   color?: string;
   accidents?: number;
   trim?: string;
@@ -62,6 +63,7 @@ export interface ManualEntryFormData {
   dashboardLights?: string[];
   hasModifications?: boolean;
   modificationTypes?: string[];
+  selectedFeatures?: string[];
   
   // Additional backward compatibility properties
   fuel_type?: string;
@@ -82,6 +84,7 @@ export const manualEntrySchema = z.object({
   fuelType: z.string().optional(),
   transmission: z.string().optional(),
   bodyStyle: z.string().optional(),
+  bodyType: z.string().optional(),
   color: z.string().optional(),
   accidents: z.number().int().min(0).optional(),
   trim: z.string().optional(),
@@ -95,6 +98,7 @@ export const manualEntrySchema = z.object({
   dashboardLights: z.array(z.string()).optional(),
   hasModifications: z.boolean().optional(),
   modificationTypes: z.array(z.string()).optional(),
+  selectedFeatures: z.array(z.string()).optional(),
   accidentDetails: z.object({
     hadAccident: z.boolean(),
     severity: z.enum(['minor', 'moderate', 'severe']).optional(),
