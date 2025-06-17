@@ -1,10 +1,11 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { ChatMessage } from '@/types/valuation';
 
 export const useValuationChat = () => {
   const { user } = useAuth();
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
 
   const sendMessage = async (message: string) => {
@@ -12,7 +13,8 @@ export const useValuationChat = () => {
     
     setLoading(true);
     // Mock chat functionality
-    setMessages(prev => [...prev, { role: 'user', content: message }]);
+    const newMessage: ChatMessage = { role: 'user', content: message };
+    setMessages(prev => [...prev, newMessage]);
     setLoading(false);
   };
 

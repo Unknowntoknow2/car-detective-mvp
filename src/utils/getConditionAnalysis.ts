@@ -12,7 +12,6 @@ export async function getConditionAnalysis(
   valuationId: string,
 ): Promise<AIConditionResult | null> {
   try {
-    // First, check if the photo_condition_scores table exists by trying to fetch data
     const { data, error } = await supabase
       .from("photo_condition_scores")
       .select("*")
@@ -28,14 +27,13 @@ export async function getConditionAnalysis(
       return null;
     }
 
-    // Parse the data from the database record with proper type checks
     return {
       condition: getConditionRating(data.condition_score || 0),
       confidenceScore: typeof data.confidence_score === "number"
         ? data.confidence_score
         : 0,
       issuesDetected: Array.isArray(data.issues)
-        ? data.issues.map((issue) => String(issue))
+        ? data.issues.map((issue: any) => String(issue))
         : [],
       aiSummary: typeof data.summary === "string" ? data.summary : "",
     };
@@ -45,7 +43,6 @@ export async function getConditionAnalysis(
   }
 }
 
-// Helper function to convert a condition score to a rating
 function getConditionRating(
   score: number,
 ): "Excellent" | "Good" | "Fair" | "Poor" {

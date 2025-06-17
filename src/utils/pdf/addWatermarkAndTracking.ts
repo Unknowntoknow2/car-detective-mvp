@@ -46,9 +46,13 @@ export function createTrackingConfig(userId: string, vin?: string): TrackingConf
 }
 
 export function formatTrackingInfo(trackingId: string, reportData: ReportData): string {
+  const generatedAt = typeof reportData.generatedAt === 'string' 
+    ? reportData.generatedAt 
+    : new Date().toISOString();
+
   return `
 Document ID: ${trackingId}
-Generated: ${new Date(reportData.generatedAt).toLocaleString()}
+Generated: ${new Date(generatedAt).toLocaleString()}
 Vehicle: ${reportData.year} ${reportData.make} ${reportData.model}
 ${reportData.vin ? `VIN: ${reportData.vin}` : ''}
 CarPerfector.com - Premium Vehicle Valuations
@@ -70,7 +74,6 @@ export async function addWatermarkToPdf(
     for (const page of pages) {
       const { width, height } = page.getSize();
       
-      // Add watermark at bottom-right
       page.drawText(watermarkText, {
         x: width - 300,
         y: 20,
@@ -79,7 +82,6 @@ export async function addWatermarkToPdf(
         color: rgb(0.6, 0.6, 0.6),
       });
       
-      // Add subtle background watermark if enabled
       if (watermarkConfig.enabled) {
         page.drawText(watermarkConfig.text, {
           x: width / 2 - 100,
@@ -88,7 +90,7 @@ export async function addWatermarkToPdf(
           font,
           color: rgb(0.9, 0.9, 0.9),
           opacity: watermarkConfig.opacity || 0.1,
-          rotate: degrees(45), // Use degrees() helper function
+          rotate: degrees(45),
         });
       }
     }
@@ -96,7 +98,6 @@ export async function addWatermarkToPdf(
     return await pdfDoc.save();
   } catch (error) {
     console.error('Error adding watermark to PDF:', error);
-    // Return original PDF if watermarking fails
     return pdfBytes;
   }
 }
@@ -121,6 +122,5 @@ export async function logPdfGeneration(
     }
   } catch (error) {
     console.error('Error logging PDF generation:', error);
-    // Don't throw - logging failure shouldn't break PDF generation
   }
 }
