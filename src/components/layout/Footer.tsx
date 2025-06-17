@@ -44,7 +44,4 @@ const Footer: React.FC = () => {
   );
 };
 
-// Named export for compatibility
-export const Footer = Footer;
-// Default export
 export default Footer;

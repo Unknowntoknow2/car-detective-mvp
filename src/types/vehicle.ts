@@ -11,13 +11,19 @@ export interface DecodedVehicleInfo {
   engine?: string;
   color?: string;
   exteriorColor?: string;
+  interiorColor?: string;
   zipCode?: string;
   vin?: string;
   drivetrain?: string;
   mileage?: number;
-  seats?: number;
+  condition?: string;
+  seats?: string;
+  doors?: string;
+  displacement?: string;
   primaryPhoto?: string;
   photos?: string[];
+  plate?: string;
+  state?: string;
 }
 
 export interface PlateLookupInfo extends DecodedVehicleInfo {
@@ -33,7 +39,7 @@ export interface PlateLookupInfo extends DecodedVehicleInfo {
 export interface VehicleTrim {
   id: string;
   name: string;
-  trim_name: string; // Added missing property
+  trim_name: string;
   basePrice?: number;
   features?: string[];
 }

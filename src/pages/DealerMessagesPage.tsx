@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { DealerMessagesLayout } from "@/components/dealer-messages/DealerMessagesLayout";
@@ -15,7 +16,7 @@ const DealerMessagesPage: React.FC = () => {
       <LeadsProvider>
         <DealerMessagesLayout />
       </LeadsProvider>
-      <Toaster position="top-right" />
+      <Toaster />
     </>
   );
 };

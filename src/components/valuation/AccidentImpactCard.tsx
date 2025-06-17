@@ -37,7 +37,8 @@ export function AccidentImpactCard({
   } = useAccidentImpact(
     baseValue, 
     { 
-      count: accidentCount, 
+      hadAccident: accidentCount > 0,
+      accidentCount: accidentCount, 
       severity: accidentSeverity, 
       description: accidentDescription 
     },
