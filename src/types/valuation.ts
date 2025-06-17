@@ -1,4 +1,5 @@
 
+
 export interface ValuationResult {
   id: string;
   estimatedValue?: number;
@@ -28,7 +29,7 @@ export interface AICondition {
   score: number;
   category: string;
   confidence: number;
-  condition: string; // Add the missing condition property
+  condition: string;
   summary?: string;
   issuesDetected?: string[];
 }

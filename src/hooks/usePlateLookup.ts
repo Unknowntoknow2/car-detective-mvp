@@ -36,12 +36,12 @@ export const usePlateLookup = (options: UsePlateLookupOptions = {}) => {
         throw new Error("No data returned from plate lookup");
       }
 
-      const plateResult: PlateLookupInfo = response.data;
-
-      // Add estimated value if not present
-      if (!plateResult.estimatedValue) {
-        plateResult.estimatedValue = 24500; // Default value
-      }
+      const plateResult: PlateLookupInfo = {
+        ...response.data,
+        plate,
+        state,
+        estimatedValue: response.data.estimatedValue || 24500
+      };
 
       setResult(plateResult);
       toast({

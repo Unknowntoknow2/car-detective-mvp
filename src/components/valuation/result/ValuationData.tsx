@@ -50,7 +50,7 @@ export const ValuationData: React.FC<ValuationDataProps> = ({
             </div>
           </div>
           
-          {isAIVerified && conditionData && (
+          {isAIVerified && conditionData && conditionData.condition && (
             <div className="p-3 bg-blue-50 border border-blue-100 rounded-md">
               <h3 className="text-sm font-medium flex items-center gap-2">
                 AI-Verified Condition
