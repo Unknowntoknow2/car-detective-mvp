@@ -2,35 +2,31 @@
 import React from "react";
 import { RouteObject } from "react-router-dom";
 
-// ✅ Correct homepage using EnhancedHomePage
-import IndexPage from "@/pages/EnhancedHomePage";
-
-// 🌐 Other page components
+// ✅ Import the correct components
+import EnhancedHomePage from "@/components/home/EnhancedHomePage";
 import AboutPage from "@/pages/AboutPage";
 import VinLookupPage from "@/pages/VinLookupPage";
+import AuthPage from "@/pages/AuthPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
-import NotFoundPage from "@/pages/NotFoundPage";
+import NotFound from "@/pages/NotFound";
 import ValuationPage from "@/pages/valuation/ValuationPage";
-import PremiumValuationPage from "@/pages/PremiumValuationPage";
-import ValuationResultPage from "@/pages/ValuationResultPage";
-import ResultPage from "@/pages/ResultPage";
+import Premium from "@/pages/Premium";
+import ValuationResultPage from "@/pages/valuation/result/ValuationResultPage";
+import ResultsPage from "@/pages/ResultsPage";
 import ProfilePage from "@/pages/ProfilePage";
 import AccountPage from "@/pages/AccountPage";
 import ServiceHistoryPage from "@/pages/ServiceHistoryPage";
 import ManualValuationPage from "@/pages/valuation/manual/ManualValuationPage";
-
-// 🧱 Shared layout
-import Layout from "@/components/layout/Layout";
+import ValuationFollowUpPage from "@/pages/ValuationFollowUpPage";
 
 const routes: RouteObject[] = [
   {
     path: "/",
-    element: <Layout />,
     children: [
       {
         index: true,
-        element: <IndexPage />,
+        element: <EnhancedHomePage />,
       },
       {
         path: "about",
@@ -39,6 +35,10 @@ const routes: RouteObject[] = [
       {
         path: "vin-lookup",
         element: <VinLookupPage />,
+      },
+      {
+        path: "auth",
+        element: <AuthPage />,
       },
       {
         path: "login",
@@ -61,16 +61,20 @@ const routes: RouteObject[] = [
         element: <ManualValuationPage />,
       },
       {
-        path: "premium-valuation",
-        element: <PremiumValuationPage />,
+        path: "premium",
+        element: <Premium />,
       },
       {
         path: "valuation/result/:id",
         element: <ValuationResultPage />,
       },
       {
-        path: "result",
-        element: <ResultPage />,
+        path: "valuation/followup",
+        element: <ValuationFollowUpPage />,
+      },
+      {
+        path: "results/:id",
+        element: <ResultsPage />,
       },
       {
         path: "profile",
@@ -86,7 +90,7 @@ const routes: RouteObject[] = [
       },
       {
         path: "*",
-        element: <NotFoundPage />,
+        element: <NotFound />,
       },
     ],
   },
