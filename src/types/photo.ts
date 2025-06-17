@@ -7,3 +7,37 @@ export interface AICondition {
   summary?: string;
   issuesDetected?: string[];
 }
+
+export interface Photo {
+  id: string;
+  url: string;
+  file?: File;
+  timestamp?: Date;
+  analyzed?: boolean;
+  score?: number;
+}
+
+export interface PhotoScore {
+  overall: number;
+  clarity: number;
+  angle: number;
+  lighting: number;
+  condition: number;
+}
+
+export interface PhotoUploadProps {
+  onPhotosChange: (photos: Photo[]) => void;
+  maxFiles?: number;
+  acceptedFileTypes?: string[];
+  disabled?: boolean;
+}
+
+export const MAX_FILES = 10;
+export const MIN_FILES = 1;
+
+export const ACCEPTED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/jpg', 
+  'image/png',
+  'image/webp'
+];

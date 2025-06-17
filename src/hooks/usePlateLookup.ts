@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { PlateLookupInfo } from "@/types/lookup";
+import { PlateLookupInfo } from "@/types/vehicle";
 import { mockPlateLookup } from "@/services/plateService";
 
 export interface UsePlateLookupOptions {
@@ -25,7 +25,6 @@ export const usePlateLookup = (options: UsePlateLookupOptions = {}) => {
     setError(null);
 
     try {
-      // Use the mockPlateLookup function from plateService
       const response = await mockPlateLookup(plate, state);
 
       if (response.error) {

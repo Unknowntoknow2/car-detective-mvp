@@ -1,16 +1,17 @@
 
 export interface AccidentImpact {
+  totalImpact: number;
   percentImpact: number;
   dollarImpact: number;
-  severity: 'minor' | 'moderate' | 'major' | 'severe';
+  severity: 'minor' | 'moderate' | 'major';
   description: string;
 }
 
-export interface AccidentDetails {
+export interface AccidentHistory {
   hadAccident: boolean;
-  count?: number;
-  severity?: string;
+  accidentCount: number;
+  severity?: 'minor' | 'moderate' | 'major';
   frameDamage?: boolean;
-  repaired?: boolean;
-  impact?: AccidentImpact;
+  airbagDeployment?: boolean;
+  description?: string;
 }
