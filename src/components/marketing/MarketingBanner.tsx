@@ -1,42 +1,59 @@
 
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
 
-interface MarketingBannerProps {
-  title: string;
-  description: string;
-  ctaText: string;
-  ctaLink: string;
+export interface MarketingBannerProps {
+  title?: string;
   headline?: string;
+  description?: string;
   subtext?: string;
+  ctaText: string;
+  ctaLink?: string;
   ctaHref?: string;
+  variant?: 'default' | 'premium';
+  className?: string;
 }
 
-export const MarketingBanner = ({
+export const MarketingBanner: React.FC<MarketingBannerProps> = ({
   title,
+  headline,
   description,
+  subtext,
   ctaText,
   ctaLink,
-  headline,
-  subtext,
   ctaHref,
-}: MarketingBannerProps) => {
-  const displayTitle = headline || title;
-  const displayDescription = subtext || description;
-  const displayLink = ctaHref || ctaLink;
+  variant = 'default',
+  className = ''
+}) => {
+  const displayTitle = title || headline;
+  const displayDescription = description || subtext;
+  const displayLink = ctaLink || ctaHref;
 
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-lg">
+    <div className={`bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg p-8 ${className}`}>
       <div className="max-w-4xl mx-auto text-center">
-        <h2 className="text-2xl font-bold mb-2">{displayTitle}</h2>
-        <p className="text-blue-100 mb-4">{displayDescription}</p>
-        <a href={displayLink}>
-          <Button variant="outline" className="text-blue-600 bg-white hover:bg-blue-50">
-            {ctaText}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </a>
+        {displayTitle && (
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">
+            {displayTitle}
+          </h2>
+        )}
+        
+        {displayDescription && (
+          <p className="text-lg mb-6 text-blue-100">
+            {displayDescription}
+          </p>
+        )}
+        
+        <Button
+          size="lg"
+          variant="secondary"
+          className="bg-white text-blue-600 hover:bg-gray-100"
+          onClick={() => window.location.href = displayLink || '#'}
+        >
+          {ctaText}
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
       </div>
     </div>
   );
