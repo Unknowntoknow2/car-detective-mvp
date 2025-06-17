@@ -8,7 +8,7 @@ export interface ManualEntryFormData {
   make: string;
   model: string;
   year: number;
-  mileage: number;
+  mileage?: number;
   condition: string;
   zipCode: string;
   fuelType: string;
@@ -17,4 +17,8 @@ export interface ManualEntryFormData {
   selectedFeatures?: string[];
   bodyStyle?: string;
   vin?: string;
+  fuel_type?: string;
+  zip_code?: string;
+  plate?: string;
+  state?: string;
 }
