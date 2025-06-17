@@ -1,4 +1,3 @@
-// ✅ File: src/pages/ValuationDetailPage.tsx
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
@@ -20,14 +19,14 @@ import FollowUpForm from '@/components/lookup/followup/FollowUpForm';
 export default function ValuationDetailPage() {
   const { id } = useParams<{ id?: string }>();
   const valuationId = id ?? "";
-  const result = useValuationResult(valuationId);
+  const { result, isLoading, error } = useValuationResult();
 
   const handleDownloadPdf = () => toast.success("Generating PDF report...");
   const handleEmailReport = () => toast.success("Report sent to your email");
   const handleShareReport = () => toast.success("Share link copied to clipboard");
   const handleFactorChange = (id: string, value: any) => toast.info(`${id} updated to ${value}. Recalculating valuation...`);
 
-  if (result.isLoading) {
+  if (isLoading) {
     return (
       <MainLayout>
         <div className="container mx-auto py-8">
@@ -45,7 +44,7 @@ export default function ValuationDetailPage() {
     );
   }
 
-  if (result.isError) {
+  if (error) {
     return (
       <MainLayout>
         <div className="container mx-auto py-8">
@@ -53,7 +52,7 @@ export default function ValuationDetailPage() {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>
-              {typeof result.error === 'string' ? result.error : 'Something went wrong while fetching the valuation.'}
+              {typeof error === 'string' ? error : 'Something went wrong while fetching the valuation.'}
             </AlertDescription>
           </Alert>
         </div>
@@ -61,7 +60,7 @@ export default function ValuationDetailPage() {
     );
   }
 
-  if (!result.data) {
+  if (!result) {
     return (
       <MainLayout>
         <div className="container mx-auto py-8">
@@ -75,7 +74,7 @@ export default function ValuationDetailPage() {
     );
   }
 
-  const data = result.data;
+  const data = result;
   const reportId = data.id || data.valuationId;
   const valuationWithRequiredId = {
     ...data,
@@ -98,21 +97,39 @@ export default function ValuationDetailPage() {
 
         <Card>
           <CardHeader><CardTitle className="text-lg">Valuation Report</CardTitle></CardHeader>
-          <CardContent><PredictionResult valuationId={reportId} /></CardContent>
+          <CardContent>
+            <div>
+              <h3 className="text-lg font-semibold">
+                Estimated Value: ${data.estimatedValue?.toLocaleString() || 0}
+              </h3>
+              <p className="text-muted-foreground">
+                Confidence Score: {data.confidenceScore || 85}%
+              </p>
+            </div>
+          </CardContent>
         </Card>
 
         <Card>
           <CardHeader><CardTitle className="text-lg">Value Factors</CardTitle></CardHeader>
           <CardContent>
-            <ValuationFactorsGrid
-              values={{
-                accidents: accidentCount,
-                mileage: data.mileage || 0,
-                year: data.year || new Date().getFullYear(),
-                titleStatus: titleStatus,
-              }}
-              onChange={handleFactorChange}
-            />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label className="font-medium">Accidents</label>
+                <p>{accidentCount}</p>
+              </div>
+              <div>
+                <label className="font-medium">Mileage</label>
+                <p>{data.mileage?.toLocaleString() || 0} miles</p>
+              </div>
+              <div>
+                <label className="font-medium">Year</label>
+                <p>{data.year || new Date().getFullYear()}</p>
+              </div>
+              <div>
+                <label className="font-medium">Title Status</label>
+                <p>{titleStatus}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

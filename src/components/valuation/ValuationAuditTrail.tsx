@@ -86,7 +86,7 @@ export const ValuationAuditTrail: React.FC<ValuationAuditTrailProps> = ({
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span className="text-blue-700">Condition Analysis:</span>
-                  <span className="font-medium text-blue-900">{aiCondition.condition}</span>
+                  <span className="font-medium text-blue-900">{aiCondition.condition || aiCondition.description}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-blue-700">AI Confidence:</span>
@@ -96,7 +96,7 @@ export const ValuationAuditTrail: React.FC<ValuationAuditTrailProps> = ({
                   <div className="mt-2">
                     <span className="text-blue-700">Issues Detected:</span>
                     <ul className="list-disc list-inside ml-2 mt-1">
-                      {aiCondition.issuesDetected.map((issue, i) => (
+                      {aiCondition.issuesDetected.map((issue: string, i: number) => (
                         <li key={i} className="text-blue-800">{issue}</li>
                       ))}
                     </ul>

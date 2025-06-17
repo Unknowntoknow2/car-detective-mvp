@@ -12,13 +12,18 @@ export async function analyzePhotos(
   try {
     if (!photoUrls.length) {
       return {
-        photoScore: 0,
-        individualScores: [],
         score: 0,
+        analysis: {
+          scores: [],
+          overallScore: 0,
+          recommendations: []
+        },
+        confidence: 0,
         photoUrls: [],
+        individualScores: [],
         aiCondition: {
-          condition: "Fair",
-          confidenceScore: 0,
+          confidence: 0,
+          description: "Fair",
         },
       };
     }
@@ -34,13 +39,18 @@ export async function analyzePhotos(
     if (error) {
       console.error("Error analyzing photos:", error);
       return {
-        photoScore: 0,
-        individualScores: [],
         score: 0,
+        analysis: {
+          scores: [],
+          overallScore: 0,
+          recommendations: []
+        },
+        confidence: 0,
         photoUrls: photoUrls,
+        individualScores: [],
         aiCondition: {
-          condition: "Fair",
-          confidenceScore: 0,
+          confidence: 0,
+          description: "Fair",
         },
         error: error.message || "Failed to analyze photos",
       };
@@ -48,13 +58,18 @@ export async function analyzePhotos(
 
     if (!data || !Array.isArray(data.scores)) {
       return {
-        photoScore: 0,
-        individualScores: [],
         score: 0,
+        analysis: {
+          scores: [],
+          overallScore: 0,
+          recommendations: []
+        },
+        confidence: 0,
         photoUrls: photoUrls,
+        individualScores: [],
         aiCondition: {
-          condition: "Fair",
-          confidenceScore: 0,
+          confidence: 0,
+          description: "Fair",
         },
         error: "Invalid response from photo analysis service",
       };
@@ -62,15 +77,24 @@ export async function analyzePhotos(
 
     // Process the response data
     const result: PhotoScoringResult = {
-      photoScore: data.score || 0,
+      score: data.score || 0,
+      analysis: {
+        scores: data.scores || [],
+        overallScore: data.score || 0,
+        recommendations: data.recommendations || []
+      },
+      confidence: data.confidence || 0,
       individualScores: data.scores.map((score: any) => ({
         url: score.url,
         score: score.score,
         isPrimary: score.isPrimary || false,
+        overall: score.score,
+        clarity: score.clarity || score.score,
+        angle: score.angle || score.score,
+        lighting: score.lighting || score.score,
+        condition: score.condition || score.score,
       })) || [],
       photoUrls: photoUrls,
-      // Backward compatibility fields
-      score: data.score || 0,
       bestPhotoUrl: data.bestPhotoUrl || data.scores[0]?.url || "",
       aiCondition: data.aiCondition as AICondition,
     };
@@ -79,14 +103,19 @@ export async function analyzePhotos(
   } catch (error: any) {
     console.error("Error in analyzePhotos:", error);
     return {
-      photoScore: 0,
-      individualScores: [],
       score: 0,
+      analysis: {
+        scores: [],
+        overallScore: 0,
+        recommendations: []
+      },
+      confidence: 0,
       photoUrls: photoUrls,
+      individualScores: [],
       bestPhotoUrl: "",
       aiCondition: {
-        condition: "Fair",
-        confidenceScore: 0,
+        confidence: 0,
+        description: "Fair",
       },
       error: error.message || "Failed to analyze photos",
     };

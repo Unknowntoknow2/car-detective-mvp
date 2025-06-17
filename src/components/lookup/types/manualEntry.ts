@@ -15,4 +15,6 @@ export interface ManualEntryFormData {
   transmission: string;
   accidentDetails: AccidentDetails;
   selectedFeatures?: string[];
+  bodyStyle?: string;
+  vin?: string;
 }
