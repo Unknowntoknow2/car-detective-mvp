@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UnifiedManualEntryForm } from '@/components/lookup/manual-core/ManualEntryForm';
-import { ManualEntryFormData } from '@/types/manualEntry';
+import UnifiedManualEntryForm from '@/components/lookup/manual-core/ManualEntryForm';
+import { ManualEntryFormData } from '@/types/manual-entry';
 import { submitManualValuation } from '@/services/valuation/submitManualValuation';
 
 const ManualValuationPage: React.FC = () => {
@@ -24,4 +25,4 @@ const ManualValuationPage: React.FC = () => {
   );
 };
 
-export default ManualValuationPage; // ✅ DEFAULT EXPORT
+export default ManualValuationPage;

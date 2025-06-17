@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ManualEntryFormData } from './types/manualEntry';
+import { ManualEntryFormData } from '@/types/manual-entry';
 
 interface ManualEntryFormProps {
   onSubmit: (data: ManualEntryFormData) => void;
@@ -29,7 +29,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       transmission: 'automatic',
       accidentDetails: {
         hadAccident: false,
-        severity: undefined // Changed from null to undefined
+        severity: undefined
       }
     };
     onSubmit(mockData);

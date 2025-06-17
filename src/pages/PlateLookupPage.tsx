@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -5,7 +6,7 @@ import PlateDecoderForm from "@/components/lookup/PlateDecoderForm";
 import ManualEntryForm from "@/components/lookup/manual-core/ManualEntryForm";
 import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
 import { MarketingBanner } from "@/components/marketing/MarketingBanner";
-import { ManualEntryFormData } from "@/components/lookup/types/manualEntry";
+import { ManualEntryFormData } from "@/types/manual-entry";
 
 export default function PlateLookupPage() {
   const [plateNumber, setPlateNumber] = useState<string | null>(null);
