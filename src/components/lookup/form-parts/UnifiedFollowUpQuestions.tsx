@@ -108,6 +108,20 @@ export function UnifiedFollowUpQuestions({
     updateFormData({ modificationTypes: value });
   };
 
+  // Convert boolean | undefined to boolean | null for compatibility
+  const hasAccidentValue: boolean | null = formData.accidentDetails?.hadAccident !== undefined 
+    ? formData.accidentDetails.hadAccident 
+    : null;
+
+  const hasRegularMaintenanceValue: boolean | null = formData.hasRegularMaintenance !== undefined 
+    ? formData.hasRegularMaintenance 
+    : null;
+
+  // Handler that converts null back to undefined
+  const handleHasRegularMaintenanceChange = (value: boolean | null) => {
+    setHasRegularMaintenance(value === null ? undefined : value);
+  };
+
   return (
     <div className="space-y-8">
       <TitleStatusSection
@@ -122,14 +136,14 @@ export function UnifiedFollowUpQuestions({
       <ServiceHistorySection
         serviceHistory={formData.serviceHistory || 'unknown'}
         setServiceHistory={setServiceHistory}
-        hasRegularMaintenance={formData.hasRegularMaintenance}
-        setHasRegularMaintenance={setHasRegularMaintenance}
+        hasRegularMaintenance={hasRegularMaintenanceValue}
+        setHasRegularMaintenance={handleHasRegularMaintenanceChange}
         maintenanceNotes={formData.maintenanceNotes || ''}
         setMaintenanceNotes={setMaintenanceNotes}
       />
 
       <AccidentHistorySection
-        hasAccident={formData.accidentDetails?.hadAccident !== undefined ? formData.accidentDetails.hadAccident : null}
+        hasAccident={hasAccidentValue}
         setHasAccident={setHasAccident}
         accidentSeverity={formData.accidentDetails?.severity || 'minor'}
         setAccidentSeverity={setAccidentSeverity}
