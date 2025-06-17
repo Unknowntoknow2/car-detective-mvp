@@ -1,78 +1,65 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 export interface ValuationResult {
-  id?: string;
-  valuationId?: string;
-  estimatedValue?: number;
-  confidenceScore?: number;
-  price_range?: [number, number] | { low: number; high: number };
-  priceRange?: [number, number];
-  adjustments?: any[];
-  make?: string;
-  model?: string;
-  year?: number;
+  id: string;
+  make: string;
+  model: string;
+  year: number;
   mileage?: number;
   condition?: string;
-  premiumUnlocked?: boolean;
-  accidentCount?: number;
-  titleStatus?: string;
+  estimatedValue: number;
+  confidenceScore: number;  
+  price_range?: [number, number] | { low: number; high: number };
+  adjustments?: Array<{
+    factor: string;
+    description: string;
+    impact: number;
+  }>;
   created_at?: string;
-  createdAt?: string;
-  vin?: string;
+  zipCode?: string;
 }
 
-export const useValuationResult = (valuationId?: string) => {
+export const useValuationResult = (id?: string) => {
   const [result, setResult] = useState<ValuationResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const calculateValuation = useCallback(async (vehicleData?: any) => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      // Mock valuation calculation
-      const mockResult: ValuationResult = {
-        id: valuationId || `val_${Date.now()}`,
-        estimatedValue: 18500,
-        confidenceScore: 85,
-        year: vehicleData?.year || 2020,
-        make: vehicleData?.make || 'Toyota',
-        model: vehicleData?.model || 'Camry',
-        vin: vehicleData?.vin,
-        mileage: vehicleData?.mileage || 50000,
-        condition: vehicleData?.condition || 'good',
-        priceRange: [16000, 21000],
-        adjustments: [
-          { factor: 'Mileage', impact: -5, description: 'Above average mileage' },
-          { factor: 'Condition', impact: 3, description: 'Good condition' }
-        ],
-        createdAt: new Date().toISOString(),
-        premiumUnlocked: false,
-        accidentCount: 0,
-        titleStatus: 'Clean'
-      };
-      
-      setResult(mockResult);
-      setIsLoading(false);
-      return mockResult;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Valuation failed';
-      setError(errorMessage);
-      setIsLoading(false);
-      throw err;
-    }
-  }, [valuationId]);
+  useEffect(() => {
+    const fetchResult = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Mock data for now - replace with actual API call
+        const mockResult: ValuationResult = {
+          id: id || 'mock-id',
+          make: 'Toyota',
+          model: 'Camry',
+          year: 2020,
+          mileage: 50000,
+          condition: 'good',
+          estimatedValue: 25000,
+          confidenceScore: 85,
+          price_range: [22000, 28000],
+          adjustments: [
+            {
+              factor: 'Mileage',
+              description: 'Below average mileage',
+              impact: 1500
+            }
+          ]
+        };
+        
+        setResult(mockResult);
+      } catch (err) {
+        setError('Failed to fetch valuation result');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  return {
-    result,
-    isLoading,
-    error,
-    calculateValuation,
-    clearResult: () => {
-      setResult(null);
-      setError(null);
-    }
-  };
+    fetchResult();
+  }, [id]);
+
+  return { result, isLoading, error };
 };
