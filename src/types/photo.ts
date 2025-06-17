@@ -15,6 +15,10 @@ export interface Photo {
   timestamp?: Date;
   analyzed?: boolean;
   score?: number;
+  name?: string;
+  preview?: string;
+  uploading?: boolean;
+  error?: string;
 }
 
 export interface PhotoScore {
@@ -30,6 +34,10 @@ export interface PhotoUploadProps {
   maxFiles?: number;
   acceptedFileTypes?: string[];
   disabled?: boolean;
+  onPhotoAnalysisComplete?: (analysis: AICondition) => void;
+  onPhotoUpload?: (files: File[]) => void;
+  isLoading?: boolean;
+  vehicle?: any;
 }
 
 export const MAX_FILES = 10;

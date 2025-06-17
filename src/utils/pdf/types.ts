@@ -1,24 +1,31 @@
 
 export interface ReportData {
-  id: string;
+  estimatedValue: number;
   make: string;
   model: string;
   year: number;
-  mileage: number;
-  condition: string;
-  estimatedValue: number;
-  price: number;
-  priceRange: [number, number];
-  confidenceScore: number;
-  zipCode: string;
-  adjustments: any[];
-  generatedAt: string;
   vin?: string;
+  mileage?: number;
+  condition?: string;
+  confidenceScore?: number;
+  priceRange?: [number, number];
+  adjustments?: Array<{
+    factor: string;
+    impact: number;
+    description?: string;
+  }>;
+}
+
+export interface ReportOptions {
   isPremium?: boolean;
-  aiCondition?: {
-    condition: string;
-    confidenceScore: number;
-    issuesDetected: string[];
-    summary: string;
-  };
+  includeAuctionData?: boolean;
+  includeCompetitorPricing?: boolean;
+  includeAINSummary?: boolean;
+  notifyDealers?: boolean;
+}
+
+export interface PdfOptions {
+  isPremium?: boolean;
+  includeExplanation?: boolean;
+  marketplaceListings?: any[];
 }

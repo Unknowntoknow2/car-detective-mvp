@@ -1,72 +1,41 @@
 
-import { useEffect, useState } from "react";
-import { isValidVIN, validateVin } from "@/utils/validation/vin-validation";
+import { useState, useCallback } from 'react';
 
-export interface UseVinInputOptions {
-  initialValue?: string;
-  onValidChange?: (isValid: boolean) => void;
-}
-
-export function useVinInput(options?: UseVinInputOptions | string) {
-  // Handle backward compatibility for when string was passed directly
-  const initialValue = typeof options === "string"
-    ? options
-    : options?.initialValue || "";
-
-  const onValidChange = typeof options === "object"
-    ? options.onValidChange
-    : undefined;
-
-  const [vin, setVin] = useState(initialValue);
+export const useVinInput = () => {
+  const [vin, setVin] = useState<string | null>(null);
   const [isValid, setIsValid] = useState(false);
-  const [touched, setTouched] = useState(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (vin) {
-      const validationResult = validateVin(vin);
-      setIsValid(validationResult.isValid);
-      setValidationError(
-        validationResult.isValid ? null : validationResult.error,
-      );
+  const validateVin = useCallback((vinValue: string): boolean => {
+    if (!vinValue) return false;
+    
+    // Basic VIN validation
+    const cleanVin = vinValue.replace(/[^A-HJ-NPR-Z0-9]/gi, '').toUpperCase();
+    const isValidLength = cleanVin.length === 17;
+    const hasValidChars = /^[A-HJ-NPR-Z0-9]{17}$/i.test(cleanVin);
+    
+    return isValidLength && hasValidChars;
+  }, []);
 
-      if (onValidChange) {
-        onValidChange(validationResult.isValid);
-      }
+  const handleVinChange = useCallback((newVin: string) => {
+    const cleanVin = newVin?.trim() || '';
+    setVin(cleanVin || null);
+    
+    if (cleanVin) {
+      const valid = validateVin(cleanVin);
+      setIsValid(valid);
+      setError(valid ? null : 'Invalid VIN format');
     } else {
       setIsValid(false);
-      setValidationError(null);
-
-      if (onValidChange) {
-        onValidChange(false);
-      }
+      setError(null);
     }
-  }, [vin, onValidChange]);
-
-  // Handle input change
-  const handleVinChange = (value: string) => {
-    // Remove spaces and convert to uppercase
-    const formattedVin = value.replace(/\s/g, '').toUpperCase();
-    setVin(formattedVin);
-    setTouched(true);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleVinChange(e.target.value.toUpperCase());
-  };
+  }, [validateVin]);
 
   return {
     vin,
-    setVin: handleVinChange,
     isValid,
-    validationError,
+    error,
     handleVinChange,
-    handleInputChange,
-    isSubmitting,
-    setIsSubmitting,
-    touched
+    validateVin
   };
-}
-
-export default useVinInput;
+};

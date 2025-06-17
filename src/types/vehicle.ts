@@ -5,12 +5,19 @@ export interface DecodedVehicleInfo {
   year: number;
   trim?: string;
   bodyType?: string;
+  bodyStyle?: string;
   fuelType?: string;
   transmission?: string;
   engine?: string;
   color?: string;
+  exteriorColor?: string;
   zipCode?: string;
   vin?: string;
+  drivetrain?: string;
+  mileage?: number;
+  seats?: number;
+  primaryPhoto?: string;
+  photos?: string[];
 }
 
 export interface PlateLookupInfo extends DecodedVehicleInfo {
@@ -21,4 +28,11 @@ export interface PlateLookupInfo extends DecodedVehicleInfo {
     expires: string;
     status: string;
   };
+}
+
+export interface VehicleTrim {
+  id: string;
+  name: string;
+  basePrice?: number;
+  features?: string[];
 }

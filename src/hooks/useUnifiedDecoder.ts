@@ -1,115 +1,49 @@
 
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { DecodedVehicleInfo } from "@/types/vehicle";
-import { toast } from "sonner";
+import { useState, useCallback } from 'react';
+import { DecodedVehicleInfo } from '@/types/vehicle';
 
-type DecodeType = "vin" | "plate" | "manual" | "photo";
-
-interface ManualEntry {
-  make: string;
-  model: string;
-  year: number;
-  trim?: string;
-  mileage?: number;
-  condition?: string;
-  zipCode?: string;
-}
-
-export interface DecoderState {
-  isLoading: boolean;
-  error: string | null;
-  data: DecodedVehicleInfo | null;
-  decoderType: DecodeType | null;
-  isValid: boolean;
-}
-
-export function useUnifiedDecoder() {
-  const [isLoading, setIsLoading] = useState(false);
+export const useUnifiedDecoder = () => {
+  const [decodedInfo, setDecodedInfo] = useState<DecodedVehicleInfo | null>(null);
+  const [isDecoding, setIsDecoding] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [vehicleInfo, setVehicleInfo] = useState<DecodedVehicleInfo | null>(
-    null,
-  );
 
-  const decode = async (
-    type: DecodeType,
-    params: {
-      vin?: string;
-      licensePlate?: string;
-      state?: string;
-      manual?: ManualEntry;
-      zipCode?: string;
-    },
-  ) => {
-    setIsLoading(true);
+  const decodeVehicle = useCallback(async (identifier: string, type: 'vin' | 'plate') => {
+    setIsDecoding(true);
     setError(null);
-
+    
     try {
-      // Use the Supabase edge function directly
-      const { data, error: fnError } = await supabase.functions.invoke(
-        "unified-decode",
-        {
-          body: {
-            type,
-            ...params,
-          },
-        },
-      );
-
-      if (fnError) throw new Error(fnError.message);
-      if (data.error) throw new Error(data.error.message || data.error);
-
-      if (!data.decoded) {
-        throw new Error("No vehicle data returned");
-      }
-
-      if ("error" in data.decoded) {
-        throw new Error(data.decoded.error);
-      }
-
-      const decodedInfo: DecodedVehicleInfo = {
-        make: data.decoded.make,
-        model: data.decoded.model,
-        year: data.decoded.year,
-        trim: data.decoded.trim,
-        mileage: data.decoded.mileage,
-        condition: data.decoded.condition,
-        zipCode: data.decoded.zipCode,
-        transmission: data.decoded.transmission,
-        fuelType: data.decoded.fuelType,
-        bodyType: data.decoded.bodyType,
-        drivetrain: data.decoded.drivetrain,
-        color: data.decoded.exteriorColor,
-        vin: params.vin || data.decoded.vin,
+      // Mock decoding logic
+      const mockData: DecodedVehicleInfo = {
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2020,
+        trim: 'SE',
+        bodyType: 'Sedan',
+        fuelType: 'Gasoline',
+        transmission: 'Automatic',
+        engine: '2.5L I4',
+        color: 'Silver',
       };
-
-      setVehicleInfo(decodedInfo);
-
-      toast.success(
-        `Found: ${decodedInfo.year} ${decodedInfo.make} ${decodedInfo.model}`,
-      );
-      return decodedInfo;
+      
+      setDecodedInfo(mockData);
+      return mockData;
     } catch (err) {
-      const errorMessage = err instanceof Error
-        ? err.message
-        : "Failed to decode vehicle information";
+      const errorMessage = err instanceof Error ? err.message : 'Decoding failed';
       setError(errorMessage);
-      toast.error(errorMessage);
-      console.error("Decode error:", err);
-      return null;
+      throw err;
     } finally {
-      setIsLoading(false);
+      setIsDecoding(false);
     }
-  };
+  }, []);
 
   return {
-    decode,
-    isLoading,
+    decodedInfo,
+    isDecoding,
     error,
-    vehicleInfo,
-    reset: () => {
-      setVehicleInfo(null);
+    decodeVehicle,
+    clearData: () => {
+      setDecodedInfo(null);
       setError(null);
-    },
+    }
   };
-}
+};
