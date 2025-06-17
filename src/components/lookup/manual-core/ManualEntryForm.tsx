@@ -8,14 +8,14 @@ import { Form } from '@/components/ui/form';
 import { VehicleBasicInfoInputs } from '@/components/lookup/form-parts/VehicleBasicInfoInputs';
 
 interface UnifiedManualEntryFormProps {
-  mode: 'free' | 'premium';
+  mode?: 'free' | 'premium';
   onSubmit: (data: ManualEntryFormData) => void;
   initialData?: Partial<ManualEntryFormData>;
   isLoading?: boolean;
 }
 
 export const UnifiedManualEntryForm: React.FC<UnifiedManualEntryFormProps> = ({
-  mode,
+  mode = 'free',
   onSubmit,
   initialData,
   isLoading = false
