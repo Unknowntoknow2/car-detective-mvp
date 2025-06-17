@@ -48,7 +48,10 @@ export const useValuationResult = (valuationId?: string) => {
           { factor: 'Mileage', impact: -5, description: 'Above average mileage' },
           { factor: 'Condition', impact: 3, description: 'Good condition' }
         ],
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        premium_unlocked: false,
+        accident_count: 0,
+        titleStatus: 'Clean'
       };
       
       setResult(mockResult);

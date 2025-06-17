@@ -150,14 +150,18 @@ export const uploadAndAnalyzePhotos = async (
   } catch (error: any) {
     console.error("Error in uploadAndAnalyzePhotos:", error);
     return {
-      photoScore: 0,
-      individualScores: [],
       score: 0,
+      analysis: {
+        scores: [],
+        overallScore: 0,
+        recommendations: []
+      },
+      confidence: 0,
       photoUrls: [],
-      bestPhotoUrl: "",
+      individualScores: [],
       aiCondition: {
-        condition: "Fair",
-        confidenceScore: 0,
+        confidence: 0,
+        description: "Fair",
       },
       error: error.message || "Failed to upload and analyze photos",
     };

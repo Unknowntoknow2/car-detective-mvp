@@ -16,7 +16,7 @@ export default function ValuationResultPage() {
 
   const [hydratedId, setHydratedId] = useState<string | undefined>(id);
 
-  const { data, isLoading, error } = useValuationResult(hydratedId || "");
+  const { result, isLoading, error } = useValuationResult(hydratedId || "");
 
   useEffect(() => {
     if (!hydratedId) {
@@ -51,7 +51,7 @@ export default function ValuationResultPage() {
     );
   }
 
-  if (error || !data) {
+  if (error || !result) {
     return (
       <MainLayout>
         <Alert variant="destructive" className="mt-8 max-w-xl mx-auto">
@@ -65,23 +65,23 @@ export default function ValuationResultPage() {
     );
   }
 
-  const priceRange: [number, number] = data?.price_range
-    ? Array.isArray(data.price_range)
-      ? [Number(data.price_range[0]), Number(data.price_range[1])]
-      : "low" in data.price_range && "high" in data.price_range
-      ? [Number(data.price_range.low), Number(data.price_range.high)]
+  const priceRange: [number, number] = result?.price_range
+    ? Array.isArray(result.price_range)
+      ? [Number(result.price_range[0]), Number(result.price_range[1])]
+      : "low" in result.price_range && "high" in result.price_range
+      ? [Number(result.price_range.low), Number(result.price_range.high)]
       : [0, 0]
     : [0, 0];
 
   const vehicleInfo = {
-    make: data.make || "Unknown",
-    model: data.model || "Vehicle",
-    year: data.year || new Date().getFullYear(),
-    mileage: data.mileage || 0,
-    condition: data.condition || "Good",
+    make: result.make || "Unknown",
+    model: result.model || "Vehicle",
+    year: result.year || new Date().getFullYear(),
+    mileage: result.mileage || 0,
+    condition: result.condition || "Good",
   };
 
-  const adjustments = (data?.adjustments || []).map((adj) => ({
+  const adjustments = (result?.adjustments || []).map((adj: any) => ({
     ...adj,
     description: adj.description || `Adjustment for ${adj.factor}`,
   }));
@@ -98,11 +98,10 @@ export default function ValuationResultPage() {
         </div>
 
         <UnifiedValuationResult
-          valuationId={hydratedId}
           displayMode="full"
           vehicleInfo={vehicleInfo}
-          estimatedValue={data.estimatedValue || 0}
-          confidenceScore={data.confidenceScore || 85}
+          estimatedValue={result.estimatedValue || 0}
+          confidenceScore={result.confidenceScore || 85}
           priceRange={priceRange}
           adjustments={adjustments}
         />

@@ -8,17 +8,14 @@ import { AlertCircle, FileText, Mail, Share2 } from 'lucide-react';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import { PredictionResult } from '@/components/valuation/PredictionResult';
 import { DealerOffersList } from '@/components/dealer/DealerOffersList';
-import { AIChatBubble } from '@/components/chat/AIChatBubble';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { ValuationFactorsGrid } from '@/components/valuation/condition/factors/ValuationFactorsGrid';
 import { NextStepsCard } from '@/components/valuation/valuation-complete/NextStepsCard';
-import FollowUpForm from '@/components/lookup/followup/FollowUpForm';
 
 export default function ValuationDetailPage() {
   const { id } = useParams<{ id?: string }>();
-  const valuationId = id ?? "";
   const { result, isLoading, error } = useValuationResult();
 
   const handleDownloadPdf = () => toast.success("Generating PDF report...");
@@ -75,11 +72,11 @@ export default function ValuationDetailPage() {
   }
 
   const data = result;
-  const reportId = data.id || data.valuationId;
+  const reportId = data.id || id;
   const valuationWithRequiredId = {
     ...data,
     id: reportId,
-    created_at: data.created_at || new Date().toISOString()
+    created_at: data.createdAt || new Date().toISOString()
   };
 
   const isPremiumUnlocked = Boolean(data?.premium_unlocked);
