@@ -1,12 +1,11 @@
 
-export { ConditionSelector } from './common/ConditionSelector';
-export { ConditionSelectorBar } from './common/ConditionSelectorBar';
-export { ZipCodeInput } from './common/ZipCodeInput';
+// Core components
+export { default as Header } from './layout/Header';
+export { default as Footer } from './layout/Footer';
+export { default as Layout } from './layout/Layout';
 
-export { default as EnhancedHomePage } from '@/pages/EnhancedHomePage';
-export { EnhancedFeatures } from './home/EnhancedFeatures';
-export { HeroSection } from './home/HeroSection';
+// Remove the broken import - using HomePage instead
+export { default as HomePage } from '../pages/HomePage';
 
-// Export specific components from lookup to avoid conflicts
-export { PlateLookup } from './lookup/PlateLookup';
-export { ManualLookup } from './lookup/ManualLookup';
+// Export other key components
+export * from './ui';

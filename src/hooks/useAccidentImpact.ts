@@ -2,15 +2,24 @@
 import { useState, useCallback } from 'react';
 import { AccidentHistory, AccidentImpact } from '@/types/accident';
 
-export const useAccidentImpact = () => {
+export const useAccidentImpact = (
+  baseValue: number,
+  accidentHistory: AccidentHistory,
+  vin?: string,
+  valuationId?: string
+) => {
   const [impact, setImpact] = useState<AccidentImpact | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const calculateImpact = useCallback(async (
     accidentHistory: AccidentHistory,
     baseValue: number
   ): Promise<AccidentImpact> => {
     setIsCalculating(true);
+    setIsLoading(true);
+    setError(null);
     
     try {
       // Mock calculation logic
@@ -46,19 +55,46 @@ export const useAccidentImpact = () => {
         percentImpact,
         dollarImpact,
         severity: accidentHistory.severity || 'minor',
-        description: `Vehicle value reduced by ${percentImpact}% due to accident history`
+        description: `Vehicle value reduced by ${percentImpact}% due to accident history`,
+        recommendations: [
+          'Get a professional inspection',
+          'Obtain detailed repair records',
+          'Consider comprehensive insurance'
+        ],
+        isPremium: false
       };
       
       setImpact(result);
       return result;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to calculate accident impact';
+      setError(errorMessage);
+      throw err;
     } finally {
       setIsCalculating(false);
+      setIsLoading(false);
     }
   }, []);
 
+  // Auto-calculate on mount
+  React.useEffect(() => {
+    if (baseValue && accidentHistory) {
+      calculateImpact(accidentHistory, baseValue);
+    }
+  }, [baseValue, accidentHistory, calculateImpact]);
+
+  // Return all the properties that components expect
   return {
     impact,
     calculateImpact,
-    isCalculating
+    isCalculating,
+    isLoading,
+    error,
+    // Derived properties for easier access
+    percentImpact: impact?.percentImpact || 0,
+    dollarImpact: impact?.dollarImpact || 0,
+    description: impact?.description || '',
+    recommendations: impact?.recommendations || [],
+    isPremium: impact?.isPremium || false
   };
 };

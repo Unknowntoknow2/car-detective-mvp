@@ -33,6 +33,7 @@ export interface PlateLookupInfo extends DecodedVehicleInfo {
 export interface VehicleTrim {
   id: string;
   name: string;
+  trim_name: string; // Added missing property
   basePrice?: number;
   features?: string[];
 }
