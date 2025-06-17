@@ -79,8 +79,8 @@ export default function ValuationDetailPage() {
     created_at: data.createdAt || new Date().toISOString()
   };
 
-  const isPremiumUnlocked = Boolean(data?.premium_unlocked);
-  const accidentCount = data.accident_count || 0;
+  const isPremiumUnlocked = Boolean(data?.premiumUnlocked);
+  const accidentCount = data.accidentCount || 0;
   const titleStatus = data.titleStatus || "Clean";
 
   return (

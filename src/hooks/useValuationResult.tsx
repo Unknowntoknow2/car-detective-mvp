@@ -14,8 +14,8 @@ export interface ValuationResult {
   year?: number;
   mileage?: number;
   condition?: string;
-  premium_unlocked?: boolean;
-  accident_count?: number;
+  premiumUnlocked?: boolean;
+  accidentCount?: number;
   titleStatus?: string;
   created_at?: string;
   createdAt?: string;
@@ -49,8 +49,8 @@ export const useValuationResult = (valuationId?: string) => {
           { factor: 'Condition', impact: 3, description: 'Good condition' }
         ],
         createdAt: new Date().toISOString(),
-        premium_unlocked: false,
-        accident_count: 0,
+        premiumUnlocked: false,
+        accidentCount: 0,
         titleStatus: 'Clean'
       };
       
@@ -65,12 +65,8 @@ export const useValuationResult = (valuationId?: string) => {
     }
   }, [valuationId]);
 
-  // For compatibility with existing code
-  const data = result;
-
   return {
     result,
-    data,
     isLoading,
     error,
     calculateValuation,
