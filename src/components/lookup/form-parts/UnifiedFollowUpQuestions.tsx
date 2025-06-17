@@ -43,7 +43,7 @@ export function UnifiedFollowUpQuestions({
     updateFormData({ serviceHistory: value });
   };
 
-  const setHasRegularMaintenance = (value: boolean | null) => {
+  const setHasRegularMaintenance = (value: boolean | undefined) => {
     updateFormData({ hasRegularMaintenance: value });
   };
 
@@ -122,7 +122,7 @@ export function UnifiedFollowUpQuestions({
       <ServiceHistorySection
         serviceHistory={formData.serviceHistory || 'unknown'}
         setServiceHistory={setServiceHistory}
-        hasRegularMaintenance={formData.hasRegularMaintenance || null}
+        hasRegularMaintenance={formData.hasRegularMaintenance}
         setHasRegularMaintenance={setHasRegularMaintenance}
         maintenanceNotes={formData.maintenanceNotes || ''}
         setMaintenanceNotes={setMaintenanceNotes}

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,19 +15,19 @@ interface VehicleConditionStepProps {
 
 export function VehicleConditionStep({ formData, updateFormData }: VehicleConditionStepProps) {
   const handleConditionChange = (value: string) => {
-    updateFormData({ condition: value as any });
+    updateFormData({ condition: value });
   };
 
   const handleTireConditionChange = (value: string) => {
-    updateFormData({ tire_condition: value as any });
+    updateFormData({ tire_condition: value as "excellent" | "good" | "worn" | "replacement" });
   };
 
   const handleExteriorConditionChange = (value: string) => {
-    updateFormData({ exterior_condition: value as any });
+    updateFormData({ exterior_condition: value as "excellent" | "very-good" | "good" | "fair" | "poor" });
   };
 
   const handleInteriorConditionChange = (value: string) => {
-    updateFormData({ interior_condition: value as any });
+    updateFormData({ interior_condition: value as "excellent" | "very-good" | "good" | "fair" | "poor" });
   };
 
   return (
