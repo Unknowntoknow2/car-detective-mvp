@@ -28,7 +28,7 @@ export interface AICondition {
   score: number;
   category: string;
   confidence: number;
-  condition?: string; // Add missing condition property
+  condition: string; // Add the missing condition property
   summary?: string;
   issuesDetected?: string[];
 }

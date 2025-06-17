@@ -30,6 +30,29 @@ export function VehicleConditionStep({ formData, updateFormData }: VehicleCondit
     updateFormData({ interior_condition: value as "excellent" | "very-good" | "good" | "fair" | "poor" });
   };
 
+  // Map tire condition to basic condition for the selector
+  const mapTireConditionToBasic = (tireCondition?: string): string => {
+    switch (tireCondition) {
+      case 'excellent': return 'excellent';
+      case 'good': return 'good';
+      case 'worn': return 'fair';
+      case 'replacement': return 'poor';
+      default: return 'fair';
+    }
+  };
+
+  // Map condition to basic condition for the selector
+  const mapConditionToBasic = (condition?: string): string => {
+    switch (condition) {
+      case 'excellent': return 'excellent';
+      case 'very-good': return 'good';
+      case 'good': return 'good';
+      case 'fair': return 'fair';
+      case 'poor': return 'poor';
+      default: return 'fair';
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -49,7 +72,7 @@ export function VehicleConditionStep({ formData, updateFormData }: VehicleCondit
           Select the condition of the tires.
         </p>
         <TireConditionSelectorBar
-          value={formData.tire_condition || 'fair'}
+          value={mapTireConditionToBasic(formData.tire_condition)}
           onChange={handleTireConditionChange}
         />
       </div>
@@ -60,7 +83,7 @@ export function VehicleConditionStep({ formData, updateFormData }: VehicleCondit
           Select the condition of the vehicle's exterior.
         </p>
         <ExteriorConditionSelectorBar
-          value={formData.exterior_condition || 'fair'}
+          value={mapConditionToBasic(formData.exterior_condition)}
           onChange={handleExteriorConditionChange}
         />
       </div>
@@ -71,7 +94,7 @@ export function VehicleConditionStep({ formData, updateFormData }: VehicleCondit
           Select the condition of the vehicle's interior.
         </p>
         <InteriorConditionSelectorBar
-          value={formData.interior_condition || 'fair'}
+          value={mapConditionToBasic(formData.interior_condition)}
           onChange={handleInteriorConditionChange}
         />
       </div>
