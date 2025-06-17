@@ -16,10 +16,16 @@ export function usePremiumAccess(valuationId?: string) {
 
       try {
         // Check if the function implementation in premiumService.ts returns an object
-        const result = await checkPremiumAccess();
+        const result = await checkPremiumAccess(user?.id || '');
 
-        // Extract the hasPremium boolean from the result
-        setHasPremiumAccess(result.hasPremium);
+        // Handle both boolean and object return types
+        if (typeof result === 'boolean') {
+          setHasPremiumAccess(result);
+        } else if (result && typeof result === 'object' && 'hasPremium' in result) {
+          setHasPremiumAccess(result.hasPremium);
+        } else {
+          setHasPremiumAccess(false);
+        }
       } catch (err) {
         console.error("Error checking premium access:", err);
         setError(

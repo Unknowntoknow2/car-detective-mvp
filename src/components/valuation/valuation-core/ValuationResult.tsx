@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,14 +61,14 @@ const FreeValuationResult: React.FC<FreeValuationResultProps> = ({
             <div className="space-y-3">
               <h3 className="font-medium">Condition Assessment</h3>
               <ConditionSliderWithTooltip
-                score={vehicleInfo.condition === "Excellent"
+                value={vehicleInfo.condition === "Excellent"
                   ? 90
                   : vehicleInfo.condition === "Good"
                   ? 75
                   : vehicleInfo.condition === "Fair"
                   ? 50
                   : 25}
-                onScoreChange={(score) => {
+                onChange={(score: number) => {
                   toast.info(
                     `Condition updated. This would recalculate the valuation in a real implementation.`,
                   );

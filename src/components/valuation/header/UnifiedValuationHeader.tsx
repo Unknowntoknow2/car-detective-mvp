@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -78,7 +79,7 @@ export function UnifiedValuationHeader({
                 <div className="flex items-center">
                   <Camera className="h-3.5 w-3.5 mr-1" />
                   <span className="text-sm">
-                    {photoCondition
+                    {photoCondition && photoCondition.condition
                       ? `AI condition: ${photoCondition.condition}`
                       : "Photos submitted"}
                   </span>
