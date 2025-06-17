@@ -5,7 +5,6 @@ import { useValuationResult } from '@/hooks/useValuationResult';
 import UnifiedValuationResult from '@/components/valuation/valuation-core/ValuationResult';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import MainLayout from '@/components/layout/MainLayout';
 
 export default function ValuationDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,25 +18,21 @@ export default function ValuationDetailPage() {
 
   if (isLoading) {
     return (
-      <MainLayout>
-        <div className="container mx-auto py-8 text-center">
-          <div className="text-lg font-semibold">Loading valuation details...</div>
-        </div>
-      </MainLayout>
+      <div className="container mx-auto py-8 text-center">
+        <div className="text-lg font-semibold">Loading valuation details...</div>
+      </div>
     );
   }
 
   if (error || !result) {
     return (
-      <MainLayout>
-        <Alert variant="destructive" className="mt-8 max-w-xl mx-auto">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error Loading Valuation</AlertTitle>
-          <AlertDescription>
-            {error || 'Could not load valuation details. Please try again.'}
-          </AlertDescription>
-        </Alert>
-      </MainLayout>
+      <Alert variant="destructive" className="mt-8 max-w-xl mx-auto">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error Loading Valuation</AlertTitle>
+        <AlertDescription>
+          {error || 'Could not load valuation details. Please try again.'}
+        </AlertDescription>
+      </Alert>
     );
   }
 
@@ -56,19 +51,17 @@ export default function ValuationDetailPage() {
     : [0, 0];
 
   return (
-    <MainLayout>
-      <div className="container mx-auto py-8">
-        <h1 className="text-2xl font-bold mb-6">Valuation Details</h1>
-        
-        <UnifiedValuationResult
-          displayMode="full"
-          vehicleInfo={vehicleInfo}
-          estimatedValue={result.estimatedValue || result.estimated_value || 0}
-          confidenceScore={result.confidenceScore || result.confidence_score || 85}
-          priceRange={priceRange}
-          adjustments={result.adjustments || []}
-        />
-      </div>
-    </MainLayout>
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">Valuation Details</h1>
+      
+      <UnifiedValuationResult
+        displayMode="full"
+        vehicleInfo={vehicleInfo}
+        estimatedValue={result.estimatedValue || result.estimated_value || 0}
+        confidenceScore={result.confidenceScore || result.confidence_score || 85}
+        priceRange={priceRange}
+        adjustments={result.adjustments || []}
+      />
+    </div>
   );
 }

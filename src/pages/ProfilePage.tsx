@@ -1,14 +1,18 @@
-import React from "react";
 
-const ProfilePage = () => {
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+export default function ProfilePage() {
   return (
-    <div className="container mx-auto py-12">
-      <h1 className="text-3xl font-bold mb-6">User Profile</h1>
-      <div className="bg-muted p-6 rounded-lg">
-        <p>User profile information will be displayed here.</p>
-      </div>
+    <div className="container mx-auto py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Manage your profile and account settings.</p>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default ProfilePage;
+}

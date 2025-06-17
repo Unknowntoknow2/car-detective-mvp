@@ -1,6 +1,6 @@
-import React from "react";
-import { ServiceHistoryDisplay } from "@/components/service-history/ServiceHistoryDisplay";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function ServiceHistoryPage() {
   return (
@@ -10,7 +10,7 @@ export default function ServiceHistoryPage() {
           <CardTitle>Service History</CardTitle>
         </CardHeader>
         <CardContent>
-          <ServiceHistoryDisplay />
+          <p>View and manage your vehicle's service history.</p>
         </CardContent>
       </Card>
     </div>

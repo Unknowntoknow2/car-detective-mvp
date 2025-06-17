@@ -3,7 +3,6 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import Footer from './Footer';
-// import { AINAssistantTrigger } from '@/components/chat/AINAssistantTrigger'; // Disabled for MVP
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -11,14 +10,13 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <>
       <Navbar />
-      <main className="flex-grow">
+      <main className="flex-grow min-h-0">
         {children || <Outlet />}
       </main>
       <Footer />
-      {/* <AINAssistantTrigger /> */} {/* Disabled for MVP */}
-    </div>
+    </>
   );
 }
 

@@ -1,42 +1,23 @@
-import React from "react";
 
-const AboutPage = () => {
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+export default function AboutPage() {
   return (
-    <div className="container mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-6">
-        About Our Vehicle Valuation Service
-      </h1>
-
-      <div className="space-y-6">
-        <p>
-          Welcome to our premier vehicle valuation platform. We provide
-          accurate, data-driven valuations for automobiles of all makes and
-          models.
-        </p>
-
-        <h2 className="text-2xl font-semibold mt-8">Our Mission</h2>
-        <p>
-          Our mission is to bring transparency to vehicle valuation through
-          advanced analytics and comprehensive data collection, giving our users
-          the confidence they need when buying, selling, or insuring vehicles.
-        </p>
-
-        <h2 className="text-2xl font-semibold mt-8">How It Works</h2>
-        <p>
-          Our valuation engine combines historical transaction data, current
-          market trends, vehicle condition assessments, and regional market
-          factors to deliver the most accurate vehicle valuations possible.
-        </p>
-
-        <h2 className="text-2xl font-semibold mt-8">Our Team</h2>
-        <p>
-          Our team consists of automotive industry experts, data scientists, and
-          software engineers who are passionate about delivering the best
-          vehicle valuation experience.
-        </p>
-      </div>
+    <div className="container mx-auto py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>About Car Detective</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-lg mb-4">
+            Car Detective is an AI-powered vehicle valuation platform that provides accurate market insights for cars.
+          </p>
+          <p>
+            Our platform uses advanced algorithms and real-time market data to give you the most accurate vehicle valuations available.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default AboutPage;
+}

@@ -1,10 +1,18 @@
+
 import React from 'react';
-import ManualValuationPage from '@/pages/valuation/manual/ManualValuationPage'; // ✅ NO CURLY BRACES
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function ValuationPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <ManualValuationPage />
+    <div className="container mx-auto py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Vehicle Valuation</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Get an accurate valuation for your vehicle using our AI-powered platform.</p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
