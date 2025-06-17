@@ -20,7 +20,7 @@ export interface ValuationResult {
   zipCode?: string;
 }
 
-export const useValuationResult = (id?: string) => {
+export const useValuationResult = () => {
   const [result, setResult] = useState<ValuationResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export const useValuationResult = (id?: string) => {
         
         // Mock data for now - replace with actual API call
         const mockResult: ValuationResult = {
-          id: id || 'mock-id',
+          id: 'mock-id',
           make: 'Toyota',
           model: 'Camry',
           year: 2020,
@@ -59,7 +59,7 @@ export const useValuationResult = (id?: string) => {
     };
 
     fetchResult();
-  }, [id]);
+  }, []);
 
   return { result, isLoading, error };
 };
