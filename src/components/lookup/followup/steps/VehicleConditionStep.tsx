@@ -31,7 +31,7 @@ export function VehicleConditionStep({ formData, updateFormData }: VehicleCondit
   };
 
   // Map tire condition to basic condition for the selector
-  const mapTireConditionToBasic = (tireCondition?: string): string => {
+  const mapTireConditionToBasic = (tireCondition?: string): "excellent" | "good" | "fair" | "poor" => {
     switch (tireCondition) {
       case 'excellent': return 'excellent';
       case 'good': return 'good';
@@ -42,7 +42,7 @@ export function VehicleConditionStep({ formData, updateFormData }: VehicleCondit
   };
 
   // Map condition to basic condition for the selector
-  const mapConditionToBasic = (condition?: string): string => {
+  const mapConditionToBasic = (condition?: string): "excellent" | "good" | "fair" | "poor" => {
     switch (condition) {
       case 'excellent': return 'excellent';
       case 'very-good': return 'good';
