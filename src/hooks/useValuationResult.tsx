@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 
 export interface ValuationResult {
   id?: string;
@@ -7,6 +7,7 @@ export interface ValuationResult {
   estimatedValue?: number;
   confidenceScore?: number;
   price_range?: [number, number] | { low: number; high: number };
+  priceRange?: [number, number];
   adjustments?: any[];
   make?: string;
   model?: string;
@@ -17,40 +18,62 @@ export interface ValuationResult {
   accident_count?: number;
   titleStatus?: string;
   created_at?: string;
+  createdAt?: string;
+  vin?: string;
 }
 
-export const useValuationResult = (valuationId: string) => {
+export const useValuationResult = (valuationId?: string) => {
   const [result, setResult] = useState<ValuationResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!valuationId) {
-      setIsLoading(false);
-      return;
-    }
-
-    // Mock data for now
-    setTimeout(() => {
-      setResult({
-        id: valuationId,
-        estimatedValue: 25000,
+  const calculateValuation = useCallback(async (vehicleData?: any) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Mock valuation calculation
+      const mockResult: ValuationResult = {
+        id: valuationId || `val_${Date.now()}`,
+        estimatedValue: 18500,
         confidenceScore: 85,
-        price_range: [23000, 27000],
-        adjustments: [],
-        make: 'Toyota',
-        model: 'Camry',
-        year: 2020,
-        mileage: 50000,
-        condition: 'Good'
-      });
+        year: vehicleData?.year || 2020,
+        make: vehicleData?.make || 'Toyota',
+        model: vehicleData?.model || 'Camry',
+        vin: vehicleData?.vin,
+        mileage: vehicleData?.mileage || 50000,
+        condition: vehicleData?.condition || 'good',
+        priceRange: [16000, 21000],
+        adjustments: [
+          { factor: 'Mileage', impact: -5, description: 'Above average mileage' },
+          { factor: 'Condition', impact: 3, description: 'Good condition' }
+        ],
+        createdAt: new Date().toISOString()
+      };
+      
+      setResult(mockResult);
       setIsLoading(false);
-    }, 1000);
+      return mockResult;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Valuation failed';
+      setError(errorMessage);
+      setIsLoading(false);
+      throw err;
+    }
   }, [valuationId]);
 
+  // For compatibility with existing code
+  const data = result;
+
   return {
-    data: result,
+    result,
+    data,
     isLoading,
-    error
+    error,
+    calculateValuation,
+    clearResult: () => {
+      setResult(null);
+      setError(null);
+    }
   };
 };
