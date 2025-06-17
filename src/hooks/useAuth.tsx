@@ -1,91 +1,53 @@
 
-import { useState, useEffect, createContext, useContext } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export interface User {
   id: string;
   email: string;
-  user_metadata?: Record<string, any>;
+  user_metadata?: {
+    role?: 'individual' | 'dealer';
+  };
+  created_at?: string;
 }
 
-export interface UserDetails {
-  role?: string;
-  full_name?: string;
-  dealership_name?: string;
-}
-
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
-  userDetails: UserDetails | null;
-  isLoading: boolean;
-  userRole: string | null;
+  loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Simulate auth check
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 100);
+    setLoading(false);
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    // Mock sign in
-    setUser({ id: "1", email });
-    setUserDetails({ role: "user" });
-    setUserRole("user");
-  };
-
-  const signUp = async (email: string, password: string) => {
-    // Mock sign up
-    setUser({ id: "1", email });
-    setUserDetails({ role: "user" });
-    setUserRole("user");
-  };
-
-  const resetPassword = async (email: string) => {
-    // Mock reset password
-    console.log("Password reset requested for:", email);
+    console.log('Sign in:', { email, password });
+    // Mock sign in logic
   };
 
   const signOut = async () => {
     setUser(null);
-    setUserDetails(null);
-    setUserRole(null);
-  };
-
-  const contextValue: AuthContextType = {
-    user,
-    userDetails,
-    isLoading,
-    userRole,
-    signIn,
-    signOut,
-    signUp,
-    resetPassword,
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider value={{ user, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}
+};

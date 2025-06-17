@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
+import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Container } from '@/components/ui/container';
@@ -16,7 +15,6 @@ export default function ValuationFollowUp() {
   const [vin, setVin] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   
-  // Extract VIN from query params or localStorage
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const vinParam = params.get('vin');
@@ -24,7 +22,6 @@ export default function ValuationFollowUp() {
     if (vinParam) {
       setVin(vinParam);
     } else {
-      // Try to get VIN from localStorage
       const storedVin = localStorage.getItem('current_vin');
       if (storedVin) {
         setVin(storedVin);
@@ -36,20 +33,16 @@ export default function ValuationFollowUp() {
     setLoading(true);
     
     try {
-      // Add VIN to the data if available
       const formDataWithVin = {
         ...data,
         vin: vin || data.vin
       };
       
-      // Store vehicle data for result page
       localStorage.setItem('vehicle_data', JSON.stringify(formDataWithVin));
       
-      // Get current user if available
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        // Save to Supabase if user is logged in
         const { error } = await supabase
           .from('manual_entry_valuations')
           .insert({
@@ -63,7 +56,7 @@ export default function ValuationFollowUp() {
             fuel_type: data.fuelType,
             transmission: data.transmission,
             vin: vin || data.vin || null,
-            accident: data.accidentDetails?.hasAccident || false,
+            accident: data.accidentDetails?.hadAccident || false,
             accident_severity: data.accidentDetails?.severity || null,
             selected_features: data.selectedFeatures || []
           });
@@ -76,7 +69,6 @@ export default function ValuationFollowUp() {
         }
       }
       
-      // Navigate to results page
       setTimeout(() => {
         setLoading(false);
         navigate('/valuation-result');
@@ -89,11 +81,9 @@ export default function ValuationFollowUp() {
   };
   
   const handleSkip = () => {
-    // If skipping, we'll still need some data
     if (vin) {
       localStorage.setItem('vehicle_data', JSON.stringify({
         vin,
-        // Default values
         year: new Date().getFullYear(),
         make: 'Unknown',
         model: 'Unknown',

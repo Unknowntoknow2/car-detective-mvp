@@ -1,6 +1,6 @@
 import React from "react";
 import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import Footer from "@/components/layout/Footer";
 import { VehicleHistorySection } from "@/components/title-ownership/VehicleHistorySection";
 
 export default function VehicleHistoryPage() {

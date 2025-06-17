@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Card,
@@ -11,7 +12,7 @@ import { DealerSignupForm } from "@/components/dealer/DealerSignupForm";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import Footer from "@/components/layout/Footer";
 import { Building2 } from "lucide-react";
 
 export default function DealerSignup() {

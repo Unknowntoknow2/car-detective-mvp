@@ -1,220 +1,175 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { Badge } from "@/components/ui/badge";
+import { Copy, Users, DollarSign, TrendingUp, Share2 } from "lucide-react";
 import { toast } from "sonner";
-import { Award, Gift, Loader2, Mail, Users } from "lucide-react";
-import { useAuth } from "@/components/auth/AuthContext";
-import { useReferrals } from "@/contexts/ReferralContext";
+import { Navbar } from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import { ReferralModal } from "@/components/referrals/ReferralModal";
-import { ReferralHistoryList } from "@/components/referrals/ReferralHistoryList";
-import { ReferralStatusCard } from "@/components/referrals/ReferralStatusCard";
-import { supabase } from "@/integrations/supabase/client";
 
 export default function ReferralDashboardPage() {
-  const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { user } = useAuth();
-  const { myReferrals, referralStats, loading: referralsLoading, claimReward } =
-    useReferrals();
-  const navigate = useNavigate();
+  const [referralStats, setReferralStats] = useState({
+    totalReferrals: 0,
+    pendingReferrals: 0,
+    completedReferrals: 0,
+    earnings: 0,
+  });
 
-  // Redirect to login if not authenticated
-  React.useEffect(() => {
-    if (!user) {
-      navigate("/auth");
-    }
-  }, [user, navigate]);
+  useEffect(() => {
+    // Fetch referral stats
+    // This would be replaced with an actual API call
+    setReferralStats({
+      totalReferrals: 12,
+      pendingReferrals: 3,
+      completedReferrals: 9,
+      earnings: 450,
+    });
+  }, []);
 
-  const handleSendReminder = async (referralId: string) => {
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke("send-referral-email", {
-        body: {
-          type: "reminder",
-          referralId,
-        },
-      });
-
-      if (error) throw error;
-      toast.success("Reminder sent successfully");
-    } catch (error) {
-      console.error("Error sending reminder:", error);
-      toast.error("Failed to send reminder");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleCopyReferralCode = () => {
+    navigator.clipboard.writeText("REF123");
+    toast.success("Referral code copied to clipboard!");
   };
 
-  if (referralsLoading || !user) {
-    return (
-      <div className="flex min-h-screen flex-col">
-        <Navbar />
-        <main className="flex-1 container py-10 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  const handleShareReferral = () => {
+    setIsModalOpen(true);
+  };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="flex-1 container py-10">
-        <div className="mx-auto max-w-6xl">
-          <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">
-                  Referral Program
-                </h1>
-                <p className="text-muted-foreground">
-                  Invite friends and earn rewards when they use Car Detective
-                </p>
-              </div>
-              <Button
-                onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <Mail className="h-4 w-4" />
-                Invite Friends
-              </Button>
-            </div>
-
-            {/* Referral Status Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <ReferralStatusCard
-                title="Total Invites"
-                value={referralStats?.total_referrals || 0}
-                icon={<Users className="h-6 w-6" />}
-              />
-              <ReferralStatusCard
-                title="Available Rewards"
-                value={referralStats?.earned_rewards || 0}
-                icon={<Gift className="h-6 w-6" />}
-              />
-              <ReferralStatusCard
-                title="Claimed Rewards"
-                value={referralStats?.claimed_rewards || 0}
-                icon={<Award className="h-6 w-6" />}
-                maxValue={5}
-                showProgress
-              />
-            </div>
-
-            {/* Main Content */}
-            <Tabs defaultValue="referrals" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="referrals">My Referrals</TabsTrigger>
-                <TabsTrigger value="rewards">Available Rewards</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="referrals" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>My Referrals</CardTitle>
-                    <CardDescription>
-                      Track the status of friends you've invited to Car
-                      Detective
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ReferralHistoryList
-                      referrals={myReferrals}
-                      onSendReminder={handleSendReminder}
-                      isLoading={isLoading}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="rewards" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Available Rewards</CardTitle>
-                    <CardDescription>
-                      Rewards earned from your referrals that are ready to claim
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {myReferrals.filter((r) => r.reward_status === "earned")
-                        .length > 0
-                      ? (
-                        <div className="space-y-4">
-                          {myReferrals
-                            .filter((r) => r.reward_status === "earned")
-                            .map((referral) => (
-                              <div
-                                key={referral.id}
-                                className="flex items-center justify-between p-4 border rounded-lg"
-                              >
-                                <div>
-                                  <h3 className="font-medium">
-                                    Reward: ${referral.reward_amount}
-                                  </h3>
-                                  <p className="text-sm text-muted-foreground">
-                                    {referral.reward_type === "valuation"
-                                      ? "Friend completed valuation"
-                                      : "Friend purchased premium"}
-                                  </p>
-                                </div>
-                                <Button
-                                  onClick={() => claimReward(referral.id)}
-                                  disabled={isLoading}
-                                >
-                                  {isLoading
-                                    ? (
-                                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                    )
-                                    : <Gift className="h-4 w-4 mr-2" />}
-                                  Claim Reward
-                                </Button>
-                              </div>
-                            ))}
-                        </div>
-                      )
-                      : (
-                        <div className="text-center py-10">
-                          <Gift className="h-16 w-16 mx-auto text-muted-foreground/60" />
-                          <h3 className="mt-4 text-lg font-medium">
-                            No rewards available yet
-                          </h3>
-                          <p className="text-muted-foreground mt-2">
-                            Invite friends to earn rewards when they use Car
-                            Detective
-                          </p>
-                          <Button
-                            onClick={() => setIsModalOpen(true)}
-                            className="mt-4"
-                          >
-                            Invite Friends
-                          </Button>
-                        </div>
-                      )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+      
+      <main className="container mx-auto py-8 px-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Referral Dashboard</h1>
+            <p className="text-gray-600 mt-1">
+              Track your referrals and earnings
+            </p>
+          </div>
+          
+          <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-3">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              onClick={handleCopyReferralCode}
+            >
+              <Copy className="h-4 w-4" />
+              Copy Referral Code
+            </Button>
+            
+            <Button
+              className="flex items-center gap-2"
+              onClick={handleShareReferral}
+            >
+              <Share2 className="h-4 w-4" />
+              Share Referral Link
+            </Button>
           </div>
         </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500">
+                Total Referrals
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <Users className="h-5 w-5 text-blue-500 mr-2" />
+                <span className="text-2xl font-bold">
+                  {referralStats.totalReferrals}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500">
+                Pending Referrals
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <TrendingUp className="h-5 w-5 text-yellow-500 mr-2" />
+                <span className="text-2xl font-bold">
+                  {referralStats.pendingReferrals}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500">
+                Completed Referrals
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <Users className="h-5 w-5 text-green-500 mr-2" />
+                <span className="text-2xl font-bold">
+                  {referralStats.completedReferrals}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500">
+                Total Earnings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <DollarSign className="h-5 w-5 text-green-500 mr-2" />
+                <span className="text-2xl font-bold">
+                  ${referralStats.earnings}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Referrals</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[1, 2, 3].map((item) => (
+                <div
+                  key={item}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">User{item}@example.com</p>
+                    <p className="text-sm text-gray-500">
+                      Referred on {new Date().toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Badge variant={item === 1 ? "outline" : "default"}>
+                    {item === 1 ? "Pending" : "Completed"}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </main>
-      <Footer />
-
-      {/* Referral Modal */}
+      
       <ReferralModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        referralCode="REF123"
       />
+      
+      <Footer />
     </div>
   );
 }
