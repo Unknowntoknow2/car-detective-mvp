@@ -15,15 +15,8 @@ export function usePremiumAccess(valuationId?: string) {
       setError(null);
 
       try {
-        const result = await checkPremiumAccess(user?.id || '', valuationId);
-
-        if (typeof result === 'boolean') {
-          setHasPremiumAccess(result);
-        } else if (result && typeof result === 'object' && 'hasPremium' in result) {
-          setHasPremiumAccess((result as any).hasPremium);
-        } else {
-          setHasPremiumAccess(false);
-        }
+        const result = await checkPremiumAccess(user?.id || '');
+        setHasPremiumAccess(Boolean(result));
       } catch (err) {
         console.error("Error checking premium access:", err);
         setError(
