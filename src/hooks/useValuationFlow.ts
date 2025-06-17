@@ -1,9 +1,8 @@
-
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { ValuationResult } from '@/types/valuation';
+import { ValuationResult } from '@/hooks/useValuationResult';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { ManualEntryFormData } from '@/components/lookup/types/manualEntry';
 
@@ -150,8 +149,8 @@ export function useValuationFlow() {
         zipCode: data.zipCode,
         fuelType: data.fuelType,
         transmission: data.transmission,
-        bodyStyle: data.bodyStyle,
-        vin: data.vin
+        bodyStyle: data.bodyStyle || 'sedan',
+        vin: data.vin || undefined
       });
 
       return valuationResult;
