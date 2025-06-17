@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 interface UnifiedPlateLookupProps {
   onVehicleFound?: (data: any) => void;
   showPremiumFeatures?: boolean;
+  tier?: string;
 }
 
 export const UnifiedPlateLookup: React.FC<UnifiedPlateLookupProps> = ({
   onVehicleFound,
-  showPremiumFeatures = false
+  showPremiumFeatures = false,
+  tier = 'free'
 }) => {
   const handleLookup = () => {
     if (onVehicleFound) {

@@ -8,12 +8,14 @@ interface ManualEntryFormProps {
   onSubmit: (data: ManualEntryFormData) => void;
   isLoading?: boolean;
   submitButtonText?: string;
+  mode?: 'free' | 'premium';
 }
 
 export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
   onSubmit,
   isLoading = false,
-  submitButtonText = "Submit"
+  submitButtonText = "Submit",
+  mode = 'free'
 }) => {
   const handleSubmit = () => {
     const mockData: ManualEntryFormData = {
@@ -27,7 +29,7 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
       transmission: 'automatic',
       accidentDetails: {
         hadAccident: false,
-        severity: null
+        severity: undefined // Changed from null to undefined
       }
     };
     onSubmit(mockData);
@@ -49,3 +51,5 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     </Card>
   );
 };
+
+export default ManualEntryForm;

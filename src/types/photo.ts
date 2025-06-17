@@ -1,51 +1,28 @@
 
-export interface AICondition {
-  score: number;
-  category: string;
-  confidence: number;
-  condition: string;
-  summary?: string;
-  issuesDetected?: string[];
-}
-
-export interface Photo {
-  id: string;
-  url: string;
-  file?: File;
-  timestamp?: Date;
-  analyzed?: boolean;
-  score?: number;
-  name?: string;
-  preview?: string;
-  uploading?: boolean;
-  error?: string;
-}
-
 export interface PhotoScore {
   overall: number;
   clarity: number;
   angle: number;
   lighting: number;
   condition: number;
+  url?: string;
+  isPrimary?: boolean;
+  explanation?: string;
 }
 
-export interface PhotoUploadProps {
-  onPhotosChange: (photos: Photo[]) => void;
-  maxFiles?: number;
-  acceptedFileTypes?: string[];
-  disabled?: boolean;
-  onPhotoAnalysisComplete?: (analysis: AICondition) => void;
-  onPhotoUpload?: (files: File[]) => void;
-  isLoading?: boolean;
-  vehicle?: any;
+export interface PhotoAnalysisResult {
+  scores: PhotoScore[];
+  overallScore: number;
+  recommendations: string[];
 }
 
-export const MAX_FILES = 10;
-export const MIN_FILES = 1;
+export interface PhotoScoringResult {
+  score: number;
+  analysis: PhotoAnalysisResult;
+  confidence: number;
+}
 
-export const ACCEPTED_IMAGE_TYPES = [
-  'image/jpeg',
-  'image/jpg', 
-  'image/png',
-  'image/webp'
-];
+export interface AICondition {
+  confidence: number;
+  description: string;
+}
