@@ -1,23 +1,24 @@
+
 import { generateValuationExplanation } from "./generateValuationExplanation";
 import { supabase } from "@/integrations/supabase/client";
 import { calculateFinalValuation } from "./valuationCalculator";
 
 // Mock the Supabase client and calculateFinalValuation function
-jest.mock("@/integrations/supabase/client", () => ({
+vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     functions: {
-      invoke: jest.fn(),
+      invoke: vi.fn(),
     },
   },
 }));
 
-jest.mock("./valuationCalculator", () => ({
-  calculateFinalValuation: jest.fn(),
+vi.mock("./valuationCalculator", () => ({
+  calculateFinalValuation: vi.fn(),
 }));
 
 describe("generateValuationExplanation", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should successfully generate an explanation when Supabase function returns data", async () => {
@@ -26,13 +27,13 @@ describe("generateValuationExplanation", () => {
       "This is a detailed explanation of your vehicle valuation...";
 
     // Mock the Supabase function invoke to return a successful response
-    (supabase.functions.invoke as jest.Mock).mockResolvedValue({
+    (supabase.functions.invoke as any).mockResolvedValue({
       data: { explanation: mockExplanation },
       error: null,
     });
 
     // Mock calculateFinalValuation to return some valuation details
-    (calculateFinalValuation as jest.Mock).mockReturnValue({
+    (calculateFinalValuation as any).mockReturnValue({
       adjustments: [
         {
           name: "Mileage",
@@ -98,12 +99,12 @@ describe("generateValuationExplanation", () => {
 
   it("should verify correct formatting of the request data to the edge function", async () => {
     // Arrange
-    (supabase.functions.invoke as jest.Mock).mockResolvedValue({
+    (supabase.functions.invoke as any).mockResolvedValue({
       data: { explanation: "Explanation text" },
       error: null,
     });
 
-    (calculateFinalValuation as jest.Mock).mockReturnValue({
+    (calculateFinalValuation as any).mockReturnValue({
       adjustments: [
         {
           name: "Mileage",
@@ -167,12 +168,12 @@ describe("generateValuationExplanation", () => {
     const errorMessage = "Failed to generate explanation";
 
     // Mock the Supabase function invoke to return an error
-    (supabase.functions.invoke as jest.Mock).mockResolvedValue({
+    (supabase.functions.invoke as any).mockResolvedValue({
       data: null,
       error: { message: errorMessage },
     });
 
-    (calculateFinalValuation as jest.Mock).mockReturnValue({
+    (calculateFinalValuation as any).mockReturnValue({
       adjustments: [],
       finalValue: 20000,
       baseValue: 20000,
@@ -197,12 +198,12 @@ describe("generateValuationExplanation", () => {
   it("should throw an error if no explanation is returned", async () => {
     // Arrange
     // Mock the Supabase function invoke to return success but no explanation
-    (supabase.functions.invoke as jest.Mock).mockResolvedValue({
+    (supabase.functions.invoke as any).mockResolvedValue({
       data: { someOtherData: "but no explanation" },
       error: null,
     });
 
-    (calculateFinalValuation as jest.Mock).mockReturnValue({
+    (calculateFinalValuation as any).mockReturnValue({
       adjustments: [],
       finalValue: 20000,
       baseValue: 20000,
@@ -226,11 +227,11 @@ describe("generateValuationExplanation", () => {
 
   it("should handle network errors gracefully", async () => {
     // Arrange
-    (supabase.functions.invoke as jest.Mock).mockRejectedValue(
+    (supabase.functions.invoke as any).mockRejectedValue(
       new Error("Network error"),
     );
 
-    (calculateFinalValuation as jest.Mock).mockReturnValue({
+    (calculateFinalValuation as any).mockReturnValue({
       adjustments: [],
       finalValue: 20000,
       baseValue: 20000,

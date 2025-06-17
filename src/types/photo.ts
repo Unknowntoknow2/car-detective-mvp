@@ -1,37 +1,46 @@
 
 export interface PhotoScore {
+  url: string;
+  score: number;
   overall: number;
   clarity: number;
   angle: number;
   lighting: number;
   condition: number;
-  url?: string;
   isPrimary?: boolean;
   explanation?: string;
 }
 
 export interface PhotoAnalysisResult {
-  scores: PhotoScore[];
   overallScore: number;
+  individualScores: PhotoScore[];
   recommendations: string[];
+  confidence: number;
+  issues: string[];
+  url: string;
+  photoUrls: string[];
+  aiCondition?: AICondition;
 }
 
 export interface PhotoScoringResult {
   score: number;
-  analysis: PhotoAnalysisResult;
   confidence: number;
   photoUrls: string[];
   individualScores: PhotoScore[];
   bestPhotoUrl?: string;
   aiCondition: AICondition;
-  error?: string;
+  overallScore: number;
+  issues: string[];
+  summary: string;
+  photoUrl: string;
 }
 
 export interface AICondition {
+  condition: string;
   confidence: number;
   description: string;
-  condition?: string;
   issuesDetected?: string[];
+  summary?: string;
 }
 
 export interface Photo {

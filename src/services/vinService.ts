@@ -1,6 +1,4 @@
 
-import { ValidationResult } from '@/utils/validation/vin-validation';
-
 export interface VinServiceResponse {
   success: boolean;
   data?: {

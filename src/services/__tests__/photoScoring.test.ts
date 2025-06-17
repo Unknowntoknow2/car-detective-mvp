@@ -1,17 +1,18 @@
+
 import { analyzePhotos } from "@/services/photo/analyzePhotos";
 import { supabase } from "@/integrations/supabase/client";
 
-jest.mock("@/integrations/supabase/client", () => ({
+vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     functions: {
-      invoke: jest.fn(),
+      invoke: vi.fn(),
     },
   },
 }));
 
 describe("Photo Scoring Service", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should successfully analyze photos and return scores", async () => {
@@ -27,11 +28,12 @@ describe("Photo Scoring Service", () => {
     ];
     const mockAiCondition = {
       condition: "Good" as const,
-      confidenceScore: 80,
+      confidence: 80,
+      description: "Good condition",
       issuesDetected: ["Minor scratches"],
     };
 
-    (supabase.functions.invoke as jest.Mock).mockResolvedValue({
+    (supabase.functions.invoke as any).mockResolvedValue({
       data: { scores: mockScores, aiCondition: mockAiCondition },
       error: null,
     });
@@ -61,7 +63,7 @@ describe("Photo Scoring Service", () => {
     const mockValuationId = "test-valuation-id";
     const mockError = new Error("Failed to invoke Supabase function");
 
-    (supabase.functions.invoke as jest.Mock).mockResolvedValue({
+    (supabase.functions.invoke as any).mockResolvedValue({
       data: null,
       error: mockError,
     });
@@ -80,7 +82,7 @@ describe("Photo Scoring Service", () => {
     const mockPhotoUrls = ["https://example.com/photo1.jpg"];
     const mockValuationId = "test-valuation-id";
 
-    (supabase.functions.invoke as jest.Mock).mockResolvedValue({
+    (supabase.functions.invoke as any).mockResolvedValue({
       data: { aiCondition: {} },
       error: null,
     });
@@ -99,7 +101,7 @@ describe("Photo Scoring Service", () => {
     const mockPhotoUrls = ["https://example.com/photo1.jpg"];
     const mockValuationId = "test-valuation-id";
 
-    (supabase.functions.invoke as jest.Mock).mockResolvedValue({
+    (supabase.functions.invoke as any).mockResolvedValue({
       data: { scores: [], aiCondition: {} },
       error: null,
     });
