@@ -14,16 +14,21 @@ interface ServiceMaintenanceTabProps {
 }
 
 export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaintenanceTabProps) {
-  const serviceData: ServiceHistoryDetails = typeof formData.serviceHistory === 'object' && formData.serviceHistory !== null 
-    ? formData.serviceHistory 
-    : {
-        hasRecords: false,
-        lastService: '',
-        frequency: undefined,
-        dealerMaintained: false,
-        description: ''
-      };
+  // Convert string to object if needed, or use default
+  const getServiceData = (): ServiceHistoryDetails => {
+    if (typeof formData.serviceHistory === 'object' && formData.serviceHistory !== null) {
+      return formData.serviceHistory;
+    }
+    return {
+      hasRecords: false,
+      lastService: '',
+      frequency: undefined,
+      dealerMaintained: false,
+      description: ''
+    };
+  };
 
+  const serviceData = getServiceData();
   const hasRecords = serviceData.hasRecords;
 
   const handleServiceToggle = (checked: boolean) => {
@@ -49,7 +54,7 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
   };
 
   const handleMaintenanceChange = (checked: boolean, serviceType: string) => {
-    const currentServices = formData.serviceHistory?.services || [];
+    const currentServices = serviceData.services || [];
     let updatedServices;
 
     if (checked) {
@@ -58,13 +63,13 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
       updatedServices = currentServices.filter((service: string) => service !== serviceType);
     }
 
-    updateFormData({
-      serviceHistory: {
-        ...formData.serviceHistory,
-        hasRecords: true,
-        services: updatedServices
-      }
-    });
+    const updatedData: ServiceHistoryDetails = {
+      ...serviceData,
+      hasRecords: true,
+      services: updatedServices
+    };
+
+    updateFormData({ serviceHistory: updatedData });
   };
 
   return (

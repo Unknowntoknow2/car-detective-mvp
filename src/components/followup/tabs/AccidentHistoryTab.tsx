@@ -31,12 +31,20 @@ const repairShops = [
 ];
 
 export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistoryTabProps) {
-  const accidentData: AccidentDetails = formData.accident_history || {
-    hadAccident: false,
-    severity: 'minor',
-    types: [],
-    repairShops: []
+  // Convert string to object if needed, or use default
+  const getAccidentData = (): AccidentDetails => {
+    if (typeof formData.accident_history === 'object' && formData.accident_history !== null) {
+      return formData.accident_history;
+    }
+    return {
+      hadAccident: false,
+      severity: 'minor',
+      types: [],
+      repairShops: []
+    };
   };
+
+  const accidentData = getAccidentData();
 
   const handleAccidentToggle = (hadAccident: boolean) => {
     const updatedData: AccidentDetails = {

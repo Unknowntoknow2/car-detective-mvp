@@ -3,7 +3,7 @@ import React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { FollowUpAnswers, ServiceHistoryDetails } from '@/types/follow-up-answers';
 
 interface ServiceHistoryTabProps {
   formData: FollowUpAnswers;
@@ -21,29 +21,41 @@ const serviceOptions = [
 ];
 
 export function ServiceHistoryTab({ formData, updateFormData, onServiceHistoryChange }: ServiceHistoryTabProps) {
+  // Convert string to object if needed, or use default
+  const getServiceHistoryData = (): ServiceHistoryDetails => {
+    if (typeof formData.serviceHistory === 'object' && formData.serviceHistory !== null) {
+      return formData.serviceHistory;
+    }
+    return {
+      hasRecords: false,
+      services: []
+    };
+  };
 
-const handleMaintenanceChange = (checked: boolean, serviceType: string) => {
-  const currentServices = formData.serviceHistory?.services || [];
-  let updatedServices;
+  const serviceHistoryData = getServiceHistoryData();
 
-  if (checked) {
-    updatedServices = [...currentServices, serviceType];
-  } else {
-    updatedServices = currentServices.filter((service: string) => service !== serviceType);
-  }
+  const handleMaintenanceChange = (checked: boolean, serviceType: string) => {
+    const currentServices = serviceHistoryData.services || [];
+    let updatedServices;
 
-  updateFormData({
-    serviceHistory: {
-      ...formData.serviceHistory,
+    if (checked) {
+      updatedServices = [...currentServices, serviceType];
+    } else {
+      updatedServices = currentServices.filter((service: string) => service !== serviceType);
+    }
+
+    const updatedData: ServiceHistoryDetails = {
+      ...serviceHistoryData,
       hasRecords: true,
       services: updatedServices
-    }
-  });
-};
+    };
 
-const handleServiceChange = (checked: boolean, serviceType: string) => {
-  handleMaintenanceChange(checked, serviceType);
-};
+    updateFormData({ serviceHistory: updatedData });
+  };
+
+  const handleServiceChange = (checked: boolean, serviceType: string) => {
+    handleMaintenanceChange(checked, serviceType);
+  };
 
   return (
     <div className="space-y-4">
@@ -55,7 +67,7 @@ const handleServiceChange = (checked: boolean, serviceType: string) => {
           <div key={service.value} className="flex items-center space-x-2">
             <Checkbox
               id={service.value}
-              checked={formData.serviceHistory?.services?.includes(service.value) || false}
+              checked={serviceHistoryData.services?.includes(service.value) || false}
               onCheckedChange={(checked: boolean) => handleServiceChange(checked, service.value)}
             />
             <Label htmlFor={service.value} className="cursor-pointer">

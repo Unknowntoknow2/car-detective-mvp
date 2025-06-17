@@ -21,10 +21,18 @@ const modificationTypes = [
 ];
 
 export function ModificationsTab({ formData, updateFormData }: ModificationsTabProps) {
-  const modData: ModificationDetails = formData.modifications || {
-    hasModifications: false,
-    types: []
+  // Convert string to object if needed, or use default
+  const getModificationData = (): ModificationDetails => {
+    if (typeof formData.modifications === 'object' && formData.modifications !== null) {
+      return formData.modifications;
+    }
+    return {
+      hasModifications: false,
+      types: []
+    };
   };
+
+  const modData = getModificationData();
 
   const handleModificationChange = (checked: boolean, modType: string) => {
     const currentMods = modData.types || [];
