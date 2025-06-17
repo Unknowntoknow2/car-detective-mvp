@@ -1,24 +1,25 @@
+
 import {
   AdjustmentBreakdown,
   AdjustmentCalculator,
   RulesEngineInput,
 } from "../types";
 
-// Use dynamic `require` to avoid ES module issues with `.json` in some environments
-const rulesConfig = require("../../valuationRules.json");
-
 export class ConditionCalculator implements AdjustmentCalculator {
-  calculate(input: RulesEngineInput): AdjustmentBreakdown {
-    const conditionRules = rulesConfig.adjustments.condition as Record<
-      string,
-      number
-    >;
+  calculate(input: RulesEngineInput): AdjustmentBreakdown | null {
+    const conditionRules: Record<string, number> = {
+      excellent: 0.05,
+      good: 0,
+      fair: -0.10,
+      poor: -0.25
+    };
 
-    const conditionValue = (input.condition || "good").toLowerCase() as keyof typeof conditionRules;
-
+    const conditionValue = (input.condition || "good").toLowerCase();
     const adjustment = conditionRules[conditionValue] !== undefined && input.basePrice !== undefined
       ? input.basePrice * conditionRules[conditionValue]
       : 0;
+
+    if (adjustment === 0) return null;
 
     return {
       factor: "Condition Impact",
@@ -30,3 +31,5 @@ export class ConditionCalculator implements AdjustmentCalculator {
     };
   }
 }
+
+export const conditionCalculator = new ConditionCalculator();

@@ -22,6 +22,11 @@ export interface ValuationResult {
   bodyType?: string;
   premium_unlocked?: boolean;
   adjustments?: AdjustmentBreakdown[];
+  // Add missing properties that components are looking for
+  vin?: string;
+  price_range?: [number, number];
+  estimated_value?: number; // For backward compatibility
+  confidence_score?: number; // For backward compatibility
 }
 
 export interface SavedValuation {
@@ -59,4 +64,23 @@ export interface ModificationDetails {
   types: string[];
   modified: boolean;
   reversible: boolean | null;
+}
+
+// Add forecast types
+export interface ForecastData {
+  trend: 'up' | 'down' | 'stable';
+  confidence: number;
+  timeframe: number;
+  delta: number;
+}
+
+export interface ForecastResult {
+  forecast: Array<{
+    month: string;
+    value: number;
+  }>;
+  analysis?: string;
+  percentageChange: string;
+  bestTimeToSell?: string;
+  confidenceScore: number;
 }

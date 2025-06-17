@@ -1,4 +1,6 @@
 
+import { PDFFont, PDFPage, rgb } from 'pdf-lib';
+
 export interface ReportData {
   id: string;
   vin?: string;
@@ -56,4 +58,21 @@ export interface ReportOptions {
     website: string;
     phone: string;
   };
+}
+
+// Add missing SectionParams interface
+export interface SectionParams {
+  page: PDFPage;
+  margin: number;
+  contentWidth: number;
+  regularFont: PDFFont;
+  boldFont: PDFFont;
+}
+
+// Add PdfOptions interface for upload function
+export interface PdfOptions {
+  isPremium?: boolean;
+  includeExplanation?: boolean;
+  marketplaceListings?: any[];
+  includeAuctionData?: boolean;
 }

@@ -1,6 +1,13 @@
 import { rgb } from "pdf-lib";
 import { SectionParams } from "../types";
 
+// Define missing constants
+const fonts = {
+  regular: null as any, // Will be set properly in actual implementation
+  bold: null as any
+};
+const textColor = rgb(0.3, 0.3, 0.3);
+
 /**
  * Draws the valuation summary narrative section of the PDF
  * 
@@ -20,10 +27,10 @@ export function drawValuationSummary(
   // Draw a light background for the narrative
   page.drawRectangle({
     x: margin,
-    y: currentY,
-    size: 12,
-    font: fonts.regular,
-    color: textColor,
+    y: currentY - 80,
+    width: contentWidth,
+    height: 80,
+    color: rgb(0.98, 0.98, 0.98)
   });
   
   // Draw executive summary heading

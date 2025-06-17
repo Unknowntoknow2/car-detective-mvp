@@ -25,6 +25,7 @@ export interface DecodedVehicleInfo {
   confidenceScore?: number;
   color?: string;
   estimatedValue?: number;
+  zipCode?: string; // Add missing property
 }
 
 export interface VehicleTrim {

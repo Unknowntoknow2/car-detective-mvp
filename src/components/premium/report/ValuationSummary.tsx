@@ -14,7 +14,7 @@ export interface ValuationSummaryProps {
   mileage?: number;
   condition?: string;
   showEstimatedValue?: boolean;
-  valuation?: ValuationResult; // Add valuation prop
+  valuation?: ValuationResult;
 }
 
 export function ValuationSummary({
@@ -30,8 +30,9 @@ export function ValuationSummary({
   valuation
 }: ValuationSummaryProps) {
   // Use valuation data if provided, otherwise fall back to individual props
-  const displayValue = valuation?.estimatedValue || valuation?.estimated_value || estimatedValue || 0;
-  const displayConfidence = valuation?.confidenceScore || valuation?.confidence_score || confidenceScore || 0;
+  // Fix: Use correct property names for ValuationResult
+  const displayValue = valuation?.estimatedValue || estimatedValue || 0;
+  const displayConfidence = valuation?.confidenceScore || confidenceScore || 0;
   const displayYear = valuation?.year || year;
   const displayMake = valuation?.make || make;
   const displayModel = valuation?.model || model;

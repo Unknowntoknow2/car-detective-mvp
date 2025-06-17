@@ -9,4 +9,5 @@ export interface Referral {
   reward_amount?: number;
   created_at: string;
   updated_at: string;
+  referred_email?: string; // Add missing property
 }

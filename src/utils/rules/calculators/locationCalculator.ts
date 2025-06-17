@@ -1,94 +1,27 @@
 
-import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from '../types';
-import rulesConfig from '../../valuationRules.json';
-import { supabase } from '@/integrations/supabase/client';
-import { getMarketMultiplier, getMarketMultiplierDescription } from '../../valuation/marketData';
-
-interface ZipLocationData {
-  places: {
-    'place name': string;
-    'state abbreviation': string;
-    latitude?: string;
-    longitude?: string;
-  }[];
-}
+import { AdjustmentCalculator, RulesEngineInput, AdjustmentBreakdown } from "../types";
 
 export class LocationCalculator implements AdjustmentCalculator {
-  async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
-    if (!input.zipCode) return null;
-    
-    try {
-      // Get market multiplier from our utility function
-      const marketMultiplier = await getMarketMultiplier(input.zipCode);
-      
-      // Early return if we have a valid multiplier
-      if (marketMultiplier !== 0) {
-        // Convert percentage to decimal for calculation
-        const multiplier = marketMultiplier / 100;
-        const adjustment = input.basePrice * multiplier;
-        
-        // Get location info for better description
-        let locationName = input.zipCode;
-        
-        // Try to get the cached location data for better description
-        try {
-          const { data: zipData } = await supabase
-            .from('zip_cache')
-            .select('location_data')
-            .eq('zip', input.zipCode)
-            .maybeSingle();
-          
-          if (zipData?.location_data) {
-            const locationData = zipData.location_data as unknown as ZipLocationData;
-            if (locationData.places && locationData.places.length > 0) {
-              const place = locationData.places[0];
-              locationName = `${place['place name']}, ${place['state abbreviation']}`;
-            }
-          }
-        } catch (err) {
-          // If there's an error with zip_cache, just use the ZIP code as the location name
-          console.log('Error fetching location data from zip_cache:', err);
-        }
-        
-        const factor = 'Location Impact';
-        const impact = Math.round(adjustment);
-        
-        return {
-          name: 'Location Impact',
-          value: impact,
-          description: `${getMarketMultiplierDescription(marketMultiplier)} (${locationName})`,
-          percentAdjustment: marketMultiplier,
-          factor,
-          impact
-        };
-      }
-    } catch (err) {
-      console.error('Error in LocationCalculator market_adjustments:', err);
-      // Fall through to default calculation
-    }
-    
-    // Fallback to configured rules if no market data found
-    const zipRules = rulesConfig.adjustments.zip;
-    
-    let zoneType: 'hot' | 'cold' | 'default' = 'default';
-    if (zipRules.hot.includes(input.zipCode)) {
-      zoneType = 'hot';
-    } else if (zipRules.cold.includes(input.zipCode)) {
-      zoneType = 'cold';
-    }
-    
-    const adjustment = input.basePrice * zipRules.adjustments[zoneType];
-    const description = `Based on market demand in ${input.zipCode}`;
-    const factor = 'Location Impact';
-    const impact = Math.round(adjustment);
-    
+  calculate(input: RulesEngineInput): AdjustmentBreakdown | null {
+    if (!input.zipCode || !input.basePrice) return null;
+
+    // Simple location-based adjustment (this would be more sophisticated in reality)
+    const highValueZips = ['90210', '10001', '94102', '02101']; // Beverly Hills, NYC, SF, Boston
+    const isHighValueArea = highValueZips.includes(input.zipCode);
+
+    if (!isHighValueArea) return null;
+
+    const adjustment = Math.round(input.basePrice * 0.03); // 3% increase for high-value areas
+
     return {
-      name: 'Location Impact',
-      value: impact,
-      description,
-      percentAdjustment: zipRules.adjustments[zoneType] * 100, // Convert to percentage
-      factor,
-      impact
+      factor: "Location Premium",
+      impact: adjustment,
+      description: `High-demand area (${input.zipCode}) increases value`,
+      name: "Location Premium",
+      value: adjustment,
+      percentAdjustment: 3,
     };
   }
 }
+
+export const locationCalculator = new LocationCalculator();

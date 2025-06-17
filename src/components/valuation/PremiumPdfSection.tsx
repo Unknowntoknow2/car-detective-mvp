@@ -41,7 +41,7 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
           condition: valuationResult.condition || 'Good',
           confidenceScore: valuationResult.confidenceScore || 75,
           issuesDetected: [],
-          summary: `AI assessment of ${valuationResult.condition || 'Good'} condition`
+          aiSummary: `AI assessment of ${valuationResult.condition || 'Good'} condition` // Fix: use aiSummary not summary
         }
       };
 
@@ -81,7 +81,7 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
         condition: valuationResult.condition || 'Good',
         confidenceScore: valuationResult.confidenceScore || 75,
         issuesDetected: [],
-        summary: `AI assessment of ${valuationResult.condition || 'Good'} condition`
+        aiSummary: `AI assessment of ${valuationResult.condition || 'Good'} condition` // Fix: use aiSummary not summary
       }
     };
 
