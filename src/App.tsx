@@ -35,9 +35,11 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AppProviders>
           <TooltipProvider>
-            <AppLayout>
-              <Routes>{renderRoutes(routes)}</Routes>
-            </AppLayout>
+            <div className="min-h-screen flex flex-col w-full">
+              <AppLayout>
+                <Routes>{renderRoutes(routes)}</Routes>
+              </AppLayout>
+            </div>
           </TooltipProvider>
         </AppProviders>
       </QueryClientProvider>
