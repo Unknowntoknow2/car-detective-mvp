@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,17 +9,54 @@ import { toast } from "sonner";
 
 const ForgotPasswordPage: React.FC = () => {
   const { resetPassword } = useAuth();
+  const [isSuccess, setIsSuccess] = useState(false);
   const { register, handleSubmit, formState: { errors, isSubmitting } } =
     useForm<{ email: string }>();
 
   const onSubmit = async (data: { email: string }) => {
     try {
-      await resetPassword(data.email);
+      const { error } = await resetPassword(data.email);
+      
+      if (error) {
+        if (error.message.includes('User not found')) {
+          toast.error("No account found with this email address");
+        } else {
+          toast.error(error.message || "Failed to send password reset email");
+        }
+        return;
+      }
+      
+      setIsSuccess(true);
       toast.success("Password reset instructions sent to your email");
     } catch (error) {
-      toast.error("Failed to send password reset email");
+      console.error("Reset password error:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     }
   };
+
+  if (isSuccess) {
+    return (
+      <div className="container flex h-screen items-center justify-center py-8">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Check Your Email</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-muted-foreground mb-4">
+              We've sent password reset instructions to your email address.
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsSuccess(false)}
+              className="w-full"
+            >
+              Send Another Email
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container flex h-screen items-center justify-center py-8">
@@ -58,8 +95,8 @@ const ForgotPasswordPage: React.FC = () => {
 
             <p className="text-sm text-center text-muted-foreground">
               Remember your password?{" "}
-              <a href="/login" className="text-primary hover:underline">
-                Log in
+              <a href="/auth" className="text-primary hover:underline">
+                Sign in
               </a>
             </p>
           </form>

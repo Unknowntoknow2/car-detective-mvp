@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,12 +19,24 @@ const LoginForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await signIn(email, password);
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error("Invalid email or password. Please try again.");
+        } else if (error.message.includes('Email not confirmed')) {
+          toast.error("Please check your email and click the confirmation link.");
+        } else {
+          toast.error(error.message || "Failed to sign in");
+        }
+        return;
+      }
+      
       toast.success("Successfully signed in!");
       navigate("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Failed to sign in");
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }

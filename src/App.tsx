@@ -1,49 +1,57 @@
-
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import AppProviders from './providers/AppProviders';
-import { AppLayout } from './components/layout/AppLayout';
-import routes from '@/App.routes';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { QueryClient } from 'react-query';
+import { Toaster } from 'sonner';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      retry: 1,
-    },
-  },
-});
+import HomePage from '@/pages/HomePage';
+import ProfilePage from '@/pages/ProfilePage';
+import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
+import AuthPage from '@/pages/AuthPage';
+import AuthCallbackPage from '@/pages/AuthCallbackPage';
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
+import ValuationPage from '@/pages/ValuationPage';
+import PremiumPage from '@/pages/PremiumPage';
+import PhotoAnalysisPage from '@/pages/PhotoAnalysisPage';
+import VehicleLookupPage from '@/pages/VehicleLookupPage';
+import DealerDashboardPage from '@/pages/DealerDashboardPage';
+import AdminDashboardPage from '@/pages/AdminDashboardPage';
+import LoginUserPage from '@/pages/LoginUserPage';
+import LoginDealerPage from '@/pages/LoginDealerPage';
+import { Header } from '@/components/layout/Header';
+import { AuthProvider } from '@/hooks/useAuth';
 
 function App() {
-  const renderRoutes = (routeConfigs: any[]) =>
-    routeConfigs.map((route, index) =>
-      route.index ? (
-        <Route key={index} index element={route.element} />
-      ) : route.children ? (
-        <Route key={index} path={route.path} element={route.element}>
-          {renderRoutes(route.children)}
-        </Route>
-      ) : (
-        <Route key={index} path={route.path} element={route.element} />
-      )
-    );
-
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <AppProviders>
-          <TooltipProvider>
-            <div className="min-h-screen flex flex-col w-full">
-              <AppLayout>
-                <Routes>{renderRoutes(routes)}</Routes>
-              </AppLayout>
-            </div>
-          </TooltipProvider>
-        </AppProviders>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <Router>
+      <QueryClient>
+        <AuthProvider>
+          <div className="min-h-screen bg-background">
+            <Header />
+            <main className="flex-1">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/auth/callback" element={<AuthCallbackPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/valuation" element={<ValuationPage />} />
+                <Route path="/premium" element={<PremiumPage />} />
+                <Route path="/photo-analysis" element={<PhotoAnalysisPage />} />
+                <Route path="/vehicle-lookup" element={<VehicleLookupPage />} />
+                <Route path="/dealer-dashboard" element={<DealerDashboardPage />} />
+                <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+                <Route path="/login-user" element={<LoginUserPage />} />
+                <Route path="/login-dealer" element={<LoginDealerPage />} />
+              </Routes>
+            </main>
+          </div>
+          <Toaster />
+        </AuthProvider>
+      </QueryClient>
+    </Router>
   );
 }
 

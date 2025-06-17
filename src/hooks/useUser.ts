@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+
+import { useAuth } from "@/hooks/useAuth";
 
 interface User {
   id: string;
@@ -8,31 +8,17 @@ interface User {
 }
 
 export function useUser() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { user, userDetails, loading } = useAuth();
+  
+  const userData: User | null = user ? {
+    id: user.id,
+    email: user.email,
+    userMetadata: user.user_metadata,
+  } : null;
 
-  useEffect(() => {
-    async function getUser() {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        // For now, return a mock user since auth isn't set up
-        setUser({
-          id: "00000000-0000-0000-0000-000000000000",
-          email: "demo@example.com",
-        });
-      } catch (err) {
-        console.error("Error getting user:", err);
-        setError("Failed to get user");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    getUser();
-  }, []);
-
-  return { user, isLoading, error };
+  return { 
+    user: userData, 
+    isLoading: loading, 
+    error: null 
+  };
 }
