@@ -68,9 +68,10 @@ const FreeValuationResult: React.FC<FreeValuationResultProps> = ({
                   : vehicleInfo.condition === "Fair"
                   ? 50
                   : 25}
-                onChange={(score: number) => {
+                onChange={(value: number[]) => {
+                  const score = value[0];
                   toast.info(
-                    `Condition updated. This would recalculate the valuation in a real implementation.`,
+                    `Condition updated to ${score}%. This would recalculate the valuation in a real implementation.`,
                   );
                 }}
               />
