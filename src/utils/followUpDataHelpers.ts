@@ -1,4 +1,4 @@
-import { FollowUpAnswers } from '@/types/follow-up-answers';
+
 import { ModificationDetails } from '@/types/valuation';
 
 export function getCompletionPercentage(formData: FollowUpAnswers): number {
@@ -130,19 +130,26 @@ export function transformForValuation(formData: FollowUpAnswers): any {
 }
 
 export function processModifications(modifications: string | ModificationDetails): ModificationDetails {
+  // Handle the case where modifications is a string
   if (typeof modifications === 'string') {
     return {
-      hasModifications: modifications === 'yes',
+      hasModifications: modifications.toLowerCase() === 'yes' || modifications.toLowerCase() === 'true',
       types: [],
-      modified: modifications === 'yes',
+      modified: modifications.toLowerCase() === 'yes' || modifications.toLowerCase() === 'true',
       reversible: null
     };
   }
   
+  // Handle the case where modifications is already a ModificationDetails object
+  if (modifications && typeof modifications === 'object' && 'hasModifications' in modifications) {
+    return modifications;
+  }
+  
+  // Default fallback
   return {
-    hasModifications: modifications.hasModifications || false,
-    types: modifications.types || [],
-    modified: modifications.modified || false,
-    reversible: modifications.reversible
+    hasModifications: false,
+    types: [],
+    modified: false,
+    reversible: null
   };
 }

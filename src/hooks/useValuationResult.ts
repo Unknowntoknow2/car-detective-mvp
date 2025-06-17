@@ -1,55 +1,47 @@
-
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { ValuationResult } from '@/types/valuation';
 
 export const useValuationResult = () => {
-  const [result, setResult] = useState<ValuationResult | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const calculateValuation = useCallback(async (vehicleData: any) => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      // Mock valuation calculation
-      const mockResult: ValuationResult = {
-        id: `val_${Date.now()}`,
-        estimatedValue: 18500,
-        confidenceScore: 85,
-        year: vehicleData.year,
-        make: vehicleData.make,
-        model: vehicleData.model,
-        vin: vehicleData.vin,
-        mileage: vehicleData.mileage,
-        condition: vehicleData.condition,
-        priceRange: [16000, 21000],
-        adjustments: [
-          { factor: 'Mileage', impact: -5, description: 'Above average mileage' },
-          { factor: 'Condition', impact: 3, description: 'Good condition' }
-        ],
-        createdAt: new Date().toISOString()
-      };
-      
-      setResult(mockResult);
-      return mockResult;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Valuation failed';
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
+  // Mock valuation data for demonstration purposes
+  const mockValuation: ValuationResult = {
+    id: '123',
+    make: 'Toyota',
+    model: 'Camry',
+    year: 2020,
+    mileage: 50000,
+    condition: 'Good',
+    confidenceScore: 0.85,
+    estimatedValue: 18000,
+    zipCode: '90210',
+    adjustments: []
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+    }, 500);
   }, []);
 
   return {
-    result,
-    isLoading,
+    loading,
     error,
-    calculateValuation,
-    clearResult: () => {
-      setResult(null);
-      setError(null);
+    valuation: {
+      ...mockValuation,
+      // Remove vin property if it's causing issues, or ensure ValuationResult includes it
+      id: mockValuation.id,
+      make: mockValuation.make,
+      model: mockValuation.model,
+      year: mockValuation.year,
+      mileage: mockValuation.mileage,
+      condition: mockValuation.condition,
+      confidenceScore: mockValuation.confidenceScore,
+      estimatedValue: mockValuation.estimatedValue,
+      zipCode: mockValuation.zipCode,
+      adjustments: mockValuation.adjustments
     }
   };
 };

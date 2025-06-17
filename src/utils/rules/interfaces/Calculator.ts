@@ -1,5 +1,8 @@
-import { AdjustmentBreakdown, RulesEngineInput } from "../types";
+
+import { ValuationData, Adjustment } from '../types';
 
 export interface Calculator {
-  calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null>;
+  name: string;
+  description: string;
+  calculate(data: ValuationData): Adjustment | null;
 }
