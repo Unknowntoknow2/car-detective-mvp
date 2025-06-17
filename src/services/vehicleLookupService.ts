@@ -1,3 +1,4 @@
+
 import { DecodedVehicleInfo } from '@/types/vehicle';
 
 export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo> {
@@ -24,10 +25,9 @@ export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo
     doors: '4',
     seats: '5',
     displacement: '2.0L',
-    estimatedValue: 18500,
-    confidenceScore: 85,
     mileage: 35000,
     condition: 'Good',
+    confidenceScore: 85,
     // Add sample vehicle photos
     photos: [
       'https://images.unsplash.com/photo-1549924231-f129b911e442?w=800&h=600&fit=crop',
@@ -64,10 +64,9 @@ export async function fetchVehicleByPlate(plate: string, state: string): Promise
     doors: '4',
     seats: '5',
     displacement: '1.5L',
-    estimatedValue: 21000,
-    confidenceScore: 80,
     mileage: 52000,
     condition: 'Good',
+    confidenceScore: 80,
     photos: [
       'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop',
       'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=600&fit=crop'

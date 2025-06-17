@@ -9,10 +9,15 @@ export const scorePhotos = async (
   // Simulate API call
   await new Promise(resolve => setTimeout(resolve, 1000));
   
-  // Generate random scores for photos
-  const scores = photoUrls.map(url => ({
+  // Generate random scores for photos with proper PhotoScore structure
+  const scores: PhotoScore[] = photoUrls.map(url => ({
     url,
     score: Math.floor(Math.random() * 30) + 70, // Score between 70-100
+    overall: Math.floor(Math.random() * 30) + 70,
+    clarity: Math.floor(Math.random() * 30) + 70,
+    angle: Math.floor(Math.random() * 30) + 70,
+    lighting: Math.floor(Math.random() * 30) + 70,
+    condition: Math.floor(Math.random() * 30) + 70,
     isPrimary: false
   }));
   
@@ -24,23 +29,25 @@ export const scorePhotos = async (
   // Create mock condition assessment
   const aiCondition: AICondition = {
     condition: 'Good',
-    confidenceScore: 0.85,
+    confidence: 0.85,
+    description: 'Vehicle is in good condition with minor cosmetic issues',
     issuesDetected: ['Minor scratches on rear bumper', 'Small dent on driver door'],
     summary: 'Vehicle is in good condition with minor cosmetic issues'
   };
   
+  const overallScore = Math.floor(scores.reduce((sum, s) => sum + s.score, 0) / scores.length);
+  
   // Return scoring result
   return {
     photoUrl: scores.length > 0 ? scores[0].url : '',
-    score: 85,
+    score: overallScore,
     confidence: 0.85,
-    condition: 'Good',
-    aiCondition,
+    photoUrls,
     individualScores: scores,
-    photoUrls, // Using photoUrls in the correct property
-    issues: aiCondition.issuesDetected,
-    summary: aiCondition.summary,
-    overallScore: 85
+    aiCondition,
+    overallScore,
+    issues: aiCondition.issuesDetected || [],
+    summary: aiCondition.summary || ''
   };
 };
 
@@ -49,15 +56,14 @@ export const convertToPhotoAnalysisResult = (
   result: PhotoScoringResult
 ): PhotoAnalysisResult => {
   return {
-    photoId: Math.random().toString(36).substring(2, 15), // Generate a random ID
     confidence: result.confidence || 0.85,
     issues: result.issues || [],
     url: result.photoUrl || (result.photoUrls && result.photoUrls.length > 0 ? result.photoUrls[0] : ''),
     photoUrls: result.photoUrls,
     overallScore: result.overallScore || 0,
-    score: result.score || 0,
     aiCondition: result.aiCondition,
-    individualScores: result.individualScores || []
+    individualScores: result.individualScores || [],
+    recommendations: []
   };
 };
 
@@ -77,6 +83,11 @@ export const enhancedPhotoScoring = async (
     return {
       url,
       score,
+      overall: score,
+      clarity: Math.floor(Math.random() * 30) + 70,
+      angle: Math.floor(Math.random() * 30) + 70,
+      lighting: Math.floor(Math.random() * 30) + 70,
+      condition: Math.floor(Math.random() * 30) + 70,
       isPrimary,
       explanation: getScoreExplanation(score)
     };
@@ -85,7 +96,8 @@ export const enhancedPhotoScoring = async (
   // Create comprehensive condition assessment
   const aiCondition: AICondition = {
     condition: getConditionFromScore(individualScores),
-    confidenceScore: 0.9,
+    confidence: 0.9,
+    description: 'Comprehensive analysis of multiple vehicle photos shows overall good condition with some normal wear and tear.',
     issuesDetected: generateRandomIssues(),
     summary: 'Comprehensive analysis of multiple vehicle photos shows overall good condition with some normal wear and tear.'
   };
@@ -93,15 +105,14 @@ export const enhancedPhotoScoring = async (
   const avgScore = calculateAverageScore(individualScores);
   
   return {
-    photoId: Math.random().toString(36).substring(2, 15), // Generate a random ID
     confidence: 0.9,
-    issues: aiCondition.issuesDetected,
+    issues: aiCondition.issuesDetected || [],
     url: photoUrls[0],
     photoUrls,
     overallScore: avgScore,
-    score: avgScore,
     aiCondition,
-    individualScores
+    individualScores,
+    recommendations: []
   };
 };
 
