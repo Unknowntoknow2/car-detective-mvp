@@ -1,16 +1,13 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ValuationResult } from "@/types/valuation";
 
-/**
- * Retrieves vehicle context data from a valuation ID
- */
 export async function getValuationContext(
   valuationId?: string,
 ): Promise<Partial<ValuationResult> | null> {
   if (!valuationId) return null;
 
   try {
-    // Query the valuations table to get the details
     const { data, error } = await supabase
       .from("valuations")
       .select(`
@@ -39,7 +36,6 @@ export async function getValuationContext(
       return null;
     }
 
-    // Map database field names to our ValuationResult type
     return {
       id: data.id,
       make: data.make,
@@ -48,7 +44,6 @@ export async function getValuationContext(
       mileage: data.mileage,
       condition: mapConditionScore(data.condition_score),
       confidenceScore: data.confidence_score,
-      zipCode: data.state,
       color: data.color,
       bodyType: data.body_type,
       estimatedValue: data.estimated_value,
@@ -60,9 +55,6 @@ export async function getValuationContext(
   }
 }
 
-/**
- * Maps a numeric condition score to a text label
- */
 function mapConditionScore(score?: number | null): string {
   if (!score) return "Unknown";
 

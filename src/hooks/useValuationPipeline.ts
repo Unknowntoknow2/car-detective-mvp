@@ -1,10 +1,11 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { ValuationPipeline } from '@/types/valuation';
 
 export const useValuationPipeline = () => {
   const { user } = useAuth();
-  const [pipeline, setPipeline] = useState(null);
+  const [pipeline, setPipeline] = useState<ValuationPipeline | null>(null);
   const [loading, setLoading] = useState(false);
 
   const startPipeline = async (vehicleData: any) => {
@@ -12,10 +13,14 @@ export const useValuationPipeline = () => {
     
     setLoading(true);
     // Mock pipeline functionality
-    setPipeline({ status: 'processing', data: vehicleData });
+    const newPipeline: ValuationPipeline = { 
+      status: 'processing', 
+      data: vehicleData 
+    };
+    setPipeline(newPipeline);
     setLoading(false);
     
-    return pipeline;
+    return newPipeline;
   };
 
   return { pipeline, startPipeline, loading };

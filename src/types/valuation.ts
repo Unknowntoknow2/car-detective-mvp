@@ -1,41 +1,62 @@
 
-export interface ValuationResult {
-  id: string;
-  estimatedValue?: number;
-  estimated_value?: number;
-  confidenceScore?: number;
-  confidence_score?: number;
-  year?: number;
-  make?: string;
-  model?: string;
-  vin?: string;
-  mileage?: number;
-  condition?: string;
-  basePrice?: number;
-  priceRange?: [number, number];
-  price_range?: { low: number; high: number } | [number, number];
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
-  marketDemand?: number;
-  createdAt?: string;
-  updatedAt?: string;
+export interface AdjustmentBreakdown {
+  factor: string;
+  impact: number;
+  name?: string;
+  value?: number;
+  description: string;
+  percentAdjustment?: number;
 }
 
-export interface Valuation {
+export interface ValuationResult {
   id: string;
-  make?: string;
-  model?: string;
-  year?: number;
-  vin?: string;
-  estimatedValue?: number;
-  estimated_value?: number;
-  confidenceScore?: number;
-  confidence_score?: number;
-  mileage?: number;
-  condition?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  confidenceScore: number;
+  estimatedValue: number;
+  zipCode?: string;
+  color?: string;
+  bodyType?: string;
+  premium_unlocked?: boolean;
+  adjustments?: AdjustmentBreakdown[];
+}
+
+export interface SavedValuation {
+  id: string;
+  user_id: string;
+  saved_at: string;
+  valuationDetails: {
+    year: number;
+    make: string;
+    model: string;
+    trim?: string;
+    estimatedValue: number;
+    confidenceScore: number;
+  };
+}
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ValuationPipeline {
+  status: 'processing' | 'completed' | 'error';
+  data: any;
+}
+
+export interface DealerInsights {
+  totalOffers: number;
+  averageOfferValue: number;
+  responseRate: number;
+}
+
+export interface ModificationDetails {
+  hasModifications: boolean;
+  types: string[];
+  modified: boolean;
+  reversible: boolean | null;
 }

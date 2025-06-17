@@ -1,5 +1,5 @@
-
 import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { ModificationDetails } from '@/types/valuation';
 
 export function getCompletionPercentage(formData: FollowUpAnswers): number {
   const requiredFields = ['vin', 'zip_code'];
@@ -126,5 +126,23 @@ export function transformForValuation(formData: FollowUpAnswers): any {
     serviceHistory: formData.serviceHistory,
     modifications: formData.modifications,
     additionalNotes: formData.additional_notes
+  };
+}
+
+export function processModifications(modifications: string | ModificationDetails): ModificationDetails {
+  if (typeof modifications === 'string') {
+    return {
+      hasModifications: modifications === 'yes',
+      types: [],
+      modified: modifications === 'yes',
+      reversible: null
+    };
+  }
+  
+  return {
+    hasModifications: modifications.hasModifications || false,
+    types: modifications.types || [],
+    modified: modifications.modified || false,
+    reversible: modifications.reversible
   };
 }

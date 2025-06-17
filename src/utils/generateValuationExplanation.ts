@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { calculateFinalValuation } from "./valuationCalculator";
+import { AdjustmentBreakdown } from '@/types/valuation';
 
 interface ExplanationParams {
   make: string;
@@ -16,17 +17,19 @@ export async function generateValuationExplanation(params: ExplanationParams): P
   try {
     const valuationDetails = calculateFinalValuation(params);
     
+    const adjustments = (valuationDetails.adjustments || []).map((adj: AdjustmentBreakdown) => ({
+      factor: adj.name || adj.factor || 'Unknown',
+      impact: adj.impact || adj.value || 0,
+      description: adj.description || 'No description'
+    }));
+
     const { data, error } = await supabase.functions.invoke("generate-explanation", {
       body: {
         ...params,
         baseMarketValue: valuationDetails.baseValue,
         mileageAdj: 0,
         conditionAdj: 0,
-        adjustments: valuationDetails.adjustments.map(adj => ({
-          factor: adj.name || 'Unknown',
-          impact: adj.impact || 0,
-          description: adj.description || 'No description'
-        }))
+        adjustments
       }
     });
 

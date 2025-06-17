@@ -1,48 +1,59 @@
 
 export interface ReportData {
-  id?: string;
-  estimatedValue: number;
+  id: string;
+  vin?: string;
   make: string;
   model: string;
   year: number;
-  vin?: string;
-  mileage?: number;
-  condition?: string;
-  confidenceScore?: number;
+  trim?: string;
+  mileage: number;
+  condition: string;
+  estimatedValue: number;
+  price: number;
   priceRange?: [number, number];
-  price?: number;
-  zipCode?: string;
-  generatedAt?: string;
+  confidenceScore: number;
+  zipCode: string;
+  adjustments: AdjustmentBreakdown[];
+  generatedAt: string;
   isPremium?: boolean;
-  aiCondition?: {
-    condition: string;
-    confidenceScore: number;
-    issuesDetected?: string[];
-    summary?: string;
-  };
-  adjustments?: Array<{
-    factor: string;
-    impact: number;
-    description?: string;
-  }>;
+  aiCondition?: AIConditionResult;
+  color?: string;
+  bodyType?: string;
+  bodyStyle?: string;
+  fuelType?: string;
+  basePrice?: number;
+  competitorPrices?: any[];
+  competitorAverage?: number;
+  marketplaceListings?: any[];
+  auctionResults?: any[];
+}
+
+export interface AdjustmentBreakdown {
+  factor: string;
+  impact: number;
+  name?: string;
+  value?: number;
+  description: string;
+  percentAdjustment?: number;
+}
+
+export interface AIConditionResult {
+  condition: "Excellent" | "Good" | "Fair" | "Poor";
+  confidenceScore: number;
+  issuesDetected: string[];
+  aiSummary: string;
 }
 
 export interface ReportOptions {
-  isPremium?: boolean;
-  includeAuctionData?: boolean;
-  includeCompetitorPricing?: boolean;
-  includeAINSummary?: boolean;
-  notifyDealers?: boolean;
-}
-
-export interface PdfOptions {
-  isPremium?: boolean;
-  includeExplanation?: boolean;
-  marketplaceListings?: any[];
-}
-
-export interface AdjustmentItem {
-  factor: string;
-  impact: number;
-  description: string;
+  pageSize: string;
+  margins: { top: number; right: number; bottom: number; left: number };
+  includePageNumbers: boolean;
+  includePhotos: boolean;
+  includeSimilarVehicles: boolean;
+  companyInfo: {
+    name: string;
+    logo: string | null;
+    website: string;
+    phone: string;
+  };
 }

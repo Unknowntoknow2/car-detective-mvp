@@ -1,4 +1,5 @@
-import { AdjustmentBreakdown } from "@/utils/rules/types";
+
+import { AdjustmentBreakdown } from "@/types/valuation";
 
 export function formatAdjustmentValue(value: number): string {
   const formatted = Math.abs(value).toLocaleString("en-US", {
@@ -26,8 +27,8 @@ export function convertNewAdjustmentsToLegacyFormat(
   return adjustments.map((adj) => ({
     factor: adj.factor,
     impact: adj.impact,
-    name: adj.factor, // Include legacy field
-    value: adj.impact, // Include legacy field
+    name: adj.factor,
+    value: adj.impact,
     description: adj.description || `Adjustment based on ${adj.factor}`,
     percentAdjustment: adj.impact,
   }));
@@ -41,8 +42,8 @@ export function convertLegacyAdjustmentsToNewFormat(
   description: string;
 }[] {
   return adjustments.map((adj) => ({
-    factor: adj.factor || adj.name || "",
-    impact: adj.impact || adj.value || 0,
-    description: adj.description,
+    factor: adj.name || adj.factor || "",
+    impact: adj.value || adj.impact || 0,
+    description: adj.description || "",
   }));
 }
