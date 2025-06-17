@@ -11,7 +11,7 @@ import VinLookupPage from "@/pages/VinLookupPage";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 import NotFoundPage from "@/pages/NotFoundPage";
-import ValuationPage from "@/pages/ValuationPage";
+import ValuationPage from "@/pages/valuation/ValuationPage";
 import PremiumValuationPage from "@/pages/PremiumValuationPage";
 import ValuationResultPage from "@/pages/ValuationResultPage";
 import ResultPage from "@/pages/ResultPage";
