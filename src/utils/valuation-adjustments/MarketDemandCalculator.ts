@@ -1,61 +1,27 @@
 
-import { AdjustmentBreakdown, RulesEngineInput } from '../rules/types';
-import { Calculator } from '../rules/interfaces/Calculator';
+import { AdjustmentBreakdown, AdjustmentCalculator, RulesEngineInput } from "../rules/types";
 
-export class MarketDemandCalculator implements Calculator {
-  private BASE_ADJUSTMENT = 0.03; // 3% base adjustment
+export class MarketDemandCalculator implements AdjustmentCalculator {
+  calculate(input: RulesEngineInput): AdjustmentBreakdown | null {
+    if (!input.basePrice || !input.zipCode) return null;
 
-  public async calculate(input: RulesEngineInput): Promise<AdjustmentBreakdown | null> {
-    // Get the current month (1-12)
-    const currentMonth = new Date().getMonth() + 1;
+    // Simple market demand calculation based on zip code
+    const highDemandZips = ['90210', '10001', '94102', '02101'];
+    const isHighDemand = highDemandZips.includes(input.zipCode);
     
-    // Calculate seasonal component (higher demand in spring/summer months)
-    let seasonalAdjustment = 0;
-    if (currentMonth >= 3 && currentMonth <= 8) {
-      // Spring and summer months - higher demand
-      seasonalAdjustment = 0.02; // 2% boost
-    } else if (currentMonth >= 11 || currentMonth <= 1) {
-      // Winter months - lower demand
-      seasonalAdjustment = -0.01; // 1% reduction
-    }
-    
-    // Check if vehicle type information is available
-    let typeAdjustment = 0;
-    const bodyType = input.bodyType?.toLowerCase() || '';
-    
-    if (bodyType.includes('suv') || bodyType.includes('crossover')) {
-      typeAdjustment = 0.02; // 2% boost for SUVs/crossovers
-    } else if (bodyType.includes('truck') || bodyType.includes('pickup')) {
-      typeAdjustment = 0.015; // 1.5% boost for trucks
-    } else if (bodyType.includes('sedan')) {
-      typeAdjustment = -0.01; // 1% reduction for sedans
-    }
-    
-    // Calculate combined adjustment
-    const totalAdjustment = this.BASE_ADJUSTMENT + seasonalAdjustment + typeAdjustment;
-    const impactValue = Math.round(input.basePrice * totalAdjustment);
-    const factor = "Market Demand";
-    const impact = impactValue;
-    
-    // Description based on components
-    let description = "Based on current market conditions";
-    if (seasonalAdjustment !== 0) {
-      description += seasonalAdjustment > 0 
-        ? ", seasonal demand is higher" 
-        : ", seasonal demand is lower";
-    }
-    if (typeAdjustment !== 0 && bodyType) {
-      description += typeAdjustment > 0 
-        ? `, ${bodyType} vehicles have higher demand` 
-        : `, ${bodyType} vehicles have lower demand`;
-    }
-    
+    if (!isHighDemand) return null;
+
+    const adjustment = Math.round(input.basePrice * 0.02); // 2% increase for high demand areas
+
     return {
-      factor: 'Market Demand',
-      impact: Math.round(impact),
-      description,
-      factor,
-      impact
+      factor: "Market Demand",
+      impact: adjustment,
+      description: `High market demand in ${input.zipCode} increases value`,
+      name: "Market Demand",
+      value: adjustment,
+      percentAdjustment: 2,
     };
   }
 }
+
+export const marketDemandCalculator = new MarketDemandCalculator();
