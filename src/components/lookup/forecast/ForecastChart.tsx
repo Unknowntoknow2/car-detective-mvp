@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   CartesianGrid,
@@ -74,7 +75,7 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
             Projected value trend based on market data analysis
           </CardDescription>
         </div>
-        <ForecastTrendIndicator trend={forecastData.valueTrend} />
+        <ForecastTrendIndicator trend={forecastData.valueTrend || 'stable'} />
       </CardHeader>
       <CardContent>
         <div className="h-[300px] w-full">
@@ -118,10 +119,10 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
           </ResponsiveContainer>
         </div>
         <ForecastMetrics
-          bestTimeToSell={forecastData.bestTimeToSell}
-          percentageChange={forecastData.percentageChange}
-          lowestValue={forecastData.lowestValue}
-          highestValue={forecastData.highestValue}
+          bestTimeToSell={forecastData.bestTimeToSell || 'Spring'}
+          percentageChange={forecastData.percentageChange || '0%'}
+          lowestValue={forecastData.lowestValue || basePrice}
+          highestValue={forecastData.highestValue || basePrice}
         />
       </CardContent>
     </Card>

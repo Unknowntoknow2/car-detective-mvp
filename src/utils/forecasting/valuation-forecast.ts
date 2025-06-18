@@ -16,6 +16,9 @@ export interface ForecastResult {
   percentageChange: string;
   bestTimeToSell?: string;
   confidenceScore: number;
+  valueTrend: 'up' | 'down' | 'stable';
+  lowestValue: number;
+  highestValue: number;
 }
 
 export function generateForecast(data: any[]): ForecastData {
@@ -50,12 +53,23 @@ export async function generateValuationForecast(valuationId: string): Promise<Fo
   }));
 
   const percentageChange = ((forecast[forecast.length - 1].value - forecast[0].value) / forecast[0].value * 100).toFixed(1);
+  
+  // Calculate min and max values
+  const values = forecast.map(f => f.value);
+  const lowestValue = Math.min(...values);
+  const highestValue = Math.max(...values);
+  
+  // Determine trend
+  const valueTrend = parseFloat(percentageChange) > 0 ? 'up' : parseFloat(percentageChange) < 0 ? 'down' : 'stable';
 
   return {
     forecast,
     percentageChange: `${percentageChange}%`,
     bestTimeToSell: 'Spring (March-May)',
     confidenceScore: 0.85,
-    analysis: `Market analysis suggests ${percentageChange.includes('-') ? 'depreciation' : 'appreciation'} over the next 12 months.`
+    analysis: `Market analysis suggests ${percentageChange.includes('-') ? 'depreciation' : 'appreciation'} over the next 12 months.`,
+    valueTrend,
+    lowestValue,
+    highestValue
   };
 }

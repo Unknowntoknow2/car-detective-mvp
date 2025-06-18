@@ -1,90 +1,80 @@
-import { ReportData, SectionParams } from "../types";
 
-/**
- * Draw a section heading
- * @param params Section parameters
- * @param title The heading title
- * @param yPosition Current Y position
- * @returns New Y position after drawing heading
- */
-export function drawSectionHeading(
-  params: SectionParams,
-  title: string,
-  yPosition: number,
-): number {
-  const { page, margin, boldFont, primaryColor } = params;
+import { rgb } from 'pdf-lib';
+import { SectionParams } from '../types';
 
+export function drawSectionTitle(params: SectionParams, title: string, y: number): number {
+  const { page, fonts, margin } = params;
+  
   page.drawText(title, {
     x: margin,
-    y: yPosition,
+    y,
     size: 16,
-    font: boldFont,
-    color: primaryColor,
+    font: fonts.bold,
+    color: params.primaryColor || rgb(0.2, 0.4, 0.8),
   });
-
-  return yPosition - 25; // Return new position after heading
+  
+  return y - 25;
 }
 
-/**
- * Draw a text field with label and value
- * @param params Section parameters
- * @param label Field label
- * @param value Field value
- * @param yPosition Current Y position
- * @returns New Y position after drawing field
- */
-export function drawTextField(
-  params: SectionParams,
-  label: string,
-  value: string | number,
-  yPosition: number,
-): number {
-  const { page, margin, regularFont, boldFont, textColor, secondaryColor } =
-    params;
-
-  // Draw label
-  page.drawText(label, {
+export function drawSectionDivider(params: SectionParams, y: number): number {
+  const { page, margin, width } = params;
+  
+  page.drawRectangle({
     x: margin,
-    y: yPosition,
-    size: 12,
-    font: boldFont,
-    color: secondaryColor,
+    y: y - 5,
+    width: width,
+    height: 1,
+    color: params.textColor || params.secondaryColor || rgb(0.8, 0.8, 0.8),
   });
-
-  // Draw value (format numbers if needed)
-  const displayValue = typeof value === "number"
-    ? value.toLocaleString()
-    : value.toString();
-
-  page.drawText(displayValue, {
-    x: margin + 150, // Offset for value
-    y: yPosition,
-    size: 12,
-    font: regularFont,
-    color: textColor,
-  });
-
-  return yPosition - 20; // Return new position after field
+  
+  return y - 15;
 }
 
-/**
- * Draw a horizontal line
- * @param params Section parameters
- * @param yPosition Current Y position
- * @returns New Y position after drawing line
- */
-export function drawHorizontalLine(
-  params: SectionParams,
-  yPosition: number,
-): number {
-  const { page, margin, width, secondaryColor } = params;
+export function wrapText(text: string, maxWidth: number, fontSize: number): string[] {
+  // Simple text wrapping - split by words and fit within maxWidth
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+  
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    // Approximate character width calculation
+    const approximateWidth = testLine.length * fontSize * 0.6;
+    
+    if (approximateWidth <= maxWidth) {
+      currentLine = testLine;
+    } else {
+      if (currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        lines.push(word);
+      }
+    }
+  }
+  
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+  
+  return lines;
+}
 
-  page.drawLine({
-    start: { x: margin, y: yPosition },
-    end: { x: width - margin, y: yPosition },
-    thickness: 1,
-    color: secondaryColor,
+export function drawWrappedText(params: SectionParams, text: string, x: number, y: number, fontSize: number): number {
+  const { page, fonts, width, secondaryColor } = params;
+  const lines = wrapText(text, width - x, fontSize);
+  let currentY = y;
+  
+  lines.forEach(line => {
+    page.drawText(line, {
+      x,
+      y: currentY,
+      size: fontSize,
+      font: fonts.regular,
+      color: secondaryColor || rgb(0.3, 0.3, 0.3),
+    });
+    currentY -= fontSize + 4;
   });
-
-  return yPosition - 15; // Return new position after line
+  
+  return currentY;
 }

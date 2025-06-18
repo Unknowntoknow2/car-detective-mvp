@@ -1,5 +1,6 @@
 
 import { ModificationDetails } from '@/types/valuation';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 export function getCompletionPercentage(formData: FollowUpAnswers): number {
   const requiredFields = ['vin', 'zip_code'];
