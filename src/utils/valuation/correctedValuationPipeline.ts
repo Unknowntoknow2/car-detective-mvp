@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { ReportData } from '@/utils/pdf/types';
@@ -224,10 +223,10 @@ async function generateCorrectedPDF(valuation: any, ainSummary: string, marketpl
     confidenceScore: valuation.confidenceScore,
     zipCode: valuation.zipCode,
     aiCondition: {
-      condition: valuation.condition,
-      confidenceScore: valuation.confidenceScore,
-      issuesDetected: [],
-      summary: `Vehicle is in ${valuation.condition} condition.`
+      condition: photoAnalysis.condition,
+      confidenceScore: photoAnalysis.confidence,
+      issuesDetected: photoAnalysis.issues || [],
+      aiSummary: photoAnalysis.summary || 'AI analysis completed'
     },
     adjustments: valuation.adjustments,
     generatedAt: new Date().toISOString(),
@@ -239,9 +238,12 @@ async function generateCorrectedPDF(valuation: any, ainSummary: string, marketpl
     }
   };
   
-  return await generateValuationPdf(reportData, {
-    isPremium: true,
-    includeAINSummary: true,
-    marketplaceListings: marketplaceData.listings
-  });
+  const pdfOptions = {
+    isPremium: options?.isPremium || false,
+    includeExplanation: options?.includeExplanation || false,
+    marketplaceListings: options?.marketplaceListings || [],
+    includeAuctionData: options?.includeAuctionData || false,
+  };
+  
+  return await generateValuationPdf(reportData, pdfOptions);
 }

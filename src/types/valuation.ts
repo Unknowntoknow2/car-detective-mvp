@@ -1,3 +1,33 @@
+import { PDFFont, PDFPage, rgb } from 'pdf-lib';
+
+export interface ReportData {
+  id: string;
+  vin?: string;
+  make: string;
+  model: string;
+  year: number;
+  trim?: string;
+  mileage: number;
+  condition: string;
+  estimatedValue: number;
+  price: number;
+  priceRange?: [number, number];
+  confidenceScore: number;
+  zipCode: string;
+  adjustments: AdjustmentBreakdown[];
+  generatedAt: string;
+  isPremium?: boolean;
+  aiCondition?: AIConditionResult;
+  color?: string;
+  bodyType?: string;
+  bodyStyle?: string;
+  fuelType?: string;
+  basePrice?: number;
+  competitorPrices?: any[];
+  competitorAverage?: number;
+  marketplaceListings?: any[];
+  auctionResults?: any[];
+}
 
 export interface AdjustmentBreakdown {
   factor: string;
@@ -8,79 +38,61 @@ export interface AdjustmentBreakdown {
   percentAdjustment?: number;
 }
 
-export interface ValuationResult {
-  id: string;
-  make: string;
-  model: string;
-  year: number;
-  mileage: number;
-  condition: string;
+export interface AIConditionResult {
+  condition: "Excellent" | "Good" | "Fair" | "Poor";
   confidenceScore: number;
-  estimatedValue: number;
-  zipCode?: string;
-  color?: string;
-  bodyType?: string;
-  premium_unlocked?: boolean;
-  adjustments?: AdjustmentBreakdown[];
-  // Add missing properties that components are looking for
-  vin?: string;
-  price_range?: [number, number];
-  estimated_value?: number; // For backward compatibility
-  confidence_score?: number; // For backward compatibility
+  issuesDetected: string[];
+  aiSummary: string;
 }
 
-export interface SavedValuation {
-  id: string;
-  user_id: string;
-  saved_at: string;
-  valuationDetails: {
-    year: number;
-    make: string;
-    model: string;
-    trim?: string;
-    estimatedValue: number;
-    confidenceScore: number;
+export interface ReportOptions {
+  pageSize: string;
+  margins: { top: number; right: number; bottom: number; left: number };
+  includePageNumbers: boolean;
+  includePhotos: boolean;
+  includeSimilarVehicles: boolean;
+  isPremium?: boolean; // Added missing property
+  companyInfo: {
+    name: string;
+    logo: string | null;
+    website: string;
+    phone: string;
   };
 }
 
-export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
+export interface SectionParams {
+  page: PDFPage;
+  margin: number;
+  contentWidth: number;
+  regularFont: PDFFont;
+  boldFont: PDFFont;
+  y?: number;
+  startY: number;
+  width: number;
+  pageWidth: number;
+  fonts: {
+    regular: PDFFont;
+    bold: PDFFont;
+  };
+  data: ReportData;
+  textColor: any;
+  primaryColor: any;
+  secondaryColor: any;
+  options: ReportOptions;
 }
 
-export interface ValuationPipeline {
-  status: 'processing' | 'completed' | 'error';
-  data: any;
+export interface PdfOptions {
+  isPremium?: boolean;
+  includeExplanation?: boolean;
+  marketplaceListings?: any[];
+  includeAuctionData?: boolean;
 }
 
-export interface DealerInsights {
-  totalOffers: number;
-  averageOfferValue: number;
-  responseRate: number;
-}
-
-export interface ModificationDetails {
-  hasModifications: boolean;
-  types: string[];
-  modified: boolean;
-  reversible: boolean | null;
-}
-
-// Add forecast types
-export interface ForecastData {
-  trend: 'up' | 'down' | 'stable';
+export interface AICondition {
+  condition: "Excellent" | "Good" | "Fair" | "Poor";
   confidence: number;
-  timeframe: number;
-  delta: number;
-}
-
-export interface ForecastResult {
-  forecast: Array<{
-    month: string;
-    value: number;
-  }>;
-  analysis?: string;
-  percentageChange: string;
-  bestTimeToSell?: string;
   confidenceScore: number;
+  issuesDetected: string[];
+  aiSummary: string;
+  description: string;
 }
