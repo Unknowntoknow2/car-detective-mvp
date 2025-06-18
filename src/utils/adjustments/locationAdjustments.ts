@@ -23,3 +23,20 @@ export function getLocationAdjustment(zipCode: string): LocationAdjustment | nul
     reason: adjustment.reason,
   };
 }
+
+// Add missing exports
+export function getZipAdjustment(zipCode: string): number {
+  const adjustment = getLocationAdjustment(zipCode);
+  return adjustment ? adjustment.multiplier : 1.0;
+}
+
+export function getRegionNameFromZip(zipCode: string): string {
+  const regionMap: Record<string, string> = {
+    '90210': 'Beverly Hills',
+    '10001': 'Manhattan',
+    '94102': 'San Francisco',
+    '02101': 'Boston',
+  };
+  
+  return regionMap[zipCode] || 'Unknown Region';
+}

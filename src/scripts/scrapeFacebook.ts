@@ -1,13 +1,6 @@
-// src/scripts/scrapeFacebook.ts
 
-import { fetchFacebookMarketplaceListings } from "../utils/scrapers/facebook";
-
-(async () => {
-  const results = await fetchFacebookMarketplaceListings(
-    "Toyota",
-    "Camry",
-    "95814",
-    5,
-  );
-  console.log("✅ Facebook Listings:", results);
-})();
+// Temporarily disabled for MVP - missing dependencies
+export async function fetchFacebookMarketplaceListings() {
+  console.log('Facebook scraping disabled for MVP');
+  return [];
+}

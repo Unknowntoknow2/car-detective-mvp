@@ -1,8 +1,7 @@
-// src/scripts/scrapeCarMaxApi.ts
 
-import { fetchCarMaxApiListings } from "../utils/scrapers/carmax-api";
-
-(async () => {
-  const listings = await fetchCarMaxApiListings("Toyota", "Camry", "95814", 5);
-  console.log("✅ CarMax API Listings:", listings);
-})();
+// Temporarily disabled for MVP - missing API integration and dependencies
+export async function scrapeCarMaxApi(make: string, model: string, zipCode: string = "95814") {
+  // Disabled for MVP - missing API integration
+  console.log('CarMax API scraping disabled for MVP');
+  return [];
+}
