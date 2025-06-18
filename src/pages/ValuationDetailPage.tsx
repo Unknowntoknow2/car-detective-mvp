@@ -1,9 +1,9 @@
+
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import UnifiedValuationResult from '@/components/valuation/valuation-core/ValuationResult';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { downloadValuationPdf } from '@/utils/pdf';
 
 export default function ValuationDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,7 +20,7 @@ export default function ValuationDetailPage() {
   if (!valuation) return <div>Valuation not found</div>;
 
   // Fix property access to use correct ValuationResult properties
-  const priceRange = valuation.price_range || valuation.priceRange;
+  const priceRange = valuation.price_range;
   const lowPrice = Array.isArray(priceRange) ? priceRange[0] : (priceRange as any)?.low || (priceRange as any)?.min;
   const highPrice = Array.isArray(priceRange) ? priceRange[1] : (priceRange as any)?.high || (priceRange as any)?.max;
   
@@ -34,10 +34,10 @@ export default function ValuationDetailPage() {
       make: valuation.make,
       model: valuation.model,
       year: valuation.year,
-      mileage: valuation.mileage,
+      mileage: valuation.mileage || 0,
       condition: valuation.condition,
-      estimatedValue: valuation.estimatedValue, // Fix: use correct property name
-      confidenceScore: valuation.confidenceScore, // Fix: use correct property name
+      estimatedValue: valuation.estimatedValue,
+      confidenceScore: valuation.confidenceScore,
       zipCode: valuation.zipCode || '90210',
       adjustments: valuation.adjustments || [],
       generatedAt: new Date().toISOString(),

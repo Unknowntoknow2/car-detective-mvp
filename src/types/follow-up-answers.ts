@@ -25,6 +25,7 @@ export interface ModificationDetails {
   modified?: boolean;
   types?: string[];
   additionalNotes?: string;
+  reversible?: boolean | null;
 }
 
 export type ConditionOption = 'excellent' | 'very-good' | 'good' | 'fair' | 'poor';

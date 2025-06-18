@@ -60,16 +60,27 @@ export interface ReportOptions {
   };
 }
 
-// Add missing SectionParams interface
 export interface SectionParams {
   page: PDFPage;
   margin: number;
   contentWidth: number;
   regularFont: PDFFont;
   boldFont: PDFFont;
+  y?: number;
+  startY: number;
+  width: number;
+  pageWidth: number;
+  fonts: {
+    regular: PDFFont;
+    bold: PDFFont;
+  };
+  data: ReportData;
+  textColor: any;
+  primaryColor: any;
+  secondaryColor: any;
+  options: ReportOptions;
 }
 
-// Add PdfOptions interface for upload function
 export interface PdfOptions {
   isPremium?: boolean;
   includeExplanation?: boolean;
