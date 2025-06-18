@@ -81,7 +81,8 @@ describe('PDF Export', () => {
   });
 
   it('should handle premium options', async () => {
-    const mockDownloadPdf = vi.fn() as typeof vi.Mock;
+    // Fixed: use vi.fn() instead of vi.Mock
+    const mockFunction = vi.fn();
     
     await generatePdf(mockReportData, { isPremium: true });
     expect(mockReportData.estimatedValue).toBe(25000);

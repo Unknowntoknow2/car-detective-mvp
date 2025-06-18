@@ -28,9 +28,13 @@ export function getCompletionPercentage(formData: FollowUpAnswers): number {
     completedOptional++;
   }
   
-  // Modifications check
-  if (formData.modifications && formData.modifications.hasModifications !== undefined) {
-    completedOptional++;
+  // Modifications check - fixed type guard
+  if (formData.modifications) {
+    if (typeof formData.modifications === 'object' && 'hasModifications' in formData.modifications) {
+      completedOptional++;
+    } else if (typeof formData.modifications === 'string') {
+      completedOptional++;
+    }
   }
   
   const requiredWeight = 70; // 70% for required fields
