@@ -52,6 +52,7 @@ export interface ReportOptions {
   includePageNumbers: boolean;
   includePhotos: boolean;
   includeSimilarVehicles: boolean;
+  isPremium?: boolean; // Added missing property
   companyInfo: {
     name: string;
     logo: string | null;

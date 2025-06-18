@@ -27,6 +27,19 @@ interface ForecastChartProps {
   basePrice: number;
 }
 
+// Map forecast trend values to component expected values
+const mapTrendValue = (trend: 'up' | 'down' | 'stable'): 'increasing' | 'decreasing' | 'stable' => {
+  switch (trend) {
+    case 'up':
+      return 'increasing';
+    case 'down':
+      return 'decreasing';
+    case 'stable':
+    default:
+      return 'stable';
+  }
+};
+
 export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
   const { forecastData, isLoading, error } = useForecast(valuationId);
 
@@ -64,6 +77,9 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
       maximumFractionDigits: 0,
     }).format(value);
 
+  // Map the trend value for the component
+  const mappedTrend = forecastData.valueTrend ? mapTrendValue(forecastData.valueTrend) : 'stable';
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -75,7 +91,7 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
             Projected value trend based on market data analysis
           </CardDescription>
         </div>
-        <ForecastTrendIndicator trend={forecastData.valueTrend || 'stable'} />
+        <ForecastTrendIndicator trend={mappedTrend} />
       </CardHeader>
       <CardContent>
         <div className="h-[300px] w-full">
