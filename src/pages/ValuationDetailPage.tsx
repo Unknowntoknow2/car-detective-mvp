@@ -20,7 +20,7 @@ export default function ValuationDetailPage() {
   if (!valuation) return <div>Valuation not found</div>;
 
   // Fix property access to use correct ValuationResult properties
-  const priceRange = valuation.price_range;
+  const priceRange = valuation.priceRange;
   const lowPrice = Array.isArray(priceRange) ? priceRange[0] : (priceRange as any)?.low || (priceRange as any)?.min;
   const highPrice = Array.isArray(priceRange) ? priceRange[1] : (priceRange as any)?.high || (priceRange as any)?.max;
   
@@ -35,7 +35,7 @@ export default function ValuationDetailPage() {
       model: valuation.model,
       year: valuation.year,
       mileage: valuation.mileage || 0,
-      condition: valuation.condition,
+      condition: valuation.condition || 'Good',
       estimatedValue: valuation.estimatedValue,
       confidenceScore: valuation.confidenceScore,
       zipCode: valuation.zipCode || '90210',
@@ -64,8 +64,8 @@ export default function ValuationDetailPage() {
       <UnifiedValuationResult
         displayMode="full"
         vehicleInfo={vehicleInfo}
-        estimatedValue={valuation.estimatedValue || valuation.estimated_value || 0}
-        confidenceScore={valuation.confidenceScore || valuation.confidence_score || 85}
+        estimatedValue={valuation.estimatedValue}
+        confidenceScore={valuation.confidenceScore}
         priceRange={priceRange}
         adjustments={valuation.adjustments || []}
       />

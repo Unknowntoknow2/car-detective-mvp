@@ -141,7 +141,7 @@ export function processModifications(modifications: string | ModificationDetails
       hasModifications: modifications.toLowerCase() === 'yes' || modifications.toLowerCase() === 'true',
       types: [],
       modified: modifications.toLowerCase() === 'yes' || modifications.toLowerCase() === 'true',
-      reversible: null
+      reversible: undefined
     };
   }
   
@@ -155,6 +155,6 @@ export function processModifications(modifications: string | ModificationDetails
     hasModifications: false,
     types: [],
     modified: false,
-    reversible: null
+    reversible: undefined
   };
 }
