@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Layout } from "@/components/layout/Layout";
+import { Layout } from "@/components/layout";
 
 export default function PremiumResultsPage() {
   const { id } = useParams<{ id: string }>();
