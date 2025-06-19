@@ -80,6 +80,15 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
   // Map the trend value for the component
   const mappedTrend = forecastData.valueTrend ? mapTrendValue(forecastData.valueTrend) : 'stable';
 
+  // Parse percentage change to number if it's a string
+  const parsePercentageChange = (value: string | number): number => {
+    if (typeof value === 'string') {
+      // Remove % sign and convert to number
+      return parseFloat(value.replace('%', ''));
+    }
+    return value;
+  };
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -136,7 +145,7 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
         </div>
         <ForecastMetrics
           bestTimeToSell={forecastData.bestTimeToSell || 'Spring'}
-          percentageChange={forecastData.percentageChange || '0%'}
+          percentageChange={parsePercentageChange(forecastData.percentageChange || '0%')}
           lowestValue={typeof forecastData.lowestValue === 'string' ? parseInt(forecastData.lowestValue) || basePrice : Number(forecastData.lowestValue) || basePrice}
           highestValue={typeof forecastData.highestValue === 'string' ? parseInt(forecastData.highestValue) || basePrice : Number(forecastData.highestValue) || basePrice}
         />

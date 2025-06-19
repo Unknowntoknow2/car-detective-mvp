@@ -1,4 +1,5 @@
 
+
 import { AICondition } from "@/types/photo";
 
 /**
@@ -13,7 +14,6 @@ export async function getBestPhotoAssessment(valuationId: string) {
     aiCondition: {
       condition: 'Good' as const,
       confidence: 85,
-      confidenceScore: 85,
       issuesDetected: [],
       aiSummary: 'Mock AI analysis',
       description: 'Mock condition assessment'
