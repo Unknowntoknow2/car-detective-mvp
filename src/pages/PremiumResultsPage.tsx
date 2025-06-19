@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import MainLayout from "@/components/layout/MainLayout";
+import { Layout } from "@/components/layout/Layout";
 
 export default function PremiumResultsPage() {
   const { id } = useParams<{ id: string }>();
@@ -21,17 +21,17 @@ export default function PremiumResultsPage() {
 
   if (isLoading) {
     return (
-      <MainLayout>
+      <Layout>
         <div className="container mx-auto py-8">
           <div className="text-center">Loading premium results...</div>
         </div>
-      </MainLayout>
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <MainLayout>
+      <Layout>
         <div className="container mx-auto py-8">
           <Card>
             <CardHeader>
@@ -42,12 +42,12 @@ export default function PremiumResultsPage() {
             </CardContent>
           </Card>
         </div>
-      </MainLayout>
+      </Layout>
     );
   }
 
   return (
-    <MainLayout>
+    <Layout>
       <div className="container mx-auto py-8">
         <Card>
           <CardHeader>
@@ -60,6 +60,6 @@ export default function PremiumResultsPage() {
           </CardContent>
         </Card>
       </div>
-    </MainLayout>
+    </Layout>
   );
 }

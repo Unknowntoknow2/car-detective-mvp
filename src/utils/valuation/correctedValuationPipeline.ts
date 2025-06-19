@@ -1,3 +1,4 @@
+
 import { ReportData, ValuationResult, AdjustmentBreakdown, PdfOptions } from "@/types/valuation";
 import { generateValuationPdf } from "../pdf/generateValuationPdf";
 import { calculateValuationAdjustments, calculateFinalValuation } from "../rulesEngine";
@@ -94,9 +95,9 @@ export async function runCorrectedValuationPipeline(
       adjustments: [],
     };
 
-    const adjustments: AdjustmentBreakdown[] = calculateValuationAdjustments(
-      rulesEngineInput
-    );
+    // Get adjustments and await the promise
+    const adjustments: AdjustmentBreakdown[] = await calculateValuationAdjustments(rulesEngineInput);
+    
     const finalValuation = {
       ...baseValuation,
       adjustments,
@@ -154,7 +155,6 @@ export async function runCorrectedValuationPipeline(
       isPremium: params.isPremium || false,
       includeExplanation: params.isPremium || false,
       marketplaceListings: [],
-      includeAuctionData: params.isPremium || false,
     };
 
     const pdfBuffer = await generateValuationPdf(reportData, pdfOptions);

@@ -1,7 +1,5 @@
+
 import { getStatVinData } from './sources/statvin';
-import { getFacebookListings } from './sources/facebook';
-import { getCraigslistListings } from './sources/craigslist';
-import { getEbayListings } from './sources/ebay';
 import { fetchMarketplaceListings, MarketplaceSearchParams } from './sources/fetchMarketplaceListings';
 import { EnrichedVehicleData } from './types';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,12 +25,9 @@ export async function getEnrichedVehicleData(
   console.log('🔄 Fetching fresh enrichment data...');
   
   try {
-    // Fetch all data sources in parallel
-    const [statVinData, facebookData, craigslistData, ebayData, marketplaceData] = await Promise.allSettled([
+    // Fetch available data sources
+    const [statVinData, marketplaceData] = await Promise.allSettled([
       getStatVinData(vin),
-      getFacebookListings(vin, make, model, year),
-      getCraigslistListings(vin, make, model, year),
-      getEbayListings(vin, make, model, year),
       make && model && year ? fetchMarketplaceListings({
         make,
         model,
@@ -52,9 +47,9 @@ export async function getEnrichedVehicleData(
       lastUpdated: new Date().toISOString(),
       sources: {
         statVin: statVinData.status === 'fulfilled' ? statVinData.value : null,
-        facebook: facebookData.status === 'fulfilled' ? facebookData.value : null,
-        craigslist: craigslistData.status === 'fulfilled' ? craigslistData.value : null,
-        ebay: ebayData.status === 'fulfilled' ? ebayData.value : null,
+        facebook: null,
+        craigslist: null,
+        ebay: null,
         carsdotcom: marketplaceData.status === 'fulfilled' ? marketplaceData.value.bySource.carscom : null,
         offerup: null // Reserved for future implementation
       }
@@ -181,19 +176,6 @@ export function calculateMarketValue(enrichedData: EnrichedVehicleData): {
     const price = parseFloat(enrichedData.sources.statVin.salePrice.replace(/[,$]/g, ''));
     if (!isNaN(price)) prices.push(price);
   }
-
-  // Collect prices from marketplace sources
-  [
-    enrichedData.sources.facebook,
-    enrichedData.sources.craigslist,
-    enrichedData.sources.ebay
-  ].forEach(listings => {
-    if (Array.isArray(listings)) {
-      listings.forEach(listing => {
-        if (listing.price > 0) prices.push(listing.price);
-      });
-    }
-  });
 
   if (prices.length === 0) {
     return { averagePrice: 0, priceRange: [0, 0], dataPoints: 0 };

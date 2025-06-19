@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { calculateFinalValuation } from "./valuationCalculator";
+import { calculateFinalValuation } from "./valuation/valuationCalculator";
 import { AdjustmentBreakdown } from '@/types/valuation';
 
 interface ExplanationParams {
@@ -15,7 +15,14 @@ interface ExplanationParams {
 
 export async function generateValuationExplanation(params: ExplanationParams): Promise<string> {
   try {
-    const valuationDetails = calculateFinalValuation(params);
+    const valuationDetails = await calculateFinalValuation({
+      make: params.make,
+      model: params.model,
+      year: params.year,
+      mileage: params.mileage,
+      condition: params.condition,
+      zipCode: params.location
+    });
     
     const adjustments = (valuationDetails.adjustments || []).map((adj: AdjustmentBreakdown) => ({
       factor: adj.name || adj.factor || 'Unknown',
