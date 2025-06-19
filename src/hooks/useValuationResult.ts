@@ -19,7 +19,7 @@ export const useValuationResult = () => {
     estimatedValue: 18000,
     zipCode: '90210',
     adjustments: [],
-    price_range: [17000, 19000]
+    priceRange: [17000, 19000]
   };
 
   useEffect(() => {

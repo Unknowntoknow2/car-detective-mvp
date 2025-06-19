@@ -137,8 +137,8 @@ export function ForecastChart({ valuationId, basePrice }: ForecastChartProps) {
         <ForecastMetrics
           bestTimeToSell={forecastData.bestTimeToSell || 'Spring'}
           percentageChange={forecastData.percentageChange || '0%'}
-          lowestValue={Number(forecastData.lowestValue) || basePrice}
-          highestValue={Number(forecastData.highestValue) || basePrice}
+          lowestValue={typeof forecastData.lowestValue === 'string' ? parseInt(forecastData.lowestValue) || basePrice : Number(forecastData.lowestValue) || basePrice}
+          highestValue={typeof forecastData.highestValue === 'string' ? parseInt(forecastData.highestValue) || basePrice : Number(forecastData.highestValue) || basePrice}
         />
       </CardContent>
     </Card>

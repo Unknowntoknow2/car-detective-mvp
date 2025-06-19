@@ -47,7 +47,7 @@ export async function getValuationContext(
       color: data.color,
       bodyType: data.body_type,
       estimatedValue: data.estimated_value,
-      premium_unlocked: data.premium_unlocked,
+      isPremium: data.premium_unlocked,
     };
   } catch (error) {
     console.error("Failed to get valuation context:", error);

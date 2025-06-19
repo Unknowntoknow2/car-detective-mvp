@@ -2612,6 +2612,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_trims_by_make_model_year: {
+        Args: { input_make: string; input_model: string; input_year: number }
+        Returns: {
+          id: string
+          trim_name: string
+          engine_type: string
+          transmission: string
+          fuel_type: string
+          msrp: number
+          image_url: string
+        }[]
+      }
       get_user_referral_stats: {
         Args: { user_id: string }
         Returns: {

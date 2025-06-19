@@ -13,7 +13,12 @@ export const useValuationChat = () => {
     
     setLoading(true);
     // Mock chat functionality
-    const newMessage: ChatMessage = { role: 'user', content: message };
+    const newMessage: ChatMessage = { 
+      id: `msg-${Date.now()}`,
+      role: 'user', 
+      content: message,
+      timestamp: new Date().toISOString()
+    };
     setMessages(prev => [...prev, newMessage]);
     setLoading(false);
   };
