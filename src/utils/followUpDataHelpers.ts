@@ -139,9 +139,7 @@ export function processModifications(modifications: string | ModificationDetails
   if (typeof modifications === 'string') {
     return {
       hasModifications: modifications.toLowerCase() === 'yes' || modifications.toLowerCase() === 'true',
-      types: [],
-      modified: modifications.toLowerCase() === 'yes' || modifications.toLowerCase() === 'true',
-      reversible: undefined
+      types: []
     };
   }
   
@@ -153,8 +151,6 @@ export function processModifications(modifications: string | ModificationDetails
   // Default fallback
   return {
     hasModifications: false,
-    types: [],
-    modified: false,
-    reversible: undefined
+    types: []
   };
 }
