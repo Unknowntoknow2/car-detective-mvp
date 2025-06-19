@@ -15,7 +15,7 @@ export async function getBestPhotoAssessment(valuationId: string) {
       condition: 'Good' as const,
       confidence: 85,
       issuesDetected: [],
-      aiSummary: 'Mock AI analysis',
+      summary: 'Mock AI analysis',
       description: 'Mock condition assessment'
     } satisfies AICondition,
     photoScores: [
