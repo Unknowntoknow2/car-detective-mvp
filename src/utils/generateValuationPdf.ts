@@ -1,5 +1,6 @@
 
-import { ReportData } from "@/utils/pdf/types";
+import { ReportData } from "@/types/valuation";
+import { generateValuationPdf as generatePdf } from "./pdf/generateValuationPdf";
 
 export async function generateValuationPdf(
   data: any,
@@ -12,30 +13,24 @@ export async function generateValuationPdf(
     includePhotoAssessment?: boolean;
   } = {},
 ): Promise<Uint8Array> {
-  const defaultOptions = {
-    isPremium: false,
-    includeBranding: true,
-    includeAIScore: true,
-    includeFooter: true,
-    includeTimestamp: true,
-    includePhotoAssessment: true,
+  const reportData: ReportData = {
+    id: data.id || 'unknown',
+    make: data.make || 'Unknown',
+    model: data.model || 'Unknown',
+    year: data.year || new Date().getFullYear(),
+    mileage: data.mileage || 0,
+    condition: data.condition || 'Good',
+    estimatedValue: data.estimatedValue || 0,
+    price: data.price || data.estimatedValue || 0,
+    confidenceScore: data.confidenceScore || 0,
+    zipCode: data.zipCode || '',
+    adjustments: data.adjustments || [],
+    generatedAt: new Date().toISOString(),
+    priceRange: data.priceRange || [0, 0],
+    vin: data.vin
   };
 
-  const mergedOptions = { ...defaultOptions, ...options };
-
-  if (mergedOptions.isPremium) {
-    console.log("Generating premium PDF with enhanced data for:", data);
-  } else {
-    console.log("Generating basic PDF for:", data);
-  }
-
-  const adjustments = (data.adjustments || []).map((adj: any) => ({
-    factor: adj.factor,
-    impact: adj.impact,
-    description: adj.description || "",
-  }));
-
-  return new Uint8Array([0]);
+  return await generatePdf(reportData, options);
 }
 
 export const downloadValuationPdf = async (
@@ -50,7 +45,7 @@ export const downloadValuationPdf = async (
     
     const link = document.createElement('a');
     link.href = url;
-    link.download = fileName || `CarDetective_Valuation_${data.make}_${data.model}_${Date.now()}.pdf`;
+    link.download = fileName || `Valuation_${data.make}_${data.model}_${Date.now()}.pdf`;
     document.body.appendChild(link);
     link.click();
     

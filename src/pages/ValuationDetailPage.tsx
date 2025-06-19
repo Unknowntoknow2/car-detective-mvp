@@ -3,30 +3,15 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import UnifiedValuationResult from '@/components/valuation/valuation-core/ValuationResult';
-import { downloadValuationPdf } from '@/utils/pdf';
+import { downloadValuationPdf } from '@/utils/generateValuationPdf';
 
 export default function ValuationDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { valuation, loading, error } = useValuationResult();
+  const { valuation, loading, error } = useValuationResult(id);
 
-  // Mock result for the specific ID
-  React.useEffect(() => {
-    // This would normally fetch the result by ID
-    console.log('Loading valuation for ID:', id);
-  }, [id]);
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!valuation) return <div>Valuation not found</div>;
-
-  // Fix property access to use correct ValuationResult properties
-  const priceRange = valuation.priceRange;
-  const lowPrice = Array.isArray(priceRange) ? priceRange[0] : (priceRange as any)?.low || (priceRange as any)?.min;
-  const highPrice = Array.isArray(priceRange) ? priceRange[1] : (priceRange as any)?.high || (priceRange as any)?.max;
-  
-  // Calculate fallback price range if none exists
-  const calculatedLowPrice = lowPrice || Math.floor(valuation.estimatedValue * 0.95);
-  const calculatedHighPrice = highPrice || Math.ceil(valuation.estimatedValue * 1.05);
+  if (loading) return <div className="container mx-auto py-8">Loading valuation...</div>;
+  if (error) return <div className="container mx-auto py-8">Error: {error}</div>;
+  if (!valuation) return <div className="container mx-auto py-8">Valuation not found</div>;
 
   const handleDownloadPdf = async () => {
     const reportData = {
@@ -38,11 +23,11 @@ export default function ValuationDetailPage() {
       condition: valuation.condition || 'Good',
       estimatedValue: valuation.estimatedValue,
       confidenceScore: valuation.confidenceScore,
-      zipCode: valuation.zipCode || '90210',
+      zipCode: valuation.zipCode || '',
       adjustments: valuation.adjustments || [],
       generatedAt: new Date().toISOString(),
       price: valuation.estimatedValue,
-      priceRange: [calculatedLowPrice, calculatedHighPrice] as [number, number],
+      priceRange: valuation.priceRange || [valuation.estimatedValue * 0.95, valuation.estimatedValue * 1.05] as [number, number],
       vin: valuation.vin
     };
     
@@ -66,9 +51,18 @@ export default function ValuationDetailPage() {
         vehicleInfo={vehicleInfo}
         estimatedValue={valuation.estimatedValue}
         confidenceScore={valuation.confidenceScore}
-        priceRange={priceRange}
+        priceRange={valuation.priceRange}
         adjustments={valuation.adjustments || []}
       />
+      
+      <div className="mt-6">
+        <button
+          onClick={handleDownloadPdf}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Download PDF Report
+        </button>
+      </div>
     </div>
   );
 }
