@@ -1,5 +1,6 @@
 
-import { ReportData } from './types';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { ReportData } from '@/types/valuation';
 
 interface PdfOptions {
   isPremium?: boolean;
@@ -11,15 +12,64 @@ export async function generateValuationPdf(
   data: ReportData, 
   options: PdfOptions = {}
 ): Promise<Uint8Array> {
-  // Mock PDF generation - in real implementation, this would use pdf-lib or similar
-  const pdfContent = `
-    Vehicle Valuation Report
-    ${data.year} ${data.make} ${data.model}
-    Estimated Value: $${data.estimatedValue.toLocaleString()}
-    Confidence Score: ${data.confidenceScore}%
-    Generated: ${data.generatedAt}
-  `;
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([595.28, 841.89]); // A4 size
+  const { width, height } = page.getSize();
   
-  // Return mock PDF bytes
-  return new Uint8Array(Buffer.from(pdfContent, 'utf-8'));
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  
+  // Header
+  page.drawText('Vehicle Valuation Report', {
+    x: 50,
+    y: height - 50,
+    size: 24,
+    font: boldFont,
+    color: rgb(0, 0, 0),
+  });
+  
+  // Vehicle info
+  page.drawText(`${data.year} ${data.make} ${data.model}`, {
+    x: 50,
+    y: height - 100,
+    size: 16,
+    font: boldFont,
+  });
+  
+  // Valuation
+  page.drawText(`Estimated Value: $${data.estimatedValue.toLocaleString()}`, {
+    x: 50,
+    y: height - 130,
+    size: 14,
+    font: font,
+  });
+  
+  page.drawText(`Confidence Score: ${data.confidenceScore}%`, {
+    x: 50,
+    y: height - 150,
+    size: 14,
+    font: font,
+  });
+  
+  // Adjustments
+  if (data.adjustments && data.adjustments.length > 0) {
+    page.drawText('Price Adjustments:', {
+      x: 50,
+      y: height - 190,
+      size: 14,
+      font: boldFont,
+    });
+    
+    data.adjustments.forEach((adj, index) => {
+      const yPos = height - 220 - (index * 20);
+      page.drawText(`${adj.factor}: ${adj.impact > 0 ? '+' : ''}$${adj.impact}`, {
+        x: 70,
+        y: yPos,
+        size: 12,
+        font: font,
+      });
+    });
+  }
+  
+  return await pdfDoc.save();
 }

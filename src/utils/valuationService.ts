@@ -1,75 +1,85 @@
 
-
 import { AICondition } from "@/types/photo";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Get the best photo assessment for a valuation
  */
 export async function getBestPhotoAssessment(valuationId: string) {
-  // This would normally fetch from an API or database
-  console.log("Getting photo assessment for:", valuationId);
+  try {
+    const { data, error } = await supabase
+      .from('photo_assessments')
+      .select('*')
+      .eq('valuation_id', valuationId)
+      .order('score', { ascending: false })
+      .limit(1)
+      .single();
 
-  // Return mock data for now
-  return {
-    aiCondition: {
-      condition: 'Good' as const,
-      confidence: 85,
-      issuesDetected: [],
-      summary: 'Mock AI analysis',
-      description: 'Mock condition assessment'
-    } satisfies AICondition,
-    photoScores: [
-      {
-        url: "https://example.com/photo1.jpg",
-        score: 0.85,
-        isPrimary: true,
-      },
-      {
-        url: "https://example.com/photo2.jpg",
-        score: 0.75,
-      },
-    ],
-  };
+    if (error) throw error;
+
+    return {
+      aiCondition: {
+        condition: data.condition as 'Excellent' | 'Good' | 'Fair' | 'Poor',
+        confidence: data.confidence,
+        issuesDetected: data.issues_detected || [],
+        summary: data.summary,
+        description: data.description
+      } satisfies AICondition,
+      photoScores: data.photo_scores || []
+    };
+  } catch (error) {
+    console.error('Error fetching photo assessment:', error);
+    return null;
+  }
 }
 
-// Add missing functions for useValuationHistory.ts
 export async function getUserValuations(userId: string) {
-  console.log('Fetching valuations for user:', userId);
-  // Return mock data for demonstration purposes
-  return [
-    {
-      id: '1',
-      make: 'Toyota',
-      model: 'Camry',
-      year: 2020,
-      mileage: 35000,
-      vin: 'JT2BF22K1W0123456',
-      estimatedValue: 22500,
-      photoUrl: 'https://example.com/camry.jpg',
-      photoScore: 0.85,
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: '2',
-      make: 'Honda',
-      model: 'Accord',
-      year: 2019,
-      mileage: 42000,
-      vin: 'JH4KA7660PC003114',
-      estimatedValue: 21000,
-      photoUrl: 'https://example.com/accord.jpg',
-      photoScore: 0.82,
-      createdAt: new Date().toISOString()
-    }
-  ];
+  try {
+    const { data, error } = await supabase
+      .from('valuations')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching user valuations:', error);
+    return [];
+  }
 }
 
 export async function getSavedValuations(userId: string) {
-  return [];
+  try {
+    const { data, error } = await supabase
+      .from('saved_valuations')
+      .select('*')
+      .eq('user_id', userId)
+      .order('saved_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching saved valuations:', error);
+    return [];
+  }
 }
 
 export async function getPremiumValuations(userId: string) {
-  return [];
+  try {
+    const { data, error } = await supabase
+      .from('valuations')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('premium_unlocked', true)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching premium valuations:', error);
+    return [];
+  }
 }
 
 export async function getValuationHistory(userId: string) {

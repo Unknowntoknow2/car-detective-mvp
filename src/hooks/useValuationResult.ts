@@ -1,46 +1,61 @@
 
 import { useState, useEffect } from 'react';
 import { ValuationResult } from '@/types/valuation';
+import { getValuationById } from '@/utils/valuation';
 
-export const useValuationResult = () => {
+export const useValuationResult = (valuationId?: string) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ValuationResult | null>(null);
 
-  // Mock valuation data for demonstration purposes
-  const mockValuation: ValuationResult = {
-    id: '123',
-    make: 'Toyota',
-    model: 'Camry',
-    year: 2020,
-    mileage: 50000,
-    condition: 'Good',
-    confidenceScore: 0.85,
-    estimatedValue: 18000,
-    zipCode: '90210',
-    adjustments: [],
-    priceRange: [17000, 19000]
-  };
-
   useEffect(() => {
+    if (valuationId) {
+      fetchValuation(valuationId);
+    }
+  }, [valuationId]);
+
+  const fetchValuation = async (id: string) => {
     setLoading(true);
-    setTimeout(() => {
-      setResult(mockValuation);
+    setError(null);
+    
+    try {
+      const data = await getValuationById(id);
+      if (data) {
+        setResult({
+          id: data.id,
+          make: data.make,
+          model: data.model,
+          year: data.year,
+          mileage: data.mileage,
+          condition: data.condition,
+          estimatedValue: data.estimated_value,
+          confidenceScore: data.confidence_score,
+          priceRange: [
+            Math.floor(data.estimated_value * 0.95),
+            Math.ceil(data.estimated_value * 1.05)
+          ],
+          adjustments: [],
+          zipCode: data.state
+        });
+      }
+    } catch (err) {
+      setError('Failed to fetch valuation');
+    } finally {
       setLoading(false);
-    }, 500);
-  }, []);
+    }
+  };
 
   const calculateValuation = async (data: any) => {
     setLoading(true);
+    setError(null);
+    
     try {
-      // Mock calculation
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setResult({
-        ...mockValuation,
-        ...data
-      });
+      // This would integrate with actual valuation service
+      const result = await fetchValuation(data.id);
+      return result;
     } catch (err) {
       setError('Failed to calculate valuation');
+      return null;
     } finally {
       setLoading(false);
     }
@@ -52,6 +67,6 @@ export const useValuationResult = () => {
     result,
     isLoading: loading,
     calculateValuation,
-    valuation: result || mockValuation
+    valuation: result
   };
 };

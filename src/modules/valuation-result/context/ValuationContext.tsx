@@ -1,3 +1,4 @@
+
 import React, { createContext, ReactNode, useContext } from "react";
 import { ValuationResult } from "@/types/valuation";
 
@@ -33,10 +34,10 @@ export const ValuationProvider: React.FC<ValuationProviderProps> = (
   );
 };
 
-export const useValuation = (): ValuationContextType => {
+export const useValuationContext = (): ValuationContextType => {
   const context = useContext(ValuationContext);
   if (context === undefined) {
-    throw new Error("useValuation must be used within a ValuationProvider");
+    throw new Error("useValuationContext must be used within a ValuationProvider");
   }
   return context;
 };
