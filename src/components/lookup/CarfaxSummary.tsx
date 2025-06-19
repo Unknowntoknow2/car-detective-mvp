@@ -1,6 +1,7 @@
+
 import { AlertTriangle, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CarfaxData } from "@/utils/carfax/mockCarfaxService";
+import { CarfaxData } from "@/utils/carfax/carfaxService";
 
 interface CarfaxSummaryProps {
   carfaxData: CarfaxData;

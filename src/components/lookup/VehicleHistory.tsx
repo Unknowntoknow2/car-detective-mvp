@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { mockCarfaxService, CarfaxData } from '@/utils/carfax/mockCarfaxService';
+import { carfaxService, CarfaxData } from '@/utils/carfax/carfaxService';
 
 interface VehicleHistoryProps {
   vin: string;
@@ -17,7 +17,7 @@ export function VehicleHistory({ vin, carfaxData }: VehicleHistoryProps) {
   const handleFetchHistory = async () => {
     setIsLoading(true);
     try {
-      const historyData = await mockCarfaxService.getCarfaxData(vin);
+      const historyData = await carfaxService.getCarfaxData(vin);
       setData(historyData);
     } catch (error) {
       console.error('Error fetching vehicle history:', error);
