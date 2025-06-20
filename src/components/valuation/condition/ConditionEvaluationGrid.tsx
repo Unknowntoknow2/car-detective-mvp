@@ -138,7 +138,7 @@ export function ConditionEvaluationGrid(
                     label={displayName}
                     options={options as ConditionOption[]}
                     value={numericValue}
-                    onChange={(value) => onChange(id, value)}
+                    onChange={(factorId: string, value: number) => onChange(factorId, value)}
                     ariaLabel={`${displayName} condition slider`}
                   />
                 );
