@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { ConditionSelectorBar, ConditionLevel } from '@/components/common/ConditionSelectorBar';
+import { ConditionSelectorSegmented } from '@/components/lookup/ConditionSelectorSegmented';
+import { ConditionLevel } from '@/types/condition';
 
 interface ConditionInputProps {
   condition: ConditionLevel;
@@ -14,17 +15,12 @@ export function ConditionInput({
   setCondition,
   disabled = false 
 }: ConditionInputProps) {
-  const handleChange = (value: string) => {
-    setCondition(value as ConditionLevel);
-  };
-
   return (
     <div>
       <Label htmlFor="condition">Condition</Label>
-      <ConditionSelectorBar
+      <ConditionSelectorSegmented
         value={condition}
-        onChange={handleChange}
-        disabled={disabled}
+        onChange={setCondition}
       />
     </div>
   );

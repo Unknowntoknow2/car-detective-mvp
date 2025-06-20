@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import React from 'react';
-import { AccidentDetails } from '@/types/accident-details';
+import { AccidentDetails } from '@/types/follow-up-answers';
 
 export interface AccidentImpact {
   totalImpact: number;
