@@ -1,9 +1,10 @@
+
 import React, { useState, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AICondition } from "@/types/photo";
-import { PhotoUpload } from "@/components/photo/PhotoUpload";
+import { PhotoUpload } from "@/components/premium/lookup/PhotoUpload";
 
 interface TabContentProps {
   vehicle: any;
@@ -40,19 +41,13 @@ export const TabContent: React.FC<TabContentProps> = ({
 
       <div>
         <Label>Upload Photos</Label>
-        {/* Fix the PhotoUpload component usage */}
-          <PhotoUpload
-            isLoading={isLoading}
-            vehicle={vehicle}
-            onPhotosChange={(photos) => {
-              console.log('Photos changed:', photos);
-              // Handle photo changes here
-            }}
-            onPhotoUpload={(files: File[]) => {
-              console.log('Photos uploaded:', files);
-              onPhotoUpload(files);
-            }}
-          />
+        <PhotoUpload
+          isLoading={isLoading}
+          onSubmit={(files: File[]) => {
+            console.log('Photos uploaded:', files);
+            onPhotoUpload(files);
+          }}
+        />
       </div>
 
       <div>

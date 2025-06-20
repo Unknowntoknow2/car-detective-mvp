@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,7 +5,7 @@ import { MarketTrendCard } from './market-analysis/MarketTrendCard';
 import { LocalMarketCard } from './market-analysis/LocalMarketCard';
 import { PriceComparisonChart } from './market-analysis/PriceComparisonChart';
 import { ComparableListingsTable } from './market-analysis/ComparableListingsTable';
-import { PremiumFeatureLock } from '@/components/premium/PremiumFeatureLock';
+import { PremiumFeatureLock } from '@/components/valuation/market-trend/PremiumLockSection';
 import { useMarketInsights } from '@/hooks/useMarketInsights';
 import { Loader2, AlertTriangle } from 'lucide-react';
 
@@ -39,10 +38,9 @@ export function MarketInsightsTab({
   if (!isPremium) {
     return (
       <PremiumFeatureLock
-        valuationId={valuationId}
+        onUpgrade={onUpgrade || (() => {})}
         feature="market analysis"
         ctaText="Unlock Market Analysis"
-        returnUrl={`/valuation/${valuationId}`}
       />
     );
   }
@@ -119,7 +117,7 @@ export function MarketInsightsTab({
                 trend={mapTrendDirection(data.trendDirection)}
                 trendPercentage={data.trendPercentage}
                 listingCount={data.similarListings}
-                averageDaysOnMarket={45} // Sample value
+                averageDaysOnMarket={45}
               />
               
               <LocalMarketCard
@@ -147,7 +145,7 @@ export function MarketInsightsTab({
           
           <TabsContent value="listings" className="pt-4">
             {comparableListings.length > 0 ? (
-              <ComparableListingsTable listings={comparableListings.map((listing, index) => ({
+              <ComparableListingsTable listings={comparableListings.map((listing: any, index: number) => ({
                 id: listing.id || `listing-${index}`,
                 title: listing.title,
                 price: listing.price,
