@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LoadingButton } from '@/components/common/LoadingButton';
+import { LoadingButton } from '@/components/common/UnifiedLoadingSystem';
 
 interface ValuationFormActionsProps {
   onGetValuation: () => void;
