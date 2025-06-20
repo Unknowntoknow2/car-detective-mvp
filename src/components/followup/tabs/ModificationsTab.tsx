@@ -28,6 +28,7 @@ export function ModificationsTab({ formData, updateFormData }: ModificationsTabP
     }
     return {
       hasModifications: false,
+      modified: false,
       types: []
     };
   };
@@ -47,6 +48,7 @@ export function ModificationsTab({ formData, updateFormData }: ModificationsTabP
     const updatedData: ModificationDetails = {
       ...modData,
       hasModifications: true,
+      modified: true,
       types: updatedMods
     };
 
@@ -57,6 +59,7 @@ export function ModificationsTab({ formData, updateFormData }: ModificationsTabP
     const updatedData: ModificationDetails = {
       ...modData,
       hasModifications: modData.hasModifications || false,
+      modified: modData.modified || false,
       types: modData.types || [],
       additionalNotes: e.target.value
     };

@@ -16,7 +16,13 @@ export function FinalReviewTab({ formData }: FinalReviewTabProps) {
     if (typeof formData.accident_history === 'object' && formData.accident_history !== null) {
       return formData.accident_history;
     }
-    return { hadAccident: false };
+    return { 
+      hadAccident: false, 
+      count: 0, 
+      severity: 'minor', 
+      repaired: false, 
+      frameDamage: false 
+    };
   };
 
   const getServiceData = (): ServiceHistoryDetails => {

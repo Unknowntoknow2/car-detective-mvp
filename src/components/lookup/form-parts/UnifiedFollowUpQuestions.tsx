@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TitleStatusSection } from './TitleStatusSection';
 import { AdditionalDetailsSection } from './AdditionalDetailsSection';
@@ -23,6 +22,7 @@ export function UnifiedFollowUpQuestions({
     hadAccident: false,
     severity: 'minor',
     repaired: false,
+    frameDamage: false,
     count: 0,
     location: '',
     description: ''
@@ -48,10 +48,11 @@ export function UnifiedFollowUpQuestions({
     
     return {
       hadAccident: Boolean(existing.hadAccident),
-      severity: (existing.severity === 'minor' || existing.severity === 'moderate' || existing.severity === 'severe') 
+      severity: (existing.severity === 'minor' || existing.severity === 'moderate' || existing.severity === 'major') 
         ? existing.severity 
         : 'minor',
       repaired: existing.repaired ?? false,
+      frameDamage: existing.frameDamage ?? false,
       count: existing.count ?? 0,
       location: existing.location ?? '',
       description: existing.description ?? ''
@@ -118,7 +119,7 @@ export function UnifiedFollowUpQuestions({
           const existingDetails = getExistingAccidentDetails();
           const updatedDetails: AccidentDetails = {
             ...existingDetails,
-            severity: value as 'minor' | 'moderate' | 'severe'
+            severity: value as 'minor' | 'moderate' | 'major'
           };
           updateFormData({ accidentDetails: updatedDetails });
         }}

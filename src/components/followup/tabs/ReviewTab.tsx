@@ -16,14 +16,24 @@ export function ReviewTab({ formData }: ReviewTabProps) {
     if (typeof formData.accident_history === 'object' && formData.accident_history !== null) {
       return formData.accident_history;
     }
-    return { hadAccident: false };
+    return { 
+      hadAccident: false, 
+      count: 0, 
+      severity: 'minor', 
+      repaired: false, 
+      frameDamage: false 
+    };
   };
 
   const getModificationData = (): ModificationDetails => {
     if (typeof formData.modifications === 'object' && formData.modifications !== null) {
       return formData.modifications;
     }
-    return { hasModifications: false };
+    return { 
+      hasModifications: false, 
+      modified: false, 
+      types: [] 
+    };
   };
 
   const accidentData = getAccidentData();

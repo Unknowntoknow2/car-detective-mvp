@@ -1,4 +1,3 @@
-
 export interface ServiceHistoryDetails {
   hasRecords: boolean;
   lastService?: string;
@@ -29,6 +28,7 @@ export interface AccidentDetails {
   description?: string;
   types?: string[];
   repairShops?: string[];
+  airbagDeployment?: boolean;
 }
 
 export type TireConditionOption = 'excellent' | 'good' | 'worn' | 'replacement';
