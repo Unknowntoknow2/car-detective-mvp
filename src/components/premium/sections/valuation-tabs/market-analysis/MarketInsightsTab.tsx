@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,7 +5,7 @@ import { MarketTrendCard } from './MarketTrendCard';
 import { LocalMarketCard } from './LocalMarketCard';
 import { PriceComparisonChart } from './PriceComparisonChart';
 import { ComparableListingsTable } from './ComparableListingsTable';
-import { PremiumFeatureLock } from '@/components/premium/PremiumFeatureLock';
+import { PremiumFeatureLock } from '@/components/valuation/market-trend/PremiumLockSection';
 import { useMarketInsights } from '@/hooks/useMarketInsights';
 import { Loader2, AlertTriangle } from 'lucide-react';
 
@@ -50,10 +49,9 @@ export function MarketInsightsTab({
   if (!isPremium) {
     return (
       <PremiumFeatureLock
-        valuationId={valuationId}
+        onUpgrade={onUpgrade || (() => {})}
         feature="market analysis"
         ctaText="Unlock Market Analysis"
-        returnUrl={`/valuation/${valuationId}`}
       />
     );
   }
@@ -130,7 +128,7 @@ export function MarketInsightsTab({
                 trend={mapTrendDirection(data.trendDirection)}
                 trendPercentage={data.trendPercentage}
                 listingCount={data.similarListings}
-                averageDaysOnMarket={45} // Sample value
+                averageDaysOnMarket={45}
               />
               
               <LocalMarketCard

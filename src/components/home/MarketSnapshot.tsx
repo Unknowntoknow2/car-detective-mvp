@@ -2,14 +2,18 @@ import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ZipValidation } from "@/components/common/ZipValidation";
 import {
   ChartLine,
   ChevronsUpDown,
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient"; // ✅ Fixed import
+import { supabase } from "@/lib/supabaseClient";
+
+// Simple ZIP validation function
+const isValidZipCode = (zip: string): boolean => {
+  return /^\d{5}(-\d{4})?$/.test(zip);
+};
 
 interface MarketTrend {
   month: string;
@@ -44,6 +48,7 @@ export function MarketSnapshot() {
   const handleZipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newZip = e.target.value.slice(0, 5);
     setZipCode(newZip);
+    setIsValidZip(isValidZipCode(newZip));
   };
 
   useEffect(() => {
@@ -144,12 +149,13 @@ export function MarketSnapshot() {
               className="pr-12"
             />
             {zipCode.length === 5 && (
-              <ZipValidation
-                zip={zipCode}
-                onValidChange={setIsValidZip}
-                compact
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-              />
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                {isValidZip ? (
+                  <span className="text-green-500 text-sm">✓</span>
+                ) : (
+                  <span className="text-red-500 text-sm">✗</span>
+                )}
+              </div>
             )}
           </div>
         </div>

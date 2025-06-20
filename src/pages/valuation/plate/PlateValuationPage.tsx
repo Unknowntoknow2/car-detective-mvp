@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Container } from '@/components/ui/container';
 import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
 import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
-import { FoundCarCard } from '@/components/lookup/found/FoundCarCard';
+import { VehicleFoundCard } from '@/components/premium/lookup/plate/VehicleFoundCard';
 import { UnifiedPlateLookup } from '@/components/lookup/UnifiedPlateLookup';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { DecodedVehicleInfo } from '@/types/vehicle';
@@ -77,7 +77,11 @@ export default function PlateValuationPage() {
       ) : (
         <div className="space-y-8">
           {vehicleData && (
-            <FoundCarCard vehicle={vehicleData} />
+            <VehicleFoundCard 
+              vehicle={vehicleData}
+              plateValue={vehicleData.plate}
+              stateValue={vehicleData.state}
+            />
           )}
           
           <UnifiedFollowUpForm 

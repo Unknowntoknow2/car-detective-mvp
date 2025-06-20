@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PremiumFeatureLock } from '@/components/premium/PremiumFeatureLock';
+import { PremiumFeatureLock } from '@/components/valuation/market-trend/PremiumLockSection';
 import { StarRating } from './StarRating';
 
 interface PhotoConditionScoreProps {
@@ -21,10 +20,9 @@ export function PhotoConditionScore({
   if (!isPremium) {
     return (
       <PremiumFeatureLock
-        valuationId={valuationId}
+        onUpgrade={onUpgrade || (() => {})}
         feature="photo condition analysis"
         ctaText="Unlock Photo Analysis"
-        returnUrl={`/valuation/${valuationId}`}
       />
     );
   }
