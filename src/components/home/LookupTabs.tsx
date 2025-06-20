@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,10 +7,12 @@ import { ManualEntryForm } from "@/components/lookup/manual/ManualEntryForm";
 interface LookupTabsProps {
   onVehicleFound: (vehicle: any) => void;
   tier?: "free" | "premium";
+  defaultTab?: string;
+  onSubmit?: (type: string, value: string, state?: string) => Promise<void>;
 }
 
-export function LookupTabs({ onVehicleFound, tier = "free" }: LookupTabsProps) {
-  const [activeTab, setActiveTab] = useState("plate");
+export function LookupTabs({ onVehicleFound, tier = "free", defaultTab = "plate" }: LookupTabsProps) {
+  const [activeTab, setActiveTab] = useState(defaultTab);
 
   return (
     <Card className="w-full max-w-2xl mx-auto">

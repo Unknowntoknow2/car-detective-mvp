@@ -112,8 +112,15 @@ export function UnifiedFollowUpQuestions({
       <AccidentSection
         hasAccident={hasAccidentValue}
         setHasAccident={setHasAccident}
-        accidentDescription={currentAccidentDetails.description || ''}
-        setAccidentDescription={setAccidentDescription}
+        accidentSeverity={currentAccidentDetails.severity || 'minor'}
+        setAccidentSeverity={(value: string) => {
+          const existingDetails = getExistingAccidentDetails();
+          const updatedDetails: AccidentDetails = {
+            ...existingDetails,
+            severity: value as 'minor' | 'moderate' | 'severe'
+          };
+          updateFormData({ accidentDetails: updatedDetails });
+        }}
       />
 
       <div className="space-y-4">

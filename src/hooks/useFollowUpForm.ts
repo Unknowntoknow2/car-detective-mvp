@@ -11,6 +11,8 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     zip_code: '',
     mileage: 0,
     condition: 'good',
+    accidents: false,
+    maintenance_records: false,
     transmission: 'automatic',
     title_status: 'clean',
     previous_use: 'personal',

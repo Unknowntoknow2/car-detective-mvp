@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MakeAndModelSelector } from "@/components/lookup/form-parts/MakeAndModelSelector";
+import MakeAndModelSelector from "@/components/lookup/form-parts/MakeAndModelSelector";
 import { ConditionSelectorSegmented } from "@/components/lookup/ConditionSelectorSegmented";
 import { ZipCodeInput } from "@/components/common/ZipCodeInput";
 import { toast } from "sonner";

@@ -96,7 +96,7 @@ export function UnifiedFollowUpForm({
             <Label htmlFor="modifications">Modifications (if any)</Label>
             <Input
               id="modifications"
-              value={formData.modifications}
+              value={typeof formData.modifications === 'string' ? formData.modifications : ''}
               onChange={(e) => setFormData(prev => ({ ...prev, modifications: e.target.value }))}
               placeholder="List any modifications"
             />

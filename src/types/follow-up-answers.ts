@@ -31,6 +31,7 @@ export interface AccidentDetails {
   severity?: 'minor' | 'moderate' | 'severe';
   repaired?: boolean;
   frameDamage?: boolean;
+  airbagDeployment?: boolean;
   description?: string;
   types?: string[];
   repairShops?: string[];
