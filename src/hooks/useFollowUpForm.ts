@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { FollowUpAnswers, AccidentDetails, ServiceHistoryDetails, ModificationDetails } from '@/types/follow-up-answers';
+import { FollowUpAnswers, ServiceHistoryDetails, ModificationDetails } from '@/types/follow-up-answers';
+import { AccidentDetails } from '@/types/accident-details';
 import { toast } from 'sonner';
 
 export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswers>) {

@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { FollowUpAnswers, TireConditionOption } from '@/types/follow-up-answers';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { TireConditionOption } from '@/types/condition';
 import { CircleDot, StopCircle } from 'lucide-react';
 
 interface TiresBrakesTabProps {

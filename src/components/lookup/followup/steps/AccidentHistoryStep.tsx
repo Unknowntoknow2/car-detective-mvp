@@ -5,7 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FollowUpAnswers, AccidentDetails } from '@/types/follow-up-answers';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { AccidentDetails } from '@/types/accident-details';
 
 interface AccidentHistoryStepProps {
   formData: FollowUpAnswers;
