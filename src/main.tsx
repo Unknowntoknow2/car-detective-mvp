@@ -1,9 +1,10 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AppProviders } from './providers/AppProviders';
 import { ThemeProvider } from '@/components/theme/ThemeProvider'; // ✅ Use the correct theme provider
-import './index.css';
+import './styles/index.css';
 
 const renderApp = () => {
   try {
