@@ -7,10 +7,6 @@ import { UnifiedLookupTabs } from '@/components/lookup/UnifiedLookupTabs';
 export default function ValuationPage() {
   const { vin } = useParams<{ vin?: string }>();
 
-  const handleVehicleFound = (vehicle: any) => {
-    console.log('Vehicle found:', vehicle);
-  };
-
   return (
     <div className="container mx-auto px-4 py-8">
       <Card>
@@ -18,11 +14,7 @@ export default function ValuationPage() {
           <CardTitle>Vehicle Valuation</CardTitle>
         </CardHeader>
         <CardContent>
-          <UnifiedLookupTabs
-            onVehicleFound={handleVehicleFound}
-            tier="free"
-            defaultTab={vin ? "vin" : "manual"}
-          />
+          <UnifiedLookupTabs />
         </CardContent>
       </Card>
     </div>

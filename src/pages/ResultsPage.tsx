@@ -8,6 +8,7 @@ import { PremiumPdfSection } from '@/components/valuation/PremiumPdfSection';
 import { TabbedFollowUpForm } from '@/components/followup/TabbedFollowUpForm';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 export default function ResultsPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +17,35 @@ export default function ResultsPage() {
   const [valuationData, setValuationData] = useState<any>(null);
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [followUpData, setFollowUpData] = useState<FollowUpAnswers>({
+    vin: '',
+    mileage: null,
+    condition: null,
+    zip_code: null,
+    title_status: null,
+    accidents: {
+      hadAccident: false,
+      count: null,
+      severity: null,
+      repaired: null,
+      frameDamage: null
+    },
+    modifications: {
+      modified: false,
+      types: [],
+      reversible: null
+    },
+    service_history: null,
+    maintenance_status: null,
+    tire_condition: null,
+    previous_use: null,
+    previous_owners: null,
+    last_service_date: null,
+    frame_damage: null,
+    dashboard_lights: [],
+    is_complete: false,
+    completion_percentage: 0
+  });
 
   useEffect(() => {
     const loadValuationData = async () => {
@@ -34,6 +64,15 @@ export default function ResultsPage() {
         const data = await getValuationById(valuationId);
         setValuationData(data);
         
+        // Initialize follow-up data with valuation data
+        setFollowUpData((prev: FollowUpAnswers) => ({
+          ...prev,
+          vin: data.vin || '',
+          mileage: data.mileage,
+          condition: data.condition,
+          zip_code: data.zip_code
+        }));
+        
         // Show follow-up questions if this is a basic VIN lookup
         if (data.vin && (!data.mileage || data.mileage === 50000)) {
           setShowFollowUp(true);
@@ -48,6 +87,31 @@ export default function ResultsPage() {
 
     loadValuationData();
   }, [id, searchParams, getValuationById]);
+
+  const updateFollowUpData = (updates: Partial<FollowUpAnswers>) => {
+    setFollowUpData((prev: FollowUpAnswers) => ({ ...prev, ...updates }));
+  };
+
+  const handleFollowUpSubmit = async () => {
+    try {
+      // Update valuation with follow-up answers
+      setValuationData((prev: any) => ({
+        ...prev,
+        mileage: followUpData.mileage || prev.mileage,
+        condition: followUpData.condition || prev.condition,
+        zip_code: followUpData.zip_code || prev.zip_code,
+      }));
+      setShowFollowUp(false);
+      toast.success('Vehicle details updated successfully!');
+    } catch (error) {
+      console.error('Error updating valuation:', error);
+      toast.error('Failed to update vehicle details');
+    }
+  };
+
+  const handleFollowUpSave = () => {
+    toast.success('Progress saved!');
+  };
 
   if (loading || isLoading) {
     return (
@@ -75,18 +139,6 @@ export default function ResultsPage() {
       </div>
     );
   }
-
-  const handleFollowUpComplete = (answers: any) => {
-    // Update valuation with follow-up answers
-    setValuationData(prev => ({
-      ...prev,
-      mileage: answers.mileage || prev.mileage,
-      condition: answers.condition || prev.condition,
-      zip_code: answers.zip_code || prev.zip_code,
-    }));
-    setShowFollowUp(false);
-    toast.success('Vehicle details updated successfully!');
-  };
 
   return (
     <div className="container mx-auto py-8 space-y-6">
@@ -153,14 +205,11 @@ export default function ResultsPage() {
           </CardHeader>
           <CardContent>
             <TabbedFollowUpForm
-              initialData={{
-                vin: valuationData.vin,
-                make: valuationData.make,
-                model: valuationData.model,
-                year: valuationData.year,
-              }}
-              onComplete={handleFollowUpComplete}
-              onSkip={() => setShowFollowUp(false)}
+              formData={followUpData}
+              updateFormData={updateFollowUpData}
+              onSubmit={handleFollowUpSubmit}
+              onSave={handleFollowUpSave}
+              isLoading={false}
             />
           </CardContent>
         </Card>
