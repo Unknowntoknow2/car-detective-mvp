@@ -32,8 +32,8 @@ const repairShops = [
 export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistoryTabProps) {
   // Convert string to object if needed, or use default
   const getAccidentData = (): AccidentDetails => {
-    if (typeof formData.accident_history === 'object' && formData.accident_history !== null) {
-      return formData.accident_history;
+    if (typeof formData.accidents === 'object' && formData.accidents !== null) {
+      return formData.accidents;
     }
     return {
       hadAccident: false,
@@ -58,7 +58,7 @@ export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistory
       types: hadAccident ? (accidentData.types || []) : [],
       repairShops: hadAccident ? (accidentData.repairShops || []) : []
     };
-    updateFormData({ accident_history: updatedData });
+    updateFormData({ accidents: updatedData });
   };
 
   const handleAccidentTypeChange = (checked: boolean, accidentType: string) => {
@@ -76,7 +76,7 @@ export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistory
       hadAccident: true,
       types: updatedTypes
     };
-    updateFormData({ accident_history: updatedData });
+    updateFormData({ accidents: updatedData });
   };
 
   const handleRepairShopChange = (checked: boolean, shopType: string) => {
@@ -93,7 +93,7 @@ export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistory
       ...accidentData,
       repairShops: updatedShops
     };
-    updateFormData({ accident_history: updatedData });
+    updateFormData({ accidents: updatedData });
   };
 
   const handleFieldChange = (field: keyof AccidentDetails, value: any) => {
@@ -101,7 +101,7 @@ export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistory
       ...accidentData,
       [field]: value
     };
-    updateFormData({ accident_history: updatedData });
+    updateFormData({ accidents: updatedData });
   };
 
   return (

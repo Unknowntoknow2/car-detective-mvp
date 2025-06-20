@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,8 +12,8 @@ interface FinalReviewTabProps {
 export function FinalReviewTab({ formData }: FinalReviewTabProps) {
   // Type guards to safely access properties
   const getAccidentData = (): AccidentDetails => {
-    if (typeof formData.accident_history === 'object' && formData.accident_history !== null) {
-      return formData.accident_history;
+    if (typeof formData.accidents === 'object' && formData.accidents !== null) {
+      return formData.accidents;
     }
     return { 
       hadAccident: false, 

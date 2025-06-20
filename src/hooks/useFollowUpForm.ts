@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers, ServiceHistoryDetails, ModificationDetails, AccidentDetails } from '@/types/follow-up-answers';
@@ -36,18 +35,6 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     exterior_condition: 'good',
     interior_condition: 'good',
     dashboard_lights: [],
-    accident_history: {
-      hadAccident: false,
-      count: 0,
-      location: '',
-      severity: 'minor',
-      repaired: false,
-      frameDamage: false,
-      description: '',
-      types: [],
-      repairShops: [],
-      airbagDeployment: false
-    } as AccidentDetails,
     modifications: {
       hasModifications: false,
       modified: false,
@@ -56,7 +43,6 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     } as ModificationDetails,
     features: [],
     additional_notes: '',
-    service_history: '',
     completion_percentage: 0,
     is_complete: false,
     previous_owners: 1,
@@ -94,7 +80,6 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
           ...prev,
           ...data,
           // Ensure proper structure for complex fields
-          accident_history: data.accident_history || prev.accident_history,
           accidents: data.accidents || prev.accidents,
           modifications: data.modifications || prev.modifications,
           serviceHistory: data.serviceHistory || prev.serviceHistory,
