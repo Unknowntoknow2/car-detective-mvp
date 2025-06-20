@@ -57,8 +57,8 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="confirm-vehicle"
-                checked={Boolean(formData.vehicleConfirmed)}
-                onCheckedChange={(checked) => updateFormData({ vehicleConfirmed: Boolean(checked) })}
+                checked={formData.vehicleConfirmed === true}
+                onCheckedChange={(checked) => updateFormData({ vehicleConfirmed: checked === true })}
               />
               <Label htmlFor="confirm-vehicle">
                 This information is correct
@@ -141,7 +141,7 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
                     checked={formData.dashboard_lights?.includes(light) || false}
                     onCheckedChange={(checked) => {
                       const lights = formData.dashboard_lights || [];
-                      const updated = Boolean(checked) 
+                      const updated = checked === true 
                         ? [...lights, light]
                         : lights.filter(l => l !== light);
                       updateFormData({ dashboard_lights: updated });
@@ -162,7 +162,14 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
                 id="accidents"
                 checked={formData.accidents?.hadAccident || false}
                 onCheckedChange={(checked) => updateFormData({ 
-                  accidents: { ...formData.accidents, hadAccident: Boolean(checked) }
+                  accidents: { 
+                    ...formData.accidents, 
+                    hadAccident: checked === true,
+                    count: checked === true ? (formData.accidents?.count || 1) : 0,
+                    severity: formData.accidents?.severity || 'minor',
+                    repaired: formData.accidents?.repaired || false,
+                    frameDamage: formData.accidents?.frameDamage || false
+                  }
                 })}
               />
               <Label htmlFor="accidents">Vehicle has been in an accident</Label>
@@ -173,9 +180,16 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
                 <div>
                   <Label htmlFor="accident-severity">Accident Severity</Label>
                   <Select 
-                    value={formData.accidents?.severity || ''} 
+                    value={formData.accidents?.severity || 'minor'} 
                     onValueChange={(value: 'minor' | 'moderate' | 'major') => updateFormData({ 
-                      accidents: { ...formData.accidents, severity: value }
+                      accidents: { 
+                        ...formData.accidents, 
+                        severity: value,
+                        hadAccident: formData.accidents?.hadAccident || false,
+                        count: formData.accidents?.count || 1,
+                        repaired: formData.accidents?.repaired || false,
+                        frameDamage: formData.accidents?.frameDamage || false
+                      }
                     })}
                   >
                     <SelectTrigger>
@@ -194,7 +208,14 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
                     id="frame-damage"
                     checked={formData.accidents?.frameDamage || false}
                     onCheckedChange={(checked) => updateFormData({ 
-                      accidents: { ...formData.accidents, frameDamage: Boolean(checked) }
+                      accidents: { 
+                        ...formData.accidents, 
+                        frameDamage: checked === true,
+                        hadAccident: formData.accidents?.hadAccident || false,
+                        count: formData.accidents?.count || 1,
+                        severity: formData.accidents?.severity || 'minor',
+                        repaired: formData.accidents?.repaired || false
+                      }
                     })}
                   />
                   <Label htmlFor="frame-damage">Frame damage</Label>
@@ -227,7 +248,7 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
                       checked={formData.features?.includes(feature) || false}
                       onCheckedChange={(checked) => {
                         const features = formData.features || [];
-                        const updated = Boolean(checked) 
+                        const updated = checked === true 
                           ? [...features, feature]
                           : features.filter(f => f !== feature);
                         updateFormData({ features: updated });
