@@ -4,7 +4,7 @@ import { Container } from '@/components/ui/container';
 import { CarFinderQaherHeader } from '@/components/common/CarFinderQaherHeader';
 import { UnifiedFollowUpForm } from '@/components/followup/UnifiedFollowUpForm';
 import { FoundCarCard } from '@/components/lookup/found/FoundCarCard';
-import { UnifiedPlateLookup } from '@/components/lookup/plate/UnifiedPlateLookup';
+import { UnifiedPlateLookup } from '@/components/lookup/UnifiedPlateLookup';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { toast } from 'sonner';
