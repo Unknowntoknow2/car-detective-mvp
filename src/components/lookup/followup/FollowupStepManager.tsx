@@ -32,7 +32,7 @@ export const FollowupStepManager: React.FC<FollowupStepManagerProps> = ({
         <CardTitle className="text-lg">Valuation Progress</CardTitle>
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span>Accuracy Score</span>
+            <span>Completion</span>
             <span className="font-medium">{Math.round(progress)}%</span>
           </div>
           <Progress value={progress} className="h-2" />

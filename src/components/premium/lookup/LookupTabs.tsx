@@ -1,8 +1,8 @@
 
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VINLookupForm } from "@/components/lookup/vin-core/VINLookupForm";
-import { PlateLookup } from "@/components/lookup/PlateLookup";
+import { UnifiedVinLookup } from "@/components/lookup/UnifiedVinLookup";
+import { UnifiedPlateLookup } from "@/components/lookup/UnifiedPlateLookup";
 import { ManualLookup } from "@/components/premium/lookup/ManualLookup";
 
 interface LookupTabsProps {
@@ -33,14 +33,15 @@ export function LookupTabs({
       </TabsList>
       
       <TabsContent value="vin" className="space-y-4">
-        <VINLookupForm
+        <UnifiedVinLookup
           onSubmit={(vin: string) => formProps.onSubmit({ vin })}
           isLoading={formProps.isLoading || false}
+          tier="premium"
         />
       </TabsContent>
       
       <TabsContent value="plate" className="space-y-4">
-        <PlateLookup
+        <UnifiedPlateLookup
           tier="premium"
           onVehicleFound={(data: any) => formProps.onSubmit(data)}
         />
