@@ -1,3 +1,4 @@
+
 import React from "react";
 import { FactorSlider } from "../FactorSlider";
 
@@ -32,7 +33,7 @@ interface YearFactorCardProps {
 
 export function YearFactorCard({ value, onChange }: YearFactorCardProps) {
   // Wrapper function to match the expected signature
-  const handleChange = (newValue: number) => {
+  const handleChange = (id: string, newValue: number) => {
     onChange(newValue);
   };
 

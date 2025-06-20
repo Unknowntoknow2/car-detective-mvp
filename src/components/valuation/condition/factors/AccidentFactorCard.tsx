@@ -1,3 +1,4 @@
+
 import React from "react";
 import { FactorSlider } from "../FactorSlider";
 
@@ -38,7 +39,7 @@ export function AccidentFactorCard(
   { value, onChange }: AccidentFactorCardProps,
 ) {
   // Wrapper function to match the expected signature
-  const handleChange = (newValue: number) => {
+  const handleChange = (id: string, newValue: number) => {
     onChange(newValue);
   };
 
