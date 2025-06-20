@@ -1,5 +1,4 @@
 
-export { HeroSection } from './HeroSection';
 export { EnhancedHeroSection } from './EnhancedHeroSection';
 export { KeyFeatures } from './KeyFeatures';
 export { TestimonialsSection } from './TestimonialsSection';

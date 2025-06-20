@@ -55,7 +55,6 @@ export const VehicleBasicInfoInputs: React.FC<VehicleBasicInfoInputsProps> = ({ 
                   type="number" 
                   placeholder="2020" 
                   {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value))}
                 />
               </FormControl>
               <FormMessage />
@@ -74,7 +73,6 @@ export const VehicleBasicInfoInputs: React.FC<VehicleBasicInfoInputsProps> = ({ 
                   type="number" 
                   placeholder="50000" 
                   {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value))}
                 />
               </FormControl>
               <FormMessage />

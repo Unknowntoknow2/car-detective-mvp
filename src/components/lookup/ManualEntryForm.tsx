@@ -21,8 +21,8 @@ export const ManualEntryForm: React.FC<ManualEntryFormProps> = ({
     const mockData: ManualEntryFormData = {
       make: 'Toyota',
       model: 'Camry',
-      year: 2020,
-      mileage: 50000,
+      year: '2020',
+      mileage: '50000',
       condition: 'good',
       zipCode: '12345',
       fuelType: 'gasoline',

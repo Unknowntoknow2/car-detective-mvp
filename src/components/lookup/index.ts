@@ -3,7 +3,7 @@
 export { UnifiedVinLookup } from "./UnifiedVinLookup";
 export { UnifiedPlateLookup } from "./UnifiedPlateLookup";
 export { default as UnifiedManualEntryForm } from "./UnifiedManualEntryForm";
-export { default as UnifiedFollowUpForm } from "../followup/UnifiedFollowUpForm";
+export { UnifiedFollowUpForm } from "../followup/UnifiedFollowUpForm";
 
 // Export found components
 export * from "./found/FoundCarCard";
