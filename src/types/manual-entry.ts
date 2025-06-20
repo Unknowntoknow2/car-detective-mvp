@@ -1,5 +1,6 @@
 
 import { z } from "zod";
+import { AccidentDetails } from "./accident-details";
 
 export interface ManualEntryFormData {
   year: string;
@@ -11,10 +12,17 @@ export interface ManualEntryFormData {
   zipCode: string;
   fuelType?: string;
   transmission?: string;
-  accidentDetails?: {
-    hadAccident: boolean;
-    severity?: string;
-  };
+  accidentDetails?: AccidentDetails;
+  titleStatus?: 'clean' | 'salvage' | 'rebuilt' | 'branded' | 'lemon';
+  previousOwners?: number;
+  previousUse?: 'personal' | 'commercial' | 'rental' | 'emergency';
+  serviceHistory?: 'dealer' | 'independent' | 'owner' | 'unknown';
+  hasRegularMaintenance?: boolean;
+  maintenanceNotes?: string;
+  tireCondition?: 'excellent' | 'good' | 'worn' | 'replacement';
+  dashboardLights?: string[];
+  hasModifications?: boolean;
+  modificationTypes?: string[];
   [key: string]: any;
 }
 

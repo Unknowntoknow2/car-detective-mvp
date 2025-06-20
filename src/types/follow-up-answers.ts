@@ -1,15 +1,6 @@
 
-export interface AccidentDetails {
-  hadAccident: boolean;
-  count?: number;
-  location?: string;
-  severity?: 'minor' | 'moderate' | 'severe';
-  repaired?: boolean;
-  frameDamage?: boolean;
-  description?: string;
-  types?: string[];
-  repairShops?: string[];
-}
+import { AccidentDetails } from "./accident-details";
+import { ConditionOption, TireConditionOption } from "./condition";
 
 export interface ServiceHistoryDetails {
   hasRecords: boolean;
@@ -27,9 +18,6 @@ export interface ModificationDetails {
   additionalNotes?: string;
   reversible?: boolean | null;
 }
-
-export type ConditionOption = 'excellent' | 'very-good' | 'good' | 'fair' | 'poor';
-export type TireConditionOption = 'excellent' | 'good' | 'worn' | 'replacement';
 
 export interface FollowUpAnswers {
   vin: string;

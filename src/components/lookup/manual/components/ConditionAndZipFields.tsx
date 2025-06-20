@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   FormControl,
@@ -36,7 +37,7 @@ export const ConditionAndZipFields: React.FC<ConditionAndZipFieldsProps> = ({
               <FormLabel>Condition</FormLabel>
               <FormControl>
                 <ConditionSelectorSegmented
-                  value={field.value}
+                  value={field.value as ConditionLevel}
                   onChange={field.onChange}
                 />
               </FormControl>
