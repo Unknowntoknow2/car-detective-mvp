@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { TitleStatusSection } from './TitleStatusSection';
 import { ServiceHistorySection } from './ServiceHistorySection';
@@ -5,10 +6,10 @@ import { AccidentHistorySection } from './AccidentHistorySection';
 import { AdditionalDetailsSection } from './AdditionalDetailsSection';
 import { ManualEntryFormData } from '@/types/manual-entry';
 
-// Define AccidentDetails locally since we need it
+// Define AccidentDetails locally with all required properties
 interface AccidentDetails {
   hadAccident: boolean;
-  severity?: string;
+  severity?: 'minor' | 'moderate' | 'severe';
   repaired?: boolean;
   count?: number;
   location?: string;
@@ -24,7 +25,7 @@ export function UnifiedFollowUpQuestions({
   formData,
   updateFormData
 }: UnifiedFollowUpQuestionsProps) {
-  // Default accident details
+  // Default accident details with all properties
   const defaultAccidentDetails: AccidentDetails = {
     hadAccident: false,
     severity: 'minor',

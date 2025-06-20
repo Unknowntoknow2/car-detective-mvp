@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useVehicleLookup } from "@/hooks/useVehicleLookup";
 import { ManualEntryFormData } from "@/types/manual-entry";
@@ -25,8 +26,8 @@ export function useValuationState() {
   const [manualData, setManualData] = useState<ManualEntryFormData>({
     make: "",
     model: "",
-    year: new Date().getFullYear(),
-    mileage: 0,
+    year: new Date().getFullYear().toString(), // Convert to string
+    mileage: "0", // Convert to string
     condition: ConditionLevel.Good,
     zipCode: "",
   });
