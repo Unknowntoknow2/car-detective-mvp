@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useValuationResult } from '@/hooks/useValuationResult';
 import UnifiedValuationResult from '@/components/valuation/valuation-core/ValuationResult';
-import { downloadValuationPdf } from '@/utils/generateValuationPdf';
+import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 
 export default function ValuationDetailPage() {
   const { id } = useParams<{ id: string }>();

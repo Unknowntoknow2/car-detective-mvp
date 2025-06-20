@@ -1,8 +1,7 @@
-
 import { ReportData, ValuationResult, AdjustmentBreakdown, PdfOptions } from "@/types/valuation";
 import { generateValuationPdf } from "../pdf/generateValuationPdf";
-import { calculateValuationAdjustments, calculateFinalValuation } from "../rulesEngine";
-import { RulesEngineInput } from "../rules/types";
+import { calculateAdjustments, calculateTotalAdjustment } from "./rulesEngine";
+import { RulesEngineInput } from "./rules/types";
 
 export interface CorrectedValuationParams {
   vin: string;
@@ -96,13 +95,12 @@ export async function runCorrectedValuationPipeline(
     };
 
     // Get adjustments and await the promise
-    const adjustments: AdjustmentBreakdown[] = await calculateValuationAdjustments(rulesEngineInput);
+    const adjustments: AdjustmentBreakdown[] = await calculateAdjustments(rulesEngineInput);
     
     const finalValuation = {
       ...baseValuation,
       adjustments,
-      estimatedValue: calculateFinalValuation(
-        baseValuation.estimatedValue,
+      estimatedValue: calculateTotalAdjustment(
         adjustments
       ),
       confidenceScore: 80,
