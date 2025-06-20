@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,6 +41,13 @@ export default function ResultsPage() {
       repaired: false,
       frameDamage: false
     },
+    accident_history: {
+      hadAccident: false,
+      count: 0,
+      severity: 'minor',
+      repaired: false,
+      frameDamage: false
+    },
     modifications: {
       hasModifications: false,
       modified: false,
@@ -53,6 +61,7 @@ export default function ResultsPage() {
       description: '',
       services: []
     },
+    service_history: '',
     features: [],
     additional_notes: '',
     completion_percentage: 0,
