@@ -1,2 +1,0 @@
-
-export { CompletionValuationHeader } from './CompletionValuationHeader';
