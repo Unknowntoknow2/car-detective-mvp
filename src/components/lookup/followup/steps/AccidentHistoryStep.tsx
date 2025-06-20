@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +22,8 @@ export function AccidentHistoryStep({ formData, updateFormData }: AccidentHistor
     frameDamage: false,
     description: '',
     types: [],
-    repairShops: []
+    repairShops: [],
+    airbagDeployment: false
   };
 
   // Type guard to ensure we have an AccidentDetails object
@@ -56,7 +58,7 @@ export function AccidentHistoryStep({ formData, updateFormData }: AccidentHistor
   };
 
   const handleSeverityChange = (value: string) => {
-    updateAccidentHistory({ severity: value as 'minor' | 'moderate' | 'severe' });
+    updateAccidentHistory({ severity: value as 'minor' | 'moderate' | 'major' });
   };
 
   const handleRepairedChange = (repaired: boolean) => {
@@ -108,7 +110,7 @@ export function AccidentHistoryStep({ formData, updateFormData }: AccidentHistor
           <SelectContent>
             <SelectItem value="minor">Minor</SelectItem>
             <SelectItem value="moderate">Moderate</SelectItem>
-            <SelectItem value="severe">Severe</SelectItem>
+            <SelectItem value="major">Major</SelectItem>
           </SelectContent>
         </Select>
       </div>
