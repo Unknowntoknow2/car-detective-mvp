@@ -1,27 +1,25 @@
 
-import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { VinForm } from '@/components/lookup/VinForm';
-import { PlateForm } from '@/components/lookup/PlateForm';
-import { ManualForm } from '@/components/lookup/ManualForm';
+import React from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UnifiedVinLookup } from "@/components/lookup/UnifiedVinLookup";
+import { UnifiedPlateLookup } from "@/components/lookup/UnifiedPlateLookup";
+import { ManualLookup } from "@/components/premium/lookup/ManualLookup";
 
 interface PremiumTabsProps {
   showFreeValuation?: boolean;
   onSubmit?: (type: string, value: string, state?: string, data?: any) => void;
 }
 
-export const PremiumTabs: React.FC<PremiumTabsProps> = ({ 
+export const PremiumTabs: React.FC<PremiumTabsProps> = ({
   showFreeValuation = true,
   onSubmit
 }) => {
-  const [activeTab, setActiveTab] = useState('vin');
-
   const handleVinSubmit = (vin: string) => {
     onSubmit?.('vin', vin);
   };
 
-  const handlePlateSubmit = (plate: string, state: string) => {
-    onSubmit?.('plate', plate, state);
+  const handlePlateSubmit = (vehicle: any) => {
+    onSubmit?.('plate', vehicle.plate, vehicle.state, vehicle);
   };
 
   const handleManualSubmit = (data: any) => {
@@ -30,7 +28,7 @@ export const PremiumTabs: React.FC<PremiumTabsProps> = ({
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs defaultValue="vin">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="vin">VIN Lookup</TabsTrigger>
           <TabsTrigger value="plate">License Plate</TabsTrigger>
@@ -38,19 +36,26 @@ export const PremiumTabs: React.FC<PremiumTabsProps> = ({
         </TabsList>
         
         <TabsContent value="vin" className="space-y-4">
-          <VinForm onSubmit={handleVinSubmit} />
+          <UnifiedVinLookup 
+            onSubmit={handleVinSubmit}
+            tier="premium"
+          />
         </TabsContent>
         
         <TabsContent value="plate" className="space-y-4">
-          <PlateForm onSubmit={handlePlateSubmit} />
+          <UnifiedPlateLookup 
+            onVehicleFound={handlePlateSubmit}
+            tier="premium"
+          />
         </TabsContent>
         
         <TabsContent value="manual" className="space-y-4">
-          <ManualForm onSubmit={handleManualSubmit} />
+          <ManualLookup
+            onSubmit={handleManualSubmit}
+            submitButtonText="Get Premium Valuation"
+          />
         </TabsContent>
       </Tabs>
     </div>
   );
 };
-
-export default PremiumTabs;
