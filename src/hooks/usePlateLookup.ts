@@ -1,41 +1,47 @@
 
 import { useState } from 'react';
-import { toast } from 'sonner';
 
-interface PlateLookupOptions {
-  tier?: 'free' | 'premium';
+interface PlateLookupResult {
+  plate: string;
+  state: string;
+  vin: string;
+  year: number;
+  make: string;
+  model: string;
+  trim: string;
+  mileage: number;
+  condition: string;
 }
 
-export const usePlateLookup = (options: PlateLookupOptions = {}) => {
+export function usePlateLookup() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const lookupVehicle = async (plate: string, state: string) => {
+  const lookupPlate = async (plate: string, state: string): Promise<PlateLookupResult | null> => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // Mock plate lookup - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const mockResult = {
+      // Mock implementation - replace with actual API call
+      const mockResult: PlateLookupResult = {
         plate,
         state,
-        vin: `MOCK_VIN_${plate}_${state}`,
-        year: 2020 + Math.floor(Math.random() * 4),
-        make: ['Toyota', 'Honda', 'Ford', 'Chevrolet'][Math.floor(Math.random() * 4)],
-        model: ['Camry', 'Civic', 'F-150', 'Malibu'][Math.floor(Math.random() * 4)],
-        trim: 'Base',
-        mileage: 20000 + Math.floor(Math.random() * 80000),
-        condition: 'Good'
+        vin: `MOCK${plate}${state}`,
+        year: 2020,
+        make: 'Honda',
+        model: 'Civic',
+        trim: 'LX',
+        mileage: 45000,
+        condition: 'good'
       };
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast.success('Vehicle found successfully!');
       return mockResult;
-    } catch (error) {
-      const errorMessage = 'Failed to lookup vehicle by plate';
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Plate lookup failed';
       setError(errorMessage);
-      toast.error(errorMessage);
       return null;
     } finally {
       setIsLoading(false);
@@ -43,8 +49,8 @@ export const usePlateLookup = (options: PlateLookupOptions = {}) => {
   };
 
   return {
-    lookupVehicle,
+    lookupPlate,
     isLoading,
     error
   };
-};
+}
