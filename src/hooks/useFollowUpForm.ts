@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers, ServiceHistoryDetails, ModificationDetails, AccidentDetails } from '@/types/follow-up-answers';
@@ -14,7 +15,11 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       count: 0,
       severity: 'minor',
       repaired: false,
-      frameDamage: false
+      frameDamage: false,
+      description: '',
+      types: [],
+      repairShops: [],
+      airbagDeployment: false
     } as AccidentDetails,
     maintenance_records: false,
     transmission: 'automatic',
@@ -38,7 +43,10 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       severity: 'minor',
       repaired: false,
       frameDamage: false,
-      description: ''
+      description: '',
+      types: [],
+      repairShops: [],
+      airbagDeployment: false
     } as AccidentDetails,
     modifications: {
       hasModifications: false,

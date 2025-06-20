@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,7 +37,10 @@ export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistory
     }
     return {
       hadAccident: false,
+      count: 0,
       severity: 'minor',
+      repaired: false,
+      frameDamage: false,
       types: [],
       repairShops: []
     };
@@ -49,9 +51,12 @@ export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistory
   const handleAccidentToggle = (hadAccident: boolean) => {
     const updatedData: AccidentDetails = {
       hadAccident,
-      severity: hadAccident ? 'minor' : 'minor',
-      types: hadAccident ? accidentData.types || [] : [],
-      repairShops: hadAccident ? accidentData.repairShops || [] : []
+      count: hadAccident ? (accidentData.count || 1) : 0,
+      severity: hadAccident ? (accidentData.severity || 'minor') : 'minor',
+      repaired: hadAccident ? (accidentData.repaired || false) : false,
+      frameDamage: hadAccident ? (accidentData.frameDamage || false) : false,
+      types: hadAccident ? (accidentData.types || []) : [],
+      repairShops: hadAccident ? (accidentData.repairShops || []) : []
     };
     updateFormData({ accident_history: updatedData });
   };
@@ -69,8 +74,7 @@ export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistory
     const updatedData: AccidentDetails = {
       ...accidentData,
       hadAccident: true,
-      types: updatedTypes,
-      severity: accidentData.severity || 'minor'
+      types: updatedTypes
     };
     updateFormData({ accident_history: updatedData });
   };
@@ -87,9 +91,7 @@ export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistory
 
     const updatedData: AccidentDetails = {
       ...accidentData,
-      repairShops: updatedShops,
-      hadAccident: accidentData.hadAccident || false,
-      severity: accidentData.severity || 'minor'
+      repairShops: updatedShops
     };
     updateFormData({ accident_history: updatedData });
   };
@@ -97,9 +99,7 @@ export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistory
   const handleFieldChange = (field: keyof AccidentDetails, value: any) => {
     const updatedData: AccidentDetails = {
       ...accidentData,
-      [field]: value,
-      hadAccident: accidentData.hadAccident || false,
-      severity: accidentData.severity || 'minor'
+      [field]: value
     };
     updateFormData({ accident_history: updatedData });
   };
@@ -144,7 +144,7 @@ export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistory
               <div>
                 <Label>Severity</Label>
                 <div className="flex gap-2 mt-2">
-                  {(['minor', 'moderate', 'severe'] as const).map((severity) => (
+                  {(['minor', 'moderate', 'major'] as const).map((severity) => (
                     <Button
                       key={severity}
                       type="button"

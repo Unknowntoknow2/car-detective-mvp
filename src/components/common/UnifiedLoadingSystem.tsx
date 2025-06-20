@@ -26,7 +26,11 @@ export function LoadingButton({
   );
 }
 
-export function LoadingSpinner({ size = "default" }: { size?: "sm" | "default" | "lg" }) {
+interface LoadingSpinnerProps {
+  size?: "sm" | "default" | "lg";
+}
+
+export function LoadingSpinner({ size = "default" }: LoadingSpinnerProps) {
   const sizeClasses = {
     sm: "h-4 w-4",
     default: "h-6 w-6", 
@@ -48,10 +52,16 @@ export function LoadingGrid({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function LoadingState({ message = "Loading..." }: { message?: string }) {
+interface LoadingStateProps {
+  message?: string;
+  size?: "sm" | "default" | "lg";
+  className?: string;
+}
+
+export function LoadingState({ message = "Loading...", size = "default", className }: LoadingStateProps) {
   return (
-    <div className="flex items-center justify-center p-8">
-      <LoadingSpinner />
+    <div className={`flex items-center justify-center p-8 ${className || ''}`}>
+      <LoadingSpinner size={size} />
       <span className="ml-2 text-sm text-muted-foreground">{message}</span>
     </div>
   );
