@@ -3,5 +3,4 @@
 export * from "./account";
 export * from "./checkout";
 export * from "./dashboard";
-export * from "./form";
 export * from "./lookup";

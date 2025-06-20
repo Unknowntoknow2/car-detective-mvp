@@ -1,7 +1,7 @@
+
 // Car Detective UI Kit
 export * from "./tokens";
 export * from "./typography";
-export * from "./button";
 export { default as CDButton } from "./button/CDButton";
 export * from "./CDCard";
 export * from "./CDInput";
