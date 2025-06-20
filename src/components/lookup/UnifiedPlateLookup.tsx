@@ -12,13 +12,18 @@ import { usePlateLookup } from "@/hooks/usePlateLookup";
 interface UnifiedPlateLookupProps {
   onVehicleFound: (vehicle: any) => void;
   tier?: "free" | "premium";
+  showPremiumFeatures?: boolean;
 }
 
-export function UnifiedPlateLookup({ onVehicleFound, tier = "free" }: UnifiedPlateLookupProps) {
+export function UnifiedPlateLookup({ 
+  onVehicleFound, 
+  tier = "free",
+  showPremiumFeatures = false
+}: UnifiedPlateLookupProps) {
   const [plateNumber, setPlateNumber] = useState("");
   const [selectedState, setSelectedState] = useState("");
   
-  const { lookupPlate, isLoading, error } = usePlateLookup();
+  const { lookupVehicle, isLoading, error } = usePlateLookup();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +33,7 @@ export function UnifiedPlateLookup({ onVehicleFound, tier = "free" }: UnifiedPla
     }
 
     try {
-      const result = await lookupPlate(plateNumber, selectedState);
+      const result = await lookupVehicle(plateNumber, selectedState);
       if (result) {
         onVehicleFound(result);
       }

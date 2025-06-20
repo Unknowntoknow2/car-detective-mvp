@@ -6,13 +6,24 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { VEHICLE_CONDITIONS, FUEL_TYPES, TRANSMISSION_TYPES } from '@/lib/constants';
-import { ManualEntryFormData } from '@/types/manual-entry';
+
+export interface ManualEntryFormData {
+  year: string;
+  make: string;
+  model: string;
+  mileage: string;
+  condition: string;
+  zipCode: string;
+  fuelType: string;
+  transmission: string;
+}
 
 interface ManualEntryFormProps {
   tier?: "free" | "premium";
+  onSubmit?: (data: any) => Promise<void>;
 }
 
-export function ManualEntryForm({ tier = "free" }: ManualEntryFormProps) {
+export function ManualEntryForm({ tier = "free", onSubmit }: ManualEntryFormProps) {
   const [formData, setFormData] = useState<Partial<ManualEntryFormData>>({
     year: '',
     make: '',
@@ -27,6 +38,10 @@ export function ManualEntryForm({ tier = "free" }: ManualEntryFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Manual entry form submitted:', formData);
+    
+    if (onSubmit) {
+      await onSubmit(formData);
+    }
   };
 
   const handleInputChange = (field: keyof ManualEntryFormData, value: string) => {
@@ -96,7 +111,7 @@ export function ManualEntryForm({ tier = "free" }: ManualEntryFormProps) {
               <Label htmlFor="condition">Condition</Label>
               <Select 
                 value={formData.condition} 
-                onValueChange={(value) => handleInputChange('condition', value)}
+                onValueChange={(value: string) => handleInputChange('condition', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select condition" />
@@ -128,7 +143,7 @@ export function ManualEntryForm({ tier = "free" }: ManualEntryFormProps) {
               <Label htmlFor="fuelType">Fuel Type</Label>
               <Select 
                 value={formData.fuelType} 
-                onValueChange={(value) => handleInputChange('fuelType', value)}
+                onValueChange={(value: string) => handleInputChange('fuelType', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select fuel type" />
@@ -147,7 +162,7 @@ export function ManualEntryForm({ tier = "free" }: ManualEntryFormProps) {
               <Label htmlFor="transmission">Transmission</Label>
               <Select 
                 value={formData.transmission} 
-                onValueChange={(value) => handleInputChange('transmission', value)}
+                onValueChange={(value: string) => handleInputChange('transmission', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select transmission" />
