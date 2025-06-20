@@ -1,141 +1,58 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ManualEntryFormData, manualEntrySchema } from '@/types/manual-entry';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ManualEntryFormData } from '@/types/manual-entry';
+import { Form } from '@/components/ui/form';
+import { VehicleBasicInfoInputs } from '@/components/lookup/form-parts/VehicleBasicInfoInputs';
 
 interface UnifiedManualEntryFormProps {
   mode?: 'free' | 'premium';
-  onSubmit: (data: ManualEntryFormData) => void;
+  onSubmit: (data: ManualEntryFormData) => void | Promise<void>;
+  initialData?: Partial<ManualEntryFormData>;
+  isLoading?: boolean;
 }
 
-const UnifiedManualEntryForm: React.FC<UnifiedManualEntryFormProps> = ({ 
-  mode = 'free', 
-  onSubmit 
+export const UnifiedManualEntryForm: React.FC<UnifiedManualEntryFormProps> = ({
+  mode = 'free',
+  onSubmit,
+  initialData,
+  isLoading = false
 }) => {
-  const [formData, setFormData] = useState<ManualEntryFormData>({
-    year: '',
-    make: '',
-    model: '',
-    trim: '',
-    mileage: '',
-    condition: '',
-    zipCode: ''
+  const form = useForm<ManualEntryFormData>({
+    resolver: zodResolver(manualEntrySchema),
+    defaultValues: {
+      make: initialData?.make || '',
+      model: initialData?.model || '',
+      year: initialData?.year || new Date().getFullYear().toString(),
+      mileage: initialData?.mileage || '0',
+      condition: initialData?.condition || 'good',
+      zipCode: initialData?.zipCode || '',
+      ...initialData
+    }
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
-  const handleChange = (field: keyof ManualEntryFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleSubmit = async (data: ManualEntryFormData) => {
+    await onSubmit(data);
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Manual Vehicle Entry {mode === 'premium' && '(Premium)'}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="year">Year</Label>
-              <Input
-                id="year"
-                type="number"
-                value={formData.year}
-                onChange={(e) => handleChange('year', e.target.value)}
-                placeholder="2020"
-                min="1990"
-                max="2024"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="make">Make</Label>
-              <Input
-                id="make"
-                value={formData.make}
-                onChange={(e) => handleChange('make', e.target.value)}
-                placeholder="Toyota"
-                required
-              />
-            </div>
-          </div>
+    <div className="max-w-2xl mx-auto">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <VehicleBasicInfoInputs form={form} />
           
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="model">Model</Label>
-              <Input
-                id="model"
-                value={formData.model}
-                onChange={(e) => handleChange('model', e.target.value)}
-                placeholder="Camry"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="trim">Trim</Label>
-              <Input
-                id="trim"
-                value={formData.trim}
-                onChange={(e) => handleChange('trim', e.target.value)}
-                placeholder="LE"
-              />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="mileage">Mileage</Label>
-              <Input
-                id="mileage"
-                type="number"
-                value={formData.mileage}
-                onChange={(e) => handleChange('mileage', e.target.value)}
-                placeholder="50000"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="condition">Condition</Label>
-              <Select value={formData.condition} onValueChange={(value) => handleChange('condition', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select condition" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="excellent">Excellent</SelectItem>
-                  <SelectItem value="good">Good</SelectItem>
-                  <SelectItem value="fair">Fair</SelectItem>
-                  <SelectItem value="poor">Poor</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <div>
-            <Label htmlFor="zipCode">ZIP Code</Label>
-            <Input
-              id="zipCode"
-              value={formData.zipCode}
-              onChange={(e) => handleChange('zipCode', e.target.value)}
-              placeholder="12345"
-              maxLength={5}
-              required
-            />
-          </div>
-          
-          <Button type="submit" className="w-full">
-            Get Valuation
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Processing...' : `Get ${mode === 'premium' ? 'Premium' : 'Free'} Valuation`}
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </Form>
+    </div>
   );
 };
 

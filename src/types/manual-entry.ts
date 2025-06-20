@@ -18,7 +18,7 @@ export interface ManualEntryFormData {
   [key: string]: any;
 }
 
-// Add the missing schema export
+// Zod schema for validation
 export const manualEntrySchema = z.object({
   make: z.string().min(1, "Make is required"),
   model: z.string().min(1, "Model is required"),
