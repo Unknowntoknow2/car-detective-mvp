@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Download, Mail, Users, FileText } from 'lucide-react';
 import { useDealerNotifications } from '@/hooks/useDealerNotifications';
 import { ReportData } from '@/utils/pdf/types';
-import { downloadValuationPdf } from '@/utils/generateValuationPdf';
+import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { toast } from 'sonner';
 
 interface PremiumPdfSectionProps {
