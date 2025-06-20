@@ -5,7 +5,7 @@ import {
   MarketTrendContent,
   useForecastData,
 } from "./market-trend";
-import LoadingState from "@/modules/valuation-result/components/LoadingState";
+import { LoadingState } from "@/components/common/UnifiedLoadingSystem";
 import { PremiumFeatureLock } from "@/components/valuation/market-trend/PremiumLockSection";
 
 interface MarketTrendSectionProps {

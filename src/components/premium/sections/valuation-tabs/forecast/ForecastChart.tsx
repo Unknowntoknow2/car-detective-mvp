@@ -1,3 +1,4 @@
+
 import {
   CartesianGrid,
   Label,
@@ -9,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import LoadingState from "@/modules/valuation-result/components/LoadingState";
+import { LoadingState } from "@/components/common/UnifiedLoadingSystem";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMemo } from "react";
 
