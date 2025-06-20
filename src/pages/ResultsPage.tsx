@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,7 +53,14 @@ export default function ResultsPage() {
       frameDamage: false
     },
     features: [],
-    additional_notes: ''
+    additional_notes: '',
+    serviceHistory: {
+      hasRecords: false,
+      frequency: 'unknown',
+      dealerMaintained: false,
+      description: '',
+      services: []
+    }
   });
 
   useEffect(() => {
