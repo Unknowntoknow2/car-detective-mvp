@@ -21,7 +21,13 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     transmission: 'automatic',
     title_status: 'clean',
     previous_use: 'personal',
-    serviceHistory: { hasRecords: false } as ServiceHistoryDetails,
+    serviceHistory: { 
+      hasRecords: false,
+      frequency: 'unknown',
+      dealerMaintained: false,
+      description: '',
+      services: []
+    } as ServiceHistoryDetails,
     tire_condition: 'good',
     exterior_condition: 'good',
     interior_condition: 'good',
@@ -38,13 +44,18 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     modifications: {
       hasModifications: false,
       modified: false,
-      types: []
+      types: [],
+      additionalNotes: ''
     } as ModificationDetails,
     features: [],
     additional_notes: '',
     service_history: '',
     completion_percentage: 0,
     is_complete: false,
+    previous_owners: 1,
+    loan_balance: 0,
+    payoffAmount: 0,
+    brake_condition: 'good',
     ...initialData
   }));
 
