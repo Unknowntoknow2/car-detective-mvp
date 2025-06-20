@@ -10,7 +10,7 @@ import { formatCurrency } from '@/utils/formatters';
 interface AccidentImpactCardProps {
   baseValue: number;
   accidentCount?: number;
-  accidentSeverity?: 'minor' | 'moderate' | 'major';
+  accidentSeverity?: 'minor' | 'moderate' | 'severe';
   accidentDescription?: string;
   vin?: string;
   valuationId?: string;
@@ -38,7 +38,7 @@ export function AccidentImpactCard({
     baseValue, 
     { 
       hadAccident: accidentCount > 0,
-      accidentCount: accidentCount, 
+      count: accidentCount, 
       severity: accidentSeverity, 
       description: accidentDescription 
     },
@@ -125,7 +125,7 @@ export function AccidentImpactCard({
             <div className="text-right">
               <p className="text-sm font-medium text-muted-foreground">Severity</p>
               <Badge className={
-                accidentSeverity === 'major' ? "bg-red-100 text-red-800" :
+                accidentSeverity === 'severe' ? "bg-red-100 text-red-800" :
                 accidentSeverity === 'moderate' ? "bg-amber-100 text-amber-800" :
                 "bg-yellow-100 text-yellow-800"
               }>
@@ -144,7 +144,7 @@ export function AccidentImpactCard({
           <div>
             <h4 className="font-medium mb-1">Recommendations</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
-              {recommendations.map((rec, index) => (
+              {recommendations.map((rec: string, index: number) => (
                 <li key={index} className="flex items-start gap-2">
                   <div className="mt-1 h-1.5 w-1.5 rounded-full bg-primary/70 flex-shrink-0" />
                   <span>{rec}</span>
