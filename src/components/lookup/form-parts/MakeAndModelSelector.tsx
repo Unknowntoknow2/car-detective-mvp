@@ -25,7 +25,7 @@ const MakeAndModelSelector: React.FC<Props> = ({ makeId, setMakeId, modelId, set
   const [makes, setMakes] = useState<Make[]>([]);
   const [models, setModels] = useState<Model[]>([]);
 
-  // ✅ Fetch all makes
+  // Fetch all makes
   useEffect(() => {
     const fetchMakes = async () => {
       const { data, error } = await supabase.from("makes").select("id, make_name");
@@ -38,17 +38,13 @@ const MakeAndModelSelector: React.FC<Props> = ({ makeId, setMakeId, modelId, set
     fetchMakes();
   }, []);
 
-  // ✅ Fetch models based on selected makeId
+  // Fetch models based on selected makeId
   useEffect(() => {
     const fetchModels = async () => {
       if (!makeId) {
         setModels([]);
         return;
       }
-      
-      console.log('🔍 Fetching models for makeId:', makeId);
-      console.log('🔍 makeId type:', typeof makeId);
-      console.log('🔍 makeId length:', makeId.length);
       
       const { data, error } = await supabase
         .from("models")
@@ -58,7 +54,6 @@ const MakeAndModelSelector: React.FC<Props> = ({ makeId, setMakeId, modelId, set
       if (error) {
         console.error("Error loading models:", error.message);
       } else {
-        console.log('✅ Models loaded:', data?.length || 0);
         setModels(data || []);
       }
     };
@@ -66,7 +61,6 @@ const MakeAndModelSelector: React.FC<Props> = ({ makeId, setMakeId, modelId, set
   }, [makeId]);
 
   const handleMakeChange = (value: string) => {
-    console.log('🎯 Make changed to UUID:', value);
     setMakeId(value);
     setModelId(''); // Reset model when make changes
   };
