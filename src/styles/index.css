@@ -1,3 +1,4 @@
+
 @import "base/reset.css";
 @import "base/variables.css";
 @import "components/buttons.css";
@@ -6,5 +7,5 @@
 @import "components/forms.css";
 @import "components/steps.css";
 @import "components/multistep-form.css";
-@import "utilities/animations.css";
+@import "animations.css";
 @import "utilities/transforms.css";
