@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
@@ -38,7 +39,13 @@ const AuthPage: React.FC = () => {
       const { error } = await signIn(loginData.email, loginData.password);
       
       if (error) {
-        toast.error(error.message);
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error("Invalid email or password. Please try again.");
+        } else if (error.message.includes('Email not confirmed')) {
+          toast.error("Please check your email and click the confirmation link.");
+        } else {
+          toast.error(error.message);
+        }
       } else {
         toast.success('Signed in successfully!');
         navigate(from);
@@ -58,7 +65,11 @@ const AuthPage: React.FC = () => {
       const { error } = await signUp(registerData.email, registerData.password);
       
       if (error) {
-        toast.error(error.message);
+        if (error.message.includes('User already registered')) {
+          toast.error("An account with this email already exists. Please sign in instead.");
+        } else {
+          toast.error(error.message);
+        }
       } else {
         toast.success('Account created successfully! Please check your email.');
       }
@@ -75,7 +86,7 @@ const AuthPage: React.FC = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Authentication</CardTitle>
           <CardDescription>
-            Sign in to your account or create a new one to access all features
+            Sign in to your account or create a new one
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -158,6 +169,9 @@ const AuthPage: React.FC = () => {
           </Tabs>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
+          <div className="text-center text-sm text-muted-foreground">
+            Are you a dealer? <Link to="/dealer-signup" className="text-primary hover:underline">Register your dealership</Link>
+          </div>
           <Button
             variant="outline"
             className="w-full"

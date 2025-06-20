@@ -145,10 +145,10 @@ export default function HomePage() {
               className="w-full max-w-3xl mx-auto mb-8"
             >
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="free" disabled={isLoading}>
+                <TabsTrigger value="free">
                   {isLoading && valuationType === "free" ? "Processing..." : "Free Valuation"}
                 </TabsTrigger>
-                <TabsTrigger value="premium" disabled={isLoading}>
+                <TabsTrigger value="premium">
                   {isLoading && valuationType === "premium" ? "Processing..." : "Premium Report"}
                 </TabsTrigger>
               </TabsList>
