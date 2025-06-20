@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText } from "lucide-react";
@@ -5,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { VinInputSection } from "./VinInputSection";
 import { VehicleHistoryForm } from "./VehicleHistoryForm";
-import { ServiceHistorySection } from "./ServiceHistorySection";
+import { ServiceHistoryUploader } from "@/components/service-history/ServiceHistoryUploader";
 
 interface VehicleHistoryData {
   vin: string;
@@ -156,12 +157,17 @@ export function VehicleHistorySection() {
       </Card>
 
       {vin && isValidVin(vin) && (
-        <ServiceHistorySection
-          vin={vin}
-          showServiceUploader={showServiceUploader}
-          onToggleUploader={() => setShowServiceUploader(!showServiceUploader)}
-          onUploadComplete={handleServiceUploadComplete}
-        />
+        <Card>
+          <CardHeader>
+            <CardTitle>Service History</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ServiceHistoryUploader
+              vin={vin}
+              onUploadComplete={handleServiceUploadComplete}
+            />
+          </CardContent>
+        </Card>
       )}
     </div>
   );
