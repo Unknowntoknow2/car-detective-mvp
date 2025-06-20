@@ -4,7 +4,6 @@ export * from "./header";
 export * from "./condition";
 // Re-export with unique names to avoid conflicts
 export {
-  CompletionHeader,
   CompletionValuationHeader,
   NextStepsCard,
 } from "./valuation-complete";
