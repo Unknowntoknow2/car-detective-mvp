@@ -163,7 +163,7 @@ export function VehicleHistorySection() {
           </CardHeader>
           <CardContent>
             <ServiceHistoryUploader
-              vin={vin}
+              initialVin={vin}
               onUploadComplete={handleServiceUploadComplete}
             />
           </CardContent>
