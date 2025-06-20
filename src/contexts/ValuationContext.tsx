@@ -1,174 +1,96 @@
-import React, { createContext, ReactNode, useContext, useState } from "react";
-import { toast } from "sonner";
 
-export type ValuationContextType = {
-  isPremium: boolean;
-  hasPurchasedReport: boolean;
-  purchaseReport: () => Promise<void>;
-  downloadPdf: () => Promise<void>;
+import React, { createContext, useContext, useState } from 'react';
+import { toast } from 'sonner';
+
+interface ValuationData {
+  type: string;
+  value: string;
+  state?: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  zipCode?: string;
+  [key: string]: any;
+}
+
+interface ValuationResult {
+  valuationId: string;
+  estimatedValue?: number;
+  success: boolean;
+}
+
+interface ValuationContextType {
+  processFreeValuation: (data: ValuationData) => Promise<ValuationResult>;
+  processPremiumValuation: (data: ValuationData) => Promise<ValuationResult>;
   isLoading: boolean;
-  isProcessing: boolean;
-  error: Error | null;
-  processFreeValuation: (
-    valuationData: any,
-  ) => Promise<
-    | {
-      valuationId?: string;
-      estimatedValue?: number;
-      confidenceScore?: number;
-    }
-    | null
-  >;
-  processPremiumValuation: (
-    valuationData: any,
-  ) => Promise<{ valuationId?: string } | null>;
+}
+
+const ValuationContext = createContext<ValuationContextType | undefined>(undefined);
+
+export const useValuation = () => {
+  const context = useContext(ValuationContext);
+  if (!context) {
+    throw new Error('useValuation must be used within a ValuationProvider');
+  }
+  return context;
 };
 
-// Create context with default values
-const ValuationContext = createContext<ValuationContextType>({
-  isPremium: false,
-  hasPurchasedReport: false,
-  purchaseReport: async () => {},
-  downloadPdf: async () => {},
-  isLoading: false,
-  isProcessing: false,
-  error: null,
-  processFreeValuation: async () => null,
-  processPremiumValuation: async () => null,
-});
-
-// Provider component
-export const ValuationProvider: React.FC<{ children: ReactNode }> = (
-  { children },
-) => {
-  const [isPremium, setIsPremium] = useState(false);
-  const [hasPurchasedReport, setHasPurchasedReport] = useState(false);
+export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
 
-  // Mock functions for demonstration
-  const purchaseReport = async () => {
+  const processFreeValuation = async (data: ValuationData): Promise<ValuationResult> => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setHasPurchasedReport(true);
-      toast.success("Report purchased successfully!");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err : new Error("Failed to purchase report"),
-      );
-      toast.error("Failed to purchase report");
+      console.log('Processing free valuation:', data);
+      
+      // Mock valuation processing - replace with actual Supabase call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const mockResult = {
+        valuationId: `val_${Date.now()}`,
+        estimatedValue: Math.floor(Math.random() * 50000) + 15000,
+        success: true
+      };
+      
+      return mockResult;
+    } catch (error) {
+      console.error('Free valuation error:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const downloadPdf = async () => {
+  const processPremiumValuation = async (data: ValuationData): Promise<ValuationResult> => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success("PDF downloaded successfully!");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err : new Error("Failed to download PDF"),
-      );
-      toast.error("Failed to download PDF");
+      console.log('Processing premium valuation:', data);
+      
+      // Mock premium valuation processing - replace with actual Supabase call
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      
+      const mockResult = {
+        valuationId: `prem_val_${Date.now()}`,
+        estimatedValue: Math.floor(Math.random() * 60000) + 20000,
+        success: true
+      };
+      
+      return mockResult;
+    } catch (error) {
+      console.error('Premium valuation error:', error);
+      throw error;
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // Process a free valuation
-  const processFreeValuation = async (valuationData: any) => {
-    console.log("Processing free valuation:", valuationData);
-    setIsProcessing(true);
-
-    try {
-      // Simulate API call to process valuation
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Generate a mock valuation ID
-      const valuationId = `free-${Date.now()}-${
-        Math.floor(Math.random() * 1000)
-      }`;
-      const estimatedValue = Math.floor(15000 + Math.random() * 10000);
-      const confidenceScore = Math.floor(70 + Math.random() * 25);
-
-      return { valuationId, estimatedValue, confidenceScore };
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err
-          : new Error("Failed to process free valuation"),
-      );
-      toast.error("Failed to process valuation");
-      return null;
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  // Process a premium valuation
-  const processPremiumValuation = async (valuationData: any) => {
-    console.log("Processing premium valuation:", valuationData);
-    setIsProcessing(true);
-
-    try {
-      // Check if user has premium access
-      if (!isPremium && !hasPurchasedReport) {
-        toast.info("Premium access required for this feature");
-        return null;
-      }
-
-      // Simulate API call to process premium valuation
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Generate a mock valuation ID
-      const valuationId = `premium-${Date.now()}-${
-        Math.floor(Math.random() * 1000)
-      }`;
-
-      return { valuationId };
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err
-          : new Error("Failed to process premium valuation"),
-      );
-      toast.error("Failed to process premium valuation");
-      return null;
-    } finally {
-      setIsProcessing(false);
     }
   };
 
   return (
-    <ValuationContext.Provider
-      value={{
-        isPremium,
-        hasPurchasedReport,
-        purchaseReport,
-        downloadPdf,
-        isLoading,
-        isProcessing,
-        error,
-        processFreeValuation,
-        processPremiumValuation,
-      }}
-    >
+    <ValuationContext.Provider value={{
+      processFreeValuation,
+      processPremiumValuation,
+      isLoading
+    }}>
       {children}
     </ValuationContext.Provider>
   );
-};
-
-// Hook to use the context
-export const useValuation = () => {
-  const context = useContext(ValuationContext);
-  if (context === undefined) {
-    throw new Error("useValuation must be used within a ValuationProvider");
-  }
-  return context;
 };

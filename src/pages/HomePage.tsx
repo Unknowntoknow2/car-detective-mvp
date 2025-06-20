@@ -1,4 +1,3 @@
-// src/pages/index.tsx
 
 import { useEffect, useRef, useState } from "react";
 import { EnhancedHeroSection } from "@/components/home/EnhancedHeroSection";
@@ -16,10 +15,10 @@ import { useValuation } from "@/contexts/ValuationContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-export default function Index() {
+export default function HomePage() {
   const valuationRef = useRef<HTMLDivElement>(null);
   const [valuationType, setValuationType] = useState<"free" | "premium">("free");
-  const { processFreeValuation, processPremiumValuation } = useValuation();
+  const { processFreeValuation, processPremiumValuation, isLoading } = useValuation();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,69 +34,81 @@ export default function Index() {
     console.log(`HOME PAGE: User selected ${value} valuation type`);
   };
 
-  const handleFreeFormSubmit = (
+  const handleFreeFormSubmit = async (
     type: string,
     value: string,
     state?: string
   ) => {
     console.log(`HOME FREE ${type.toUpperCase()}:`, value);
-    const parsed = type === "manual" ? JSON.parse(value) : {};
-    const valuationData = {
-      type,
-      value,
-      state,
-      make: parsed.make,
-      model: parsed.model,
-      year: parsed.year,
-      zipCode: parsed.zipCode
-    };
+    
+    if (isLoading) {
+      toast.error("Please wait for the current valuation to complete");
+      return;
+    }
 
-    processFreeValuation(valuationData)
-      .then((result) => {
-        if (result?.valuationId) {
-          localStorage.setItem("latest_valuation_id", result.valuationId);
-          toast.success("Vehicle valuation complete!");
-          navigate(`/result?valuationId=${result.valuationId}`);
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        toast.error("Failed to process valuation");
-      });
+    try {
+      const parsed = type === "manual" ? JSON.parse(value) : {};
+      const valuationData = {
+        type,
+        value,
+        state,
+        make: parsed.make,
+        model: parsed.model,
+        year: parsed.year,
+        zipCode: parsed.zipCode
+      };
+
+      const result = await processFreeValuation(valuationData);
+      
+      if (result?.valuationId) {
+        localStorage.setItem("latest_valuation_id", result.valuationId);
+        toast.success("Vehicle valuation complete!");
+        navigate(`/results/${result.valuationId}`);
+      }
+    } catch (error) {
+      console.error("Free valuation error:", error);
+      toast.error("Failed to process valuation. Please try again.");
+    }
   };
 
-  const handlePremiumFormSubmit = (
+  const handlePremiumFormSubmit = async (
     type: string,
     value: string,
     state?: string,
     data?: any
   ) => {
     console.log(`HOME PREMIUM ${type.toUpperCase()}:`, value);
-    const parsed = type === "manual" ? JSON.parse(value) : {};
-    const valuationData = {
-      type,
-      value,
-      state,
-      make: parsed.make,
-      model: parsed.model,
-      year: parsed.year,
-      zipCode: parsed.zipCode,
-      ...data
-    };
+    
+    if (isLoading) {
+      toast.error("Please wait for the current valuation to complete");
+      return;
+    }
 
-    processPremiumValuation(valuationData)
-      .then((result) => {
-        if (result?.valuationId) {
-          toast.success("Premium valuation complete!");
-          navigate(`/result?valuationId=${result.valuationId}&premium=true`);
-        } else {
-          navigate("/premium");
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        toast.error("Failed to process premium valuation");
-      });
+    try {
+      const parsed = type === "manual" ? JSON.parse(value) : {};
+      const valuationData = {
+        type,
+        value,
+        state,
+        make: parsed.make,
+        model: parsed.model,
+        year: parsed.year,
+        zipCode: parsed.zipCode,
+        ...data
+      };
+
+      const result = await processPremiumValuation(valuationData);
+      
+      if (result?.valuationId) {
+        toast.success("Premium valuation complete!");
+        navigate(`/premium/results/${result.valuationId}`);
+      } else {
+        navigate("/premium");
+      }
+    } catch (error) {
+      console.error("Premium valuation error:", error);
+      toast.error("Failed to process premium valuation. Please try again.");
+    }
   };
 
   return (
@@ -107,6 +118,7 @@ export default function Index() {
         <EnhancedHeroSection onFreeValuationClick={scrollToValuation} />
         <KeyFeatures />
         <ValuePropositionSection />
+        
         <div className="container mx-auto px-4 py-8 sm:py-12">
           <MarketingBanner
             headline="Experience Premium Valuation with CARFAX® Reports"
@@ -115,14 +127,17 @@ export default function Index() {
             ctaHref="/premium"
           />
         </div>
+        
         <PremiumServicesGrid />
         <TestimonialsSection />
         <ComparisonTable />
+        
         <div ref={valuationRef} className="py-16 bg-slate-50">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
               Get Your Vehicle Valuation
             </h2>
+            
             <Tabs
               defaultValue="free"
               value={valuationType}
@@ -130,25 +145,36 @@ export default function Index() {
               className="w-full max-w-3xl mx-auto mb-8"
             >
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="free">Free Valuation</TabsTrigger>
-                <TabsTrigger value="premium">Premium Report</TabsTrigger>
+                <TabsTrigger value="free" disabled={isLoading}>
+                  {isLoading && valuationType === "free" ? "Processing..." : "Free Valuation"}
+                </TabsTrigger>
+                <TabsTrigger value="premium" disabled={isLoading}>
+                  {isLoading && valuationType === "premium" ? "Processing..." : "Premium Report"}
+                </TabsTrigger>
               </TabsList>
+              
               <TabsContent value="free" className="mt-6">
                 <div className="text-center mb-6">
                   <p className="text-lg text-slate-600">
                     Get a quick, AI-powered estimate based on market data.
                   </p>
                 </div>
-                <LookupTabs defaultTab="vin" onSubmit={handleFreeFormSubmit} />
+                <LookupTabs 
+                  defaultTab="vin" 
+                  onSubmit={handleFreeFormSubmit}
+                />
               </TabsContent>
+              
               <TabsContent value="premium" className="mt-6">
                 <div className="text-center mb-6">
                   <p className="text-lg text-slate-600">
-                    Get comprehensive analysis with CARFAX® report and
-                    dealer-competitive offers.
+                    Get comprehensive analysis with CARFAX® report and dealer-competitive offers.
                   </p>
                 </div>
-                <PremiumTabs showFreeValuation={false} onSubmit={handlePremiumFormSubmit} />
+                <PremiumTabs 
+                  showFreeValuation={false} 
+                  onSubmit={handlePremiumFormSubmit}
+                />
               </TabsContent>
             </Tabs>
           </div>
