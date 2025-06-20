@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Select,
@@ -7,7 +8,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { ConditionLevel } from '@/types/manualEntry';
+
+// Define condition levels locally
+export enum ConditionLevel {
+  Poor = "Poor",
+  Fair = "Fair",
+  Good = "Good", 
+  VeryGood = "Very Good",
+  Excellent = "Excellent"
+}
 
 interface ConditionAndFuelInputsProps {
   condition: ConditionLevel;

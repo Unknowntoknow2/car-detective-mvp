@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,12 +6,35 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
 import { AutoCompleteVehicleSelector } from "@/components/lookup/form-parts/AutoCompleteVehicleSelector";
-import { VehicleBasicInfoFields } from "@/components/lookup/manual/components/VehicleBasicInfoFields";
 import { ConditionAndZipFields } from "@/components/lookup/manual/components/ConditionAndZipFields";
 import { VehicleDetailsFields } from "@/components/lookup/manual/components/VehicleDetailsFields";
 import { VinInputField } from "@/components/lookup/manual/components/VinInputField";
-import { ConditionLevel } from "@/types/manualEntry";
-import { ManualEntryFormData } from '@/types/manualEntry';
+import { ConditionLevel } from "@/components/lookup/ConditionSelectorSegmented";
+import { ManualEntryFormData } from '@/types/manual-entry';
+
+// Create a basic VehicleBasicInfoFields component locally since the original is missing
+const VehicleBasicInfoFields = ({ form }: { form: any }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label className="block text-sm font-medium mb-2">Year</label>
+      <input 
+        type="number" 
+        {...form.register("year")}
+        className="w-full p-2 border rounded"
+        placeholder="2020"
+      />
+    </div>
+    <div>
+      <label className="block text-sm font-medium mb-2">Mileage</label>
+      <input 
+        type="number" 
+        {...form.register("mileage")}
+        className="w-full p-2 border rounded"
+        placeholder="50000"
+      />
+    </div>
+  </div>
+);
 
 const premiumValuationSchema = z.object({
   make: z.string().min(1, "Make is required"),

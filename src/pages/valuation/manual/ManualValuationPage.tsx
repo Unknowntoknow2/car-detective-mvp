@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import UnifiedManualEntryForm from '@/components/lookup/manual-core/ManualEntryForm';
+import UnifiedManualEntryForm from '@/components/lookup/UnifiedManualEntryForm';
 import { ManualEntryFormData } from '@/types/manual-entry';
 import { submitManualValuation } from '@/services/valuation/submitManualValuation';
 

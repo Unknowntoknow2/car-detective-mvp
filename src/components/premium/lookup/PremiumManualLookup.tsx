@@ -1,8 +1,7 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ManualLookup } from "@/components/premium/lookup/ManualLookup";
-import { ManualEntryFormData } from "@/types/manualEntry";
+import { ManualEntryFormData } from "@/types/manual-entry";
 
 interface PremiumManualLookupProps {
   onSubmit: (data: ManualEntryFormData) => void;
