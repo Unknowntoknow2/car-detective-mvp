@@ -224,11 +224,20 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
             )}
 
             <div>
-              <Label htmlFor="service_history">Service History</Label>
+              <Label htmlFor="serviceHistory">Service History</Label>
               <Textarea
-                id="service_history"
-                value={formData.service_history || ''}
-                onChange={(e) => updateFormData({ service_history: e.target.value })}
+                id="serviceHistory"
+                value={formData.serviceHistory?.description || ''}
+                onChange={(e) => updateFormData({ 
+                  serviceHistory: {
+                    ...formData.serviceHistory,
+                    description: e.target.value,
+                    hasRecords: formData.serviceHistory?.hasRecords || false,
+                    frequency: formData.serviceHistory?.frequency || 'unknown',
+                    dealerMaintained: formData.serviceHistory?.dealerMaintained || false,
+                    services: formData.serviceHistory?.services || []
+                  }
+                })}
                 placeholder="Describe maintenance and service history..."
               />
             </div>
