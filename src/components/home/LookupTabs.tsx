@@ -7,6 +7,7 @@ import { ManualEntryForm } from "@/components/lookup/manual/ManualEntryForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LoadingButton } from "@/components/common/UnifiedLoadingSystem";
 
 interface LookupTabsProps {
   onVehicleFound: (vehicle: any) => void;
@@ -67,13 +68,15 @@ const VinLookupTab: React.FC<{ tier: "free" | "premium"; onSubmit?: (vin: string
         </p>
       </div>
       
-      <Button 
-        type="submit" 
-        disabled={!vin || vin.length < 17 || isLoading}
+      <LoadingButton
+        type="submit"
+        isLoading={isLoading}
+        loadingText="Looking up..."
         className="w-full"
+        disabled={!vin || vin.length < 17}
       >
-        {isLoading ? 'Looking up...' : `Look up Vehicle ${tier === 'premium' ? '(Premium)' : ''}`}
-      </Button>
+        Look up Vehicle {tier === 'premium' ? '(Premium)' : ''}
+      </LoadingButton>
     </form>
   );
 };

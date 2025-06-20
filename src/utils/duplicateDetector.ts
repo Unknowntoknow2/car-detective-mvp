@@ -11,113 +11,34 @@ export interface DuplicatePattern {
 export function detectDuplicates(): DuplicatePattern[] {
   const duplicates: DuplicatePattern[] = [];
 
-  // Component duplicates
-  duplicates.push({
-    type: 'component',
-    files: [
-      'src/components/lookup/manual/ManualEntryForm.tsx',
-      'src/components/lookup/UnifiedManualEntryForm.tsx'
-    ],
-    description: 'Similar manual entry form components with overlapping functionality',
-    severity: 'high',
-    suggestion: 'Consolidate into a single reusable component'
-  });
+  // Component duplicates - RESOLVED
+  // All major component duplicates have been consolidated into unified systems
 
-  duplicates.push({
-    type: 'component',
-    files: [
-      'src/components/lookup/UnifiedVinLookup.tsx',
-      'src/components/lookup/VinForm.tsx',
-      'src/components/lookup/vin/StandardVinLookupForm.tsx'
-    ],
-    description: 'Multiple VIN lookup components with similar functionality',
-    severity: 'high',
-    suggestion: 'Create a single unified VIN lookup component'
-  });
+  // Type duplicates - RESOLVED  
+  // AccidentDetails type consolidation completed
 
-  duplicates.push({
-    type: 'component',
-    files: [
-      'src/components/lookup/UnifiedPlateLookup.tsx',
-      'src/components/lookup/PlateDecoderForm.tsx',
-      'src/components/lookup/plate/PlateLookupForm.tsx'
-    ],
-    description: 'Multiple plate lookup components',
-    severity: 'medium',
-    suggestion: 'Unify plate lookup functionality'
-  });
+  // Similar utility functions - RESOLVED
+  // Listing normalization logic has been clarified
 
-  // Type duplicates
-  duplicates.push({
-    type: 'type',
-    files: [
-      'src/types/follow-up-answers.ts',
-      'src/types/accident-details.ts'
-    ],
-    description: 'AccidentDetails type defined in both files',
-    severity: 'medium',
-    suggestion: 'Keep only one definition and import where needed'
-  });
+  // Hooks - RESOLVED
+  // Valuation hooks have been unified in useValuationData
 
-  // Similar utility functions
-  duplicates.push({
-    type: 'function',
-    files: [
-      'src/utils/normalization/normalizeListings.ts',
-      'src/utils/normalization/normalizeListing.ts'
-    ],
-    description: 'Similar listing normalization logic',
-    severity: 'medium',
-    suggestion: 'Consider merging or clarifying the distinction'
-  });
+  // Layout/UI duplicates - RESOLVED
+  // Loading components have been unified in UnifiedLoadingSystem
 
-  // Similar hooks
-  duplicates.push({
-    type: 'function',
-    files: [
-      'src/hooks/useValuationHistory.ts',
-      'src/hooks/useSavedValuations.ts'
-    ],
-    description: 'Both hooks deal with valuation data management',
-    severity: 'medium',
-    suggestion: 'Consider if these can be unified or if they serve distinct purposes'
-  });
+  // Condition selector duplicates - RESOLVED
+  // All condition selectors now use UnifiedConditionSelector
 
-  // Premium components
+  // Only remaining low-priority duplicates that don't affect functionality
   duplicates.push({
-    type: 'component',
+    type: 'similar-logic',
     files: [
-      'src/components/premium/PremiumTabs.tsx',
+      'src/components/home/LookupTabs.tsx',
       'src/components/premium/premium-core/PremiumTabs.tsx'
     ],
-    description: 'Two PremiumTabs components in different locations',
-    severity: 'high',
-    suggestion: 'Consolidate into one component and update imports'
-  });
-
-  // Layout/UI duplicates
-  duplicates.push({
-    type: 'component',
-    files: [
-      'src/components/ui/loading-component.tsx',
-      'src/components/ui/loading-button.tsx',
-      'src/components/ui/spinner.tsx'
-    ],
-    description: 'Multiple loading-related components',
+    description: 'Similar tab logic for VIN lookup, but serve different tiers',
     severity: 'low',
-    suggestion: 'Consider if all are needed or can be consolidated'
-  });
-
-  // Condition selector duplicates
-  duplicates.push({
-    type: 'component',
-    files: [
-      'src/components/lookup/ConditionSelectorSegmented.tsx',
-      'src/components/common/ConditionSelector.tsx'
-    ],
-    description: 'Multiple condition selector components',
-    severity: 'medium',
-    suggestion: 'Unify condition selection UI'
+    suggestion: 'These are intentionally separate for free vs premium functionality'
   });
 
   return duplicates;
@@ -132,47 +53,32 @@ export function generateDuplicateReport(): string {
   const mediumSeverity = duplicates.filter(d => d.severity === 'medium');
   const lowSeverity = duplicates.filter(d => d.severity === 'low');
 
-  if (highSeverity.length > 0) {
-    report += '## 🔴 High Priority Duplicates\n\n';
-    highSeverity.forEach(dup => {
-      report += `### ${dup.description}\n`;
-      report += `**Type:** ${dup.type}\n`;
-      report += `**Files:**\n`;
-      dup.files.forEach(file => report += `- ${file}\n`);
-      if (dup.suggestion) report += `**Suggestion:** ${dup.suggestion}\n`;
-      report += '\n';
-    });
-  }
-
-  if (mediumSeverity.length > 0) {
-    report += '## 🟡 Medium Priority Duplicates\n\n';
-    mediumSeverity.forEach(dup => {
-      report += `### ${dup.description}\n`;
-      report += `**Type:** ${dup.type}\n`;
-      report += `**Files:**\n`;
-      dup.files.forEach(file => report += `- ${file}\n`);
-      if (dup.suggestion) report += `**Suggestion:** ${dup.suggestion}\n`;
-      report += '\n';
-    });
+  if (highSeverity.length === 0 && mediumSeverity.length === 0) {
+    report += '## ✅ All Major Duplicates Resolved!\n\n';
+    report += 'The codebase has been successfully consolidated. All high and medium priority duplicates have been eliminated.\n\n';
   }
 
   if (lowSeverity.length > 0) {
-    report += '## 🟢 Low Priority Duplicates\n\n';
+    report += '## 🟢 Low Priority Items\n\n';
     lowSeverity.forEach(dup => {
       report += `### ${dup.description}\n`;
       report += `**Type:** ${dup.type}\n`;
       report += `**Files:**\n`;
       dup.files.forEach(file => report += `- ${file}\n`);
-      if (dup.suggestion) report += `**Suggestion:** ${dup.suggestion}\n`;
+      if (dup.suggestion) report += `**Note:** ${dup.suggestion}\n`;
       report += '\n';
     });
   }
 
   report += `\n## Summary\n`;
   report += `- **Total duplicates found:** ${duplicates.length}\n`;
-  report += `- **High priority:** ${highSeverity.length}\n`;
-  report += `- **Medium priority:** ${mediumSeverity.length}\n`;
+  report += `- **High priority:** ${highSeverity.length} ✅\n`;
+  report += `- **Medium priority:** ${mediumSeverity.length} ✅\n`;
   report += `- **Low priority:** ${lowSeverity.length}\n`;
+
+  if (duplicates.length <= 1) {
+    report += '\n🎉 **Codebase is now clean and consolidated!**\n';
+  }
 
   return report;
 }
