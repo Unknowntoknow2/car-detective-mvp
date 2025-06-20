@@ -9,6 +9,4 @@ export {
   NextStepsCard,
 } from "./valuation-complete";
 export * from "./result";
-export * from "./free";
-export * from "./form";
 export * from "./report";
