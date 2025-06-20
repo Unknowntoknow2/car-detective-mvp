@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AccidentToggle } from "@/components/premium/form/steps/vehicle-details/AccidentToggle";
+import { Switch } from "@/components/ui/switch";
 
 interface AccidentSectionProps {
   hasAccident: string;
@@ -30,11 +30,14 @@ export function AccidentSection({
         <CardTitle>Accident History</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <AccidentToggle
-          hasAccidents={hasAccident === "yes"}
-          setHasAccidents={handleToggle}
-          isDisabled={isDisabled}
-        />
+        <div className="flex items-center space-x-2">
+          <Switch
+            checked={hasAccident === "yes"}
+            onCheckedChange={handleToggle}
+            disabled={isDisabled}
+          />
+          <Label>Vehicle has been in accidents</Label>
+        </div>
         
         {hasAccident === "yes" && (
           <div className="space-y-2">
