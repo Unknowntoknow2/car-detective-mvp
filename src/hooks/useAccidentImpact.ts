@@ -1,10 +1,24 @@
 
 import { useState, useCallback } from 'react';
-import { AccidentHistory, AccidentImpact } from '@/types/accident';
+import React from 'react';
+import { AccidentDetails } from '@/types/accident-details';
+
+export interface AccidentImpact {
+  totalImpact: number;
+  percentImpact: number;
+  dollarImpact: number;
+  severity: 'minor' | 'moderate' | 'severe';
+  description: string;
+  recommendations: string[];
+  isPremium: boolean;
+}
+
+// Legacy alias for backward compatibility
+export type AccidentHistory = AccidentDetails;
 
 export const useAccidentImpact = (
   baseValue: number,
-  accidentHistory: AccidentHistory,
+  accidentHistory: AccidentDetails,
   vin?: string,
   valuationId?: string
 ) => {
@@ -14,7 +28,7 @@ export const useAccidentImpact = (
   const [error, setError] = useState<string | null>(null);
 
   const calculateImpact = useCallback(async (
-    accidentHistory: AccidentHistory,
+    accidentHistory: AccidentDetails,
     baseValue: number
   ): Promise<AccidentImpact> => {
     setIsCalculating(true);
@@ -33,7 +47,7 @@ export const useAccidentImpact = (
           case 'moderate':
             totalImpact = 15;
             break;
-          case 'major':
+          case 'severe':
             totalImpact = 30;
             break;
         }
