@@ -1,6 +1,7 @@
 
 import { z } from "zod";
 import { AccidentDetails } from "./accident-details";
+import { ConditionOption, TireConditionOption } from "./condition";
 
 export interface ManualEntryFormData {
   year: string;
@@ -8,7 +9,7 @@ export interface ManualEntryFormData {
   model: string;
   trim?: string;
   mileage: string;
-  condition: string;
+  condition: ConditionOption;
   zipCode: string;
   fuelType?: string;
   transmission?: string;
@@ -19,7 +20,7 @@ export interface ManualEntryFormData {
   serviceHistory?: 'dealer' | 'independent' | 'owner' | 'unknown';
   hasRegularMaintenance?: boolean;
   maintenanceNotes?: string;
-  tireCondition?: 'excellent' | 'good' | 'worn' | 'replacement';
+  tireCondition?: TireConditionOption;
   dashboardLights?: string[];
   hasModifications?: boolean;
   modificationTypes?: string[];
@@ -32,7 +33,7 @@ export const manualEntrySchema = z.object({
   model: z.string().min(1, "Model is required"),
   year: z.string().min(4, "Year is required"),
   mileage: z.string().min(1, "Mileage is required"),
-  condition: z.string().min(1, "Condition is required"),
+  condition: z.enum(['excellent', 'very-good', 'good', 'fair', 'poor']),
   zipCode: z.string().min(5, "ZIP code is required"),
   fuelType: z.string().optional(),
   transmission: z.string().optional(),

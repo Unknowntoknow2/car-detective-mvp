@@ -10,4 +10,8 @@ export interface AccidentDetails {
   frameDamage?: boolean;
   types?: string[];
   repairShops?: string[];
+  airbagDeployment?: boolean;
 }
+
+// Legacy alias for backward compatibility
+export type AccidentHistory = AccidentDetails;
