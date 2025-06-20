@@ -53,18 +53,18 @@ export const AuctionInsightCard: React.FC<Props> = ({ results, ainSummary }) => 
             <div key={`${auction.vin}-${idx}`} className="bg-gray-50 p-4 rounded-lg shadow-sm">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium uppercase text-gray-700">
-                  {auction.auction_source}
+                  {auction.source}
                 </span>
-                <Badge variant="outline">{auction.sold_date}</Badge>
+                <Badge variant="outline">{auction.soldDate}</Badge>
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm text-muted-foreground mb-3">
                 <div>
-                  <span className="font-medium">Price:</span> ${parseFloat(auction.price || '0').toLocaleString()}
+                  <span className="font-medium">Price:</span> ${typeof auction.price === 'string' ? parseFloat(auction.price || '0').toLocaleString() : auction.price.toLocaleString()}
                 </div>
-                {auction.odometer && (
+                {auction.mileage && (
                   <div>
-                    <span className="font-medium">Mileage:</span> {parseInt(auction.odometer).toLocaleString()} mi
+                    <span className="font-medium">Mileage:</span> {auction.mileage.toLocaleString()} mi
                   </div>
                 )}
                 {auction.location && (
@@ -72,16 +72,16 @@ export const AuctionInsightCard: React.FC<Props> = ({ results, ainSummary }) => 
                     <span className="font-medium">Location:</span> {auction.location}
                   </div>
                 )}
-                {auction.condition_grade && (
+                {auction.condition && (
                   <div>
-                    <span className="font-medium">Condition:</span> {auction.condition_grade}
+                    <span className="font-medium">Condition:</span> {auction.condition}
                   </div>
                 )}
               </div>
 
-              {auction.photo_urls && auction.photo_urls.length > 0 && (
+              {auction.photos && auction.photos.length > 0 && (
                 <div className="flex space-x-2 overflow-x-auto">
-                  {auction.photo_urls.slice(0, 4).map((url, index) => (
+                  {auction.photos.slice(0, 4).map((url: string, index: number) => (
                     <img
                       key={index}
                       src={url}
@@ -90,10 +90,10 @@ export const AuctionInsightCard: React.FC<Props> = ({ results, ainSummary }) => 
                       loading="lazy"
                     />
                   ))}
-                  {auction.photo_urls.length > 4 && (
+                  {auction.photos.length > 4 && (
                     <div className="w-20 h-20 bg-gray-200 rounded border flex items-center justify-center flex-shrink-0">
                       <span className="text-xs text-gray-600">
-                        +{auction.photo_urls.length - 4}
+                        +{auction.photos.length - 4}
                       </span>
                     </div>
                   )}

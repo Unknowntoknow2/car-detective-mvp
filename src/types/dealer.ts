@@ -38,3 +38,12 @@ export interface DealerValuation {
 export interface ValuationWithCondition extends DealerValuation {
   condition: string;
 }
+
+export interface Valuation {
+  id: string;
+  vehicleData: any;
+  estimatedValue: number;
+  confidence: number;
+  createdAt: string;
+  condition?: string;
+}
