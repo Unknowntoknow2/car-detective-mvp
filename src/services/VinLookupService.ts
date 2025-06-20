@@ -1,30 +1,42 @@
-import { DecodedVehicleInfo } from "@/types/vehicle";
 
+import { UnifiedVehicleData } from "@/types/unified-lookup";
+import { UnifiedLookupService } from "./UnifiedLookupService";
+
+// Legacy service - now redirects to unified service
 export class VinLookupService {
   static lookupVin = async (vin: string): Promise<any> => {
-    console.log("VinLookupService: Looking up VIN", vin);
-    // Implementation for VIN lookup would go here
-    // For now, we'll just return success
-    return { success: true };
+    console.log("VinLookupService: Redirecting to UnifiedLookupService for VIN", vin);
+    const result = await UnifiedLookupService.lookupByVin(vin, { tier: 'free' });
+    return { success: result.success, data: result.vehicle };
   };
 
-  static startPremiumValuation = (vehicleData: DecodedVehicleInfo): void => {
-    console.log(
-      "VinLookupService: Starting premium valuation for",
-      vehicleData,
-    );
-
-    // Store vehicle data for premium valuation
-    localStorage.setItem(
-      "premium_vehicle",
-      JSON.stringify({
-        identifierType: "vin",
-        identifier: vehicleData.vin,
-        make: vehicleData.make,
-        model: vehicleData.model,
-        year: vehicleData.year,
-        trim: vehicleData.trim || "Standard",
-      }),
-    );
+  static startPremiumValuation = (vehicleData: UnifiedVehicleData): void => {
+    return UnifiedLookupService.startPremiumValuation(vehicleData);
   };
 }
+
+// Export the unified interface as well for new code
+export { UnifiedLookupService };
+
+// Legacy exports for backward compatibility
+export interface VinServiceResponse {
+  success: boolean;
+  data?: UnifiedVehicleData;
+  error?: string;
+  vin: string;
+}
+
+export const vinService = {
+  async decodeVin(vin: string): Promise<VinServiceResponse> {
+    const result = await UnifiedLookupService.lookupByVin(vin, { tier: 'free' });
+    return {
+      success: result.success,
+      vin,
+      data: result.vehicle,
+      error: result.error
+    };
+  }
+};
+
+export const decodeVin = vinService.decodeVin;
+export default vinService;
