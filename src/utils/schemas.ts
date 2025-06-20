@@ -1,5 +1,6 @@
+
 import { z } from "zod";
-import { PlateSchema, VinSchema } from "./validation/schemas";
+import { plateSchema, vinSchema } from "./validation/schemas";
 
 export const VehicleLookupSchema = z.object({
   mode: z.enum(["vin", "plate", "manual"]).default("vin"),
@@ -16,3 +17,7 @@ export const VehicleLookupSchema = z.object({
 });
 
 export type VehicleLookupFormData = z.infer<typeof VehicleLookupSchema>;
+
+// Re-export the schemas with correct names
+export const PlateSchema = plateSchema;
+export const VinSchema = vinSchema;
