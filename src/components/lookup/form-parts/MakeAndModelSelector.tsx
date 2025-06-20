@@ -19,9 +19,11 @@ interface Props {
   setMakeId: (id: string) => void;
   modelId: string | null;
   setModelId: (id: string) => void;
+  isDisabled?: boolean;
+  errors?: Record<string, string>;
 }
 
-const MakeAndModelSelector: React.FC<Props> = ({ makeId, setMakeId, modelId, setModelId }) => {
+const MakeAndModelSelector: React.FC<Props> = ({ makeId, setMakeId, modelId, setModelId, isDisabled, errors }) => {
   const [makes, setMakes] = useState<Make[]>([]);
   const [models, setModels] = useState<Model[]>([]);
 
@@ -69,7 +71,7 @@ const MakeAndModelSelector: React.FC<Props> = ({ makeId, setMakeId, modelId, set
     <div className="grid gap-4">
       <div>
         <Label>Select Make</Label>
-        <Select onValueChange={handleMakeChange} value={makeId || ""}>
+        <Select onValueChange={handleMakeChange} value={makeId || ""} disabled={isDisabled}>
           <SelectTrigger>
             <SelectValue placeholder="Select a make" />
           </SelectTrigger>
@@ -81,11 +83,12 @@ const MakeAndModelSelector: React.FC<Props> = ({ makeId, setMakeId, modelId, set
             ))}
           </SelectContent>
         </Select>
+        {errors?.make && <p className="text-sm text-red-500 mt-1">{errors.make}</p>}
       </div>
 
       <div>
         <Label>Select Model</Label>
-        <Select onValueChange={(value) => setModelId(value)} value={modelId || ""} disabled={!models.length}>
+        <Select onValueChange={(value) => setModelId(value)} value={modelId || ""} disabled={!models.length || isDisabled}>
           <SelectTrigger>
             <SelectValue placeholder={models.length ? "Select a model" : "Select make first"} />
           </SelectTrigger>
@@ -97,9 +100,11 @@ const MakeAndModelSelector: React.FC<Props> = ({ makeId, setMakeId, modelId, set
             ))}
           </SelectContent>
         </Select>
+        {errors?.model && <p className="text-sm text-red-500 mt-1">{errors.model}</p>}
       </div>
     </div>
   );
 };
 
+export { MakeAndModelSelector };
 export default MakeAndModelSelector;

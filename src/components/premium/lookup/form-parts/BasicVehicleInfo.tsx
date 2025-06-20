@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MakeAndModelSelector } from "@/components/lookup/form-parts/MakeAndModelSelector";
+import MakeAndModelSelector from "@/components/lookup/form-parts/MakeAndModelSelector";
 import { YearMileageInputs } from "@/components/premium/lookup/form-parts/fields/YearMileageInputs";
 
 interface BasicVehicleInfoProps {
