@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { LoadingState } from "@/components/premium/common/LoadingState";
+import LoadingState from "@/modules/valuation-result/components/LoadingState";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMemo } from "react";
 
@@ -50,7 +50,7 @@ export function ForecastChart(
     return (
       <Card>
         <CardContent className="p-6 h-[350px] flex items-center justify-center">
-          <LoadingState text="Generating forecast..." />
+          <LoadingState message="Generating forecast..." />
         </CardContent>
       </Card>
     );

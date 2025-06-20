@@ -12,5 +12,5 @@ export * from "./found/FoundCarCard";
 export { VehicleFoundCard } from "@/components/premium/lookup/plate/VehicleFoundCard";
 
 // Use shared components from premium lookup for VinDecoderResults and CarfaxErrorAlert
-export { VinDecoderResults } from "@/components/premium/lookup/vin/VinDecoderResults";
+export { default as VinDecoderResults } from "@/components/premium/lookup/vin/VinDecoderResults";
 export { CarfaxErrorAlert } from "@/components/premium/lookup/vin/CarfaxErrorAlert";
