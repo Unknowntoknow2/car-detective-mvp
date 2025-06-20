@@ -1,126 +1,123 @@
 
-import React, { useEffect, useState } from "react";
-import { fetchAuctionResultsByVin } from "@/services/auction";
-import { AuctionResult } from "@/types/auction";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ExternalLink, Calendar, MapPin } from 'lucide-react';
+import { AuctionResult } from '@/types/auction';
 
 interface AuctionResultsProps {
-  vin: string;
+  auctionResults: AuctionResult[];
 }
 
-export function AuctionResults({ vin }: AuctionResultsProps) {
-  const [results, setResults] = useState<AuctionResult[]>([]);
-  const [loading, setLoading] = useState(true);
+export function AuctionResults({ auctionResults }: AuctionResultsProps) {
+  if (!auctionResults || auctionResults.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Auction Results</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-500">No recent auction results found for this vehicle.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  useEffect(() => {
-    if (!vin) {
-      setLoading(false);
-      return;
+  const formatPrice = (price: string | number): string => {
+    const numericPrice = typeof price === 'string' ? parseFloat(price.replace(/[^0-9.-]+/g, '')) : price;
+    return isNaN(numericPrice) ? 'N/A' : `$${numericPrice.toLocaleString()}`;
+  };
+
+  const formatDate = (dateStr: string): string => {
+    try {
+      return new Date(dateStr).toLocaleDateString();
+    } catch {
+      return dateStr;
     }
-
-    fetchAuctionResultsByVin(vin).then((data) => {
-      setResults(data);
-      setLoading(false);
-    });
-  }, [vin]);
-
-  if (loading) {
-    return (
-      <Card className="mt-6">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-            <span className="ml-2">Loading auction results...</span>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (results.length === 0) {
-    return (
-      <Card className="mt-6">
-        <CardContent className="p-6">
-          <h3 className="text-lg font-semibold mb-2">Auction History</h3>
-          <p className="text-muted-foreground">No auction history found for this VIN.</p>
-        </CardContent>
-      </Card>
-    );
-  }
+  };
 
   return (
-    <Card className="mt-6">
-      <CardContent className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Recent Auction History</h3>
-        <div className="space-y-4">
-          {results.map((item, index) => (
-            <div key={`${item.vin}-${index}`} className="bg-gray-50 p-4 rounded-lg border">
-              <div className="flex justify-between items-start mb-3">
-                <Badge variant="outline" className="uppercase">
-                  {item.auction_source}
-                </Badge>
-                <span className="text-sm text-muted-foreground">
-                  {new Date(item.sold_date).toLocaleDateString()}
-                </span>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">Recent Auction Results</CardTitle>
+        <p className="text-sm text-gray-600">
+          {auctionResults.length} recent sale{auctionResults.length !== 1 ? 's' : ''} found
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {auctionResults.map((result, index) => (
+          <div key={index} className="border rounded-lg p-4 space-y-3">
+            <div className="flex justify-between items-start">
+              <div className="space-y-1">
+                <h4 className="font-semibold">
+                  {result.year} {result.make} {result.model}
+                </h4>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Badge variant="outline" className="text-xs">
+                    {result.source}
+                  </Badge>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {formatDate(result.soldDate)}
+                  </span>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-bold text-green-600">
+                  {formatPrice(typeof result.price === 'string' ? result.price : String(result.price))}
+                </p>
+                <p className="text-xs text-gray-500">Sale Price</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              {result.mileage && (
+                <div>
+                  <p className="text-gray-500">Mileage</p>
+                  <p className="font-medium">{result.mileage.toLocaleString()} mi</p>
+                </div>
+              )}
+              
+              <div>
+                <p className="text-gray-500">Condition</p>
+                <p className="font-medium">{result.condition || 'N/A'}</p>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              {result.location && (
                 <div>
-                  <span className="font-medium text-gray-700">Sold Price:</span>
-                  <div className="text-lg font-semibold text-green-600">
-                    ${parseInt(item.price || '0').toLocaleString()}
-                  </div>
+                  <p className="text-gray-500">Location</p>
+                  <p className="font-medium flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {result.location}
+                  </p>
                 </div>
-                
-                {item.odometer && (
-                  <div>
-                    <span className="font-medium text-gray-700">Mileage:</span>
-                    <div>{parseInt(item.odometer).toLocaleString()} mi</div>
-                  </div>
-                )}
-                
-                {item.condition_grade && (
-                  <div>
-                    <span className="font-medium text-gray-700">Condition:</span>
-                    <div>{item.condition_grade}</div>
-                  </div>
-                )}
-                
-                {item.location && (
-                  <div>
-                    <span className="font-medium text-gray-700">Location:</span>
-                    <div className="text-xs">{item.location}</div>
-                  </div>
-                )}
-              </div>
+              )}
+            </div>
 
-              {item.photo_urls && item.photo_urls.length > 0 && (
-                <div className="mt-3 flex space-x-2 overflow-x-auto">
-                  {item.photo_urls.slice(0, 3).map((url, photoIndex) => (
+            {result.photos && result.photos.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Photos</p>
+                <div className="flex gap-2 overflow-x-auto">
+                  {result.photos.map((url: string, photoIndex: number) => (
                     <img
                       key={photoIndex}
                       src={url}
                       alt={`Auction photo ${photoIndex + 1}`}
-                      className="w-16 h-16 object-cover rounded border flex-shrink-0"
-                      loading="lazy"
+                      className="w-16 h-16 object-cover rounded border"
                     />
                   ))}
-                  {item.photo_urls.length > 3 && (
-                    <div className="w-16 h-16 bg-gray-200 rounded border flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs text-gray-600">
-                        +{item.photo_urls.length - 3}
-                      </span>
-                    </div>
-                  )}
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
+              </div>
+            )}
+
+            {result.photos && result.photos.length > 3 && (
+              <p className="text-xs text-gray-500">
+                +{result.photos.length - 3} more photos
+              </p>
+            )}
+          </div>
+        ))}
       </CardContent>
     </Card>
   );
 }
-
-export default AuctionResults;

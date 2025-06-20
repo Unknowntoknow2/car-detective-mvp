@@ -30,7 +30,7 @@ vi.mock("@react-pdf/renderer", () => ({
 describe("generateValuationPdf", () => {
   it("generates a PDF with the correct data", async () => {
     // Sample test data
-    const testData = {
+    const testData: ReportData = {
       id: "123",
       make: "Toyota",
       model: "Camry",
@@ -56,8 +56,8 @@ describe("generateValuationPdf", () => {
       confidenceScore: 85,
       generatedAt: new Date().toISOString(),
       priceRange: [23000, 27000],
-      userId: "user123",
-    } as ReportData;
+      isPremium: false,
+    };
 
     // Generate the PDF
     const pdfBuffer = await generateValuationPdf(testData);
@@ -70,7 +70,7 @@ describe("generateValuationPdf", () => {
 
   it("handles missing optional fields gracefully", async () => {
     // Minimal test data with only required fields
-    const minimalData = {
+    const minimalData: ReportData = {
       id: "456",
       make: "Honda",
       model: "Civic",
@@ -81,7 +81,11 @@ describe("generateValuationPdf", () => {
       price: 18000,
       estimatedValue: 18000,
       generatedAt: new Date().toISOString(),
-    } as ReportData;
+      priceRange: [17000, 19000],
+      confidenceScore: 75,
+      adjustments: [],
+      isPremium: false,
+    };
 
     // Generate the PDF with minimal data
     const pdfBuffer = await generateValuationPdf(minimalData);

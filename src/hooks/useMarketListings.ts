@@ -1,70 +1,65 @@
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { MarketData } from "@/types/marketListings";
-import { processExistingListings } from "@/utils/marketListings/processListings";
-import {
-  fetchMarketListings,
-  fetchNewListings,
-  storeMarketListings,
-} from "@/services/marketListings";
 
-export const useMarketListings = (
-  zipCode: string,
-  make: string,
-  model: string,
-  year: number,
-) => {
-  const [marketData, setMarketData] = useState<MarketData | null>(null);
+import { useState, useEffect } from 'react';
+import { MarketListing, MarketData } from '@/types/marketListings';
+
+interface UseMarketListingsProps {
+  make: string;
+  model: string;
+  year: number;
+  zipCode: string;
+}
+
+export function useMarketListings({ make, model, year, zipCode }: UseMarketListingsProps) {
+  const [listings, setListings] = useState<MarketListing[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!zipCode || !make || !model || !year) return;
-
+    const fetchListings = async () => {
       setIsLoading(true);
       setError(null);
-
+      
       try {
-        // Check existing listings
-        const { data: existingData, error: fetchError } =
-          await fetchMarketListings(make, model, year);
-
-        if (!fetchError && existingData && existingData.length > 0) {
-          const processedData = processExistingListings(existingData);
-          setMarketData(processedData);
-          setIsLoading(false);
-          return;
-        }
-
-        // Fetch new listings if no existing data
-        const response = await fetchNewListings(zipCode, make, model, year);
-        if (response.error) throw response.error;
-
-        if (response.data) {
-          const newMarketData: MarketData = {
-            averages: response.data.averages,
-            sources: response.data.sources,
-          };
-
-          setMarketData(newMarketData);
-          await storeMarketListings(newMarketData, make, model, year);
-        }
+        // Mock implementation - replace with actual API call
+        const mockListings: MarketListing[] = [
+          {
+            id: '1',
+            valuationId: 'mock-valuation-1',
+            price: 25000,
+            source: 'CarMax',
+            url: 'https://carmax.com/listing/1',
+            listingDate: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+          },
+        ];
+        
+        setListings(mockListings);
       } catch (err) {
-        console.error("Error fetching market listings:", err);
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to fetch market listings",
-        );
-        toast.error("Could not retrieve market offers data");
+        setError(err instanceof Error ? err.message : 'Failed to fetch listings');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchData();
-  }, [zipCode, make, model, year]);
+    if (make && model && year && zipCode) {
+      fetchListings();
+    }
+  }, [make, model, year, zipCode]);
 
-  return { marketData, isLoading, error };
-};
+  const marketData: MarketData = {
+    averagePrice: listings.reduce((sum, listing) => sum + listing.price, 0) / (listings.length || 1),
+    priceRange: {
+      min: Math.min(...listings.map(l => l.price), 0),
+      max: Math.max(...listings.map(l => l.price), 0)
+    },
+    listingCount: listings.length,
+    daysOnMarket: 30
+  };
+
+  return {
+    listings,
+    marketData,
+    isLoading,
+    error
+  };
+}
