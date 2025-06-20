@@ -6,7 +6,7 @@ import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { ComparisonTable } from "@/components/home/ComparisonTable";
 import { ValuePropositionSection } from "@/components/home/ValuePropositionSection";
 import { PremiumServicesGrid } from "@/components/home/PremiumServicesGrid";
-import { PremiumTabs } from "@/components/premium/premium-core/PremiumTabs";
+import { UnifiedLookupTabs } from "@/components/lookup/UnifiedLookupTabs";
 import { MarketingBanner } from "@/components/marketing/MarketingBanner";
 import { AnnouncementBar } from "@/components/marketing/AnnouncementBar";
 import { LookupTabs } from "@/components/home/LookupTabs";
@@ -177,8 +177,10 @@ export default function HomePage() {
                     Get comprehensive analysis with CARFAX® report and dealer-competitive offers.
                   </p>
                 </div>
-                <PremiumTabs 
-                  showFreeValuation={false} 
+                <UnifiedLookupTabs 
+                  tier="premium"
+                  isPremium={true}
+                  onVehicleFound={handleVehicleFound}
                   onSubmit={handlePremiumFormSubmit}
                 />
               </TabsContent>

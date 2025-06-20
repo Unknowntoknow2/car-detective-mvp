@@ -1,7 +1,5 @@
 
 // Export premium lookup components
-export * from "./EnhancedPlateLookup";
-export * from "./EnhancedVinLookup";
 export * from "./PhotoUpload";
 export * from "./PlateLookup";
 export * from "./VinSubmitButton";
