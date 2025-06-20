@@ -2,12 +2,18 @@
 import React, { useEffect, useState } from 'react';
 
 interface AnimatedCounterProps {
-  end: number;
+  value: number;
   duration?: number;
   className?: string;
+  formatter?: (value: number) => string;
 }
 
-export function AnimatedCounter({ end, duration = 1000, className = "" }: AnimatedCounterProps) {
+export function AnimatedCounter({ 
+  value, 
+  duration = 1000, 
+  className = "",
+  formatter = (val) => val.toLocaleString()
+}: AnimatedCounterProps) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -16,7 +22,7 @@ export function AnimatedCounter({ end, duration = 1000, className = "" }: Animat
       if (!startTime) startTime = currentTime;
       const progress = Math.min((currentTime - startTime) / duration, 1);
       
-      setCount(Math.floor(progress * end));
+      setCount(Math.floor(progress * value));
       
       if (progress < 1) {
         requestAnimationFrame(animate);
@@ -24,7 +30,7 @@ export function AnimatedCounter({ end, duration = 1000, className = "" }: Animat
     };
     
     requestAnimationFrame(animate);
-  }, [end, duration]);
+  }, [value, duration]);
 
-  return <span className={className}>{count.toLocaleString()}</span>;
+  return <span className={className}>{formatter(count)}</span>;
 }

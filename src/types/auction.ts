@@ -6,12 +6,17 @@ export interface AuctionResult {
   model: string;
   year: number;
   mileage: number;
-  price: number;
+  price: string | number;
   soldDate: string;
+  sold_date: string;
   location: string;
   condition: string;
+  condition_grade?: string;
   photos: string[];
+  photo_urls?: string[];
   source: string;
+  auction_source: string;
+  odometer?: string;
 }
 
 export interface AuctionInsight {

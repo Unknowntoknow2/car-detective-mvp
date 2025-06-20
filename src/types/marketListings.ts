@@ -11,6 +11,7 @@ export interface MarketListing {
 
 export interface MarketData {
   averagePrice: number;
+  averages?: number;
   priceRange: {
     min: number;
     max: number;

@@ -34,3 +34,7 @@ export interface DealerValuation {
   confidence: number;
   createdAt: string;
 }
+
+export interface ValuationWithCondition extends DealerValuation {
+  condition: string;
+}

@@ -6,9 +6,14 @@ import { Progress } from '@/components/ui/progress';
 interface ConfidenceScoreProps {
   score: number;
   className?: string;
+  comparableVehicles?: number;
 }
 
-export function ConfidenceScore({ score, className = "" }: ConfidenceScoreProps) {
+export function ConfidenceScore({ 
+  score, 
+  className = "",
+  comparableVehicles = 0
+}: ConfidenceScoreProps) {
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-green-600";
     if (score >= 80) return "text-blue-600";
@@ -34,6 +39,7 @@ export function ConfidenceScore({ score, className = "" }: ConfidenceScoreProps)
       <Progress value={score} className="h-2" />
       <p className="text-xs text-muted-foreground">
         {score}% confidence in valuation accuracy
+        {comparableVehicles > 0 && ` (${comparableVehicles} comparables)`}
       </p>
     </div>
   );
