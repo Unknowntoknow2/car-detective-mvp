@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,11 +41,20 @@ export default function ResultsPage() {
     tire_condition: 'good',
     previous_use: 'personal',
     previous_owners: 1,
-    last_service_date: null,
-    frame_damage: null,
+    frame_damage: false,
     dashboard_lights: [],
     is_complete: false,
-    completion_percentage: 0
+    completion_percentage: 0,
+    transmission: 'automatic',
+    accident_history: {
+      hadAccident: false,
+      count: 0,
+      severity: 'minor',
+      repaired: false,
+      frameDamage: false
+    },
+    features: [],
+    additional_notes: ''
   });
 
   useEffect(() => {
