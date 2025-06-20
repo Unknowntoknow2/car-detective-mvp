@@ -1,10 +1,9 @@
 
 import { Calculator } from './interfaces/Calculator';
-import { ValuationData, Adjustment } from './types';
+import { RulesEngineInput, ValuationData, Adjustment } from '../valuation/rules/types';
 import { AccidentCalculator } from './calculators/accidentCalculator';
 import { ConditionCalculator } from './calculators/conditionCalculator';
 import { mileageCalculator } from './calculators/mileageCalculator';
-import { locationCalculator } from './calculators/locationCalculator';
 
 export class RulesEngine {
   private calculators: Calculator[] = [];
@@ -14,7 +13,6 @@ export class RulesEngine {
   }
 
   private initializeCalculators(): void {
-    // Mix of class-based and object-based calculators
     const accidentCalc = new AccidentCalculator();
     const conditionCalc = new ConditionCalculator();
     
@@ -45,19 +43,11 @@ export class RulesEngine {
           } : null;
         }
       },
-      mileageCalculator,
-      {
-        name: 'Location Calculator',
-        description: 'Calculates location-based adjustments',
-        calculate: (data: ValuationData) => {
-          // Simple location adjustment logic
-          return null; // Placeholder
-        }
-      }
+      mileageCalculator
     ];
   }
 
-  private convertToRulesEngineInput(data: ValuationData): any {
+  private convertToRulesEngineInput(data: ValuationData): RulesEngineInput {
     return {
       make: data.make || '',
       model: data.model || '',
@@ -67,7 +57,17 @@ export class RulesEngine {
       zipCode: data.zipCode,
       basePrice: data.basePrice || 0,
       baseValue: data.basePrice || 0,
-      accidentCount: data.accidentCount || 0
+      accidentCount: data.accidentCount || 0,
+      trim: data.trim,
+      fuelType: data.fuelType,
+      transmissionType: data.transmission,
+      exteriorColor: data.color,
+      features: data.features,
+      aiConditionOverride: data.aiConditionOverride,
+      photoScore: data.photoScore,
+      bodyType: data.bodyType,
+      colorMultiplier: data.colorMultiplier,
+      drivingScore: data.drivingScore
     };
   }
 

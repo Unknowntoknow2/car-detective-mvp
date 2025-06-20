@@ -3,7 +3,7 @@ import {
   AdjustmentBreakdown,
   AdjustmentCalculator,
   RulesEngineInput,
-} from "../types";
+} from "../../valuation/rules/types";
 
 export class ConditionCalculator implements AdjustmentCalculator {
   calculate(input: RulesEngineInput): AdjustmentBreakdown | null {

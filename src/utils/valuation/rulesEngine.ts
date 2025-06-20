@@ -1,7 +1,6 @@
 
 import { RulesEngineInput, AdjustmentBreakdown } from './rules/types';
 
-// Mock implementation of calculateAdjustments
 export const calculateAdjustments = async (input: RulesEngineInput): Promise<AdjustmentBreakdown[]> => {
   const adjustments: AdjustmentBreakdown[] = [];
 
@@ -55,7 +54,6 @@ export const calculateAdjustments = async (input: RulesEngineInput): Promise<Adj
   return adjustments;
 };
 
-// Calculate the total adjustment from all individual adjustments
 export const calculateTotalAdjustment = (adjustments: AdjustmentBreakdown[]): number => {
   return adjustments.reduce((total, adjustment) => total + adjustment.impact, 0);
 };

@@ -1,6 +1,6 @@
 
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { ReportData, PdfOptions } from '@/types/valuation';
+import { ReportData, PdfOptions } from './types';
 
 export async function generateValuationPdf(
   data: ReportData, 
