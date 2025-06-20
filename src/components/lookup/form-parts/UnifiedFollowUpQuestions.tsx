@@ -66,13 +66,16 @@ export function UnifiedFollowUpQuestions({
     const existing = formData.accidentDetails;
     if (!existing) return defaultAccidentDetails;
     
+    // Safely extract properties with fallbacks
     return {
-      hadAccident: existing.hadAccident || false,
-      severity: (existing.severity as 'minor' | 'moderate' | 'severe') || 'minor',
-      repaired: existing.repaired || false,
-      count: existing.count || 0,
-      location: existing.location || '',
-      description: existing.description || ''
+      hadAccident: Boolean(existing.hadAccident),
+      severity: (existing.severity === 'minor' || existing.severity === 'moderate' || existing.severity === 'severe') 
+        ? existing.severity 
+        : 'minor',
+      repaired: (existing as any).repaired ?? false,
+      count: (existing as any).count ?? 0,
+      location: (existing as any).location ?? '',
+      description: (existing as any).description ?? ''
     };
   };
 
