@@ -1,57 +1,69 @@
 
-export interface FollowUpAnswers {
-  vin: string;
-  zip_code: string;
-  mileage: number;
-  condition: string;
-  accidents: boolean;
-  maintenance_records: boolean;
-  modifications: string | ModificationDetails;
-  additional_notes: string;
-  transmission?: string;
-  title_status?: string;
-  previous_use?: string;
-  serviceHistory?: string | ServiceHistoryDetails;
-  tire_condition?: TireConditionOption;
-  exterior_condition?: ConditionOption;
-  interior_condition?: ConditionOption;
-  dashboard_lights?: string[];
-  accident_history?: AccidentDetails;
-  features?: string[];
-  service_history?: string;
-  completion_percentage?: number;
-  is_complete?: boolean;
-  [key: string]: any; // Allow additional fields
-}
-
-export interface AccidentDetails {
-  hadAccident: boolean;
-  count?: number;
-  location?: string;
-  severity?: 'minor' | 'moderate' | 'severe';
-  repaired?: boolean;
-  frameDamage?: boolean;
-  airbagDeployment?: boolean;
-  description?: string;
-  types?: string[];
-  repairShops?: string[];
-}
-
 export interface ServiceHistoryDetails {
   hasRecords: boolean;
   lastService?: string;
-  frequency?: 'regular' | 'occasional' | 'rare' | 'unknown';
-  dealerMaintained?: boolean;
-  description?: string;
-  services?: string[];
+  regularMaintenance?: boolean;
+  majorRepairs?: string[];
 }
 
 export interface ModificationDetails {
   hasModifications: boolean;
-  modified?: boolean;
-  types?: string[];
-  additionalNotes?: string;
+  modified: boolean;
+  types: string[];
+  reversible?: boolean;
+  description?: string;
 }
 
-export type ConditionOption = 'excellent' | 'very-good' | 'good' | 'fair' | 'poor';
-export type TireConditionOption = 'excellent' | 'good' | 'worn' | 'replacement';
+export interface AccidentDetails {
+  hadAccident: boolean;
+  count: number;
+  location?: string;
+  severity: 'minor' | 'moderate' | 'major';
+  repaired: boolean;
+  frameDamage: boolean;
+  description?: string;
+}
+
+export interface FollowUpAnswers {
+  id?: string;
+  vin: string;
+  user_id?: string;
+  valuation_id?: string;
+  
+  // Basic info
+  zip_code: string;
+  mileage: number;
+  condition: string;
+  
+  // History
+  accidents: AccidentDetails;
+  maintenance_records?: boolean;
+  transmission: string;
+  title_status: string;
+  previous_use: string;
+  serviceHistory: ServiceHistoryDetails;
+  
+  // Condition details
+  tire_condition: string;
+  exterior_condition?: string;
+  interior_condition?: string;
+  dashboard_lights: string[];
+  
+  // Vehicle details
+  accident_history: AccidentDetails; // Legacy support
+  modifications: ModificationDetails;
+  features: string[];
+  
+  // Additional
+  additional_notes: string;
+  service_history: string;
+  
+  // Meta
+  completion_percentage: number;
+  is_complete: boolean;
+  created_at?: string;
+  updated_at?: string;
+  
+  // UI state
+  vehicleConfirmed?: boolean;
+}

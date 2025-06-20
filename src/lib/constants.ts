@@ -1,43 +1,74 @@
 
-// Feature Flags
-export const SHOW_ALL_COMPONENTS = process.env.NODE_ENV === 'development';
-export const ENABLE_DEV_TOOLS = process.env.NODE_ENV === 'development';
-export const USE_MOCK_DATA = process.env.NODE_ENV === 'development';
-export const DEBUG_MODE = process.env.NODE_ENV === 'development';
-
-// API Configuration
-export const API_TIMEOUT = 10000; // 10 seconds
-export const MAX_RETRIES = 3;
-
-// UI Constants
-export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
-export const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-export const MAX_FILE_UPLOADS = 5;
-
-// Vehicle Valuation
-export const MIN_VEHICLE_YEAR = 1980;
-export const MAX_VEHICLE_YEAR = new Date().getFullYear() + 1; // Next year's models
-
-// Validation Constants
-export const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/i;
-export const US_PHONE_REGEX = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
-export const US_ZIP_REGEX = /^\d{5}(?:[-\s]\d{4})?$/;
-
-// Local Storage Keys
-export const STORAGE_KEY_PREFIX = 'car-detective-';
-export const RECENT_SEARCHES_KEY = `${STORAGE_KEY_PREFIX}recent-searches`;
-export const SAVED_VEHICLES_KEY = `${STORAGE_KEY_PREFIX}saved-vehicles`;
-export const LAST_VALUATION_KEY = `${STORAGE_KEY_PREFIX}last-valuation`;
-
-// Premium Features
-export const PREMIUM_FEATURES = [
-  'carfax_integration',
-  'market_analysis',
-  'price_forecast',
-  'detailed_condition_assessment',
-  'dealer_offers',
-  'service_history'
+export const US_STATES = [
+  { value: 'AL', label: 'Alabama' },
+  { value: 'AK', label: 'Alaska' },
+  { value: 'AZ', label: 'Arizona' },
+  { value: 'AR', label: 'Arkansas' },
+  { value: 'CA', label: 'California' },
+  { value: 'CO', label: 'Colorado' },
+  { value: 'CT', label: 'Connecticut' },
+  { value: 'DE', label: 'Delaware' },
+  { value: 'FL', label: 'Florida' },
+  { value: 'GA', label: 'Georgia' },
+  { value: 'HI', label: 'Hawaii' },
+  { value: 'ID', label: 'Idaho' },
+  { value: 'IL', label: 'Illinois' },
+  { value: 'IN', label: 'Indiana' },
+  { value: 'IA', label: 'Iowa' },
+  { value: 'KS', label: 'Kansas' },
+  { value: 'KY', label: 'Kentucky' },
+  { value: 'LA', label: 'Louisiana' },
+  { value: 'ME', label: 'Maine' },
+  { value: 'MD', label: 'Maryland' },
+  { value: 'MA', label: 'Massachusetts' },
+  { value: 'MI', label: 'Michigan' },
+  { value: 'MN', label: 'Minnesota' },
+  { value: 'MS', label: 'Mississippi' },
+  { value: 'MO', label: 'Missouri' },
+  { value: 'MT', label: 'Montana' },
+  { value: 'NE', label: 'Nebraska' },
+  { value: 'NV', label: 'Nevada' },
+  { value: 'NH', label: 'New Hampshire' },
+  { value: 'NJ', label: 'New Jersey' },
+  { value: 'NM', label: 'New Mexico' },
+  { value: 'NY', label: 'New York' },
+  { value: 'NC', label: 'North Carolina' },
+  { value: 'ND', label: 'North Dakota' },
+  { value: 'OH', label: 'Ohio' },
+  { value: 'OK', label: 'Oklahoma' },
+  { value: 'OR', label: 'Oregon' },
+  { value: 'PA', label: 'Pennsylvania' },
+  { value: 'RI', label: 'Rhode Island' },
+  { value: 'SC', label: 'South Carolina' },
+  { value: 'SD', label: 'South Dakota' },
+  { value: 'TN', label: 'Tennessee' },
+  { value: 'TX', label: 'Texas' },
+  { value: 'UT', label: 'Utah' },
+  { value: 'VT', label: 'Vermont' },
+  { value: 'VA', label: 'Virginia' },
+  { value: 'WA', label: 'Washington' },
+  { value: 'WV', label: 'West Virginia' },
+  { value: 'WI', label: 'Wisconsin' },
+  { value: 'WY', label: 'Wyoming' }
 ];
 
-// Page Limits
-export const ITEMS_PER_PAGE = 10;
+export const MAKES = [
+  'Acura', 'Audi', 'BMW', 'Buick', 'Cadillac', 'Chevrolet', 'Chrysler', 'Dodge', 
+  'Ford', 'GMC', 'Honda', 'Hyundai', 'Infiniti', 'Jaguar', 'Jeep', 'Kia', 
+  'Land Rover', 'Lexus', 'Lincoln', 'Mazda', 'Mercedes-Benz', 'Mitsubishi', 
+  'Nissan', 'Porsche', 'Ram', 'Subaru', 'Tesla', 'Toyota', 'Volkswagen', 'Volvo'
+];
+
+export const TRANSMISSION_TYPES = [
+  'Automatic', 'Manual', 'CVT', 'Semi-Automatic'
+];
+
+export const FUEL_TYPES = [
+  'Gasoline', 'Diesel', 'Hybrid', 'Electric', 'Plug-in Hybrid'
+];
+
+export const CONDITION_OPTIONS = [
+  'Excellent', 'Good', 'Fair', 'Poor'
+];
+
+export const SHOW_ALL_COMPONENTS = false; // Debug flag

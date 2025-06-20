@@ -1,106 +1,102 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { usePlateLookup } from "@/hooks/usePlateLookup";
-import { toast } from "sonner";
+import { LoadingButton } from "@/components/common/UnifiedLoadingSystem";
+import { useUnifiedLookup } from "@/hooks/useUnifiedLookup";
+import { US_STATES } from "@/lib/constants";
 
 interface UnifiedPlateLookupProps {
   tier: "free" | "premium";
-  onVehicleFound: (data: any) => void;
+  onVehicleFound: (vehicle: any) => void;
   showPremiumFeatures?: boolean;
 }
 
-export function UnifiedPlateLookup({
-  tier,
-  onVehicleFound,
-  showPremiumFeatures = false
-}: UnifiedPlateLookupProps) {
-  const [plate, setPlate] = useState("");
-  const [state, setState] = useState("");
+export function UnifiedPlateLookup({ tier, onVehicleFound, showPremiumFeatures = false }: UnifiedPlateLookupProps) {
+  const [plate, setPlate] = useState('');
+  const [state, setState] = useState('');
+  const [error, setError] = useState<string | null>(null);
   
-  const { lookupVehicle, isLoading, error } = usePlateLookup();
+  const { isLoading, lookupByPlate } = useUnifiedLookup({ tier });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!plate || !state) {
-      toast.error("Please enter both license plate and state");
+    if (!plate.trim()) {
+      setError('Please enter a license plate number');
       return;
     }
-
+    
+    if (!state) {
+      setError('Please select a state');
+      return;
+    }
+    
+    setError(null);
+    
     try {
-      const data = await lookupVehicle(plate.toUpperCase(), state);
-      if (data) {
-        toast.success("Vehicle found!");
-        onVehicleFound(data);
-      } else {
-        toast.error("Vehicle not found or lookup failed");
+      const result = await lookupByPlate(plate.trim().toUpperCase(), state);
+      if (result && result.success && result.vehicle) {
+        onVehicleFound(result.vehicle);
       }
     } catch (err) {
-      toast.error("Vehicle not found or lookup failed");
-      console.error("Plate lookup error:", err);
+      setError(err instanceof Error ? err.message : 'Lookup failed');
     }
   };
 
-  // US states for the dropdown
-  const states = [
-    { code: "AL", name: "Alabama" },
-    { code: "AK", name: "Alaska" },
-    { code: "CA", name: "California" },
-    { code: "FL", name: "Florida" },
-    { code: "NY", name: "New York" },
-    { code: "TX", name: "Texas" },
-    // Add more states as needed
-  ];
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>License Plate Lookup</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="plate">License Plate</Label>
-            <Input
-              id="plate"
-              value={plate}
-              onChange={(e) => setPlate(e.target.value.toUpperCase())}
-              placeholder="Enter license plate"
-              maxLength={8}
-              required
-            />
-          </div>
+    <div className="space-y-4">
+      {showPremiumFeatures && (
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-700">
+            Premium plate lookup includes enhanced accuracy and additional vehicle details.
+          </p>
+        </div>
+      )}
 
-          <div className="space-y-2">
-            <Label htmlFor="state">State</Label>
-            <Select value={state} onValueChange={setState} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select state" />
-              </SelectTrigger>
-              <SelectContent>
-                {states.map((s) => (
-                  <SelectItem key={s.code} value={s.code}>
-                    {s.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="plate">License Plate Number</Label>
+          <Input
+            id="plate"
+            type="text"
+            value={plate}
+            onChange={(e) => setPlate(e.target.value.toUpperCase())}
+            placeholder="Enter license plate"
+            className={error && !plate ? 'border-red-500' : ''}
+          />
+        </div>
 
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? "Looking up..." : "Lookup Vehicle"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        <div>
+          <Label htmlFor="state">State</Label>
+          <Select value={state} onValueChange={setState}>
+            <SelectTrigger className={error && !state ? 'border-red-500' : ''}>
+              <SelectValue placeholder="Select state" />
+            </SelectTrigger>
+            <SelectContent>
+              {US_STATES.map((stateOption) => (
+                <SelectItem key={stateOption.value} value={stateOption.value}>
+                  {stateOption.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+
+        <LoadingButton
+          type="submit"
+          isLoading={isLoading}
+          loadingText="Looking up vehicle..."
+          className="w-full"
+          disabled={!plate || !state}
+        >
+          {tier === "premium" ? "Get Premium Report" : "Look up Vehicle"}
+        </LoadingButton>
+      </form>
+    </div>
   );
 }
