@@ -1,6 +1,7 @@
+
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CDButton } from "@/components/ui-kit/CDButton";
+import CDButton from "@/components/ui-kit/button/CDButton";
 import { BodyS } from "@/components/ui-kit/typography";
 import { Download, Lock } from "lucide-react";
 import styles from "./styles";

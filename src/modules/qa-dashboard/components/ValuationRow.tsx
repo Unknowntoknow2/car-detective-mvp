@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { format } from "date-fns";
 import { CreditCard, Database, Eye, FileText, Trash2 } from "lucide-react";
@@ -14,7 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { CDButton } from "@/components/ui-kit/CDButton";
+import CDButton from "@/components/ui-kit/button/CDButton";
 import {
   Tooltip,
   TooltipContent,

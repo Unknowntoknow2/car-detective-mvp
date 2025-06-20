@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
@@ -19,7 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { CDButton } from "@/components/ui-kit/CDButton";
+import CDButton from "@/components/ui-kit/button/CDButton";
 import { toast } from "sonner";
 import { ArrowRight, KeyRound, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
