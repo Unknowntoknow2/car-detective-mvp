@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,7 +36,7 @@ export default function ResultsPage() {
       reversible: true
     },
     service_history: 'unknown',
-    maintenance_status: 'up-to-date',
+    maintenance_records: false,
     tire_condition: 'good',
     previous_use: 'personal',
     previous_owners: 1,
