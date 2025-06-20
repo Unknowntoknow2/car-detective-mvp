@@ -1,12 +1,12 @@
-import { testDeduplication } from "../useValuationHistory";
-import type { Valuation } from "@/types/valuation-history";
+import { testDeduplication } from "../useValuationData";
+import type { ValuationResult } from "@/types/valuation";
 
-describe("useValuationHistory", () => {
+describe("useValuationData", () => {
   describe("deduplication logic", () => {
     it("should deduplicate valuations with the same ID, preferring premium ones", () => {
       // Create test data with duplicate IDs
       const commonId = "test-123";
-      const valuations: Valuation[] = [
+      const valuations: ValuationResult[] = [
         // Regular valuation
         {
           id: commonId,
@@ -45,7 +45,7 @@ describe("useValuationHistory", () => {
       expect(result.length).toBe(2);
 
       // Find the item with the common ID
-      const dedupedItem = result.find((item: Valuation) => item.id === commonId);
+      const dedupedItem = result.find((item: ValuationResult) => item.id === commonId);
       expect(dedupedItem).toBeDefined();
       expect(dedupedItem?.is_premium).toBe(true);
       expect(dedupedItem?.premium_unlocked).toBe(true);
@@ -63,7 +63,7 @@ describe("useValuationHistory", () => {
 
     it("should prioritize most recent entries when premium status is the same", () => {
       const commonId = "test-789";
-      const valuations: Valuation[] = [
+      const valuations: ValuationResult[] = [
         {
           id: commonId,
           created_at: "2023-05-01T12:00:00Z",
@@ -90,7 +90,7 @@ describe("useValuationHistory", () => {
     it("should handle multiple sources with overlapping VINs", () => {
       // Simulate data from different sources for the same vehicle
       const vin = "1HGCM82633A004352";
-      const valuations: Valuation[] = [
+      const valuations: ValuationResult[] = [
         // From regular valuations
         {
           id: "reg-123",
@@ -136,7 +136,7 @@ describe("useValuationHistory", () => {
 
       // The premium one should be prioritized if we were filtering by VIN
       // But our current logic works based on ID, so we keep all records with different IDs
-      const premiumValuation = result.find((v: Valuation) => v.id === "premium-123");
+      const premiumValuation = result.find((v: ValuationResult) => v.id === "premium-123");
       expect(premiumValuation).toBeDefined();
       expect(premiumValuation?.premium_unlocked).toBe(true);
     });
