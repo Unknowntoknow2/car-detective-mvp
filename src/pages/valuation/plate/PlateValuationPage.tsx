@@ -7,6 +7,7 @@ import { VehicleFoundCard } from '@/components/premium/lookup/plate/VehicleFound
 import { UnifiedPlateLookup } from '@/components/lookup/UnifiedPlateLookup';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { DecodedVehicleInfo } from '@/types/vehicle';
+import { convertDecodedVehicleToVehicle } from '@/utils/vehicleConversion';
 import { toast } from 'sonner';
 
 export default function PlateValuationPage() {
@@ -66,7 +67,6 @@ export default function PlateValuationPage() {
           <UnifiedPlateLookup 
             tier="free"
             onVehicleFound={handleVehicleFound}
-            showPremiumFeatures={true}
           />
         </div>
       ) : (
@@ -80,7 +80,7 @@ export default function PlateValuationPage() {
           )}
           
           <UnifiedFollowUpForm 
-            vehicleData={vehicleData}
+            vehicleData={convertDecodedVehicleToVehicle(vehicleData!)}
             onComplete={handleFollowUpSubmit}
             tier="free"
           />

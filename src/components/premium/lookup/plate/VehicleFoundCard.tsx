@@ -2,57 +2,71 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Vehicle } from '@/types/vehicle';
+import { CheckCircle, Car } from 'lucide-react';
+import { DecodedVehicleInfo } from '@/types/vehicle';
 
 interface VehicleFoundCardProps {
-  vehicle: Vehicle;
-  onConfirm?: () => void;
+  vehicle: DecodedVehicleInfo;
+  plateValue?: string;
+  stateValue?: string;
 }
 
-export function VehicleFoundCard({ vehicle, onConfirm }: VehicleFoundCardProps) {
+export function VehicleFoundCard({ vehicle, plateValue, stateValue }: VehicleFoundCardProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Vehicle Found</CardTitle>
+    <Card className="border-green-200 bg-green-50">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-green-800">
+          <CheckCircle className="w-5 h-5" />
+          Vehicle Found
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="flex items-center gap-3">
+          <Car className="w-8 h-8 text-green-600" />
           <div>
-            <p className="text-sm font-medium text-gray-600">Make & Model</p>
-            <p className="text-lg font-semibold">{vehicle.make} {vehicle.model}</p>
+            <h3 className="font-semibold text-lg">
+              {vehicle.year} {vehicle.make} {vehicle.model}
+              {vehicle.trim && ` ${vehicle.trim}`}
+            </h3>
+            <p className="text-sm text-gray-600">
+              License Plate: {plateValue} ({stateValue})
+            </p>
           </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600">Year</p>
-            <p className="text-lg font-semibold">{vehicle.year}</p>
-          </div>
-          {vehicle.trim && (
-            <div>
-              <p className="text-sm font-medium text-gray-600">Trim</p>
-              <p className="text-lg font-semibold">{vehicle.trim}</p>
-            </div>
-          )}
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {vehicle.vin && (
             <div>
-              <p className="text-sm font-medium text-gray-600">VIN</p>
-              <p className="text-sm font-mono">{vehicle.vin}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">VIN</p>
+              <p className="font-mono text-sm">{vehicle.vin}</p>
+            </div>
+          )}
+          
+          {vehicle.bodyType && (
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Body Type</p>
+              <p className="text-sm">{vehicle.bodyType}</p>
+            </div>
+          )}
+          
+          {vehicle.fuelType && (
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Fuel Type</p>
+              <p className="text-sm">{vehicle.fuelType}</p>
+            </div>
+          )}
+          
+          {vehicle.transmission && (
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Transmission</p>
+              <p className="text-sm">{vehicle.transmission}</p>
             </div>
           )}
         </div>
         
-        {vehicle.condition && (
-          <div>
-            <Badge variant="outline">{vehicle.condition}</Badge>
-          </div>
-        )}
-        
-        {onConfirm && (
-          <button
-            onClick={onConfirm}
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-2 px-4 rounded-md transition-colors"
-          >
-            Continue with this vehicle
-          </button>
-        )}
+        <Badge variant="secondary" className="bg-green-100 text-green-800">
+          Ready for Valuation
+        </Badge>
       </CardContent>
     </Card>
   );

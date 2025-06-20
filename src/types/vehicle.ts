@@ -7,6 +7,7 @@ export interface Vehicle {
   year: number;
   mileage: number;
   condition: string;
+  trim?: string;
 }
 
 export interface DecodedVehicleInfo {
@@ -30,6 +31,10 @@ export interface DecodedVehicleInfo {
   mileage?: number;
   condition?: string;
   color?: string;
+  confidenceScore?: number;
+  zipCode?: string;
+  photos?: string[];
+  primaryPhoto?: string;
 }
 
 export interface PlateLookupInfo {
@@ -42,6 +47,7 @@ export interface PlateLookupInfo {
   trim?: string;
   mileage?: number;
   condition?: string;
+  color?: string;
 }
 
 export interface VehicleTrim {
