@@ -1,21 +1,26 @@
 
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { runCorrectedValuationPipeline } from '@/utils/valuation/correctedValuationPipeline';
 
 interface ValuationState {
   isLoading: boolean;
   error: string | null;
   data: any | null;
+  currentValuationId: string | null;
 }
 
 type ValuationAction = 
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_DATA'; payload: any };
+  | { type: 'SET_DATA'; payload: any }
+  | { type: 'SET_VALUATION_ID'; payload: string | null };
 
 const initialState: ValuationState = {
   isLoading: false,
   error: null,
-  data: null
+  data: null,
+  currentValuationId: null
 };
 
 function valuationReducer(state: ValuationState, action: ValuationAction): ValuationState {
@@ -26,6 +31,8 @@ function valuationReducer(state: ValuationState, action: ValuationAction): Valua
       return { ...state, error: action.payload };
     case 'SET_DATA':
       return { ...state, data: action.payload };
+    case 'SET_VALUATION_ID':
+      return { ...state, currentValuationId: action.payload };
     default:
       return state;
   }
@@ -36,6 +43,8 @@ interface ValuationContextType {
   dispatch: React.Dispatch<ValuationAction>;
   processFreeValuation: (data: any) => Promise<{ valuationId: string; estimatedValue: number; confidenceScore: number; }>;
   processPremiumValuation: (data: any) => Promise<{ valuationId: string; estimatedValue: number; confidenceScore: number; }>;
+  processVinLookup: (vin: string, decodedData: any) => Promise<{ valuationId: string; estimatedValue: number; confidenceScore: number; }>;
+  getValuationById: (id: string) => Promise<any>;
   isLoading: boolean;
 }
 
@@ -44,16 +53,116 @@ const ValuationContext = createContext<ValuationContextType | undefined>(undefin
 export function ValuationProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(valuationReducer, initialState);
 
+  const saveValuationResult = async (valuationData: any) => {
+    const { data, error } = await supabase
+      .from('valuation_results')
+      .insert([valuationData])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  };
+
+  const getValuationById = async (id: string) => {
+    const { data, error } = await supabase
+      .from('valuation_results')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data;
+  };
+
+  const processVinLookup = async (vin: string, decodedData: any) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+
+    try {
+      // Run the corrected valuation pipeline with decoded VIN data
+      const pipelineResult = await runCorrectedValuationPipeline({
+        vin,
+        make: decodedData.make || 'Unknown',
+        model: decodedData.model || 'Unknown',
+        year: decodedData.year || new Date().getFullYear(),
+        mileage: 50000, // Default mileage, will be updated via follow-up
+        condition: 'Good',
+        zipCode: '90210', // Default, will be updated via follow-up
+        trim: decodedData.trim,
+        color: decodedData.color,
+        bodyType: decodedData.bodyType,
+        fuelType: decodedData.fuelType,
+        transmission: decodedData.transmission,
+      });
+
+      // Save to database
+      const valuationResult = await saveValuationResult({
+        vin,
+        make: decodedData.make || 'Unknown',
+        model: decodedData.model || 'Unknown',
+        year: decodedData.year || new Date().getFullYear(),
+        mileage: 50000,
+        condition: 'Good',
+        estimated_value: pipelineResult.valuation.estimatedValue,
+        confidence_score: pipelineResult.valuation.confidenceScore,
+        price_range_low: pipelineResult.valuation.estimatedValue * 0.95,
+        price_range_high: pipelineResult.valuation.estimatedValue * 1.05,
+        adjustments: pipelineResult.valuation.adjustments,
+        vehicle_data: decodedData,
+        valuation_type: 'free',
+        zip_code: '90210'
+      });
+
+      dispatch({ type: 'SET_DATA', payload: valuationResult });
+      dispatch({ type: 'SET_VALUATION_ID', payload: valuationResult.id });
+      
+      // Store in localStorage for navigation
+      localStorage.setItem('latest_valuation_id', valuationResult.id);
+
+      return { 
+        valuationId: valuationResult.id, 
+        estimatedValue: valuationResult.estimated_value, 
+        confidenceScore: valuationResult.confidence_score 
+      };
+    } catch (error) {
+      console.error('Error processing VIN lookup:', error);
+      dispatch({ type: 'SET_ERROR', payload: 'Failed to process VIN lookup' });
+      throw error;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  };
+
   const processFreeValuation = async (data: any) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      // Mock implementation
       const valuationId = `free-${Date.now()}`;
       const estimatedValue = 20000;
       const confidenceScore = 85;
       
-      dispatch({ type: 'SET_DATA', payload: { valuationId, estimatedValue, confidenceScore, ...data } });
-      return { valuationId, estimatedValue, confidenceScore };
+      const valuationResult = await saveValuationResult({
+        make: data.make,
+        model: data.model,
+        year: data.year,
+        mileage: data.mileage,
+        condition: data.condition,
+        estimated_value: estimatedValue,
+        confidence_score: confidenceScore,
+        price_range_low: estimatedValue * 0.95,
+        price_range_high: estimatedValue * 1.05,
+        adjustments: [],
+        vehicle_data: data,
+        valuation_type: 'free',
+        zip_code: data.zipCode
+      });
+
+      dispatch({ type: 'SET_DATA', payload: valuationResult });
+      dispatch({ type: 'SET_VALUATION_ID', payload: valuationResult.id });
+      
+      localStorage.setItem('latest_valuation_id', valuationResult.id);
+      
+      return { valuationId: valuationResult.id, estimatedValue, confidenceScore };
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: 'Failed to process free valuation' });
       throw error;
@@ -65,13 +174,32 @@ export function ValuationProvider({ children }: { children: ReactNode }) {
   const processPremiumValuation = async (data: any) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      // Mock implementation
       const valuationId = `premium-${Date.now()}`;
       const estimatedValue = 22000;
       const confidenceScore = 92;
       
-      dispatch({ type: 'SET_DATA', payload: { valuationId, estimatedValue, confidenceScore, ...data } });
-      return { valuationId, estimatedValue, confidenceScore };
+      const valuationResult = await saveValuationResult({
+        make: data.make,
+        model: data.model,
+        year: data.year,
+        mileage: data.mileage,
+        condition: data.condition,
+        estimated_value: estimatedValue,
+        confidence_score: confidenceScore,
+        price_range_low: estimatedValue * 0.95,
+        price_range_high: estimatedValue * 1.05,
+        adjustments: [],
+        vehicle_data: data,
+        valuation_type: 'premium',
+        zip_code: data.zipCode
+      });
+
+      dispatch({ type: 'SET_DATA', payload: valuationResult });
+      dispatch({ type: 'SET_VALUATION_ID', payload: valuationResult.id });
+      
+      localStorage.setItem('latest_valuation_id', valuationResult.id);
+      
+      return { valuationId: valuationResult.id, estimatedValue, confidenceScore };
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: 'Failed to process premium valuation' });
       throw error;
@@ -86,6 +214,8 @@ export function ValuationProvider({ children }: { children: ReactNode }) {
       dispatch,
       processFreeValuation,
       processPremiumValuation,
+      processVinLookup,
+      getValuationById,
       isLoading: state.isLoading
     }}>
       {children}
