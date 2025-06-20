@@ -7,48 +7,52 @@ interface StarRatingProps {
   rating: number;
   maxRating?: number;
   className?: string;
+  size?: 'sm' | 'md' | 'lg';
+  showValue?: boolean;
 }
 
-export function StarRating({ 
-  rating, 
+export function StarRating({
+  rating,
   maxRating = 5,
-  className 
+  className,
+  size = 'md',
+  showValue = false
 }: StarRatingProps) {
-  // Normalize rating to be between 0 and maxRating
-  const normalizedRating = Math.max(0, Math.min(rating, maxRating));
-  
-  // Calculate the width percentage for the filled stars
-  const fillPercentage = (normalizedRating / maxRating) * 100;
+  const sizeClasses = {
+    sm: 'h-3 w-3',
+    md: 'h-4 w-4',
+    lg: 'h-5 w-5'
+  };
+
+  const iconSize = sizeClasses[size];
+  const normalizedRating = (rating / maxRating) * 5; // Convert to 5-star scale
   
   return (
-    <div className={cn("relative inline-flex", className)}>
-      {/* Background stars (empty) */}
-      <div className="flex">
-        {Array.from({ length: maxRating }).map((_, i) => (
-          <Star 
-            key={`empty-${i}`} 
-            className="w-5 h-5 text-gray-200" 
-            fill="currentColor"
+    <div className={cn("flex items-center gap-1", className)}>
+      {Array.from({ length: 5 }, (_, index) => {
+        const starValue = index + 1;
+        const isFilled = starValue <= Math.floor(normalizedRating);
+        const isHalfFilled = starValue === Math.ceil(normalizedRating) && normalizedRating % 1 !== 0;
+        
+        return (
+          <Star
+            key={index}
+            className={cn(
+              iconSize,
+              isFilled 
+                ? "fill-yellow-400 text-yellow-400"
+                : isHalfFilled
+                ? "fill-yellow-200 text-yellow-400"
+                : "fill-gray-200 text-gray-300"
+            )}
           />
-        ))}
-      </div>
-      
-      {/* Foreground stars (filled) */}
-      <div 
-        className="absolute top-0 left-0 overflow-hidden flex"
-        style={{ width: `${fillPercentage}%` }}
-      >
-        {Array.from({ length: maxRating }).map((_, i) => (
-          <Star 
-            key={`filled-${i}`} 
-            className="w-5 h-5 text-amber-400" 
-            fill="currentColor"
-          />
-        ))}
-      </div>
-      
-      {/* Optional: display the numeric rating */}
-      {/* <span className="ml-2 text-sm">{normalizedRating.toFixed(1)}</span> */}
+        );
+      })}
+      {showValue && (
+        <span className="text-sm text-muted-foreground ml-1">
+          {rating}/{maxRating}
+        </span>
+      )}
     </div>
   );
 }

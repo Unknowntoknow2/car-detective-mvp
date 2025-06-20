@@ -1,171 +1,140 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import TabbedFollowUpForm from './TabbedFollowUpForm';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { toast } from 'sonner';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { FollowUpAnswers } from "@/types/follow-up-answers";
+import { toast } from "sonner";
 
 interface UnifiedFollowUpFormProps {
-  vin?: string;
+  vin: string;
   initialData?: Partial<FollowUpAnswers>;
-  onSubmit?: (data: FollowUpAnswers) => void;
+  onSubmit: (data: FollowUpAnswers) => void;
   onSave?: (data: FollowUpAnswers) => void;
 }
 
-const defaultFormData: FollowUpAnswers = {
-  vin: '',
-  zip_code: '',
-  mileage: undefined,
-  condition: undefined,
-  transmission: undefined,
-  title_status: undefined,
-  previous_use: 'personal',
-  previous_owners: undefined,
-  serviceHistory: undefined,
-  tire_condition: undefined,
-  brake_condition: undefined,
-  exterior_condition: undefined,
-  interior_condition: undefined,
-  dashboard_lights: [],
-  accident_history: undefined,
-  modifications: undefined,
-  features: [],
-  additional_notes: '',
-  service_history: '',
-  loan_balance: undefined,
-  has_active_loan: undefined,
-  payoffAmount: undefined,
-  accidents: undefined,
-  frame_damage: undefined,
-  smoking: undefined,
-  petDamage: undefined,
-  rust: undefined,
-  hailDamage: undefined,
-  completion_percentage: 0,
-  is_complete: false,
-};
-
-export function UnifiedFollowUpForm({ 
-  vin, 
-  initialData, 
-  onSubmit, 
-  onSave 
+export function UnifiedFollowUpForm({
+  vin,
+  initialData = {},
+  onSubmit,
+  onSave
 }: UnifiedFollowUpFormProps) {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState<FollowUpAnswers>(() => ({
-    ...defaultFormData,
-    vin: vin || '',
-    ...initialData,
-  }));
-  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState<FollowUpAnswers>({
+    vin,
+    zip_code: initialData.zip_code || "",
+    mileage: initialData.mileage || 0,
+    condition: initialData.condition || "good",
+    accidents: initialData.accidents || false,
+    maintenance_records: initialData.maintenance_records || false,
+    modifications: initialData.modifications || "",
+    additional_notes: initialData.additional_notes || "",
+    ...initialData
+  });
 
-  // Auto-save to localStorage
-  useEffect(() => {
-    if (formData.vin) {
-      localStorage.setItem(`followUpDraft_${formData.vin}`, JSON.stringify(formData));
-    }
-  }, [formData]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load saved draft on mount
-  useEffect(() => {
-    if (vin) {
-      const saved = localStorage.getItem(`followUpDraft_${vin}`);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setFormData(prev => ({ ...prev, ...parsed }));
-          toast.success('Draft restored');
-        } catch (error) {
-          console.warn('Failed to load draft:', error);
-        }
-      }
-    }
-  }, [vin]);
-
-  // Update form data when props change
-  useEffect(() => {
-    if (vin || initialData) {
-      setFormData(prev => ({
-        ...prev,
-        vin: vin || prev.vin,
-        ...initialData,
-      }));
-    }
-  }, [vin, initialData]);
-
-  const updateFormData = (updates: Partial<FollowUpAnswers>) => {
-    setFormData(prev => {
-      const updated = { ...prev, ...updates };
-      
-      // Calculate completion percentage
-      const totalFields = Object.keys(defaultFormData).length;
-      const completedFields = Object.values(updated).filter(value => 
-        value !== undefined && value !== '' && value !== null && 
-        !(Array.isArray(value) && value.length === 0)
-      ).length;
-      
-      updated.completion_percentage = totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
-      updated.is_complete = updated.completion_percentage >= 60;
-      
-      return updated;
-    });
-  };
-
-  const handleSaveProgress = () => {
-    if (onSave) {
-      onSave(formData);
-    }
-    toast.success('Progress saved');
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.is_complete) {
-      toast.error('Please complete at least 60% of the form before submitting');
-      return;
-    }
-
-    setIsLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
     try {
-      if (onSubmit) {
-        await onSubmit(formData);
-      } else {
-        // Default submission logic
-        const response = await fetch('/api/valuation/submit-followup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        });
-
-        if (!response.ok) {
-          throw new Error('Submission failed');
-        }
-
-        const result = await response.json();
-        
-        // Clear the draft after successful submission
-        if (formData.vin) {
-          localStorage.removeItem(`followUpDraft_${formData.vin}`);
-        }
-        
-        // Navigate to the result page
-        navigate(`/valuation/result/${result.id}`);
-        toast.success('Valuation completed successfully!');
-      }
+      await onSubmit(formData);
+      toast.success("Follow-up completed successfully!");
     } catch (error) {
-      console.error('Error submitting follow-up:', error);
-      toast.error('Failed to submit valuation. Please try again.');
+      toast.error("Failed to submit follow-up");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (onSave) {
+      try {
+        await onSave(formData);
+        toast.success("Progress saved");
+      } catch (error) {
+        toast.error("Failed to save progress");
+      }
     }
   };
 
   return (
-    <TabbedFollowUpForm
-      formData={formData}
-      updateFormData={updateFormData}
-      onSubmit={handleSubmit}
-      onSave={handleSaveProgress}
-      isLoading={isLoading}
-    />
+    <Card>
+      <CardHeader>
+        <CardTitle>Additional Vehicle Details</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="zip_code">ZIP Code</Label>
+              <Input
+                id="zip_code"
+                value={formData.zip_code}
+                onChange={(e) => setFormData(prev => ({ ...prev, zip_code: e.target.value }))}
+                placeholder="Enter ZIP code"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="mileage">Current Mileage</Label>
+              <Input
+                id="mileage"
+                type="number"
+                value={formData.mileage}
+                onChange={(e) => setFormData(prev => ({ ...prev, mileage: Number(e.target.value) }))}
+                placeholder="Current mileage"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="modifications">Modifications (if any)</Label>
+            <Input
+              id="modifications"
+              value={formData.modifications}
+              onChange={(e) => setFormData(prev => ({ ...prev, modifications: e.target.value }))}
+              placeholder="List any modifications"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="additional_notes">Additional Notes</Label>
+            <Textarea
+              id="additional_notes"
+              value={formData.additional_notes}
+              onChange={(e) => setFormData(prev => ({ ...prev, additional_notes: e.target.value }))}
+              placeholder="Any additional information about the vehicle"
+              rows={3}
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            {onSave && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleSave}
+                className="flex-1"
+              >
+                Save Progress
+              </Button>
+            )}
+            
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="flex-1"
+            >
+              {isSubmitting ? "Submitting..." : "Complete Valuation"}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
