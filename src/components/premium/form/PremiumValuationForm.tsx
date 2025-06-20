@@ -6,7 +6,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
-import { MakeAndModelSelector } from "@/components/lookup/form-parts/MakeAndModelSelector";
+import MakeAndModelSelector from "@/components/lookup/form-parts/MakeAndModelSelector";
 import { ConditionAndZipFields } from "@/components/lookup/manual/components/ConditionAndZipFields";
 import { VehicleDetailsFields } from "@/components/lookup/manual/components/VehicleDetailsFields";
 import { VinInputField } from "@/components/lookup/manual/components/VinInputField";
