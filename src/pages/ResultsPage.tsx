@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +22,17 @@ export default function ResultsPage() {
     condition: 'good',
     zip_code: '',
     title_status: 'clean',
+    transmission: 'automatic',
+    previous_use: 'personal',
+    previous_owners: 1,
+    maintenance_records: false,
+    tire_condition: 'good',
+    exterior_condition: 'good',
+    interior_condition: 'good',
+    brake_condition: 'good',
+    dashboard_lights: [],
+    loan_balance: 0,
+    payoffAmount: 0,
     accidents: {
       hadAccident: false,
       count: 0,
@@ -36,31 +46,18 @@ export default function ResultsPage() {
       types: [],
       reversible: true
     },
-    service_history: 'unknown',
-    maintenance_records: false,
-    tire_condition: 'good',
-    previous_use: 'personal',
-    previous_owners: 1,
-    dashboard_lights: [],
-    is_complete: false,
-    completion_percentage: 0,
-    transmission: 'automatic',
-    accident_history: {
-      hadAccident: false,
-      count: 0,
-      severity: 'minor',
-      repaired: false,
-      frameDamage: false
-    },
-    features: [],
-    additional_notes: '',
     serviceHistory: {
       hasRecords: false,
       frequency: 'unknown',
       dealerMaintained: false,
       description: '',
       services: []
-    }
+    },
+    features: [],
+    additional_notes: '',
+    completion_percentage: 0,
+    is_complete: false,
+    vehicleConfirmed: false
   });
 
   useEffect(() => {
