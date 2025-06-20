@@ -3,8 +3,8 @@ import React, { createContext, useContext, useState } from 'react';
 import { toast } from 'sonner';
 
 interface ValuationData {
-  type: string;
-  value: string;
+  type?: string;
+  value?: string;
   state?: string;
   make?: string;
   model?: string;
