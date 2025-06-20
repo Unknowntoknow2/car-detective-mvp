@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MakeModelSelect } from "@/components/lookup/form-parts/MakeAndModelSelector";
+import { MakeAndModelSelector } from "@/components/lookup/form-parts/MakeAndModelSelector";
 import { YearMileageInputs } from "@/components/premium/lookup/form-parts/fields/YearMileageInputs";
 
 interface BasicVehicleInfoProps {
@@ -36,7 +36,7 @@ export function BasicVehicleInfo({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <MakeModelSelect
+          <MakeAndModelSelector
             makeId={selectedMakeId}
             setMakeId={setSelectedMakeId}
             modelId={selectedModel}

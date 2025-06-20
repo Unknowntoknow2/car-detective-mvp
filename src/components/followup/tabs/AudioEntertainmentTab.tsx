@@ -19,14 +19,14 @@ export function AudioEntertainmentTab({ formData, updateFormData, baseValue }: A
 
   const handleFeatureToggle = (featureId: string) => {
     const updatedFeatures = selectedFeatures.includes(featureId)
-      ? selectedFeatures.filter(id => id !== featureId)
+      ? selectedFeatures.filter((id: string) => id !== featureId)
       : [...selectedFeatures, featureId];
     
     updateFormData({ features: updatedFeatures });
   };
 
   const categoryValue = calculateEnhancedFeatureValue(
-    selectedFeatures.filter(id => audioFeatures.some(f => f.id === id)),
+    selectedFeatures.filter((id: string) => audioFeatures.some((f: any) => f.id === id)),
     baseValue
   );
 
@@ -47,7 +47,7 @@ export function AudioEntertainmentTab({ formData, updateFormData, baseValue }: A
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {audioFeatures.map((feature) => {
+          {audioFeatures.map((feature: any) => {
             const isSelected = selectedFeatures.includes(feature.id);
             const featureValue = calculateEnhancedFeatureValue([feature.id], baseValue);
             
