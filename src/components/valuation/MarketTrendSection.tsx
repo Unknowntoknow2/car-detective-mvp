@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   ErrorState,
@@ -46,7 +47,7 @@ export function MarketTrendSection({
   if (error || !forecastData) {
     return (
       <ErrorState
-        errorMessage={error || "Unable to load market forecast data"}
+        message={error || "Unable to load market forecast data"}
       />
     );
   }
