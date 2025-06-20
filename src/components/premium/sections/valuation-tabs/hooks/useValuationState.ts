@@ -3,14 +3,7 @@ import { useState } from "react";
 import { useVehicleLookup } from "@/hooks/useVehicleLookup";
 import { ManualEntryFormData } from "@/types/manual-entry";
 import { ConditionLevel } from "@/types/condition";
-
-// Define missing types locally
-interface VehicleData {
-  make: string;
-  model: string;
-  year: number;
-  vin?: string;
-}
+import { VehicleData } from "@/types/vehicle-lookup";
 
 export function useValuationState() {
   const [activeTab, setActiveTab] = useState("vin");

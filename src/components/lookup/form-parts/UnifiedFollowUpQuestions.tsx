@@ -6,6 +6,7 @@ import { AccidentHistorySection } from './AccidentHistorySection';
 import { AdditionalDetailsSection } from './AdditionalDetailsSection';
 import { ManualEntryFormData } from '@/types/manual-entry';
 import { AccidentDetails } from '@/types/accident-details';
+import { TireConditionOption } from '@/types/condition';
 
 interface UnifiedFollowUpQuestionsProps {
   formData: ManualEntryFormData;
@@ -57,7 +58,6 @@ export function UnifiedFollowUpQuestions({
     const existing = formData.accidentDetails;
     if (!existing) return defaultAccidentDetails;
     
-    // Safely extract properties with proper typing
     return {
       hadAccident: Boolean(existing.hadAccident),
       severity: (existing.severity === 'minor' || existing.severity === 'moderate' || existing.severity === 'severe') 
@@ -108,7 +108,7 @@ export function UnifiedFollowUpQuestions({
   };
 
   // Additional Details handlers
-  const setTireCondition = (value: 'excellent' | 'good' | 'worn' | 'replacement') => {
+  const setTireCondition = (value: TireConditionOption) => {
     updateFormData({ tireCondition: value });
   };
 
@@ -179,7 +179,7 @@ export function UnifiedFollowUpQuestions({
           <label className="block text-sm font-medium mb-2">Tire Condition</label>
           <select 
             value={formData.tireCondition || 'good'} 
-            onChange={(e) => setTireCondition(e.target.value as 'excellent' | 'good' | 'worn' | 'replacement')}
+            onChange={(e) => setTireCondition(e.target.value as TireConditionOption)}
             className="w-full p-2 border rounded"
           >
             <option value="excellent">Excellent</option>
