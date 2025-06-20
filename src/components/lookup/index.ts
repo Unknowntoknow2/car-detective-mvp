@@ -1,8 +1,7 @@
 
 // Export main components
-export { default as VinForm } from './VinForm';
-export { default as PlateForm } from './PlateForm';
-export { default as ManualForm } from './ManualForm';
+export { default as UnifiedVinLookup } from './UnifiedVinLookup';
+export { default as UnifiedPlateLookup } from './UnifiedPlateLookup';
 
 // Export form parts
 export * from './form-parts/TrimSelector';
