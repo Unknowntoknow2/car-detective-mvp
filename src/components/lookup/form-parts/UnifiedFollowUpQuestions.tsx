@@ -1,12 +1,12 @@
-
 import React from 'react';
 import { TitleStatusSection } from './TitleStatusSection';
-import { ServiceHistorySection } from './ServiceHistorySection';
-import { AccidentHistorySection } from './AccidentHistorySection';
 import { AdditionalDetailsSection } from './AdditionalDetailsSection';
 import { ManualEntryFormData } from '@/types/manual-entry';
 import { AccidentDetails } from '@/types/accident-details';
 import { TireConditionOption } from '@/types/condition';
+
+// Use shared components from premium
+import { AccidentSection } from '@/components/premium/lookup/form-parts/AccidentSection';
 
 interface UnifiedFollowUpQuestionsProps {
   formData: ManualEntryFormData;
@@ -40,19 +40,6 @@ export function UnifiedFollowUpQuestions({
     updateFormData({ previousUse: value });
   };
 
-  // Service History handlers
-  const setServiceHistory = (value: 'dealer' | 'independent' | 'owner' | 'unknown') => {
-    updateFormData({ serviceHistory: value });
-  };
-
-  const setHasRegularMaintenance = (value: boolean | undefined) => {
-    updateFormData({ hasRegularMaintenance: value });
-  };
-
-  const setMaintenanceNotes = (value: string) => {
-    updateFormData({ maintenanceNotes: value });
-  };
-
   // Helper function to safely get existing accident details
   const getExistingAccidentDetails = (): AccidentDetails => {
     const existing = formData.accidentDetails;
@@ -70,30 +57,12 @@ export function UnifiedFollowUpQuestions({
     };
   };
 
-  // Accident History handlers
-  const setHasAccident = (value: boolean | null) => {
+  // Accident History handlers using shared component format
+  const setHasAccident = (value: string) => {
     const existingDetails = getExistingAccidentDetails();
     const updatedDetails: AccidentDetails = {
       ...existingDetails,
-      hadAccident: value !== null ? value : false
-    };
-    updateFormData({ accidentDetails: updatedDetails });
-  };
-
-  const setAccidentSeverity = (value: 'minor' | 'moderate' | 'severe') => {
-    const existingDetails = getExistingAccidentDetails();
-    const updatedDetails: AccidentDetails = {
-      ...existingDetails,
-      severity: value
-    };
-    updateFormData({ accidentDetails: updatedDetails });
-  };
-
-  const setAccidentRepaired = (value: boolean) => {
-    const existingDetails = getExistingAccidentDetails();
-    const updatedDetails: AccidentDetails = {
-      ...existingDetails,
-      repaired: value
+      hadAccident: value === 'yes'
     };
     updateFormData({ accidentDetails: updatedDetails });
   };
@@ -127,19 +96,7 @@ export function UnifiedFollowUpQuestions({
   // Safely get accident details with proper typing
   const currentAccidentDetails = getExistingAccidentDetails();
   
-  // Convert boolean | undefined to boolean | null for compatibility
-  const hasAccidentValue: boolean | null = currentAccidentDetails.hadAccident !== undefined 
-    ? currentAccidentDetails.hadAccident 
-    : null;
-
-  const hasRegularMaintenanceValue: boolean | null = formData.hasRegularMaintenance !== undefined 
-    ? formData.hasRegularMaintenance 
-    : null;
-
-  // Handler that converts null back to undefined
-  const handleHasRegularMaintenanceChange = (value: boolean | null) => {
-    setHasRegularMaintenance(value === null ? undefined : value);
-  };
+  const hasAccidentValue: string = currentAccidentDetails.hadAccident ? 'yes' : 'no';
 
   return (
     <div className="space-y-8">
@@ -152,22 +109,9 @@ export function UnifiedFollowUpQuestions({
         setPreviousUse={setPreviousUse}
       />
 
-      <ServiceHistorySection
-        serviceHistory={formData.serviceHistory || 'unknown'}
-        setServiceHistory={setServiceHistory}
-        hasRegularMaintenance={hasRegularMaintenanceValue}
-        setHasRegularMaintenance={handleHasRegularMaintenanceChange}
-        maintenanceNotes={formData.maintenanceNotes || ''}
-        setMaintenanceNotes={setMaintenanceNotes}
-      />
-
-      <AccidentHistorySection
+      <AccidentSection
         hasAccident={hasAccidentValue}
         setHasAccident={setHasAccident}
-        accidentSeverity={currentAccidentDetails.severity || 'minor'}
-        setAccidentSeverity={setAccidentSeverity}
-        accidentRepaired={currentAccidentDetails.repaired || false}
-        setAccidentRepaired={setAccidentRepaired}
         accidentDescription={currentAccidentDetails.description || ''}
         setAccidentDescription={setAccidentDescription}
       />

@@ -2,7 +2,7 @@
 import React from "react";
 import { MakeModelSelect } from "@/components/premium/lookup/form-parts/fields/MakeModelSelect";
 import { YearMileageInputs } from "@/components/premium/lookup/form-parts/fields/YearMileageInputs";
-import { Input } from "@/components/ui/input";
+import { ZipCodeInput } from "@/components/common/ZipCodeInput";
 import { Label } from "@/components/ui/label";
 import { FormValidationError } from "@/components/premium/common/FormValidationError";
 
@@ -35,11 +35,6 @@ export function BasicVehicleInfo({
   isDisabled,
   errors = {},
 }: BasicVehicleInfoProps) {
-  const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 5);
-    setZipCode(value);
-  };
-
   return (
     <div className="grid grid-cols-1 gap-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -72,19 +67,17 @@ export function BasicVehicleInfo({
           >
             ZIP Code
           </Label>
-          <Input
-            id="zipCode"
-            type="text"
+          <ZipCodeInput
             value={zipCode}
-            onChange={handleZipCodeChange}
+            onChange={setZipCode}
             placeholder="Enter ZIP code"
-            maxLength={5}
+            disabled={isDisabled}
             className={`h-10 transition-all duration-200 ${
               errors.zipCode
                 ? "border-red-300 focus:ring-red-200"
                 : "focus:ring-primary/20 focus:border-primary hover:border-primary/30"
             }`}
-            disabled={isDisabled}
+            showLabel={false}
           />
           {errors.zipCode && <FormValidationError error={errors.zipCode} />}
           <p className="text-xs text-slate-500">

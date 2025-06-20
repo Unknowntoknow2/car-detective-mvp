@@ -2,6 +2,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ZipCodeInput } from "@/components/common/ZipCodeInput";
 import {
   Select,
   SelectContent,
@@ -49,14 +50,10 @@ export const VehicleDetailsInputs: React.FC<VehicleDetailsInputsProps> = ({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="zipCode">ZIP Code</Label>
-          <Input
-            id="zipCode"
-            type="text"
-            placeholder="Enter ZIP code"
+          <ZipCodeInput
             value={zipCode}
-            onChange={(e) => setZipCode(e.target.value)}
-            maxLength={5}
+            onChange={setZipCode}
+            placeholder="Enter ZIP code"
           />
         </div>
       </div>
