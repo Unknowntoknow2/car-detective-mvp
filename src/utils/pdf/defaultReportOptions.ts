@@ -1,16 +1,15 @@
 
-import { ReportOptions } from "./types";
+import { ReportOptions } from '@/types/valuation';
 
 export const defaultReportOptions: ReportOptions = {
-  pageSize: "letter",
-  margins: { top: 72, right: 72, bottom: 72, left: 72 },
   includePageNumbers: true,
   includePhotos: true,
-  includeSimilarVehicles: false,
+  includeSimilarVehicles: true,
+  isPremium: false,
   companyInfo: {
-    name: "Car Detective",
+    name: 'Car Detective',
     logo: null,
-    website: "www.cardetective.com",
-    phone: "(800) 555-1234",
-  },
+    website: 'https://cardetective.ai',
+    phone: '1-800-CAR-DETECTIVE'
+  }
 };

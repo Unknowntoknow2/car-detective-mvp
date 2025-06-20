@@ -1,40 +1,36 @@
 
+import { supabase } from '@/integrations/supabase/client';
 import { PlateLookupInfo } from '@/types/vehicle';
 
-interface PlateLookupResponse {
-  success: boolean;
-  data?: PlateLookupInfo;
-  error?: string;
-}
-
-export async function mockPlateLookup(
-  plate: string,
-  state: string
-): Promise<PlateLookupResponse> {
+export async function lookupPlate(plate: string, state: string): Promise<PlateLookupInfo | null> {
   try {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // First check our local database
+    const { data, error } = await supabase
+      .from('plate_lookups')
+      .select('*')
+      .eq('plate', plate)
+      .eq('state', state)
+      .single();
 
-    // Mock data
-    const mockData: PlateLookupInfo = {
-      plate,
-      state,
-      make: 'Toyota',
-      model: 'Camry',
-      year: 2020,
-      color: 'Silver',
-      estimatedValue: 24500,
-      vin: '1HGBH41JXMN109186'
-    };
+    if (error && error.code !== 'PGRST116') {
+      throw error;
+    }
 
-    return {
-      success: true,
-      data: mockData
-    };
+    if (data) {
+      return {
+        plate: data.plate,
+        state: data.state,
+        year: data.year,
+        make: data.make,
+        model: data.model,
+        color: data.color,
+      };
+    }
+
+    // If not found, return null (could implement external API call here)
+    return null;
   } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Plate lookup failed'
-    };
+    console.error('Error looking up plate:', error);
+    return null;
   }
 }

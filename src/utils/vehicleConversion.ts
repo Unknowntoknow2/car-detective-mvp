@@ -7,7 +7,7 @@ export function convertDecodedVehicleToVehicle(decoded: DecodedVehicleInfo): Veh
     vin: decoded.vin || '',
     make: decoded.make || '',
     model: decoded.model || '',
-    year: decoded.year,
+    year: decoded.year || new Date().getFullYear(),
     mileage: decoded.mileage || 0,
     condition: decoded.condition || 'Good',
     trim: decoded.trim

@@ -1,7 +1,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 import { generateValuationPdf } from "../utils/pdf/generateValuationPdf";
-import { ReportData } from "../utils/pdf/types";
+import { ReportData } from "../types/valuation";
 import { Buffer } from "node:buffer";
 
 // Mock the PDF generation dependencies

@@ -24,7 +24,7 @@ export interface ReportData {
   bodyStyle?: string;
   fuelType?: string;
   basePrice?: number;
-  competitorPrices?: any[];
+  competitorPrices?: number[];
   competitorAverage?: number;
   marketplaceListings?: any[];
   auctionResults?: any[];
@@ -47,8 +47,6 @@ export interface AIConditionResult {
 }
 
 export interface ReportOptions {
-  pageSize: string;
-  margins: { top: number; right: number; bottom: number; left: number };
   includePageNumbers: boolean;
   includePhotos: boolean;
   includeSimilarVehicles: boolean;
@@ -87,6 +85,12 @@ export interface PdfOptions {
   includeExplanation?: boolean;
   marketplaceListings?: any[];
   includeAuctionData?: boolean;
+  companyInfo?: {
+    name: string;
+    logo: string | null;
+    website: string;
+    phone: string;
+  };
 }
 
 export interface AICondition {
