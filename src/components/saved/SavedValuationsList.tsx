@@ -1,5 +1,6 @@
+
 import React from "react";
-import { useSavedValuations } from "@/hooks/useSavedValuations";
+import { useSavedValuations } from "@/hooks/useValuationData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -105,7 +106,7 @@ export const SavedValuationsList = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {valuations.map((item) => (
+            {valuations.map((item: any) => (
               <TableRow key={item.id}>
                 <TableCell>
                   <div className="flex items-center gap-2">
