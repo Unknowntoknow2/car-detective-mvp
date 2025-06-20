@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { ConditionSelectorSegmented } from '@/components/lookup/ConditionSelectorSegmented';
+import { UnifiedConditionSelector } from '@/components/common/UnifiedConditionSelector';
 import { ConditionLevel } from '@/types/condition';
 
 interface ConditionInputProps {
@@ -18,9 +18,12 @@ export function ConditionInput({
   return (
     <div>
       <Label htmlFor="condition">Condition</Label>
-      <ConditionSelectorSegmented
+      <UnifiedConditionSelector
+        type="overall"
         value={condition}
-        onChange={setCondition}
+        onChange={(value) => setCondition(value as ConditionLevel)}
+        variant="segmented"
+        disabled={disabled}
       />
     </div>
   );
