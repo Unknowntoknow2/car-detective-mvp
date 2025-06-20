@@ -22,18 +22,9 @@ export function UnifiedPlateLookup({
   const [plate, setPlate] = useState("");
   const [state, setState] = useState("");
   
-  const { mutate: lookupPlate, isPending } = usePlateLookup({
-    onSuccess: (data) => {
-      toast.success("Vehicle found!");
-      onVehicleFound(data);
-    },
-    onError: (error) => {
-      toast.error("Vehicle not found or lookup failed");
-      console.error("Plate lookup error:", error);
-    }
-  });
+  const { lookupVehicle, isLoading, error } = usePlateLookup();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!plate || !state) {
@@ -41,7 +32,18 @@ export function UnifiedPlateLookup({
       return;
     }
 
-    lookupPlate({ plate: plate.toUpperCase(), state });
+    try {
+      const data = await lookupVehicle(plate.toUpperCase(), state);
+      if (data) {
+        toast.success("Vehicle found!");
+        onVehicleFound(data);
+      } else {
+        toast.error("Vehicle not found or lookup failed");
+      }
+    } catch (err) {
+      toast.error("Vehicle not found or lookup failed");
+      console.error("Plate lookup error:", err);
+    }
   };
 
   // US states for the dropdown
@@ -93,9 +95,9 @@ export function UnifiedPlateLookup({
           <Button 
             type="submit" 
             className="w-full"
-            disabled={isPending}
+            disabled={isLoading}
           >
-            {isPending ? "Looking up..." : "Lookup Vehicle"}
+            {isLoading ? "Looking up..." : "Lookup Vehicle"}
           </Button>
         </form>
       </CardContent>
