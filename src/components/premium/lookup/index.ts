@@ -3,5 +3,4 @@
 export * from "./PhotoUpload";
 export * from "./PlateLookup";
 export * from "./VinSubmitButton";
-export * from "./form-parts";
-export * from "./shared";
+export * from "./plate/VehicleFoundCard";

@@ -1,37 +1,4 @@
 
-// Vehicle makes and models
-export const VEHICLE_MAKES = [
-  "Acura", "Audi", "BMW", "Buick", "Cadillac", "Chevrolet", "Chrysler", 
-  "Dodge", "Ford", "GMC", "Honda", "Hyundai", "Infiniti", "Jeep", "Kia", 
-  "Land Rover", "Lexus", "Lincoln", "Mazda", "Mercedes-Benz", "Mitsubishi", 
-  "Nissan", "Porsche", "Ram", "Subaru", "Tesla", "Toyota", "Volkswagen", "Volvo"
-];
-
-// Condition options
-export const CONDITION_OPTIONS = [
-  { value: "excellent", label: "Excellent" },
-  { value: "good", label: "Good" },
-  { value: "fair", label: "Fair" },
-  { value: "poor", label: "Poor" }
-];
-
-// Fuel types
-export const FUEL_TYPES = [
-  { value: "gasoline", label: "Gasoline" },
-  { value: "diesel", label: "Diesel" },
-  { value: "hybrid", label: "Hybrid" },
-  { value: "electric", label: "Electric" },
-  { value: "flex", label: "Flex Fuel" }
-];
-
-// Transmission types
-export const TRANSMISSION_TYPES = [
-  { value: "automatic", label: "Automatic" },
-  { value: "manual", label: "Manual" },
-  { value: "cvt", label: "CVT" }
-];
-
-// US States
 export const US_STATES = [
   { value: "AL", label: "Alabama" },
   { value: "AK", label: "Alaska" },
@@ -82,5 +49,31 @@ export const US_STATES = [
   { value: "WA", label: "Washington" },
   { value: "WV", label: "West Virginia" },
   { value: "WI", label: "Wisconsin" },
-  { value: "WY", label: "Wyoming" }
-];
+  { value: "WY", label: "Wyoming" },
+  { value: "DC", label: "District of Columbia" },
+] as const;
+
+export const SHOW_ALL_COMPONENTS = process.env.NODE_ENV === 'development';
+
+export const VEHICLE_CONDITIONS = [
+  { value: 'excellent', label: 'Excellent' },
+  { value: 'very-good', label: 'Very Good' },
+  { value: 'good', label: 'Good' },
+  { value: 'fair', label: 'Fair' },
+  { value: 'poor', label: 'Poor' }
+] as const;
+
+export const FUEL_TYPES = [
+  { value: 'gasoline', label: 'Gasoline' },
+  { value: 'diesel', label: 'Diesel' },
+  { value: 'hybrid', label: 'Hybrid' },
+  { value: 'electric', label: 'Electric' },
+  { value: 'flex-fuel', label: 'Flex Fuel' }
+] as const;
+
+export const TRANSMISSION_TYPES = [
+  { value: 'automatic', label: 'Automatic' },
+  { value: 'manual', label: 'Manual' },
+  { value: 'cvt', label: 'CVT' },
+  { value: 'dual-clutch', label: 'Dual Clutch' }
+] as const;
