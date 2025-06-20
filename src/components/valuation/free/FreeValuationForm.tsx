@@ -24,6 +24,7 @@ import { Loader2 } from "lucide-react";
 import { useValuation } from "@/contexts/ValuationContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { ZipCodeInput } from "@/components/common/ZipCodeInput";
 
 const currentYear = new Date().getFullYear();
 
@@ -54,6 +55,7 @@ export const FreeValuationForm = () => {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<ValuationFormData>({
     resolver: zodResolver(valuationSchema),
@@ -72,26 +74,21 @@ export const FreeValuationForm = () => {
     setError(null);
 
     try {
-      // Process the free valuation
       const result = await processFreeValuation(data);
 
       if (result && result.valuationId) {
-        // Store the valuation data in localStorage for the result page
         localStorage.setItem(
           `valuation_${result.valuationId}`,
           JSON.stringify({
             ...data,
             valuationId: result.valuationId,
-            estimatedValue: result.estimatedValue || 20000, // Ensure we have a default value
+            estimatedValue: result.estimatedValue || 20000,
             confidenceScore: result.confidenceScore || 85,
             timestamp: new Date().toISOString(),
           }),
         );
 
-        // Set the latest valuation ID for easy access
         localStorage.setItem("latest_valuation_id", result.valuationId);
-
-        // Navigate to the result page
         navigate(`/result?id=${result.valuationId}`);
         toast.success("Valuation completed successfully!");
       } else {
@@ -178,18 +175,10 @@ export const FreeValuationForm = () => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="zipCode">ZIP Code</Label>
-            <Input
-              id="zipCode"
-              placeholder="e.g. 90210"
-              {...register("zipCode")}
-              className={errors.zipCode ? "border-red-500" : ""}
-            />
-            {errors.zipCode && (
-              <p className="text-sm text-red-500">{errors.zipCode.message}</p>
-            )}
-          </div>
+          <ZipCodeInput
+            value={watch("zipCode") || ""}
+            onChange={(value) => setValue("zipCode", value)}
+          />
 
           <div className="space-y-2">
             <Label htmlFor="condition">Condition</Label>

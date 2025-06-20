@@ -2,11 +2,11 @@
 import React from "react";
 import {
   ErrorState,
-  LoadingState,
   MarketTrendContent,
-  PremiumLockSection,
   useForecastData,
 } from "./market-trend";
+import LoadingState from "@/modules/valuation-result/components/LoadingState";
+import { PremiumFeatureLock } from "@/components/valuation/market-trend/PremiumLockSection";
 
 interface MarketTrendSectionProps {
   valuationId: string;
@@ -37,11 +37,11 @@ export function MarketTrendSection({
   });
 
   if (!isPremium) {
-    return <PremiumLockSection onUpgrade={onUpgrade} />;
+    return <PremiumFeatureLock onUpgrade={onUpgrade} />;
   }
 
   if (loading) {
-    return <LoadingState />;
+    return <LoadingState message="Loading market trends..." />;
   }
 
   if (error || !forecastData) {

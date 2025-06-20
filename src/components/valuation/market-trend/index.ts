@@ -1,5 +1,4 @@
 
-export * from "./PremiumLockSection";
 export * from "./TrendIndicator";
 export * from "./MarketTrendChart";
 export * from "./AnalysisSection";
