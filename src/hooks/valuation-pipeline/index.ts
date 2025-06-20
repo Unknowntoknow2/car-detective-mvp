@@ -1,4 +1,5 @@
-// Re-export from the main hook file
+
+// Main export for valuation pipeline functionality
 export { useValuationPipeline } from "./useValuationPipeline";
-// Re-export types
 export * from "./types";
+export * from "./service";

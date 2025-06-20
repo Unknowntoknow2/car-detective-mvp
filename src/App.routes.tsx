@@ -19,6 +19,7 @@ import AccountPage from "@/pages/AccountPage";
 import ServiceHistoryPage from "@/pages/ServiceHistoryPage";
 import ManualValuationPage from "@/pages/valuation/manual/ManualValuationPage";
 import ValuationFollowUpPage from "@/pages/ValuationFollowUpPage";
+import PremiumResultsPage from "@/pages/PremiumResultsPage";
 
 const routes: RouteObject[] = [
   {
@@ -75,6 +76,10 @@ const routes: RouteObject[] = [
       {
         path: "results/:id",
         element: <ResultsPage />,
+      },
+      {
+        path: "premium/results/:id",
+        element: <PremiumResultsPage />,
       },
       {
         path: "profile",
