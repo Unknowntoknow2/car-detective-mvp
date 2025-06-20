@@ -186,6 +186,7 @@ export function ValuationDetailsForm({ onSubmit, isLoading = false }: ValuationD
           </div>
 
           <LoadingButton
+            type="submit"
             isLoading={isLoading}
             loadingText="Getting Valuation..."
             className="w-full"

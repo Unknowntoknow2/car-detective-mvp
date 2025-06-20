@@ -37,6 +37,7 @@ interface LoadingButtonProps {
   className?: string;
   children: React.ReactNode;
   disabled?: boolean;
+  type?: "button" | "submit" | "reset";
 }
 
 export const LoadingButton = ({
@@ -47,9 +48,11 @@ export const LoadingButton = ({
   className,
   children,
   disabled = false,
+  type = "button",
 }: LoadingButtonProps) => {
   return (
     <Button
+      type={type}
       onClick={onClick}
       variant={variant}
       disabled={isLoading || disabled}
