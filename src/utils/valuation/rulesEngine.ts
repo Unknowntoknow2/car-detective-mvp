@@ -1,31 +1,61 @@
 
-export interface ValuationRule {
-  name: string;
-  condition: (data: any) => boolean;
-  adjustment: number;
-}
+import { RulesEngineInput, AdjustmentBreakdown } from './rules/types';
 
-export const valuationRules: ValuationRule[] = [
-  {
-    name: 'High Mileage',
-    condition: (data) => data.mileage > 100000,
-    adjustment: -0.1
-  },
-  {
-    name: 'Excellent Condition',
-    condition: (data) => data.condition === 'excellent',
-    adjustment: 0.1
-  }
-];
+// Mock implementation of calculateAdjustments
+export const calculateAdjustments = async (input: RulesEngineInput): Promise<AdjustmentBreakdown[]> => {
+  const adjustments: AdjustmentBreakdown[] = [];
 
-export function applyValuationRules(baseValue: number, data: any): number {
-  let adjustedValue = baseValue;
-  
-  for (const rule of valuationRules) {
-    if (rule.condition(data)) {
-      adjustedValue *= (1 + rule.adjustment);
-    }
+  // Mileage adjustment
+  if (input.mileage > 100000) {
+    adjustments.push({
+      factor: 'High Mileage',
+      impact: -1000,
+      description: `Vehicle has ${input.mileage} miles, which is above average`,
+      name: 'Mileage Adjustment',
+      value: -1000,
+      percentAdjustment: -5
+    });
   }
-  
-  return adjustedValue;
-}
+
+  // Condition adjustment
+  const conditionMultipliers: Record<string, number> = {
+    'Excellent': 0.05,
+    'Good': 0,
+    'Fair': -0.10,
+    'Poor': -0.25
+  };
+
+  const conditionKey = input.condition || 'Good';
+  const conditionMultiplier = conditionMultipliers[conditionKey];
+  if (conditionMultiplier !== 0 && input.basePrice) {
+    const conditionAdjustment = input.basePrice * conditionMultiplier;
+    adjustments.push({
+      factor: 'Vehicle Condition',
+      impact: Math.round(conditionAdjustment),
+      description: `Vehicle condition is ${conditionKey}`,
+      name: 'Condition Adjustment',
+      value: Math.round(conditionAdjustment),
+      percentAdjustment: conditionMultiplier * 100
+    });
+  }
+
+  // Accident history adjustment
+  if (input.accidentCount && input.accidentCount > 0) {
+    const accidentAdjustment = -500 * input.accidentCount;
+    adjustments.push({
+      factor: 'Accident History',
+      impact: accidentAdjustment,
+      description: `Vehicle has ${input.accidentCount} reported accident(s)`,
+      name: 'Accident Adjustment',
+      value: accidentAdjustment,
+      percentAdjustment: -2.5 * input.accidentCount
+    });
+  }
+
+  return adjustments;
+};
+
+// Calculate the total adjustment from all individual adjustments
+export const calculateTotalAdjustment = (adjustments: AdjustmentBreakdown[]): number => {
+  return adjustments.reduce((total, adjustment) => total + adjustment.impact, 0);
+};
