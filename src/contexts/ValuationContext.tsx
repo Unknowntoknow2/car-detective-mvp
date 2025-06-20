@@ -10,12 +10,15 @@ interface ValuationData {
   model?: string;
   year?: number;
   zipCode?: string;
+  mileage?: number;
+  condition?: string;
   [key: string]: any;
 }
 
 interface ValuationResult {
   valuationId: string;
   estimatedValue?: number;
+  confidenceScore?: number;
   success: boolean;
 }
 
@@ -49,6 +52,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const mockResult = {
         valuationId: `val_${Date.now()}`,
         estimatedValue: Math.floor(Math.random() * 50000) + 15000,
+        confidenceScore: Math.floor(Math.random() * 30) + 70,
         success: true
       };
       
@@ -72,6 +76,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const mockResult = {
         valuationId: `prem_val_${Date.now()}`,
         estimatedValue: Math.floor(Math.random() * 60000) + 20000,
+        confidenceScore: Math.floor(Math.random() * 20) + 80,
         success: true
       };
       

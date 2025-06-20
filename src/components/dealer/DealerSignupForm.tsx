@@ -1,142 +1,122 @@
 
-import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-
-const dealerSignupSchema = z.object({
-  dealershipName: z.string().min(2, 'Dealership name must be at least 2 characters'),
-  contactName: z.string().min(2, 'Contact name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  phone: z.string().min(10, 'Please enter a valid phone number'),
-  address: z.string().min(5, 'Please enter a valid address'),
-  licenseNumber: z.string().min(1, 'Dealer license number is required'),
-});
-
-type DealerSignupFormData = z.infer<typeof dealerSignupSchema>;
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export const DealerSignupForm: React.FC = () => {
+  const navigate = useNavigate();
+  const { signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  
-  const form = useForm<DealerSignupFormData>({
-    resolver: zodResolver(dealerSignupSchema),
-    defaultValues: {
-      dealershipName: '',
-      contactName: '',
-      email: '',
-      phone: '',
-      address: '',
-      licenseNumber: '',
-    },
+  const [formData, setFormData] = useState({
+    fullName: "",
+    dealershipName: "",
+    phone: "",
+    email: "",
+    password: "",
   });
 
-  const onSubmit = async (data: DealerSignupFormData) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
+
     try {
-      console.log('Dealer signup data:', data);
-      // Handle signup logic here
+      const { error } = await signUp(formData.email, formData.password, {
+        role: 'dealer',
+        dealershipName: formData.dealershipName
+      });
+
+      if (error) {
+        if (error.message.includes('User already registered')) {
+          toast.error("An account with this email already exists.");
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        toast.success("Dealer account created successfully! Please check your email.");
+        navigate("/auth");
+      }
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error("Dealer signup error:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="dealershipName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dealership Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your dealership name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="fullName">Full Name</Label>
+        <Input
+          id="fullName"
+          name="fullName"
+          type="text"
+          value={formData.fullName}
+          onChange={handleChange}
+          required
         />
-        
-        <FormField
-          control={form.control}
-          name="contactName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Contact Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your full name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="Enter your email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your phone number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Business Address</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your business address" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="licenseNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dealer License Number</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your dealer license number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? 'Creating Account...' : 'Create Dealer Account'}
-        </Button>
-      </form>
-    </Form>
+      <div className="space-y-2">
+        <Label htmlFor="dealershipName">Dealership Name</Label>
+        <Input
+          id="dealershipName"
+          name="dealershipName"
+          type="text"
+          value={formData.dealershipName}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="phone">Phone Number</Label>
+        <Input
+          id="phone"
+          name="phone"
+          type="tel"
+          value={formData.phone}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          value={formData.password}
+          onChange={handleChange}
+          required
+          minLength={6}
+        />
+      </div>
+
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? "Creating Account..." : "Create Dealer Account"}
+      </Button>
+    </form>
   );
 };
