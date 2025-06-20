@@ -65,7 +65,7 @@ export function UnifiedFollowUpQuestions({
   const setHasAccident = (value: boolean | null) => {
     const updatedDetails: AccidentDetails = {
       ...defaultAccidentDetails,
-      ...formData.accidentDetails,
+      ...(formData.accidentDetails || {}),
       hadAccident: value !== null ? value : false
     };
     updateFormData({ accidentDetails: updatedDetails });
@@ -74,7 +74,7 @@ export function UnifiedFollowUpQuestions({
   const setAccidentSeverity = (value: 'minor' | 'moderate' | 'severe') => {
     const updatedDetails: AccidentDetails = {
       ...defaultAccidentDetails,
-      ...formData.accidentDetails,
+      ...(formData.accidentDetails || {}),
       hadAccident: formData.accidentDetails?.hadAccident || false,
       severity: value
     };
@@ -84,7 +84,7 @@ export function UnifiedFollowUpQuestions({
   const setAccidentRepaired = (value: boolean) => {
     const updatedDetails: AccidentDetails = {
       ...defaultAccidentDetails,
-      ...formData.accidentDetails,
+      ...(formData.accidentDetails || {}),
       hadAccident: formData.accidentDetails?.hadAccident || false,
       repaired: value
     };
@@ -94,7 +94,7 @@ export function UnifiedFollowUpQuestions({
   const setAccidentDescription = (value: string) => {
     const updatedDetails: AccidentDetails = {
       ...defaultAccidentDetails,
-      ...formData.accidentDetails,
+      ...(formData.accidentDetails || {}),
       hadAccident: formData.accidentDetails?.hadAccident || false,
       description: value
     };
@@ -118,9 +118,12 @@ export function UnifiedFollowUpQuestions({
     updateFormData({ modificationTypes: value });
   };
 
+  // Safely get accident details with proper typing
+  const currentAccidentDetails = formData.accidentDetails || defaultAccidentDetails;
+  
   // Convert boolean | undefined to boolean | null for compatibility
-  const hasAccidentValue: boolean | null = formData.accidentDetails?.hadAccident !== undefined 
-    ? formData.accidentDetails.hadAccident 
+  const hasAccidentValue: boolean | null = currentAccidentDetails.hadAccident !== undefined 
+    ? currentAccidentDetails.hadAccident 
     : null;
 
   const hasRegularMaintenanceValue: boolean | null = formData.hasRegularMaintenance !== undefined 
@@ -155,11 +158,11 @@ export function UnifiedFollowUpQuestions({
       <AccidentHistorySection
         hasAccident={hasAccidentValue}
         setHasAccident={setHasAccident}
-        accidentSeverity={formData.accidentDetails?.severity || 'minor'}
+        accidentSeverity={currentAccidentDetails.severity || 'minor'}
         setAccidentSeverity={setAccidentSeverity}
-        accidentRepaired={formData.accidentDetails?.repaired || false}
+        accidentRepaired={currentAccidentDetails.repaired || false}
         setAccidentRepaired={setAccidentRepaired}
-        accidentDescription={formData.accidentDetails?.description || ''}
+        accidentDescription={currentAccidentDetails.description || ''}
         setAccidentDescription={setAccidentDescription}
       />
 
