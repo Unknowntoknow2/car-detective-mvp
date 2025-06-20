@@ -31,6 +31,7 @@ export default function ResultsPage() {
       frameDamage: false
     },
     modifications: {
+      hasModifications: false,
       modified: false,
       types: [],
       reversible: true
