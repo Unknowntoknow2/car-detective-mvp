@@ -5,10 +5,7 @@ import { RouteObject } from "react-router-dom";
 // ✅ Import the correct components
 import HomePage from "@/pages/HomePage";
 import AboutPage from "@/pages/AboutPage";
-import VinLookupPage from "@/pages/VinLookupPage";
 import AuthPage from "@/pages/AuthPage";
-import LoginPage from "@/pages/LoginPage";
-import RegisterPage from "@/pages/RegisterPage";
 import NotFound from "@/pages/NotFound";
 import ValuationPage from "@/pages/valuation/ValuationPage";
 import Premium from "@/pages/Premium";
@@ -20,6 +17,10 @@ import ServiceHistoryPage from "@/pages/ServiceHistoryPage";
 import ManualValuationPage from "@/pages/valuation/manual/ManualValuationPage";
 import ValuationFollowUpPage from "@/pages/ValuationFollowUpPage";
 import PremiumResultsPage from "@/pages/PremiumResultsPage";
+import OffersPage from "@/pages/OffersPage";
+import ViewOfferPage from "@/pages/view-offer/ViewOfferPage";
+import PlateValuationPage from "@/pages/valuation/plate/PlateValuationPage";
+import DealerSignup from "@/pages/DealerSignup";
 
 const routes: RouteObject[] = [
   {
@@ -34,20 +35,12 @@ const routes: RouteObject[] = [
         element: <AboutPage />,
       },
       {
-        path: "vin-lookup",
-        element: <VinLookupPage />,
-      },
-      {
         path: "auth",
         element: <AuthPage />,
       },
       {
-        path: "login",
-        element: <LoginPage />,
-      },
-      {
-        path: "register",
-        element: <RegisterPage />,
+        path: "dealer-signup",
+        element: <DealerSignup />,
       },
       {
         path: "valuation",
@@ -56,6 +49,10 @@ const routes: RouteObject[] = [
       {
         path: "valuation/:vin",
         element: <ValuationPage />,
+      },
+      {
+        path: "plate-valuation",
+        element: <PlateValuationPage />,
       },
       {
         path: "manual-valuation",
@@ -80,6 +77,14 @@ const routes: RouteObject[] = [
       {
         path: "premium/results/:id",
         element: <PremiumResultsPage />,
+      },
+      {
+        path: "offers",
+        element: <OffersPage />,
+      },
+      {
+        path: "view-offer/:token",
+        element: <ViewOfferPage />,
       },
       {
         path: "profile",
