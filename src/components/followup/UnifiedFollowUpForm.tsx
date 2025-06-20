@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { useFollowUpForm } from "@/hooks/useFollowUpForm";
-import { VehicleFoundCard } from "@/components/lookup/VehicleFoundCard";
+import { VehicleFoundCard } from "@/components/premium/lookup/plate/VehicleFoundCard";
 
 interface UnifiedFollowUpFormProps {
   vehicleData: any;
@@ -57,8 +57,8 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="confirm-vehicle"
-                checked={formData.vehicleConfirmed || false}
-                onCheckedChange={(checked) => updateFormData({ vehicleConfirmed: checked })}
+                checked={Boolean(formData.vehicleConfirmed)}
+                onCheckedChange={(checked) => updateFormData({ vehicleConfirmed: Boolean(checked) })}
               />
               <Label htmlFor="confirm-vehicle">
                 This information is correct
@@ -141,7 +141,7 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
                     checked={formData.dashboard_lights?.includes(light) || false}
                     onCheckedChange={(checked) => {
                       const lights = formData.dashboard_lights || [];
-                      const updated = checked 
+                      const updated = Boolean(checked) 
                         ? [...lights, light]
                         : lights.filter(l => l !== light);
                       updateFormData({ dashboard_lights: updated });
@@ -162,7 +162,7 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
                 id="accidents"
                 checked={formData.accidents?.hadAccident || false}
                 onCheckedChange={(checked) => updateFormData({ 
-                  accidents: { ...formData.accidents, hadAccident: checked }
+                  accidents: { ...formData.accidents, hadAccident: Boolean(checked) }
                 })}
               />
               <Label htmlFor="accidents">Vehicle has been in an accident</Label>
@@ -174,7 +174,7 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
                   <Label htmlFor="accident-severity">Accident Severity</Label>
                   <Select 
                     value={formData.accidents?.severity || ''} 
-                    onValueChange={(value) => updateFormData({ 
+                    onValueChange={(value: 'minor' | 'moderate' | 'major') => updateFormData({ 
                       accidents: { ...formData.accidents, severity: value }
                     })}
                   >
@@ -194,7 +194,7 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
                     id="frame-damage"
                     checked={formData.accidents?.frameDamage || false}
                     onCheckedChange={(checked) => updateFormData({ 
-                      accidents: { ...formData.accidents, frameDamage: checked }
+                      accidents: { ...formData.accidents, frameDamage: Boolean(checked) }
                     })}
                   />
                   <Label htmlFor="frame-damage">Frame damage</Label>
@@ -227,7 +227,7 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
                       checked={formData.features?.includes(feature) || false}
                       onCheckedChange={(checked) => {
                         const features = formData.features || [];
-                        const updated = checked 
+                        const updated = Boolean(checked) 
                           ? [...features, feature]
                           : features.filter(f => f !== feature);
                         updateFormData({ features: updated });

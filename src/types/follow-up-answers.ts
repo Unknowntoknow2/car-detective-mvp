@@ -4,6 +4,10 @@ export interface ServiceHistoryDetails {
   lastService?: string;
   regularMaintenance?: boolean;
   majorRepairs?: string[];
+  frequency?: 'regular' | 'occasional' | 'rare' | 'unknown';
+  dealerMaintained?: boolean;
+  description?: string;
+  services?: string[];
 }
 
 export interface ModificationDetails {
@@ -12,6 +16,7 @@ export interface ModificationDetails {
   types: string[];
   reversible?: boolean;
   description?: string;
+  additionalNotes?: string;
 }
 
 export interface AccidentDetails {
@@ -23,6 +28,9 @@ export interface AccidentDetails {
   frameDamage: boolean;
   description?: string;
 }
+
+export type TireConditionOption = 'excellent' | 'good' | 'worn' | 'replacement';
+export type ConditionOption = 'excellent' | 'very-good' | 'good' | 'fair' | 'poor';
 
 export interface FollowUpAnswers {
   id?: string;
@@ -42,12 +50,18 @@ export interface FollowUpAnswers {
   title_status: string;
   previous_use: string;
   serviceHistory: ServiceHistoryDetails;
+  previous_owners?: number;
   
   // Condition details
   tire_condition: string;
   exterior_condition?: string;
   interior_condition?: string;
   dashboard_lights: string[];
+  brake_condition?: string;
+  
+  // Financial
+  loan_balance?: number;
+  payoffAmount?: number;
   
   // Vehicle details
   accident_history: AccidentDetails; // Legacy support

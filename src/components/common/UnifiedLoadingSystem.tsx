@@ -39,3 +39,23 @@ export function LoadingSpinner({ size = "default" }: { size?: "sm" | "default" |
     </div>
   );
 }
+
+export function LoadingGrid({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="grid gap-4 animate-pulse">
+      {children}
+    </div>
+  );
+}
+
+export function LoadingState({ message = "Loading..." }: { message?: string }) {
+  return (
+    <div className="flex items-center justify-center p-8">
+      <LoadingSpinner />
+      <span className="ml-2 text-sm text-muted-foreground">{message}</span>
+    </div>
+  );
+}
+
+// Alias for backward compatibility
+export const Spinner = LoadingSpinner;
