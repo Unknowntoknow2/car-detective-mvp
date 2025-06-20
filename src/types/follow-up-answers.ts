@@ -1,3 +1,4 @@
+
 export interface ServiceHistoryDetails {
   hasRecords: boolean;
   lastService?: string;
@@ -67,13 +68,11 @@ export interface FollowUpAnswers {
   payoffAmount?: number;
   
   // Vehicle details
-  accident_history: AccidentDetails; // Legacy support
   modifications: ModificationDetails;
   features: string[];
   
   // Additional
   additional_notes: string;
-  service_history: string;
   
   // Meta
   completion_percentage: number;
