@@ -2110,6 +2110,69 @@ export type Database = {
         }
         Relationships: []
       }
+      valuation_results: {
+        Row: {
+          adjustments: Json | null
+          condition: string | null
+          confidence_score: number | null
+          created_at: string | null
+          estimated_value: number
+          id: string
+          make: string
+          mileage: number | null
+          model: string
+          price_range_high: number | null
+          price_range_low: number | null
+          updated_at: string | null
+          user_id: string | null
+          valuation_type: string | null
+          vehicle_data: Json | null
+          vin: string | null
+          year: number
+          zip_code: string | null
+        }
+        Insert: {
+          adjustments?: Json | null
+          condition?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          estimated_value: number
+          id?: string
+          make: string
+          mileage?: number | null
+          model: string
+          price_range_high?: number | null
+          price_range_low?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          valuation_type?: string | null
+          vehicle_data?: Json | null
+          vin?: string | null
+          year: number
+          zip_code?: string | null
+        }
+        Update: {
+          adjustments?: Json | null
+          condition?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          estimated_value?: number
+          id?: string
+          make?: string
+          mileage?: number | null
+          model?: string
+          price_range_high?: number | null
+          price_range_low?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          valuation_type?: string | null
+          vehicle_data?: Json | null
+          vin?: string | null
+          year?: number
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       valuation_stats: {
         Row: {
           average_price: number | null

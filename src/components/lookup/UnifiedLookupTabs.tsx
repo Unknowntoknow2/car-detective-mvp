@@ -1,181 +1,161 @@
 
-import React, { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { ManualEntryForm } from "@/components/lookup/manual/ManualEntryForm";
-import { UnifiedPlateLookup } from "@/components/lookup/UnifiedPlateLookup";
-import { LoadingButton } from "@/components/common/UnifiedLoadingSystem";
-import { Shield, Star } from "lucide-react";
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Search, Car, FileText, Loader2 } from 'lucide-react';
+import { useValuation } from '@/contexts/ValuationContext';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
-interface UnifiedLookupTabsProps {
-  onVehicleFound: (vehicle: any) => void;
-  tier?: "free" | "premium";
-  defaultTab?: string;
-  onSubmit?: (type: string, value: string, state?: string) => Promise<void>;
-  isPremium?: boolean;
-}
-
-const VinLookupTab: React.FC<{
-  tier: "free" | "premium";
-  onSubmit?: (vin: string) => void;
-  isLoading?: boolean;
-  isPremium?: boolean;
-}> = ({ tier, onSubmit, isLoading = false, isPremium = false }) => {
+export function UnifiedLookupTabs() {
   const [vin, setVin] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [isVinLoading, setIsVinLoading] = useState(false);
+  const { processVinLookup } = useValuation();
+  const navigate = useNavigate();
 
-  const validateVin = (value: string): boolean => {
-    const cleanVin = value.replace(/[^A-HJ-NPR-Z0-9]/gi, '').toUpperCase();
-    return cleanVin.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/i.test(cleanVin);
+  const validateVin = (vin: string) => {
+    return /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleVinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateVin(vin)) {
-      setError('Please enter a valid 17-character VIN');
+      toast.error('Please enter a valid 17-character VIN');
       return;
     }
+
+    setIsVinLoading(true);
     
-    setError(null);
-    onSubmit?.(vin);
-  };
+    try {
+      // Mock VIN decode for now - in production this would call a real VIN decode API
+      const mockDecodedData = {
+        make: 'Toyota',
+        model: 'Camry',
+        year: 2020,
+        trim: 'LE',
+        bodyType: 'Sedan',
+        fuelType: 'Gasoline',
+        transmission: 'Automatic',
+        color: 'Silver'
+      };
 
-  const handleVinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toUpperCase();
-    setVin(value);
-    if (error && validateVin(value)) {
-      setError(null);
+      toast.success('VIN decoded successfully!');
+      
+      const result = await processVinLookup(vin, mockDecodedData);
+      
+      // Navigate to results page
+      navigate(`/results/${result.valuationId}`);
+      
+    } catch (error) {
+      console.error('VIN lookup error:', error);
+      toast.error('Failed to process VIN lookup. Please try again.');
+    } finally {
+      setIsVinLoading(false);
     }
   };
 
   return (
-    <div className="space-y-4">
-      {isPremium && tier === "premium" && (
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200">
-          <div className="flex items-center gap-2 mb-2">
-            <Shield className="h-5 w-5 text-blue-600" />
-            <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
-              Premium Features
-            </Badge>
-          </div>
-          <p className="text-sm text-blue-700">
-            Enhanced accuracy, CARFAX® integration, and detailed history reports included.
-          </p>
-        </div>
-      )}
+    <div className="w-full max-w-4xl mx-auto">
+      <Tabs defaultValue="vin" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="vin" className="flex items-center gap-2">
+            <Search className="w-4 h-4" />
+            VIN Lookup
+          </TabsTrigger>
+          <TabsTrigger value="manual" className="flex items-center gap-2">
+            <Car className="w-4 h-4" />
+            Manual Entry
+          </TabsTrigger>
+          <TabsTrigger value="plate" className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            License Plate
+          </TabsTrigger>
+        </TabsList>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Label htmlFor="vin">Vehicle Identification Number (VIN)</Label>
-          <Input
-            id="vin"
-            type="text"
-            value={vin}
-            onChange={handleVinChange}
-            placeholder="Enter 17-digit VIN"
-            maxLength={17}
-            className={error ? 'border-red-500' : ''}
-          />
-          {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
-          <p className="text-gray-500 text-sm mt-1">
-            {tier === "premium" 
-              ? "Premium VIN lookup includes enhanced data sources and verification."
-              : "The VIN is usually found on your dashboard, driver's side door, or registration."
-            }
-          </p>
-        </div>
-        
-        <LoadingButton
-          type="submit"
-          isLoading={isLoading}
-          loadingText={tier === "premium" ? "Processing Premium Report..." : "Looking up..."}
-          className="w-full"
-          disabled={!vin || vin.length < 17}
-        >
-          {tier === "premium" ? "Get Premium Report" : `Look up Vehicle`}
-          {tier === "premium" && <Star className="ml-2 h-4 w-4" />}
-        </LoadingButton>
-      </form>
+        <TabsContent value="vin">
+          <Card>
+            <CardHeader>
+              <CardTitle>VIN Lookup</CardTitle>
+              <p className="text-muted-foreground">
+                Enter your vehicle's 17-character VIN for instant valuation
+              </p>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleVinSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="vin">Vehicle Identification Number (VIN)</Label>
+                  <Input
+                    id="vin"
+                    value={vin}
+                    onChange={(e) => setVin(e.target.value.toUpperCase())}
+                    placeholder="Enter 17-character VIN"
+                    maxLength={17}
+                    className="font-mono"
+                  />
+                  {vin && !validateVin(vin) && (
+                    <p className="text-sm text-red-500 mt-1">
+                      VIN must be 17 characters (no I, O, or Q)
+                    </p>
+                  )}
+                </div>
+                <Button 
+                  type="submit" 
+                  disabled={!validateVin(vin) || isVinLoading}
+                  className="w-full"
+                >
+                  {isVinLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing VIN...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4 mr-2" />
+                      Get Valuation
+                    </>
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="manual">
+          <Card>
+            <CardHeader>
+              <CardTitle>Manual Entry</CardTitle>
+              <p className="text-muted-foreground">
+                Enter vehicle details manually if you don't have the VIN
+              </p>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center text-muted-foreground py-8">
+                Manual entry form coming soon...
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="plate">
+          <Card>
+            <CardHeader>
+              <CardTitle>License Plate Lookup</CardTitle>
+              <p className="text-muted-foreground">
+                Get vehicle information using license plate number
+              </p>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center text-muted-foreground py-8">
+                License plate lookup coming soon...
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
-  );
-};
-
-export function UnifiedLookupTabs({ 
-  onVehicleFound, 
-  tier = "free", 
-  defaultTab = "vin", 
-  onSubmit,
-  isPremium = false 
-}: UnifiedLookupTabsProps) {
-  const [activeTab, setActiveTab] = useState(defaultTab);
-
-  const handleVinSubmit = async (vin: string) => {
-    if (onSubmit) {
-      await onSubmit("vin", vin);
-    } else {
-      onVehicleFound({ vin, type: "vin" });
-    }
-  };
-
-  const handleManualSubmit = async (data: any) => {
-    if (onSubmit) {
-      await onSubmit("manual", JSON.stringify(data));
-    } else {
-      onVehicleFound(data);
-    }
-  };
-
-  const shouldShowPremiumFeatures = tier === "premium" || isPremium;
-
-  return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardContent className="p-6">
-        {shouldShowPremiumFeatures && (
-          <div className="text-center mb-6">
-            <h3 className="text-xl font-semibold mb-2">Premium Vehicle Analysis</h3>
-            <p className="text-gray-600">Get comprehensive vehicle insights with enhanced data sources</p>
-          </div>
-        )}
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="vin">
-              VIN {shouldShowPremiumFeatures && "Analysis"}
-            </TabsTrigger>
-            <TabsTrigger value="plate">License Plate</TabsTrigger>
-            <TabsTrigger value="manual">Manual Entry</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="vin" className="mt-6">
-            <VinLookupTab
-              tier={tier}
-              onSubmit={handleVinSubmit}
-              isPremium={isPremium}
-            />
-          </TabsContent>
-          
-          <TabsContent value="plate" className="mt-6">
-            <UnifiedPlateLookup
-              tier={tier}
-              onVehicleFound={onVehicleFound}
-              showPremiumFeatures={shouldShowPremiumFeatures}
-            />
-          </TabsContent>
-          
-          <TabsContent value="manual" className="mt-6">
-            <ManualEntryForm
-              onSubmit={handleManualSubmit}
-              tier={tier}
-            />
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
   );
 }
