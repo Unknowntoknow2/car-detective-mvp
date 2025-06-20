@@ -72,6 +72,37 @@ export function useValuationData(options: UseValuationDataOptions = {}): UseValu
   };
 }
 
+// Test deduplication function for the test suite
+export const testDeduplication = (valuations: any[]): any[] => {
+  if (!valuations || !Array.isArray(valuations)) {
+    return [];
+  }
+
+  const deduped = new Map();
+  
+  valuations.forEach(valuation => {
+    const existing = deduped.get(valuation.id);
+    
+    if (!existing) {
+      deduped.set(valuation.id, valuation);
+    } else {
+      // Prefer premium valuations
+      if (valuation.is_premium && !existing.is_premium) {
+        deduped.set(valuation.id, valuation);
+      } else if (valuation.is_premium === existing.is_premium) {
+        // If premium status is the same, prefer newer entries
+        const currentDate = new Date(valuation.created_at);
+        const existingDate = new Date(existing.created_at);
+        if (currentDate > existingDate) {
+          deduped.set(valuation.id, valuation);
+        }
+      }
+    }
+  });
+  
+  return Array.from(deduped.values());
+};
+
 // Specific hooks for backward compatibility
 export const useValuationHistory = () => {
   const result = useValuationData({ loadHistory: true });

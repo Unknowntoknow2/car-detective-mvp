@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -187,7 +186,6 @@ export function ValuationDetailsForm({ onSubmit, isLoading = false }: ValuationD
           </div>
 
           <LoadingButton
-            type="submit"
             isLoading={isLoading}
             loadingText="Getting Valuation..."
             className="w-full"
