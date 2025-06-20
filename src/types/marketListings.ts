@@ -4,7 +4,7 @@ export interface MarketListing {
   valuationId: string;
   price: number;
   source: string;
-  url?: string;
+  url: string;
   listingDate: string;
   createdAt: string;
 }
@@ -12,7 +12,7 @@ export interface MarketListing {
 export interface MarketListingInsert {
   source: string;
   price: number;
-  url?: string | null;
+  url: string | null;
   make: string;
   model: string;
   year: number;
@@ -26,12 +26,12 @@ export interface MarketListingsResponse {
 
 export interface MarketData {
   averagePrice: number;
-  averages?: Record<string, number>;
   priceRange: {
     min: number;
     max: number;
   };
   listingCount: number;
   daysOnMarket: number;
+  averages?: Record<string, number>;
   sources?: Record<string, string>;
 }

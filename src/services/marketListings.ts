@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import {
   MarketData,
@@ -46,12 +47,18 @@ export const storeMarketListings = async (
   model: string,
   year: number,
 ) => {
+  // Check if marketData has averages property and handle safely
+  if (!marketData.averages) {
+    console.warn('No averages data provided for market listings');
+    return;
+  }
+
   const inserts: MarketListingInsert[] = Object.entries(marketData.averages)
     .map(
       ([source, price]) => ({
         source,
         price: Number(price),
-        url: marketData.sources[source] ?? null,
+        url: marketData.sources?.[source] ?? null,
         make,
         model,
         year,

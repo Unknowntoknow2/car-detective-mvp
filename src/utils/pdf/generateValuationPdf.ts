@@ -1,12 +1,6 @@
 
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { ReportData } from '@/types/valuation';
-
-interface PdfOptions {
-  isPremium?: boolean;
-  includeExplanation?: boolean;
-  marketplaceListings?: any[];
-}
+import { ReportData, PdfOptions } from '@/types/valuation';
 
 export async function generateValuationPdf(
   data: ReportData, 
@@ -72,4 +66,17 @@ export async function generateValuationPdf(
   }
   
   return await pdfDoc.save();
+}
+
+export async function downloadValuationPdf(reportData: ReportData, options?: PdfOptions): Promise<void> {
+  const pdfData = await generateValuationPdf(reportData, options);
+  const blob = new Blob([pdfData], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `valuation-${reportData.vin || reportData.id || 'report'}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
