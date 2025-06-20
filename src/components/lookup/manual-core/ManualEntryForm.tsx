@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ManualEntryFormData, manualEntrySchema } from '@/types/manual-entry';
@@ -25,8 +25,8 @@ export const UnifiedManualEntryForm: React.FC<UnifiedManualEntryFormProps> = ({
     defaultValues: {
       make: initialData?.make || '',
       model: initialData?.model || '',
-      year: initialData?.year || new Date().getFullYear(),
-      mileage: initialData?.mileage || 0,
+      year: initialData?.year || new Date().getFullYear().toString(),
+      mileage: initialData?.mileage || '0',
       condition: initialData?.condition || 'good',
       zipCode: initialData?.zipCode || '',
       ...initialData
