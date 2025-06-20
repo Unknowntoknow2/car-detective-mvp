@@ -1,5 +1,5 @@
 
-import { AccidentDetails } from "./accident-details";
+import { AccidentDetails } from "./follow-up-answers";
 import { ConditionOption, TireConditionOption } from "./condition";
 
 export interface VehicleData {

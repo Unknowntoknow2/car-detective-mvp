@@ -10,7 +10,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import ConditionSelectorBar, { ConditionLevel } from '@/components/common/ConditionSelectorBar';
+import { ConditionSelectorSegmented } from '@/components/lookup/ConditionSelectorSegmented';
+import { ConditionLevel } from '@/types/condition';
 
 const detailsFormSchema = z.object({
   mileage: z.string().min(1, "Mileage is required").regex(/^\d+$/, "Mileage must be a number"),
@@ -92,7 +93,7 @@ export const ValuationDetailsForm: React.FC<ValuationDetailsFormProps> = ({
                 <FormItem>
                   <FormLabel>Condition</FormLabel>
                   <FormControl>
-                    <ConditionSelectorBar
+                    <ConditionSelectorSegmented
                       value={field.value}
                       onChange={field.onChange}
                     />

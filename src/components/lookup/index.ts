@@ -1,8 +1,6 @@
 
 // Export all unified lookup components
-export { UnifiedVinLookup } from "./UnifiedVinLookup";
 export { UnifiedPlateLookup } from "./UnifiedPlateLookup";
-export { default as UnifiedManualEntryForm } from "./UnifiedManualEntryForm";
 export { UnifiedFollowUpForm } from "../followup/UnifiedFollowUpForm";
 
 // Use the premium VehicleFoundCard as the shared one

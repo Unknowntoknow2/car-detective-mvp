@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { TitleStatusSection } from './TitleStatusSection';
 import { AdditionalDetailsSection } from './AdditionalDetailsSection';
 import { ManualEntryFormData } from '@/types/manual-entry';
-import { AccidentDetails } from '@/types/accident-details';
+import { AccidentDetails } from '@/types/follow-up-answers';
 import { TireConditionOption } from '@/types/condition';
 
 // Use shared components from premium
