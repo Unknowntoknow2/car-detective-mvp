@@ -19,27 +19,27 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(true);
   const [followUpData, setFollowUpData] = useState<FollowUpAnswers>({
     vin: '',
-    mileage: null,
-    condition: null,
-    zip_code: null,
-    title_status: null,
+    mileage: 0,
+    condition: 'good',
+    zip_code: '',
+    title_status: 'clean',
     accidents: {
       hadAccident: false,
-      count: null,
-      severity: null,
-      repaired: null,
-      frameDamage: null
+      count: 0,
+      severity: 'minor',
+      repaired: false,
+      frameDamage: false
     },
     modifications: {
       modified: false,
       types: [],
-      reversible: null
+      reversible: true
     },
-    service_history: null,
-    maintenance_status: null,
-    tire_condition: null,
-    previous_use: null,
-    previous_owners: null,
+    service_history: 'unknown',
+    maintenance_status: 'up-to-date',
+    tire_condition: 'good',
+    previous_use: 'personal',
+    previous_owners: 1,
     last_service_date: null,
     frame_damage: null,
     dashboard_lights: [],
@@ -68,9 +68,9 @@ export default function ResultsPage() {
         setFollowUpData((prev: FollowUpAnswers) => ({
           ...prev,
           vin: data.vin || '',
-          mileage: data.mileage,
-          condition: data.condition,
-          zip_code: data.zip_code
+          mileage: data.mileage || 0,
+          condition: data.condition || 'good',
+          zip_code: data.zip_code || ''
         }));
         
         // Show follow-up questions if this is a basic VIN lookup
