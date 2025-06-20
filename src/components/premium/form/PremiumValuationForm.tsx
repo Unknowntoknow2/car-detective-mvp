@@ -7,35 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
 import MakeAndModelSelector from "@/components/lookup/form-parts/MakeAndModelSelector";
-import { ConditionAndZipFields } from "@/components/lookup/manual/components/ConditionAndZipFields";
-import { VehicleDetailsFields } from "@/components/lookup/manual/components/VehicleDetailsFields";
-import { VinInputField } from "@/components/lookup/manual/components/VinInputField";
+import { ZipCodeInput } from "@/components/common/ZipCodeInput";
 import { ConditionLevel } from "@/components/lookup/ConditionSelectorSegmented";
 import { ManualEntryFormData } from '@/types/manual-entry';
-
-// Create a basic VehicleBasicInfoFields component locally since the original is missing
-const VehicleBasicInfoFields = ({ form }: { form: any }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div>
-      <label className="block text-sm font-medium mb-2">Year</label>
-      <input 
-        type="number" 
-        {...form.register("year")}
-        className="w-full p-2 border rounded"
-        placeholder="2020"
-      />
-    </div>
-    <div>
-      <label className="block text-sm font-medium mb-2">Mileage</label>
-      <input 
-        type="number" 
-        {...form.register("mileage")}
-        className="w-full p-2 border rounded"
-        placeholder="50000"
-      />
-    </div>
-  </div>
-);
 
 const premiumValuationSchema = z.object({
   make: z.string().min(1, "Make is required"),
@@ -83,18 +57,13 @@ export function PremiumValuationForm() {
     },
   });
 
-  const { watch, setValue } = form;
-  const isLoading = isSubmitting;
+  const { setValue } = form;
 
   const onSubmit = async (data: PremiumValuationFormData) => {
     setIsSubmitting(true);
     try {
       console.log("Premium valuation form submitted:", data);
       toast.success("Valuation request submitted successfully!");
-      
-      // Here you would typically send the data to your backend
-      // For now, we'll just log it and show success
-      
     } catch (error) {
       console.error("Error submitting valuation:", error);
       toast.error("Failed to submit valuation request");
@@ -119,16 +88,41 @@ export function PremiumValuationForm() {
           }}
         />
         
-        <VehicleBasicInfoFields form={form} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Year</label>
+            <input 
+              type="number" 
+              {...form.register("year")}
+              className="w-full p-2 border rounded"
+              placeholder="2020"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Mileage</label>
+            <input 
+              type="number" 
+              {...form.register("mileage")}
+              className="w-full p-2 border rounded"
+              placeholder="50000"
+            />
+          </div>
+        </div>
         
-        <ConditionAndZipFields 
-          form={form} 
-          conditionOptions={conditionOptions}
+        <ZipCodeInput
+          value={form.watch("zipCode") || ""}
+          onChange={(value) => setValue("zipCode", value)}
         />
         
-        <VehicleDetailsFields form={form} />
-        
-        <VinInputField form={form} />
+        <div>
+          <label className="block text-sm font-medium mb-2">VIN (Optional)</label>
+          <input 
+            type="text" 
+            {...form.register("vin")}
+            className="w-full p-2 border rounded"
+            placeholder="Enter VIN"
+          />
+        </div>
         
         <Button 
           type="submit" 
