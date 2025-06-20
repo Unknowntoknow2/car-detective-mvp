@@ -45,7 +45,7 @@ describe("useValuationHistory", () => {
       expect(result.length).toBe(2);
 
       // Find the item with the common ID
-      const dedupedItem = result.find((item) => item.id === commonId);
+      const dedupedItem = result.find((item: Valuation) => item.id === commonId);
       expect(dedupedItem).toBeDefined();
       expect(dedupedItem?.is_premium).toBe(true);
       expect(dedupedItem?.premium_unlocked).toBe(true);
@@ -136,7 +136,7 @@ describe("useValuationHistory", () => {
 
       // The premium one should be prioritized if we were filtering by VIN
       // But our current logic works based on ID, so we keep all records with different IDs
-      const premiumValuation = result.find((v) => v.id === "premium-123");
+      const premiumValuation = result.find((v: Valuation) => v.id === "premium-123");
       expect(premiumValuation).toBeDefined();
       expect(premiumValuation?.premium_unlocked).toBe(true);
     });
