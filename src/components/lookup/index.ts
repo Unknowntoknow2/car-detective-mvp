@@ -1,18 +1,16 @@
 
-// Export all unified lookup components
-export { UnifiedLookupTabs } from "./UnifiedLookupTabs";
-export { UnifiedPlateLookup } from "./UnifiedPlateLookup";
-export { UnifiedFollowUpForm } from "../followup/UnifiedFollowUpForm";
-
-// Re-export the legacy LookupTabs wrapper for compatibility
-export { LookupTabs } from "../home/LookupTabs";
-
-// Use the premium VehicleFoundCard as the shared one
-export { VehicleFoundCard } from "@/components/premium/lookup/plate/VehicleFoundCard";
-
-// Use shared components from premium lookup for VinDecoderResults and CarfaxErrorAlert
-export { default as VinDecoderResults } from "@/components/premium/lookup/vin/VinDecoderResults";
-export { CarfaxErrorAlert } from "@/components/premium/lookup/vin/CarfaxErrorAlert";
-
-// Manual entry form
-export { ManualEntryForm } from "./manual/ManualEntryForm";
+// Export lookup components
+export * from "./UnifiedLookupTabs";
+export * from "./UnifiedPlateLookup";
+export * from "./VehicleDetailsGrid";
+export * from "./VehicleHistory";
+export * from "./VehicleInfoCard";
+export * from "./VehicleScoring";
+export * from "./scoring";
+export * from "./followup";
+export * from "./form-parts";
+export * from "./forecast";
+export * from "./manual";
+export * from "./photo";
+export * from "./plate";
+export * from "./types";

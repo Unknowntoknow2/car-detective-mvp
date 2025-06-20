@@ -1,46 +1,54 @@
-import React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PremiumFeatures } from "./PremiumFeatures";
-import { PremiumCondition } from "./PremiumCondition";
-import { PremiumHistory } from "./PremiumHistory";
+
+import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface PremiumFeaturesTabsProps {
-  onConditionChange: (value: any) => void;
+  className?: string;
 }
 
-export const PremiumFeaturesTabs: React.FC<PremiumFeaturesTabsProps> = ({
-  onConditionChange,
-}) => {
-  const tabs = [
-    { value: "features", children: "Features", isPremium: false },
-    { value: "condition", children: "Condition", isPremium: true },
-    { value: "history", children: "History", isPremium: true },
-  ];
-
+export function PremiumFeaturesTabs({ className }: PremiumFeaturesTabsProps) {
   return (
-    <Tabs defaultValue="features" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
-        {tabs.map((tab) => (
-          <TabsTrigger 
-            key={tab.value} 
-            value={tab.value}
-            className={`data-[state=active]:bg-primary data-[state=active]:text-primary-foreground ${
-              tab.isPremium ? "border-l-4 border-l-yellow-400" : ""
-            }`}
-          >
-            {tab.children}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      <TabsContent value="features" className="space-y-4">
-        <PremiumFeatures />
-      </TabsContent>
-      <TabsContent value="condition" className="space-y-4">
-        <PremiumCondition onConditionChange={onConditionChange} />
-      </TabsContent>
-      <TabsContent value="history" className="space-y-4">
-        <PremiumHistory />
-      </TabsContent>
-    </Tabs>
+    <div className={className}>
+      <Tabs defaultValue="features" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="features">Features</TabsTrigger>
+          <TabsTrigger value="comparison">Comparison</TabsTrigger>
+          <TabsTrigger value="benefits">Benefits</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="features">
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Premium Features</h3>
+              <ul className="space-y-2">
+                <li>• Detailed market analysis</li>
+                <li>• Professional vehicle reports</li>
+                <li>• Advanced condition assessment</li>
+                <li>• Dealer network access</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="comparison">
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Free vs Premium</h3>
+              <p>Compare the features available in our free and premium tiers.</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="benefits">
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Premium Benefits</h3>
+              <p>Discover how premium features can save you time and money.</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
-};
+}
