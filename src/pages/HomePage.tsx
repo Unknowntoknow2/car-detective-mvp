@@ -34,6 +34,11 @@ export default function HomePage() {
     console.log(`HOME PAGE: User selected ${value} valuation type`);
   };
 
+  const handleVehicleFound = (vehicle: any) => {
+    console.log("Vehicle found:", vehicle);
+    // Handle the vehicle data here
+  };
+
   const handleFreeFormSubmit = async (
     type: string,
     value: string,
@@ -160,7 +165,8 @@ export default function HomePage() {
                   </p>
                 </div>
                 <LookupTabs 
-                  defaultTab="vin" 
+                  defaultTab="vin"
+                  onVehicleFound={handleVehicleFound}
                   onSubmit={handleFreeFormSubmit}
                 />
               </TabsContent>
