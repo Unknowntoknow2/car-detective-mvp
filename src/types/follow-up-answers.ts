@@ -51,3 +51,7 @@ export interface FollowUpAnswers {
   completion_percentage: number;
   is_complete: boolean;
 }
+
+// Re-export the types for backward compatibility
+export { AccidentDetails } from "./accident-details";
+export { ConditionOption, TireConditionOption } from "./condition";
