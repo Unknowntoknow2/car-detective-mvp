@@ -1,71 +1,35 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
-/* Extend Tailwind's default theme with custom color palette */
-@layer base {
-  :root {
-    /* Navy colors */
-    --navy-50: #f0f4fa;
-    --navy-100: #d0dff0;
-    --navy-200: #a0bfdf;
-    --navy-300: #709fcf;
-    --navy-400: #407fbf;
-    --navy-500: #2563a0;
-    --navy-600: #1a4b82;
-    --navy-700: #103464;
-    --navy-800: #082746;
-    --navy-900: #041a28;
+/* Custom Tailwind extensions and utilities */
 
-    /* Charcoal colors */
-    --charcoal-50: #f5f5f6;
-    --charcoal-100: #e1e2e4;
-    --charcoal-200: #c3c5c8;
-    --charcoal-300: #a5a8ae;
-    --charcoal-400: #878b93;
-    --charcoal-500: #6a6e79;
-    --charcoal-600: #52555e;
-    --charcoal-700: #403e43;
-    --charcoal-800: #27282c;
-    --charcoal-900: #18191b;
-  }
+/* Base styles */
+* {
+  border-color: hsl(var(--border));
 }
 
-/* Add custom utility classes */
-@layer utilities {
-  .bg-navy-gradient {
-    @apply bg-gradient-to-r from-navy-600 to-navy-800;
-  }
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
 
-  .bg-charcoal-gradient {
-    @apply bg-gradient-to-r from-charcoal-700 to-charcoal-900;
-  }
+/* Utility classes */
+.text-balance {
+  text-wrap: balance;
+}
 
-  .text-gradient-primary {
-    background: linear-gradient(to right, #2563a0, #407fbf);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
 
-  .text-gradient-accent {
-    background: linear-gradient(to right, #16a34a, #22c55e);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
 
-  .shadow-card-hover {
-    @apply shadow-sm hover:shadow-md transition-shadow duration-300;
-  }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground));
+  border-radius: 3px;
+}
 
-  .hover-lift {
-    @apply transform transition duration-300 hover:-translate-y-1;
-  }
-
-  .hover-scale {
-    @apply transform transition duration-300 hover:scale-105;
-  }
-
-  .touch-target {
-    @apply min-h-[44px] min-w-[44px];
-  }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--accent));
 }
