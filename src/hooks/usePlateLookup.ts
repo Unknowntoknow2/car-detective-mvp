@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 
 interface PlateLookupResult {
@@ -17,7 +16,7 @@ export function usePlateLookup() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const lookupPlate = async (plate: string, state: string): Promise<PlateLookupResult | null> => {
+  const lookupVehicle = async (plate: string, state: string): Promise<PlateLookupResult | null> => {
     setIsLoading(true);
     setError(null);
 
@@ -48,7 +47,11 @@ export function usePlateLookup() {
     }
   };
 
+  // Keep both methods for backwards compatibility
+  const lookupPlate = lookupVehicle;
+
   return {
+    lookupVehicle,
     lookupPlate,
     isLoading,
     error

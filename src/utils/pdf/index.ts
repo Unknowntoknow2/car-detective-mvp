@@ -49,10 +49,10 @@ export function convertVehicleInfoToReportData(
 ): ReportData {
   return {
     id: Date.now().toString(),
-    vin: vehicleInfo.vin,
-    make: vehicleInfo.make,
-    model: vehicleInfo.model,
-    year: vehicleInfo.year,
+    vin: vehicleInfo.vin || '',
+    make: vehicleInfo.make || '',
+    model: vehicleInfo.model || '',
+    year: vehicleInfo.year || new Date().getFullYear(),
     trim: vehicleInfo.trim,
     mileage: valuationData.mileage,
     condition: valuationData.condition,
@@ -73,6 +73,6 @@ export function convertVehicleInfoToReportData(
   };
 }
 
-export async function downloadValuationPdf(data: ReportData): Promise<void> {
-  return downloadPdf(data);
+export async function downloadValuationPdf(data: ReportData, options: PdfOptions = {}): Promise<void> {
+  return downloadPdf(data, options);
 }

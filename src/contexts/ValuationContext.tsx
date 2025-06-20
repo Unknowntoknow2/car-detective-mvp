@@ -34,8 +34,8 @@ function valuationReducer(state: ValuationState, action: ValuationAction): Valua
 interface ValuationContextType {
   state: ValuationState;
   dispatch: React.Dispatch<ValuationAction>;
-  processFreeValuation: (data: any) => Promise<{ valuationId: string }>;
-  processPremiumValuation: (data: any) => Promise<{ valuationId: string }>;
+  processFreeValuation: (data: any) => Promise<{ valuationId: string; estimatedValue: number; confidenceScore: number; }>;
+  processPremiumValuation: (data: any) => Promise<{ valuationId: string; estimatedValue: number; confidenceScore: number; }>;
   isLoading: boolean;
 }
 
@@ -49,8 +49,11 @@ export function ValuationProvider({ children }: { children: ReactNode }) {
     try {
       // Mock implementation
       const valuationId = `free-${Date.now()}`;
-      dispatch({ type: 'SET_DATA', payload: { valuationId, ...data } });
-      return { valuationId };
+      const estimatedValue = 20000;
+      const confidenceScore = 85;
+      
+      dispatch({ type: 'SET_DATA', payload: { valuationId, estimatedValue, confidenceScore, ...data } });
+      return { valuationId, estimatedValue, confidenceScore };
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: 'Failed to process free valuation' });
       throw error;
@@ -64,8 +67,11 @@ export function ValuationProvider({ children }: { children: ReactNode }) {
     try {
       // Mock implementation
       const valuationId = `premium-${Date.now()}`;
-      dispatch({ type: 'SET_DATA', payload: { valuationId, ...data } });
-      return { valuationId };
+      const estimatedValue = 22000;
+      const confidenceScore = 92;
+      
+      dispatch({ type: 'SET_DATA', payload: { valuationId, estimatedValue, confidenceScore, ...data } });
+      return { valuationId, estimatedValue, confidenceScore };
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: 'Failed to process premium valuation' });
       throw error;
