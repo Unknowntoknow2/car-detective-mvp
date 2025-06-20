@@ -3,6 +3,11 @@ import React from 'react';
 import { LookupTabs } from '@/components/home/LookupTabs';
 
 const PremiumPage = () => {
+  const handleVehicleFound = (vehicle: any) => {
+    console.log("Vehicle found in premium page:", vehicle);
+    // Handle the vehicle data here
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto py-8">
@@ -17,7 +22,10 @@ const PremiumPage = () => {
         </div>
         
         <div className="max-w-4xl mx-auto">
-          <LookupTabs defaultTab="vin" />
+          <LookupTabs 
+            defaultTab="vin"
+            onVehicleFound={handleVehicleFound}
+          />
         </div>
 
         <div className="mt-16">

@@ -110,10 +110,9 @@ export function ManualEntryForm({
 
           {/* Condition */}
           <div className="space-y-2">
-            <Label>Condition</Label>
             <ConditionSelectorSegmented
-              condition={condition}
-              onConditionChange={setCondition}
+              value={condition as any}
+              onChange={(val) => setCondition(val as string)}
             />
           </div>
 
