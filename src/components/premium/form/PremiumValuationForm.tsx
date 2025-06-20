@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -5,7 +6,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
-import { AutoCompleteVehicleSelector } from "@/components/lookup/form-parts/AutoCompleteVehicleSelector";
+import { MakeAndModelSelector } from "@/components/lookup/form-parts/MakeAndModelSelector";
 import { ConditionAndZipFields } from "@/components/lookup/manual/components/ConditionAndZipFields";
 import { VehicleDetailsFields } from "@/components/lookup/manual/components/VehicleDetailsFields";
 import { VinInputField } from "@/components/lookup/manual/components/VinInputField";
@@ -62,6 +63,8 @@ const conditionOptions = [
 
 export function PremiumValuationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedMakeId, setSelectedMakeId] = useState("");
+  const [selectedModelId, setSelectedModelId] = useState("");
 
   const form = useForm<PremiumValuationFormData>({
     resolver: zodResolver(premiumValuationSchema),
@@ -103,14 +106,17 @@ export function PremiumValuationForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <AutoCompleteVehicleSelector
-          selectedMake={watch("make") as string}
-          setSelectedMake={(make: string) => setValue("make", make)}
-          selectedModel={watch("model") as string}
-          setSelectedModel={(model: string) => setValue("model", model)}
-          disabled={isLoading}
-          required={true}
-          onValidationChange={(isValid: boolean) => console.log("Validation:", isValid)}
+        <MakeAndModelSelector
+          makeId={selectedMakeId}
+          setMakeId={(makeId: string) => {
+            setSelectedMakeId(makeId);
+            setValue("make", makeId);
+          }}
+          modelId={selectedModelId}
+          setModelId={(modelId: string) => {
+            setSelectedModelId(modelId);
+            setValue("model", modelId);
+          }}
         />
         
         <VehicleBasicInfoFields form={form} />
