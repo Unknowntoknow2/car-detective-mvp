@@ -61,41 +61,53 @@ export function UnifiedFollowUpQuestions({
     updateFormData({ maintenanceNotes: value });
   };
 
+  // Helper function to safely get existing accident details with proper typing
+  const getExistingAccidentDetails = (): AccidentDetails => {
+    const existing = formData.accidentDetails;
+    if (!existing) return defaultAccidentDetails;
+    
+    return {
+      hadAccident: existing.hadAccident || false,
+      severity: (existing.severity as 'minor' | 'moderate' | 'severe') || 'minor',
+      repaired: existing.repaired || false,
+      count: existing.count || 0,
+      location: existing.location || '',
+      description: existing.description || ''
+    };
+  };
+
   // Accident History handlers
   const setHasAccident = (value: boolean | null) => {
+    const existingDetails = getExistingAccidentDetails();
     const updatedDetails: AccidentDetails = {
-      ...defaultAccidentDetails,
-      ...(formData.accidentDetails || {}),
+      ...existingDetails,
       hadAccident: value !== null ? value : false
     };
     updateFormData({ accidentDetails: updatedDetails });
   };
 
   const setAccidentSeverity = (value: 'minor' | 'moderate' | 'severe') => {
+    const existingDetails = getExistingAccidentDetails();
     const updatedDetails: AccidentDetails = {
-      ...defaultAccidentDetails,
-      ...(formData.accidentDetails || {}),
-      hadAccident: formData.accidentDetails?.hadAccident || false,
+      ...existingDetails,
       severity: value
     };
     updateFormData({ accidentDetails: updatedDetails });
   };
 
   const setAccidentRepaired = (value: boolean) => {
+    const existingDetails = getExistingAccidentDetails();
     const updatedDetails: AccidentDetails = {
-      ...defaultAccidentDetails,
-      ...(formData.accidentDetails || {}),
-      hadAccident: formData.accidentDetails?.hadAccident || false,
+      ...existingDetails,
       repaired: value
     };
     updateFormData({ accidentDetails: updatedDetails });
   };
 
   const setAccidentDescription = (value: string) => {
+    const existingDetails = getExistingAccidentDetails();
     const updatedDetails: AccidentDetails = {
-      ...defaultAccidentDetails,
-      ...(formData.accidentDetails || {}),
-      hadAccident: formData.accidentDetails?.hadAccident || false,
+      ...existingDetails,
       description: value
     };
     updateFormData({ accidentDetails: updatedDetails });
@@ -119,7 +131,7 @@ export function UnifiedFollowUpQuestions({
   };
 
   // Safely get accident details with proper typing
-  const currentAccidentDetails = formData.accidentDetails || defaultAccidentDetails;
+  const currentAccidentDetails = getExistingAccidentDetails();
   
   // Convert boolean | undefined to boolean | null for compatibility
   const hasAccidentValue: boolean | null = currentAccidentDetails.hadAccident !== undefined 
