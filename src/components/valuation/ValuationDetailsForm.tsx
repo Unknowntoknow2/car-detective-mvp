@@ -1,178 +1,201 @@
 
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DecodedVehicleInfo } from '@/types/vehicle';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ConditionSelectorSegmented } from '@/components/lookup/ConditionSelectorSegmented';
-import { ConditionLevel } from '@/types/condition';
-
-const detailsFormSchema = z.object({
-  mileage: z.string().min(1, "Mileage is required").regex(/^\d+$/, "Mileage must be a number"),
-  condition: z.nativeEnum(ConditionLevel),
-  zipCode: z.string().regex(/^\d{5}$/, "Enter a valid 5-digit ZIP code"),
-  trim: z.string().optional(),
-  drivingBehavior: z.string().optional(),
-});
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { UnifiedConditionSelector } from '@/components/common/UnifiedConditionSelector';
+import { LoadingButton } from '@/components/common/UnifiedLoadingSystem';
 
 interface ValuationDetailsFormProps {
-  vehicleInfo: DecodedVehicleInfo;
-  onSubmit: (details: any) => void;
+  onSubmit: (data: any) => void;
   isLoading?: boolean;
 }
 
-export const ValuationDetailsForm: React.FC<ValuationDetailsFormProps> = ({
-  vehicleInfo,
-  onSubmit,
-  isLoading = false,
-}) => {
-  const [selectedTrim, setSelectedTrim] = useState(vehicleInfo.trim || 'Standard');
+interface FormData {
+  year: string;
+  make: string;
+  model: string;
+  mileage: string;
+  condition: string;
+  zipCode: string;
+  fuelType: string;
+  transmission: string;
+  accidents: boolean;
+  modifications: boolean;
+  serviceHistory: string;
+}
 
-  const form = useForm({
-    resolver: zodResolver(detailsFormSchema),
-    defaultValues: {
-      mileage: '',
-      condition: ConditionLevel.Good,
-      zipCode: '',
-      trim: vehicleInfo.trim || 'Standard',
-      drivingBehavior: 'normal',
-    },
+export function ValuationDetailsForm({ onSubmit, isLoading = false }: ValuationDetailsFormProps) {
+  const [formData, setFormData] = useState<FormData>({
+    year: '',
+    make: '',
+    model: '',
+    mileage: '',
+    condition: 'good',
+    zipCode: '',
+    fuelType: 'gasoline',
+    transmission: 'automatic',
+    accidents: false,
+    modifications: false,
+    serviceHistory: ''
   });
 
-  const handleSubmit = (values: z.infer<typeof detailsFormSchema>) => {
-    onSubmit({
-      mileage: parseInt(values.mileage, 10),
-      condition: values.condition,
-      zipCode: values.zipCode,
-      trim: selectedTrim,
-      drivingBehavior: values.drivingBehavior,
-    });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
   };
 
-  // Handle trim selection
-  const handleTrimChange = (value: string) => {
-    setSelectedTrim(value);
-    form.setValue('trim', value);
+  const handleInputChange = (field: keyof FormData) => (value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Complete Valuation Details</CardTitle>
-        <CardDescription>
-          Provide additional details about your {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model} to get an accurate valuation.
-        </CardDescription>
+        <CardTitle>Vehicle Details</CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="mileage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mileage</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g. 35000" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="year">Year</Label>
+              <Input
+                id="year"
+                value={formData.year}
+                onChange={(e) => handleInputChange('year')(e.target.value)}
+                placeholder="2020"
+              />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="condition"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Condition</FormLabel>
-                  <FormControl>
-                    <ConditionSelectorSegmented
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <Label htmlFor="make">Make</Label>
+              <Input
+                id="make"
+                value={formData.make}
+                onChange={(e) => handleInputChange('make')(e.target.value)}
+                placeholder="Toyota"
+              />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="trim"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Trim Level (Optional)</FormLabel>
-                  <Select onValueChange={handleTrimChange} defaultValue={selectedTrim}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select trim level" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Standard">Standard</SelectItem>
-                      <SelectItem value="Base">Base</SelectItem>
-                      <SelectItem value="Premium">Premium</SelectItem>
-                      <SelectItem value="Luxury">Luxury</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <Label htmlFor="model">Model</Label>
+              <Input
+                id="model"
+                value={formData.model}
+                onChange={(e) => handleInputChange('model')(e.target.value)}
+                placeholder="Camry"
+              />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="drivingBehavior"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Driving Behavior</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select driving behavior" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="cautious">Cautious</SelectItem>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="aggressive">Aggressive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <Label htmlFor="mileage">Mileage</Label>
+              <Input
+                id="mileage"
+                value={formData.mileage}
+                onChange={(e) => handleInputChange('mileage')(e.target.value)}
+                placeholder="50000"
+              />
+            </div>
+          </div>
 
-            <FormField
-              control={form.control}
-              name="zipCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ZIP Code</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 90210" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+          <div>
+            <Label>Vehicle Condition</Label>
+            <UnifiedConditionSelector
+              type="overall"
+              value={formData.condition}
+              onChange={handleInputChange('condition')}
+              variant="buttons"
             />
+          </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Processing...' : 'Get Valuation'}
-            </Button>
-          </form>
-        </Form>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="zipCode">ZIP Code</Label>
+              <Input
+                id="zipCode"
+                value={formData.zipCode}
+                onChange={(e) => handleInputChange('zipCode')(e.target.value)}
+                placeholder="12345"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="fuelType">Fuel Type</Label>
+              <Select value={formData.fuelType} onValueChange={handleInputChange('fuelType')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gasoline">Gasoline</SelectItem>
+                  <SelectItem value="diesel">Diesel</SelectItem>
+                  <SelectItem value="electric">Electric</SelectItem>
+                  <SelectItem value="hybrid">Hybrid</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="transmission">Transmission</Label>
+            <Select value={formData.transmission} onValueChange={handleInputChange('transmission')}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="automatic">Automatic</SelectItem>
+                <SelectItem value="manual">Manual</SelectItem>
+                <SelectItem value="cvt">CVT</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="accidents"
+                checked={formData.accidents}
+                onCheckedChange={(checked) => handleInputChange('accidents')(Boolean(checked))}
+              />
+              <Label htmlFor="accidents">Vehicle has been in accidents</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="modifications"
+                checked={formData.modifications}
+                onCheckedChange={(checked) => handleInputChange('modifications')(Boolean(checked))}
+              />
+              <Label htmlFor="modifications">Vehicle has modifications</Label>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="serviceHistory">Service History</Label>
+            <Textarea
+              id="serviceHistory"
+              value={formData.serviceHistory}
+              onChange={(e) => handleInputChange('serviceHistory')(e.target.value)}
+              placeholder="Describe the vehicle's service history..."
+            />
+          </div>
+
+          <LoadingButton
+            type="submit"
+            isLoading={isLoading}
+            loadingText="Getting Valuation..."
+            className="w-full"
+          >
+            Get Valuation
+          </LoadingButton>
+        </form>
       </CardContent>
     </Card>
   );
-};
+}
