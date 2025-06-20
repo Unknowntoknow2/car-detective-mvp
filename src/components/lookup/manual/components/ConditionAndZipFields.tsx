@@ -8,8 +8,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
-import { ConditionLevel } from '@/types/manualEntry';
-import { ConditionSelectorSegmented } from "@/components/lookup/ConditionSelectorSegmented";
+import { ConditionSelectorSegmented, ConditionLevel } from "@/components/lookup/ConditionSelectorSegmented";
 
 interface ConditionOption {
   value: string;

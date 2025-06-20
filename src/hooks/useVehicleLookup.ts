@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { ManualEntryFormData } from "@/types/manualEntry";
+import { ManualEntryFormData } from "@/types/manual-entry";
 
 export function useVehicleLookup() {
   const [isLoading, setIsLoading] = useState(false);

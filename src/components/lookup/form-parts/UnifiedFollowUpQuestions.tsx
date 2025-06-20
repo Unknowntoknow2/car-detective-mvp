@@ -1,10 +1,19 @@
-
 import React from 'react';
 import { TitleStatusSection } from './TitleStatusSection';
 import { ServiceHistorySection } from './ServiceHistorySection';
 import { AccidentHistorySection } from './AccidentHistorySection';
 import { AdditionalDetailsSection } from './AdditionalDetailsSection';
-import { ManualEntryFormData, AccidentDetails } from '@/types/manualEntry';
+import { ManualEntryFormData } from '@/types/manual-entry';
+
+// Define AccidentDetails locally since we need it
+interface AccidentDetails {
+  hadAccident: boolean;
+  severity?: string;
+  repaired?: boolean;
+  count?: number;
+  location?: string;
+  description?: string;
+}
 
 interface UnifiedFollowUpQuestionsProps {
   formData: ManualEntryFormData;

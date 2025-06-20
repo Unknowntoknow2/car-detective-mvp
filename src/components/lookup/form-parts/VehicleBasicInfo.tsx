@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   FormControl,
@@ -15,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
-import { ManualEntryFormData } from "@/types/manualEntry";
+import { ManualEntryFormData } from "@/types/manual-entry";
 import { ZipCodeInput } from "./ZipCodeInput";
 
 interface VehicleBasicInfoProps {
