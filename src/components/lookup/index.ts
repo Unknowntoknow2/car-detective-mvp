@@ -8,5 +8,5 @@ export { UnifiedFollowUpForm } from "../followup/UnifiedFollowUpForm";
 // Export found components
 export * from "./found/FoundCarCard";
 
-// Export shared components
-export * from "./shared/VehicleFoundCard";
+// Use the premium VehicleFoundCard as the shared one
+export { VehicleFoundCard } from "@/components/premium/lookup/plate/VehicleFoundCard";

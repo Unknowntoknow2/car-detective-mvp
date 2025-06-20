@@ -1,8 +1,10 @@
+
 export * from "./PremiumLockSection";
 export * from "./TrendIndicator";
 export * from "./MarketTrendChart";
 export * from "./AnalysisSection";
 export * from "./MarketTrendContent";
 export * from "./LoadingState";
-export * from "./ErrorState";
+// Use the ErrorMessage from ui components instead
+export { ErrorMessage as ErrorState } from "@/components/ui";
 export * from "./hooks/useForecastData";

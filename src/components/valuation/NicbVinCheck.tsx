@@ -5,9 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Shield, AlertTriangle, CheckCircle } from "lucide-react";
-import { VinInfoMessage } from "@/components/validation/VinInfoMessage";
+import { Loader2, Shield, AlertTriangle, CheckCircle, Info } from "lucide-react";
 import { useNicbVinCheck } from "@/hooks/useNicbVinCheck";
+
+function VinInfoMessage() {
+  return (
+    <div className="flex items-start gap-2 mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+      <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+      <div className="text-sm text-blue-700">
+        <p>A VIN (Vehicle Identification Number) is a unique 17-character code that identifies your vehicle.</p>
+        <p className="mt-1">You can find it on your dashboard, driver's side door frame, or vehicle registration.</p>
+      </div>
+    </div>
+  );
+}
 
 export function NicbVinCheck() {
   const [inputVin, setInputVin] = useState("");
