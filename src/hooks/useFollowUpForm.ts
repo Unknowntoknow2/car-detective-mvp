@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers, ServiceHistoryDetails, ModificationDetails, AccidentDetails } from '@/types/follow-up-answers';
@@ -62,7 +61,6 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Load existing data on mount
   useEffect(() => {
     loadExistingData();
   }, [vin]);

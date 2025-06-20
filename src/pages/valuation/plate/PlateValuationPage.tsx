@@ -49,11 +49,6 @@ export default function PlateValuationPage() {
     // Handle final valuation submission here
   };
 
-  const handleFollowUpSave = async (followUpAnswers: FollowUpAnswers) => {
-    console.log('📝 Plate follow-up saved:', followUpAnswers);
-    // Progress is automatically saved by the UnifiedFollowUpForm
-  };
-
   return (
     <Container className="max-w-6xl py-10">
       <CarFinderQaherHeader />
@@ -85,13 +80,9 @@ export default function PlateValuationPage() {
           )}
           
           <UnifiedFollowUpForm 
-            vin={vehicleData?.vin || `PLATE_${vehicleData?.plate || 'LOOKUP'}`}
-            initialData={{ 
-              vin: vehicleData?.vin || `PLATE_${vehicleData?.plate || 'LOOKUP'}`,
-              zip_code: ''
-            }}
-            onSubmit={handleFollowUpSubmit}
-            onSave={handleFollowUpSave}
+            vehicleData={vehicleData}
+            onComplete={handleFollowUpSubmit}
+            tier="free"
           />
         </div>
       )}

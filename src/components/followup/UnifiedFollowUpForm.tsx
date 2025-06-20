@@ -9,10 +9,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { useFollowUpForm } from "@/hooks/useFollowUpForm";
 import { VehicleFoundCard } from "@/components/premium/lookup/plate/VehicleFoundCard";
+import { FollowUpAnswers } from "@/types/follow-up-answers";
 
 interface UnifiedFollowUpFormProps {
   vehicleData: any;
-  onComplete: (data: any) => void;
+  onComplete: (data: FollowUpAnswers) => void;
   tier: "free" | "premium";
 }
 
@@ -163,7 +164,6 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
                 checked={formData.accidents?.hadAccident || false}
                 onCheckedChange={(checked) => updateFormData({ 
                   accidents: { 
-                    ...formData.accidents, 
                     hadAccident: checked === true,
                     count: checked === true ? (formData.accidents?.count || 1) : 0,
                     severity: formData.accidents?.severity || 'minor',
