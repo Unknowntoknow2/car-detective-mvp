@@ -1,84 +1,71 @@
 
-import { NormalizedListing, RawListing } from "./normalizeListing";
-import { v4 as uuidv4 } from 'uuid';
+// Consolidated listing normalization utilities
 
-/**
- * Normalizes listings from various sources into a standard format
- * @param listings Array of raw listings from different sources
- * @param source Source platform name (craigslist, cars.com, etc.)
- * @returns Array of normalized listings
- */
-export function normalizeListings(
-  listings: RawListing[],
-  source: string
-): NormalizedListing[] {
-  return listings.map((listing) => ({
-    ...listing,
-    id: listing.id || `${source}-${uuidv4()}`,
-    platform: source,
-    // Ensure all required fields exist
-    title: listing.title || 'Unknown Vehicle',
-    price: typeof listing.price === 'number' ? listing.price : parseFloat(String(listing.price)) || 0,
-    url: listing.url || '',
-    source: source,
-    // Optional fields with sensible defaults
-    mileage: listing.mileage || 0,
-    year: listing.year || 0,
-    make: listing.make || '',
-    model: listing.model || '',
-    imageUrl: listing.image || '',
-    location: listing.location || 'Unknown',
-    listingDate: listing.postedDate || new Date().toISOString(),
-    description: listing.description || '',
-  }));
+export interface NormalizedListing {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  price: number;
+  mileage: number;
+  condition?: string;
+  location?: string;
+  source: string;
+  url?: string;
+  images?: string[];
+  description?: string;
+  features?: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-/**
- * Extracts VIN from listing data if available
- * @param listing The listing to extract VIN from
- * @returns VIN or null if not found
- */
-export function extractVinFromListing(listing: NormalizedListing): string | null {
-  // If listing has VIN directly
-  if (listing.vin) {
-    return listing.vin;
-  }
-
-  // Try to extract from title or description
-  const vinRegex = /\b[A-HJ-NPR-Z0-9]{17}\b/i;
-  
-  if (listing.title) {
-    const matchTitle = listing.title.match(vinRegex);
-    if (matchTitle) return matchTitle[0];
-  }
-
-  if (listing.description) {
-    const matchDesc = listing.description.match(vinRegex);
-    if (matchDesc) return matchDesc[0];
-  }
-
-  return null;
+export function normalizeListing(rawListing: any, source: string): NormalizedListing {
+  // Normalize individual listing data
+  return {
+    id: rawListing.id || generateId(),
+    make: normalizeString(rawListing.make),
+    model: normalizeString(rawListing.model),
+    year: parseInt(rawListing.year) || 0,
+    price: parseFloat(rawListing.price) || 0,
+    mileage: parseInt(rawListing.mileage) || 0,
+    condition: normalizeCondition(rawListing.condition),
+    location: normalizeString(rawListing.location),
+    source,
+    url: rawListing.url,
+    images: Array.isArray(rawListing.images) ? rawListing.images : [],
+    description: rawListing.description || '',
+    features: Array.isArray(rawListing.features) ? rawListing.features : [],
+    createdAt: new Date(rawListing.createdAt || Date.now()),
+    updatedAt: new Date(rawListing.updatedAt || Date.now())
+  };
 }
 
-/**
- * Groups listings by VIN when available
- * @param listings Array of normalized listings
- * @returns Object with VINs as keys and arrays of listings as values
- */
-export function groupListingsByVin(
-  listings: NormalizedListing[]
-): Record<string, NormalizedListing[]> {
-  const groupedListings: Record<string, NormalizedListing[]> = {};
+export function normalizeListings(rawListings: any[], source: string): NormalizedListing[] {
+  // Normalize multiple listings
+  return rawListings
+    .filter(listing => listing && listing.make && listing.model)
+    .map(listing => normalizeListing(listing, source))
+    .filter(listing => listing.price > 0 && listing.year > 1900);
+}
 
-  listings.forEach(listing => {
-    const vin = extractVinFromListing(listing);
-    if (vin) {
-      if (!groupedListings[vin]) {
-        groupedListings[vin] = [];
-      }
-      groupedListings[vin].push(listing);
-    }
-  });
+function normalizeString(value: any): string {
+  if (typeof value !== 'string') return '';
+  return value.trim().toLowerCase().replace(/\s+/g, ' ');
+}
 
-  return groupedListings;
+function normalizeCondition(condition: any): string | undefined {
+  if (!condition) return undefined;
+  const normalized = normalizeString(condition);
+  const conditionMap: Record<string, string> = {
+    'excellent': 'excellent',
+    'very good': 'very-good',
+    'good': 'good',
+    'fair': 'fair',
+    'poor': 'poor'
+  };
+  return conditionMap[normalized] || normalized;
+}
+
+function generateId(): string {
+  return Math.random().toString(36).substr(2, 9);
 }
