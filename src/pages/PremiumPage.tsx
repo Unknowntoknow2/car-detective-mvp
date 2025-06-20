@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LookupTabs } from '@/components/lookup/LookupTabs';
+import { LookupTabs } from '@/components/home/LookupTabs';
 
 const PremiumPage = () => {
   return (
