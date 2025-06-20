@@ -130,7 +130,7 @@ export function AccidentImpactCard({
             <div className="text-right">
               <p className="text-sm font-medium text-muted-foreground">Severity</p>
               <Badge className={
-                accidentSeverity === 'severe' ? "bg-red-100 text-red-800" :
+                accidentSeverity === 'major' ? "bg-red-100 text-red-800" :
                 accidentSeverity === 'moderate' ? "bg-amber-100 text-amber-800" :
                 "bg-yellow-100 text-yellow-800"
               }>
