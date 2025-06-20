@@ -27,6 +27,8 @@ export interface AccidentDetails {
   repaired: boolean;
   frameDamage: boolean;
   description?: string;
+  types?: string[];
+  repairShops?: string[];
 }
 
 export type TireConditionOption = 'excellent' | 'good' | 'worn' | 'replacement';
