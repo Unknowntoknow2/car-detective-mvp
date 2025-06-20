@@ -10,7 +10,7 @@ import { formatCurrency } from '@/utils/formatters';
 interface AccidentImpactCardProps {
   baseValue: number;
   accidentCount?: number;
-  accidentSeverity?: 'minor' | 'moderate' | 'severe';
+  accidentSeverity?: 'minor' | 'moderate' | 'major';
   accidentDescription?: string;
   vin?: string;
   valuationId?: string;
@@ -40,7 +40,12 @@ export function AccidentImpactCard({
       hadAccident: accidentCount > 0,
       count: accidentCount, 
       severity: accidentSeverity, 
-      description: accidentDescription 
+      description: accidentDescription,
+      repaired: false,
+      frameDamage: false,
+      types: [],
+      repairShops: [],
+      airbagDeployment: false
     },
     vin,
     valuationId

@@ -7,7 +7,7 @@ export interface AccidentImpact {
   totalImpact: number;
   percentImpact: number;
   dollarImpact: number;
-  severity: 'minor' | 'moderate' | 'severe';
+  severity: 'minor' | 'moderate' | 'major';
   description: string;
   recommendations: string[];
   isPremium: boolean;
@@ -47,7 +47,7 @@ export const useAccidentImpact = (
           case 'moderate':
             totalImpact = 15;
             break;
-          case 'severe':
+          case 'major':
             totalImpact = 30;
             break;
         }

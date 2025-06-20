@@ -6,7 +6,7 @@ export function LoadingState() {
   return (
     <UnifiedLoadingState 
       message="Loading service history..."
-      size="md"
+      size="default"
     />
   );
 }
