@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useVehicleLookup } from "@/hooks/useVehicleLookup";
 import { ManualEntryFormData } from "@/types/manual-entry";
+import { ConditionLevel } from "@/types/condition";
 
 // Define missing types locally
 interface VehicleData {
@@ -11,14 +12,6 @@ interface VehicleData {
   vin?: string;
 }
 
-enum ConditionLevel {
-  Poor = "Poor",
-  Fair = "Fair", 
-  Good = "Good",
-  VeryGood = "Very Good",
-  Excellent = "Excellent"
-}
-
 export function useValuationState() {
   const [activeTab, setActiveTab] = useState("vin");
   const [vinData, setVinData] = useState("");
@@ -26,8 +19,8 @@ export function useValuationState() {
   const [manualData, setManualData] = useState<ManualEntryFormData>({
     make: "",
     model: "",
-    year: new Date().getFullYear().toString(), // Convert to string
-    mileage: "0", // Convert to string
+    year: new Date().getFullYear().toString(),
+    mileage: "0",
     condition: ConditionLevel.Good,
     zipCode: "",
   });

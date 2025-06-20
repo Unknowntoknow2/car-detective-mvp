@@ -2,15 +2,7 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { ConditionSelectorBar } from '@/components/common/ConditionSelectorBar';
-
-// Define ConditionLevel locally
-export enum ConditionLevel {
-  Poor = "Poor",
-  Fair = "Fair",
-  Good = "Good",
-  VeryGood = "Very Good", 
-  Excellent = "Excellent"
-}
+import { ConditionLevel } from '@/types/condition';
 
 interface ConditionInputProps {
   condition: ConditionLevel;

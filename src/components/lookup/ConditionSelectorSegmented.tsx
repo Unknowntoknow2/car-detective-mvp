@@ -7,15 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-// Define condition levels locally since we're consolidating types
-export enum ConditionLevel {
-  Poor = "Poor",
-  Fair = "Fair", 
-  Good = "Good",
-  VeryGood = "Very Good",
-  Excellent = "Excellent"
-}
+import { ConditionLevel } from "@/types/condition";
 
 interface Props {
   value: ConditionLevel;
@@ -79,3 +71,5 @@ export const ConditionSelectorSegmented: React.FC<Props> = (
     </TooltipProvider>
   );
 };
+
+export { ConditionLevel };

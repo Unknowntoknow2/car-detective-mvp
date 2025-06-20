@@ -5,16 +5,7 @@ import { ServiceHistorySection } from './ServiceHistorySection';
 import { AccidentHistorySection } from './AccidentHistorySection';
 import { AdditionalDetailsSection } from './AdditionalDetailsSection';
 import { ManualEntryFormData } from '@/types/manual-entry';
-
-// Define AccidentDetails locally with all required properties
-interface AccidentDetails {
-  hadAccident: boolean;
-  severity?: 'minor' | 'moderate' | 'severe';
-  repaired?: boolean;
-  count?: number;
-  location?: string;
-  description?: string;
-}
+import { AccidentDetails } from '@/types/accident-details';
 
 interface UnifiedFollowUpQuestionsProps {
   formData: ManualEntryFormData;
@@ -25,7 +16,7 @@ export function UnifiedFollowUpQuestions({
   formData,
   updateFormData
 }: UnifiedFollowUpQuestionsProps) {
-  // Default accident details with all properties
+  // Default accident details with all required properties
   const defaultAccidentDetails: AccidentDetails = {
     hadAccident: false,
     severity: 'minor',
@@ -61,21 +52,21 @@ export function UnifiedFollowUpQuestions({
     updateFormData({ maintenanceNotes: value });
   };
 
-  // Helper function to safely get existing accident details with proper typing
+  // Helper function to safely get existing accident details
   const getExistingAccidentDetails = (): AccidentDetails => {
     const existing = formData.accidentDetails;
     if (!existing) return defaultAccidentDetails;
     
-    // Safely extract properties with fallbacks
+    // Safely extract properties with proper typing
     return {
       hadAccident: Boolean(existing.hadAccident),
       severity: (existing.severity === 'minor' || existing.severity === 'moderate' || existing.severity === 'severe') 
         ? existing.severity 
         : 'minor',
-      repaired: (existing as any).repaired ?? false,
-      count: (existing as any).count ?? 0,
-      location: (existing as any).location ?? '',
-      description: (existing as any).description ?? ''
+      repaired: existing.repaired ?? false,
+      count: existing.count ?? 0,
+      location: existing.location ?? '',
+      description: existing.description ?? ''
     };
   };
 
