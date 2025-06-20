@@ -2,7 +2,6 @@
 import { RulesEngineInput, AdjustmentBreakdown } from './rules/types';
 import { calculateAdjustments, calculateTotalAdjustment } from './rulesEngine';
 
-// Export these type definitions for the ValuationCalculatorDemo component
 export interface ValuationParams {
   baseMarketValue?: number;
   baseValue?: number;
@@ -26,7 +25,7 @@ export interface ValuationParams {
   mpg?: number;
   aiConditionOverride?: any;
   photoScore?: number;
-  drivingScore?: number; // Added for DrivingBehaviorCalculator
+  drivingScore?: number;
 }
 
 export interface ValuationResult {
@@ -56,9 +55,7 @@ export interface ValuationResult {
   photoExplanation?: string;
 }
 
-// Provide a renamed version of calculateAdjustments as calculateFinalValuation for backward compatibility
 export const calculateFinalValuation = async (input: ValuationParams): Promise<ValuationResult> => {
-  // Convert ValuationParams to RulesEngineInput
   const rulesInput: RulesEngineInput = {
     make: input.make || '',
     model: input.model || '',
@@ -78,21 +75,16 @@ export const calculateFinalValuation = async (input: ValuationParams): Promise<V
     bodyType: input.bodyType,
     bodyStyle: input.bodyType,
     colorMultiplier: input.colorMultiplier,
-    drivingScore: input.drivingScore // Added for DrivingBehaviorCalculator
+    drivingScore: input.drivingScore
   };
 
-  // Calculate adjustments
   const adjustments = await calculateAdjustments(rulesInput);
   const totalAdjustment = calculateTotalAdjustment(adjustments);
   
-  // Calculate estimated value
   const baseValue = input.baseMarketValue || 20000;
   const estimatedValue = Math.round(baseValue + totalAdjustment);
-  
-  // Calculate confidence score (mock implementation)
   const confidenceScore = 85;
   
-  // Calculate price range
   const priceRange: [number, number] = [
     Math.round(estimatedValue * 0.95),
     Math.round(estimatedValue * 1.05)
@@ -115,5 +107,4 @@ export const calculateFinalValuation = async (input: ValuationParams): Promise<V
   };
 };
 
-// Add an alias for backward compatibility
 export const calculateEnhancedValuation = calculateFinalValuation;

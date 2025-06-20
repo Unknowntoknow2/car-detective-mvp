@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,67 +10,48 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
     --primary: 221 83% 53%;
     --primary-foreground: 210 40% 98%;
-
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
-
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
     --accent: 142 71% 45%;
     --accent-foreground: 222.2 47.4% 11.2%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221 83% 53%;
-
     --radius: 0.5rem;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
-
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
     --accent: 142 71% 45%;
     --accent-foreground: 210 40% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
@@ -87,70 +69,55 @@
     min-height: 100vh;
   }
 
-  /* Typography scale - Apple-style */
+  /* Typography scale */
   h1, .h1 {
-    @apply text-4xl sm:text-5xl font-bold tracking-tight leading-tight
-      text-gray-900;
+    @apply text-4xl sm:text-5xl font-bold tracking-tight leading-tight text-gray-900;
   }
 
   h2, .h2 {
-    @apply text-3xl sm:text-4xl font-bold tracking-tight leading-tight
-      text-gray-900;
+    @apply text-3xl sm:text-4xl font-bold tracking-tight leading-tight text-gray-900;
   }
 
   h3, .h3 {
-    @apply text-2xl sm:text-3xl font-semibold tracking-tight leading-tight
-      text-gray-900;
+    @apply text-2xl sm:text-3xl font-semibold tracking-tight leading-tight text-gray-900;
   }
 
   h4, .h4 {
-    @apply text-xl sm:text-2xl font-semibold tracking-tight leading-tight
-      text-gray-900;
+    @apply text-xl sm:text-2xl font-semibold tracking-tight leading-tight text-gray-900;
   }
 
   h5, .h5 {
-    @apply text-lg sm:text-xl font-semibold tracking-tight leading-tight
-      text-gray-900;
+    @apply text-lg sm:text-xl font-semibold tracking-tight leading-tight text-gray-900;
   }
 
   h6, .h6 {
-    @apply text-base sm:text-lg font-medium tracking-tight leading-tight
-      text-gray-900;
+    @apply text-base sm:text-lg font-medium tracking-tight leading-tight text-gray-900;
   }
 
   p {
     @apply text-base text-gray-700 leading-relaxed;
   }
 
-  /* Focus styles for accessibility */
   :focus-visible {
     @apply outline-none ring-2 ring-primary ring-offset-2;
   }
 
-  /* Form elements base styling */
   input, select, textarea {
-    @apply border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/20
-      focus:border-primary;
+    @apply border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/20 focus:border-primary;
   }
 }
 
 @layer components {
-  /* Card Styles */
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-border/50 transition-all
-      p-6 hover:shadow-md;
+    @apply bg-white rounded-xl shadow-sm border border-border/50 transition-all p-6 hover:shadow-md;
   }
 
   .card-interactive {
     @apply card cursor-pointer hover:border-primary/30;
   }
 
-  /* Button Styles */
   .btn {
-    @apply inline-flex items-center justify-center rounded-md font-medium
-      transition-colors focus-visible:outline-none focus-visible:ring-2
-      focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50
-      disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .btn-sm {
@@ -178,21 +145,15 @@
   }
 
   .btn-outline {
-    @apply border border-input bg-background hover:bg-accent
-      hover:text-accent-foreground;
+    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
   }
 
   .btn-ghost {
     @apply hover:bg-accent hover:text-accent-foreground;
   }
 
-  /* Input Styles */
   .input {
-    @apply flex h-10 w-full rounded-md border border-input bg-background px-3
-      py-2 text-base file:border-0 file:bg-transparent file:text-foreground
-      placeholder:text-muted-foreground focus-visible:outline-none
-      focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed
-      disabled:opacity-50;
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base file:border-0 file:bg-transparent file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .input-sm {
@@ -207,10 +168,8 @@
     @apply bg-muted;
   }
 
-  /* Badge Styles */
   .badge {
-    @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs
-      font-semibold;
+    @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold;
   }
 
   .badge-primary {
@@ -225,17 +184,14 @@
     @apply text-foreground;
   }
 
-  /* Other component styles */
   .tooltip {
-    @apply z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm
-      text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95;
+    @apply z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95;
   }
 
   .container-responsive {
     @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
   }
 
-  /* Layout helpers */
   .flex-center {
     @apply flex items-center justify-center;
   }
@@ -244,7 +200,6 @@
     @apply flex items-center justify-between;
   }
 
-  /* Mobile responsiveness */
   .mobile-full-width {
     @apply w-full sm:w-auto;
   }
@@ -259,7 +214,6 @@
 }
 
 @layer utilities {
-  /* Spacing utilities */
   .section-spacing {
     @apply py-12 md:py-16 lg:py-20;
   }
@@ -268,7 +222,6 @@
     @apply space-y-6 md:space-y-8;
   }
 
-  /* Interactive states */
   .hover-lift {
     @apply transition-transform duration-300 hover:-translate-y-1;
   }
@@ -277,7 +230,6 @@
     @apply transition-transform duration-300 hover:scale-105;
   }
 
-  /* Shadow utilities */
   .shadow-card {
     @apply shadow-sm hover:shadow-md transition-shadow duration-300;
   }
@@ -286,7 +238,6 @@
     @apply shadow hover:shadow-md transition-shadow duration-300;
   }
 
-  /* Responsive visibility */
   .hidden-mobile {
     @apply hidden sm:block;
   }
@@ -295,7 +246,6 @@
     @apply block sm:hidden;
   }
 
-  /* Special text treatments */
   .text-balance {
     text-wrap: balance;
   }
@@ -304,7 +254,6 @@
     text-wrap: pretty;
   }
 
-  /* Gradient backgrounds */
   .bg-gradient-primary {
     @apply bg-gradient-to-r from-primary to-primary/70;
   }
@@ -313,8 +262,26 @@
     @apply bg-gradient-to-r from-accent to-accent/70;
   }
 
-  /* Touch targets */
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
+  }
+
+  .rotate-y-3d {
+    transform: perspective(1000px) rotateY(var(--rotate-y, 0deg));
+    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  .rotate-x-3d {
+    transform: perspective(1000px) rotateX(var(--rotate-x, 0deg));
+    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  .translate-z-3d {
+    transform: perspective(1000px) translateZ(var(--translate-z, 0px));
+    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
   }
 }

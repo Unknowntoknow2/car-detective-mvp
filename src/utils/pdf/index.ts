@@ -1,38 +1,16 @@
 
 import { ReportData, PdfOptions } from './types';
 import { DecodedVehicleInfo } from '@/types/vehicle';
+import { generateValuationPdf, downloadValuationPdf } from './generateValuationPdf';
 
 export { ReportData, PdfOptions } from './types';
 
 export async function downloadPdf(data: ReportData, options: PdfOptions = {}): Promise<void> {
-  // Mock PDF download implementation
-  console.log('Downloading PDF for:', data.make, data.model, data.year);
-  
-  // Create a mock PDF blob
-  const pdfContent = `
-    Vehicle Valuation Report
-    ${data.year} ${data.make} ${data.model}
-    Estimated Value: $${data.estimatedValue.toLocaleString()}
-    Confidence Score: ${data.confidenceScore}%
-    Generated: ${data.generatedAt}
-  `;
-  
-  const blob = new Blob([pdfContent], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `ValuationReport_${data.make}_${data.model}_${Date.now()}.pdf`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  return downloadValuationPdf(data, options);
 }
 
 export async function generatePdf(data: ReportData, options: PdfOptions = {}): Promise<Uint8Array> {
-  // Mock PDF generation
-  const pdfContent = `PDF content for ${data.make} ${data.model}`;
-  return new Uint8Array(Buffer.from(pdfContent, 'utf-8'));
+  return generateValuationPdf(data, options);
 }
 
 export function convertVehicleInfoToReportData(
@@ -73,6 +51,5 @@ export function convertVehicleInfoToReportData(
   };
 }
 
-export async function downloadValuationPdf(data: ReportData, options: PdfOptions = {}): Promise<void> {
-  return downloadPdf(data, options);
-}
+// Re-export the main functions
+export { generateValuationPdf, downloadValuationPdf };

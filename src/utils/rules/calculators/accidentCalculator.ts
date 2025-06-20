@@ -1,10 +1,8 @@
 
-import { AdjustmentCalculator, RulesEngineInput, AdjustmentBreakdown } from "../types";
+import { AdjustmentCalculator, RulesEngineInput, AdjustmentBreakdown } from "../../valuation/rules/types";
 
-// Create a simplified calculator since we don't have the full implementation
 export class AccidentCalculator implements AdjustmentCalculator {
   calculate(input: RulesEngineInput): AdjustmentBreakdown | null {
-    // Default impact for accidents
     const accidentCount = input.accidentCount || 0;
     const impact = accidentCount > 0 ? -5 * accidentCount : 0;
 

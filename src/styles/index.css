@@ -1,11 +1,3 @@
 
-@import "base/reset.css";
-@import "base/variables.css";
-@import "components/buttons.css";
-@import "components/cards.css";
-@import "components/effects.css";
-@import "components/forms.css";
-@import "components/steps.css";
-@import "components/multistep-form.css";
-@import "animations.css";
-@import "utilities/transforms.css";
+/* Main styles entry point - everything flows through globals.css now */
+@import "globals.css";
