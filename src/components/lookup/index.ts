@@ -1,11 +1,12 @@
 
-// Export main components
-export { default as UnifiedVinLookup } from './UnifiedVinLookup';
-export { default as UnifiedPlateLookup } from './UnifiedPlateLookup';
+// Export all unified lookup components
+export { UnifiedVinLookup } from "./UnifiedVinLookup";
+export { UnifiedPlateLookup } from "./UnifiedPlateLookup";
+export { default as UnifiedManualEntryForm } from "./UnifiedManualEntryForm";
+export { default as UnifiedFollowUpForm } from "../followup/UnifiedFollowUpForm";
 
-// Export form parts
-export * from './form-parts/TrimSelector';
-export * from './form-parts/AutoCompleteVehicleSelector';
+// Export found components
+export * from "./found/FoundCarCard";
 
-// Export vehicle selector components
-export * from './form-parts/vehicle-selector';
+// Export shared components
+export * from "./shared/VehicleFoundCard";
