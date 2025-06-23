@@ -232,7 +232,7 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
                   serviceHistory: {
                     ...formData.serviceHistory,
                     description: e.target.value,
-                    hasRecords: formData.serviceHistory?.hasRecords || false,
+                    hasRecords: Boolean(e.target.value),
                     frequency: formData.serviceHistory?.frequency || 'unknown',
                     dealerMaintained: formData.serviceHistory?.dealerMaintained || false,
                     services: formData.serviceHistory?.services || []

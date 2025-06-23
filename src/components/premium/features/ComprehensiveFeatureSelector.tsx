@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -28,7 +29,6 @@ interface Feature {
   id: string;
   name: string;
   description?: string;
-  // Add any other properties that might be in the Feature type
 }
 
 export function ComprehensiveFeatureSelector() {
@@ -36,7 +36,6 @@ export function ComprehensiveFeatureSelector() {
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
 
   useEffect(() => {
-    const properlyTypedFeatures: Feature[] = []; // Or whatever the actual features are
     setCategories([
       {
         name: "Valuation Insights",
@@ -66,7 +65,7 @@ export function ComprehensiveFeatureSelector() {
         icon: <ShieldCheck className="h-4 w-4 mr-2 text-green-500" />,
         features: [
           {
-            id: "accident_history",
+            id: "accident_report",
             name: "Accident History Report",
             description: "Check for any reported accidents or damage.",
           },
