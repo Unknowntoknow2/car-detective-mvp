@@ -73,24 +73,59 @@ export default function ResultsPage() {
           return;
         }
 
+        console.log('📋 Loading valuation data for ID:', valuationId);
+
         const data = await getValuationById(valuationId);
+        console.log('📊 Loaded valuation data:', data);
+
+        // Validate loaded data
+        if (!data) {
+          toast.error('Valuation not found');
+          setLoading(false);
+          return;
+        }
+
+        if (!data.estimated_value || data.estimated_value <= 0) {
+          console.warn('⚠️ Loaded valuation has invalid estimated_value:', data.estimated_value);
+          toast.error('Invalid valuation data - please try again');
+          setLoading(false);
+          return;
+        }
+
         setValuationData(data);
         
         // Initialize follow-up data with valuation data
         setFollowUpData((prev: FollowUpAnswers) => ({
           ...prev,
           vin: data.vin || '',
-          mileage: data.mileage || 0,
+          mileage: data.mileage || 50000,
           condition: data.condition || 'good',
-          zip_code: data.zip_code || ''
+          zip_code: data.zip_code || '90210'
         }));
         
-        // Show follow-up questions if this is a basic VIN lookup
-        if (data.vin && (!data.mileage || data.mileage === 50000)) {
+        // Force show follow-up questions for VIN lookups or low-confidence valuations
+        const shouldShowFollowUp = (
+          data.vin && // Has VIN (indicates VIN lookup)
+          (data.mileage === 50000 || // Default mileage indicates incomplete data
+           data.confidence_score < 80 || // Low confidence
+           !data.condition || // Missing condition
+           data.zip_code === '90210') // Default zip code
+        );
+
+        console.log('🔍 Should show follow-up?', shouldShowFollowUp, {
+          hasVin: !!data.vin,
+          mileage: data.mileage,
+          confidence: data.confidence_score,
+          condition: data.condition,
+          zipCode: data.zip_code
+        });
+
+        if (shouldShowFollowUp) {
           setShowFollowUp(true);
+          toast.info('Please provide additional details for a more accurate valuation');
         }
       } catch (error) {
-        console.error('Error loading valuation data:', error);
+        console.error('❌ Error loading valuation data:', error);
         toast.error('Failed to load valuation data');
       } finally {
         setLoading(false);
@@ -152,9 +187,14 @@ export default function ResultsPage() {
     );
   }
 
+  // Ensure we show something even with basic data
+  const displayValue = valuationData.estimated_value > 0 
+    ? valuationData.estimated_value 
+    : 'Processing...';
+
   return (
     <div className="container mx-auto py-8 space-y-6">
-      {/* Vehicle Information Header */}
+      {/* Vehicle Information Header - Always show */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -164,10 +204,12 @@ export default function ResultsPage() {
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-green-600">
-                ${valuationData.estimated_value?.toLocaleString()}
+                {typeof displayValue === 'number' 
+                  ? `$${displayValue.toLocaleString()}` 
+                  : displayValue}
               </div>
               <div className="text-sm text-muted-foreground">
-                Confidence: {valuationData.confidence_score}%
+                Confidence: {valuationData.confidence_score || 75}%
               </div>
             </div>
           </CardTitle>
@@ -182,15 +224,15 @@ export default function ResultsPage() {
             )}
             <div>
               <span className="font-medium">Mileage:</span>
-              <div>{valuationData.mileage?.toLocaleString()} miles</div>
+              <div>{valuationData.mileage?.toLocaleString() || 'Unknown'} miles</div>
             </div>
             <div>
               <span className="font-medium">Condition:</span>
-              <div>{valuationData.condition}</div>
+              <div>{valuationData.condition || 'Good'}</div>
             </div>
             <div>
               <span className="font-medium">Location:</span>
-              <div>{valuationData.zip_code}</div>
+              <div>{valuationData.zip_code || 'Unknown'}</div>
             </div>
           </div>
           
@@ -203,10 +245,19 @@ export default function ResultsPage() {
               </div>
             </div>
           )}
+
+          {/* Show notice for VIN-based valuations */}
+          {valuationData.vin && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <div className="text-sm text-blue-800">
+                <strong>Initial VIN-based valuation.</strong> Complete the questions below for a more accurate estimate.
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Follow-up Questions */}
+      {/* Follow-up Questions - Show for VIN lookups */}
       {showFollowUp && (
         <Card>
           <CardHeader>
@@ -242,7 +293,7 @@ export default function ResultsPage() {
                     <div className="text-sm text-muted-foreground">{adjustment.description}</div>
                   </div>
                   <div className={`font-medium ${adjustment.impact >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {adjustment.impact >= 0 ? '+' : ''}${adjustment.impact}
+                    {adjustment.impact >= 0 ? '+' : ''}${adjustment.impact?.toLocaleString() || 0}
                   </div>
                 </div>
               ))}

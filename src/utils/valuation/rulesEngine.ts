@@ -1,59 +1,103 @@
 
 import { RulesEngineInput, AdjustmentBreakdown } from './rules/types';
+import { BasePriceService } from '@/services/basePriceService';
 
 export const calculateAdjustments = async (input: RulesEngineInput): Promise<AdjustmentBreakdown[]> => {
   const adjustments: AdjustmentBreakdown[] = [];
 
-  // Mileage adjustment
-  if (input.mileage > 100000) {
-    adjustments.push({
-      factor: 'High Mileage',
-      impact: -1000,
-      description: `Vehicle has ${input.mileage} miles, which is above average`,
-      name: 'Mileage Adjustment',
-      value: -1000,
-      percentAdjustment: -5
-    });
-  }
+  // Get base price for calculations
+  const basePrice = input.basePrice || BasePriceService.getBasePrice({
+    make: input.make,
+    model: input.model,
+    year: input.year,
+    mileage: input.mileage
+  });
 
   // Condition adjustment
   const conditionMultipliers: Record<string, number> = {
-    'Excellent': 0.05,
+    'Excellent': 0.10,
+    'Very Good': 0.05,
     'Good': 0,
-    'Fair': -0.10,
-    'Poor': -0.25
+    'Fair': -0.15,
+    'Poor': -0.30
   };
 
   const conditionKey = input.condition || 'Good';
-  const conditionMultiplier = conditionMultipliers[conditionKey];
-  if (conditionMultiplier !== 0 && input.basePrice) {
-    const conditionAdjustment = input.basePrice * conditionMultiplier;
+  const conditionMultiplier = conditionMultipliers[conditionKey] || 0;
+  if (conditionMultiplier !== 0) {
+    const conditionAdjustment = Math.round(basePrice * conditionMultiplier);
     adjustments.push({
       factor: 'Vehicle Condition',
-      impact: Math.round(conditionAdjustment),
+      impact: conditionAdjustment,
       description: `Vehicle condition is ${conditionKey}`,
       name: 'Condition Adjustment',
-      value: Math.round(conditionAdjustment),
+      value: conditionAdjustment,
       percentAdjustment: conditionMultiplier * 100
     });
   }
 
   // Accident history adjustment
   if (input.accidentCount && input.accidentCount > 0) {
-    const accidentAdjustment = -500 * input.accidentCount;
+    const accidentImpact = Math.round(basePrice * -0.08 * input.accidentCount);
     adjustments.push({
       factor: 'Accident History',
-      impact: accidentAdjustment,
+      impact: accidentImpact,
       description: `Vehicle has ${input.accidentCount} reported accident(s)`,
       name: 'Accident Adjustment',
-      value: accidentAdjustment,
-      percentAdjustment: -2.5 * input.accidentCount
+      value: accidentImpact,
+      percentAdjustment: -8 * input.accidentCount
     });
+  }
+
+  // High mileage adjustment (additional to base price calculation)
+  const expectedMileage = (new Date().getFullYear() - input.year) * 12000;
+  const excessMileage = input.mileage - expectedMileage;
+  if (excessMileage > 20000) {
+    const mileageAdjustment = Math.round(basePrice * -0.05);
+    adjustments.push({
+      factor: 'Excess Mileage',
+      impact: mileageAdjustment,
+      description: `${excessMileage.toLocaleString()} miles above average`,
+      name: 'Mileage Adjustment',
+      value: mileageAdjustment,
+      percentAdjustment: -5
+    });
+  }
+
+  // Fuel type bonus
+  if (input.fuelType) {
+    const fuelMultipliers: Record<string, number> = {
+      'Electric': 0.08,
+      'Hybrid': 0.05,
+      'Diesel': 0.03
+    };
+    
+    const fuelMultiplier = fuelMultipliers[input.fuelType];
+    if (fuelMultiplier) {
+      const fuelAdjustment = Math.round(basePrice * fuelMultiplier);
+      adjustments.push({
+        factor: 'Fuel Type',
+        impact: fuelAdjustment,
+        description: `${input.fuelType} vehicle bonus`,
+        name: 'Fuel Type Adjustment',
+        value: fuelAdjustment,
+        percentAdjustment: fuelMultiplier * 100
+      });
+    }
   }
 
   return adjustments;
 };
 
+export const calculateFinalValue = (basePrice: number, adjustments: AdjustmentBreakdown[]): number => {
+  const totalAdjustments = adjustments.reduce((sum, adj) => sum + adj.impact, 0);
+  const finalValue = basePrice + totalAdjustments;
+  
+  // Ensure minimum value
+  return Math.max(3000, Math.round(finalValue));
+};
+
+// Legacy function for backward compatibility
 export const calculateTotalAdjustment = (adjustments: AdjustmentBreakdown[]): number => {
   return adjustments.reduce((total, adjustment) => total + adjustment.impact, 0);
 };
