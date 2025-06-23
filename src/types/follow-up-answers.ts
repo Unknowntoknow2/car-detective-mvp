@@ -49,7 +49,6 @@ export interface FollowUpAnswers {
   
   // History
   accidents: AccidentDetails;
-  maintenance_records?: boolean;
   transmission: string;
   title_status: string;
   previous_use: string;

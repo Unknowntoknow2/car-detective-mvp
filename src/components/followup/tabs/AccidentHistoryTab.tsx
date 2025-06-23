@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,23 +31,8 @@ const repairShops = [
 ];
 
 export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistoryTabProps) {
-  // Convert string to object if needed, or use default
-  const getAccidentData = (): AccidentDetails => {
-    if (typeof formData.accidents === 'object' && formData.accidents !== null) {
-      return formData.accidents;
-    }
-    return {
-      hadAccident: false,
-      count: 0,
-      severity: 'minor',
-      repaired: false,
-      frameDamage: false,
-      types: [],
-      repairShops: []
-    };
-  };
-
-  const accidentData = getAccidentData();
+  // Always use accidents object as the source of truth
+  const accidentData = formData.accidents;
 
   const handleAccidentToggle = (hadAccident: boolean) => {
     const updatedData: AccidentDetails = {

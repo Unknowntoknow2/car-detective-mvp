@@ -11,13 +11,18 @@ export class FollowUpService {
     try {
       const completion = calculateCompletionPercentage(formData);
       
+      // Prepare data for saving with backward compatibility
+      const saveData = {
+        ...formData,
+        completion_percentage: completion,
+        updated_at: new Date().toISOString(),
+        // Map serviceHistory.description to service_history for legacy compatibility
+        service_history: formData.serviceHistory?.description || null
+      };
+      
       const { error } = await supabase
         .from('follow_up_answers')
-        .upsert({
-          ...formData,
-          completion_percentage: completion,
-          updated_at: new Date().toISOString()
-        }, {
+        .upsert(saveData, {
           onConflict: 'vin'
         });
 
@@ -49,7 +54,34 @@ export class FollowUpService {
         return { error: error.message };
       }
 
-      return { data: data || undefined };
+      if (data) {
+        // Migrate service_history string to serviceHistory object if needed
+        let serviceHistory = data.serviceHistory;
+        if (!serviceHistory && data.service_history) {
+          serviceHistory = {
+            hasRecords: Boolean(data.service_history),
+            description: data.service_history,
+            frequency: 'unknown',
+            dealerMaintained: false,
+            services: []
+          };
+        }
+
+        return { 
+          data: {
+            ...data,
+            serviceHistory: serviceHistory || {
+              hasRecords: false,
+              frequency: 'unknown',
+              dealerMaintained: false,
+              description: '',
+              services: []
+            }
+          }
+        };
+      }
+
+      return { data: undefined };
     } catch (error) {
       console.error('Error in getAnswersByVin:', error);
       return { error: 'Failed to fetch answers' };
@@ -84,7 +116,6 @@ export class FollowUpService {
       const valuationData = transformForValuation(completedData);
 
       // Here you would typically call the valuation calculation service
-      // For now, we'll just return success
       console.log('Submitting for valuation:', valuationData);
 
       return { success: true, valuationId: `val_${Date.now()}` };

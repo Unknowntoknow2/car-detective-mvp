@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers, ServiceHistoryDetails, ModificationDetails, AccidentDetails } from '@/types/follow-up-answers';
@@ -20,7 +21,6 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       repairShops: [],
       airbagDeployment: false
     } as AccidentDetails,
-    maintenance_records: false,
     transmission: 'automatic',
     title_status: 'clean',
     previous_use: 'personal',
@@ -76,13 +76,25 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       }
 
       if (data) {
+        // Migrate service_history string to serviceHistory object if needed
+        let serviceHistory = data.serviceHistory;
+        if (!serviceHistory && data.service_history) {
+          serviceHistory = {
+            hasRecords: Boolean(data.service_history),
+            description: data.service_history,
+            frequency: 'unknown',
+            dealerMaintained: false,
+            services: []
+          };
+        }
+
         setFormData(prev => ({
           ...prev,
           ...data,
           // Ensure proper structure for complex fields
           accidents: data.accidents || prev.accidents,
           modifications: data.modifications || prev.modifications,
-          serviceHistory: data.serviceHistory || prev.serviceHistory,
+          serviceHistory: serviceHistory || prev.serviceHistory,
           dashboard_lights: data.dashboard_lights || prev.dashboard_lights,
           features: data.features || prev.features
         }));
@@ -114,12 +126,17 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     try {
       setIsSaving(true);
       
+      // Prepare data for database save
+      const saveData = {
+        ...dataToSave,
+        vin,
+        // Map serviceHistory.description to service_history for backward compatibility
+        service_history: dataToSave.serviceHistory?.description || null
+      };
+      
       const { error } = await supabase
         .from('follow_up_answers')
-        .upsert({
-          ...dataToSave,
-          vin
-        }, {
+        .upsert(saveData, {
           onConflict: 'vin'
         });
 

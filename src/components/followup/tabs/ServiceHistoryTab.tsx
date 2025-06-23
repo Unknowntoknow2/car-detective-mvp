@@ -21,20 +21,10 @@ const serviceOptions = [
 ];
 
 export function ServiceHistoryTab({ formData, updateFormData, onServiceHistoryChange }: ServiceHistoryTabProps) {
-  // Convert string to object if needed, or use default
-  const getServiceHistoryData = (): ServiceHistoryDetails => {
-    if (typeof formData.serviceHistory === 'object' && formData.serviceHistory !== null) {
-      return formData.serviceHistory;
-    }
-    return {
-      hasRecords: false,
-      services: []
-    };
-  };
+  // Always use serviceHistory object as the source of truth
+  const serviceHistoryData = formData.serviceHistory;
 
-  const serviceHistoryData = getServiceHistoryData();
-
-  const handleMaintenanceChange = (checked: boolean, serviceType: string) => {
+  const handleServiceChange = (checked: boolean, serviceType: string) => {
     const currentServices = serviceHistoryData.services || [];
     let updatedServices;
 
@@ -44,17 +34,22 @@ export function ServiceHistoryTab({ formData, updateFormData, onServiceHistoryCh
       updatedServices = currentServices.filter((service: string) => service !== serviceType);
     }
 
-    const updatedData: ServiceHistoryDetails = {
+    const updatedServiceHistory: ServiceHistoryDetails = {
       ...serviceHistoryData,
       hasRecords: true,
       services: updatedServices
     };
 
-    updateFormData({ serviceHistory: updatedData });
+    updateFormData({ serviceHistory: updatedServiceHistory });
   };
 
-  const handleServiceChange = (checked: boolean, serviceType: string) => {
-    handleMaintenanceChange(checked, serviceType);
+  const handleDescriptionChange = (description: string) => {
+    const updatedServiceHistory: ServiceHistoryDetails = {
+      ...serviceHistoryData,
+      description
+    };
+
+    updateFormData({ serviceHistory: updatedServiceHistory });
   };
 
   return (
@@ -78,10 +73,20 @@ export function ServiceHistoryTab({ formData, updateFormData, onServiceHistoryCh
       </div>
 
       <div>
+        <Label htmlFor="service_history_notes">Service History Notes</Label>
+        <Textarea
+          id="service_history_notes"
+          placeholder="Any notes about the vehicle's service history?"
+          value={serviceHistoryData.description || ''}
+          onChange={(e) => handleDescriptionChange(e.target.value)}
+        />
+      </div>
+
+      <div>
         <Label htmlFor="additional_notes">Additional Notes</Label>
         <Textarea
           id="additional_notes"
-          placeholder="Any notes about the vehicle's service history?"
+          placeholder="Any other notes about the vehicle?"
           value={formData.additional_notes || ''}
           onChange={(e) => updateFormData({ additional_notes: e.target.value })}
         />
