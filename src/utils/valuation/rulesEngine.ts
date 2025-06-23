@@ -1,4 +1,3 @@
-
 import { RulesEngineInput, AdjustmentBreakdown } from './rules/types';
 import { BasePriceService } from '@/services/basePriceService';
 
@@ -86,6 +85,7 @@ export const calculateAdjustments = async (input: RulesEngineInput): Promise<Adj
     }
   }
 
+  // Always return an array, never undefined
   return adjustments;
 };
 
