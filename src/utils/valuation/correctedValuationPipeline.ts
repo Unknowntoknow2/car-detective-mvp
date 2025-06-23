@@ -95,8 +95,8 @@ export async function runCorrectedValuationPipeline(
       basePrice: basePrice
     };
 
-    // Calculate adjustments
-    const adjustments: AdjustmentBreakdown[] = await calculateAdjustments(rulesEngineInput);
+    // Calculate adjustments - ensure it's never undefined
+    const adjustments: AdjustmentBreakdown[] = (await calculateAdjustments(rulesEngineInput)) || [];
     
     // Calculate final value using base price + adjustments
     const estimatedValue = calculateFinalValue(basePrice, adjustments);
@@ -153,7 +153,7 @@ export async function runCorrectedValuationPipeline(
       priceRange: finalValuation.priceRange,
       confidenceScore: finalValuation.confidenceScore,
       zipCode: params.zipCode || '90210',
-      adjustments: finalValuation.adjustments,
+      adjustments: adjustments, // Now guaranteed to be AdjustmentBreakdown[]
       generatedAt: new Date().toISOString(),
       isPremium: params.isPremium,
       aiCondition: {
@@ -187,7 +187,7 @@ export async function runCorrectedValuationPipeline(
         estimatedValue: finalValuation.estimatedValue,
         confidenceScore: finalValuation.confidenceScore,
         basePrice: basePrice,
-        adjustments: finalValuation.adjustments,
+        adjustments: adjustments, // Now guaranteed to be correct type
         valuationId: reportData.id,
         vin: params.vin || '',
         make: params.make || 'Unknown',

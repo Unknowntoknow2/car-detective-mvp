@@ -150,7 +150,8 @@ export function ValuationProvider({ children }: { children: ReactNode }) {
       };
     } catch (error) {
       console.error('❌ Error processing VIN lookup:', error);
-      dispatch({ type: 'SET_ERROR', payload: `Failed to process VIN lookup: ${error.message}` });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      dispatch({ type: 'SET_ERROR', payload: `Failed to process VIN lookup: ${errorMessage}` });
       throw error;
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
