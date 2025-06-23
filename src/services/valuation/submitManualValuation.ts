@@ -15,8 +15,8 @@ export const submitManualValuation = async (data: ManualEntryFormData): Promise<
       .insert([{
         make: data.make,
         model: data.model,
-        year: data.year,
-        mileage: data.mileage || 50000,
+        year: Number(data.year),
+        mileage: Number(data.mileage) || 50000,
         condition: data.condition || 'Good',
         estimated_value: baseValue,
         confidence_score: 75, // Manual entries get moderate confidence
@@ -49,7 +49,8 @@ export const submitManualValuation = async (data: ManualEntryFormData): Promise<
 
 function calculateBaseValue(data: ManualEntryFormData): number {
   const currentYear = new Date().getFullYear();
-  const age = currentYear - data.year;
+  const year = Number(data.year);
+  const age = currentYear - year;
   
   // Base calculation similar to BasePriceService
   let baseValue: number;
@@ -81,7 +82,7 @@ function calculateBaseValue(data: ManualEntryFormData): number {
 
   // Mileage adjustment
   const expectedMileage = age * 12000;
-  const actualMileage = data.mileage || 50000;
+  const actualMileage = Number(data.mileage) || 50000;
   if (actualMileage > expectedMileage + 20000) {
     baseValue *= 0.9; // High mileage penalty
   }
