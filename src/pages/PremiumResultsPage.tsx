@@ -1,64 +1,23 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Layout } from "@/components/layout";
+
+import React, { useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 
 export default function PremiumResultsPage() {
   const { id } = useParams<{ id: string }>();
-  const [searchParams] = useSearchParams();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
-    return (
-      <Layout>
-        <div className="container mx-auto py-8">
-          <div className="text-center">Loading premium results...</div>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (error) {
-    return (
-      <Layout>
-        <div className="container mx-auto py-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Error</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-red-600">{error}</p>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
-    );
-  }
+    // Redirect to the unified results page
+    if (id) {
+      navigate(`/results/${id}`, { replace: true });
+    } else {
+      navigate('/', { replace: true });
+    }
+  }, [id, navigate]);
 
   return (
-    <Layout>
-      <div className="container mx-auto py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Premium Valuation Results</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Premium valuation results for ID: {id}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </Layout>
+    <div className="container mx-auto py-8 text-center">
+      <p>Redirecting to premium results...</p>
+    </div>
   );
 }

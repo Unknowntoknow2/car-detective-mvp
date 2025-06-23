@@ -11,7 +11,8 @@ const ManualValuationPage: React.FC = () => {
   const handleSubmit = async (data: ManualEntryFormData) => {
     try {
       const valuationId = await submitManualValuation(data);
-      navigate(`/valuation/result/${valuationId}`);
+      // ✅ Use unified route
+      navigate(`/results/${valuationId}`);
     } catch (error) {
       console.error('Valuation submission failed:', error);
     }

@@ -12,7 +12,8 @@ export const useValuationFlow = () => {
     setIsLoading(true);
     try {
       const resultId = await submitManualValuation(data);
-      navigate(`/valuation/result/${resultId}`);
+      // ✅ Use unified route
+      navigate(`/results/${resultId}`);
       return resultId;
     } catch (error) {
       console.error('Valuation processing failed:', error);

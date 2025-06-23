@@ -1,6 +1,7 @@
 
 import React from "react";
 import { RouteObject } from "react-router-dom";
+import { RouteRedirect } from "@/components/common/RouteRedirect";
 
 // ✅ Import the correct components
 import HomePage from "@/pages/HomePage";
@@ -9,14 +10,12 @@ import AuthPage from "@/pages/AuthPage";
 import NotFound from "@/pages/NotFound";
 import ValuationPage from "@/pages/valuation/ValuationPage";
 import Premium from "@/pages/Premium";
-import ValuationResultPage from "@/pages/valuation/result/ValuationResultPage";
 import ResultsPage from "@/pages/ResultsPage";
 import ProfilePage from "@/pages/ProfilePage";
 import AccountPage from "@/pages/AccountPage";
 import ServiceHistoryPage from "@/pages/ServiceHistoryPage";
 import ManualValuationPage from "@/pages/valuation/manual/ManualValuationPage";
 import ValuationFollowUpPage from "@/pages/ValuationFollowUpPage";
-import PremiumResultsPage from "@/pages/PremiumResultsPage";
 import OffersPage from "@/pages/OffersPage";
 import ViewOfferPage from "@/pages/view-offer/ViewOfferPage";
 import PlateValuationPage from "@/pages/valuation/plate/PlateValuationPage";
@@ -62,21 +61,23 @@ const routes: RouteObject[] = [
         path: "premium",
         element: <Premium />,
       },
-      {
-        path: "valuation/result/:id",
-        element: <ValuationResultPage />,
-      },
-      {
-        path: "valuation/followup",
-        element: <ValuationFollowUpPage />,
-      },
+      // ✅ Main unified results route
       {
         path: "results/:id",
         element: <ResultsPage />,
       },
+      // ✅ Backward compatibility redirects
       {
-        path: "premium/results/:id",
-        element: <PremiumResultsPage />,
+        path: "valuation/result/:id",
+        element: <RouteRedirect to="/results/:id" />,
+      },
+      {
+        path: "premium/results/:id", 
+        element: <RouteRedirect to="/results/:id" />,
+      },
+      {
+        path: "valuation/followup",
+        element: <ValuationFollowUpPage />,
       },
       {
         path: "offers",
