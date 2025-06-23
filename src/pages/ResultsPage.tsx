@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -67,7 +68,14 @@ export default function ResultsPage() {
           localStorage.getItem('latest_valuation_id') || 
           searchParams.get('id');
 
+        console.log('🔍 DEBUG: Starting data load process');
+        console.log('🔍 DEBUG: URL param id:', id);
+        console.log('🔍 DEBUG: localStorage id:', localStorage.getItem('latest_valuation_id'));
+        console.log('🔍 DEBUG: searchParams id:', searchParams.get('id'));
+        console.log('🔍 DEBUG: Final valuationId:', valuationId);
+
         if (!valuationId) {
+          console.log('❌ DEBUG: No valuation ID found');
           toast.error('No valuation ID found');
           setLoading(false);
           return;
@@ -76,32 +84,41 @@ export default function ResultsPage() {
         console.log('📋 Loading valuation data for ID:', valuationId);
 
         const data = await getValuationById(valuationId);
-        console.log('📊 Loaded valuation data:', data);
+        console.log('📊 DEBUG: Raw data from getValuationById:', data);
+        console.log('📊 DEBUG: Data keys:', data ? Object.keys(data) : 'null');
+        console.log('📊 DEBUG: Estimated value:', data?.estimated_value);
+        console.log('📊 DEBUG: Make/Model/Year:', data?.make, data?.model, data?.year);
+        console.log('📊 DEBUG: VIN:', data?.vin);
 
         // Validate loaded data
         if (!data) {
+          console.log('❌ DEBUG: No data returned from getValuationById');
           toast.error('Valuation not found');
           setLoading(false);
           return;
         }
 
         if (!data.estimated_value || data.estimated_value <= 0) {
-          console.warn('⚠️ Loaded valuation has invalid estimated_value:', data.estimated_value);
+          console.warn('⚠️ DEBUG: Invalid estimated_value:', data.estimated_value);
           toast.error('Invalid valuation data - please try again');
           setLoading(false);
           return;
         }
 
+        console.log('✅ DEBUG: Data validation passed, setting valuation data');
         setValuationData(data);
         
         // Initialize follow-up data with valuation data
-        setFollowUpData((prev: FollowUpAnswers) => ({
-          ...prev,
+        const initialFollowUpData = {
+          ...followUpData,
           vin: data.vin || '',
           mileage: data.mileage || 50000,
           condition: data.condition || 'good',
           zip_code: data.zip_code || '90210'
-        }));
+        };
+        
+        console.log('🔧 DEBUG: Setting follow-up data:', initialFollowUpData);
+        setFollowUpData(initialFollowUpData);
         
         // Force show follow-up questions for VIN lookups or low-confidence valuations
         const shouldShowFollowUp = (
@@ -112,22 +129,27 @@ export default function ResultsPage() {
            data.zip_code === '90210') // Default zip code
         );
 
-        console.log('🔍 Should show follow-up?', shouldShowFollowUp, {
+        console.log('🔍 DEBUG: Follow-up logic evaluation:', {
           hasVin: !!data.vin,
           mileage: data.mileage,
           confidence: data.confidence_score,
           condition: data.condition,
-          zipCode: data.zip_code
+          zipCode: data.zip_code,
+          shouldShowFollowUp
         });
 
         if (shouldShowFollowUp) {
+          console.log('✅ DEBUG: Setting showFollowUp to true');
           setShowFollowUp(true);
           toast.info('Please provide additional details for a more accurate valuation');
+        } else {
+          console.log('❌ DEBUG: NOT showing follow-up questions');
         }
       } catch (error) {
-        console.error('❌ Error loading valuation data:', error);
+        console.error('❌ DEBUG: Error in loadValuationData:', error);
         toast.error('Failed to load valuation data');
       } finally {
+        console.log('🏁 DEBUG: Setting loading to false');
         setLoading(false);
       }
     };
@@ -136,10 +158,12 @@ export default function ResultsPage() {
   }, [id, searchParams, getValuationById]);
 
   const updateFollowUpData = (updates: Partial<FollowUpAnswers>) => {
+    console.log('🔧 DEBUG: Updating follow-up data with:', updates);
     setFollowUpData((prev: FollowUpAnswers) => ({ ...prev, ...updates }));
   };
 
   const handleFollowUpSubmit = async () => {
+    console.log('📝 DEBUG: Submitting follow-up data:', followUpData);
     try {
       // Update valuation with follow-up answers
       setValuationData((prev: any) => ({
@@ -151,16 +175,26 @@ export default function ResultsPage() {
       setShowFollowUp(false);
       toast.success('Vehicle details updated successfully!');
     } catch (error) {
-      console.error('Error updating valuation:', error);
+      console.error('❌ DEBUG: Error updating valuation:', error);
       toast.error('Failed to update vehicle details');
     }
   };
 
   const handleFollowUpSave = () => {
+    console.log('💾 DEBUG: Saving follow-up progress');
     toast.success('Progress saved!');
   };
 
+  console.log('🎨 DEBUG: Render state:', {
+    loading,
+    isLoading,
+    valuationData: !!valuationData,
+    showFollowUp,
+    estimatedValue: valuationData?.estimated_value
+  });
+
   if (loading || isLoading) {
+    console.log('⏳ DEBUG: Showing loading state');
     return (
       <div className="container mx-auto py-8 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -170,6 +204,7 @@ export default function ResultsPage() {
   }
 
   if (!valuationData) {
+    console.log('❌ DEBUG: Showing no data state');
     return (
       <div className="container mx-auto py-8">
         <Card>
@@ -192,8 +227,29 @@ export default function ResultsPage() {
     ? valuationData.estimated_value 
     : 'Processing...';
 
+  console.log('🎯 DEBUG: About to render main content with displayValue:', displayValue);
+
   return (
     <div className="container mx-auto py-8 space-y-6">
+      {/* DEBUG INFO CARD - REMOVE AFTER DEBUGGING */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle className="text-blue-800">🐛 DEBUG INFO (Remove After Fix)</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm">
+          <div className="grid grid-cols-2 gap-2">
+            <div>Loading: {loading.toString()}</div>
+            <div>IsLoading: {isLoading.toString()}</div>
+            <div>Has Data: {(!!valuationData).toString()}</div>
+            <div>Show Follow-up: {showFollowUp.toString()}</div>
+            <div>Estimated Value: {valuationData?.estimated_value}</div>
+            <div>VIN: {valuationData?.vin || 'None'}</div>
+            <div>Make/Model: {valuationData?.make} {valuationData?.model}</div>
+            <div>Year: {valuationData?.year}</div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Vehicle Information Header - Always show */}
       <Card>
         <CardHeader>
