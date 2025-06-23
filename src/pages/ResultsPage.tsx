@@ -25,7 +25,6 @@ export default function ResultsPage() {
     transmission: 'automatic',
     previous_use: 'personal',
     previous_owners: 1,
-    maintenance_records: false,
     tire_condition: 'good',
     exterior_condition: 'good',
     interior_condition: 'good',
