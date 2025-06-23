@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { runCorrectedValuationPipeline } from '@/utils/valuation/correctedValuationPipeline';
@@ -54,13 +53,26 @@ export function ValuationProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(valuationReducer, initialState);
 
   const saveValuationResult = async (valuationData: any) => {
+    // Validate the valuation before saving
+    if (!valuationData.estimated_value || valuationData.estimated_value <= 0) {
+      console.error('❌ Attempting to save invalid valuation with $0 value:', valuationData);
+      throw new Error('Cannot save valuation with zero or negative value');
+    }
+
+    console.log('💾 Saving valuation result:', valuationData);
+
     const { data, error } = await supabase
       .from('valuation_results')
       .insert([valuationData])
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Database error saving valuation:', error);
+      throw error;
+    }
+
+    console.log('✅ Valuation saved successfully:', data);
     return data;
   };
 
@@ -80,6 +92,8 @@ export function ValuationProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
+      console.log('🔍 Processing VIN lookup:', { vin, decodedData });
+
       // Run the corrected valuation pipeline with decoded VIN data
       const pipelineResult = await runCorrectedValuationPipeline({
         vin,
@@ -96,6 +110,13 @@ export function ValuationProvider({ children }: { children: ReactNode }) {
         transmission: decodedData.transmission,
       });
 
+      console.log('🚀 Pipeline result:', pipelineResult);
+
+      // Validate pipeline result
+      if (!pipelineResult.success || !pipelineResult.valuation.estimatedValue || pipelineResult.valuation.estimatedValue <= 0) {
+        throw new Error(`Invalid valuation result: $${pipelineResult.valuation.estimatedValue}`);
+      }
+
       // Save to database
       const valuationResult = await saveValuationResult({
         vin,
@@ -106,8 +127,8 @@ export function ValuationProvider({ children }: { children: ReactNode }) {
         condition: 'Good',
         estimated_value: pipelineResult.valuation.estimatedValue,
         confidence_score: pipelineResult.valuation.confidenceScore,
-        price_range_low: pipelineResult.valuation.estimatedValue * 0.95,
-        price_range_high: pipelineResult.valuation.estimatedValue * 1.05,
+        price_range_low: pipelineResult.valuation.estimatedValue * 0.92,
+        price_range_high: pipelineResult.valuation.estimatedValue * 1.08,
         adjustments: pipelineResult.valuation.adjustments,
         vehicle_data: decodedData,
         valuation_type: 'free',
@@ -120,14 +141,16 @@ export function ValuationProvider({ children }: { children: ReactNode }) {
       // Store in localStorage for navigation
       localStorage.setItem('latest_valuation_id', valuationResult.id);
 
+      console.log('✅ VIN lookup completed successfully:', valuationResult);
+
       return { 
         valuationId: valuationResult.id, 
         estimatedValue: valuationResult.estimated_value, 
         confidenceScore: valuationResult.confidence_score 
       };
     } catch (error) {
-      console.error('Error processing VIN lookup:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to process VIN lookup' });
+      console.error('❌ Error processing VIN lookup:', error);
+      dispatch({ type: 'SET_ERROR', payload: `Failed to process VIN lookup: ${error.message}` });
       throw error;
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
