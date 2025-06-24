@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { runCorrectedValuationPipeline } from '@/utils/valuation/correctedValuationPipeline';
 import { toast } from 'sonner';
-import { CorrectedValuationResults } from '@/types/correctedValuation';
 
 interface CorrectedValuationParams {
   vin: string;
@@ -13,6 +12,22 @@ interface CorrectedValuationParams {
   mileage: number;
   condition: string;
   zipCode: string;
+}
+
+// Updated to match the actual return type from the pipeline
+interface CorrectedValuationResults {
+  success: boolean;
+  valuation: {
+    estimatedValue: number;
+    confidenceScore: number;
+    basePrice: number;
+    adjustments: any[];
+    priceRange: [number, number];
+    marketAnalysis?: any;
+    riskFactors?: any[];
+    recommendations?: string[];
+  };
+  error?: string;
 }
 
 export function useCorrectedValuation() {

@@ -51,6 +51,7 @@ export interface FollowUpAnswers {
   zip_code: string;
   mileage: number;
   condition: string;
+  year?: number; // Added year property
   
   // History
   accidents: AccidentDetails;
