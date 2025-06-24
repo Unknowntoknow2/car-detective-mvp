@@ -53,6 +53,16 @@ export function EnhancedVehicleSelector({
   const [makeSearchQuery, setMakeSearchQuery] = useState('');
   const [showMakeSearch, setShowMakeSearch] = useState(false);
 
+  console.log('🔍 EnhancedVehicleSelector render state:', {
+    selectedMakeId,
+    selectedModelId,
+    makesCount: makes.length,
+    modelsCount: models.length,
+    trimsCount: trims.length,
+    isLoading,
+    error
+  });
+
   // Filter makes based on search
   const filteredMakes = makeSearchQuery ? searchMakes(makeSearchQuery) : makes;
   const popularMakes = getPopularMakes();
@@ -68,8 +78,13 @@ export function EnhancedVehicleSelector({
     
     // Fetch models for the selected make
     if (makeId) {
-      console.log('🔄 Fetching models for makeId:', makeId);
-      await fetchModelsByMakeId(makeId);
+      console.log('🔄 Calling fetchModelsByMakeId with makeId:', makeId);
+      try {
+        await fetchModelsByMakeId(makeId);
+        console.log('✅ fetchModelsByMakeId completed');
+      } catch (error) {
+        console.error('❌ Error in fetchModelsByMakeId:', error);
+      }
     }
   };
 
@@ -159,7 +174,7 @@ export function EnhancedVehicleSelector({
                 All Makes ({makes.length})
               </div>
               {filteredMakes.map((make) => (
-                <SelectItem key={make.id} value={make.id}>
+                <SelectItem key={`all-${make.id}`} value={make.id}>
                   {make.make_name}
                 </SelectItem>
               ))}
@@ -307,6 +322,8 @@ export function EnhancedVehicleSelector({
           <div>Selected Make ID: {selectedMakeId}</div>
           <div>Selected Model ID: {selectedModelId}</div>
           <div>Selected Year: {selectedYear}</div>
+          <div>Is Loading: {isLoading ? 'Yes' : 'No'}</div>
+          <div>Error: {error || 'None'}</div>
         </div>
       )}
     </div>

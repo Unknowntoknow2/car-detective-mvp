@@ -89,25 +89,41 @@ export function useMakeModels(): UseMakeModelsReturn {
       return;
     }
 
+    console.log('🔄 Starting fetchModelsByMakeId with makeId:', makeId);
     setIsLoading(true);
     setError(null);
     
     try {
-      console.log('🔄 Fetching models for make ID:', makeId);
+      console.log('🔄 Querying Supabase models table for make_id:', makeId);
       const { data, error: fetchError } = await supabase
         .from('models')
         .select('id, make_id, model_name')
         .eq('make_id', makeId)
         .order('model_name');
 
+      console.log('📊 Supabase models query result:', {
+        error: fetchError,
+        dataLength: data?.length || 0,
+        firstFewRecords: data?.slice(0, 3)
+      });
+
       if (fetchError) {
         console.error('❌ Supabase models fetch error:', fetchError);
-        throw fetchError;
+        setError(`Failed to fetch models: ${fetchError.message}`);
+        setModels([]);
+        return;
       }
 
-      console.log('✅ Fetched models from Supabase:', data?.length || 0, 'records for make:', makeId);
+      if (!data || data.length === 0) {
+        console.warn('⚠️ No models found for makeId:', makeId);
+        setError(`No models found for the selected make`);
+        setModels([]);
+        return;
+      }
 
-      const formattedModels: Model[] = (data || []).map(model => ({
+      console.log('✅ Successfully fetched models from Supabase:', data.length, 'records for make:', makeId);
+
+      const formattedModels: Model[] = data.map(model => ({
         id: model.id,
         make_id: model.make_id,
         model_name: model.model_name,
@@ -119,11 +135,12 @@ export function useMakeModels(): UseMakeModelsReturn {
       // Clear trims when models change
       setTrims([]);
     } catch (err: any) {
-      console.error('❌ Error fetching models from Supabase:', err);
-      setError('Failed to fetch vehicle models from database');
-      setModels([]); // Clear models on error
+      console.error('❌ Unexpected error in fetchModelsByMakeId:', err);
+      setError(`Unexpected error fetching models: ${err.message}`);
+      setModels([]);
     } finally {
       setIsLoading(false);
+      console.log('🏁 fetchModelsByMakeId completed');
     }
   };
 
