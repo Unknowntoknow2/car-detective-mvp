@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { BasicInfoTab } from './tabs/BasicInfoTab';
@@ -11,6 +10,9 @@ import { FeaturesTab } from './tabs/FeaturesTab';
 import { TabNavigation } from './TabNavigation';
 import { TabValidation } from './validation/TabValidation';
 import { SaveStatusIndicator } from './SaveStatusIndicator';
+import { QuickOverviewCard } from './QuickOverviewCard';
+import { TabProgressHeader } from './TabProgressHeader';
+import { TabValidationAlerts } from './TabValidationAlerts';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { CheckCircle, Circle, AlertTriangle, Eye, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -91,6 +93,10 @@ export function TabbedFollowUpForm({
     updateFormData(updates);
   };
 
+  const handleRetryConnection = () => {
+    onSave(); // Trigger a manual save
+  };
+
   const getTabIcon = (tabKey: string) => {
     const validation = tabValidations[tabKey as keyof typeof tabValidations];
     
@@ -103,163 +109,47 @@ export function TabbedFollowUpForm({
     }
   };
 
-  const handleRetryConnection = () => {
-    onSave(); // Trigger a manual save
-  };
-
-  // Quick overview component for showing all critical fields
-  const QuickOverview = () => (
-    <div className="space-y-6 p-6 bg-gray-50 rounded-lg">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Quick Overview - Critical Information</h3>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowQuickOverview(false)}
-        >
-          Back to Detailed Form
-        </Button>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="block text-sm font-medium">ZIP Code *</label>
-          <input
-            type="text"
-            value={formData.zip_code || ''}
-            onChange={(e) => updateFormData({ zip_code: e.target.value })}
-            className="w-full p-2 border rounded-md"
-            placeholder="Your ZIP code"
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <label className="block text-sm font-medium">Mileage *</label>
-          <input
-            type="number"
-            value={formData.mileage || ''}
-            onChange={(e) => updateFormData({ mileage: parseInt(e.target.value) || 0 })}
-            className="w-full p-2 border rounded-md"
-            placeholder="Current mileage"
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <label className="block text-sm font-medium">Overall Condition *</label>
-          <select
-            value={formData.condition || 'good'}
-            onChange={(e) => updateFormData({ condition: e.target.value })}
-            className="w-full p-2 border rounded-md"
-          >
-            <option value="excellent">Excellent</option>
-            <option value="very-good">Very Good</option>
-            <option value="good">Good</option>
-            <option value="fair">Fair</option>
-            <option value="poor">Poor</option>
-          </select>
-        </div>
-        
-        <div className="space-y-2">
-          <label className="block text-sm font-medium">Any Accidents?</label>
-          <select
-            value={formData.accidents?.hadAccident ? 'yes' : 'no'}
-            onChange={(e) => updateFormData({ 
-              accidents: { 
-                ...formData.accidents,
-                hadAccident: e.target.value === 'yes'
-              }
-            })}
-            className="w-full p-2 border rounded-md"
-          >
-            <option value="no">No</option>
-            <option value="yes">Yes</option>
-          </select>
-        </div>
-      </div>
-      
-      <div className="pt-4 border-t">
-        <Button
-          onClick={onSubmit}
-          disabled={isLoading || !formData.zip_code || !formData.mileage}
-          className="w-full bg-green-600 hover:bg-green-700"
-        >
-          {isLoading ? 'Processing...' : 'Complete Valuation with Basic Info'}
-        </Button>
-        <p className="text-sm text-gray-600 mt-2 text-center">
-          You can complete your valuation with just this basic information, or use the detailed form for a more accurate assessment.
-        </p>
-      </div>
-    </div>
-  );
-
   if (showQuickOverview) {
     return (
       <div className="w-full max-w-6xl mx-auto p-6">
-        <QuickOverview />
+        <QuickOverviewCard
+          formData={formData}
+          updateFormData={updateFormData}
+          onSubmit={onSubmit}
+          onBack={() => setShowQuickOverview(false)}
+          isLoading={isLoading}
+        />
       </div>
     );
   }
 
   return (
     <div className="w-full max-w-6xl mx-auto p-6">
-      {/* Enhanced Progress Bar with Save Status and Quick Overview Option */}
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="text-lg font-semibold text-gray-900">Complete Your Valuation</h3>
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowQuickOverview(true)}
-              className="flex items-center gap-2"
-            >
-              <Eye className="w-4 h-4" />
-              Quick Overview
-            </Button>
-            <SaveStatusIndicator 
-              isSaving={isSaving}
-              saveError={saveError}
-              lastSaveTime={lastSaveTime}
-            />
-            <span className="text-sm font-medium text-gray-600">{completionPercentage}% Complete</span>
-          </div>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-2.5">
-          <div 
-            className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
-            style={{ width: `${completionPercentage}%` }}
+      <TabProgressHeader
+        completionPercentage={completionPercentage}
+        onShowQuickOverview={() => setShowQuickOverview(true)}
+        saveStatusIndicator={
+          <SaveStatusIndicator 
+            isSaving={isSaving}
+            saveError={saveError}
+            lastSaveTime={lastSaveTime}
+            onRetry={handleRetryConnection}
           />
-        </div>
-      </div>
+        }
+      />
 
-      {/* Enhanced Error Alert with Recovery Options */}
-      {saveError && (
-        <Alert className="mb-4 border-red-200 bg-red-50">
-          <AlertTriangle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800">
-            <div className="flex justify-between items-start">
-              <div>
-                <strong>Save Error:</strong> {saveError}
-                <br />
-                <span className="text-sm">Your changes are being saved locally and will sync when the connection is restored.</span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRetryConnection}
-                disabled={isSaving}
-                className="ml-4 flex items-center gap-1"
-              >
-                <RefreshCw className={`w-3 h-3 ${isSaving ? 'animate-spin' : ''}`} />
-                Retry
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
+      <TabValidationAlerts
+        saveError={saveError}
+        currentTabValidation={currentTabValidation}
+        isLastTab={isLastTab}
+        activeTab={activeTab}
+        tabs={tabs}
+        onTabChange={setActiveTab}
+        onRetryConnection={handleRetryConnection}
+        isSaving={isSaving}
+      />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        {/* Enhanced Tab List with Better Visual Indicators */}
         <TabsList className="grid grid-cols-7 mb-6 h-auto p-1">
           {tabs.map((tab) => {
             const validation = tabValidations[tab as keyof typeof tabValidations];
@@ -288,43 +178,6 @@ export function TabbedFollowUpForm({
             );
           })}
         </TabsList>
-        
-        {/* Enhanced Current Tab Validation Status with Skip Option */}
-        {currentTabValidation && (currentTabValidation.errors.length > 0 || currentTabValidation.warnings.length > 0) && (
-          <div className="mb-4 space-y-2">
-            {currentTabValidation.errors.map((error, index) => (
-              <div key={index} className="flex items-center justify-between p-2 bg-red-50 border border-red-200 rounded-md">
-                <div className="flex items-center gap-2">
-                  <Circle className="w-4 h-4 text-red-500" />
-                  <span className="text-sm text-red-700">{error}</span>
-                </div>
-              </div>
-            ))}
-            {currentTabValidation.warnings.map((warning, index) => (
-              <div key={index} className="flex items-center justify-between p-2 bg-yellow-50 border border-yellow-200 rounded-md">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                  <span className="text-sm text-yellow-700">{warning}</span>
-                </div>
-                {!isLastTab && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      const currentIndex = tabs.indexOf(activeTab);
-                      if (currentIndex < tabs.length - 1) {
-                        setActiveTab(tabs[currentIndex + 1]);
-                      }
-                    }}
-                    className="text-xs"
-                  >
-                    Skip Section
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
         
         <div className="mt-6 min-h-[400px]">
           <TabsContent value="basic" className="space-y-6">

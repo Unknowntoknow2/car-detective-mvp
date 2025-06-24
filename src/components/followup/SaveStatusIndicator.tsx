@@ -1,17 +1,20 @@
 
 import React from 'react';
-import { Wifi, WifiOff, Save, Clock, CheckCircle } from 'lucide-react';
+import { Wifi, WifiOff, Save, Clock, CheckCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface SaveStatusIndicatorProps {
   isSaving: boolean;
   saveError: string | null;
   lastSaveTime: Date | null;
+  onRetry?: () => void;
 }
 
 export function SaveStatusIndicator({ 
   isSaving, 
   saveError, 
-  lastSaveTime 
+  lastSaveTime,
+  onRetry 
 }: SaveStatusIndicatorProps) {
   const getSaveStatusIcon = () => {
     if (saveError) {
@@ -62,6 +65,17 @@ export function SaveStatusIndicator({
       <span className={getStatusColor()}>
         {getSaveStatusText()}
       </span>
+      {saveError && onRetry && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onRetry}
+          disabled={isSaving}
+          className="h-6 px-2 text-xs"
+        >
+          <RefreshCw className={`w-3 h-3 ${isSaving ? 'animate-spin' : ''}`} />
+        </Button>
+      )}
     </div>
   );
 }
