@@ -11,8 +11,9 @@ import { FeaturesTab } from './tabs/FeaturesTab';
 import { TabNavigation } from './TabNavigation';
 import { TabValidation } from './validation/TabValidation';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { CheckCircle, Circle, AlertTriangle } from 'lucide-react';
+import { CheckCircle, Circle, AlertTriangle, Wifi, WifiOff, Save } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface TabbedFollowUpFormProps {
   formData: FollowUpAnswers;
@@ -20,6 +21,8 @@ interface TabbedFollowUpFormProps {
   onSubmit: () => Promise<void>;
   onSave: () => void;
   isLoading?: boolean;
+  isSaving?: boolean;
+  saveError?: string | null;
 }
 
 export function TabbedFollowUpForm({
@@ -27,7 +30,9 @@ export function TabbedFollowUpForm({
   updateFormData,
   onSubmit,
   onSave,
-  isLoading = false
+  isLoading = false,
+  isSaving = false,
+  saveError = null
 }: TabbedFollowUpFormProps) {
   const [activeTab, setActiveTab] = useState("basic");
 
@@ -93,13 +98,41 @@ export function TabbedFollowUpForm({
     }
   };
 
+  const getSaveStatusIcon = () => {
+    if (saveError) {
+      return <WifiOff className="w-4 h-4 text-red-500" />;
+    }
+    if (isSaving) {
+      return <Save className="w-4 h-4 text-blue-500 animate-pulse" />;
+    }
+    return <Wifi className="w-4 h-4 text-green-500" />;
+  };
+
+  const getSaveStatusText = () => {
+    if (saveError) {
+      return "Save Failed";
+    }
+    if (isSaving) {
+      return "Saving...";
+    }
+    return "Auto-saved";
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto p-6">
-      {/* Progress Bar */}
+      {/* Progress Bar with Save Status */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-lg font-semibold text-gray-900">Complete Your Valuation</h3>
-          <span className="text-sm font-medium text-gray-600">{completionPercentage}% Complete</span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm">
+              {getSaveStatusIcon()}
+              <span className={`${saveError ? 'text-red-600' : isSaving ? 'text-blue-600' : 'text-green-600'}`}>
+                {getSaveStatusText()}
+              </span>
+            </div>
+            <span className="text-sm font-medium text-gray-600">{completionPercentage}% Complete</span>
+          </div>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2.5">
           <div 
@@ -108,6 +141,18 @@ export function TabbedFollowUpForm({
           />
         </div>
       </div>
+
+      {/* Error Alert */}
+      {saveError && (
+        <Alert className="mb-4 border-red-200 bg-red-50">
+          <AlertTriangle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">
+            <strong>Connection Issue:</strong> {saveError}
+            <br />
+            <span className="text-sm">Your changes are being saved locally. They will sync when the connection is restored.</span>
+          </AlertDescription>
+        </Alert>
+      )}
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-7 mb-6 h-auto p-1">
@@ -210,7 +255,7 @@ export function TabbedFollowUpForm({
           isLastTab={isLastTab}
           isValid={currentTabValid}
           isLoading={isLoading}
-          isSaving={false}
+          isSaving={isSaving}
           tabs={tabs}
         />
       </Tabs>

@@ -51,11 +51,13 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     previous_owners: 1,
     loan_balance: 0,
     payoffAmount: 0,
+    year: initialData?.year || new Date().getFullYear(),
     ...initialData
   }));
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     loadExistingData();
@@ -74,6 +76,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
 
       if (error) {
         console.error('Error loading follow-up data:', error);
+        setSaveError(`Failed to load existing data: ${error.message}`);
         return;
       }
 
@@ -123,7 +126,8 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
           exterior_condition: data.exterior_condition || 'good',
           interior_condition: data.interior_condition || 'good',
           brake_condition: data.brake_condition || 'good',
-          additional_notes: data.additional_notes || ''
+          additional_notes: data.additional_notes || '',
+          year: data.year || new Date().getFullYear()
         };
 
         setFormData(prev => ({
@@ -133,6 +137,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       }
     } catch (error) {
       console.error('Error loading follow-up data:', error);
+      setSaveError('Failed to load existing data. Please refresh the page.');
     } finally {
       setIsLoading(false);
     }
@@ -157,15 +162,42 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
   };
 
   const saveFormData = async (dataToSave: FollowUpAnswers) => {
-    if (!vin) return false;
+    if (!vin) {
+      setSaveError('No VIN provided');
+      return false;
+    }
 
     try {
       setIsSaving(true);
+      setSaveError(null);
       
-      // Prepare data for database save
+      // Prepare data for database save - only include fields that exist in the database
       const saveData = {
-        ...dataToSave,
-        vin,
+        vin: dataToSave.vin,
+        user_id: dataToSave.user_id,
+        valuation_id: dataToSave.valuation_id,
+        zip_code: dataToSave.zip_code,
+        mileage: dataToSave.mileage,
+        condition: dataToSave.condition,
+        year: dataToSave.year,
+        accidents: dataToSave.accidents,
+        transmission: dataToSave.transmission,
+        title_status: dataToSave.title_status,
+        previous_use: dataToSave.previous_use,
+        serviceHistory: dataToSave.serviceHistory,
+        previous_owners: dataToSave.previous_owners,
+        tire_condition: dataToSave.tire_condition,
+        exterior_condition: dataToSave.exterior_condition,
+        interior_condition: dataToSave.interior_condition,
+        brake_condition: dataToSave.brake_condition,
+        dashboard_lights: dataToSave.dashboard_lights,
+        modifications: dataToSave.modifications,
+        features: dataToSave.features,
+        additional_notes: dataToSave.additional_notes,
+        completion_percentage: dataToSave.completion_percentage,
+        is_complete: dataToSave.is_complete,
+        loan_balance: dataToSave.loan_balance,
+        payoffAmount: dataToSave.payoffAmount,
         // Map serviceHistory.description to service_history for backward compatibility
         service_history: dataToSave.serviceHistory?.description || null,
         updated_at: new Date().toISOString()
@@ -179,27 +211,37 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
 
       if (error) {
         console.error('Error saving follow-up data:', error);
-        toast.error('Failed to save data');
+        setSaveError(`Save failed: ${error.message}`);
+        toast.error('Auto-save failed. Your changes may not be saved.');
         return false;
       }
 
+      // Clear any previous errors on successful save
+      setSaveError(null);
       return true;
     } catch (error) {
       console.error('Error saving follow-up data:', error);
-      toast.error('Failed to save data');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setSaveError(`Save failed: ${errorMessage}`);
+      toast.error('Auto-save failed. Please check your connection.');
       return false;
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Debounced save function
+  // Debounced save function with better error handling
   const debouncedSave = (() => {
     let timeoutId: NodeJS.Timeout;
     return (data: FollowUpAnswers) => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        saveFormData(data);
+      timeoutId = setTimeout(async () => {
+        try {
+          await saveFormData(data);
+        } catch (error) {
+          console.error('Auto-save error:', error);
+          // Don't show toast here as saveFormData already handles it
+        }
       }, 1000); // Save after 1 second of inactivity
     };
   })();
@@ -247,7 +289,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
           vin,
           make: decodedVehicle.make || 'Unknown',
           model: decodedVehicle.model || 'Unknown',
-          year: decodedVehicle.year || new Date().getFullYear(),
+          year: decodedVehicle.year || formData.year || new Date().getFullYear(),
           mileage: formData.mileage,
           condition: formData.condition,
           zipCode: formData.zip_code,
@@ -318,6 +360,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     saveFormData,
     submitForm,
     isLoading,
-    isSaving
+    isSaving,
+    saveError
   };
 }

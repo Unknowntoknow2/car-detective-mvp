@@ -32,18 +32,20 @@ export default function ValuationFollowUpPage() {
     source: searchParams.get('source') as 'vin' | 'plate' | 'manual' || 'vin'
   };
 
-  // Initialize the follow-up form with the VIN
+  // Initialize the follow-up form with the VIN and year
   const {
     formData,
     updateFormData,
     submitForm,
     isLoading,
-    isSaving
+    isSaving,
+    saveError
   } = useFollowUpForm(vehicleData.vin, {
     vin: vehicleData.vin,
     zip_code: '',
     mileage: 50000,
-    condition: 'good'
+    condition: 'good',
+    year: vehicleData.year
   });
 
   const handleBackToSelection = () => {
@@ -174,14 +176,14 @@ export default function ValuationFollowUpPage() {
           </div>
         </div>
 
-        {/* Follow-up Questions - Enhanced with Navigation */}
+        {/* Follow-up Questions - Enhanced with better error handling */}
         <div className="space-y-6">
           <div className="text-center">
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
               Complete Your Comprehensive Valuation
             </h2>
             <p className="text-gray-600">
-              Navigate through each section using the tabs. All sections must be completed for an accurate valuation.
+              Navigate through each section using the tabs. Your progress is automatically saved.
             </p>
           </div>
           
@@ -198,7 +200,9 @@ export default function ValuationFollowUpPage() {
               updateFormData={updateFormData}
               onSubmit={handleSubmitAnswers}
               onSave={handleSaveProgress}
-              isLoading={isSubmitting || isSaving}
+              isLoading={isSubmitting}
+              isSaving={isSaving}
+              saveError={saveError}
             />
           )}
         </div>
