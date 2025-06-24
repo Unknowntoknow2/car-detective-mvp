@@ -26,6 +26,7 @@ interface UseMakeModelsReturn {
   findModelById: (modelId: string) => Model | undefined;
   searchMakes: (query: string) => Make[];
   getPopularMakes: () => Make[];
+  getNonPopularMakes: () => Make[];
 }
 
 export function useMakeModels(): UseMakeModelsReturn {
@@ -245,6 +246,11 @@ export function useMakeModels(): UseMakeModelsReturn {
       .slice(0, 10);
   };
 
+  const getNonPopularMakes = (): Make[] => {
+    const popularMakeNames = ['Toyota', 'Honda', 'Ford', 'Chevrolet', 'BMW', 'Mercedes-Benz', 'Audi', 'Nissan', 'Hyundai', 'Kia'];
+    return makes.filter(make => !popularMakeNames.includes(make.make_name));
+  };
+
   return {
     makes,
     models,
@@ -257,5 +263,6 @@ export function useMakeModels(): UseMakeModelsReturn {
     findModelById,
     searchMakes,
     getPopularMakes,
+    getNonPopularMakes,
   };
 }
