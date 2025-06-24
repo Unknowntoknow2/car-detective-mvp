@@ -55,7 +55,7 @@ export function useMakeModels(): UseMakeModelsReturn {
     try {
       const { data, error: fetchError } = await supabase
         .from('makes')
-        .select('id, make_name, popular')
+        .select('id, make_name')
         .order('make_name');
 
       if (fetchError) throw fetchError;
@@ -63,7 +63,7 @@ export function useMakeModels(): UseMakeModelsReturn {
       const formattedMakes: Make[] = (data || []).map(make => ({
         id: make.id,
         make_name: make.make_name,
-        popular: make.popular || false
+        popular: false // We'll implement popular logic later
       }));
 
       setMakes(formattedMakes);
@@ -88,7 +88,7 @@ export function useMakeModels(): UseMakeModelsReturn {
     try {
       const { data, error: fetchError } = await supabase
         .from('models')
-        .select('id, make_id, model_name, popular')
+        .select('id, make_id, model_name')
         .eq('make_id', makeId)
         .order('model_name');
 
@@ -98,7 +98,7 @@ export function useMakeModels(): UseMakeModelsReturn {
         id: model.id,
         make_id: model.make_id,
         model_name: model.model_name,
-        popular: model.popular || false
+        popular: false
       }));
 
       setModels(formattedModels);
@@ -161,7 +161,8 @@ export function useMakeModels(): UseMakeModelsReturn {
   };
 
   const getPopularMakes = (): Make[] => {
-    return makes.filter(make => make.popular).slice(0, 10);
+    // For now, return first 10 makes as "popular"
+    return makes.slice(0, 10);
   };
 
   return {
