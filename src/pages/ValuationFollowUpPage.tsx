@@ -3,10 +3,11 @@ import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CarFinderQaherCard } from '@/components/valuation/CarFinderQaherCard';
-import { FollowUpQuestions } from '@/components/valuation/FollowUpQuestions';
+import { TabbedFollowUpForm } from '@/components/followup/TabbedFollowUpForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { useValuation } from '@/contexts/ValuationContext';
+import { useFollowUpForm } from '@/hooks/useFollowUpForm';
 import { toast } from 'sonner';
 
 export default function ValuationFollowUpPage() {
@@ -32,23 +33,43 @@ export default function ValuationFollowUpPage() {
     source: searchParams.get('source') as 'vin' | 'plate' | 'manual' || 'vin'
   };
 
+  // Initialize the follow-up form with the VIN
+  const {
+    formData,
+    updateFormData,
+    submitForm,
+    isLoading,
+    isSaving
+  } = useFollowUpForm(vehicleData.vin, {
+    vin: vehicleData.vin,
+    zip_code: '',
+    mileage: 50000,
+    condition: 'good'
+  });
+
   const handleBackToSelection = () => {
     navigate(-1);
   };
 
-  const handleSubmitAnswers = async (answers: any) => {
+  const handleSubmitAnswers = async () => {
     setIsSubmitting(true);
     try {
-      console.log('Follow-up answers submitted:', answers);
+      console.log('Follow-up answers submitted:', formData);
+      
+      // Save the form data first
+      const saveSuccess = await submitForm();
+      if (!saveSuccess) {
+        throw new Error('Failed to save follow-up data');
+      }
       
       // Process the valuation with the follow-up data
       const valuationResult = await processFreeValuation({
         make: vehicleData.make,
         model: vehicleData.model,
         year: vehicleData.year,
-        mileage: parseInt(answers.currentMileage) || 50000,
-        condition: answers.exteriorCondition || 'Good',
-        zipCode: '90210' // Default for now, should come from follow-up
+        mileage: formData.mileage || 50000,
+        condition: formData.condition || 'Good',
+        zipCode: formData.zip_code || '90210'
       });
       
       console.log('✅ ValuationFollowUpPage: Valuation completed:', valuationResult);
@@ -62,6 +83,10 @@ export default function ValuationFollowUpPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSaveProgress = () => {
+    toast.success('Progress saved successfully!');
   };
 
   // If no vehicle data, show error state
@@ -90,7 +115,7 @@ export default function ValuationFollowUpPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-      <div className="container mx-auto py-8 max-w-4xl space-y-8">
+      <div className="container mx-auto py-8 max-w-6xl space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
@@ -149,7 +174,7 @@ export default function ValuationFollowUpPage() {
           </div>
         </div>
 
-        {/* Follow-up Questions */}
+        {/* Follow-up Questions - Now using TabbedFollowUpForm */}
         <div className="space-y-6">
           <div className="text-center">
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
@@ -160,10 +185,22 @@ export default function ValuationFollowUpPage() {
             </p>
           </div>
           
-          <FollowUpQuestions 
-            onSubmit={handleSubmitAnswers}
-            isLoading={isSubmitting}
-          />
+          {isLoading ? (
+            <Card className="p-8">
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-2">Loading your vehicle information...</span>
+              </div>
+            </Card>
+          ) : (
+            <TabbedFollowUpForm
+              formData={formData}
+              updateFormData={updateFormData}
+              onSubmit={handleSubmitAnswers}
+              onSave={handleSaveProgress}
+              isLoading={isSubmitting || isSaving}
+            />
+          )}
         </div>
 
         {/* Footer Info */}
