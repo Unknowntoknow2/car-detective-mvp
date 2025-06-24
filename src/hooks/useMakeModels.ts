@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Make, Model } from '@/hooks/types/vehicle';
@@ -153,7 +152,25 @@ export function useMakeModels(): UseMakeModelsReturn {
       console.log('🔍 Executing models query...');
       console.log('🔑 Make ID type and value:', typeof makeId, makeId);
       
-      // Enhanced query with better error handling
+      // Debug: Let's first check if there are ANY models with this make_id
+      console.log('🔍 Checking for ANY models with this make_id...');
+      const debugQuery = await supabase
+        .from('models')
+        .select('id, make_id, model_name')
+        .limit(5);
+      
+      console.log('🔍 Sample models in database:', debugQuery.data?.slice(0, 3));
+      
+      // Check if there are models that match this make_id
+      const specificQuery = await supabase
+        .from('models')
+        .select('id, make_id, model_name')
+        .eq('make_id', makeId)
+        .limit(3);
+      
+      console.log('🔍 Models matching this make_id:', specificQuery.data);
+      
+      // Now run the main query
       const { data, error: fetchError, count } = await supabase
         .from('models')
         .select('id, make_id, model_name', { count: 'exact' })
@@ -170,7 +187,9 @@ export function useMakeModels(): UseMakeModelsReturn {
         queryTime,
         makeId,
         makeName: selectedMake?.make_name,
-        queryAttempted: `SELECT id, make_id, model_name FROM models WHERE make_id = '${makeId}' ORDER BY model_name`
+        queryAttempted: `SELECT id, make_id, model_name FROM models WHERE make_id = '${makeId}' ORDER BY model_name`,
+        sampleDbModels: debugQuery.data?.slice(0, 3),
+        specificMatches: specificQuery.data
       };
       
       console.log('📊 Complete models query result:', debugResult);
@@ -214,9 +233,11 @@ export function useMakeModels(): UseMakeModelsReturn {
         console.warn('⚠️ Zero models found for make:', {
           makeId,
           makeName: selectedMake?.make_name,
-          totalCount: count
+          totalCount: count,
+          sampleDbModels: debugQuery.data?.slice(0, 3),
+          specificMatches: specificQuery.data
         });
-        setError(`No models found for ${selectedMake?.make_name || 'the selected make'}`);
+        setError(`No models found for ${selectedMake?.make_name || 'the selected make'}. Database may need repair.`);
         setModels([]);
         return;
       }
