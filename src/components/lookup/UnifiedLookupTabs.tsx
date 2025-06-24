@@ -12,10 +12,10 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { EnhancedVehicleSelector } from '@/components/lookup/form-parts/EnhancedVehicleSelector';
 import { useMakeModels } from '@/hooks/useMakeModels';
+import { useUnifiedLookup } from '@/hooks/useUnifiedLookup';
 
 export function UnifiedLookupTabs() {
   const [vin, setVin] = useState('');
-  const [isVinLoading, setIsVinLoading] = useState(false);
   
   // Manual entry states - now using proper vehicle selector
   const [selectedMakeId, setSelectedMakeId] = useState('');
@@ -25,18 +25,24 @@ export function UnifiedLookupTabs() {
   const [mileage, setMileage] = useState('');
   const [condition, setCondition] = useState('Good');
   const [zipCode, setZipCode] = useState('');
-  const [isManualLoading, setIsManualLoading] = useState(false);
   
   // Plate lookup states
   const [plateData, setPlateData] = useState({
     plate: '',
     state: ''
   });
-  const [isPlateLoading, setIsPlateLoading] = useState(false);
   
-  const { processVinLookup, processFreeValuation } = useValuation();
+  const { processFreeValuation } = useValuation();
   const navigate = useNavigate();
   const { findMakeById, findModelById } = useMakeModels();
+  
+  // Use the real unified lookup service
+  const { 
+    isLoading: isUnifiedLoading, 
+    lookupByVin, 
+    lookupByPlate, 
+    processManualEntry 
+  } = useUnifiedLookup({ mode: 'vpic', tier: 'free' });
 
   const validateVin = (vin: string) => {
     return /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin);
@@ -50,32 +56,35 @@ export function UnifiedLookupTabs() {
       return;
     }
 
-    setIsVinLoading(true);
+    console.log('🚗 VIN Lookup: Starting real NHTSA lookup for VIN:', vin);
     
     try {
-      // Mock VIN decode for now - in production this would call a real VIN decode API
-      const mockDecodedData = {
-        make: 'Toyota',
-        model: 'Camry',
-        year: 2020,
-        trim: 'LE',
-        bodyType: 'Sedan',
-        fuelType: 'Gasoline',
-        transmission: 'Automatic',
-        color: 'Silver'
-      };
-
-      toast.success('VIN decoded successfully!');
+      const result = await lookupByVin(vin);
       
-      const result = await processVinLookup(vin, mockDecodedData);
-      
-      navigate(`/results/${result.valuationId}`);
+      if (result && result.success && result.vehicle) {
+        console.log('✅ VIN Lookup: Successfully decoded vehicle:', result.vehicle);
+        
+        // Process the real decoded data through valuation
+        const valuationResult = await processFreeValuation({
+          make: result.vehicle.make,
+          model: result.vehicle.model,
+          year: result.vehicle.year,
+          mileage: result.vehicle.mileage || 50000,
+          condition: result.vehicle.condition || 'Good',
+          zipCode: zipCode || '90210'
+        });
+        
+        toast.success('VIN decoded successfully with real NHTSA data!');
+        navigate(`/results/${valuationResult.valuationId}`);
+        
+      } else {
+        console.error('❌ VIN Lookup: Failed to decode VIN:', result?.error);
+        toast.error(result?.error || 'Failed to decode VIN. Please check the VIN and try again.');
+      }
       
     } catch (error) {
-      console.error('VIN lookup error:', error);
-      toast.error('Failed to process VIN lookup. Please try again.');
-    } finally {
-      setIsVinLoading(false);
+      console.error('❌ VIN lookup error:', error);
+      toast.error('VIN lookup service temporarily unavailable. Please try again.');
     }
   };
 
@@ -87,7 +96,7 @@ export function UnifiedLookupTabs() {
       return;
     }
 
-    setIsManualLoading(true);
+    console.log('🔧 Manual Entry: Processing with database vehicle data');
     
     try {
       // Get the actual make and model names from the database
@@ -99,24 +108,43 @@ export function UnifiedLookupTabs() {
         return;
       }
 
-      const result = await processFreeValuation({
-        make: selectedMake.make_name, // Use actual make name from database
-        model: selectedModel.model_name, // Use actual model name from database
+      // Use the unified lookup service for consistent processing
+      const manualData = {
+        make: selectedMake.make_name,
+        model: selectedModel.model_name,
         year: selectedYear,
         mileage: parseInt(mileage) || 50000,
         condition: condition,
-        zipCode: zipCode || '90210'
-      });
+        zipCode: zipCode || '90210',
+        fuelType: 'gasoline',
+        transmission: 'automatic'
+      };
+
+      const result = processManualEntry(manualData);
       
-      toast.success('Manual valuation completed!');
-      
-      navigate(`/results/${result.valuationId}`);
+      if (result && result.success && result.vehicle) {
+        console.log('✅ Manual Entry: Successfully processed:', result.vehicle);
+        
+        const valuationResult = await processFreeValuation({
+          make: result.vehicle.make,
+          model: result.vehicle.model,
+          year: result.vehicle.year,
+          mileage: result.vehicle.mileage || parseInt(mileage) || 50000,
+          condition: result.vehicle.condition || condition,
+          zipCode: result.vehicle.zipCode || zipCode || '90210'
+        });
+        
+        toast.success('Manual valuation completed!');
+        navigate(`/results/${valuationResult.valuationId}`);
+        
+      } else {
+        console.error('❌ Manual Entry: Processing failed:', result?.error);
+        toast.error('Failed to process manual entry. Please try again.');
+      }
       
     } catch (error) {
-      console.error('Manual valuation error:', error);
+      console.error('❌ Manual valuation error:', error);
       toast.error('Failed to process manual valuation. Please try again.');
-    } finally {
-      setIsManualLoading(false);
     }
   };
 
@@ -128,39 +156,34 @@ export function UnifiedLookupTabs() {
       return;
     }
 
-    setIsPlateLoading(true);
+    console.log('🏷️ Plate Lookup: Processing license plate lookup');
     
     try {
-      // Mock plate lookup - in production this would call a real plate lookup API
-      const mockPlateData = {
-        make: 'Honda',
-        model: 'Accord',
-        year: 2019,
-        trim: 'LX',
-        bodyType: 'Sedan',
-        fuelType: 'Gasoline',
-        transmission: 'CVT',
-        color: 'White'
-      };
-
-      toast.success('License plate lookup completed!');
+      const result = await lookupByPlate(plateData.plate, plateData.state);
       
-      const result = await processFreeValuation({
-        make: mockPlateData.make,
-        model: mockPlateData.model,
-        year: mockPlateData.year,
-        mileage: 45000,
-        condition: 'Good',
-        zipCode: '90210'
-      });
-      
-      navigate(`/results/${result.valuationId}`);
+      if (result && result.success && result.vehicle) {
+        console.log('✅ Plate Lookup: Successfully found vehicle:', result.vehicle);
+        
+        const valuationResult = await processFreeValuation({
+          make: result.vehicle.make,
+          model: result.vehicle.model,
+          year: result.vehicle.year,
+          mileage: result.vehicle.mileage || 45000,
+          condition: result.vehicle.condition || 'Good',
+          zipCode: zipCode || '90210'
+        });
+        
+        toast.success('License plate lookup completed!');
+        navigate(`/results/${valuationResult.valuationId}`);
+        
+      } else {
+        console.error('❌ Plate Lookup: Failed:', result?.error);
+        toast.error('Failed to find vehicle by license plate. Please try VIN or manual entry.');
+      }
       
     } catch (error) {
-      console.error('Plate lookup error:', error);
-      toast.error('Failed to process license plate lookup. Please try again.');
-    } finally {
-      setIsPlateLoading(false);
+      console.error('❌ Plate lookup error:', error);
+      toast.error('Plate lookup service temporarily unavailable. Please try again.');
     }
   };
 
@@ -195,7 +218,7 @@ export function UnifiedLookupTabs() {
             <CardHeader>
               <CardTitle>VIN Lookup</CardTitle>
               <p className="text-muted-foreground">
-                Enter your vehicle's 17-character VIN for instant valuation
+                Enter your vehicle's 17-character VIN for instant valuation using real NHTSA data
               </p>
             </CardHeader>
             <CardContent>
@@ -218,18 +241,18 @@ export function UnifiedLookupTabs() {
                 </div>
                 <Button 
                   type="submit" 
-                  disabled={!validateVin(vin) || isVinLoading}
+                  disabled={!validateVin(vin) || isUnifiedLoading}
                   className="w-full"
                 >
-                  {isVinLoading ? (
+                  {isUnifiedLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Processing VIN...
+                      Decoding VIN with NHTSA...
                     </>
                   ) : (
                     <>
                       <Search className="w-4 h-4 mr-2" />
-                      Get Valuation
+                      Get Real Vehicle Data
                     </>
                   )}
                 </Button>
@@ -243,7 +266,7 @@ export function UnifiedLookupTabs() {
             <CardHeader>
               <CardTitle>Manual Entry</CardTitle>
               <p className="text-muted-foreground">
-                Enter vehicle details manually if you don't have the VIN
+                Enter vehicle details manually using our comprehensive database
               </p>
             </CardHeader>
             <CardContent>
@@ -257,7 +280,7 @@ export function UnifiedLookupTabs() {
                   onModelChange={setSelectedModelId}
                   onTrimChange={setSelectedTrimId}
                   onYearChange={setSelectedYear}
-                  isDisabled={isManualLoading}
+                  isDisabled={isUnifiedLoading}
                   showTrim={true}
                   showYear={true}
                   compact={true}
@@ -303,10 +326,10 @@ export function UnifiedLookupTabs() {
                 
                 <Button 
                   type="submit" 
-                  disabled={!selectedMakeId || !selectedModelId || !selectedYear || isManualLoading}
+                  disabled={!selectedMakeId || !selectedModelId || !selectedYear || isUnifiedLoading}
                   className="w-full"
                 >
-                  {isManualLoading ? (
+                  {isUnifiedLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Processing...
@@ -314,7 +337,7 @@ export function UnifiedLookupTabs() {
                   ) : (
                     <>
                       <Car className="w-4 h-4 mr-2" />
-                      Get Valuation
+                      Get Valuation from Database
                     </>
                   )}
                 </Button>
@@ -358,10 +381,10 @@ export function UnifiedLookupTabs() {
                 </div>
                 <Button 
                   type="submit" 
-                  disabled={!plateData.plate || !plateData.state || isPlateLoading}
+                  disabled={!plateData.plate || !plateData.state || isUnifiedLoading}
                   className="w-full"
                 >
-                  {isPlateLoading ? (
+                  {isUnifiedLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Looking up plate...

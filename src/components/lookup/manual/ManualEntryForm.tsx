@@ -6,6 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { VEHICLE_CONDITIONS, FUEL_TYPES, TRANSMISSION_TYPES } from '@/lib/constants';
+import { EnhancedVehicleSelector } from '@/components/lookup/form-parts/EnhancedVehicleSelector';
+import { useMakeModels } from '@/hooks/useMakeModels';
+import { useUnifiedLookup } from '@/hooks/useUnifiedLookup';
+import { toast } from 'sonner';
 
 export interface ManualEntryFormData {
   year: string;
@@ -24,106 +28,109 @@ interface ManualEntryFormProps {
 }
 
 export function ManualEntryForm({ tier = "free", onSubmit }: ManualEntryFormProps) {
-  const [formData, setFormData] = useState<Partial<ManualEntryFormData>>({
-    year: '',
-    make: '',
-    model: '',
-    mileage: '',
-    condition: 'good',
-    zipCode: '',
-    fuelType: 'gasoline',
-    transmission: 'automatic'
-  });
+  // Use the enhanced vehicle selector states
+  const [selectedMakeId, setSelectedMakeId] = useState('');
+  const [selectedModelId, setSelectedModelId] = useState('');
+  const [selectedTrimId, setSelectedTrimId] = useState('');
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  
+  // Additional form data
+  const [mileage, setMileage] = useState('');
+  const [condition, setCondition] = useState('good');
+  const [zipCode, setZipCode] = useState('');
+  const [fuelType, setFuelType] = useState('gasoline');
+  const [transmission, setTransmission] = useState('automatic');
+
+  const { findMakeById, findModelById } = useMakeModels();
+  const { processManualEntry, isLoading } = useUnifiedLookup({ mode: 'vpic', tier });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Manual entry form submitted:', formData);
     
-    if (onSubmit) {
-      await onSubmit(formData);
+    if (!selectedMakeId || !selectedModelId || !selectedYear) {
+      toast.error('Please select make, model, and year');
+      return;
     }
-  };
 
-  const handleInputChange = (field: keyof ManualEntryFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    console.log('📝 ManualEntryForm: Processing standardized manual entry');
+    
+    try {
+      // Get the actual make and model names from the database
+      const selectedMake = findMakeById(selectedMakeId);
+      const selectedModel = findModelById(selectedModelId);
+      
+      if (!selectedMake || !selectedModel) {
+        toast.error('Invalid make or model selection');
+        return;
+      }
+
+      const formData = {
+        make: selectedMake.make_name,
+        model: selectedModel.model_name,
+        year: selectedYear.toString(),
+        mileage: mileage,
+        condition: condition,
+        zipCode: zipCode,
+        fuelType: fuelType,
+        transmission: transmission
+      };
+
+      console.log('📝 ManualEntryForm: Submitting data:', formData);
+      
+      if (onSubmit) {
+        await onSubmit(formData);
+      } else {
+        // Use unified lookup service for processing
+        const result = processManualEntry(formData);
+        if (result && result.success) {
+          toast.success('Manual entry processed successfully!');
+        } else {
+          toast.error('Failed to process manual entry');
+        }
+      }
+    } catch (error) {
+      console.error('❌ ManualEntryForm: Submission failed:', error);
+      toast.error('Failed to process manual entry. Please try again.');
+    }
   };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Manual Vehicle Entry</CardTitle>
+        <p className="text-muted-foreground">
+          Enter vehicle details using our comprehensive database
+        </p>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <EnhancedVehicleSelector
+            selectedMakeId={selectedMakeId}
+            selectedModelId={selectedModelId}
+            selectedTrimId={selectedTrimId}
+            selectedYear={selectedYear}
+            onMakeChange={setSelectedMakeId}
+            onModelChange={setSelectedModelId}
+            onTrimChange={setSelectedTrimId}
+            onYearChange={setSelectedYear}
+            isDisabled={isLoading}
+            showTrim={true}
+            showYear={true}
+            compact={false}
+          />
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="year">Year</Label>
-              <Input
-                id="year"
-                type="number"
-                placeholder="2020"
-                value={formData.year}
-                onChange={(e) => handleInputChange('year', e.target.value)}
-                min="1900"
-                max={new Date().getFullYear() + 1}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="make">Make</Label>
-              <Input
-                id="make"
-                type="text"
-                placeholder="Toyota"
-                value={formData.make}
-                onChange={(e) => handleInputChange('make', e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="model">Model</Label>
-              <Input
-                id="model"
-                type="text"
-                placeholder="Camry"
-                value={formData.model}
-                onChange={(e) => handleInputChange('model', e.target.value)}
-                required
-              />
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="mileage">Mileage</Label>
               <Input
                 id="mileage"
                 type="number"
                 placeholder="50000"
-                value={formData.mileage}
-                onChange={(e) => handleInputChange('mileage', e.target.value)}
+                value={mileage}
+                onChange={(e) => setMileage(e.target.value)}
                 min="0"
                 required
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="condition">Condition</Label>
-              <Select 
-                value={formData.condition} 
-                onValueChange={(value: string) => handleInputChange('condition', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select condition" />
-                </SelectTrigger>
-                <SelectContent>
-                  {VEHICLE_CONDITIONS.map((condition) => (
-                    <SelectItem key={condition.value} value={condition.value}>
-                      {condition.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="space-y-2">
@@ -132,18 +139,37 @@ export function ManualEntryForm({ tier = "free", onSubmit }: ManualEntryFormProp
                 id="zipCode"
                 type="text"
                 placeholder="12345"
-                value={formData.zipCode}
-                onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                value={zipCode}
+                onChange={(e) => setZipCode(e.target.value)}
                 maxLength={5}
                 required
               />
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="condition">Condition</Label>
+              <Select 
+                value={condition} 
+                onValueChange={setCondition}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select condition" />
+                </SelectTrigger>
+                <SelectContent>
+                  {VEHICLE_CONDITIONS.map((conditionOption) => (
+                    <SelectItem key={conditionOption.value} value={conditionOption.value}>
+                      {conditionOption.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="fuelType">Fuel Type</Label>
               <Select 
-                value={formData.fuelType} 
-                onValueChange={(value: string) => handleInputChange('fuelType', value)}
+                value={fuelType} 
+                onValueChange={setFuelType}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select fuel type" />
@@ -158,11 +184,11 @@ export function ManualEntryForm({ tier = "free", onSubmit }: ManualEntryFormProp
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <Label htmlFor="transmission">Transmission</Label>
               <Select 
-                value={formData.transmission} 
-                onValueChange={(value: string) => handleInputChange('transmission', value)}
+                value={transmission} 
+                onValueChange={setTransmission}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select transmission" />
@@ -178,8 +204,12 @@ export function ManualEntryForm({ tier = "free", onSubmit }: ManualEntryFormProp
             </div>
           </div>
 
-          <Button type="submit" className="w-full">
-            Get Valuation
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={!selectedMakeId || !selectedModelId || !selectedYear || isLoading}
+          >
+            {isLoading ? 'Processing...' : 'Get Valuation'}
           </Button>
         </form>
       </CardContent>
