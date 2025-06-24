@@ -150,7 +150,7 @@ export default function ValuationFollowUpPage() {
           </div>
           
           <FollowUpQuestions 
-            onSubmit={handle
+            onSubmit={handleSubmitAnswers}
             isLoading={isSubmitting}
           />
         </div>
