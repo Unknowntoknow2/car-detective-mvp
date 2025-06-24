@@ -39,6 +39,12 @@ export async function runCorrectedValuationPipeline(
 ): Promise<CorrectedValuationResult> {
   try {
     console.log('🚀 Starting corrected valuation pipeline:', input);
+    console.log('🧠 Running correctedValuationPipeline with:');
+    console.log('  VIN:', input.vin);
+    console.log('  Year:', input.year);
+    console.log('  Decoded Trim:', input.trim);
+    console.log('  Mileage:', input.followUpAnswers?.mileage);
+    console.log('  ZIP:', input.zipCode);
 
     // Get or create follow-up answers
     let followUpAnswers = input.followUpAnswers;
@@ -86,6 +92,7 @@ export async function runCorrectedValuationPipeline(
     // Calculate valuation using the engine
     const result = await engine.calculateValuation(engineInput);
     console.log('🎯 Valuation engine result:', result);
+    console.log('🧮 Calculated base value:', result.basePrice, 'Confidence:', result.confidenceScore + '%');
 
     // Validate result
     if (!result.estimatedValue || result.estimatedValue <= 0) {

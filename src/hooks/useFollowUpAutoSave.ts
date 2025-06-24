@@ -23,9 +23,12 @@ export function useFollowUpAutoSave({
 
   // Prepare safe data for database save
   const prepareSafeDataForSave = useCallback((dataToSave: FollowUpAnswers) => {
+    const userId = dataToSave.user_id || null;
+    console.log('👤 Saving with user_id:', userId || 'anonymous');
+    
     return {
       vin: dataToSave.vin,
-      user_id: dataToSave.user_id || null, // Allow null for anonymous users
+      user_id: userId,
       valuation_id: dataToSave.valuation_id,
       zip_code: dataToSave.zip_code,
       mileage: dataToSave.mileage,
@@ -65,8 +68,10 @@ export function useFollowUpAutoSave({
     try {
       setIsSaving(true);
       setSaveError(null);
+      console.log('🔐 Upserting follow_up_answers...');
       
       const saveData = prepareSafeDataForSave(dataToSave);
+      console.log('🧪 Upsert payload VIN:', saveData.vin, 'valuation_id:', saveData.valuation_id || 'missing');
       
       const { error } = await supabase
         .from('follow_up_answers')
@@ -75,6 +80,7 @@ export function useFollowUpAutoSave({
         });
 
       if (error) {
+        console.error('❌ Upsert failed — RLS or schema constraint? Error:', error.message);
         console.error('Save error details:', error);
         
         // Enhanced error handling for specific cases
@@ -97,6 +103,7 @@ export function useFollowUpAutoSave({
       }
 
       // Success
+      console.log('✔️ Success');
       setSaveError(null);
       setLastSaveTime(new Date());
       retryCountRef.current = 0;
