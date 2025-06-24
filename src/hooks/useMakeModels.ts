@@ -53,7 +53,6 @@ export function useMakeModels(): UseMakeModelsReturn {
     setError(null);
     
     try {
-      console.log('🔄 Fetching makes from Supabase...');
       const { data, error: fetchError } = await supabase
         .from('makes')
         .select('id, make_name')
@@ -63,8 +62,6 @@ export function useMakeModels(): UseMakeModelsReturn {
         console.error('❌ Supabase makes fetch error:', fetchError);
         throw fetchError;
       }
-
-      console.log('✅ Fetched makes from Supabase:', data?.length || 0, 'records');
 
       const formattedMakes: Make[] = (data || []).map(make => ({
         id: make.id,
@@ -84,28 +81,19 @@ export function useMakeModels(): UseMakeModelsReturn {
 
   const fetchModelsByMakeId = async (makeId: string): Promise<void> => {
     if (!makeId) {
-      console.log('⚠️ No makeId provided, clearing models');
       setModels([]);
       return;
     }
 
-    console.log('🔄 Starting fetchModelsByMakeId with makeId:', makeId);
     setIsLoading(true);
     setError(null);
     
     try {
-      console.log('🔄 Querying Supabase models table for make_id:', makeId);
       const { data, error: fetchError } = await supabase
         .from('models')
         .select('id, make_id, model_name')
         .eq('make_id', makeId)
         .order('model_name');
-
-      console.log('📊 Supabase models query result:', {
-        error: fetchError,
-        dataLength: data?.length || 0,
-        firstFewRecords: data?.slice(0, 3)
-      });
 
       if (fetchError) {
         console.error('❌ Supabase models fetch error:', fetchError);
@@ -115,13 +103,10 @@ export function useMakeModels(): UseMakeModelsReturn {
       }
 
       if (!data || data.length === 0) {
-        console.warn('⚠️ No models found for makeId:', makeId);
         setError(`No models found for the selected make`);
         setModels([]);
         return;
       }
-
-      console.log('✅ Successfully fetched models from Supabase:', data.length, 'records for make:', makeId);
 
       const formattedModels: Model[] = data.map(model => ({
         id: model.id,
@@ -140,13 +125,11 @@ export function useMakeModels(): UseMakeModelsReturn {
       setModels([]);
     } finally {
       setIsLoading(false);
-      console.log('🏁 fetchModelsByMakeId completed');
     }
   };
 
   const fetchTrimsByModelId = async (modelId: string, year?: number): Promise<void> => {
     if (!modelId) {
-      console.log('⚠️ No modelId provided, clearing trims');
       setTrims([]);
       return;
     }
@@ -155,7 +138,6 @@ export function useMakeModels(): UseMakeModelsReturn {
     setError(null);
     
     try {
-      console.log('🔄 Fetching trims for model ID:', modelId, 'year:', year);
       let query = supabase
         .from('model_trims')
         .select('id, trim_name, model_id, year, msrp, engine_type, transmission, fuel_type')
@@ -172,8 +154,6 @@ export function useMakeModels(): UseMakeModelsReturn {
         console.error('❌ Supabase trims fetch error:', fetchError);
         throw fetchError;
       }
-
-      console.log('✅ Fetched trims from Supabase:', data?.length || 0, 'records for model:', modelId);
 
       setTrims(data || []);
     } catch (err: any) {
@@ -203,8 +183,11 @@ export function useMakeModels(): UseMakeModelsReturn {
   };
 
   const getPopularMakes = (): Make[] => {
-    // For now, return first 10 makes as "popular"
-    return makes.slice(0, 10);
+    // Return most common/popular makes based on typical usage
+    const popularMakeNames = ['Toyota', 'Honda', 'Ford', 'Chevrolet', 'BMW', 'Mercedes-Benz', 'Audi', 'Nissan', 'Hyundai', 'Kia'];
+    return makes
+      .filter(make => popularMakeNames.includes(make.make_name))
+      .slice(0, 10);
   };
 
   return {

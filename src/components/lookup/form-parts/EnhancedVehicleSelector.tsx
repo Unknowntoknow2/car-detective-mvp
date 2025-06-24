@@ -51,17 +51,6 @@ export function EnhancedVehicleSelector({
   } = useMakeModels();
 
   const [makeSearchQuery, setMakeSearchQuery] = useState('');
-  const [showMakeSearch, setShowMakeSearch] = useState(false);
-
-  console.log('🔍 EnhancedVehicleSelector render state:', {
-    selectedMakeId,
-    selectedModelId,
-    makesCount: makes.length,
-    modelsCount: models.length,
-    trimsCount: trims.length,
-    isLoading,
-    error
-  });
 
   // Filter makes based on search
   const filteredMakes = makeSearchQuery ? searchMakes(makeSearchQuery) : makes;
@@ -69,8 +58,6 @@ export function EnhancedVehicleSelector({
 
   // Handle make selection and fetch models
   const handleMakeChange = async (makeId: string) => {
-    console.log('🔄 Make selected:', makeId);
-    
     // Update parent state immediately
     onMakeChange(makeId);
     onModelChange(''); // Reset model
@@ -78,10 +65,8 @@ export function EnhancedVehicleSelector({
     
     // Fetch models for the selected make
     if (makeId) {
-      console.log('🔄 Calling fetchModelsByMakeId with makeId:', makeId);
       try {
         await fetchModelsByMakeId(makeId);
-        console.log('✅ fetchModelsByMakeId completed');
       } catch (error) {
         console.error('❌ Error in fetchModelsByMakeId:', error);
       }
@@ -90,30 +75,24 @@ export function EnhancedVehicleSelector({
 
   // Handle model selection and fetch trims
   const handleModelChange = async (modelId: string) => {
-    console.log('🔄 Model selected:', modelId);
-    
     // Update parent state immediately
     onModelChange(modelId);
     onTrimChange(''); // Reset trim
     
     // Fetch trims if we have both model and year
     if (modelId && selectedYear) {
-      console.log('🔄 Fetching trims for modelId:', modelId, 'year:', selectedYear);
       await fetchTrimsByModelId(modelId, selectedYear);
     }
   };
 
   // Handle year change and refetch trims
   const handleYearChange = (year: number) => {
-    console.log('🔄 Year selected:', year);
-    
     // Update parent state immediately
     onYearChange(year);
     onTrimChange(''); // Reset trim
     
     // Fetch trims if we have both model and year
     if (selectedModelId) {
-      console.log('🔄 Fetching trims for modelId:', selectedModelId, 'year:', year);
       fetchTrimsByModelId(selectedModelId, year);
     }
   };
@@ -309,21 +288,7 @@ export function EnhancedVehicleSelector({
       {isLoading && (
         <div className="text-sm text-gray-500 flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          Loading vehicle data from database...
-        </div>
-      )}
-
-      {/* Debug Info */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 p-2 bg-gray-100 rounded text-xs">
-          <div>Makes: {makes.length}</div>
-          <div>Models: {models.length}</div>
-          <div>Trims: {trims.length}</div>
-          <div>Selected Make ID: {selectedMakeId}</div>
-          <div>Selected Model ID: {selectedModelId}</div>
-          <div>Selected Year: {selectedYear}</div>
-          <div>Is Loading: {isLoading ? 'Yes' : 'No'}</div>
-          <div>Error: {error || 'None'}</div>
+          Loading vehicle data...
         </div>
       )}
     </div>
