@@ -7,17 +7,17 @@ export const CoreValueProps: React.FC = () => {
     {
       icon: <Zap className="w-8 h-8" />,
       title: "Instant Results",
-      description: "Get professional valuations in under 30 seconds with AI-powered analysis."
+      description: "Get professional valuations in under 30 seconds with AI-powered analysis and real-time market data."
     },
     {
       icon: <BarChart3 className="w-8 h-8" />,
       title: "Market Precision",
-      description: "Real-time data and NADA-compliant methodology ensure accurate valuations."
+      description: "Advanced algorithms analyze thousands of data points to deliver the most accurate valuations available."
     },
     {
       icon: <Shield className="w-8 h-8" />,
       title: "Professional Grade",
-      description: "Bank-level security and compliance standards protect your information."
+      description: "Enterprise-level security and compliance standards trusted by financial institutions and dealers."
     }
   ];
 
@@ -25,6 +25,15 @@ export const CoreValueProps: React.FC = () => {
     <section className="py-20 bg-white">
       <div className="container mx-auto px-6">
         <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Why Choose Our Platform
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Built for professionals who demand accuracy, speed, and reliability in vehicle valuations.
+            </p>
+          </div>
+          
           <div className="grid lg:grid-cols-3 gap-12">
             {values.map((value, index) => (
               <div key={index} className="text-center">

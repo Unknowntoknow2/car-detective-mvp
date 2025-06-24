@@ -10,7 +10,7 @@ export const InstantTrustBar: React.FC = () => {
     },
     {
       icon: <Award className="w-5 h-5" />,
-      text: "NADA Compliant"
+      text: "Industry Standards"
     },
     {
       icon: <Shield className="w-5 h-5" />,

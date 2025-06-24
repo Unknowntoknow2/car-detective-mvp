@@ -21,8 +21,8 @@ export const PremiumHeroSection: React.FC = () => {
           </h1>
           
           <p className="text-xl lg:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Instant, accurate vehicle valuations powered by real market data. 
-            More precise than KBB, faster than appraisals.
+            Instant, accurate vehicle valuations powered by real market data and AI technology. 
+            Professional-grade precision in seconds.
           </p>
 
           <Button
