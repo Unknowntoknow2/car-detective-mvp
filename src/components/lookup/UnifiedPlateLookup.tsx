@@ -74,7 +74,7 @@ export function UnifiedPlateLookup({
                 <SelectValue placeholder="Select state" />
               </SelectTrigger>
               <SelectContent>
-                {US_STATES.map((state) => (
+                {US_STATES.map((state: { value: string; label: string }) => (
                   <SelectItem key={state.value} value={state.value}>
                     {state.label}
                   </SelectItem>
