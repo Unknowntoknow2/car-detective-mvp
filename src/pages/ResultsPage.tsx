@@ -69,6 +69,7 @@ export default function ResultsPage() {
           searchParams.get('id');
 
         console.log('🔍 Loading valuation data for ID:', valuationId);
+        console.log('📊 Rendering result for valuation_id:', valuationId);
 
         if (!valuationId) {
           console.log('❌ No valuation ID found');
@@ -92,6 +93,18 @@ export default function ResultsPage() {
           toast.error('Invalid valuation data - please try again');
           setLoading(false);
           return;
+        }
+
+        console.log('📊 Rendering result for VIN:', data.vin || 'missing');
+        console.log('📉 Confidence:', (data.confidence_score || 75) + '% — market data missing?');
+
+        if (!data.vin) {
+          console.log('⚠️ Cannot enrich results — valuation record lacks VIN linkage');
+        }
+
+        // Check for missing MSRP
+        if (data.estimated_value && data.estimated_value < 25000 && data.make === 'Toyota') {
+          console.log('⚠️ Missing MSRP prevents accurate baseline valuation');
         }
 
         console.log('✅ Setting valuation data');
