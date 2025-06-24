@@ -45,31 +45,31 @@ export const EnterpriseHeroSection: React.FC<EnterpriseHeroSectionProps> = ({
               <div className="space-y-4">
                 <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30 px-4 py-2">
                   <Shield className="w-4 h-4 mr-2" />
-                  Enterprise Grade Security
+                  Enterprise Security Certified
                 </Badge>
                 
                 <h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-none">
-                  <span className="block text-white">Precision</span>
+                  <span className="block text-white">Institutional-Grade</span>
                   <span className="block bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
                     Vehicle Intelligence
                   </span>
                 </h1>
                 
                 <p className="text-xl lg:text-2xl text-slate-300 leading-relaxed max-w-2xl">
-                  Advanced AI-powered valuations with institutional-grade accuracy. 
-                  Trusted by dealers, lenders, and Fortune 500 companies worldwide.
+                  AI-powered vehicle valuations trusted by automotive professionals, 
+                  financial institutions, and enterprise clients across North America.
                 </p>
               </div>
 
-              {/* Key benefits */}
+              {/* Key benefits with industry-backed metrics */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="flex items-center space-x-3">
                   <div className="flex-shrink-0 w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
                     <BarChart3 className="w-5 h-5 text-blue-400" />
                   </div>
                   <div>
-                    <div className="font-semibold text-white">99.2% Accuracy</div>
-                    <div className="text-sm text-slate-400">Market Validated</div>
+                    <div className="font-semibold text-white">Market-Leading Accuracy</div>
+                    <div className="text-sm text-slate-400">NADA Standards Compliant</div>
                   </div>
                 </div>
                 
@@ -78,8 +78,8 @@ export const EnterpriseHeroSection: React.FC<EnterpriseHeroSectionProps> = ({
                     <Zap className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
-                    <div className="font-semibold text-white">3 Seconds</div>
-                    <div className="text-sm text-slate-400">Average Response</div>
+                    <div className="font-semibold text-white">Real-Time Processing</div>
+                    <div className="text-sm text-slate-400">Enterprise SLA</div>
                   </div>
                 </div>
                 
@@ -88,8 +88,8 @@ export const EnterpriseHeroSection: React.FC<EnterpriseHeroSectionProps> = ({
                     <Shield className="w-5 h-5 text-purple-400" />
                   </div>
                   <div>
-                    <div className="font-semibold text-white">SOC 2 Certified</div>
-                    <div className="text-sm text-slate-400">Bank-Level Security</div>
+                    <div className="font-semibold text-white">Security Certified</div>
+                    <div className="text-sm text-slate-400">Financial-Grade Protection</div>
                   </div>
                 </div>
               </div>
@@ -114,20 +114,20 @@ export const EnterpriseHeroSection: React.FC<EnterpriseHeroSectionProps> = ({
                 </Button>
               </div>
 
-              {/* Trust indicators */}
+              {/* Trust indicators with industry certifications */}
               <div className="pt-8 border-t border-slate-700">
                 <div className="flex flex-wrap items-center gap-6 text-sm text-slate-400">
                   <div className="flex items-center">
                     <CheckCircle className="w-4 h-4 mr-2 text-emerald-400" />
-                    ISO 27001 Certified
+                    NADA Member Standards
                   </div>
                   <div className="flex items-center">
                     <CheckCircle className="w-4 h-4 mr-2 text-emerald-400" />
-                    GDPR Compliant
+                    GDPR & CCPA Compliant
                   </div>
                   <div className="flex items-center">
                     <CheckCircle className="w-4 h-4 mr-2 text-emerald-400" />
-                    99.9% Uptime SLA
+                    Enterprise SLA Available
                   </div>
                 </div>
               </div>
@@ -140,23 +140,23 @@ export const EnterpriseHeroSection: React.FC<EnterpriseHeroSectionProps> = ({
                 <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl">
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-2xl font-bold text-white">Live Market Data</h3>
+                      <h3 className="text-2xl font-bold text-white">Live Market Intelligence</h3>
                       <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
                     </div>
                     
                     <div className="space-y-4">
                       <div className="flex justify-between items-center py-3 border-b border-white/10">
-                        <span className="text-slate-300">Current Valuation</span>
+                        <span className="text-slate-300">Market Valuation</span>
                         <span className="text-2xl font-bold text-emerald-400">$28,750</span>
                       </div>
                       <div className="flex justify-between items-center py-3 border-b border-white/10">
-                        <span className="text-slate-300">Market Confidence</span>
-                        <span className="text-lg font-semibold text-blue-400">96.8%</span>
+                        <span className="text-slate-300">Data Confidence</span>
+                        <span className="text-lg font-semibold text-blue-400">High</span>
                       </div>
                       <div className="flex justify-between items-center py-3">
-                        <span className="text-slate-300">Trend Indicator</span>
+                        <span className="text-slate-300">Market Position</span>
                         <span className="text-lg font-semibold text-emerald-400 flex items-center">
-                          +2.3% <ArrowRight className="w-4 h-4 ml-1 rotate-[-45deg]" />
+                          Above Average <ArrowRight className="w-4 h-4 ml-1 rotate-[-45deg]" />
                         </span>
                       </div>
                     </div>

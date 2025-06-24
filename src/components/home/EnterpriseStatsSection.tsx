@@ -6,27 +6,27 @@ export const EnterpriseStatsSection: React.FC = () => {
   const stats = [
     {
       icon: <Users className="w-8 h-8" />,
-      value: "2.5M+",
-      label: "Valuations Processed",
-      subtext: "Trusted worldwide"
+      value: "100K+",
+      label: "Valuations Completed",
+      subtext: "Professional grade analysis"
     },
     {
       icon: <TrendingUp className="w-8 h-8" />,
-      value: "99.2%",
-      label: "Prediction Accuracy",
-      subtext: "Market validated"
+      value: "95%+",
+      label: "Market Accuracy Rate",
+      subtext: "Industry benchmarked"
     },
     {
       icon: <Globe className="w-8 h-8" />,
       value: "50+",
-      label: "Countries Served",
-      subtext: "Global coverage"
+      label: "US States Covered",
+      subtext: "Complete market coverage"
     },
     {
       icon: <Award className="w-8 h-8" />,
-      value: "500+",
-      label: "Enterprise Clients",
-      subtext: "Fortune 500 companies"
+      value: "NADA",
+      label: "Standards Compliant",
+      subtext: "Industry certified methodology"
     }
   ];
 
