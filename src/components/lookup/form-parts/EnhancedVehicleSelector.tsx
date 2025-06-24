@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Star, AlertCircle, Loader2 } from 'lucide-react';
+import { Search, Star, AlertCircle, Loader2, Database, Clock } from 'lucide-react';
 import { useMakeModels } from '@/hooks/useMakeModels';
 
 interface EnhancedVehicleSelectorProps {
@@ -47,7 +47,8 @@ export function EnhancedVehicleSelector({
     searchMakes,
     getPopularMakes,
     findMakeById,
-    findModelById
+    findModelById,
+    debugInfo
   } = useMakeModels();
 
   const [makeSearchQuery, setMakeSearchQuery] = useState('');
@@ -58,7 +59,8 @@ export function EnhancedVehicleSelector({
 
   // Handle make selection and fetch models
   const handleMakeChange = async (makeId: string) => {
-    console.log('🎯 Make selected:', makeId, 'Make name:', findMakeById(makeId)?.make_name);
+    const selectedMake = findMakeById(makeId);
+    console.log('🎯 Make selected:', makeId, 'Make name:', selectedMake?.make_name);
     
     // Update parent state immediately
     onMakeChange(makeId);
@@ -77,7 +79,8 @@ export function EnhancedVehicleSelector({
 
   // Handle model selection and fetch trims
   const handleModelChange = async (modelId: string) => {
-    console.log('🎯 Model selected:', modelId, 'Model name:', findModelById(modelId)?.model_name);
+    const selectedModel = findModelById(modelId);
+    console.log('🎯 Model selected:', modelId, 'Model name:', selectedModel?.model_name);
     
     // Update parent state immediately
     onModelChange(modelId);
@@ -111,12 +114,46 @@ export function EnhancedVehicleSelector({
     ? "grid grid-cols-2 gap-3" 
     : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4";
 
+  // Get detailed error messages
+  const getModelSelectPlaceholder = () => {
+    if (!selectedMakeId) return "Select make first";
+    if (isLoading) return "Loading models...";
+    if (error) return error;
+    if (models.length === 0) return "No models available";
+    return "Select model";
+  };
+
+  const getModelSelectStatus = () => {
+    if (!selectedMakeId) return "disabled";
+    if (isLoading) return "loading";
+    if (error) return "error";
+    if (models.length === 0) return "empty";
+    return "ready";
+  };
+
   return (
     <div className="space-y-4">
+      {/* Error Display */}
       {error && (
         <div className="text-sm text-red-500 bg-red-50 p-3 rounded-md flex items-center gap-2">
           <AlertCircle className="w-4 h-4" />
-          {error}
+          <div>
+            <div className="font-medium">Database Error</div>
+            <div>{error}</div>
+            {selectedMakeId && (
+              <div className="text-xs mt-1 text-red-400">
+                Make ID: {selectedMakeId} ({findMakeById(selectedMakeId)?.make_name || 'Unknown'})
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Loading Indicator */}
+      {isLoading && (
+        <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-md flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Loading vehicle data...
         </div>
       )}
 
@@ -130,10 +167,10 @@ export function EnhancedVehicleSelector({
           <Select 
             value={selectedMakeId || ""} 
             onValueChange={handleMakeChange}
-            disabled={isDisabled || isLoading}
+            disabled={isDisabled || (isLoading && !selectedMakeId)}
           >
             <SelectTrigger>
-              <SelectValue placeholder={isLoading ? "Loading makes..." : "Select make"} />
+              <SelectValue placeholder={isLoading && !makes.length ? "Loading makes..." : "Select make"} />
             </SelectTrigger>
             <SelectContent className="max-h-80">
               {/* Popular Makes Section */}
@@ -175,25 +212,27 @@ export function EnhancedVehicleSelector({
           <Select 
             value={selectedModelId || ""} 
             onValueChange={handleModelChange}
-            disabled={isDisabled || !selectedMakeId || isLoading}
+            disabled={isDisabled || !selectedMakeId || getModelSelectStatus() === "loading"}
           >
-            <SelectTrigger>
+            <SelectTrigger className={
+              getModelSelectStatus() === "error" ? "border-red-300" : 
+              getModelSelectStatus() === "empty" ? "border-yellow-300" : ""
+            }>
               <div className="flex items-center gap-2 w-full">
-                {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                <SelectValue placeholder={
-                  !selectedMakeId 
-                    ? "Select make first" 
-                    : isLoading 
-                      ? "Loading models..." 
-                      : models.length === 0 
-                        ? "No models available"
-                        : "Select model"
-                } />
+                {getModelSelectStatus() === "loading" && <Loader2 className="w-4 h-4 animate-spin" />}
+                {getModelSelectStatus() === "error" && <AlertCircle className="w-4 h-4 text-red-500" />}
+                {getModelSelectStatus() === "empty" && <Database className="w-4 h-4 text-yellow-500" />}
+                <SelectValue placeholder={getModelSelectPlaceholder()} />
               </div>
             </SelectTrigger>
             <SelectContent className="max-h-80">
               <div className="px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-50">
                 Models ({models.length})
+                {selectedMakeId && (
+                  <span className="ml-2 text-blue-600">
+                    for {findMakeById(selectedMakeId)?.make_name}
+                  </span>
+                )}
               </div>
               {models.map((model) => (
                 <SelectItem key={model.id} value={model.id}>
@@ -299,11 +338,48 @@ export function EnhancedVehicleSelector({
       {/* Debug Information (only in development) */}
       {process.env.NODE_ENV === 'development' && (
         <div className="mt-4 p-3 bg-gray-100 rounded-lg text-xs text-gray-600">
-          <div className="font-semibold">Debug Info:</div>
-          <div>Selected Make ID: {selectedMakeId || 'none'}</div>
-          <div>Available Models: {models.length}</div>
-          <div>Loading State: {isLoading ? 'true' : 'false'}</div>
-          <div>Error State: {error || 'none'}</div>
+          <div className="font-semibold mb-2 flex items-center gap-2">
+            <Database className="w-3 h-3" />
+            Debug Information
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <strong>Selected Make ID:</strong> {selectedMakeId || 'none'}
+            </div>
+            <div>
+              <strong>Available Models:</strong> {models.length}
+            </div>
+            <div>
+              <strong>Loading State:</strong> {isLoading ? 'true' : 'false'}
+            </div>
+            <div>
+              <strong>Error State:</strong> {error || 'none'}
+            </div>
+            {debugInfo.lastMakeQuery && (
+              <>
+                <div>
+                  <strong>Last Query:</strong> {debugInfo.lastMakeQuery}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  <strong>Query Time:</strong> {debugInfo.queryExecutionTime}ms
+                </div>
+              </>
+            )}
+            {debugInfo.lastModelQueryResult && (
+              <div className="col-span-2 mt-2 p-2 bg-gray-200 rounded text-xs">
+                <strong>Last Query Result:</strong>
+                <pre className="mt-1 whitespace-pre-wrap">
+                  {JSON.stringify({
+                    count: debugInfo.lastModelQueryResult.count,
+                    dataLength: debugInfo.lastModelQueryResult.data?.length,
+                    error: debugInfo.lastModelQueryResult.error?.message,
+                    queryTime: debugInfo.lastModelQueryResult.queryTime
+                  }, null, 2)}
+                </pre>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
