@@ -45,7 +45,9 @@ export function EnhancedVehicleSelector({
     fetchModelsByMakeId,
     fetchTrimsByModelId,
     searchMakes,
-    getPopularMakes
+    getPopularMakes,
+    findMakeById,
+    findModelById
   } = useMakeModels();
 
   const [makeSearchQuery, setMakeSearchQuery] = useState('');
@@ -58,11 +60,15 @@ export function EnhancedVehicleSelector({
   // Handle make selection and fetch models
   const handleMakeChange = async (makeId: string) => {
     console.log('🔄 Make selected:', makeId);
+    
+    // Update parent state immediately
     onMakeChange(makeId);
     onModelChange(''); // Reset model
     onTrimChange(''); // Reset trim
     
+    // Fetch models for the selected make
     if (makeId) {
+      console.log('🔄 Fetching models for makeId:', makeId);
       await fetchModelsByMakeId(makeId);
     }
   };
@@ -70,10 +76,14 @@ export function EnhancedVehicleSelector({
   // Handle model selection and fetch trims
   const handleModelChange = async (modelId: string) => {
     console.log('🔄 Model selected:', modelId);
+    
+    // Update parent state immediately
     onModelChange(modelId);
     onTrimChange(''); // Reset trim
     
+    // Fetch trims if we have both model and year
     if (modelId && selectedYear) {
+      console.log('🔄 Fetching trims for modelId:', modelId, 'year:', selectedYear);
       await fetchTrimsByModelId(modelId, selectedYear);
     }
   };
@@ -81,10 +91,14 @@ export function EnhancedVehicleSelector({
   // Handle year change and refetch trims
   const handleYearChange = (year: number) => {
     console.log('🔄 Year selected:', year);
+    
+    // Update parent state immediately
     onYearChange(year);
     onTrimChange(''); // Reset trim
     
+    // Fetch trims if we have both model and year
     if (selectedModelId) {
+      console.log('🔄 Fetching trims for modelId:', selectedModelId, 'year:', year);
       fetchTrimsByModelId(selectedModelId, year);
     }
   };
@@ -113,84 +127,44 @@ export function EnhancedVehicleSelector({
             Make <span className="text-red-500">*</span>
           </Label>
           
-          {!showMakeSearch ? (
-            <Select 
-              value={selectedMakeId || ""} 
-              onValueChange={handleMakeChange}
-              disabled={isDisabled || isLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={isLoading ? "Loading makes..." : "Select make"} />
-              </SelectTrigger>
-              <SelectContent className="max-h-80">
-                {/* Popular Makes Section */}
-                {popularMakes.length > 0 && !makeSearchQuery && (
-                  <>
-                    <div className="px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-50">
-                      Popular Makes
-                    </div>
-                    {popularMakes.map((make) => (
-                      <SelectItem key={`popular-${make.id}`} value={make.id}>
-                        <div className="flex items-center gap-2">
-                          <Star className="w-3 h-3 text-yellow-500" />
-                          {make.make_name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                    <div className="border-t my-1" />
-                  </>
-                )}
-                
-                {/* All Makes */}
-                <div className="px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-50 flex items-center justify-between">
-                  All Makes ({makes.length})
-                  <button
-                    type="button"
-                    onClick={() => setShowMakeSearch(true)}
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    <Search className="w-3 h-3" />
-                  </button>
-                </div>
-                {filteredMakes.map((make) => (
-                  <SelectItem key={make.id} value={make.id}>
-                    {make.make_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="Search makes..."
-                value={makeSearchQuery}
-                onChange={(e) => setMakeSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-              {makeSearchQuery && (
-                <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
-                  {filteredMakes.map((make) => (
-                    <button
-                      key={make.id}
-                      type="button"
-                      onClick={() => {
-                        handleMakeChange(make.id);
-                        setMakeSearchQuery('');
-                        setShowMakeSearch(false);
-                      }}
-                      className="w-full px-3 py-2 text-left hover:bg-gray-50 focus:bg-gray-50"
-                    >
-                      {make.make_name}
-                    </button>
+          <Select 
+            value={selectedMakeId || ""} 
+            onValueChange={handleMakeChange}
+            disabled={isDisabled || isLoading}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={isLoading ? "Loading makes..." : "Select make"} />
+            </SelectTrigger>
+            <SelectContent className="max-h-80">
+              {/* Popular Makes Section */}
+              {popularMakes.length > 0 && !makeSearchQuery && (
+                <>
+                  <div className="px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-50">
+                    Popular Makes
+                  </div>
+                  {popularMakes.map((make) => (
+                    <SelectItem key={`popular-${make.id}`} value={make.id}>
+                      <div className="flex items-center gap-2">
+                        <Star className="w-3 h-3 text-yellow-500" />
+                        {make.make_name}
+                      </div>
+                    </SelectItem>
                   ))}
-                  {filteredMakes.length === 0 && (
-                    <div className="px-3 py-2 text-gray-500">No makes found</div>
-                  )}
-                </div>
+                  <div className="border-t my-1" />
+                </>
               )}
-            </div>
-          )}
+              
+              {/* All Makes */}
+              <div className="px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-50">
+                All Makes ({makes.length})
+              </div>
+              {filteredMakes.map((make) => (
+                <SelectItem key={make.id} value={make.id}>
+                  {make.make_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Model Selection */}
@@ -305,8 +279,8 @@ export function EnhancedVehicleSelector({
               Selected Vehicle
             </Badge>
             <span className="font-medium">
-              {makes.find(m => m.id === selectedMakeId)?.make_name} {' '}
-              {models.find(m => m.id === selectedModelId)?.model_name}
+              {findMakeById(selectedMakeId)?.make_name} {' '}
+              {findModelById(selectedModelId)?.model_name}
               {selectedYear && ` ${selectedYear}`}
               {selectedTrimId && trims.find(t => t.id === selectedTrimId) && 
                 ` ${trims.find(t => t.id === selectedTrimId)?.trim_name}`
@@ -321,6 +295,18 @@ export function EnhancedVehicleSelector({
         <div className="text-sm text-gray-500 flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           Loading vehicle data from database...
+        </div>
+      )}
+
+      {/* Debug Info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-4 p-2 bg-gray-100 rounded text-xs">
+          <div>Makes: {makes.length}</div>
+          <div>Models: {models.length}</div>
+          <div>Trims: {trims.length}</div>
+          <div>Selected Make ID: {selectedMakeId}</div>
+          <div>Selected Model ID: {selectedModelId}</div>
+          <div>Selected Year: {selectedYear}</div>
         </div>
       )}
     </div>
