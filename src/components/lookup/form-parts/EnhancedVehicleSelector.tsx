@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -129,6 +128,21 @@ export function EnhancedVehicleSelector({
     return "Select model";
   };
 
+  // Trim field status and placeholder
+  const getTrimSelectStatus = () => {
+    if (!selectedModelId || !selectedYear) return "disabled";
+    if (isLoading) return "loading";
+    return "ready";
+  };
+
+  const getTrimSelectPlaceholder = () => {
+    if (!selectedModelId) return "Select model first";
+    if (!selectedYear) return "Select year first";
+    if (isLoading) return "Loading trims...";
+    if (trims.length === 0) return "No specific trims available";
+    return "Select trim (optional)";
+  };
+
   // Status indicator component
   const StatusIndicator = ({ status, className }: { status: string; className?: string }) => {
     const icons = {
@@ -213,7 +227,7 @@ export function EnhancedVehicleSelector({
             </SelectTrigger>
             <SelectContent className="max-h-80 bg-white border-2 shadow-xl z-50">
               {/* Popular Makes Section */}
-              {popularMakes.length > 0 && !makeSearchQuery && (
+              {popularMakes.length > 0 && (
                 <>
                   <div className="px-3 py-2 text-xs font-bold text-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
                     ⭐ Popular Makes
@@ -338,51 +352,57 @@ export function EnhancedVehicleSelector({
           </div>
         )}
 
-        {/* Enhanced Trim Selection - Only show if real data exists */}
-        {showTrim && trims.length > 0 && (
+        {/* Enhanced Trim Selection - Always show when showTrim is true */}
+        {showTrim && (
           <div className="space-y-3">
             <Label htmlFor="trim" className="text-sm font-semibold text-gray-900 flex items-center gap-2">
               Trim Level
-              <Badge variant="outline" className="text-xs px-1.5 py-0.5">
-                {trims.length}
-              </Badge>
+              <span className="text-xs text-gray-500">(Optional)</span>
+              {trims.length > 0 && (
+                <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+                  {trims.length}
+                </Badge>
+              )}
             </Label>
             <Select 
               value={selectedTrimId || ""} 
               onValueChange={onTrimChange}
-              disabled={isDisabled || !selectedModelId || !selectedYear || isLoading}
+              disabled={isDisabled || getTrimSelectStatus() === "disabled" || isLoading}
             >
               <SelectTrigger className={cn(
                 "h-12 border-2 transition-all duration-200",
                 "hover:border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100",
-                "bg-white shadow-sm"
+                "bg-white shadow-sm",
+                getTrimSelectStatus() === "disabled" && "bg-gray-50 cursor-not-allowed"
               )}>
                 <div className="flex items-center gap-2 w-full">
                   {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <SelectValue placeholder="Select trim level" />
+                  <SelectValue placeholder={getTrimSelectPlaceholder()} />
                 </div>
               </SelectTrigger>
-              <SelectContent className="max-h-80 bg-white border-2 shadow-xl z-50">
-                <div className="px-3 py-2 text-xs font-bold text-gray-700 bg-gradient-to-r from-gray-50 to-slate-50 border-b">
-                  Available Trims ({trims.length})
-                </div>
-                {trims.map((trim) => (
-                  <SelectItem 
-                    key={trim.id} 
-                    value={trim.id}
-                    className="hover:bg-blue-50 focus:bg-blue-50"
-                  >
-                    <div className="flex flex-col">
-                      <span className="font-medium">{trim.trim_name}</span>
-                      {trim.msrp && (
-                        <span className="text-xs text-green-600 font-medium">
-                          MSRP: ${trim.msrp.toLocaleString()}
-                        </span>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
+              {trims.length > 0 && (
+                <SelectContent className="max-h-80 bg-white border-2 shadow-xl z-50">
+                  <div className="px-3 py-2 text-xs font-bold text-gray-700 bg-gradient-to-r from-gray-50 to-slate-50 border-b">
+                    Available Trims ({trims.length})
+                  </div>
+                  {trims.map((trim) => (
+                    <SelectItem 
+                      key={trim.id} 
+                      value={trim.id}
+                      className="hover:bg-blue-50 focus:bg-blue-50"
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-medium">{trim.trim_name}</span>
+                        {trim.msrp && (
+                          <span className="text-xs text-green-600 font-medium">
+                            MSRP: ${trim.msrp.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              )}
             </Select>
           </div>
         )}
