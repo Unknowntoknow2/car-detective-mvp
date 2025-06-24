@@ -1,212 +1,247 @@
-import { ReportData, ValuationResult, AdjustmentBreakdown, PdfOptions } from "@/types/valuation";
-import { generateValuationPdf } from "../pdf/generateValuationPdf";
-import { calculateAdjustments, calculateFinalValue } from "./rulesEngine";
-import { RulesEngineInput } from "./rules/types";
-import { BasePriceService } from "@/services/basePriceService";
 
-export interface CorrectedValuationParams {
+import { ValuationEngine, ValuationEngineInput, ValuationEngineResult } from '@/services/valuation/ValuationEngine';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { supabase } from '@/integrations/supabase/client';
+
+export interface CorrectedValuationInput {
   vin: string;
-  year: number;
   make: string;
   model: string;
-  trim?: string;
+  year: number;
   mileage?: number;
   condition?: string;
-  zipCode?: string;
+  zipCode: string;
+  trim?: string;
   color?: string;
   bodyType?: string;
   fuelType?: string;
   transmission?: string;
-  accidentCount?: number;
-  isPremium?: boolean;
-  valuationId?: string;
+  followUpAnswers?: FollowUpAnswers;
 }
 
-export interface CorrectedValuationResults {
+export interface CorrectedValuationResult {
   success: boolean;
   valuation: {
     estimatedValue: number;
     confidenceScore: number;
     basePrice: number;
-    adjustments: Array<{
-      factor: string;
-      impact: number;
-      description: string;
-    }>;
-    valuationId: string;
-    vin: string;
-    make: string;
-    model: string;
-    year: number;
-    mileage: number;
-    condition: string;
-    zipCode: string;
+    adjustments: any[];
+    priceRange: [number, number];
+    marketAnalysis?: any;
+    riskFactors?: any[];
+    recommendations?: string[];
   };
-  summary: string;
-  marketplaceData: {
-    listings: Array<{
-      id: string;
-      title: string;
-      price: number;
-      platform: string;
-      location: string;
-      url: string;
-      mileage?: number;
-      created_at: string;
-    }>;
-    averagePrice: number;
-    count: number;
-  };
-  pdfBuffer: Uint8Array;
+  error?: string;
 }
 
 export async function runCorrectedValuationPipeline(
-  params: CorrectedValuationParams
-): Promise<CorrectedValuationResults> {
+  input: CorrectedValuationInput
+): Promise<CorrectedValuationResult> {
   try {
-    if (!params.make || !params.model || !params.year) {
-      throw new Error("Make, model, and year are required");
+    console.log('🚀 Starting corrected valuation pipeline:', input);
+
+    // Get or create follow-up answers
+    let followUpAnswers = input.followUpAnswers;
+    
+    if (!followUpAnswers) {
+      // Check if follow-up answers exist for this VIN
+      const { data: existingAnswers } = await supabase
+        .from('follow_up_answers')
+        .select('*')
+        .eq('vin', input.vin)
+        .maybeSingle();
+
+      if (existingAnswers) {
+        followUpAnswers = existingAnswers as FollowUpAnswers;
+        console.log('📋 Found existing follow-up answers:', followUpAnswers);
+      } else {
+        // Create default follow-up answers with provided data
+        followUpAnswers = createDefaultFollowUpAnswers(input);
+        console.log('📝 Created default follow-up answers:', followUpAnswers);
+      }
     }
 
-    console.log('🚀 Starting corrected valuation pipeline with params:', params);
+    // Validate follow-up answers structure
+    followUpAnswers = validateAndSanitizeFollowUpAnswers(followUpAnswers);
 
-    // Get base price first
-    const basePrice = BasePriceService.getBasePrice({
-      make: params.make,
-      model: params.model,
-      year: params.year,
-      mileage: params.mileage || 50000
-    });
+    // Initialize valuation engine
+    const engine = new ValuationEngine();
 
-    console.log('💰 Base price calculated:', basePrice);
-
-    const rulesEngineInput: RulesEngineInput = {
-      make: params.make,
-      model: params.model,
-      year: params.year,
-      mileage: params.mileage || 50000,
-      condition: params.condition || "Good",
-      zipCode: params.zipCode || "90210",
-      trim: params.trim,
-      fuelType: params.fuelType,
-      transmissionType: params.transmission,
-      accidentCount: params.accidentCount || 0,
-      exteriorColor: params.color,
-      basePrice: basePrice
+    // Prepare engine input
+    const engineInput: ValuationEngineInput = {
+      vin: input.vin,
+      make: input.make,
+      model: input.model,
+      year: input.year,
+      followUpData: followUpAnswers,
+      decodedVehicleData: {
+        trim: input.trim,
+        color: input.color,
+        bodyType: input.bodyType,
+        fuelType: input.fuelType,
+        transmission: input.transmission
+      }
     };
 
-    // Calculate adjustments - ensure it's never undefined
-    const adjustments: AdjustmentBreakdown[] = (await calculateAdjustments(rulesEngineInput)) || [];
-    
-    // Calculate final value using base price + adjustments
-    const estimatedValue = calculateFinalValue(basePrice, adjustments);
-    
-    console.log('🔧 Adjustments calculated:', adjustments);
-    console.log('💵 Final estimated value:', estimatedValue);
+    // Calculate valuation using the engine
+    const result = await engine.calculateValuation(engineInput);
+    console.log('🎯 Valuation engine result:', result);
 
-    // Validate the result
-    if (!BasePriceService.validateValue(estimatedValue, params.year)) {
-      console.warn('⚠️ Calculated value failed validation, using fallback');
-      const fallbackValue = Math.max(basePrice * 0.8, 5000);
-      console.log('🔄 Using fallback value:', fallbackValue);
+    // Validate result
+    if (!result.estimatedValue || result.estimatedValue <= 0) {
+      throw new Error('Invalid valuation result: estimated value is zero or negative');
     }
-
-    const finalValuation: ValuationResult = {
-      id: params.valuationId || `val-${Date.now()}`,
-      make: params.make,
-      model: params.model,
-      year: params.year,
-      mileage: params.mileage || 50000,
-      condition: params.condition || "Good",
-      estimatedValue: estimatedValue,
-      confidenceScore: 85,
-      zipCode: params.zipCode || "90210",
-      adjustments: adjustments,
-      basePrice: basePrice,
-      priceRange: [
-        Math.round(estimatedValue * 0.92),
-        Math.round(estimatedValue * 1.08)
-      ] as [number, number]
-    };
-
-    console.log('✅ Final valuation result:', finalValuation);
-
-    // Mock photo analysis data
-    const mockPhotoAnalysis = {
-      condition: 'Good' as const,
-      confidenceScore: 85,
-      issuesDetected: [] as string[],
-      aiSummary: 'Vehicle appears to be in good condition based on available data'
-    };
-
-    const reportData: ReportData = {
-      id: params.valuationId || `val-${Date.now()}`,
-      vin: params.vin,
-      make: params.make || 'Unknown',
-      model: params.model || 'Unknown',
-      year: params.year || new Date().getFullYear(),
-      trim: params.trim,
-      mileage: params.mileage || 0,
-      condition: params.condition || 'Good',
-      estimatedValue: finalValuation.estimatedValue,
-      price: finalValuation.estimatedValue,
-      priceRange: finalValuation.priceRange,
-      confidenceScore: finalValuation.confidenceScore,
-      zipCode: params.zipCode || '90210',
-      adjustments: adjustments, // Now guaranteed to be AdjustmentBreakdown[]
-      generatedAt: new Date().toISOString(),
-      isPremium: params.isPremium,
-      aiCondition: {
-        condition: mockPhotoAnalysis.condition,
-        confidenceScore: mockPhotoAnalysis.confidenceScore,
-        issuesDetected: mockPhotoAnalysis.issuesDetected,
-        aiSummary: mockPhotoAnalysis.aiSummary,
-      },
-      color: params.color,
-      bodyType: params.bodyType,
-      fuelType: params.fuelType,
-      basePrice: basePrice,
-      competitorPrices: [],
-      competitorAverage: finalValuation.estimatedValue,
-      marketplaceListings: [],
-      auctionResults: [],
-    };
-
-    // Generate PDF with proper options
-    const pdfOptions: PdfOptions = {
-      isPremium: params.isPremium || false,
-      includeExplanation: params.isPremium || false,
-      marketplaceListings: [],
-    };
-
-    const pdfBuffer = await generateValuationPdf(reportData, pdfOptions);
 
     return {
       success: true,
       valuation: {
-        estimatedValue: finalValuation.estimatedValue,
-        confidenceScore: finalValuation.confidenceScore,
-        basePrice: basePrice,
-        adjustments: adjustments, // Now guaranteed to be correct type
-        valuationId: reportData.id,
-        vin: params.vin || '',
-        make: params.make || 'Unknown',
-        model: params.model || 'Unknown',
-        year: params.year || new Date().getFullYear(),
-        mileage: params.mileage || 0,
-        condition: params.condition || 'Good',
-        zipCode: params.zipCode || '90210',
-      },
-      summary: `Estimated value: $${finalValuation.estimatedValue.toLocaleString()} (Base: $${basePrice.toLocaleString()})`,
-      marketplaceData: {
-        listings: [],
-        averagePrice: finalValuation.estimatedValue,
-        count: 0,
-      },
-      pdfBuffer,
+        estimatedValue: result.estimatedValue,
+        confidenceScore: result.confidenceScore,
+        basePrice: result.basePrice,
+        adjustments: result.adjustments.map(adj => ({
+          factor: adj.factor,
+          impact: Math.round(result.basePrice * adj.impact),
+          percentage: adj.percentage,
+          description: adj.description
+        })),
+        priceRange: result.priceRange,
+        marketAnalysis: result.marketAnalysis,
+        riskFactors: result.riskFactors,
+        recommendations: result.recommendations
+      }
     };
+
   } catch (error) {
     console.error('❌ Error in corrected valuation pipeline:', error);
-    throw error;
+    return {
+      success: false,
+      valuation: {
+        estimatedValue: 0,
+        confidenceScore: 0,
+        basePrice: 0,
+        adjustments: [],
+        priceRange: [0, 0]
+      },
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
   }
 }
+
+function createDefaultFollowUpAnswers(input: CorrectedValuationInput): FollowUpAnswers {
+  return {
+    vin: input.vin,
+    zip_code: input.zipCode,
+    mileage: input.mileage || 50000,
+    condition: input.condition || 'good',
+    accidents: {
+      hadAccident: false,
+      count: 0,
+      severity: 'minor',
+      repaired: false,
+      frameDamage: false,
+      description: '',
+      types: [],
+      repairShops: [],
+      airbagDeployment: false
+    },
+    transmission: input.transmission || 'automatic',
+    title_status: 'clean',
+    previous_use: 'personal',
+    serviceHistory: {
+      hasRecords: false,
+      frequency: 'unknown',
+      dealerMaintained: false,
+      description: '',
+      services: []
+    },
+    tire_condition: 'good',
+    exterior_condition: 'good',
+    interior_condition: 'good',
+    brake_condition: 'good',
+    dashboard_lights: [],
+    modifications: {
+      hasModifications: false,
+      modified: false,
+      types: [],
+      additionalNotes: ''
+    },
+    features: [],
+    additional_notes: '',
+    completion_percentage: 60, // Default completion since we have basic data
+    is_complete: false,
+    previous_owners: 1,
+    loan_balance: 0,
+    payoffAmount: 0,
+    year: input.year
+  };
+}
+
+function validateAndSanitizeFollowUpAnswers(answers: FollowUpAnswers): FollowUpAnswers {
+  // Ensure all required nested objects exist with proper structure
+  const sanitized = { ...answers };
+
+  // Validate accidents structure
+  if (!sanitized.accidents || typeof sanitized.accidents !== 'object') {
+    sanitized.accidents = {
+      hadAccident: false,
+      count: 0,
+      severity: 'minor',
+      repaired: false,
+      frameDamage: false,
+      description: '',
+      types: [],
+      repairShops: [],
+      airbagDeployment: false
+    };
+  }
+
+  // Validate serviceHistory structure
+  if (!sanitized.serviceHistory || typeof sanitized.serviceHistory !== 'object') {
+    sanitized.serviceHistory = {
+      hasRecords: false,
+      frequency: 'unknown',
+      dealerMaintained: false,
+      description: '',
+      services: []
+    };
+  }
+
+  // Validate modifications structure
+  if (!sanitized.modifications || typeof sanitized.modifications !== 'object') {
+    sanitized.modifications = {
+      hasModifications: false,
+      modified: false,
+      types: [],
+      additionalNotes: ''
+    };
+  }
+
+  // Ensure arrays exist
+  if (!Array.isArray(sanitized.dashboard_lights)) {
+    sanitized.dashboard_lights = [];
+  }
+  if (!Array.isArray(sanitized.features)) {
+    sanitized.features = [];
+  }
+
+  // Ensure numeric values
+  if (!sanitized.mileage || sanitized.mileage <= 0) {
+    sanitized.mileage = 50000; // Default reasonable mileage
+  }
+  if (!sanitized.completion_percentage) {
+    sanitized.completion_percentage = 0;
+  }
+
+  // Ensure string values
+  if (!sanitized.condition) {
+    sanitized.condition = 'good';
+  }
+  if (!sanitized.zip_code) {
+    sanitized.zip_code = '90210'; // Default zip code
+  }
+
+  return sanitized;
+}
+
+// Export legacy function for backward compatibility
+export const calculateFinalValuation = runCorrectedValuationPipeline;

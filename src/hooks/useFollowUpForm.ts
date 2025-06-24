@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers, ServiceHistoryDetails, ModificationDetails, AccidentDetails } from '@/types/follow-up-answers';
 import { TabValidation } from '@/components/followup/validation/TabValidation';
+import { runCorrectedValuationPipeline } from '@/utils/valuation/correctedValuationPipeline';
 import { toast } from 'sonner';
 
 export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswers>) {
@@ -217,17 +218,98 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       return false;
     }
 
-    const success = await saveFormData({
-      ...formData,
-      is_complete: true,
-      completion_percentage: 100
-    });
+    try {
+      // Save the completed form data
+      const saveSuccess = await saveFormData({
+        ...formData,
+        is_complete: true,
+        completion_percentage: 100
+      });
 
-    if (success) {
-      toast.success('Follow-up completed successfully!');
+      if (!saveSuccess) {
+        toast.error('Failed to save follow-up data');
+        return false;
+      }
+
+      // Trigger real valuation calculation with complete follow-up data
+      console.log('🧮 Triggering real valuation calculation with complete follow-up data');
+      
+      // Get vehicle data for valuation
+      const { data: decodedVehicle } = await supabase
+        .from('decoded_vehicles')
+        .select('*')
+        .eq('vin', vin)
+        .maybeSingle();
+
+      if (decodedVehicle) {
+        // Run valuation with complete follow-up data
+        const valuationResult = await runCorrectedValuationPipeline({
+          vin,
+          make: decodedVehicle.make || 'Unknown',
+          model: decodedVehicle.model || 'Unknown',
+          year: decodedVehicle.year || new Date().getFullYear(),
+          mileage: formData.mileage,
+          condition: formData.condition,
+          zipCode: formData.zip_code,
+          trim: decodedVehicle.trim,
+          bodyType: decodedVehicle.bodyType,
+          fuelType: decodedVehicle.fueltype,
+          transmission: decodedVehicle.transmission,
+          followUpAnswers: formData
+        });
+
+        if (valuationResult.success) {
+          // Update the valuation result in database
+          const { data: existingValuation } = await supabase
+            .from('valuation_results')
+            .select('id')
+            .eq('vin', vin)
+            .maybeSingle();
+
+          if (existingValuation) {
+            // Update existing valuation with refined results
+            await supabase
+              .from('valuation_results')
+              .update({
+                estimated_value: valuationResult.valuation.estimatedValue,
+                confidence_score: valuationResult.valuation.confidenceScore,
+                price_range_low: valuationResult.valuation.priceRange[0],
+                price_range_high: valuationResult.valuation.priceRange[1],
+                adjustments: valuationResult.valuation.adjustments,
+                vehicle_data: {
+                  ...decodedVehicle,
+                  marketAnalysis: valuationResult.valuation.marketAnalysis,
+                  riskFactors: valuationResult.valuation.riskFactors,
+                  recommendations: valuationResult.valuation.recommendations,
+                  followUpComplete: true
+                },
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', existingValuation.id);
+
+            console.log('✅ Updated existing valuation with refined follow-up data');
+          }
+
+          toast.success('Follow-up completed! Your valuation has been updated with detailed analysis.');
+          
+          // Store the valuation ID for navigation
+          localStorage.setItem('latest_valuation_id', existingValuation?.id || 'completed');
+        } else {
+          console.warn('⚠️ Valuation calculation failed, but follow-up was saved');
+          toast.success('Follow-up completed successfully!');
+        }
+      } else {
+        console.warn('⚠️ No decoded vehicle data found for refined valuation');
+        toast.success('Follow-up completed successfully!');
+      }
+
+      return true;
+
+    } catch (error) {
+      console.error('❌ Error submitting follow-up form:', error);
+      toast.error('Failed to complete follow-up. Please try again.');
+      return false;
     }
-
-    return success;
   };
 
   return {
