@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Make, Model } from '@/hooks/types/vehicle';
@@ -27,6 +26,7 @@ interface UseMakeModelsReturn {
   searchMakes: (query: string) => Make[];
   getPopularMakes: () => Make[];
   getNonPopularMakes: () => Make[];
+  hasMultipleTrims: () => boolean;
 }
 
 export function useMakeModels(): UseMakeModelsReturn {
@@ -211,8 +211,51 @@ export function useMakeModels(): UseMakeModelsReturn {
         throw fetchError;
       }
 
-      console.log('✅ Trims loaded:', data?.length || 0, 'trims');
-      setTrims(data || []);
+      console.log('✅ Raw trims loaded:', data?.length || 0, 'trims');
+
+      if (!data || data.length === 0) {
+        setTrims([]);
+        return;
+      }
+
+      // Filter out duplicate "Standard" entries - keep only one if that's all we have
+      const uniqueTrimsMap = new Map<string, VehicleTrim>();
+      let hasNonStandardTrims = false;
+
+      data.forEach(trim => {
+        const trimKey = `${trim.trim_name}-${trim.year}`;
+        
+        // Track if we have non-standard trims
+        if (trim.trim_name !== 'Standard') {
+          hasNonStandardTrims = true;
+        }
+        
+        // Only add if we haven't seen this trim name for this year, or if it's better data
+        if (!uniqueTrimsMap.has(trimKey) || 
+            (uniqueTrimsMap.get(trimKey)?.msrp === null && trim.msrp !== null)) {
+          uniqueTrimsMap.set(trimKey, trim);
+        }
+      });
+
+      let filteredTrims = Array.from(uniqueTrimsMap.values());
+
+      // If we only have "Standard" entries and multiple of them, keep just one
+      if (!hasNonStandardTrims && filteredTrims.length > 1) {
+        const standardTrims = filteredTrims.filter(t => t.trim_name === 'Standard');
+        if (standardTrims.length === filteredTrims.length) {
+          // All are "Standard", keep only the first one
+          filteredTrims = [standardTrims[0]];
+        }
+      }
+
+      console.log('✅ Filtered trims loaded:', {
+        originalCount: data.length,
+        filteredCount: filteredTrims.length,
+        hasNonStandardTrims,
+        trimNames: filteredTrims.map(t => t.trim_name)
+      });
+
+      setTrims(filteredTrims);
     } catch (err: any) {
       console.error('❌ Error fetching trims from Supabase:', err);
       setError('Failed to fetch vehicle trims from database');
@@ -220,6 +263,15 @@ export function useMakeModels(): UseMakeModelsReturn {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // New function to determine if we should show the trim selector
+  const hasMultipleTrims = (): boolean => {
+    if (trims.length <= 1) return false;
+    
+    // Check if we have meaningful trim variations (not just multiple "Standard" entries)
+    const uniqueTrimNames = new Set(trims.map(t => t.trim_name));
+    return uniqueTrimNames.size > 1 || (uniqueTrimNames.size === 1 && !uniqueTrimNames.has('Standard'));
   };
 
   const findMakeById = (makeId: string): Make | undefined => {
@@ -264,5 +316,6 @@ export function useMakeModels(): UseMakeModelsReturn {
     searchMakes,
     getPopularMakes,
     getNonPopularMakes,
+    hasMultipleTrims,
   };
 }
