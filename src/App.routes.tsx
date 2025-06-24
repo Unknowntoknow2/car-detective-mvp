@@ -1,4 +1,3 @@
-
 import React from "react";
 import { RouteObject } from "react-router-dom";
 import { RouteRedirect } from "@/components/common/RouteRedirect";
@@ -50,6 +49,10 @@ const routes: RouteObject[] = [
         element: <ValuationPage />,
       },
       {
+        path: "valuation/followup",
+        element: <ValuationFollowUpPage />,
+      },
+      {
         path: "plate-valuation",
         element: <PlateValuationPage />,
       },
@@ -74,10 +77,6 @@ const routes: RouteObject[] = [
       {
         path: "premium/results/:id", 
         element: <RouteRedirect to="/results/:id" />,
-      },
-      {
-        path: "valuation/followup",
-        element: <ValuationFollowUpPage />,
       },
       {
         path: "offers",
