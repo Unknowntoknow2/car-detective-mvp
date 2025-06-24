@@ -807,15 +807,19 @@ export type Database = {
           interior_condition: string | null
           is_complete: boolean | null
           last_service_date: string | null
+          loan_balance: number | null
           maintenance_status: string | null
           mileage: number | null
           modifications: Json | null
+          payoff_amount: number | null
           previous_owners: number | null
           previous_use: string | null
           service_history: string | null
           servicehistory: Json | null
+          serviceHistory: Json | null
           tire_condition: string | null
           title_status: string | null
+          transmission: string | null
           updated_at: string
           user_id: string | null
           valuation_id: string | null
@@ -838,15 +842,19 @@ export type Database = {
           interior_condition?: string | null
           is_complete?: boolean | null
           last_service_date?: string | null
+          loan_balance?: number | null
           maintenance_status?: string | null
           mileage?: number | null
           modifications?: Json | null
+          payoff_amount?: number | null
           previous_owners?: number | null
           previous_use?: string | null
           service_history?: string | null
           servicehistory?: Json | null
+          serviceHistory?: Json | null
           tire_condition?: string | null
           title_status?: string | null
+          transmission?: string | null
           updated_at?: string
           user_id?: string | null
           valuation_id?: string | null
@@ -869,15 +877,19 @@ export type Database = {
           interior_condition?: string | null
           is_complete?: boolean | null
           last_service_date?: string | null
+          loan_balance?: number | null
           maintenance_status?: string | null
           mileage?: number | null
           modifications?: Json | null
+          payoff_amount?: number | null
           previous_owners?: number | null
           previous_use?: string | null
           service_history?: string | null
           servicehistory?: Json | null
+          serviceHistory?: Json | null
           tire_condition?: string | null
           title_status?: string | null
+          transmission?: string | null
           updated_at?: string
           user_id?: string | null
           valuation_id?: string | null
