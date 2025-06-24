@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -86,6 +85,11 @@ export default function ResultsPage() {
           toast.error('Valuation not found');
           setLoading(false);
           return;
+        }
+
+        // Validate form-to-valuation linkage on results page
+        if (data.id && !data.vin) {
+          console.warn('⚠️ Valuation', data.id, 'missing VIN — enrichment blocked');
         }
 
         if (!data.estimated_value || data.estimated_value <= 0) {

@@ -73,6 +73,11 @@ export function useFollowUpAutoSave({
       const saveData = prepareSafeDataForSave(dataToSave);
       console.log('🧪 Upsert payload VIN:', saveData.vin, 'valuation_id:', saveData.valuation_id || 'missing');
       
+      // Strengthen orphan record detection
+      if (!saveData.valuation_id) {
+        console.warn('🚫 Orphan follow-up detected — missing valuation_id during save for VIN:', saveData.vin);
+      }
+      
       const { error } = await supabase
         .from('follow_up_answers')
         .upsert(saveData, {
