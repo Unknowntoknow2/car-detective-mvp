@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Star, AlertCircle, Loader2, Database, Clock } from 'lucide-react';
+import { Search, Star, AlertCircle, Loader2, Database, Clock, Bug } from 'lucide-react';
 import { useMakeModels } from '@/hooks/useMakeModels';
 
 interface EnhancedVehicleSelectorProps {
@@ -57,22 +57,28 @@ export function EnhancedVehicleSelector({
   const filteredMakes = makeSearchQuery ? searchMakes(makeSearchQuery) : makes;
   const popularMakes = getPopularMakes();
 
-  // Handle make selection and fetch models
+  // Handle make selection and fetch models with better error handling
   const handleMakeChange = async (makeId: string) => {
     const selectedMake = findMakeById(makeId);
-    console.log('🎯 Make selected:', makeId, 'Make name:', selectedMake?.make_name);
+    console.log('🎯 Make selected in component:', {
+      makeId,
+      makeName: selectedMake?.make_name,
+      makeExists: !!selectedMake
+    });
     
     // Update parent state immediately
     onMakeChange(makeId);
     onModelChange(''); // Reset model
     onTrimChange(''); // Reset trim
     
-    // Fetch models for the selected make
-    if (makeId) {
+    // Fetch models for the selected make with error handling
+    if (makeId && makeId.trim() !== '') {
       try {
+        console.log('🚀 Calling fetchModelsByMakeId from component...');
         await fetchModelsByMakeId(makeId);
+        console.log('✅ fetchModelsByMakeId completed in component');
       } catch (error) {
-        console.error('❌ Error in fetchModelsByMakeId:', error);
+        console.error('❌ Error in handleMakeChange:', error);
       }
     }
   };
@@ -114,12 +120,13 @@ export function EnhancedVehicleSelector({
     ? "grid grid-cols-2 gap-3" 
     : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4";
 
-  // Get detailed error messages
+  // Enhanced status checking
   const getModelSelectPlaceholder = () => {
     if (!selectedMakeId) return "Select make first";
     if (isLoading) return "Loading models...";
-    if (error) return error;
-    if (models.length === 0) return "No models available";
+    if (error && error.includes('No models found')) return error;
+    if (error) return "Database error";
+    if (models.length === 0 && !isLoading) return "No models available";
     return "Select model";
   };
 
@@ -127,22 +134,27 @@ export function EnhancedVehicleSelector({
     if (!selectedMakeId) return "disabled";
     if (isLoading) return "loading";
     if (error) return "error";
-    if (models.length === 0) return "empty";
+    if (models.length === 0 && !isLoading) return "empty";
     return "ready";
   };
 
   return (
     <div className="space-y-4">
-      {/* Error Display */}
+      {/* Enhanced Error Display */}
       {error && (
         <div className="text-sm text-red-500 bg-red-50 p-3 rounded-md flex items-center gap-2">
           <AlertCircle className="w-4 h-4" />
-          <div>
-            <div className="font-medium">Database Error</div>
+          <div className="flex-1">
+            <div className="font-medium">Data Loading Error</div>
             <div>{error}</div>
             {selectedMakeId && (
               <div className="text-xs mt-1 text-red-400">
-                Make ID: {selectedMakeId} ({findMakeById(selectedMakeId)?.make_name || 'Unknown'})
+                Make: {findMakeById(selectedMakeId)?.make_name || 'Unknown'} (ID: {selectedMakeId})
+              </div>
+            )}
+            {debugInfo.networkError && (
+              <div className="text-xs mt-1 text-red-400">
+                Network: {debugInfo.networkError}
               </div>
             )}
           </div>
@@ -153,7 +165,12 @@ export function EnhancedVehicleSelector({
       {isLoading && (
         <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-md flex items-center gap-2">
           <Loader2 className="w-4 h-4 animate-spin" />
-          Loading vehicle data...
+          <span>Loading vehicle data...</span>
+          {selectedMakeId && (
+            <span className="text-xs">
+              (Make: {findMakeById(selectedMakeId)?.make_name})
+            </span>
+          )}
         </div>
       )}
 
@@ -204,10 +221,11 @@ export function EnhancedVehicleSelector({
           </Select>
         </div>
 
-        {/* Model Selection */}
+        {/* Model Selection with Enhanced Status */}
         <div className="space-y-2">
           <Label htmlFor="model">
             Model <span className="text-red-500">*</span>
+            <span className="text-xs text-gray-500 ml-2">({models.length})</span>
           </Label>
           <Select 
             value={selectedModelId || ""} 
@@ -335,11 +353,11 @@ export function EnhancedVehicleSelector({
         </div>
       )}
 
-      {/* Debug Information (only in development) */}
+      {/* Enhanced Debug Information (only in development) */}
       {process.env.NODE_ENV === 'development' && (
         <div className="mt-4 p-3 bg-gray-100 rounded-lg text-xs text-gray-600">
           <div className="font-semibold mb-2 flex items-center gap-2">
-            <Database className="w-3 h-3" />
+            <Bug className="w-3 h-3" />
             Debug Information
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -355,6 +373,12 @@ export function EnhancedVehicleSelector({
             <div>
               <strong>Error State:</strong> {error || 'none'}
             </div>
+            <div>
+              <strong>Total Makes:</strong> {makes.length}
+            </div>
+            <div>
+              <strong>Network Error:</strong> {debugInfo.networkError || 'none'}
+            </div>
             {debugInfo.lastMakeQuery && (
               <>
                 <div>
@@ -366,20 +390,20 @@ export function EnhancedVehicleSelector({
                 </div>
               </>
             )}
-            {debugInfo.lastModelQueryResult && (
-              <div className="col-span-2 mt-2 p-2 bg-gray-200 rounded text-xs">
-                <strong>Last Query Result:</strong>
-                <pre className="mt-1 whitespace-pre-wrap">
-                  {JSON.stringify({
-                    count: debugInfo.lastModelQueryResult.count,
-                    dataLength: debugInfo.lastModelQueryResult.data?.length,
-                    error: debugInfo.lastModelQueryResult.error?.message,
-                    queryTime: debugInfo.lastModelQueryResult.queryTime
-                  }, null, 2)}
-                </pre>
-              </div>
-            )}
           </div>
+          {debugInfo.rawSupabaseResponse && (
+            <div className="col-span-2 mt-2 p-2 bg-gray-200 rounded text-xs">
+              <strong>Raw Supabase Response:</strong>
+              <pre className="mt-1 whitespace-pre-wrap text-xs overflow-auto max-h-32">
+                {JSON.stringify({
+                  dataLength: debugInfo.rawSupabaseResponse.data?.length,
+                  count: debugInfo.rawSupabaseResponse.count,
+                  error: debugInfo.rawSupabaseResponse.error?.message,
+                  hasData: !!debugInfo.rawSupabaseResponse.data
+                }, null, 2)}
+              </pre>
+            </div>
+          )}
         </div>
       )}
     </div>
