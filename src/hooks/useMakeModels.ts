@@ -30,6 +30,8 @@ interface UseMakeModelsReturn {
     lastMakeQuery: string | null;
     lastModelQueryResult: any;
     queryExecutionTime: number | null;
+    rawSupabaseResponse: any;
+    networkError: string | null;
   };
 }
 
@@ -40,11 +42,13 @@ export function useMakeModels(): UseMakeModelsReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Debug info for troubleshooting
+  // Enhanced debug info for troubleshooting
   const [debugInfo, setDebugInfo] = useState({
     lastMakeQuery: null as string | null,
     lastModelQueryResult: null as any,
     queryExecutionTime: null as number | null,
+    rawSupabaseResponse: null as any,
+    networkError: null as string | null,
   });
 
   // Cache for performance
@@ -69,25 +73,35 @@ export function useMakeModels(): UseMakeModelsReturn {
       console.log('🔍 Fetching makes from Supabase...');
       const startTime = Date.now();
       
-      const { data, error: fetchError } = await supabase
+      const { data, error: fetchError, count } = await supabase
         .from('makes')
-        .select('id, make_name')
+        .select('id, make_name', { count: 'exact' })
         .order('make_name');
 
       const queryTime = Date.now() - startTime;
       console.log(`⏱️ Makes query completed in ${queryTime}ms`);
+      console.log('📊 Raw makes response:', { data, error: fetchError, count });
 
       if (fetchError) {
         console.error('❌ Supabase makes fetch error:', fetchError);
-        throw fetchError;
+        setError(`Database error: ${fetchError.message}`);
+        setDebugInfo(prev => ({ ...prev, networkError: fetchError.message }));
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        console.warn('⚠️ No makes data returned from database');
+        setError('No vehicle makes found in database');
+        return;
       }
 
       console.log('✅ Makes fetched successfully:', {
-        count: data?.length || 0,
-        sample: data?.slice(0, 3)?.map(m => ({ id: m.id, name: m.make_name }))
+        count: data.length,
+        totalFromCount: count,
+        sample: data.slice(0, 3).map(m => ({ id: m.id, name: m.make_name }))
       });
 
-      const formattedMakes: Make[] = (data || []).map(make => ({
+      const formattedMakes: Make[] = data.map(make => ({
         id: make.id,
         make_name: make.make_name,
         popular: false
@@ -96,26 +110,37 @@ export function useMakeModels(): UseMakeModelsReturn {
       setMakes(formattedMakes);
       setMakesCache(formattedMakes);
     } catch (err: any) {
-      console.error('❌ Error fetching makes from Supabase:', err);
-      setError('Failed to fetch vehicle makes from database');
+      console.error('❌ Unexpected error fetching makes:', err);
+      setError(`Network error: ${err.message}`);
+      setDebugInfo(prev => ({ ...prev, networkError: err.message }));
     } finally {
       setIsLoading(false);
     }
   };
 
   const fetchModelsByMakeId = async (makeId: string): Promise<void> => {
-    if (!makeId) {
+    console.log('🚀 fetchModelsByMakeId called with:', makeId);
+    
+    if (!makeId || makeId.trim() === '') {
       console.log('🔍 No makeId provided, clearing models');
       setModels([]);
-      setDebugInfo(prev => ({ ...prev, lastMakeQuery: null, lastModelQueryResult: null }));
+      setError(null);
+      setDebugInfo(prev => ({ 
+        ...prev, 
+        lastMakeQuery: null, 
+        lastModelQueryResult: null,
+        rawSupabaseResponse: null 
+      }));
       return;
     }
 
-    console.log('🔍 Fetching models for makeId:', makeId);
-    
     // Find and log the make name for better debugging
     const selectedMake = makes.find(make => make.id === makeId);
-    console.log('📝 Selected make:', selectedMake?.make_name || 'Unknown');
+    console.log('📝 Selected make details:', {
+      makeId,
+      makeName: selectedMake?.make_name || 'Unknown',
+      makeFound: !!selectedMake
+    });
     
     setIsLoading(true);
     setError(null);
@@ -125,8 +150,11 @@ export function useMakeModels(): UseMakeModelsReturn {
     
     try {
       const startTime = Date.now();
-      console.log('🔍 Executing models query with makeId:', makeId);
+      console.log('🔍 Executing models query...');
+      console.log('🔗 Supabase URL:', supabase.supabaseUrl);
+      console.log('🔑 Make ID type and value:', typeof makeId, makeId);
       
+      // Enhanced query with better error handling
       const { data, error: fetchError, count } = await supabase
         .from('models')
         .select('id, make_id, model_name', { count: 'exact' })
@@ -135,38 +163,62 @@ export function useMakeModels(): UseMakeModelsReturn {
 
       const queryTime = Date.now() - startTime;
       
-      // Update debug info
-      setDebugInfo({
-        lastMakeQuery: makeId,
-        lastModelQueryResult: { data, error: fetchError, count, queryTime },
-        queryExecutionTime: queryTime,
-      });
-
-      console.log('📊 Models query result:', {
+      // Comprehensive debug logging
+      const debugResult = { 
+        data, 
+        error: fetchError, 
+        count, 
+        queryTime,
         makeId,
         makeName: selectedMake?.make_name,
-        count: count,
-        dataLength: data?.length || 0,
-        queryTime: queryTime + 'ms',
-        error: fetchError?.message || 'none',
-        sampleData: data?.slice(0, 3)
+        queryAttempted: `SELECT id, make_id, model_name FROM models WHERE make_id = '${makeId}' ORDER BY model_name`
+      };
+      
+      console.log('📊 Complete models query result:', debugResult);
+      
+      // Update debug info immediately
+      setDebugInfo({
+        lastMakeQuery: makeId,
+        lastModelQueryResult: debugResult,
+        queryExecutionTime: queryTime,
+        rawSupabaseResponse: { data, error: fetchError, count },
+        networkError: fetchError?.message || null,
       });
 
       if (fetchError) {
         console.error('❌ Supabase models fetch error:', fetchError);
         setError(`Database error: ${fetchError.message}`);
+        setModels([]);
         return;
       }
 
       if (!data) {
         console.warn('⚠️ No data returned from models query');
         setError('No data returned from database');
+        setModels([]);
         return;
       }
 
+      console.log('📈 Models query success details:', {
+        dataLength: data.length,
+        count: count,
+        makeId,
+        makeName: selectedMake?.make_name,
+        sampleModels: data.slice(0, 3).map(m => ({
+          id: m.id,
+          name: m.model_name,
+          make_id: m.make_id
+        }))
+      });
+
       if (data.length === 0) {
-        console.warn('⚠️ Zero models found for makeId:', makeId, 'Make:', selectedMake?.make_name);
+        console.warn('⚠️ Zero models found for make:', {
+          makeId,
+          makeName: selectedMake?.make_name,
+          totalCount: count
+        });
         setError(`No models found for ${selectedMake?.make_name || 'the selected make'}`);
+        setModels([]);
         return;
       }
 
@@ -185,11 +237,17 @@ export function useMakeModels(): UseMakeModelsReturn {
 
       setModels(formattedModels);
       setTrims([]); // Clear trims when models change
+      setError(null); // Clear any previous errors
       
     } catch (err: any) {
       console.error('❌ Unexpected error in fetchModelsByMakeId:', err);
-      setError(`Unexpected error: ${err.message}`);
+      setError(`Network error: ${err.message}`);
       setModels([]);
+      setDebugInfo(prev => ({ 
+        ...prev, 
+        networkError: err.message,
+        rawSupabaseResponse: { error: err }
+      }));
     } finally {
       setIsLoading(false);
     }
