@@ -1,4 +1,3 @@
-
 import { DecodedVehicleInfo } from "@/types/vehicle";
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,11 +24,12 @@ export interface LookupOptions {
 
 export class UnifiedLookupService {
   static async lookupByVin(vin: string, options: LookupOptions): Promise<UnifiedVehicleLookupResult> {
-    console.log("UnifiedLookupService: VIN lookup", vin, options);
+    console.log("🚀 UnifiedLookupService: Starting VIN lookup with REAL NHTSA API", vin, options);
     
     try {
       // Validate VIN format
       if (!this.validateVin(vin)) {
+        console.error('❌ UnifiedLookupService: Invalid VIN format:', vin);
         return {
           success: false,
           source: 'failed',
@@ -38,15 +38,15 @@ export class UnifiedLookupService {
         };
       }
 
-      // Call the unified-decode edge function
-      console.log('🔍 Calling unified-decode edge function for VIN:', vin);
+      // Call the unified-decode edge function for REAL NHTSA data
+      console.log('🔍 UnifiedLookupService: Calling unified-decode edge function for VIN:', vin);
       
       const { data, error } = await supabase.functions.invoke('unified-decode', {
         body: { vin: vin.toUpperCase() }
       });
 
       if (error) {
-        console.error('❌ Edge function error:', error);
+        console.error('❌ UnifiedLookupService: Edge function error:', error);
         return {
           success: false,
           source: 'failed',
@@ -55,7 +55,7 @@ export class UnifiedLookupService {
         };
       }
 
-      console.log('✅ Edge function response:', data);
+      console.log('✅ UnifiedLookupService: Edge function response:', data);
 
       // Handle successful decode
       if (data && data.success && data.decoded) {
@@ -78,6 +78,8 @@ export class UnifiedLookupService {
           confidenceScore: options.tier === 'premium' ? 95 : 85,
         };
 
+        console.log('🎉 UnifiedLookupService: Successfully processed REAL vehicle data:', vehicle);
+
         const result: UnifiedVehicleLookupResult = {
           success: true,
           vehicle,
@@ -99,6 +101,7 @@ export class UnifiedLookupService {
       }
 
       // Handle failed decode
+      console.error('❌ UnifiedLookupService: Failed to decode VIN:', data);
       return {
         success: false,
         source: 'failed',
@@ -107,7 +110,7 @@ export class UnifiedLookupService {
       };
 
     } catch (error) {
-      console.error("VIN lookup error:", error);
+      console.error("❌ UnifiedLookupService: VIN lookup exception:", error);
       return {
         success: false,
         source: 'failed',

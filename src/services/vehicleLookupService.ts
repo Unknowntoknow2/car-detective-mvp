@@ -1,52 +1,68 @@
-
 import { DecodedVehicleInfo } from '@/types/vehicle';
+import { supabase } from '@/integrations/supabase/client';
 
 export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo> {
-  // Mock implementation for now - replace with actual API call
-  console.log('Fetching vehicle data for VIN:', vin);
+  console.log('🔄 vehicleLookupService: Routing to real NHTSA API via unified-decode for VIN:', vin);
   
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Enhanced mock vehicle data with more realistic information and photos
-  const mockVehicle: DecodedVehicleInfo = {
-    vin,
-    year: 2021,
-    make: 'Toyota',
-    model: 'Corolla',
-    trim: 'LE',
-    engine: '2.0L 4-Cylinder DOHC',
-    transmission: 'CVT Automatic',
-    bodyType: 'Sedan',
-    fuelType: 'Gasoline',
-    drivetrain: 'FWD',
-    exteriorColor: 'Celestite Gray Metallic',
-    interiorColor: 'Black Fabric',
-    doors: '4',
-    seats: '5',
-    displacement: '2.0L',
-    mileage: 35000,
-    condition: 'Good',
-    confidenceScore: 85,
-    // Add sample vehicle photos
-    photos: [
-      'https://images.unsplash.com/photo-1549924231-f129b911e442?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&h=600&fit=crop'
-    ],
-    primaryPhoto: 'https://images.unsplash.com/photo-1549924231-f129b911e442?w=800&h=600&fit=crop'
-  };
-  
-  return mockVehicle;
+  try {
+    // Call the unified-decode edge function for real NHTSA data
+    const { data, error } = await supabase.functions.invoke('unified-decode', {
+      body: { vin: vin.toUpperCase() }
+    });
+
+    if (error) {
+      console.error('❌ vehicleLookupService: Edge function error:', error);
+      throw new Error('Service temporarily unavailable. Please try again.');
+    }
+
+    if (data && data.success && data.decoded) {
+      const decodedData = data.decoded;
+      
+      const vehicleInfo: DecodedVehicleInfo = {
+        vin: decodedData.vin,
+        year: decodedData.year,
+        make: decodedData.make,
+        model: decodedData.model,
+        trim: decodedData.trim || 'Standard',
+        engine: decodedData.engine || decodedData.engineCylinders,
+        transmission: decodedData.transmission,
+        bodyType: decodedData.bodyType,
+        fuelType: decodedData.fuelType,
+        drivetrain: decodedData.drivetrain,
+        exteriorColor: 'Unknown',
+        doors: decodedData.doors,
+        seats: decodedData.seats,
+        displacement: decodedData.displacementL,
+        mileage: 0, // Default for new lookup
+        condition: 'Good', // Default condition
+        confidenceScore: 85,
+        // Add sample photos for demo purposes
+        photos: [
+          'https://images.unsplash.com/photo-1549924231-f129b911e442?w=800&h=600&fit=crop',
+          'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&h=600&fit=crop'
+        ],
+        primaryPhoto: 'https://images.unsplash.com/photo-1549924231-f129b911e442?w=800&h=600&fit=crop'
+      };
+
+      console.log('✅ vehicleLookupService: Successfully decoded vehicle from NHTSA:', vehicleInfo);
+      return vehicleInfo;
+    } else {
+      console.error('❌ vehicleLookupService: No data returned from edge function');
+      throw new Error(data?.error || 'Unable to decode VIN');
+    }
+  } catch (error) {
+    console.error('❌ vehicleLookupService: Exception occurred:', error);
+    throw error instanceof Error ? error : new Error('VIN lookup failed');
+  }
 }
 
 export async function fetchVehicleByPlate(plate: string, state: string): Promise<DecodedVehicleInfo> {
-  console.log('Fetching vehicle data for plate:', plate, 'state:', state);
+  console.log('🔄 vehicleLookupService: Plate lookup for:', plate, 'state:', state);
   
-  // Simulate API delay
+  // Simulate API delay for plate lookup (this is still mock as there's no real plate API)
   await new Promise(resolve => setTimeout(resolve, 1200));
   
-  // Enhanced mock vehicle data
+  // Enhanced mock vehicle data for plate lookup
   const mockVehicle: DecodedVehicleInfo = {
     plate,
     state,
@@ -74,6 +90,7 @@ export async function fetchVehicleByPlate(plate: string, state: string): Promise
     primaryPhoto: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop'
   };
   
+  console.log('✅ vehicleLookupService: Plate lookup completed (mock data):', mockVehicle);
   return mockVehicle;
 }
 
