@@ -1,44 +1,44 @@
 
 import React from 'react';
 import { UnifiedLookupTabs } from '@/components/lookup/UnifiedLookupTabs';
-import { EnterpriseHeroSection } from '@/components/home/EnterpriseHeroSection';
-import { EnterpriseFeaturesSection } from '@/components/home/EnterpriseFeaturesSection';
-import { EnterpriseTestimonialsSection } from '@/components/home/EnterpriseTestimonialsSection';
-import { EnterpriseStatsSection } from '@/components/home/EnterpriseStatsSection';
+import { FangHeroSection } from '@/components/home/FangHeroSection';
+import { TrustIndicatorsSection } from '@/components/home/TrustIndicatorsSection';
+import { ValuePropositionGrid } from '@/components/home/ValuePropositionGrid';
+import { ProofPointsSection } from '@/components/home/ProofPointsSection';
+import { SocialProofSection } from '@/components/home/SocialProofSection';
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Enterprise Hero Section */}
-      <EnterpriseHeroSection />
+      {/* Hero: Immediate Problem/Solution Above Fold */}
+      <FangHeroSection />
       
-      {/* Trust Indicators & Statistics */}
-      <EnterpriseStatsSection />
+      {/* Instant Trust Building */}
+      <TrustIndicatorsSection />
       
-      {/* Main Lookup Interface */}
-      <section className="py-24 px-4 bg-gradient-to-b from-slate-50 to-white" data-section="lookup">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 bg-primary/10 rounded-full text-primary text-sm font-medium mb-6">
-              Professional Valuation Platform
-            </div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-6 tracking-tight">
-              Enterprise-Grade Vehicle Intelligence
+      {/* Main Feature: Valuation Tool - Primary CTA */}
+      <section className="py-20 px-4 bg-gray-50" data-section="valuation">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 tracking-tight">
+              Get Your Vehicle's True Market Value
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              NADA-compliant methodology with institutional-level security. 
-              Get comprehensive vehicle valuations backed by real-time market data and professional-grade AI analysis.
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Professional-grade valuation in under 30 seconds
             </p>
           </div>
           <UnifiedLookupTabs />
         </div>
       </section>
 
-      {/* Enterprise Features */}
-      <EnterpriseFeaturesSection />
+      {/* Value Propositions: Why Us */}
+      <ValuePropositionGrid />
       
-      {/* Client Testimonials */}
-      <EnterpriseTestimonialsSection />
+      {/* Proof Points: How We Deliver */}
+      <ProofPointsSection />
+      
+      {/* Social Proof: Who Trusts Us */}
+      <SocialProofSection />
     </div>
   );
 }
