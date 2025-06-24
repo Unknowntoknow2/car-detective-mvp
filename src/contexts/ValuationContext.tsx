@@ -3,11 +3,27 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+interface ProcessFreeValuationInput {
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  zipCode: string;
+}
+
+interface ProcessFreeValuationResult {
+  valuationId: string;
+  estimatedValue: number;
+  confidenceScore: number;
+}
+
 interface ValuationContextType {
   isLoading: boolean;
   createValuation: (data: any) => Promise<any>;
   getValuationById: (id: string) => Promise<any>;
   updateValuation: (id: string, data: any) => Promise<any>;
+  processFreeValuation: (input: ProcessFreeValuationInput) => Promise<ProcessFreeValuationResult>;
 }
 
 const ValuationContext = createContext<ValuationContextType | undefined>(undefined);
@@ -104,11 +120,61 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, []);
 
+  const processFreeValuation = useCallback(async (input: ProcessFreeValuationInput): Promise<ProcessFreeValuationResult> => {
+    setIsLoading(true);
+    try {
+      console.log('🚀 Processing free valuation:', input);
+
+      // Calculate a basic estimated value based on input
+      const baseValue = 20000; // Default base value
+      const yearAdjustment = (input.year - 2010) * 1000;
+      const mileageAdjustment = -(input.mileage / 1000) * 100;
+      
+      const conditionMultipliers = {
+        'Excellent': 1.1,
+        'Very Good': 1.05,
+        'Good': 1.0,
+        'Fair': 0.9,
+        'Poor': 0.8
+      };
+      
+      const conditionMultiplier = conditionMultipliers[input.condition as keyof typeof conditionMultipliers] || 1.0;
+      const estimatedValue = Math.round((baseValue + yearAdjustment + mileageAdjustment) * conditionMultiplier);
+      
+      // Create valuation record
+      const valuationData = {
+        make: input.make,
+        model: input.model,
+        year: input.year,
+        mileage: input.mileage,
+        condition: input.condition,
+        zip_code: input.zipCode,
+        estimated_value: estimatedValue,
+        confidence_score: 75,
+        valuation_type: 'free'
+      };
+
+      const result = await createValuation(valuationData);
+      
+      return {
+        valuationId: result.id,
+        estimatedValue: estimatedValue,
+        confidenceScore: 75
+      };
+    } catch (error) {
+      console.error('❌ Error processing free valuation:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [createValuation]);
+
   const value = {
     isLoading,
     createValuation,
     getValuationById,
-    updateValuation
+    updateValuation,
+    processFreeValuation
   };
 
   return (
