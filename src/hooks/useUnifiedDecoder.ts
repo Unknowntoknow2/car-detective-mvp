@@ -1,45 +1,46 @@
 
 import { useState, useCallback } from 'react';
 import { DecodedVehicleInfo } from '@/types/vehicle';
+import { useUnifiedLookup } from './useUnifiedLookup';
 
 export const useUnifiedDecoder = () => {
   const [decodedInfo, setDecodedInfo] = useState<DecodedVehicleInfo | null>(null);
   const [isDecoding, setIsDecoding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Use the real unified lookup service instead of mock data
+  const { lookupByVin, isLoading } = useUnifiedLookup({ mode: 'vpic' });
+
   const decodeVehicle = useCallback(async (identifier: string, type: 'vin' | 'plate') => {
+    console.log('🔄 useUnifiedDecoder: Routing to real NHTSA API via useUnifiedLookup');
     setIsDecoding(true);
     setError(null);
     
     try {
-      // Mock decoding logic
-      const mockData: DecodedVehicleInfo = {
-        make: 'Toyota',
-        model: 'Camry',
-        year: 2020,
-        trim: 'SE',
-        bodyType: 'Sedan',
-        fuelType: 'Gasoline',
-        transmission: 'Automatic',
-        engine: '2.5L I4',
-        color: 'Silver',
-        exteriorColor: 'Silver'
-      };
-      
-      setDecodedInfo(mockData);
-      return mockData;
+      if (type === 'vin') {
+        const result = await lookupByVin(identifier);
+        if (result && result.success && result.vehicle) {
+          setDecodedInfo(result.vehicle);
+          return result.vehicle;
+        } else {
+          throw new Error(result?.error || 'Failed to decode VIN');
+        }
+      } else {
+        throw new Error('Plate lookup not supported in this decoder');
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Decoding failed';
       setError(errorMessage);
+      console.error('❌ useUnifiedDecoder error:', errorMessage);
       throw err;
     } finally {
       setIsDecoding(false);
     }
-  }, []);
+  }, [lookupByVin]);
 
   return {
     decodedInfo,
-    isDecoding,
+    isDecoding: isDecoding || isLoading,
     error,
     decodeVehicle,
     clearData: () => {
