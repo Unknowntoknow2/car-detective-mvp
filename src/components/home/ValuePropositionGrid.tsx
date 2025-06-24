@@ -26,15 +26,15 @@ export const ValuePropositionGrid: React.FC = () => {
 
   const getColorClasses = (color: string) => {
     const colors = {
-      blue: "bg-blue-50 text-blue-600",
-      emerald: "bg-emerald-50 text-emerald-600", 
-      purple: "bg-purple-50 text-purple-600"
+      blue: "bg-blue-50 text-blue-600 border-blue-100",
+      emerald: "bg-emerald-50 text-emerald-600 border-emerald-100", 
+      purple: "bg-purple-50 text-purple-600 border-purple-100"
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-6">
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
@@ -47,8 +47,8 @@ export const ValuePropositionGrid: React.FC = () => {
 
         <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {propositions.map((prop, index) => (
-            <div key={index} className="group text-center">
-              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 ${getColorClasses(prop.color)}`}>
+            <div key={index} className="group text-center bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
+              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 border ${getColorClasses(prop.color)}`}>
                 {prop.icon}
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">

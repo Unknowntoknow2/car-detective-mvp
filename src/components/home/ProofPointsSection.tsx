@@ -31,7 +31,7 @@ export const ProofPointsSection: React.FC = () => {
   ];
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-20 bg-white">
       <div className="container mx-auto px-6">
         <div className="max-w-4xl mx-auto text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
@@ -44,7 +44,7 @@ export const ProofPointsSection: React.FC = () => {
 
         <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {proofPoints.map((section, index) => (
-            <div key={index} className="bg-white rounded-xl p-8 shadow-sm hover:shadow-md transition-shadow">
+            <div key={index} className="bg-gray-50 rounded-2xl p-8 hover:shadow-md transition-shadow border border-gray-100">
               <h3 className="text-xl font-semibold text-gray-900 mb-6">
                 {section.category}
               </h3>
