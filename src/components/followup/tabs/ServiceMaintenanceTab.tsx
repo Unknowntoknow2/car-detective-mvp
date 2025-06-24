@@ -22,9 +22,10 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
     return {
       hasRecords: false,
       lastService: '',
-      frequency: undefined,
+      frequency: 'unknown',
       dealerMaintained: false,
-      description: ''
+      description: '',
+      services: []
     };
   };
 
@@ -37,9 +38,10 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
       hasRecords: checked,
       ...(checked ? {} : {
         lastService: '',
-        frequency: undefined,
+        frequency: 'unknown',
         dealerMaintained: false,
-        description: ''
+        description: '',
+        services: []
       })
     };
     updateFormData({ serviceHistory: updatedData });
@@ -58,9 +60,17 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
     let updatedServices;
 
     if (checked) {
-      updatedServices = [...currentServices, serviceType];
+      // Add new service object
+      const newService = {
+        type: serviceType,
+        date: new Date().toISOString().split('T')[0],
+        mileage: '',
+        description: ''
+      };
+      updatedServices = [...currentServices, newService];
     } else {
-      updatedServices = currentServices.filter((service: string) => service !== serviceType);
+      // Remove service by type
+      updatedServices = currentServices.filter((service) => service.type !== serviceType);
     }
 
     const updatedData: ServiceHistoryDetails = {

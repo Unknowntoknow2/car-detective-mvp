@@ -24,15 +24,33 @@ const tireConditionOptions: Array<{
     description: 'Like new tires with excellent tread'
   },
   {
+    value: 'very-good',
+    label: 'Very Good',
+    color: 'bg-green-400',
+    description: 'Good tread depth, even wear pattern'
+  },
+  {
     value: 'good',
     label: 'Good',
     color: 'bg-blue-500',
     description: 'Good condition with adequate tread'
   },
   {
+    value: 'fair',
+    label: 'Fair',
+    color: 'bg-yellow-500',
+    description: 'Low tread depth, replacement needed soon'
+  },
+  {
+    value: 'poor',
+    label: 'Poor',
+    color: 'bg-orange-500',
+    description: 'Significant wear, needs attention'
+  },
+  {
     value: 'worn',
     label: 'Worn',
-    color: 'bg-yellow-500',
+    color: 'bg-red-400',
     description: 'Worn but still usable'
   },
   {

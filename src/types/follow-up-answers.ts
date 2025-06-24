@@ -37,9 +37,9 @@ export interface AccidentDetails {
   airbagDeployment?: boolean;
 }
 
-export type TireConditionOption = 'excellent' | 'very-good' | 'good' | 'fair' | 'poor';
+export type TireConditionOption = 'excellent' | 'very-good' | 'good' | 'fair' | 'poor' | 'worn' | 'replacement';
 export type ConditionOption = 'excellent' | 'very-good' | 'good' | 'fair' | 'poor';
-export type BrakeConditionOption = 'excellent' | 'very-good' | 'good' | 'fair' | 'poor';
+export type BrakeConditionOption = 'excellent' | 'very-good' | 'good' | 'fair' | 'poor' | 'worn' | 'replacement';
 
 export interface FollowUpAnswers {
   id?: string;
