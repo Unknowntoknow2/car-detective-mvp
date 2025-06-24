@@ -82,7 +82,7 @@ export function ValuationFormActions({
         className="flex-1"
         disabled={!formComplete}
       >
-        {formComplete ? 'Continue to Follow-up Questions' : 'Get Free Valuation'}
+        Continue
       </LoadingButton>
       
       {showPremiumOption && (
@@ -94,7 +94,7 @@ export function ValuationFormActions({
           className="flex-1"
           disabled={!formComplete}
         >
-          {formComplete ? 'Continue to Premium Follow-up' : 'Get Premium Valuation'}
+          Continue
         </LoadingButton>
       )}
     </div>
