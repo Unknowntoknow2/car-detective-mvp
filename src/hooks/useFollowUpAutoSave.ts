@@ -21,11 +21,11 @@ export function useFollowUpAutoSave({
   const retryCountRef = useRef(0);
   const maxRetries = 3;
 
-  // Prepare safe data for database save - only include existing columns
+  // Prepare safe data for database save
   const prepareSafeDataForSave = useCallback((dataToSave: FollowUpAnswers) => {
     return {
       vin: dataToSave.vin,
-      user_id: dataToSave.user_id,
+      user_id: dataToSave.user_id || null, // Allow null for anonymous users
       valuation_id: dataToSave.valuation_id,
       zip_code: dataToSave.zip_code,
       mileage: dataToSave.mileage,
@@ -35,7 +35,7 @@ export function useFollowUpAutoSave({
       transmission: dataToSave.transmission,
       title_status: dataToSave.title_status,
       previous_use: dataToSave.previous_use,
-      serviceHistory: dataToSave.serviceHistory, // Use correct camelCase column
+      serviceHistory: dataToSave.serviceHistory,
       previous_owners: dataToSave.previous_owners,
       tire_condition: dataToSave.tire_condition,
       exterior_condition: dataToSave.exterior_condition,
@@ -48,7 +48,7 @@ export function useFollowUpAutoSave({
       completion_percentage: dataToSave.completion_percentage,
       is_complete: dataToSave.is_complete,
       loan_balance: dataToSave.loan_balance,
-      payoff_amount: dataToSave.payoffAmount, // Map to correct column name
+      payoff_amount: dataToSave.payoffAmount,
       service_history: dataToSave.serviceHistory?.description || null,
       updated_at: new Date().toISOString()
     };
@@ -76,9 +76,13 @@ export function useFollowUpAutoSave({
 
       if (error) {
         console.error('Save error details:', error);
+        
+        // Enhanced error handling for specific cases
         let userFriendlyError = 'Save failed. ';
         
-        if (error.message.includes('column') && error.message.includes('does not exist')) {
+        if (error.message.includes('row-level security')) {
+          userFriendlyError += 'Permission denied. Please try refreshing the page.';
+        } else if (error.message.includes('column') && error.message.includes('does not exist')) {
           userFriendlyError += 'Database schema mismatch detected.';
         } else if (error.message.includes('invalid input syntax')) {
           userFriendlyError += 'Invalid data format detected.';
@@ -95,7 +99,7 @@ export function useFollowUpAutoSave({
       // Success
       setSaveError(null);
       setLastSaveTime(new Date());
-      retryCountRef.current = 0; // Reset retry count on success
+      retryCountRef.current = 0;
       
       // Clear localStorage backup on successful save
       try {

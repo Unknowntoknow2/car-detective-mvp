@@ -44,21 +44,16 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
   };
 
   const submitForm = async () => {
-    // Validate all tabs before submitting
-    const validations = TabValidation.validateAllTabs(formData);
-    const hasErrors = Object.values(validations).some(v => v.errors.length > 0);
-    
-    if (hasErrors) {
-      const errorMessages = Object.values(validations)
-        .flatMap(v => v.errors)
-        .slice(0, 3); // Show only first 3 errors
-      
-      toast.error(`Please fix the following issues: ${errorMessages.join(', ')}`);
-      return false;
-    }
-
     try {
-      // Save the completed form data
+      console.log('🚀 Starting follow-up form submission for VIN:', vin);
+      
+      // Validate required fields first
+      if (!formData.zip_code || !formData.mileage) {
+        toast.error('Please fill in ZIP code and mileage before completing valuation');
+        return false;
+      }
+
+      // Save the completed form data first
       const saveSuccess = await saveFormData({
         ...formData,
         is_complete: true,
@@ -66,13 +61,12 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       });
 
       if (!saveSuccess) {
-        toast.error('Failed to save follow-up data');
+        toast.error('Failed to save follow-up data. Please try again.');
         return false;
       }
 
-      // Trigger real valuation calculation with complete follow-up data
-      console.log('🧮 Triggering real valuation calculation with complete follow-up data');
-      
+      console.log('✅ Follow-up data saved successfully');
+
       // Get vehicle data for valuation
       const { data: decodedVehicle } = await supabase
         .from('decoded_vehicles')
@@ -81,6 +75,8 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
         .maybeSingle();
 
       if (decodedVehicle) {
+        console.log('🧮 Running valuation with complete follow-up data');
+        
         // Run valuation with complete follow-up data
         const valuationResult = await runCorrectedValuationPipeline({
           vin,
@@ -129,7 +125,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
             console.log('✅ Updated existing valuation with refined follow-up data');
           }
 
-          toast.success('Follow-up completed! Your valuation has been updated with detailed analysis.');
+          toast.success('Follow-up completed! Your valuation has been updated.');
           
           // Store the valuation ID for navigation
           localStorage.setItem('latest_valuation_id', existingValuation?.id || 'completed');
@@ -146,7 +142,20 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
 
     } catch (error) {
       console.error('❌ Error submitting follow-up form:', error);
-      toast.error('Failed to complete follow-up. Please try again.');
+      
+      // Enhanced error messages
+      if (error instanceof Error) {
+        if (error.message.includes('row-level security')) {
+          toast.error('Permission error. Please refresh the page and try again.');
+        } else if (error.message.includes('network')) {
+          toast.error('Network error. Please check your connection and try again.');
+        } else {
+          toast.error(`Failed to complete follow-up: ${error.message}`);
+        }
+      } else {
+        toast.error('Failed to complete follow-up. Please try again.');
+      }
+      
       return false;
     }
   };

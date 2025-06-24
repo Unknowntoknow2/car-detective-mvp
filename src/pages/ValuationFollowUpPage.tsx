@@ -59,10 +59,16 @@ export default function ValuationFollowUpPage() {
     try {
       console.log('🚀 Starting valuation submission with follow-up data:', formData);
       
-      // Save the form data first
+      // Validate required fields
+      if (!formData.zip_code || !formData.mileage) {
+        toast.error('Please fill in ZIP code and mileage before completing valuation');
+        return;
+      }
+      
+      // Save the form data first using the enhanced submitForm
       const saveSuccess = await submitForm();
       if (!saveSuccess) {
-        throw new Error('Failed to save follow-up data');
+        return; // Error already shown by submitForm
       }
       
       // Process the valuation with the follow-up data
@@ -82,7 +88,19 @@ export default function ValuationFollowUpPage() {
       navigate(`/results/${valuationResult.valuationId}`);
     } catch (error) {
       console.error('❌ Error submitting follow-up answers:', error);
-      toast.error('Failed to complete valuation. Please check your data and try again.');
+      
+      // Enhanced error handling
+      if (error instanceof Error) {
+        if (error.message.includes('required')) {
+          toast.error('Please fill in all required fields and try again.');
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          toast.error('Network error. Please check your connection and try again.');
+        } else {
+          toast.error(`Failed to complete valuation: ${error.message}`);
+        }
+      } else {
+        toast.error('Failed to complete valuation. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -147,7 +165,7 @@ export default function ValuationFollowUpPage() {
           </div>
         </div>
 
-        {/* Vehicle Found Card - More Prominent at Top */}
+        {/* Vehicle Found Card */}
         <CarFinderQaherCard vehicle={vehicleData} />
 
         {/* Progress Indicator */}
@@ -178,7 +196,7 @@ export default function ValuationFollowUpPage() {
           </div>
         </div>
 
-        {/* Follow-up Questions - Enhanced with better error handling */}
+        {/* Follow-up Questions */}
         <div className="space-y-6">
           <div className="text-center">
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
