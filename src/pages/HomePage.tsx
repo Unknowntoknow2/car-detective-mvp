@@ -1,45 +1,47 @@
 
 import React from 'react';
 import { UnifiedLookupTabs } from '@/components/lookup/UnifiedLookupTabs';
-import { PremiumHeroSection } from '@/components/home/PremiumHeroSection';
-import { InstantTrustBar } from '@/components/home/InstantTrustBar';
-import { CoreValueProps } from '@/components/home/CoreValueProps';
-import { IndustryProof } from '@/components/home/IndustryProof';
-import { PremiumFeatures } from '@/components/home/PremiumFeatures';
+import { FangHeroSection } from '@/components/home/FangHeroSection';
+import { TrustIndicatorsSection } from '@/components/home/TrustIndicatorsSection';
+import { ValuePropositionGrid } from '@/components/home/ValuePropositionGrid';
+import { ProofPointsSection } from '@/components/home/ProofPointsSection';
+import { SocialProofSection } from '@/components/home/SocialProofSection';
 import { FinalCTA } from '@/components/home/FinalCTA';
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero: Clear Value Proposition */}
-      <PremiumHeroSection />
+      {/* FANG-Level Hero Section */}
+      <FangHeroSection />
       
-      {/* Instant Trust Building */}
-      <InstantTrustBar />
+      {/* Trust Indicators with Real Metrics */}
+      <TrustIndicatorsSection />
       
       {/* Main Feature: Valuation Tool */}
-      <section className="py-16 px-4" data-section="valuation">
+      <section className="py-20 px-4 bg-gray-50" data-section="valuation">
         <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
               Get Your Vehicle's True Value
             </h2>
-            <p className="text-gray-600">
-              Professional-grade valuation in seconds
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Professional-grade valuation in seconds. Enter your VIN or license plate to get started.
             </p>
           </div>
-          <UnifiedLookupTabs />
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <UnifiedLookupTabs />
+          </div>
         </div>
       </section>
 
-      {/* Core Value Props: Why Choose Us */}
-      <CoreValueProps />
+      {/* Value Propositions with Enhanced Design */}
+      <ValuePropositionGrid />
       
-      {/* Premium Features & Standards */}
-      <PremiumFeatures />
+      {/* Proof Points with Industry Standards */}
+      <ProofPointsSection />
       
-      {/* Industry Proof: Credibility */}
-      <IndustryProof />
+      {/* Social Proof with Professional Testimonials */}
+      <SocialProofSection />
       
       {/* Final Call to Action */}
       <FinalCTA />
