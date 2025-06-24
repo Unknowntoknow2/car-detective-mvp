@@ -6,28 +6,28 @@ import { Star, Quote } from 'lucide-react';
 export const EnterpriseTestimonialsSection: React.FC = () => {
   const testimonials = [
     {
-      quote: "The accuracy and speed of their valuations have transformed our lending decisions. We've reduced approval times by 75% while maintaining risk standards.",
+      quote: "The accuracy and methodology alignment with NADA standards has streamlined our lending decisions significantly while maintaining our risk management protocols.",
       author: "Sarah Chen",
-      title: "Chief Risk Officer",
-      company: "Premier Financial Group",
+      title: "Senior Risk Analyst",
+      company: "Regional Credit Union",
       rating: 5,
-      logo: "PF"
+      logo: "RC"
     },
     {
-      quote: "Their enterprise API handles our high-volume requirements flawlessly. The real-time market data gives us a significant competitive advantage.",
+      quote: "Their enterprise API integration was seamless and the real-time market data has enhanced our inventory valuation process considerably.",
       author: "Michael Rodriguez",
-      title: "VP of Operations",
-      company: "AutoMax Holdings",
+      title: "Operations Director",
+      company: "Auto Dealer Group",
       rating: 5,
-      logo: "AM"
+      logo: "AD"
     },
     {
-      quote: "Security and compliance were our top concerns. Their SOC 2 certification and audit trails gave us complete confidence in the platform.",
+      quote: "Security compliance and comprehensive audit trails met all our institutional requirements. The implementation was professional and thorough.",
       author: "Jennifer Walsh",
-      title: "CISO",
-      company: "Global Banking Corp",
+      title: "Compliance Officer",
+      company: "Financial Services Corp",
       rating: 5,
-      logo: "GB"
+      logo: "FS"
     }
   ];
 
@@ -36,13 +36,13 @@ export const EnterpriseTestimonialsSection: React.FC = () => {
       <div className="container mx-auto px-6">
         <div className="max-w-4xl mx-auto text-center mb-16">
           <div className="inline-flex items-center px-4 py-2 bg-emerald-500/10 rounded-full text-emerald-700 text-sm font-medium mb-6">
-            Client Success Stories
+            Professional References
           </div>
           <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
-            Trusted by Industry Leaders
+            Trusted by Industry Professionals
           </h2>
           <p className="text-xl text-gray-600 leading-relaxed">
-            See how enterprise clients leverage our platform to make better decisions faster.
+            See how automotive and financial professionals leverage our platform for accurate, compliant valuations.
           </p>
         </div>
 
@@ -87,9 +87,9 @@ export const EnterpriseTestimonialsSection: React.FC = () => {
         
         {/* Additional trust indicators */}
         <div className="mt-16 text-center">
-          <p className="text-gray-500 mb-8">Trusted by leading organizations worldwide</p>
+          <p className="text-gray-500 mb-8">Serving automotive and financial professionals nationwide</p>
           <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
-            {['Fortune 500', 'Banks', 'Credit Unions', 'Dealers', 'Insurance'].map((type, index) => (
+            {['Credit Unions', 'Auto Dealers', 'Financial Services', 'Insurance Companies', 'Fleet Managers'].map((type, index) => (
               <div key={index} className="text-gray-400 font-semibold text-lg">
                 {type}
               </div>
