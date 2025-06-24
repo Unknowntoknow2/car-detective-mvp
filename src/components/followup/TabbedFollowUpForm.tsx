@@ -9,8 +9,10 @@ import { AccidentsTab } from './tabs/AccidentsTab';
 import { ModificationsTab } from './tabs/ModificationsTab';
 import { FeaturesTab } from './tabs/FeaturesTab';
 import { TabNavigation } from './TabNavigation';
+import { TabValidation } from './validation/TabValidation';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { CheckCircle, Circle } from 'lucide-react';
+import { CheckCircle, Circle, AlertTriangle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface TabbedFollowUpFormProps {
   formData: FollowUpAnswers;
@@ -41,24 +43,28 @@ export function TabbedFollowUpForm({
     features: "Features"
   };
 
-  // Calculate completion status for each tab
-  const tabCompletion = useMemo(() => {
-    return {
-      basic: !!(formData.zip_code && formData.mileage && formData.condition),
-      condition: !!(formData.tire_condition && formData.exterior_condition && formData.interior_condition),
-      issues: !!(formData.dashboard_lights !== undefined),
-      service: !!(formData.serviceHistory?.hasRecords !== undefined),
-      accidents: !!(formData.accidents?.hadAccident !== undefined),
-      modifications: !!(formData.modifications?.hasModifications !== undefined),
-      features: true // Features tab is always considered complete
-    };
+  // Calculate validation and completion status for each tab
+  const tabValidations = useMemo(() => {
+    return TabValidation.validateAllTabs(formData);
   }, [formData]);
+
+  const tabCompletion = useMemo(() => {
+    const validations = tabValidations;
+    return {
+      basic: validations.basic.isValid,
+      condition: validations.condition.isValid,
+      issues: validations.issues.isValid,
+      service: validations.service.isValid,
+      accidents: validations.accidents.isValid,
+      modifications: validations.modifications.isValid,
+      features: validations.features.isValid
+    };
+  }, [tabValidations]);
 
   // Calculate overall progress
   const completionPercentage = useMemo(() => {
-    const completedTabs = Object.values(tabCompletion).filter(Boolean).length;
-    return Math.round((completedTabs / tabs.length) * 100);
-  }, [tabCompletion, tabs.length]);
+    return TabValidation.getOverallCompletion(formData);
+  }, [formData]);
 
   // Update completion percentage in form data
   React.useEffect(() => {
@@ -68,10 +74,23 @@ export function TabbedFollowUpForm({
   }, [completionPercentage, formData.completion_percentage, updateFormData]);
 
   const currentTabValid = tabCompletion[activeTab as keyof typeof tabCompletion];
+  const currentTabValidation = tabValidations[activeTab as keyof typeof tabValidations];
   const isLastTab = activeTab === "features";
 
   const handleServiceHistoryChange = (updates: Partial<FollowUpAnswers>) => {
     updateFormData(updates);
+  };
+
+  const getTabIcon = (tabKey: string) => {
+    const validation = tabValidations[tabKey as keyof typeof tabValidations];
+    
+    if (validation.isValid) {
+      return <CheckCircle className="w-4 h-4 text-green-600" />;
+    } else if (validation.errors.length > 0) {
+      return <Circle className="w-4 h-4 text-red-400" />;
+    } else {
+      return <Circle className="w-4 h-4 text-gray-400" />;
+    }
   };
 
   return (
@@ -91,22 +110,45 @@ export function TabbedFollowUpForm({
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-7 mb-6">
-          {tabs.map((tab) => (
-            <TabsTrigger 
-              key={tab} 
-              value={tab} 
-              className="flex items-center gap-2 text-sm"
-            >
-              {tabCompletion[tab as keyof typeof tabCompletion] ? (
-                <CheckCircle className="w-4 h-4 text-green-600" />
-              ) : (
-                <Circle className="w-4 h-4 text-gray-400" />
-              )}
-              {tabLabels[tab as keyof typeof tabLabels]}
-            </TabsTrigger>
-          ))}
+        <TabsList className="grid grid-cols-7 mb-6 h-auto p-1">
+          {tabs.map((tab) => {
+            const validation = tabValidations[tab as keyof typeof tabValidations];
+            return (
+              <TabsTrigger 
+                key={tab} 
+                value={tab} 
+                className="flex flex-col items-center gap-1 text-xs p-2 h-auto relative"
+              >
+                <div className="flex items-center gap-1">
+                  {getTabIcon(tab)}
+                  <span className="hidden sm:inline">{tabLabels[tab as keyof typeof tabLabels]}</span>
+                  <span className="sm:hidden">{tab === 'basic' ? 'Info' : tab === 'condition' ? 'Cond' : tab === 'service' ? 'Svc' : tab === 'accidents' ? 'Acc' : tab === 'modifications' ? 'Mod' : tab === 'features' ? 'Feat' : 'Issues'}</span>
+                </div>
+                {validation.warnings.length > 0 && (
+                  <AlertTriangle className="w-3 h-3 text-yellow-500" />
+                )}
+              </TabsTrigger>
+            );
+          })}
         </TabsList>
+        
+        {/* Current Tab Validation Status */}
+        {currentTabValidation && (currentTabValidation.errors.length > 0 || currentTabValidation.warnings.length > 0) && (
+          <div className="mb-4 space-y-2">
+            {currentTabValidation.errors.map((error, index) => (
+              <div key={index} className="flex items-center gap-2 p-2 bg-red-50 border border-red-200 rounded-md">
+                <Circle className="w-4 h-4 text-red-500" />
+                <span className="text-sm text-red-700">{error}</span>
+              </div>
+            ))}
+            {currentTabValidation.warnings.map((warning, index) => (
+              <div key={index} className="flex items-center gap-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
+                <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                <span className="text-sm text-yellow-700">{warning}</span>
+              </div>
+            ))}
+          </div>
+        )}
         
         <div className="mt-6 min-h-[400px]">
           <TabsContent value="basic" className="space-y-6">
