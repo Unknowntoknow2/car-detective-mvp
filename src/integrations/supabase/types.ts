@@ -913,42 +913,6 @@ export type Database = {
         }
         Relationships: []
       }
-      makes_backup: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          make_id: number | null
-          make_name: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string | null
-          make_id?: number | null
-          make_name?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string | null
-          make_id?: number | null
-          make_name?: string | null
-        }
-        Relationships: []
-      }
-      makes_temp: {
-        Row: {
-          id: string
-          make_name: string | null
-        }
-        Insert: {
-          id?: string
-          make_name?: string | null
-        }
-        Update: {
-          id?: string
-          make_name?: string | null
-        }
-        Relationships: []
-      }
       manual_entry_valuations: {
         Row: {
           accident: boolean | null
@@ -1110,6 +1074,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_model_trims_model_id"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "models"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "model_trims_model_id_fkey"
             columns: ["model_id"]
             isOneToOne: false
@@ -1117,48 +1088,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      model_trims_temp_enriched: {
-        Row: {
-          creaed_at: string | null
-          created_at: string | null
-          description: string | null
-          engine_type: string
-          image_url: string | null
-          image_URL: string | null
-          model_name: string
-          msrp: number | null
-          MSRP: number | null
-          source: string | null
-          trim_name: string
-        }
-        Insert: {
-          creaed_at?: string | null
-          created_at?: string | null
-          description?: string | null
-          engine_type: string
-          image_url?: string | null
-          image_URL?: string | null
-          model_name: string
-          msrp?: number | null
-          MSRP?: number | null
-          source?: string | null
-          trim_name: string
-        }
-        Update: {
-          creaed_at?: string | null
-          created_at?: string | null
-          description?: string | null
-          engine_type?: string
-          image_url?: string | null
-          image_URL?: string | null
-          model_name?: string
-          msrp?: number | null
-          MSRP?: number | null
-          source?: string | null
-          trim_name?: string
-        }
-        Relationships: []
       }
       models: {
         Row: {
@@ -1198,6 +1127,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fk_models_make_id"
+            columns: ["make_id"]
+            isOneToOne: false
+            referencedRelation: "makes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "models_make_id_fkey"
             columns: ["make_id"]
             isOneToOne: false
@@ -1205,30 +1141,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      models_backup: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          make_id: string | null
-          model_name: string | null
-          nhtsa_model_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string | null
-          make_id?: string | null
-          model_name?: string | null
-          nhtsa_model_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string | null
-          make_id?: string | null
-          model_name?: string | null
-          nhtsa_model_id?: string | null
-        }
-        Relationships: []
       }
       offer_acceptance_log: {
         Row: {
