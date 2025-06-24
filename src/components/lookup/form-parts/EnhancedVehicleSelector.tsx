@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -57,9 +58,6 @@ export function EnhancedVehicleSelector({
   const popularMakes = getPopularMakes();
   const nonPopularMakes = getNonPopularMakes();
 
-  // Determine if we should show the trim selector
-  const shouldShowTrimSelector = showTrim && hasMultipleTrims();
-
   // Handle make selection and fetch models
   const handleMakeChange = async (makeId: string) => {
     const selectedMake = findMakeById(makeId);
@@ -110,9 +108,10 @@ export function EnhancedVehicleSelector({
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
 
+  // Always show trim when requested, use 4-column layout
   const gridClass = compact 
     ? "grid grid-cols-2 gap-4" 
-    : shouldShowTrimSelector 
+    : showTrim
       ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
       : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6";
 
@@ -169,7 +168,7 @@ export function EnhancedVehicleSelector({
           <SkeletonSelect label="Make" />
           <SkeletonSelect label="Model" />
           {showYear && <SkeletonSelect label="Year" />}
-          {shouldShowTrimSelector && <SkeletonSelect label="Trim Level" />}
+          {showTrim && <SkeletonSelect label="Trim Level" />}
         </div>
       </div>
     );
@@ -358,8 +357,8 @@ export function EnhancedVehicleSelector({
           </div>
         )}
 
-        {/* Enhanced Trim Selection - Only show when we have meaningful trim options */}
-        {shouldShowTrimSelector && (
+        {/* Always Show Trim Selection when requested */}
+        {showTrim && (
           <div className="space-y-3">
             <Label htmlFor="trim" className="text-sm font-semibold text-gray-900 flex items-center gap-2">
               Trim Level
@@ -451,7 +450,7 @@ export function EnhancedVehicleSelector({
               <div><strong>Error:</strong> {error ? 'yes' : 'no'}</div>
               <div><strong>Total Makes:</strong> {makes.length}</div>
               <div><strong>Available Trims:</strong> {trims.length}</div>
-              <div><strong>Show Trim Selector:</strong> {shouldShowTrimSelector ? 'yes' : 'no'}</div>
+              <div><strong>Show Trim:</strong> {showTrim ? 'yes' : 'no'}</div>
               <div><strong>Has Multiple Trims:</strong> {hasMultipleTrims() ? 'yes' : 'no'}</div>
             </div>
           </div>

@@ -107,7 +107,7 @@ export default function ValuationFollowUpPage() {
           </div>
         </div>
 
-        {/* Vehicle Found Card */}
+        {/* Vehicle Found Card - More Prominent at Top */}
         <CarFinderQaherCard vehicle={vehicleData} />
 
         {/* Progress Indicator */}
@@ -150,7 +150,7 @@ export default function ValuationFollowUpPage() {
           </div>
           
           <FollowUpQuestions 
-            onSubmit={handleSubmitAnswers} 
+            onSubmit={handle
             isLoading={isSubmitting}
           />
         </div>
