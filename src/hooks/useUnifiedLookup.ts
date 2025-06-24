@@ -13,7 +13,7 @@ export const useUnifiedLookup = (props: UseUnifiedLookupProps = {}) => {
   const [result, setResult] = useState<UnifiedVehicleLookupResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { tier = 'free', mode = 'mock' } = props;
+  const { tier = 'free', mode = 'vpic' } = props; // Changed default from 'mock' to 'vpic'
 
   const lookupByVin = useCallback(async (vin: string): Promise<UnifiedVehicleLookupResult | null> => {
     setIsLoading(true);
@@ -27,11 +27,14 @@ export const useUnifiedLookup = (props: UseUnifiedLookupProps = {}) => {
     };
 
     try {
+      console.log('🔍 Starting VIN lookup for:', vin);
       const lookupResult = await UnifiedLookupService.lookupByVin(vin, options);
       setResult(lookupResult);
       
       if (lookupResult.success) {
-        toast.success(`Vehicle found via ${lookupResult.source.toUpperCase()}`);
+        const sourceName = lookupResult.source === 'vpic' ? 'NHTSA' : lookupResult.source.toUpperCase();
+        toast.success(`Vehicle found via ${sourceName}`);
+        console.log('✅ VIN lookup successful:', lookupResult.vehicle);
       } else {
         setError(lookupResult.error || 'VIN lookup failed');
         toast.error(lookupResult.error || 'VIN lookup failed');

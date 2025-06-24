@@ -1,5 +1,6 @@
 
 import { DecodedVehicleInfo } from "@/types/vehicle";
+import { supabase } from '@/integrations/supabase/client';
 
 export interface UnifiedVehicleLookupResult {
   success: boolean;
@@ -37,46 +38,74 @@ export class UnifiedLookupService {
         };
       }
 
-      // Mock implementation for now - replace with actual API calls
-      const mockVehicle: DecodedVehicleInfo = {
-        vin,
-        year: 2021,
-        make: 'Toyota',
-        model: 'Corolla',
-        trim: 'LE',
-        engine: '2.0L 4-Cylinder DOHC',
-        transmission: 'CVT Automatic',
-        bodyType: 'Sedan',
-        fuelType: 'Gasoline',
-        drivetrain: 'FWD',
-        exteriorColor: 'Celestite Gray Metallic',
-        interiorColor: 'Black Fabric',
-        doors: '4',
-        seats: '5',
-        displacement: '2.0L',
-        mileage: 35000,
-        condition: 'Good',
-        confidenceScore: options.tier === 'premium' ? 95 : 85,
-      };
+      // Call the unified-decode edge function
+      console.log('🔍 Calling unified-decode edge function for VIN:', vin);
+      
+      const { data, error } = await supabase.functions.invoke('unified-decode', {
+        body: { vin: vin.toUpperCase() }
+      });
 
-      const result: UnifiedVehicleLookupResult = {
-        success: true,
-        vehicle: mockVehicle,
-        source: options.tier === 'premium' ? 'carfax' : 'vpic',
-        tier: options.tier,
-        confidence: mockVehicle.confidenceScore
-      };
-
-      // Add premium features if applicable
-      if (options.tier === 'premium') {
-        result.enhancedData = {
-          carfaxReport: { accidents: 0, owners: 1, serviceRecords: 15 },
-          marketData: { averagePrice: 24500, priceRange: { min: 22000, max: 27000 } },
-          historyRecords: []
+      if (error) {
+        console.error('❌ Edge function error:', error);
+        return {
+          success: false,
+          source: 'failed',
+          tier: options.tier,
+          error: 'Service temporarily unavailable. Please try again.'
         };
       }
 
-      return result;
+      console.log('✅ Edge function response:', data);
+
+      // Handle successful decode
+      if (data && data.success && data.decoded) {
+        const decodedData = data.decoded;
+        
+        const vehicle: DecodedVehicleInfo = {
+          vin: decodedData.vin,
+          year: decodedData.year,
+          make: decodedData.make,
+          model: decodedData.model,
+          trim: decodedData.trim || 'Standard',
+          engine: decodedData.engine || decodedData.engineCylinders,
+          transmission: decodedData.transmission,
+          bodyType: decodedData.bodyType,
+          fuelType: decodedData.fuelType,
+          drivetrain: decodedData.drivetrain,
+          doors: decodedData.doors,
+          seats: decodedData.seats,
+          displacement: decodedData.displacementL,
+          confidenceScore: options.tier === 'premium' ? 95 : 85,
+        };
+
+        const result: UnifiedVehicleLookupResult = {
+          success: true,
+          vehicle,
+          source: data.source === 'nhtsa' ? 'vpic' : data.source,
+          tier: options.tier,
+          confidence: vehicle.confidenceScore
+        };
+
+        // Add premium features if applicable
+        if (options.tier === 'premium') {
+          result.enhancedData = {
+            carfaxReport: { accidents: 0, owners: 1, serviceRecords: 15 },
+            marketData: { averagePrice: 24500, priceRange: { min: 22000, max: 27000 } },
+            historyRecords: []
+          };
+        }
+
+        return result;
+      }
+
+      // Handle failed decode
+      return {
+        success: false,
+        source: 'failed',
+        tier: options.tier,
+        error: data?.error || 'Unable to decode VIN'
+      };
+
     } catch (error) {
       console.error("VIN lookup error:", error);
       return {
