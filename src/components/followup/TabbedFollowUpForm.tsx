@@ -11,9 +11,10 @@ import { FeaturesTab } from './tabs/FeaturesTab';
 import { TabNavigation } from './TabNavigation';
 import { TabValidation } from './validation/TabValidation';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { CheckCircle, Circle, AlertTriangle, Wifi, WifiOff, Save } from 'lucide-react';
+import { CheckCircle, Circle, AlertTriangle, Wifi, WifiOff, Save, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 
 interface TabbedFollowUpFormProps {
   formData: FollowUpAnswers;
@@ -35,6 +36,7 @@ export function TabbedFollowUpForm({
   saveError = null
 }: TabbedFollowUpFormProps) {
   const [activeTab, setActiveTab] = useState("basic");
+  const [showQuickOverview, setShowQuickOverview] = useState(false);
 
   const tabs = ["basic", "condition", "issues", "service", "accidents", "modifications", "features"];
   
@@ -118,13 +120,115 @@ export function TabbedFollowUpForm({
     return "Auto-saved";
   };
 
+  // Quick overview component for showing all critical fields
+  const QuickOverview = () => (
+    <div className="space-y-6 p-6 bg-gray-50 rounded-lg">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold">Quick Overview - Critical Information</h3>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowQuickOverview(false)}
+        >
+          Back to Detailed Form
+        </Button>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">ZIP Code *</label>
+          <input
+            type="text"
+            value={formData.zip_code || ''}
+            onChange={(e) => updateFormData({ zip_code: e.target.value })}
+            className="w-full p-2 border rounded-md"
+            placeholder="Your ZIP code"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">Mileage *</label>
+          <input
+            type="number"
+            value={formData.mileage || ''}
+            onChange={(e) => updateFormData({ mileage: parseInt(e.target.value) || 0 })}
+            className="w-full p-2 border rounded-md"
+            placeholder="Current mileage"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">Overall Condition *</label>
+          <select
+            value={formData.condition || 'good'}
+            onChange={(e) => updateFormData({ condition: e.target.value })}
+            className="w-full p-2 border rounded-md"
+          >
+            <option value="excellent">Excellent</option>
+            <option value="very-good">Very Good</option>
+            <option value="good">Good</option>
+            <option value="fair">Fair</option>
+            <option value="poor">Poor</option>
+          </select>
+        </div>
+        
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">Any Accidents?</label>
+          <select
+            value={formData.accidents?.hadAccident ? 'yes' : 'no'}
+            onChange={(e) => updateFormData({ 
+              accidents: { 
+                ...formData.accidents,
+                hadAccident: e.target.value === 'yes'
+              }
+            })}
+            className="w-full p-2 border rounded-md"
+          >
+            <option value="no">No</option>
+            <option value="yes">Yes</option>
+          </select>
+        </div>
+      </div>
+      
+      <div className="pt-4 border-t">
+        <Button
+          onClick={onSubmit}
+          disabled={isLoading || !formData.zip_code || !formData.mileage}
+          className="w-full bg-green-600 hover:bg-green-700"
+        >
+          {isLoading ? 'Processing...' : 'Complete Valuation with Basic Info'}
+        </Button>
+        <p className="text-sm text-gray-600 mt-2 text-center">
+          You can complete your valuation with just this basic information, or use the detailed form for a more accurate assessment.
+        </p>
+      </div>
+    </div>
+  );
+
+  if (showQuickOverview) {
+    return (
+      <div className="w-full max-w-6xl mx-auto p-6">
+        <QuickOverview />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-6xl mx-auto p-6">
-      {/* Progress Bar with Save Status */}
+      {/* Progress Bar with Save Status and Quick Overview Option */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-lg font-semibold text-gray-900">Complete Your Valuation</h3>
           <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowQuickOverview(true)}
+              className="flex items-center gap-2"
+            >
+              <Eye className="w-4 h-4" />
+              Quick Overview
+            </Button>
             <div className="flex items-center gap-2 text-sm">
               {getSaveStatusIcon()}
               <span className={`${saveError ? 'text-red-600' : isSaving ? 'text-blue-600' : 'text-green-600'}`}>
@@ -158,6 +262,8 @@ export function TabbedFollowUpForm({
         <TabsList className="grid grid-cols-7 mb-6 h-auto p-1">
           {tabs.map((tab) => {
             const validation = tabValidations[tab as keyof typeof tabValidations];
+            const isCompleted = tabCompletion[tab as keyof typeof tabCompletion];
+            
             return (
               <TabsTrigger 
                 key={tab} 
@@ -172,24 +278,48 @@ export function TabbedFollowUpForm({
                 {validation.warnings.length > 0 && (
                   <AlertTriangle className="w-3 h-3 text-yellow-500" />
                 )}
+                {isCompleted && (
+                  <Badge variant="secondary" className="text-xs px-1 py-0">
+                    Done
+                  </Badge>
+                )}
               </TabsTrigger>
             );
           })}
         </TabsList>
         
-        {/* Current Tab Validation Status */}
+        {/* Current Tab Validation Status with Skip Option */}
         {currentTabValidation && (currentTabValidation.errors.length > 0 || currentTabValidation.warnings.length > 0) && (
           <div className="mb-4 space-y-2">
             {currentTabValidation.errors.map((error, index) => (
-              <div key={index} className="flex items-center gap-2 p-2 bg-red-50 border border-red-200 rounded-md">
-                <Circle className="w-4 h-4 text-red-500" />
-                <span className="text-sm text-red-700">{error}</span>
+              <div key={index} className="flex items-center justify-between p-2 bg-red-50 border border-red-200 rounded-md">
+                <div className="flex items-center gap-2">
+                  <Circle className="w-4 h-4 text-red-500" />
+                  <span className="text-sm text-red-700">{error}</span>
+                </div>
               </div>
             ))}
             {currentTabValidation.warnings.map((warning, index) => (
-              <div key={index} className="flex items-center gap-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
-                <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm text-yellow-700">{warning}</span>
+              <div key={index} className="flex items-center justify-between p-2 bg-yellow-50 border border-yellow-200 rounded-md">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                  <span className="text-sm text-yellow-700">{warning}</span>
+                </div>
+                {!isLastTab && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const currentIndex = tabs.indexOf(activeTab);
+                      if (currentIndex < tabs.length - 1) {
+                        setActiveTab(tabs[currentIndex + 1]);
+                      }
+                    }}
+                    className="text-xs"
+                  >
+                    Skip Section
+                  </Button>
+                )}
               </div>
             ))}
           </div>
