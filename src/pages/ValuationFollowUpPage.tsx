@@ -6,11 +6,14 @@ import { CarFinderQaherCard } from '@/components/valuation/CarFinderQaherCard';
 import { FollowUpQuestions } from '@/components/valuation/FollowUpQuestions';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { useValuation } from '@/contexts/ValuationContext';
+import { toast } from 'sonner';
 
 export default function ValuationFollowUpPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { processFreeValuation } = useValuation();
 
   // Extract vehicle data from URL params
   const vehicleData = {
@@ -19,11 +22,14 @@ export default function ValuationFollowUpPage() {
     model: searchParams.get('model') || '',
     trim: searchParams.get('trim') || '',
     vin: searchParams.get('vin') || '',
+    plate: searchParams.get('plate') || '',
+    state: searchParams.get('state') || '',
     engine: searchParams.get('engine') || '',
     transmission: searchParams.get('transmission') || '',
     bodyType: searchParams.get('bodyType') || '',
     fuelType: searchParams.get('fuelType') || '',
-    drivetrain: searchParams.get('drivetrain') || ''
+    drivetrain: searchParams.get('drivetrain') || '',
+    source: searchParams.get('source') as 'vin' | 'plate' | 'manual' || 'vin'
   };
 
   const handleBackToSelection = () => {
@@ -35,19 +41,24 @@ export default function ValuationFollowUpPage() {
     try {
       console.log('Follow-up answers submitted:', answers);
       
-      // Here you would process the follow-up answers and get final valuation
-      // For now, simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Navigate to results page with all the data
-      const resultsParams = new URLSearchParams({
-        ...Object.fromEntries(searchParams),
-        followUpComplete: 'true'
+      // Process the valuation with the follow-up data
+      const valuationResult = await processFreeValuation({
+        make: vehicleData.make,
+        model: vehicleData.model,
+        year: vehicleData.year,
+        mileage: parseInt(answers.currentMileage) || 50000,
+        condition: answers.exteriorCondition || 'Good',
+        zipCode: '90210' // Default for now, should come from follow-up
       });
       
-      navigate(`/results/comprehensive?${resultsParams.toString()}`);
+      console.log('✅ ValuationFollowUpPage: Valuation completed:', valuationResult);
+      toast.success('Comprehensive valuation completed!');
+      
+      // Navigate to results page
+      navigate(`/results/${valuationResult.valuationId}`);
     } catch (error) {
       console.error('Error submitting follow-up answers:', error);
+      toast.error('Failed to complete valuation. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

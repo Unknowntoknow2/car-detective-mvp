@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Car, Fuel, Settings, Calendar } from 'lucide-react';
+import { Car, Fuel, Settings, Calendar, Gauge } from 'lucide-react';
 
 interface VehicleInfo {
   year?: number;
@@ -10,11 +10,18 @@ interface VehicleInfo {
   model?: string;
   trim?: string;
   vin?: string;
+  plate?: string;
+  state?: string;
   engine?: string;
   transmission?: string;
   bodyType?: string;
   fuelType?: string;
   drivetrain?: string;
+  // Only show these for manual entry
+  mileage?: number;
+  condition?: string;
+  zipCode?: string;
+  source?: 'vin' | 'plate' | 'manual';
 }
 
 interface CarFinderQaherCardProps {
@@ -22,6 +29,8 @@ interface CarFinderQaherCardProps {
 }
 
 export const CarFinderQaherCard: React.FC<CarFinderQaherCardProps> = ({ vehicle }) => {
+  const isManualEntry = vehicle.source === 'manual';
+  
   return (
     <Card className="w-full bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-lg mb-8">
       <CardHeader className="pb-4">
@@ -39,11 +48,18 @@ export const CarFinderQaherCard: React.FC<CarFinderQaherCardProps> = ({ vehicle 
               )}
             </div>
           </div>
-          {vehicle.vin && (
-            <Badge variant="outline" className="font-mono text-xs">
-              VIN: {vehicle.vin}
-            </Badge>
-          )}
+          <div className="flex flex-col gap-2">
+            {vehicle.vin && (
+              <Badge variant="outline" className="font-mono text-xs">
+                VIN: {vehicle.vin}
+              </Badge>
+            )}
+            {vehicle.plate && vehicle.state && (
+              <Badge variant="outline" className="font-mono text-xs">
+                {vehicle.state}: {vehicle.plate}
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
       
@@ -81,6 +97,43 @@ export const CarFinderQaherCard: React.FC<CarFinderQaherCardProps> = ({ vehicle 
               <div>
                 <p className="text-xs font-medium text-gray-500">Body Style</p>
                 <p className="text-sm font-semibold text-gray-800">{vehicle.bodyType}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Only show mileage and condition for manual entry */}
+          {isManualEntry && vehicle.mileage && (
+            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Gauge className="h-4 w-4 text-green-600" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-500">Mileage</p>
+                <p className="text-sm font-semibold text-gray-800">{vehicle.mileage.toLocaleString()} miles</p>
+              </div>
+            </div>
+          )}
+
+          {isManualEntry && vehicle.condition && (
+            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border">
+              <div className="p-2 bg-indigo-100 rounded-lg">
+                <Car className="h-4 w-4 text-indigo-600" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-500">Condition</p>
+                <p className="text-sm font-semibold text-gray-800">{vehicle.condition}</p>
+              </div>
+            </div>
+          )}
+
+          {isManualEntry && vehicle.zipCode && (
+            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <Calendar className="h-4 w-4 text-red-600" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-500">Location</p>
+                <p className="text-sm font-semibold text-gray-800">{vehicle.zipCode}</p>
               </div>
             </div>
           )}
