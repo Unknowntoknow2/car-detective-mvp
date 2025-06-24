@@ -1,3 +1,5 @@
+// This file is deprecated - types are now defined in the pipeline and hooks
+// Keeping minimal interface for backward compatibility
 
 export interface CorrectedValuationResults {
   success: boolean;
