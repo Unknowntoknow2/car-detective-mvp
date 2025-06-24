@@ -63,10 +63,12 @@ export function useMakeModels(): UseMakeModelsReturn {
         throw fetchError;
       }
 
+      console.log('✅ Makes fetched successfully:', data?.length || 0, 'makes');
+
       const formattedMakes: Make[] = (data || []).map(make => ({
         id: make.id,
         make_name: make.make_name,
-        popular: false // We'll implement popular logic later
+        popular: false
       }));
 
       setMakes(formattedMakes);
@@ -81,10 +83,12 @@ export function useMakeModels(): UseMakeModelsReturn {
 
   const fetchModelsByMakeId = async (makeId: string): Promise<void> => {
     if (!makeId) {
+      console.log('🔍 No makeId provided, clearing models');
       setModels([]);
       return;
     }
 
+    console.log('🔍 Fetching models for makeId:', makeId);
     setIsLoading(true);
     setError(null);
     
@@ -95,6 +99,12 @@ export function useMakeModels(): UseMakeModelsReturn {
         .eq('make_id', makeId)
         .order('model_name');
 
+      console.log('📊 Models query result:', {
+        makeId,
+        data: data?.length || 0,
+        error: fetchError?.message || 'none'
+      });
+
       if (fetchError) {
         console.error('❌ Supabase models fetch error:', fetchError);
         setError(`Failed to fetch models: ${fetchError.message}`);
@@ -103,10 +113,13 @@ export function useMakeModels(): UseMakeModelsReturn {
       }
 
       if (!data || data.length === 0) {
+        console.warn('⚠️ No models found for makeId:', makeId);
         setError(`No models found for the selected make`);
         setModels([]);
         return;
       }
+
+      console.log('✅ Models loaded successfully:', data.length, 'models');
 
       const formattedModels: Model[] = data.map(model => ({
         id: model.id,
@@ -116,9 +129,8 @@ export function useMakeModels(): UseMakeModelsReturn {
       }));
 
       setModels(formattedModels);
+      setTrims([]); // Clear trims when models change
       
-      // Clear trims when models change
-      setTrims([]);
     } catch (err: any) {
       console.error('❌ Unexpected error in fetchModelsByMakeId:', err);
       setError(`Unexpected error fetching models: ${err.message}`);
@@ -134,6 +146,7 @@ export function useMakeModels(): UseMakeModelsReturn {
       return;
     }
 
+    console.log('🔍 Fetching trims for modelId:', modelId, 'year:', year);
     setIsLoading(true);
     setError(null);
     
@@ -155,11 +168,12 @@ export function useMakeModels(): UseMakeModelsReturn {
         throw fetchError;
       }
 
+      console.log('✅ Trims loaded:', data?.length || 0, 'trims');
       setTrims(data || []);
     } catch (err: any) {
       console.error('❌ Error fetching trims from Supabase:', err);
       setError('Failed to fetch vehicle trims from database');
-      setTrims([]); // Clear trims on error
+      setTrims([]);
     } finally {
       setIsLoading(false);
     }
@@ -183,7 +197,6 @@ export function useMakeModels(): UseMakeModelsReturn {
   };
 
   const getPopularMakes = (): Make[] => {
-    // Return most common/popular makes based on typical usage
     const popularMakeNames = ['Toyota', 'Honda', 'Ford', 'Chevrolet', 'BMW', 'Mercedes-Benz', 'Audi', 'Nissan', 'Hyundai', 'Kia'];
     return makes
       .filter(make => popularMakeNames.includes(make.make_name))

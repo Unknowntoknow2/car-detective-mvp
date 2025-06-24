@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Star, AlertCircle } from 'lucide-react';
+import { Search, Star, AlertCircle, Loader2 } from 'lucide-react';
 import { useMakeModels } from '@/hooks/useMakeModels';
 
 interface EnhancedVehicleSelectorProps {
@@ -58,6 +58,8 @@ export function EnhancedVehicleSelector({
 
   // Handle make selection and fetch models
   const handleMakeChange = async (makeId: string) => {
+    console.log('🎯 Make selected:', makeId, 'Make name:', findMakeById(makeId)?.make_name);
+    
     // Update parent state immediately
     onMakeChange(makeId);
     onModelChange(''); // Reset model
@@ -75,6 +77,8 @@ export function EnhancedVehicleSelector({
 
   // Handle model selection and fetch trims
   const handleModelChange = async (modelId: string) => {
+    console.log('🎯 Model selected:', modelId, 'Model name:', findModelById(modelId)?.model_name);
+    
     // Update parent state immediately
     onModelChange(modelId);
     onTrimChange(''); // Reset trim
@@ -87,6 +91,8 @@ export function EnhancedVehicleSelector({
 
   // Handle year change and refetch trims
   const handleYearChange = (year: number) => {
+    console.log('🎯 Year selected:', year);
+    
     // Update parent state immediately
     onYearChange(year);
     onTrimChange(''); // Reset trim
@@ -172,15 +178,18 @@ export function EnhancedVehicleSelector({
             disabled={isDisabled || !selectedMakeId || isLoading}
           >
             <SelectTrigger>
-              <SelectValue placeholder={
-                !selectedMakeId 
-                  ? "Select make first" 
-                  : isLoading 
-                    ? "Loading models..." 
-                    : models.length === 0 
-                      ? "No models found"
-                      : "Select model"
-              } />
+              <div className="flex items-center gap-2 w-full">
+                {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                <SelectValue placeholder={
+                  !selectedMakeId 
+                    ? "Select make first" 
+                    : isLoading 
+                      ? "Loading models..." 
+                      : models.length === 0 
+                        ? "No models available"
+                        : "Select model"
+                } />
+              </div>
             </SelectTrigger>
             <SelectContent className="max-h-80">
               <div className="px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-50">
@@ -233,15 +242,18 @@ export function EnhancedVehicleSelector({
               disabled={isDisabled || !selectedModelId || !selectedYear || isLoading}
             >
               <SelectTrigger>
-                <SelectValue placeholder={
-                  !selectedModelId || !selectedYear 
-                    ? "Select model & year first" 
-                    : isLoading 
-                      ? "Loading trims..."
-                      : trims.length === 0
-                        ? "No trims found"
-                        : "Select trim"
-                } />
+                <div className="flex items-center gap-2 w-full">
+                  {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <SelectValue placeholder={
+                    !selectedModelId || !selectedYear 
+                      ? "Select model & year first" 
+                      : isLoading 
+                        ? "Loading trims..."
+                        : trims.length === 0
+                          ? "No trims available"
+                          : "Select trim"
+                  } />
+                </div>
               </SelectTrigger>
               <SelectContent className="max-h-80">
                 <div className="px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-50">
@@ -284,11 +296,14 @@ export function EnhancedVehicleSelector({
         </div>
       )}
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="text-sm text-gray-500 flex items-center gap-2">
-          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          Loading vehicle data...
+      {/* Debug Information (only in development) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-4 p-3 bg-gray-100 rounded-lg text-xs text-gray-600">
+          <div className="font-semibold">Debug Info:</div>
+          <div>Selected Make ID: {selectedMakeId || 'none'}</div>
+          <div>Available Models: {models.length}</div>
+          <div>Loading State: {isLoading ? 'true' : 'false'}</div>
+          <div>Error State: {error || 'none'}</div>
         </div>
       )}
     </div>
