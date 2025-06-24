@@ -48,7 +48,6 @@ export function EnhancedVehicleSelector({
     getPopularMakes,
     findMakeById,
     findModelById,
-    debugInfo
   } = useMakeModels();
 
   const [makeSearchQuery, setMakeSearchQuery] = useState('');
@@ -150,11 +149,6 @@ export function EnhancedVehicleSelector({
             {selectedMakeId && (
               <div className="text-xs mt-1 text-red-400">
                 Make: {findMakeById(selectedMakeId)?.make_name || 'Unknown'} (ID: {selectedMakeId})
-              </div>
-            )}
-            {debugInfo.networkError && (
-              <div className="text-xs mt-1 text-red-400">
-                Network: {debugInfo.networkError}
               </div>
             )}
           </div>
@@ -353,7 +347,7 @@ export function EnhancedVehicleSelector({
         </div>
       )}
 
-      {/* Enhanced Debug Information (only in development) */}
+      {/* Debug Information (only in development) */}
       {process.env.NODE_ENV === 'development' && (
         <div className="mt-4 p-3 bg-gray-100 rounded-lg text-xs text-gray-600">
           <div className="font-semibold mb-2 flex items-center gap-2">
@@ -376,34 +370,7 @@ export function EnhancedVehicleSelector({
             <div>
               <strong>Total Makes:</strong> {makes.length}
             </div>
-            <div>
-              <strong>Network Error:</strong> {debugInfo.networkError || 'none'}
-            </div>
-            {debugInfo.lastMakeQuery && (
-              <>
-                <div>
-                  <strong>Last Query:</strong> {debugInfo.lastMakeQuery}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  <strong>Query Time:</strong> {debugInfo.queryExecutionTime}ms
-                </div>
-              </>
-            )}
           </div>
-          {debugInfo.rawSupabaseResponse && (
-            <div className="col-span-2 mt-2 p-2 bg-gray-200 rounded text-xs">
-              <strong>Raw Supabase Response:</strong>
-              <pre className="mt-1 whitespace-pre-wrap text-xs overflow-auto max-h-32">
-                {JSON.stringify({
-                  dataLength: debugInfo.rawSupabaseResponse.data?.length,
-                  count: debugInfo.rawSupabaseResponse.count,
-                  error: debugInfo.rawSupabaseResponse.error?.message,
-                  hasData: !!debugInfo.rawSupabaseResponse.data
-                }, null, 2)}
-              </pre>
-            </div>
-          )}
         </div>
       )}
     </div>
