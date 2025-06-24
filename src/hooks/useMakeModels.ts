@@ -151,7 +151,6 @@ export function useMakeModels(): UseMakeModelsReturn {
     try {
       const startTime = Date.now();
       console.log('🔍 Executing models query...');
-      console.log('🔗 Supabase URL:', supabase.supabaseUrl);
       console.log('🔑 Make ID type and value:', typeof makeId, makeId);
       
       // Enhanced query with better error handling
