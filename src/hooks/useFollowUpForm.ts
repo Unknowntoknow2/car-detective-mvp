@@ -34,6 +34,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     tire_condition: 'good',
     exterior_condition: 'good',
     interior_condition: 'good',
+    brake_condition: 'good',
     dashboard_lights: [],
     modifications: {
       hasModifications: false,
@@ -48,7 +49,6 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     previous_owners: 1,
     loan_balance: 0,
     payoffAmount: 0,
-    brake_condition: 'good',
     ...initialData
   }));
 
@@ -113,7 +113,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
         ...updates
       };
       
-      // Auto-save after updates
+      // Auto-save after updates (debounced)
       debouncedSave(updated);
       
       return updated;
