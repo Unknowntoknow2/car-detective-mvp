@@ -7,7 +7,12 @@ export interface ServiceHistoryDetails {
   frequency?: 'regular' | 'occasional' | 'rare' | 'unknown';
   dealerMaintained?: boolean;
   description?: string;
-  services?: string[];
+  services?: Array<{
+    type: string;
+    date: string;
+    mileage?: string;
+    description?: string;
+  }>;
 }
 
 export interface ModificationDetails {
@@ -32,9 +37,9 @@ export interface AccidentDetails {
   airbagDeployment?: boolean;
 }
 
-export type TireConditionOption = 'excellent' | 'good' | 'worn' | 'replacement';
+export type TireConditionOption = 'excellent' | 'very-good' | 'good' | 'fair' | 'poor';
 export type ConditionOption = 'excellent' | 'very-good' | 'good' | 'fair' | 'poor';
-export type BrakeConditionOption = 'excellent' | 'good' | 'worn' | 'replacement';
+export type BrakeConditionOption = 'excellent' | 'very-good' | 'good' | 'fair' | 'poor';
 
 export interface FollowUpAnswers {
   id?: string;
@@ -78,6 +83,9 @@ export interface FollowUpAnswers {
   is_complete: boolean;
   created_at?: string;
   updated_at?: string;
+  
+  // Legacy field for backward compatibility
+  service_history?: string;
   
   // UI state
   vehicleConfirmed?: boolean;

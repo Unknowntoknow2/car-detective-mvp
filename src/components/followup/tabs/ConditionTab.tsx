@@ -1,164 +1,182 @@
 
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { Car, Palette, Sofa, Gauge, Wrench } from 'lucide-react';
+import { Car, Disc, Palette, Sofa } from 'lucide-react';
 
 interface ConditionTabProps {
   formData: FollowUpAnswers;
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
 }
 
-const CONDITION_OPTIONS = [
-  { 
-    value: 'excellent' as const, 
-    label: 'Excellent', 
-    description: 'Like new condition',
-    details: 'Perfect or near-perfect condition with no visible defects',
-    impact: '+10% Value',
-    selectedBg: 'bg-green-500',
-    selectedText: 'text-white',
-    badge: 'bg-white text-green-600'
-  },
-  { 
-    value: 'good' as const, 
-    label: 'Good', 
-    description: 'Minor wear and tear',
-    details: 'Well-maintained with only minor cosmetic imperfections',
-    impact: 'Base Value',
-    selectedBg: 'bg-blue-500',
-    selectedText: 'text-white',
-    badge: 'bg-white text-blue-600'
-  },
-  { 
-    value: 'fair' as const, 
-    label: 'Fair', 
-    description: 'Noticeable wear',
-    details: 'Visible wear and tear, may need minor repairs or maintenance',
-    impact: '-15% Value',
-    selectedBg: 'bg-yellow-500',
-    selectedText: 'text-white',
-    badge: 'bg-white text-yellow-600'
-  },
-  { 
-    value: 'poor' as const, 
-    label: 'Poor', 
-    description: 'Significant issues',
-    details: 'Major mechanical or cosmetic problems requiring attention',
-    impact: '-25% Value',
-    selectedBg: 'bg-red-500',
-    selectedText: 'text-white',
-    badge: 'bg-white text-red-600'
-  },
+const conditionLevels = [
+  { value: 'excellent', label: 'Excellent', color: 'bg-green-500', description: 'Like new condition' },
+  { value: 'very-good', label: 'Very Good', color: 'bg-blue-500', description: 'Minor wear only' },
+  { value: 'good', label: 'Good', color: 'bg-yellow-500', description: 'Normal wear and tear' },
+  { value: 'fair', label: 'Fair', color: 'bg-orange-500', description: 'Noticeable wear' },
+  { value: 'poor', label: 'Poor', color: 'bg-red-500', description: 'Significant wear/damage' }
 ];
 
-const CONDITION_CATEGORIES = [
-  {
-    key: 'condition' as keyof FollowUpAnswers,
-    title: 'Overall Vehicle Condition',
-    icon: Car,
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200'
-  },
-  {
-    key: 'exterior_condition' as keyof FollowUpAnswers,
-    title: 'Exterior Condition',
-    icon: Palette,
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200'
-  },
-  {
-    key: 'interior_condition' as keyof FollowUpAnswers,
-    title: 'Interior Condition',
-    icon: Sofa,
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-200'
-  },
-  {
-    key: 'tire_condition' as keyof FollowUpAnswers,
-    title: 'Tire Condition',
-    icon: Gauge,
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200'
-  },
-  {
-    key: 'engine_condition' as keyof FollowUpAnswers,
-    title: 'Engine Condition',
-    icon: Wrench,
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-200'
-  }
-];
+const tireConditionDetails = {
+  excellent: { tread: '8-10/32"', description: 'Nearly new tires with excellent tread depth' },
+  'very-good': { tread: '6-8/32"', description: 'Good tread depth, even wear pattern' },
+  good: { tread: '4-6/32"', description: 'Adequate tread, some wear visible' },
+  fair: { tread: '2-4/32"', description: 'Low tread depth, replacement needed soon' },
+  poor: { tread: '0-2/32"', description: 'Worn to replacement indicators, unsafe' }
+};
+
+const brakeConditionDetails = {
+  excellent: { remaining: '80-100%', description: 'Like new brake pads and rotors' },
+  'very-good': { remaining: '60-80%', description: 'Good brake life remaining' },
+  good: { remaining: '40-60%', description: 'Normal brake wear' },
+  fair: { remaining: '20-40%', description: 'Brakes need attention soon' },
+  poor: { remaining: '0-20%', description: 'Immediate brake service required' }
+};
 
 export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
-  const handleConditionChange = (key: keyof FollowUpAnswers, value: 'excellent' | 'good' | 'fair' | 'poor') => {
-    updateFormData({ [key]: value });
+  const getConditionInfo = (condition: string) => {
+    return conditionLevels.find(level => level.value === condition) || conditionLevels[2];
+  };
+
+  const ConditionSelector = ({ 
+    title, 
+    icon: Icon, 
+    value, 
+    onChange, 
+    details 
+  }: {
+    title: string;
+    icon: React.ComponentType<{ className?: string }>;
+    value: string;
+    onChange: (value: string) => void;
+    details?: Record<string, { tread?: string; remaining?: string; description: string }>;
+  }) => {
+    const currentCondition = getConditionInfo(value);
+    const currentDetail = details?.[value];
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Icon className="w-5 h-5 text-blue-500" />
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor={`${title.toLowerCase()}-condition`}>Condition Rating</Label>
+            <Select value={value} onValueChange={onChange}>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {conditionLevels.map((level) => (
+                  <SelectItem key={level.value} value={level.value}>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${level.color}`} />
+                      <div>
+                        <div className="font-medium">{level.label}</div>
+                        <div className="text-sm text-gray-500">{level.description}</div>
+                      </div>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {value && (
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="secondary" className={`${currentCondition.color} text-white`}>
+                  {currentCondition.label}
+                </Badge>
+                {currentDetail?.tread && (
+                  <span className="text-sm text-gray-600">Tread: {currentDetail.tread}</span>
+                )}
+                {currentDetail?.remaining && (
+                  <span className="text-sm text-gray-600">Life: {currentDetail.remaining}</span>
+                )}
+              </div>
+              <p className="text-sm text-gray-700">
+                {currentDetail?.description || currentCondition.description}
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
   };
 
   return (
     <div className="space-y-6">
-      {CONDITION_CATEGORIES.map((category) => {
-        const currentValue = formData[category.key] as string || '';
-        
-        return (
-          <div key={category.key} className={`p-6 rounded-xl border-2 ${category.bgColor} ${category.borderColor}`}>
-            <div className="flex items-center gap-3 mb-6">
-              <category.icon className="h-6 w-6 text-gray-700" />
-              <h3 className="font-semibold text-xl text-gray-900">{category.title}</h3>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              {CONDITION_OPTIONS.map((option) => {
-                const isSelected = currentValue === option.value;
-                
+      {/* Tire Condition */}
+      <ConditionSelector
+        title="Tire Condition"
+        icon={Disc}
+        value={formData.tire_condition || ''}
+        onChange={(value) => updateFormData({ tire_condition: value })}
+        details={tireConditionDetails}
+      />
+
+      {/* Exterior Condition */}
+      <ConditionSelector
+        title="Exterior Condition"
+        icon={Palette}
+        value={formData.exterior_condition || ''}
+        onChange={(value) => updateFormData({ exterior_condition: value })}
+      />
+
+      {/* Interior Condition */}
+      <ConditionSelector
+        title="Interior Condition"
+        icon={Sofa}
+        value={formData.interior_condition || ''}
+        onChange={(value) => updateFormData({ interior_condition: value })}
+      />
+
+      {/* Brake Condition */}
+      <ConditionSelector
+        title="Brake Condition"
+        icon={Car}
+        value={formData.brake_condition || ''}
+        onChange={(value) => updateFormData({ brake_condition: value })}
+        details={brakeConditionDetails}
+      />
+
+      {/* Condition Summary */}
+      {(formData.tire_condition || formData.exterior_condition || formData.interior_condition || formData.brake_condition) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Condition Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: 'Tires', value: formData.tire_condition },
+                { label: 'Exterior', value: formData.exterior_condition },
+                { label: 'Interior', value: formData.interior_condition },
+                { label: 'Brakes', value: formData.brake_condition }
+              ].map(({ label, value }) => {
+                if (!value) return null;
+                const condition = getConditionInfo(value);
                 return (
-                  <div
-                    key={option.value}
-                    onClick={() => handleConditionChange(category.key, option.value)}
-                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                      isSelected
-                        ? `${option.selectedBg} border-transparent`
-                        : 'bg-white border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                          isSelected 
-                            ? 'bg-white border-white'
-                            : 'border-gray-300 bg-transparent'
-                        }`}>
-                          {isSelected && (
-                            <div className={`w-2 h-2 rounded-full ${
-                              option.value === 'excellent' ? 'bg-green-500' :
-                              option.value === 'good' ? 'bg-blue-500' :
-                              option.value === 'fair' ? 'bg-yellow-500' :
-                              'bg-red-500'
-                            }`} />
-                          )}
-                        </div>
-                        <span className={`font-semibold text-base ${
-                          isSelected ? option.selectedText : 'text-gray-700'
-                        }`}>{option.label}</span>
-                      </div>
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        isSelected ? option.badge : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        {option.impact}
-                      </span>
-                    </div>
-                    <div className={`text-sm mb-2 ${
-                      isSelected ? option.selectedText : 'text-gray-600'
-                    }`}>{option.description}</div>
-                    <div className={`text-sm ${
-                      isSelected ? option.selectedText : 'text-gray-500'
-                    }`}>{option.details}</div>
+                  <div key={label} className="text-center">
+                    <div className="text-sm text-gray-600 mb-1">{label}</div>
+                    <Badge variant="secondary" className={`${condition.color} text-white`}>
+                      {condition.label}
+                    </Badge>
                   </div>
                 );
               })}
             </div>
-          </div>
-        );
-      })}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

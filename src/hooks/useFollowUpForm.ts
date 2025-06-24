@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers, ServiceHistoryDetails, ModificationDetails, AccidentDetails } from '@/types/follow-up-answers';
+import { TabValidation } from '@/components/followup/validation/TabValidation';
 import { toast } from 'sonner';
 
 export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswers>) {
@@ -88,15 +89,45 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
           };
         }
 
-        setFormData(prev => ({
-          ...prev,
+        // Ensure all required fields have proper defaults
+        const loadedData = {
           ...data,
           // Ensure proper structure for complex fields
-          accidents: data.accidents || prev.accidents,
-          modifications: data.modifications || prev.modifications,
-          serviceHistory: serviceHistory || prev.serviceHistory,
-          dashboard_lights: data.dashboard_lights || prev.dashboard_lights,
-          features: data.features || prev.features
+          accidents: data.accidents || {
+            hadAccident: false,
+            count: 0,
+            severity: 'minor',
+            repaired: false,
+            frameDamage: false,
+            description: '',
+            types: [],
+            repairShops: [],
+            airbagDeployment: false
+          },
+          modifications: data.modifications || {
+            hasModifications: false,
+            modified: false,
+            types: [],
+            additionalNotes: ''
+          },
+          serviceHistory: serviceHistory || {
+            hasRecords: false,
+            frequency: 'unknown',
+            dealerMaintained: false,
+            description: '',
+            services: []
+          },
+          dashboard_lights: data.dashboard_lights || [],
+          features: data.features || [],
+          exterior_condition: data.exterior_condition || 'good',
+          interior_condition: data.interior_condition || 'good',
+          brake_condition: data.brake_condition || 'good',
+          additional_notes: data.additional_notes || ''
+        };
+
+        setFormData(prev => ({
+          ...prev,
+          ...loadedData
         }));
       }
     } catch (error) {
@@ -112,6 +143,10 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
         ...prev,
         ...updates
       };
+      
+      // Update completion percentage based on validation
+      const completionPercentage = TabValidation.getOverallCompletion(updated);
+      updated.completion_percentage = completionPercentage;
       
       // Auto-save after updates (debounced)
       debouncedSave(updated);
@@ -131,7 +166,8 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
         ...dataToSave,
         vin,
         // Map serviceHistory.description to service_history for backward compatibility
-        service_history: dataToSave.serviceHistory?.description || null
+        service_history: dataToSave.serviceHistory?.description || null,
+        updated_at: new Date().toISOString()
       };
       
       const { error } = await supabase
@@ -168,6 +204,19 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
   })();
 
   const submitForm = async () => {
+    // Validate all tabs before submitting
+    const validations = TabValidation.validateAllTabs(formData);
+    const hasErrors = Object.values(validations).some(v => v.errors.length > 0);
+    
+    if (hasErrors) {
+      const errorMessages = Object.values(validations)
+        .flatMap(v => v.errors)
+        .slice(0, 3); // Show only first 3 errors
+      
+      toast.error(`Please fix the following issues: ${errorMessages.join(', ')}`);
+      return false;
+    }
+
     const success = await saveFormData({
       ...formData,
       is_complete: true,
