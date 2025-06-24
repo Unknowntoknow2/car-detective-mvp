@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,14 +33,15 @@ export default function ValuationFollowUpPage() {
     source: searchParams.get('source') as 'vin' | 'plate' | 'manual' || 'vin'
   };
 
-  // Initialize the follow-up form with the VIN and year
+  // Initialize the follow-up form with enhanced error handling
   const {
     formData,
     updateFormData,
     submitForm,
     isLoading,
     isSaving,
-    saveError
+    saveError,
+    lastSaveTime
   } = useFollowUpForm(vehicleData.vin, {
     vin: vehicleData.vin,
     zip_code: '',
@@ -203,6 +205,7 @@ export default function ValuationFollowUpPage() {
               isLoading={isSubmitting}
               isSaving={isSaving}
               saveError={saveError}
+              lastSaveTime={lastSaveTime}
             />
           )}
         </div>

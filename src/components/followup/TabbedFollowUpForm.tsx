@@ -10,8 +10,9 @@ import { ModificationsTab } from './tabs/ModificationsTab';
 import { FeaturesTab } from './tabs/FeaturesTab';
 import { TabNavigation } from './TabNavigation';
 import { TabValidation } from './validation/TabValidation';
+import { SaveStatusIndicator } from './SaveStatusIndicator';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { CheckCircle, Circle, AlertTriangle, Wifi, WifiOff, Save, Eye } from 'lucide-react';
+import { CheckCircle, Circle, AlertTriangle, Eye, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ interface TabbedFollowUpFormProps {
   isLoading?: boolean;
   isSaving?: boolean;
   saveError?: string | null;
+  lastSaveTime?: Date | null;
 }
 
 export function TabbedFollowUpForm({
@@ -33,7 +35,8 @@ export function TabbedFollowUpForm({
   onSave,
   isLoading = false,
   isSaving = false,
-  saveError = null
+  saveError = null,
+  lastSaveTime = null
 }: TabbedFollowUpFormProps) {
   const [activeTab, setActiveTab] = useState("basic");
   const [showQuickOverview, setShowQuickOverview] = useState(false);
@@ -100,24 +103,8 @@ export function TabbedFollowUpForm({
     }
   };
 
-  const getSaveStatusIcon = () => {
-    if (saveError) {
-      return <WifiOff className="w-4 h-4 text-red-500" />;
-    }
-    if (isSaving) {
-      return <Save className="w-4 h-4 text-blue-500 animate-pulse" />;
-    }
-    return <Wifi className="w-4 h-4 text-green-500" />;
-  };
-
-  const getSaveStatusText = () => {
-    if (saveError) {
-      return "Save Failed";
-    }
-    if (isSaving) {
-      return "Saving...";
-    }
-    return "Auto-saved";
+  const handleRetryConnection = () => {
+    onSave(); // Trigger a manual save
   };
 
   // Quick overview component for showing all critical fields
@@ -215,7 +202,7 @@ export function TabbedFollowUpForm({
 
   return (
     <div className="w-full max-w-6xl mx-auto p-6">
-      {/* Progress Bar with Save Status and Quick Overview Option */}
+      {/* Enhanced Progress Bar with Save Status and Quick Overview Option */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-lg font-semibold text-gray-900">Complete Your Valuation</h3>
@@ -229,12 +216,11 @@ export function TabbedFollowUpForm({
               <Eye className="w-4 h-4" />
               Quick Overview
             </Button>
-            <div className="flex items-center gap-2 text-sm">
-              {getSaveStatusIcon()}
-              <span className={`${saveError ? 'text-red-600' : isSaving ? 'text-blue-600' : 'text-green-600'}`}>
-                {getSaveStatusText()}
-              </span>
-            </div>
+            <SaveStatusIndicator 
+              isSaving={isSaving}
+              saveError={saveError}
+              lastSaveTime={lastSaveTime}
+            />
             <span className="text-sm font-medium text-gray-600">{completionPercentage}% Complete</span>
           </div>
         </div>
@@ -246,19 +232,34 @@ export function TabbedFollowUpForm({
         </div>
       </div>
 
-      {/* Error Alert */}
+      {/* Enhanced Error Alert with Recovery Options */}
       {saveError && (
         <Alert className="mb-4 border-red-200 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">
-            <strong>Connection Issue:</strong> {saveError}
-            <br />
-            <span className="text-sm">Your changes are being saved locally. They will sync when the connection is restored.</span>
+            <div className="flex justify-between items-start">
+              <div>
+                <strong>Save Error:</strong> {saveError}
+                <br />
+                <span className="text-sm">Your changes are being saved locally and will sync when the connection is restored.</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRetryConnection}
+                disabled={isSaving}
+                className="ml-4 flex items-center gap-1"
+              >
+                <RefreshCw className={`w-3 h-3 ${isSaving ? 'animate-spin' : ''}`} />
+                Retry
+              </Button>
+            </div>
           </AlertDescription>
         </Alert>
       )}
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* Enhanced Tab List with Better Visual Indicators */}
         <TabsList className="grid grid-cols-7 mb-6 h-auto p-1">
           {tabs.map((tab) => {
             const validation = tabValidations[tab as keyof typeof tabValidations];
@@ -288,7 +289,7 @@ export function TabbedFollowUpForm({
           })}
         </TabsList>
         
-        {/* Current Tab Validation Status with Skip Option */}
+        {/* Enhanced Current Tab Validation Status with Skip Option */}
         {currentTabValidation && (currentTabValidation.errors.length > 0 || currentTabValidation.warnings.length > 0) && (
           <div className="mb-4 space-y-2">
             {currentTabValidation.errors.map((error, index) => (
