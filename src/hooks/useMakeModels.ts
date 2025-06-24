@@ -38,7 +38,7 @@ export function useMakeModels(): UseMakeModelsReturn {
   // Cache for performance
   const [makesCache, setMakesCache] = useState<Make[]>([]);
 
-  // Fetch makes on mount
+  // Fetch makes on mount - ONLY from Supabase
   useEffect(() => {
     fetchMakes();
   }, []);
@@ -53,12 +53,18 @@ export function useMakeModels(): UseMakeModelsReturn {
     setError(null);
     
     try {
+      console.log('🔄 Fetching makes from Supabase...');
       const { data, error: fetchError } = await supabase
         .from('makes')
         .select('id, make_name')
         .order('make_name');
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('❌ Supabase makes fetch error:', fetchError);
+        throw fetchError;
+      }
+
+      console.log('✅ Fetched makes from Supabase:', data?.length || 0, 'records');
 
       const formattedMakes: Make[] = (data || []).map(make => ({
         id: make.id,
@@ -69,8 +75,8 @@ export function useMakeModels(): UseMakeModelsReturn {
       setMakes(formattedMakes);
       setMakesCache(formattedMakes);
     } catch (err: any) {
-      console.error('Error fetching makes:', err);
-      setError('Failed to fetch vehicle makes');
+      console.error('❌ Error fetching makes from Supabase:', err);
+      setError('Failed to fetch vehicle makes from database');
     } finally {
       setIsLoading(false);
     }
@@ -86,13 +92,19 @@ export function useMakeModels(): UseMakeModelsReturn {
     setError(null);
     
     try {
+      console.log('🔄 Fetching models for make ID:', makeId);
       const { data, error: fetchError } = await supabase
         .from('models')
         .select('id, make_id, model_name')
         .eq('make_id', makeId)
         .order('model_name');
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('❌ Supabase models fetch error:', fetchError);
+        throw fetchError;
+      }
+
+      console.log('✅ Fetched models from Supabase:', data?.length || 0, 'records for make:', makeId);
 
       const formattedModels: Model[] = (data || []).map(model => ({
         id: model.id,
@@ -103,8 +115,8 @@ export function useMakeModels(): UseMakeModelsReturn {
 
       setModels(formattedModels);
     } catch (err: any) {
-      console.error('Error fetching models:', err);
-      setError('Failed to fetch vehicle models');
+      console.error('❌ Error fetching models from Supabase:', err);
+      setError('Failed to fetch vehicle models from database');
     } finally {
       setIsLoading(false);
     }
@@ -120,6 +132,7 @@ export function useMakeModels(): UseMakeModelsReturn {
     setError(null);
     
     try {
+      console.log('🔄 Fetching trims for model ID:', modelId, 'year:', year);
       let query = supabase
         .from('model_trims')
         .select('id, trim_name, model_id, year, msrp, engine_type, transmission, fuel_type')
@@ -132,12 +145,17 @@ export function useMakeModels(): UseMakeModelsReturn {
 
       const { data, error: fetchError } = await query;
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('❌ Supabase trims fetch error:', fetchError);
+        throw fetchError;
+      }
+
+      console.log('✅ Fetched trims from Supabase:', data?.length || 0, 'records for model:', modelId);
 
       setTrims(data || []);
     } catch (err: any) {
-      console.error('Error fetching trims:', err);
-      setError('Failed to fetch vehicle trims');
+      console.error('❌ Error fetching trims from Supabase:', err);
+      setError('Failed to fetch vehicle trims from database');
     } finally {
       setIsLoading(false);
     }

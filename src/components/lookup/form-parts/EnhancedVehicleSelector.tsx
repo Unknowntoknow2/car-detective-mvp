@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Star } from 'lucide-react';
+import { Search, Star, AlertCircle } from 'lucide-react';
 import { useMakeModels } from '@/hooks/useMakeModels';
 
 interface EnhancedVehicleSelectorProps {
@@ -55,8 +55,9 @@ export function EnhancedVehicleSelector({
   const filteredMakes = makeSearchQuery ? searchMakes(makeSearchQuery) : makes;
   const popularMakes = getPopularMakes();
 
-  // Handle make selection
+  // Handle make selection and fetch models
   const handleMakeChange = async (makeId: string) => {
+    console.log('🔄 Make selected:', makeId);
     onMakeChange(makeId);
     onModelChange(''); // Reset model
     onTrimChange(''); // Reset trim
@@ -66,8 +67,9 @@ export function EnhancedVehicleSelector({
     }
   };
 
-  // Handle model selection
+  // Handle model selection and fetch trims
   const handleModelChange = async (modelId: string) => {
+    console.log('🔄 Model selected:', modelId);
     onModelChange(modelId);
     onTrimChange(''); // Reset trim
     
@@ -76,8 +78,9 @@ export function EnhancedVehicleSelector({
     }
   };
 
-  // Handle year change
+  // Handle year change and refetch trims
   const handleYearChange = (year: number) => {
+    console.log('🔄 Year selected:', year);
     onYearChange(year);
     onTrimChange(''); // Reset trim
     
@@ -97,7 +100,8 @@ export function EnhancedVehicleSelector({
   return (
     <div className="space-y-4">
       {error && (
-        <div className="text-sm text-red-500 bg-red-50 p-3 rounded-md">
+        <div className="text-sm text-red-500 bg-red-50 p-3 rounded-md flex items-center gap-2">
+          <AlertCircle className="w-4 h-4" />
           {error}
         </div>
       )}
@@ -116,7 +120,7 @@ export function EnhancedVehicleSelector({
               disabled={isDisabled || isLoading}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select make" />
+                <SelectValue placeholder={isLoading ? "Loading makes..." : "Select make"} />
               </SelectTrigger>
               <SelectContent className="max-h-80">
                 {/* Popular Makes Section */}
@@ -139,7 +143,7 @@ export function EnhancedVehicleSelector({
                 
                 {/* All Makes */}
                 <div className="px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-50 flex items-center justify-between">
-                  All Makes
+                  All Makes ({makes.length})
                   <button
                     type="button"
                     onClick={() => setShowMakeSearch(true)}
@@ -180,6 +184,9 @@ export function EnhancedVehicleSelector({
                       {make.make_name}
                     </button>
                   ))}
+                  {filteredMakes.length === 0 && (
+                    <div className="px-3 py-2 text-gray-500">No makes found</div>
+                  )}
                 </div>
               )}
             </div>
@@ -197,9 +204,20 @@ export function EnhancedVehicleSelector({
             disabled={isDisabled || !selectedMakeId || isLoading}
           >
             <SelectTrigger>
-              <SelectValue placeholder={selectedMakeId ? "Select model" : "Select make first"} />
+              <SelectValue placeholder={
+                !selectedMakeId 
+                  ? "Select make first" 
+                  : isLoading 
+                    ? "Loading models..." 
+                    : models.length === 0 
+                      ? "No models found"
+                      : "Select model"
+              } />
             </SelectTrigger>
             <SelectContent className="max-h-80">
+              <div className="px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-50">
+                Models ({models.length})
+              </div>
               {models.map((model) => (
                 <SelectItem key={model.id} value={model.id}>
                   <div className="flex items-center gap-2">
@@ -248,10 +266,19 @@ export function EnhancedVehicleSelector({
             >
               <SelectTrigger>
                 <SelectValue placeholder={
-                  selectedModelId && selectedYear ? "Select trim" : "Select model & year first"
+                  !selectedModelId || !selectedYear 
+                    ? "Select model & year first" 
+                    : isLoading 
+                      ? "Loading trims..."
+                      : trims.length === 0
+                        ? "No trims found"
+                        : "Select trim"
                 } />
               </SelectTrigger>
               <SelectContent className="max-h-80">
+                <div className="px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-50">
+                  Trims ({trims.length})
+                </div>
                 {trims.map((trim) => (
                   <SelectItem key={trim.id} value={trim.id}>
                     <div className="flex flex-col">
@@ -293,7 +320,7 @@ export function EnhancedVehicleSelector({
       {isLoading && (
         <div className="text-sm text-gray-500 flex items-center gap-2">
           <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          Loading vehicle data...
+          Loading vehicle data from database...
         </div>
       )}
     </div>
