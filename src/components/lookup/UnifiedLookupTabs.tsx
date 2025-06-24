@@ -64,18 +64,23 @@ export function UnifiedLookupTabs() {
       if (result && result.success && result.vehicle) {
         console.log('✅ VIN Lookup: Successfully decoded vehicle:', result.vehicle);
         
-        // Process the real decoded data through valuation
-        const valuationResult = await processFreeValuation({
+        // Navigate to follow-up questions with vehicle data
+        const params = new URLSearchParams({
+          year: result.vehicle.year.toString(),
           make: result.vehicle.make,
           model: result.vehicle.model,
-          year: result.vehicle.year,
-          mileage: result.vehicle.mileage || 50000,
-          condition: result.vehicle.condition || 'Good',
-          zipCode: zipCode || '90210'
+          trim: result.vehicle.trim || '',
+          vin: result.vehicle.vin || vin,
+          engine: result.vehicle.engine || '',
+          transmission: result.vehicle.transmission || '',
+          bodyType: result.vehicle.bodyType || '',
+          fuelType: result.vehicle.fuelType || '',
+          drivetrain: result.vehicle.drivetrain || '',
+          source: 'vin'
         });
         
         toast.success('VIN decoded successfully with real NHTSA data!');
-        navigate(`/results/${valuationResult.valuationId}`);
+        navigate(`/valuation/followup?${params.toString()}`);
         
       } else {
         console.error('❌ VIN Lookup: Failed to decode VIN:', result?.error);
@@ -108,39 +113,21 @@ export function UnifiedLookupTabs() {
         return;
       }
 
-      // Use the unified lookup service for consistent processing
-      const manualData = {
+      // For manual entry, go directly to results since user provided all details
+      const valuationResult = await processFreeValuation({
         make: selectedMake.make_name,
         model: selectedModel.model_name,
         year: selectedYear,
         mileage: parseInt(mileage) || 50000,
         condition: condition,
-        zipCode: zipCode || '90210',
-        fuelType: 'gasoline',
-        transmission: 'automatic'
-      };
-
-      const result = processManualEntry(manualData);
+        zipCode: zipCode || '90210'
+      });
       
-      if (result && result.success && result.vehicle) {
-        console.log('✅ Manual Entry: Successfully processed:', result.vehicle);
-        
-        const valuationResult = await processFreeValuation({
-          make: result.vehicle.make,
-          model: result.vehicle.model,
-          year: result.vehicle.year,
-          mileage: result.vehicle.mileage || parseInt(mileage) || 50000,
-          condition: result.vehicle.condition || condition,
-          zipCode: result.vehicle.zipCode || zipCode || '90210'
-        });
-        
-        toast.success('Manual valuation completed!');
-        navigate(`/results/${valuationResult.valuationId}`);
-        
-      } else {
-        console.error('❌ Manual Entry: Processing failed:', result?.error);
-        toast.error('Failed to process manual entry. Please try again.');
-      }
+      console.log('✅ Manual Entry: Valuation completed:', valuationResult);
+      toast.success('Manual valuation completed!');
+      
+      // Navigate to results using unified route
+      navigate(`/results/${valuationResult.valuationId}`);
       
     } catch (error) {
       console.error('❌ Manual valuation error:', error);
@@ -164,17 +151,24 @@ export function UnifiedLookupTabs() {
       if (result && result.success && result.vehicle) {
         console.log('✅ Plate Lookup: Successfully found vehicle:', result.vehicle);
         
-        const valuationResult = await processFreeValuation({
+        // Navigate to follow-up questions with vehicle data
+        const params = new URLSearchParams({
+          year: result.vehicle.year.toString(),
           make: result.vehicle.make,
           model: result.vehicle.model,
-          year: result.vehicle.year,
-          mileage: result.vehicle.mileage || 45000,
-          condition: result.vehicle.condition || 'Good',
-          zipCode: zipCode || '90210'
+          trim: result.vehicle.trim || '',
+          plate: plateData.plate,
+          state: plateData.state,
+          engine: result.vehicle.engine || '',
+          transmission: result.vehicle.transmission || '',
+          bodyType: result.vehicle.bodyType || '',
+          fuelType: result.vehicle.fuelType || '',
+          drivetrain: result.vehicle.drivetrain || '',
+          source: 'plate'
         });
         
         toast.success('License plate lookup completed!');
-        navigate(`/results/${valuationResult.valuationId}`);
+        navigate(`/valuation/followup?${params.toString()}`);
         
       } else {
         console.error('❌ Plate Lookup: Failed:', result?.error);
@@ -218,7 +212,7 @@ export function UnifiedLookupTabs() {
             <CardHeader>
               <CardTitle>VIN Lookup</CardTitle>
               <p className="text-muted-foreground">
-                Enter your vehicle's 17-character VIN for instant valuation using real NHTSA data
+                Enter your vehicle's 17-character VIN for instant identification using real NHTSA data
               </p>
             </CardHeader>
             <CardContent>
@@ -252,7 +246,7 @@ export function UnifiedLookupTabs() {
                   ) : (
                     <>
                       <Search className="w-4 h-4 mr-2" />
-                      Get Real Vehicle Data
+                      Get Vehicle Information
                     </>
                   )}
                 </Button>
@@ -266,7 +260,7 @@ export function UnifiedLookupTabs() {
             <CardHeader>
               <CardTitle>Manual Entry</CardTitle>
               <p className="text-muted-foreground">
-                Enter vehicle details manually using our comprehensive database
+                Enter vehicle details manually for immediate valuation
               </p>
             </CardHeader>
             <CardContent>
@@ -337,7 +331,7 @@ export function UnifiedLookupTabs() {
                   ) : (
                     <>
                       <Car className="w-4 h-4 mr-2" />
-                      Get Valuation from Database
+                      Get Valuation
                     </>
                   )}
                 </Button>
@@ -392,7 +386,7 @@ export function UnifiedLookupTabs() {
                   ) : (
                     <>
                       <FileText className="w-4 h-4 mr-2" />
-                      Get Valuation
+                      Get Vehicle Information
                     </>
                   )}
                 </Button>
