@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,7 +53,7 @@ export default function ValuationFollowUpPage() {
   const handleSubmitAnswers = async () => {
     setIsSubmitting(true);
     try {
-      console.log('Follow-up answers submitted:', formData);
+      console.log('🚀 Starting valuation submission with follow-up data:', formData);
       
       // Save the form data first
       const saveSuccess = await submitForm();
@@ -72,20 +71,21 @@ export default function ValuationFollowUpPage() {
         zipCode: formData.zip_code || '90210'
       });
       
-      console.log('✅ ValuationFollowUpPage: Valuation completed:', valuationResult);
-      toast.success('Comprehensive valuation completed!');
+      console.log('✅ ValuationFollowUpPage: Valuation completed successfully:', valuationResult);
+      toast.success('Comprehensive valuation completed! Redirecting to results...');
       
       // Navigate to results page
       navigate(`/results/${valuationResult.valuationId}`);
     } catch (error) {
-      console.error('Error submitting follow-up answers:', error);
-      toast.error('Failed to complete valuation. Please try again.');
+      console.error('❌ Error submitting follow-up answers:', error);
+      toast.error('Failed to complete valuation. Please check your data and try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleSaveProgress = () => {
+    // The auto-save functionality is already handled in the hook
     toast.success('Progress saved successfully!');
   };
 
@@ -134,7 +134,7 @@ export default function ValuationFollowUpPage() {
             <div className="flex items-center justify-center gap-2">
               <CheckCircle className="w-6 h-6 text-green-600" />
               <h1 className="text-3xl font-bold text-gray-900">
-                Complete Your Accurate Valuation
+                Complete Your Comprehensive Valuation
               </h1>
             </div>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -174,14 +174,14 @@ export default function ValuationFollowUpPage() {
           </div>
         </div>
 
-        {/* Follow-up Questions - Now using TabbedFollowUpForm */}
+        {/* Follow-up Questions - Enhanced with Navigation */}
         <div className="space-y-6">
           <div className="text-center">
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-              Help Us Fine-Tune Your Valuation
+              Complete Your Comprehensive Valuation
             </h2>
             <p className="text-gray-600">
-              The more details you provide, the more accurate your valuation will be.
+              Navigate through each section using the tabs. All sections must be completed for an accurate valuation.
             </p>
           </div>
           
