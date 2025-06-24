@@ -794,12 +794,17 @@ export type Database = {
       follow_up_answers: {
         Row: {
           accidents: Json | null
+          additional_notes: string | null
+          brake_condition: string | null
           completion_percentage: number | null
           condition: string | null
           created_at: string
           dashboard_lights: string[] | null
+          exterior_condition: string | null
+          features: Json | null
           frame_damage: boolean | null
           id: string
+          interior_condition: string | null
           is_complete: boolean | null
           last_service_date: string | null
           maintenance_status: string | null
@@ -808,22 +813,29 @@ export type Database = {
           previous_owners: number | null
           previous_use: string | null
           service_history: string | null
+          servicehistory: Json | null
           tire_condition: string | null
           title_status: string | null
           updated_at: string
           user_id: string | null
           valuation_id: string | null
           vin: string
+          year: number | null
           zip_code: string | null
         }
         Insert: {
           accidents?: Json | null
+          additional_notes?: string | null
+          brake_condition?: string | null
           completion_percentage?: number | null
           condition?: string | null
           created_at?: string
           dashboard_lights?: string[] | null
+          exterior_condition?: string | null
+          features?: Json | null
           frame_damage?: boolean | null
           id?: string
+          interior_condition?: string | null
           is_complete?: boolean | null
           last_service_date?: string | null
           maintenance_status?: string | null
@@ -832,22 +844,29 @@ export type Database = {
           previous_owners?: number | null
           previous_use?: string | null
           service_history?: string | null
+          servicehistory?: Json | null
           tire_condition?: string | null
           title_status?: string | null
           updated_at?: string
           user_id?: string | null
           valuation_id?: string | null
           vin: string
+          year?: number | null
           zip_code?: string | null
         }
         Update: {
           accidents?: Json | null
+          additional_notes?: string | null
+          brake_condition?: string | null
           completion_percentage?: number | null
           condition?: string | null
           created_at?: string
           dashboard_lights?: string[] | null
+          exterior_condition?: string | null
+          features?: Json | null
           frame_damage?: boolean | null
           id?: string
+          interior_condition?: string | null
           is_complete?: boolean | null
           last_service_date?: string | null
           maintenance_status?: string | null
@@ -856,12 +875,14 @@ export type Database = {
           previous_owners?: number | null
           previous_use?: string | null
           service_history?: string | null
+          servicehistory?: Json | null
           tire_condition?: string | null
           title_status?: string | null
           updated_at?: string
           user_id?: string | null
           valuation_id?: string | null
           vin?: string
+          year?: number | null
           zip_code?: string | null
         }
         Relationships: [
