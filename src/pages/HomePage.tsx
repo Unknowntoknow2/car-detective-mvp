@@ -5,6 +5,8 @@ import { PremiumHeroSection } from '@/components/home/PremiumHeroSection';
 import { InstantTrustBar } from '@/components/home/InstantTrustBar';
 import { CoreValueProps } from '@/components/home/CoreValueProps';
 import { IndustryProof } from '@/components/home/IndustryProof';
+import { PremiumFeatures } from '@/components/home/PremiumFeatures';
+import { FinalCTA } from '@/components/home/FinalCTA';
 
 export default function HomePage() {
   return (
@@ -33,8 +35,14 @@ export default function HomePage() {
       {/* Core Value Props: Why Choose Us */}
       <CoreValueProps />
       
+      {/* Premium Features & Standards */}
+      <PremiumFeatures />
+      
       {/* Industry Proof: Credibility */}
       <IndustryProof />
+      
+      {/* Final Call to Action */}
+      <FinalCTA />
     </div>
   );
 }

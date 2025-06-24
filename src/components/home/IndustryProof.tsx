@@ -5,19 +5,19 @@ import { Star, Quote } from 'lucide-react';
 export const IndustryProof: React.FC = () => {
   const testimonials = [
     {
-      quote: "More accurate than traditional valuation methods. The NADA compliance gives us confidence in lending decisions.",
+      quote: "The accuracy and speed of these valuations has transformed our lending decisions. Professional-grade data we can trust.",
       author: "Sarah Chen",
       title: "Risk Analyst, Regional Credit Union",
       rating: 5
     },
     {
-      quote: "Seamless API integration and real-time data has transformed our inventory management process.",
+      quote: "Seamless integration and real-time data has enhanced our inventory management significantly. Best valuation tool we've used.",
       author: "Michael Rodriguez", 
       title: "Operations Director, Auto Dealer Group",
       rating: 5
     },
     {
-      quote: "Security compliance exceeded our institutional requirements. Professional implementation throughout.",
+      quote: "Security compliance exceeded our institutional requirements. The data quality and accuracy is outstanding.",
       author: "Jennifer Walsh",
       title: "Compliance Officer, Financial Services",
       rating: 5
