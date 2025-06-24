@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers, ServiceHistoryDetails, ModificationDetails, AccidentDetails } from '@/types/follow-up-answers';
@@ -81,8 +80,8 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       }
 
       if (data) {
-        // Migrate service_history string to serviceHistory object if needed
-        let serviceHistory = data.serviceHistory;
+        // Fix serviceHistory column mapping - handle both old and new column names
+        let serviceHistory = data.serviceHistory || data.servicehistory;
         if (!serviceHistory && data.service_history) {
           serviceHistory = {
             hasRecords: Boolean(data.service_history),
@@ -96,7 +95,6 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
         // Ensure all required fields have proper defaults
         const loadedData = {
           ...data,
-          // Ensure proper structure for complex fields
           accidents: data.accidents || {
             hadAccident: false,
             count: 0,
@@ -171,7 +169,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       setIsSaving(true);
       setSaveError(null);
       
-      // Prepare data for database save - only include fields that exist in the database
+      // Prepare data for database save with correct column names
       const saveData = {
         vin: dataToSave.vin,
         user_id: dataToSave.user_id,
@@ -184,7 +182,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
         transmission: dataToSave.transmission,
         title_status: dataToSave.title_status,
         previous_use: dataToSave.previous_use,
-        serviceHistory: dataToSave.serviceHistory,
+        serviceHistory: dataToSave.serviceHistory, // Use correct camelCase
         previous_owners: dataToSave.previous_owners,
         tire_condition: dataToSave.tire_condition,
         exterior_condition: dataToSave.exterior_condition,
@@ -198,7 +196,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
         is_complete: dataToSave.is_complete,
         loan_balance: dataToSave.loan_balance,
         payoffAmount: dataToSave.payoffAmount,
-        // Map serviceHistory.description to service_history for backward compatibility
+        // Keep service_history for backward compatibility
         service_history: dataToSave.serviceHistory?.description || null,
         updated_at: new Date().toISOString()
       };
@@ -240,7 +238,6 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
           await saveFormData(data);
         } catch (error) {
           console.error('Auto-save error:', error);
-          // Don't show toast here as saveFormData already handles it
         }
       }, 1000); // Save after 1 second of inactivity
     };
