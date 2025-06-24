@@ -10,20 +10,20 @@ import { Search, Car, FileText, Loader2 } from 'lucide-react';
 import { useValuation } from '@/contexts/ValuationContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { EnhancedVehicleSelector } from '@/components/lookup/form-parts/EnhancedVehicleSelector';
 
 export function UnifiedLookupTabs() {
   const [vin, setVin] = useState('');
   const [isVinLoading, setIsVinLoading] = useState(false);
   
-  // Manual entry states
-  const [manualData, setManualData] = useState({
-    make: '',
-    model: '',
-    year: '',
-    mileage: '',
-    condition: 'Good',
-    zipCode: ''
-  });
+  // Manual entry states - now using proper vehicle selector
+  const [selectedMakeId, setSelectedMakeId] = useState('');
+  const [selectedModelId, setSelectedModelId] = useState('');
+  const [selectedTrimId, setSelectedTrimId] = useState('');
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [mileage, setMileage] = useState('');
+  const [condition, setCondition] = useState('Good');
+  const [zipCode, setZipCode] = useState('');
   const [isManualLoading, setIsManualLoading] = useState(false);
   
   // Plate lookup states
@@ -67,7 +67,6 @@ export function UnifiedLookupTabs() {
       
       const result = await processVinLookup(vin, mockDecodedData);
       
-      // ✅ Navigate to unified results page
       navigate(`/results/${result.valuationId}`);
       
     } catch (error) {
@@ -81,8 +80,8 @@ export function UnifiedLookupTabs() {
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!manualData.make || !manualData.model || !manualData.year) {
-      toast.error('Please fill in all required fields');
+    if (!selectedMakeId || !selectedModelId || !selectedYear) {
+      toast.error('Please select make, model, and year');
       return;
     }
 
@@ -90,17 +89,16 @@ export function UnifiedLookupTabs() {
     
     try {
       const result = await processFreeValuation({
-        make: manualData.make,
-        model: manualData.model,
-        year: parseInt(manualData.year),
-        mileage: parseInt(manualData.mileage) || 50000,
-        condition: manualData.condition,
-        zipCode: manualData.zipCode || '90210'
+        make: selectedMakeId, // This will need to be converted to make name
+        model: selectedModelId, // This will need to be converted to model name
+        year: selectedYear,
+        mileage: parseInt(mileage) || 50000,
+        condition: condition,
+        zipCode: zipCode || '90210'
       });
       
       toast.success('Manual valuation completed!');
       
-      // ✅ Navigate to unified results page
       navigate(`/results/${result.valuationId}`);
       
     } catch (error) {
@@ -145,7 +143,6 @@ export function UnifiedLookupTabs() {
         zipCode: '90210'
       });
       
-      // ✅ Navigate to unified results page
       navigate(`/results/${result.valuationId}`);
       
     } catch (error) {
@@ -239,56 +236,37 @@ export function UnifiedLookupTabs() {
               </p>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleManualSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="make">Make *</Label>
-                    <Input
-                      id="make"
-                      value={manualData.make}
-                      onChange={(e) => setManualData(prev => ({ ...prev, make: e.target.value }))}
-                      placeholder="e.g., Toyota"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="model">Model *</Label>
-                    <Input
-                      id="model"
-                      value={manualData.model}
-                      onChange={(e) => setManualData(prev => ({ ...prev, model: e.target.value }))}
-                      placeholder="e.g., Camry"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="year">Year *</Label>
-                    <Input
-                      id="year"
-                      type="number"
-                      min="1990"
-                      max={new Date().getFullYear() + 1}
-                      value={manualData.year}
-                      onChange={(e) => setManualData(prev => ({ ...prev, year: e.target.value }))}
-                      placeholder="e.g., 2020"
-                    />
-                  </div>
+              <form onSubmit={handleManualSubmit} className="space-y-6">
+                <EnhancedVehicleSelector
+                  selectedMakeId={selectedMakeId}
+                  selectedModelId={selectedModelId}
+                  selectedTrimId={selectedTrimId}
+                  selectedYear={selectedYear}
+                  onMakeChange={setSelectedMakeId}
+                  onModelChange={setSelectedModelId}
+                  onTrimChange={setSelectedTrimId}
+                  onYearChange={setSelectedYear}
+                  isDisabled={isManualLoading}
+                  showTrim={true}
+                  showYear={true}
+                  compact={true}
+                />
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="mileage">Mileage</Label>
                     <Input
                       id="mileage"
                       type="number"
                       min="0"
-                      value={manualData.mileage}
-                      onChange={(e) => setManualData(prev => ({ ...prev, mileage: e.target.value }))}
+                      value={mileage}
+                      onChange={(e) => setMileage(e.target.value)}
                       placeholder="e.g., 50000"
                     />
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="condition">Condition</Label>
-                    <Select value={manualData.condition} onValueChange={(value) => setManualData(prev => ({ ...prev, condition: value }))}>
+                    <Select value={condition} onValueChange={setCondition}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -305,15 +283,16 @@ export function UnifiedLookupTabs() {
                     <Label htmlFor="zipCode">Zip Code</Label>
                     <Input
                       id="zipCode"
-                      value={manualData.zipCode}
-                      onChange={(e) => setManualData(prev => ({ ...prev, zipCode: e.target.value }))}
+                      value={zipCode}
+                      onChange={(e) => setZipCode(e.target.value)}
                       placeholder="e.g., 90210"
                     />
                   </div>
                 </div>
+                
                 <Button 
                   type="submit" 
-                  disabled={!manualData.make || !manualData.model || !manualData.year || isManualLoading}
+                  disabled={!selectedMakeId || !selectedModelId || !selectedYear || isManualLoading}
                   className="w-full"
                 >
                   {isManualLoading ? (
