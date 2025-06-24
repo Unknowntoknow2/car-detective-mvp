@@ -28,7 +28,7 @@ export const SocialProofSection: React.FC = () => {
   ];
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-6">
         <div className="max-w-4xl mx-auto text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
@@ -41,7 +41,7 @@ export const SocialProofSection: React.FC = () => {
 
         <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {testimonials.map((testimonial, index) => (
-            <div key={index} className="bg-gray-50 rounded-xl p-8 hover:bg-gray-100 transition-colors">
+            <div key={index} className="bg-white rounded-2xl p-8 hover:shadow-md transition-colors border border-gray-100">
               <div className="flex items-center mb-6">
                 <div className="flex space-x-1">
                   {[...Array(5)].map((_, i) => (
