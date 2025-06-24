@@ -84,6 +84,7 @@ export function useMakeModels(): UseMakeModelsReturn {
 
   const fetchModelsByMakeId = async (makeId: string): Promise<void> => {
     if (!makeId) {
+      console.log('⚠️ No makeId provided, clearing models');
       setModels([]);
       return;
     }
@@ -114,9 +115,13 @@ export function useMakeModels(): UseMakeModelsReturn {
       }));
 
       setModels(formattedModels);
+      
+      // Clear trims when models change
+      setTrims([]);
     } catch (err: any) {
       console.error('❌ Error fetching models from Supabase:', err);
       setError('Failed to fetch vehicle models from database');
+      setModels([]); // Clear models on error
     } finally {
       setIsLoading(false);
     }
@@ -124,6 +129,7 @@ export function useMakeModels(): UseMakeModelsReturn {
 
   const fetchTrimsByModelId = async (modelId: string, year?: number): Promise<void> => {
     if (!modelId) {
+      console.log('⚠️ No modelId provided, clearing trims');
       setTrims([]);
       return;
     }
@@ -156,6 +162,7 @@ export function useMakeModels(): UseMakeModelsReturn {
     } catch (err: any) {
       console.error('❌ Error fetching trims from Supabase:', err);
       setError('Failed to fetch vehicle trims from database');
+      setTrims([]); // Clear trims on error
     } finally {
       setIsLoading(false);
     }

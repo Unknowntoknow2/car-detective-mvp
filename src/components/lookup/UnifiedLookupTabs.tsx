@@ -11,6 +11,7 @@ import { useValuation } from '@/contexts/ValuationContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { EnhancedVehicleSelector } from '@/components/lookup/form-parts/EnhancedVehicleSelector';
+import { useMakeModels } from '@/hooks/useMakeModels';
 
 export function UnifiedLookupTabs() {
   const [vin, setVin] = useState('');
@@ -35,6 +36,7 @@ export function UnifiedLookupTabs() {
   
   const { processVinLookup, processFreeValuation } = useValuation();
   const navigate = useNavigate();
+  const { findMakeById, findModelById } = useMakeModels();
 
   const validateVin = (vin: string) => {
     return /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin);
@@ -88,9 +90,18 @@ export function UnifiedLookupTabs() {
     setIsManualLoading(true);
     
     try {
+      // Get the actual make and model names from the database
+      const selectedMake = findMakeById(selectedMakeId);
+      const selectedModel = findModelById(selectedModelId);
+      
+      if (!selectedMake || !selectedModel) {
+        toast.error('Invalid make or model selection');
+        return;
+      }
+
       const result = await processFreeValuation({
-        make: selectedMakeId, // This will need to be converted to make name
-        model: selectedModelId, // This will need to be converted to model name
+        make: selectedMake.make_name, // Use actual make name from database
+        model: selectedModel.model_name, // Use actual model name from database
         year: selectedYear,
         mileage: parseInt(mileage) || 50000,
         condition: condition,
