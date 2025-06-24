@@ -49,7 +49,6 @@ export function EnhancedVehicleSelector({
     findModelById,
     getPopularMakes,
     getNonPopularMakes,
-    hasMultipleTrims,
   } = useMakeModels();
 
   const [makeSearchQuery, setMakeSearchQuery] = useState('');
@@ -133,7 +132,7 @@ export function EnhancedVehicleSelector({
     return "Select model";
   };
 
-  // Trim field status and placeholder
+  // Trim field status and placeholder - always allow selection
   const getTrimSelectStatus = () => {
     if (!selectedModelId || !selectedYear) return "disabled";
     if (isLoading) return "loading";
@@ -144,7 +143,6 @@ export function EnhancedVehicleSelector({
     if (!selectedModelId) return "Select model first";
     if (!selectedYear) return "Select year first";
     if (isLoading) return "Loading trims...";
-    if (trims.length === 0) return "No specific trims available";
     return "Select trim (optional)";
   };
 
@@ -385,12 +383,13 @@ export function EnhancedVehicleSelector({
                   <SelectValue placeholder={getTrimSelectPlaceholder()} />
                 </div>
               </SelectTrigger>
-              {trims.length > 0 && (
-                <SelectContent className="max-h-80 bg-white border-2 shadow-xl z-50">
-                  <div className="px-3 py-2 text-xs font-bold text-gray-700 bg-gradient-to-r from-gray-50 to-slate-50 border-b">
-                    Available Trims ({trims.length})
-                  </div>
-                  {trims.map((trim) => (
+              <SelectContent className="max-h-80 bg-white border-2 shadow-xl z-50">
+                {/* Always show the dropdown content area */}
+                <div className="px-3 py-2 text-xs font-bold text-gray-700 bg-gradient-to-r from-gray-50 to-slate-50 border-b">
+                  {trims.length > 0 ? `Available Trims (${trims.length})` : "No specific trims available"}
+                </div>
+                {trims.length > 0 ? (
+                  trims.map((trim) => (
                     <SelectItem 
                       key={trim.id} 
                       value={trim.id}
@@ -405,9 +404,13 @@ export function EnhancedVehicleSelector({
                         )}
                       </div>
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              )}
+                  ))
+                ) : (
+                  <div className="px-3 py-2 text-sm text-gray-500 italic">
+                    No specific trim levels found for this model and year combination.
+                  </div>
+                )}
+              </SelectContent>
             </Select>
           </div>
         )}
@@ -451,7 +454,6 @@ export function EnhancedVehicleSelector({
               <div><strong>Total Makes:</strong> {makes.length}</div>
               <div><strong>Available Trims:</strong> {trims.length}</div>
               <div><strong>Show Trim:</strong> {showTrim ? 'yes' : 'no'}</div>
-              <div><strong>Has Multiple Trims:</strong> {hasMultipleTrims() ? 'yes' : 'no'}</div>
             </div>
           </div>
         </details>
