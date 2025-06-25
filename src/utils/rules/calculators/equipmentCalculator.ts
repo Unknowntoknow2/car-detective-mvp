@@ -1,4 +1,5 @@
-import { sum } from "../helpers";
+
+import { sum } from "./helpers";
 
 /**
  * Calculates the adjustment based on the presence of premium equipment or features.
