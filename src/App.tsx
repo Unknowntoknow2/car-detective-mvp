@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -6,6 +7,7 @@ import { Toaster } from 'sonner';
 import { Header } from '@/components/layout/Header';
 import { AuthProvider } from '@/hooks/useAuth';
 import { ValuationProvider } from '@/contexts/ValuationContext';
+import { EnhancedErrorBoundary } from '@/components/common/EnhancedErrorBoundary';
 import routes from './App.routes';
 
 const queryClient = new QueryClient();
@@ -13,12 +15,14 @@ const queryClient = new QueryClient();
 // Layout component that includes Header
 function Layout() {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-    </div>
+    <EnhancedErrorBoundary context="App Layout">
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+      </div>
+    </EnhancedErrorBoundary>
   );
 }
 
