@@ -3,6 +3,6 @@
 export * from '@/utils/lookupService';
 
 // Maintain backward compatibility with existing component imports
-export { default as UnifiedLookupTabs } from './UnifiedLookupTabs';
+export { UnifiedLookupTabs } from './UnifiedLookupTabs';
+export { VehicleDetailsGrid } from './VehicleDetailsGrid';
 export { default as VehicleInfoCard } from './VehicleInfoCard';
-export { default as VehicleDetailsGrid } from './VehicleDetailsGrid';
