@@ -41,7 +41,7 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
           condition: valuationResult.condition || 'Good',
           confidenceScore: valuationResult.confidenceScore || 75,
           issuesDetected: [],
-          aiSummary: `AI assessment of ${valuationResult.condition || 'Good'} condition` // Fix: use aiSummary not summary
+          aiSummary: `AI assessment of ${valuationResult.condition || 'Good'} condition`
         }
       };
 

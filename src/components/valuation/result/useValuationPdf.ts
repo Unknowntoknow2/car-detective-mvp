@@ -1,7 +1,5 @@
-
 import { useState } from 'react';
-import { downloadPdf } from '@/utils/pdf';
-import { ReportData } from '@/utils/pdf';
+import { downloadPdf, ReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
 
 interface UseValuationPdfProps {
@@ -91,7 +89,7 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
           condition: conditionData.condition || reportData.condition,
           confidenceScore: conditionData.confidenceScore || reportData.confidenceScore,
           issuesDetected: conditionData.issuesDetected || [],
-          aiSummary: conditionData.aiSummary || `Vehicle is in ${reportData.condition} condition.` // Fix: use aiSummary not summary
+          aiSummary: conditionData.aiSummary || `Vehicle is in ${reportData.condition} condition.`
         };
       }
       
