@@ -13,6 +13,8 @@ import ValuationResultPage from './pages/ValuationResultPage';
 import MyValuationsPage from './pages/MyValuationsPage';
 import ProfilePage from './pages/ProfilePage';
 import AuditPage from './pages/admin/AuditPage';
+import ValuationFollowUpPage from './pages/ValuationFollowUpPage';
+import PlateValuationPage from './pages/valuation/plate/PlateValuationPage';
 
 // Auth components
 import { AuthProvider } from '@/hooks/useAuth';
@@ -67,6 +69,18 @@ const routes = [
       {
         path: "valuation-result/:id",
         element: <ValuationResultPage />,
+      },
+      {
+        path: "results/:id",
+        element: <ValuationResultPage />,
+      },
+      {
+        path: "valuation/followup",
+        element: <ValuationFollowUpPage />,
+      },
+      {
+        path: "valuation/plate",
+        element: <PlateValuationPage />,
       },
       {
         path: "saved-valuations",
