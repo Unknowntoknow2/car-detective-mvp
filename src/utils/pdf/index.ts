@@ -1,30 +1,14 @@
 
+// Re-export everything from the consolidated PDF service
+export * from '../pdfService';
 
-export { generateValuationPdf, downloadValuationPdf } from './generateValuationPdf';
-export { uploadValuationPdf } from './uploadValuationPdf';
-export * from './types';
+// Maintain backward compatibility with existing imports
+export {
+  generateValuationPdf,
+  downloadValuationPdf,
+  uploadValuationPdf,
+  convertVehicleInfoToReportData,
+  downloadPdf
+} from '../pdfService';
 
-// Helper function to convert vehicle info to report data
-export function convertVehicleInfoToReportData(vehicleInfo: any, valuationData: any): any {
-  return {
-    id: vehicleInfo.id || Date.now().toString(),
-    make: vehicleInfo.make,
-    model: vehicleInfo.model,
-    year: vehicleInfo.year,
-    mileage: valuationData.mileage,
-    condition: valuationData.condition,
-    estimatedValue: valuationData.estimatedValue,
-    price: valuationData.estimatedValue,
-    confidenceScore: valuationData.confidenceScore || 0,
-    vin: vehicleInfo.vin,
-    zipCode: valuationData.zipCode,
-    adjustments: valuationData.adjustments || [],
-    generatedAt: new Date().toISOString(),
-    priceRange: valuationData.priceRange || [0, 0],
-    isPremium: valuationData.isPremium || false
-  };
-}
-
-// Export downloadPdf as alias for downloadValuationPdf
-export { downloadValuationPdf as downloadPdf } from './generateValuationPdf';
-
+export type { ReportData, PdfOptions } from '../pdfService';
