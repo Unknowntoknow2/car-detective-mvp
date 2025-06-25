@@ -1,12 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, Download, Crown, Loader2 } from 'lucide-react';
-import { downloadPdf } from '@/utils/pdf';
+import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
 import type { DecodedVehicleInfo } from '@/types/vehicle';
-import { convertVehicleInfoToReportData } from '@/utils/pdf';
 
 interface PDFPreviewProps {
   onViewSample: () => Promise<boolean>;

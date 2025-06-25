@@ -1,30 +1,27 @@
 
 import { describe, expect, it, vi } from "vitest";
 import { generateValuationPdf } from "../utils/pdf/generateValuationPdf";
-import { ReportData } from "../types/valuation";
+import { ReportData } from "../utils/pdf/types";
 import { Buffer } from "node:buffer";
 
 // Mock the PDF generation dependencies
-vi.mock("@react-pdf/renderer", () => ({
-  pdf: {
-    create: vi.fn().mockReturnValue({
-      toBlob: vi.fn().mockResolvedValue(
-        new Blob(["mock pdf content"], { type: "application/pdf" }),
-      ),
-      toBuffer: vi.fn().mockResolvedValue(Buffer.from("mock pdf content")),
+vi.mock("pdf-lib", () => ({
+  PDFDocument: {
+    create: vi.fn().mockResolvedValue({
+      addPage: vi.fn().mockReturnValue({
+        getSize: vi.fn().mockReturnValue({ width: 595, height: 842 }),
+        drawText: vi.fn(),
+        drawLine: vi.fn(),
+      }),
+      embedFont: vi.fn().mockResolvedValue({}),
+      save: vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4])),
     }),
   },
-  Document: vi.fn(({ children }) => children),
-  Page: vi.fn(({ children }) => children),
-  Text: vi.fn(({ children }) => children),
-  View: vi.fn(({ children }) => children),
-  StyleSheet: {
-    create: vi.fn().mockReturnValue({}),
+  StandardFonts: {
+    Helvetica: 'Helvetica',
+    HelveticaBold: 'Helvetica-Bold',
   },
-  Font: {
-    register: vi.fn(),
-  },
-  Image: vi.fn(() => "Image"),
+  rgb: vi.fn().mockReturnValue({ r: 0, g: 0, b: 0 }),
 }));
 
 describe("generateValuationPdf", () => {
@@ -65,7 +62,7 @@ describe("generateValuationPdf", () => {
     // Verify the PDF was generated
     expect(pdfBuffer).toBeDefined();
     expect(pdfBuffer instanceof Buffer).toBe(true);
-    expect(pdfBuffer.toString()).toBe("mock pdf content");
+    expect(pdfBuffer.length).toBeGreaterThan(0);
   });
 
   it("handles missing optional fields gracefully", async () => {

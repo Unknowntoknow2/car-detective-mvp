@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Profile } from "@/types/profile";
 import { errorHandler } from "@/utils/error-handling";

@@ -1,8 +1,8 @@
+
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertTriangle, Home, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { errorHandler } from "@/utils/error-handling";
-import process from "node:process";
 
 interface Props {
   children: ReactNode;
@@ -42,9 +42,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
     errorHandler.report({
       message: error.message,
       context,
-      severity: error.name === "SyntaxError"
-        ? "critical" as any
-        : "error" as any,
+      severity: error.name === "SyntaxError" ? "critical" : "high",
       timestamp: new Date(),
     });
   }
