@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useValuationResult } from '@/hooks/useValuationResult';
-import { Layout } from '@/components/layout';
+import MainLayout from '@/layouts/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -23,7 +24,7 @@ export default function OffersPage() {
   };
 
   return (
-    <Layout>
+    <MainLayout>
       <div className="container mx-auto py-8">
         <h1 className="text-3xl font-bold mb-8">Dealer Offers</h1>
         
@@ -48,7 +49,6 @@ export default function OffersPage() {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </MainLayout>
   );
 }
-

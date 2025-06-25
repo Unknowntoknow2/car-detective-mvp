@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Layout } from '@/components/layout';
+import MainLayout from '@/layouts/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -26,26 +27,26 @@ export default function ViewOfferPage() {
 
   if (loading) {
     return (
-      <Layout>
+      <MainLayout>
         <div className="container mx-auto py-8">
           <p>Loading offer...</p>
         </div>
-      </Layout>
+      </MainLayout>
     );
   }
 
   if (!offer) {
     return (
-      <Layout>
+      <MainLayout>
         <div className="container mx-auto py-8">
           <p>Offer not found</p>
         </div>
-      </Layout>
+      </MainLayout>
     );
   }
 
   return (
-    <Layout>
+    <MainLayout>
       <div className="container mx-auto py-8">
         <Card>
           <CardHeader>
@@ -70,6 +71,6 @@ export default function ViewOfferPage() {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </MainLayout>
   );
 }
