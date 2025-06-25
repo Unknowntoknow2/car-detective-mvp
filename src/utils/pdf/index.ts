@@ -23,6 +23,3 @@ export function convertVehicleInfoToReportData(vehicleInfo: any, valuationData: 
     isPremium: valuationData.isPremium || false
   };
 }
-
-// Export downloadPdf as alias for downloadValuationPdf
-export const downloadPdf = downloadValuationPdf;
