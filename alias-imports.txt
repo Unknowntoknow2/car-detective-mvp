@@ -21,7 +21,6 @@
 @/components/followup/FollowUpForm
 @/components/form/VehicleFormToolTip
 @/components/home/ComparisonTable
-@/components/home/EnhancedHeroSection
 @/components/home/KeyFeatures
 @/components/home/LookupTabs
 @/components/home/PremiumServicesGrid
@@ -165,8 +164,6 @@
 @/utils/cn
 @/utils/diagnostics/marketDataDiagnostics
 @/utils/diagnostics/phase2Audit
-@/utils/error-handling
-@/utils/forecasting/valuation-forecast
 @/utils/format
 @/utils/formatters
 @/utils/formatters/formatCurrency
