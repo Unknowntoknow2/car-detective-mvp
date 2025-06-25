@@ -1,4 +1,5 @@
 
+
 export { generateValuationPdf, downloadValuationPdf } from './generateValuationPdf';
 export { uploadValuationPdf } from './uploadValuationPdf';
 export * from './types';
@@ -25,4 +26,5 @@ export function convertVehicleInfoToReportData(vehicleInfo: any, valuationData: 
 }
 
 // Export downloadPdf as alias for downloadValuationPdf
-export const downloadPdf = downloadValuationPdf;
+export { downloadValuationPdf as downloadPdf } from './generateValuationPdf';
+
