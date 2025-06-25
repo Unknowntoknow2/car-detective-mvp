@@ -115,10 +115,19 @@ export async function runCorrectedValuationPipeline(
       }
     };
 
-    // Calculate valuation using the engine
+    // Calculate valuation using the engine (now includes market data diagnostics)
     const result = await engine.calculateValuation(engineInput);
     console.log('🎯 Valuation engine result:', result);
     console.log('🧮 Calculated base value:', result.basePrice, 'Confidence:', result.confidenceScore + '%');
+
+    // Log market data availability
+    if (result.marketAnalysis) {
+      console.log('📊 Market data status:');
+      console.log('  - MSRP data:', result.marketAnalysis.msrpDataAvailable ? '✅' : '❌');
+      console.log('  - Auction data:', result.marketAnalysis.auctionDataAvailable ? '✅' : '❌');
+      console.log('  - Competitor data:', result.marketAnalysis.competitorDataAvailable ? '✅' : '❌');
+      console.log('  - Market listings:', result.marketAnalysis.marketListingsAvailable ? '✅' : '❌');
+    }
 
     // Validate result
     if (!result.estimatedValue || result.estimatedValue <= 0) {
