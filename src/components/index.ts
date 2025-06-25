@@ -8,7 +8,7 @@ export * from './ui';
 export * from './valuation';
 export * from './premium';
 export * from './lookup';
-export * from './dealer';
+export * from './dealer'; 
 export * from './followup';
 
 // Layout & Navigation
@@ -29,6 +29,6 @@ export * from './navbar';
 // Legacy domain re-exports
 export * from './ui-kit';
 
-// Resolve specific conflicts by explicitly importing and re-exporting
-export { EmptyState as ValuationEmptyState } from './valuation';
-export { PhotoUploadAndScore as ValuationPhotoUpload } from './valuation';
+// Resolve specific conflicts by explicitly importing and re-exporting with unique names
+export { EmptyState as ValuationEmptyState } from './valuation/ValuationEmptyState';
+export { PhotoUploadAndScore as ValuationPhotoUpload } from './valuation/PhotoUploadAndScore';
