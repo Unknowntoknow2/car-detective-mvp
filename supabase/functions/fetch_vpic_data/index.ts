@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
@@ -140,71 +141,75 @@ serve(async (req) => {
     const url = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`;
     console.log(`Fetching from NHTSA vPIC API: ${url}`);
 
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      console.error(`NHTSA API error: ${response.status} ${response.statusText}`);
-      return new Response(
-        JSON.stringify({ 
-          error: `NHTSA API error: ${response.status} ${response.statusText}`
-        }),
-        { 
-          status: response.status === 404 ? 404 : 500,
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          }
-        }
-      );
-    }
+    let data;
+    let isFromFallback = false;
 
-    // Parse the response
-    const rawData = await response.json();
-    
-    if (!rawData.Results || rawData.Results.length === 0) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'No data returned from NHTSA API'
-        }),
-        { 
-          status: 404,
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
+    try {
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        console.error(`NHTSA API error: ${response.status} ${response.statusText}`);
+        return new Response(
+          JSON.stringify({ 
+            error: `NHTSA API error: ${response.status} ${response.statusText}`
+          }),
+          { 
+            status: response.status === 404 ? 404 : 500,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
           }
-        }
-      );
-    }
+        );
+      }
 
-    // Structured response data
-    const result = rawData.Results[0];
-    const data = {
-      vin: vin,
-      make: result.Make || null,
-      model: result.Model || null,
-      modelYear: result.ModelYear ? parseInt(result.ModelYear, 10) : null,
-      vehicleType: result.VehicleType || null,
-      bodyClass: result.BodyClass || null,
-      driveType: result.DriveType || null,
-      fuelType: result.FuelTypePrimary || null,
-      engineSize: result.DisplacementL ? parseFloat(result.DisplacementL) : null,
-      engineCylinders: result.EngineCylinders ? parseInt(result.EngineCylinders, 10) : null,
-      transmissionStyle: result.TransmissionStyle || null,
-      manufacturer: result.Manufacturer || null,
-      plantCountry: result.PlantCountry || null,
-      plantState: result.PlantState || null,
-      plantCity: result.PlantCity || null,
-      errorCode: result.ErrorCode || null,
-      errorText: result.ErrorText || null,
-      // More detailed data for advanced queries
-      series: result.Series || null,
-      trim: result.Trim || null,
-      doors: result.Doors ? parseInt(result.Doors, 10) : null,
-      grossVehicleWeight: result.GVWR || null,
-      note: result.Note || null,
-      basePrice: result.BasePrice || null,
-      steeringLocation: result.SteeringLocation || null
-    };
+      // Parse the response
+      const rawData = await response.json();
+      
+      if (!rawData.Results || rawData.Results.length === 0) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'No data returned from NHTSA API'
+          }),
+          { 
+            status: 404,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          }
+        );
+      }
+
+      // Structured response data
+      const result = rawData.Results[0];
+      data = {
+        vin: vin,
+        make: result.Make || null,
+        model: result.Model || null,
+        modelYear: result.ModelYear ? parseInt(result.ModelYear, 10) : null,
+        vehicleType: result.VehicleType || null,
+        bodyClass: result.BodyClass || null,
+        driveType: result.DriveType || null,
+        fuelType: result.FuelTypePrimary || null,
+        engineSize: result.DisplacementL ? parseFloat(result.DisplacementL) : null,
+        engineCylinders: result.EngineCylinders ? parseInt(result.EngineCylinders, 10) : null,
+        transmissionStyle: result.TransmissionStyle || null,
+        manufacturer: result.Manufacturer || null,
+        plantCountry: result.PlantCountry || null,
+        plantState: result.PlantState || null,
+        plantCity: result.PlantCity || null,
+        errorCode: result.ErrorCode || null,
+        errorText: result.ErrorText || null,
+        // More detailed data for advanced queries
+        series: result.Series || null,
+        trim: result.Trim || null,
+        doors: result.Doors ? parseInt(result.Doors, 10) : null,
+        grossVehicleWeight: result.GVWR || null,
+        note: result.Note || null,
+        basePrice: result.BasePrice || null,
+        steeringLocation: result.SteeringLocation || null
+      };
 
       console.log(`NHTSA vPIC API response parsed for VIN ${vin}`);
     } catch (error) {
