@@ -3,16 +3,15 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 // Core pages
-import Home from './pages/Home';
+import HomePage from './pages/HomePage';
 import Dashboard from './pages/Dashboard';
 import DealerDashboard from './pages/DealerDashboard';
 import OffersPage from './pages/OffersPage';
 import ViewOfferPage from './pages/view-offer/ViewOfferPage';
 import PremiumPage from './pages/PremiumPage';
 import ValuationResultPage from './pages/ValuationResultPage';
-import SavedValuationsPage from './pages/SavedValuationsPage';
+import MyValuationsPage from './pages/MyValuationsPage';
 import ProfilePage from './pages/ProfilePage';
-import ReferralsPage from './pages/ReferralsPage';
 import AuditPage from './pages/admin/AuditPage';
 
 // Auth components
@@ -29,7 +28,7 @@ const routes = [
     children: [
       {
         index: true,
-        element: <Home />,
+        element: <HomePage />,
       },
       {
         path: "dashboard",
@@ -73,7 +72,7 @@ const routes = [
         path: "saved-valuations",
         element: (
           <AuthenticatedLayout>
-            <SavedValuationsPage />
+            <MyValuationsPage />
           </AuthenticatedLayout>
         ),
       },
@@ -82,14 +81,6 @@ const routes = [
         element: (
           <AuthenticatedLayout>
             <ProfilePage />
-          </AuthenticatedLayout>
-        ),
-      },
-      {
-        path: "referrals",
-        element: (
-          <AuthenticatedLayout>
-            <ReferralsPage />
           </AuthenticatedLayout>
         ),
       },
