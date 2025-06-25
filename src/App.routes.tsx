@@ -1,106 +1,109 @@
-import React from "react";
-import { RouteObject } from "react-router-dom";
-import { RouteRedirect } from "@/components/common/RouteRedirect";
 
-// ✅ Import the correct components
-import HomePage from "@/pages/HomePage";
-import AboutPage from "@/pages/AboutPage";
-import AuthPage from "@/pages/AuthPage";
-import NotFound from "@/pages/NotFound";
-import ValuationPage from "@/pages/valuation/ValuationPage";
-import Premium from "@/pages/Premium";
-import ResultsPage from "@/pages/ResultsPage";
-import ProfilePage from "@/pages/ProfilePage";
-import AccountPage from "@/pages/AccountPage";
-import ServiceHistoryPage from "@/pages/ServiceHistoryPage";
-import ManualValuationPage from "@/pages/valuation/manual/ManualValuationPage";
-import ValuationFollowUpPage from "@/pages/ValuationFollowUpPage";
-import OffersPage from "@/pages/OffersPage";
-import ViewOfferPage from "@/pages/view-offer/ViewOfferPage";
-import PlateValuationPage from "@/pages/valuation/plate/PlateValuationPage";
-import DealerSignup from "@/pages/DealerSignup";
+import React from 'react';
+import { Navigate } from 'react-router-dom';
 
-const routes: RouteObject[] = [
+// Core pages
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+import DealerDashboard from './pages/DealerDashboard';
+import OffersPage from './pages/OffersPage';
+import ViewOfferPage from './pages/view-offer/ViewOfferPage';
+import PremiumPage from './pages/PremiumPage';
+import ValuationResultPage from './pages/ValuationResultPage';
+import SavedValuationsPage from './pages/SavedValuationsPage';
+import ProfilePage from './pages/ProfilePage';
+import ReferralsPage from './pages/ReferralsPage';
+import AuditPage from './pages/admin/AuditPage';
+
+// Auth components
+import { AuthProvider } from '@/hooks/useAuth';
+import { DealerGuard } from '@/guards/DealerGuard';
+
+// Layout components
+import AuthenticatedLayout from '@/layouts/AuthenticatedLayout';
+import DealerLayout from '@/layouts/DealerLayout';
+
+const routes = [
   {
     path: "/",
     children: [
       {
         index: true,
-        element: <HomePage />,
+        element: <Home />,
       },
       {
-        path: "about",
-        element: <AboutPage />,
+        path: "dashboard",
+        element: (
+          <AuthenticatedLayout>
+            <Dashboard />
+          </AuthenticatedLayout>
+        ),
       },
       {
-        path: "auth",
-        element: <AuthPage />,
-      },
-      {
-        path: "dealer-signup",
-        element: <DealerSignup />,
-      },
-      {
-        path: "valuation",
-        element: <ValuationPage />,
-      },
-      {
-        path: "valuation/:vin",
-        element: <ValuationPage />,
-      },
-      {
-        path: "valuation/followup",
-        element: <ValuationFollowUpPage />,
-      },
-      {
-        path: "plate-valuation",
-        element: <PlateValuationPage />,
-      },
-      {
-        path: "manual-valuation",
-        element: <ManualValuationPage />,
-      },
-      {
-        path: "premium",
-        element: <Premium />,
-      },
-      // ✅ Main unified results route
-      {
-        path: "results/:id",
-        element: <ResultsPage />,
-      },
-      // ✅ Backward compatibility redirects
-      {
-        path: "valuation/result/:id",
-        element: <RouteRedirect to="/results/:id" />,
-      },
-      {
-        path: "premium/results/:id", 
-        element: <RouteRedirect to="/results/:id" />,
+        path: "dealer-dashboard",
+        element: (
+          <DealerGuard>
+            <DealerLayout>
+              <DealerDashboard />
+            </DealerLayout>
+          </DealerGuard>
+        ),
       },
       {
         path: "offers",
-        element: <OffersPage />,
+        element: (
+          <AuthenticatedLayout>
+            <OffersPage />
+          </AuthenticatedLayout>
+        ),
       },
       {
         path: "view-offer/:token",
         element: <ViewOfferPage />,
       },
       {
+        path: "premium",
+        element: <PremiumPage />,
+      },
+      {
+        path: "valuation-result/:id",
+        element: <ValuationResultPage />,
+      },
+      {
+        path: "saved-valuations",
+        element: (
+          <AuthenticatedLayout>
+            <SavedValuationsPage />
+          </AuthenticatedLayout>
+        ),
+      },
+      {
         path: "profile",
-        element: <ProfilePage />,
+        element: (
+          <AuthenticatedLayout>
+            <ProfilePage />
+          </AuthenticatedLayout>
+        ),
       },
       {
-        path: "account",
-        element: <AccountPage />,
+        path: "referrals",
+        element: (
+          <AuthenticatedLayout>
+            <ReferralsPage />
+          </AuthenticatedLayout>
+        ),
       },
       {
-        path: "service-history",
-        element: <ServiceHistoryPage />,
+        path: "admin/audit",
+        element: (
+          <AuthenticatedLayout>
+            <AuditPage />
+          </AuthenticatedLayout>
+        ),
       },
       {
         path: "*",
-        element: <NotFound />,
+        element: <Navigate to="/" replace />,
       },
     ],
   },
