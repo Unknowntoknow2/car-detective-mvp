@@ -19,3 +19,4 @@ export { ExteriorFeaturesTab } from './ExteriorFeaturesTab';
 export { LuxuryMaterialsTab } from './LuxuryMaterialsTab';
 export { DriverAssistanceTab } from './DriverAssistanceTab';
 export { PerformancePackagesTab } from './PerformancePackagesTab';
+// Removed duplicate tab exports to prevent conflicts
