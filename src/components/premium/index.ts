@@ -4,4 +4,6 @@ export * from "./account";
 export * from "./checkout";
 export * from "./dashboard";
 export * from "./lookup";
-// Removed duplicate feature card exports - using enhanced versions
+export { PremiumFeatureCard } from "./features/PremiumFeatureCard";
+export { EnhancedPremiumFeaturesTabs } from "./features/EnhancedPremiumFeaturesTabs";
+export { PremiumFeaturesTabs } from "./features/PremiumFeaturesTabs";

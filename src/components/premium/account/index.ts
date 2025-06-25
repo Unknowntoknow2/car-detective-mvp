@@ -1,2 +1,3 @@
-// Export account-related components
-export const PremiumAccountOverview = () => null;
+
+// Account components consolidated into main premium index
+export { default as PremiumAccount } from "../PremiumCard";
