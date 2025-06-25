@@ -125,8 +125,8 @@ export async function runMarketDataDiagnostics(testVin: string = 'JTDACACU6R3026
       result.competitorPrices.hasResults = true;
       result.competitorPrices.count = competitorPrices.length;
       
-      const samplePrices = [];
-      const sources = [];
+      const samplePrices: Array<{ source: string; value: string }> = [];
+      const sources: string[] = [];
       
       competitorPrices.forEach(item => {
         if (item.kbb_value) {
