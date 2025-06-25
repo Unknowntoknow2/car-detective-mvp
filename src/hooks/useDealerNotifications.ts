@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { ReportData } from '@/utils/pdf/types';
+import { ReportData } from '@/utils/pdfService';
 
 interface NotificationStatus {
   success: boolean;

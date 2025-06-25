@@ -1,5 +1,5 @@
 
-import { ReportData } from '@/utils/pdf/types';
+import { ReportData } from '@/utils/pdfService';
 
 export function generateSummaryForPdf(reportData: ReportData): string {
   const vehicle = `${reportData.year} ${reportData.make} ${reportData.model}`;
@@ -48,15 +48,15 @@ export function generateSummaryForPdf(reportData: ReportData): string {
 
   // Key adjustments
   if (reportData.adjustments && reportData.adjustments.length > 0) {
-    const positiveAdj = reportData.adjustments.filter(adj => adj.impact > 0);
-    const negativeAdj = reportData.adjustments.filter(adj => adj.impact < 0);
+    const positiveAdj = reportData.adjustments.filter((adj: any) => adj.impact > 0);
+    const negativeAdj = reportData.adjustments.filter((adj: any) => adj.impact < 0);
     
     if (positiveAdj.length > 0) {
-      summary += ` Positive factors include: ${positiveAdj.map(adj => adj.factor.toLowerCase()).join(', ')}.`;
+      summary += ` Positive factors include: ${positiveAdj.map((adj: any) => adj.factor.toLowerCase()).join(', ')}.`;
     }
     
     if (negativeAdj.length > 0) {
-      summary += ` Areas for consideration include: ${negativeAdj.map(adj => adj.factor.toLowerCase()).join(', ')}.`;
+      summary += ` Areas for consideration include: ${negativeAdj.map((adj: any) => adj.factor.toLowerCase()).join(', ')}.`;
     }
   }
 

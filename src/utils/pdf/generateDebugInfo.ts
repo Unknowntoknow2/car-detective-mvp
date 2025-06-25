@@ -1,5 +1,5 @@
 
-import { ReportData } from './types';
+import { ReportData } from '../pdfService';
 
 export interface DebugInfo {
   basePriceLogic: string;
