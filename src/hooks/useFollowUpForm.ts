@@ -63,9 +63,32 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
         return false;
       }
 
-      // Save the completed form data first
+      // Ensure valuation_id is linked before saving
+      let resolvedValuationId = formData.valuation_id;
+      
+      if (!resolvedValuationId) {
+        console.log('🔗 Resolving missing valuation_id during submission for VIN:', vin);
+        
+        const { data: valuationData } = await supabase
+          .from('valuation_results')
+          .select('id')
+          .eq('vin', vin)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        if (valuationData) {
+          resolvedValuationId = valuationData.id;
+          console.log('✅ Resolved valuation_id during submission:', resolvedValuationId);
+        } else {
+          console.warn('⚠️ No valuation found for VIN during submission - creating follow-up anyway');
+        }
+      }
+
+      // Save the completed form data first with resolved valuation_id
       const saveSuccess = await saveFormData({
         ...formData,
+        valuation_id: resolvedValuationId,
         is_complete: true,
         completion_percentage: 100
       });
@@ -76,9 +99,9 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       }
 
       console.log('✅ Follow-up data saved successfully');
-      console.log('💾 Saving follow-up → VIN:', vin, 'valuation_id:', formData.valuation_id || 'missing');
+      console.log('💾 Saving follow-up → VIN:', vin, 'valuation_id:', resolvedValuationId || 'missing');
 
-      if (!formData.valuation_id) {
+      if (!resolvedValuationId) {
         console.log('🛑 Missing valuation_id — record may be orphaned unless corrected');
       }
 
@@ -98,7 +121,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
 
         console.log('🧮 Running valuation with complete follow-up data');
         
-        // Run valuation with complete follow-up data
+        // Run valuation with complete follow-up data, using decoded vehicle year
         const valuationResult = await runCorrectedValuationPipeline({
           vin,
           make: decodedVehicle.make || 'Unknown',
@@ -111,7 +134,11 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
           bodyType: decodedVehicle.bodyType,
           fuelType: decodedVehicle.fueltype,
           transmission: decodedVehicle.transmission,
-          followUpAnswers: formData
+          followUpAnswers: {
+            ...formData,
+            valuation_id: resolvedValuationId,
+            year: decodedVehicle.year || formData.year // Use decoded year
+          }
         });
 
         if (valuationResult.success) {
@@ -137,6 +164,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
                 price_range_high: valuationResult.valuation.priceRange[1],
                 adjustments: valuationResult.valuation.adjustments,
                 vin: vin, // Ensure VIN is explicitly saved
+                year: decodedVehicle.year || formData.year, // Use decoded year
                 vehicle_data: {
                   ...decodedVehicle,
                   marketAnalysis: valuationResult.valuation.marketAnalysis,
