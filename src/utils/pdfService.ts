@@ -1,4 +1,3 @@
-
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
@@ -30,6 +29,11 @@ export interface ReportData {
     issuesDetected: string[];
     aiSummary: string;
   };
+  basePrice?: number;
+  competitorPrices?: number[];
+  competitorAverage?: number;
+  marketplaceListings?: any[];
+  auctionResults?: any[];
 }
 
 export interface PdfOptions {
