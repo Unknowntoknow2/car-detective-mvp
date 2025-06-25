@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Download, Mail, Users, FileText } from 'lucide-react';
 import { useDealerNotifications } from '@/hooks/useDealerNotifications';
-import { ReportData } from '@/utils/pdf/types';
-import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
+import { ReportData, downloadValuationPdf } from '@/utils/pdfService';
 import { toast } from 'sonner';
 
 interface PremiumPdfSectionProps {
@@ -81,7 +80,7 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
         condition: valuationResult.condition || 'Good',
         confidenceScore: valuationResult.confidenceScore || 75,
         issuesDetected: [],
-        aiSummary: `AI assessment of ${valuationResult.condition || 'Good'} condition` // Fix: use aiSummary not summary
+        aiSummary: `AI assessment of ${valuationResult.condition || 'Good'} condition`
       }
     };
 

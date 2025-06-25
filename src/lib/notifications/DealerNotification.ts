@@ -1,5 +1,5 @@
 
-import { ReportData } from '@/utils/pdf/types';
+import { ReportData } from '@/utils/pdfService';
 
 export async function notifyDealersOfNewValuation(
   reportData: ReportData,
