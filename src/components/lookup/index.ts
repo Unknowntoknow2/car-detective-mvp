@@ -1,12 +1,8 @@
 
-// Export lookup components
-export * from "./UnifiedLookupTabs";
-export * from "./UnifiedPlateLookup";
-export * from "./VehicleDetailsGrid";
-export * from "./VehicleHistory";
-export * from "./VehicleInfoCard";
-export * from "./VehicleScoring";
+// Re-export everything from the consolidated lookup service
+export * from '@/utils/lookupService';
 
-// Export from subdirectories that exist
-export * from "./scoring/ConfidenceScore";
-export * from "./manual/ManualEntryForm";
+// Maintain backward compatibility with existing component imports
+export { default as UnifiedLookupTabs } from './UnifiedLookupTabs';
+export { default as VehicleInfoCard } from './VehicleInfoCard';
+export { default as VehicleDetailsGrid } from './VehicleDetailsGrid';
