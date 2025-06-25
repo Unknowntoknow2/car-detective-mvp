@@ -23,3 +23,6 @@ export function Toaster() {
     />
   );
 }
+
+// Export as Sonner for consistency with naming
+export { Toaster as Sonner };
