@@ -1,5 +1,9 @@
 
-import { ValuationAdjustment } from '@/types/valuation';
+export interface ValuationAdjustment {
+  factor: string;
+  impact: number;
+  description: string;
+}
 
 export interface FinalValuationParams {
   baseValue: number;

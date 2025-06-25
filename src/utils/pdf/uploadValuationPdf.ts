@@ -1,18 +1,14 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { generateValuationPdf } from './generateValuationPdf';
 import { ReportData, PdfOptions } from './types';
-import { generateSummaryForPdf } from '../ain/generateSummaryForPdf';
 
 export async function uploadValuationPdf(
   data: ReportData,
   options: PdfOptions = {}
 ): Promise<string | null> {
   try {
-    const pdfBuffer = await generateValuationPdf(data, {
-      isPremium: options.isPremium,
-      includeExplanation: options.includeExplanation,
-      marketplaceListings: options.marketplaceListings
-    });
+    const pdfBuffer = await generateValuationPdf(data);
 
     const fileName = `valuation-${data.id}.pdf`;
     const filePath = `pdfs/${fileName}`;

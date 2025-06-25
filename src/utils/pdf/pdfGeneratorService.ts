@@ -1,6 +1,19 @@
+
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { ReportData, ReportOptions } from "./types";
-import { defaultReportOptions } from "./defaultReportOptions";
+
+const defaultReportOptions: ReportOptions = {
+  includePageNumbers: true,
+  includePhotos: false,
+  includeSimilarVehicles: true,
+  isPremium: false,
+  companyInfo: {
+    name: "Vehicle Valuation Service",
+    logo: null,
+    website: "https://example.com",
+    phone: "1-800-VEHICLE"
+  }
+};
 
 /**
  * Generate a PDF report with the given data and options
@@ -30,7 +43,6 @@ export async function generateReport(
     `Year: ${data.year}`,
     `Make: ${data.make}`,
     `Model: ${data.model}`,
-    `Trim: ${data.trim ?? "N/A"}`,
     `Condition: ${data.condition}`,
     `Mileage: ${data.mileage}`,
     `Estimated Price: $${data.price}`,
@@ -51,3 +63,7 @@ export async function generateReport(
 
   return pdfDoc.save();
 }
+
+export const pdfGeneratorService = {
+  generateReport
+};
