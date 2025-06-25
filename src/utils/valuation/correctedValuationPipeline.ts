@@ -70,16 +70,42 @@ export async function runCorrectedValuationPipeline(
     // Validate follow-up answers structure
     followUpAnswers = validateAndSanitizeFollowUpAnswers(followUpAnswers);
 
+    // Fix year override conflict: Always prefer decoded vehicle year
+    let finalYear = input.year; // Start with input year (likely from decoded vehicle)
+    
+    // Check if we have decoded vehicle data to get the authoritative year
+    const { data: decodedVehicle } = await supabase
+      .from('decoded_vehicles')
+      .select('year')
+      .eq('vin', input.vin)
+      .maybeSingle();
+    
+    if (decodedVehicle?.year) {
+      finalYear = decodedVehicle.year;
+      console.log('🔧 Using decoded vehicle year:', finalYear, 'over input year:', input.year);
+      
+      if (followUpAnswers.year && followUpAnswers.year !== finalYear) {
+        console.log('⚠️ Year conflict resolved: form=' + followUpAnswers.year + ' vs decoded=' + finalYear + ' — using decoded');
+      }
+    } else if (followUpAnswers.year && followUpAnswers.year !== input.year) {
+      // If no decoded vehicle data, prefer form year over input year if they differ
+      finalYear = followUpAnswers.year;
+      console.log('📝 Using form year:', finalYear, 'over input year:', input.year);
+    }
+
     // Initialize valuation engine
     const engine = new ValuationEngine();
 
-    // Prepare engine input
+    // Prepare engine input with resolved year
     const engineInput: ValuationEngineInput = {
       vin: input.vin,
       make: input.make,
       model: input.model,
-      year: input.year,
-      followUpData: followUpAnswers,
+      year: finalYear, // Use resolved year
+      followUpData: {
+        ...followUpAnswers,
+        year: finalYear // Ensure follow-up data also uses resolved year
+      },
       decodedVehicleData: {
         trim: input.trim,
         color: input.color,
@@ -179,7 +205,7 @@ function createDefaultFollowUpAnswers(input: CorrectedValuationInput): FollowUpA
     previous_owners: 1,
     loan_balance: 0,
     payoffAmount: 0,
-    year: input.year
+    year: input.year // Use the input year for default follow-up
   };
 }
 

@@ -92,9 +92,27 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       console.log('🔄 Updating valuation:', id);
       
+      // Only update VIN if it was missing previously
+      const { data: existingData } = await supabase
+        .from('valuation_results')
+        .select('vin')
+        .eq('id', id)
+        .single();
+
+      const updateData = { ...data };
+      
+      // Fix VIN storage: only update if missing
+      if (!existingData?.vin && data.vin) {
+        updateData.vin = data.vin;
+        console.log('🔧 Adding missing VIN to existing valuation:', data.vin);
+      } else if (existingData?.vin && data.vin && existingData.vin !== data.vin) {
+        console.log('⚠️ VIN mismatch detected - keeping existing VIN:', existingData.vin);
+        delete updateData.vin; // Don't overwrite existing VIN
+      }
+      
       const { data: result, error } = await supabase
         .from('valuation_results')
-        .update(data)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -141,7 +159,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const conditionMultiplier = conditionMultipliers[input.condition as keyof typeof conditionMultipliers] || 1.0;
       const estimatedValue = Math.round((baseValue + yearAdjustment + mileageAdjustment) * conditionMultiplier);
       
-      // Create valuation record
+      // Create valuation record - ensure VIN is included when available
       const valuationData = {
         make: input.make,
         model: input.model,
