@@ -13,3 +13,4 @@ export * from "./CDTabs";
 export * from "./CDNavbar";
 export * from "./CDFooter";
 export * from "./CDMobileCards";
+// Note: Prefer shadcn/ui components over UI Kit components for new features
