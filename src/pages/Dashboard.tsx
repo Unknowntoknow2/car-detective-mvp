@@ -1,10 +1,12 @@
+
 import React from "react";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { EnhancedErrorBoundary } from "@/components/common/EnhancedErrorBoundary";
 import DashboardRouter from "@/components/dashboard/DashboardRouter";
 
 const Dashboard = () => {
   return (
-    <ErrorBoundary
+    <EnhancedErrorBoundary
+      context="Dashboard"
       fallback={
         <div className="container p-8">
           <div className="p-6 rounded-lg bg-red-50 border border-red-200 text-center">
@@ -20,7 +22,7 @@ const Dashboard = () => {
       }
     >
       <DashboardRouter />
-    </ErrorBoundary>
+    </EnhancedErrorBoundary>
   );
 };
 
