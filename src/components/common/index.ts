@@ -3,7 +3,7 @@
 
 // Core Common Components
 export { EnhancedErrorBoundary } from './EnhancedErrorBoundary';
-export { UnifiedLoadingSystem } from './UnifiedLoadingSystem';
+export { LoadingButton, LoadingSpinner, LoadingGrid, LoadingState, Spinner } from './UnifiedLoadingSystem';
 export { ZipCodeInput } from './ZipCodeInput';
 export { RouteRedirect } from './RouteRedirect';
 export { SEO } from './SEO';
@@ -18,8 +18,8 @@ export { TireConditionSelectorBar } from './TireConditionSelectorBar';
 // Header Components
 export { CarFinderQaherHeader } from './CarFinderQaherHeader';
 
-// Loading Components
-export { UnifiedLoadingSystem as LoadingSystem } from './UnifiedLoadingSystem';
+// Loading Components - alias for backward compatibility
+export { LoadingButton as UnifiedLoadingSystem } from './UnifiedLoadingSystem';
 
 // Legacy re-exports for backward compatibility
 export { EnhancedErrorBoundary as ErrorBoundary } from './EnhancedErrorBoundary';
