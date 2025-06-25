@@ -30,5 +30,5 @@ export * from './navbar';
 export * from './ui-kit';
 
 // Resolve specific conflicts by explicitly importing and re-exporting with unique names
-export { EmptyState as ValuationEmptyState } from './valuation/ValuationEmptyState';
+export { ValuationEmptyState } from './valuation/ValuationEmptyState';
 export { PhotoUploadAndScore as ValuationPhotoUpload } from './valuation/PhotoUploadAndScore';

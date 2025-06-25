@@ -28,3 +28,6 @@ export const ValuationEmptyState: React.FC<ValuationEmptyStateProps> = ({
     </div>
   );
 };
+
+// Also export as EmptyState for backward compatibility
+export { ValuationEmptyState as EmptyState };
