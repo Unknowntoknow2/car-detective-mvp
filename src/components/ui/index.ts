@@ -18,7 +18,6 @@ export * from './skeleton';
 export * from './spinner';
 export * from './toast';
 export * from './use-toast';
-export * from './toaster';
 export * from './sonner';
 
 // Layout & Navigation
@@ -51,6 +50,9 @@ export * from './empty-state';
 export * from './no-results';
 export * from './resource-header';
 export * from './skeleton-select';
+
+// Explicit exports to resolve conflicts
+export { Toaster } from './toaster';
 
 // Legacy exports for backward compatibility
 export { Skeleton } from './skeleton';

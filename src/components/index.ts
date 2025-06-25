@@ -28,3 +28,7 @@ export * from './navbar';
 
 // Legacy domain re-exports
 export * from './ui-kit';
+
+// Resolve specific conflicts by explicitly importing and re-exporting
+export { EmptyState as ValuationEmptyState } from './valuation';
+export { PhotoUploadAndScore as ValuationPhotoUpload } from './valuation';
