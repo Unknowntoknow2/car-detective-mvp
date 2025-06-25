@@ -1,23 +1,13 @@
 
 // Valuation Components - Consolidated Export
 
-// Core Valuation Components
-export { PhotoUploadAndScore } from './PhotoUploadAndScore';
-export { QrCodeDownload } from './QrCodeDownload';
+// Note: PhotoUpload is now only exported from the main components index with unique naming
+// to avoid conflicts. Use PhotoUploadAndScore or ValuationPhotoUpload from the main index.
+
 export { ValuationEmptyState } from './ValuationEmptyState';
-export { AIConditionBadge } from './AIConditionBadge';
-export { DealerOffersSection } from './DealerOffersSection';
-export { MarketTrendSection } from './MarketTrendSection';
 
-// Valuation Core
-export { default as ValuationComplete } from './valuation-complete/ValuationComplete';
-export { ValuationProvider, useValuationContext } from './valuation-core/ValuationContext';
-
-// Condition Assessment
-export { ConditionSlider } from './condition/ConditionSlider';
-export { ConditionTips } from './condition/ConditionTips';
+// Re-export EmptyState for backward compatibility  
+export { ValuationEmptyState as EmptyState } from './ValuationEmptyState';
 
 // Legacy re-exports for backward compatibility
-export { PhotoUploadAndScore as PhotoUpload } from './PhotoUploadAndScore';
-export { ValuationEmptyState as EmptyState } from './ValuationEmptyState';
-export { AIConditionBadge as ConditionBadge } from './AIConditionBadge';
+export { ValuationEmptyState as ErrorState } from './ValuationEmptyState';
