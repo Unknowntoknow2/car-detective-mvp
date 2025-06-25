@@ -1,7 +1,6 @@
 
 export { generateValuationPdf, downloadValuationPdf } from './generateValuationPdf';
 export { uploadValuationPdf } from './uploadValuationPdf';
-export { pdfGeneratorService } from './pdfGeneratorService';
 export * from './types';
 
 // Helper function to convert vehicle info to report data
