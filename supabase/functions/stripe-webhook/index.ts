@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@11.18.0?target=deno";
 
@@ -49,7 +50,6 @@ serve(async (req) => {
     // Handle the event type
     let userId = null;
     let expiresAt = null;
-<<<<<<< HEAD
     let customerId = null;
     let creditsToAdd = 0;
     let valuationId = null;
@@ -92,24 +92,6 @@ serve(async (req) => {
           }
         }
         
-=======
-
-    // For subscriptions and invoices, we need to lookup by customer id
-    let customerId = null;
-
-    switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object;
-
-        // Get the user ID from the session metadata
-        userId = session.metadata?.user_id;
-        customerId = session.customer;
-
-        console.log(
-          `Checkout completed for user: ${userId}, customer: ${customerId}`,
-        );
-
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         // If we have a subscription, let's get the current period end
         if (session.subscription) {
           const subscription = await stripe.subscriptions.retrieve(
@@ -118,14 +100,8 @@ serve(async (req) => {
           expiresAt = new Date(subscription.current_period_end * 1000)
             .toISOString();
         } else {
-<<<<<<< HEAD
           // Default to 12 months if no subscription (for credits)
           expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
-=======
-          // Default to 30 days if no subscription (for one-time purchases)
-          expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-            .toISOString();
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
         }
 
         break;
@@ -217,7 +193,6 @@ serve(async (req) => {
         console.error("Error updating user profile:", error);
         throw error;
       }
-<<<<<<< HEAD
       
       console.log(`Successfully updated premium status for user: ${userId}, expires: ${expiresAt}`);
       
@@ -284,12 +259,6 @@ serve(async (req) => {
           }
         }
       }
-=======
-
-      console.log(
-        `Successfully updated premium status for user: ${userId}, expires: ${expiresAt}`,
-      );
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
     }
 
     return new Response(JSON.stringify({ received: true }), {
