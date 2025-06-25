@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { runMarketDataDiagnostics, logMarketDataSummary } from '@/utils/diagnostics/marketDataDiagnostics';
 
 export interface ValuationEngineInput {
   vin: string;
@@ -36,14 +36,21 @@ export interface ValuationEngineResult {
 export class ValuationEngine {
   async calculateValuation(input: ValuationEngineInput): Promise<ValuationEngineResult> {
     try {
-      // Get base price using MSRP lookup
+      // Run market data diagnostics for the first time to understand our data availability
+      console.log('🔍 Running market data diagnostics...');
+      const diagnostics = await runMarketDataDiagnostics(input.vin);
+      logMarketDataSummary(diagnostics);
+
+      // Get base price using enhanced MSRP lookup
       const basePrice = await this.getBasePrice(input);
-      console.log('🛠️ Looking up MSRP for year=' + input.year + ', model like \'' + input.model + '\'');
+      console.log('🛠️ Looking up MSRP for year=' + input.year + ', make=' + input.make + ', model=' + input.model);
       
       if (!basePrice || basePrice <= 0) {
-        console.log('❌ No match found in model_trims — triggering fallback');
+        console.log('❌ No MSRP match found in model_trims — triggering fallback');
         const fallbackPrice = this.getFallbackPrice(input.make);
         console.log('💡 Using fallback base price for brand:', input.make, '→ $' + fallbackPrice.toLocaleString());
+      } else {
+        console.log('✅ Found MSRP base price: $' + basePrice.toLocaleString());
       }
 
       // Calculate adjustments based on follow-up data
@@ -54,7 +61,7 @@ export class ValuationEngine {
       const estimatedValue = Math.max(1000, basePrice + totalAdjustment);
 
       // Calculate confidence score
-      const confidenceScore = this.calculateConfidenceScore(input, basePrice);
+      const confidenceScore = this.calculateConfidenceScore(input, basePrice, diagnostics);
 
       // Calculate price range
       const priceRange: [number, number] = [
@@ -68,7 +75,12 @@ export class ValuationEngine {
         basePrice,
         adjustments,
         priceRange,
-        marketAnalysis: {},
+        marketAnalysis: {
+          msrpDataAvailable: diagnostics.msrpData.found,
+          auctionDataAvailable: diagnostics.auctionData.hasResults,
+          competitorDataAvailable: diagnostics.competitorPrices.hasResults,
+          marketListingsAvailable: diagnostics.marketListings.hasResults
+        },
         riskFactors: [],
         recommendations: []
       };
@@ -80,30 +92,62 @@ export class ValuationEngine {
 
   private async getBasePrice(input: ValuationEngineInput): Promise<number> {
     try {
-      // Try to get MSRP from model_trims table
+      // Enhanced MSRP lookup with better matching
+      console.log('🔍 Enhanced MSRP lookup for:', input.year, input.make, input.model);
+      
       const { data: trimData } = await supabase
         .from('model_trims')
-        .select('msrp')
-        .ilike('trim_name', `%${input.model}%`)
+        .select(`
+          msrp,
+          trim_name,
+          models!inner(
+            model_name,
+            makes!inner(make_name)
+          )
+        `)
         .eq('year', input.year)
+        .eq('models.makes.make_name', input.make)
+        .eq('models.model_name', input.model)
         .not('msrp', 'is', null)
         .order('msrp', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(5);
 
-      if (trimData?.msrp) {
-        console.log('📈 Found MSRP for', input.year, input.model, '→ $' + trimData.msrp.toLocaleString());
-        return Number(trimData.msrp);
+      if (trimData && trimData.length > 0) {
+        // Use average MSRP if multiple trims found, or specific trim if available
+        let selectedMsrp = Number(trimData[0].msrp);
+        
+        // If we have decoded trim data, try to match it
+        if (input.decodedVehicleData?.trim) {
+          const matchingTrim = trimData.find(item => 
+            item.trim_name?.toLowerCase().includes(input.decodedVehicleData?.trim?.toLowerCase() || '')
+          );
+          if (matchingTrim) {
+            selectedMsrp = Number(matchingTrim.msrp);
+            console.log('🎯 Found exact trim match:', matchingTrim.trim_name, '→ $' + selectedMsrp.toLocaleString());
+          }
+        }
+        
+        if (trimData.length > 1) {
+          // Calculate average if multiple trims
+          const avgMsrp = trimData.reduce((sum, item) => sum + Number(item.msrp || 0), 0) / trimData.length;
+          console.log('📊 Multiple trims found. Using average MSRP: $' + Math.round(avgMsrp).toLocaleString());
+          console.log('📋 Available trims:', trimData.map(t => `${t.trim_name}: $${Number(t.msrp || 0).toLocaleString()}`));
+          return Math.round(avgMsrp);
+        }
+        
+        console.log('📈 Found MSRP for', input.year, input.make, input.model, '→ $' + selectedMsrp.toLocaleString());
+        return selectedMsrp;
       }
 
       // Count available trims for debugging
       const { count } = await supabase
         .from('model_trims')
         .select('*', { count: 'exact', head: true })
-        .ilike('trim_name', `%${input.model}%`)
-        .eq('year', input.year);
+        .eq('year', input.year)
+        .eq('models.makes.make_name', input.make)
+        .eq('models.model_name', input.model);
 
-      console.log('📊 Count of', input.year, 'trims with \'' + input.model + '\' in name:', count || 0);
+      console.log('📊 Count of', input.year, input.make, input.model, 'trims:', count || 0);
 
       // If no MSRP found, use fallback
       return this.getFallbackPrice(input.make);
@@ -201,7 +245,7 @@ export class ValuationEngine {
     return adjustments;
   }
 
-  private calculateConfidenceScore(input: ValuationEngineInput, basePrice: number): number {
+  private calculateConfidenceScore(input: ValuationEngineInput, basePrice: number, diagnostics?: any): number {
     let confidence = 70; // Base confidence
 
     // Increase confidence with more data
@@ -211,12 +255,23 @@ export class ValuationEngine {
     if (input.followUpData.serviceHistory?.hasRecords) confidence += 5;
     if (input.decodedVehicleData?.trim) confidence += 5;
 
+    // Increase confidence based on available market data
+    if (diagnostics) {
+      if (diagnostics.msrpData.found) confidence += 10;
+      if (diagnostics.auctionData.hasResults) confidence += 5;
+      if (diagnostics.competitorPrices.hasResults) confidence += 5;
+      if (diagnostics.marketListings.hasResults) confidence += 5;
+    }
+
     // Decrease confidence for fallback pricing
     if (basePrice <= 25000 && input.make === 'Toyota') {
       confidence -= 10;
-      console.log('📉 Confidence: ' + confidence + '% — market data missing?');
+      console.log('📉 Confidence reduced due to fallback pricing: ' + confidence + '%');
     }
 
-    return Math.min(95, Math.max(40, confidence));
+    const finalConfidence = Math.min(95, Math.max(40, confidence));
+    console.log('🎯 Final confidence score: ' + finalConfidence + '%');
+    
+    return finalConfidence;
   }
 }
