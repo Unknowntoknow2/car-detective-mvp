@@ -1,13 +1,11 @@
+
 import { useState } from "react";
-import { HoverCard, HoverCardTrigger } from "@/components/ui/hover-card";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
-import { FeatureBenefitsList } from "./cards/FeatureBenefitsList";
-import { FeatureIcon } from "./cards/FeatureIcon";
-import { FeatureHeader } from "./cards/FeatureHeader";
 
 interface PremiumFeatureCardProps {
   icon: LucideIcon;
@@ -21,7 +19,7 @@ interface PremiumFeatureCardProps {
 }
 
 export function PremiumFeatureCard({
-  icon,
+  icon: Icon,
   title,
   description,
   value,
@@ -61,13 +59,19 @@ export function PremiumFeatureCard({
         >
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
-              <FeatureIcon Icon={icon} colorClass={colorVariants[color]} />
+              {/* Feature Icon */}
+              <div className={cn("p-3 rounded-lg border", colorVariants[color])}>
+                <Icon className="h-6 w-6" />
+              </div>
+              
               <div className="space-y-2 flex-1">
-                <FeatureHeader
-                  title={title}
-                  value={value}
-                  colorClass={colorVariants[color]}
-                />
+                {/* Feature Header */}
+                <div className="flex items-start justify-between">
+                  <h3 className="font-semibold text-lg">{title}</h3>
+                  <span className={cn("text-sm font-medium px-2 py-1 rounded", colorVariants[color])}>
+                    {value}
+                  </span>
+                </div>
                 <p className="text-sm text-slate-600">{description}</p>
               </div>
             </div>
@@ -89,7 +93,20 @@ export function PremiumFeatureCard({
         </Card>
       </HoverCardTrigger>
 
-      <FeatureBenefitsList benefits={benefits} />
+      {/* Feature Benefits List */}
+      <HoverCardContent className="w-80">
+        <div className="space-y-3">
+          <h4 className="font-semibold">{title} Benefits</h4>
+          <ul className="space-y-2">
+            {benefits.map((benefit, index) => (
+              <li key={index} className="flex items-start gap-2 text-sm">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+                <span>{benefit}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </HoverCardContent>
     </HoverCard>
   );
 }
