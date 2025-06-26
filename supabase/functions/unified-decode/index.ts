@@ -15,7 +15,7 @@ serve(async (req) => {
   try {
     const { vin } = await req.json();
     
-    console.log('🔍 Direct NHTSA Decode: Processing VIN:', vin);
+    console.log('🔍 NHTSA Direct Decode: Processing VIN:', vin);
     
     if (!vin || vin.length !== 17) {
       console.error('❌ Invalid VIN format:', vin);
@@ -33,7 +33,7 @@ serve(async (req) => {
       );
     }
 
-    // Always call NHTSA API directly
+    // Direct NHTSA API call with faster timeout
     console.log('🔍 Calling NHTSA API for VIN:', vin);
     
     const nhtsaUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/${vin}?format=json`;
@@ -43,11 +43,13 @@ serve(async (req) => {
     let nhtsaData;
     
     try {
-      // Single API call with 15 second timeout
+      // Faster API call with 10 second timeout instead of 15
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      console.log('⏰ Making NHTSA API call...');
+      console.log('⏰ Making NHTSA API call with 10s timeout...');
+      const startTime = Date.now();
+      
       nhtsaResponse = await fetch(nhtsaUrl, {
         signal: controller.signal,
         headers: {
@@ -56,6 +58,8 @@ serve(async (req) => {
       });
       
       clearTimeout(timeoutId);
+      const endTime = Date.now();
+      console.log(`📊 NHTSA API call completed in ${endTime - startTime}ms`);
       console.log('📊 NHTSA API response status:', nhtsaResponse.status);
       
       if (!nhtsaResponse.ok) {
