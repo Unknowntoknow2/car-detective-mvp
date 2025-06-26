@@ -33,20 +33,21 @@ serve(async (req) => {
       );
     }
 
-    // Always decode VIN using NHTSA API directly
+    // Always call NHTSA API directly
     console.log('🔍 Calling NHTSA API for VIN:', vin);
     
     const nhtsaUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/${vin}?format=json`;
+    console.log('📡 NHTSA URL:', nhtsaUrl);
     
     let nhtsaResponse;
     let nhtsaData;
-    let nhtsaFailed = false;
     
     try {
-      // Add timeout to NHTSA API call
+      // Single API call with 15 second timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
       
+      console.log('⏰ Making NHTSA API call...');
       nhtsaResponse = await fetch(nhtsaUrl, {
         signal: controller.signal,
         headers: {
@@ -55,30 +56,36 @@ serve(async (req) => {
       });
       
       clearTimeout(timeoutId);
+      console.log('📊 NHTSA API response status:', nhtsaResponse.status);
       
       if (!nhtsaResponse.ok) {
         console.error(`🚨 NHTSA API HTTP error: ${nhtsaResponse.status} ${nhtsaResponse.statusText}`);
-        nhtsaFailed = true;
-      } else {
-        nhtsaData = await nhtsaResponse.json();
-        console.log('📊 NHTSA API raw response:', JSON.stringify(nhtsaData, null, 2));
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: `NHTSA API returned ${nhtsaResponse.status}: ${nhtsaResponse.statusText}`,
+            vin: vin.toUpperCase(),
+            source: 'nhtsa_error'
+          }),
+          { 
+            status: 503, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
       }
+      
+      nhtsaData = await nhtsaResponse.json();
+      console.log('📊 NHTSA API raw response size:', JSON.stringify(nhtsaData).length, 'characters');
+      console.log('📊 NHTSA Results count:', nhtsaData?.Results?.length || 0);
       
     } catch (error) {
       console.error('🚨 NHTSA API network error:', error);
-      nhtsaFailed = true;
-    }
-    
-    // Check if NHTSA data is valid
-    if (nhtsaFailed || !nhtsaData || !nhtsaData.Results || nhtsaData.Results.length === 0) {
-      console.error('❌ No valid data from NHTSA API');
-      
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'NHTSA API temporarily unavailable or returned no data',
+          error: 'NHTSA API network error: ' + error.message,
           vin: vin.toUpperCase(),
-          source: 'nhtsa_failed'
+          source: 'network_error'
         }),
         { 
           status: 503, 
@@ -86,16 +93,36 @@ serve(async (req) => {
         }
       );
     }
+    
+    // Check if NHTSA data is valid
+    if (!nhtsaData || !nhtsaData.Results || nhtsaData.Results.length === 0) {
+      console.error('❌ No valid data from NHTSA API');
+      
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'NHTSA API returned no data for this VIN',
+          vin: vin.toUpperCase(),
+          source: 'nhtsa_no_data'
+        }),
+        { 
+          status: 404, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     // Parse NHTSA response
     const results = nhtsaData.Results;
-    console.log('📋 NHTSA Results count:', results.length);
+    console.log('📋 Processing NHTSA Results...');
     
     const getValue = (variableId: number) => {
       const result = results.find((r: any) => r.VariableId === variableId);
       const value = result?.Value;
-      console.log(`📝 Variable ${variableId}: "${value}"`);
-      return value || null;
+      if (value && value !== 'null' && value !== '') {
+        console.log(`📝 Variable ${variableId}: "${value}"`);
+      }
+      return (value && value !== 'null' && value !== '') ? value : null;
     };
 
     // Extract key vehicle data from NHTSA response
@@ -111,18 +138,21 @@ serve(async (req) => {
     const doors = getValue(14); // Number of Doors
     const trim = getValue(38); // Trim
 
-    console.log('🔍 NHTSA parsed data:', { make, model, year, bodyClass, fuelType });
+    console.log('🔍 NHTSA extracted data:', { 
+      make, model, year, bodyClass, fuelType, transmission, drivetrain 
+    });
 
-    // Check if NHTSA data is incomplete or invalid
+    // Check if NHTSA data is complete
     if (!make || !model || make === 'null' || model === 'null' || make === '' || model === '') {
-      console.log('⚠️ NHTSA data incomplete or invalid');
+      console.log('⚠️ NHTSA data incomplete - make or model missing');
       
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'NHTSA returned incomplete vehicle data',
+          error: 'NHTSA returned incomplete vehicle data - missing make or model',
           vin: vin.toUpperCase(),
-          source: 'nhtsa_incomplete'
+          source: 'nhtsa_incomplete',
+          rawData: { make, model, year, bodyClass }
         }),
         { 
           status: 422, 
