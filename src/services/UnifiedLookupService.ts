@@ -1,3 +1,4 @@
+
 import { DecodedVehicleInfo } from "@/types/vehicle";
 import { supabase } from '@/integrations/supabase/client';
 
@@ -256,6 +257,7 @@ export class UnifiedLookupService {
     let displacement = "2.5L";
     let drivetrain = "FWD";
     let trim = "Standard";
+    let fuelType = "Gasoline"; // Define fuelType variable
     
     // Comprehensive Toyota patterns with enhanced model detection
     if (wmi.startsWith("5TD") || wmi.startsWith("5TF") || wmi.startsWith("5TB") || 
@@ -375,7 +377,7 @@ export class UnifiedLookupService {
       engine,
       transmission: "Automatic",
       bodyType,
-      fuelType: fuelType || "Gasoline",
+      fuelType: fuelType,
       drivetrain,
       doors: bodyType.includes("SUV") || bodyType.includes("Truck") ? "4" : "4",
       seats: bodyType === "Minivan" ? "8" : "5",
