@@ -25,7 +25,7 @@ export interface LookupOptions {
 
 export class UnifiedLookupService {
   static async lookupByVin(vin: string, options: LookupOptions): Promise<UnifiedVehicleLookupResult> {
-    console.log("🚀 UnifiedLookupService: Starting VIN lookup with enhanced error handling", vin, options);
+    console.log("🚀 UnifiedLookupService: Starting direct NHTSA VIN lookup", vin, options);
     
     try {
       // Validate VIN format
@@ -39,45 +39,19 @@ export class UnifiedLookupService {
         };
       }
 
-      // Call the unified-decode edge function with retry logic
+      // Call the unified-decode edge function directly (no retries)
       console.log('🔍 UnifiedLookupService: Calling unified-decode edge function for VIN:', vin);
       
-      let data, error;
+      const response = await supabase.functions.invoke('unified-decode', {
+        body: { vin: vin.toUpperCase() }
+      });
       
-      // Retry logic for edge function calls
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        try {
-          console.log(`🔄 Attempt ${attempt} calling unified-decode for VIN: ${vin}`);
-          
-          const response = await supabase.functions.invoke('unified-decode', {
-            body: { vin: vin.toUpperCase() }
-          });
-          
-          data = response.data;
-          error = response.error;
-          
-          if (!error && data) {
-            console.log(`✅ Success on attempt ${attempt}`);
-            break;
-          }
-          
-          if (attempt < 3) {
-            console.log(`⏰ Attempt ${attempt} failed, retrying in ${attempt * 1000}ms...`);
-            await new Promise(resolve => setTimeout(resolve, attempt * 1000));
-          }
-          
-        } catch (retryError) {
-          console.error(`❌ Attempt ${attempt} failed:`, retryError);
-          if (attempt === 3) {
-            error = retryError;
-          }
-        }
-      }
+      const { data, error } = response;
 
       if (error) {
-        console.error('❌ UnifiedLookupService: All retry attempts failed:', error);
+        console.error('❌ UnifiedLookupService: Edge function error:', error);
         
-        // Generate fallback vehicle data
+        // Generate fallback vehicle data only on actual API failure
         const fallbackVehicle = this.generateFallbackVehicle(vin);
         
         return {
@@ -86,7 +60,7 @@ export class UnifiedLookupService {
           source: 'fallback',
           tier: options.tier,
           confidence: 60,
-          warning: 'Service temporarily unavailable. Using estimated vehicle data based on VIN pattern.'
+          warning: 'NHTSA API temporarily unavailable. Using estimated vehicle data based on VIN pattern.'
         };
       }
 
@@ -113,7 +87,7 @@ export class UnifiedLookupService {
           confidenceScore: data.source === 'nhtsa' ? 95 : (data.source === 'cache' ? 90 : 75),
         };
 
-        console.log('🎉 UnifiedLookupService: Successfully processed vehicle data:', vehicle);
+        console.log('🎉 UnifiedLookupService: Successfully processed NHTSA vehicle data:', vehicle);
 
         const result: UnifiedVehicleLookupResult = {
           success: true,
@@ -136,8 +110,8 @@ export class UnifiedLookupService {
         return result;
       }
 
-      // Handle failed decode - generate fallback
-      console.error('❌ UnifiedLookupService: Failed to decode VIN, generating fallback:', data);
+      // Handle failed decode - generate fallback only if NHTSA returned empty/invalid data
+      console.error('❌ UnifiedLookupService: NHTSA returned incomplete data, generating fallback:', data);
       
       const fallbackVehicle = this.generateFallbackVehicle(vin);
       
@@ -146,14 +120,14 @@ export class UnifiedLookupService {
         vehicle: fallbackVehicle,
         source: 'fallback',
         tier: options.tier,
-        confidence: 60,
-        warning: data?.error || 'Unable to decode VIN from external service. Using estimated data.'
+        confidence: 70,
+        warning: data?.error || 'NHTSA returned incomplete vehicle data. Using VIN pattern analysis.'
       };
 
     } catch (error) {
       console.error("❌ UnifiedLookupService: VIN lookup exception:", error);
       
-      // Final fallback
+      // Final fallback for network errors
       const fallbackVehicle = this.generateFallbackVehicle(vin);
       
       return {
@@ -260,7 +234,7 @@ export class UnifiedLookupService {
     const currentYear = new Date().getFullYear();
     const yearChar = vin.charAt(9);
     
-    // Basic year extraction from VIN
+    // Enhanced year extraction from VIN
     let year = currentYear - 5; // Default to 5 years ago
     if (yearChar >= '1' && yearChar <= '9') {
       year = 2001 + parseInt(yearChar);
@@ -268,20 +242,33 @@ export class UnifiedLookupService {
       year = 2010 + (yearChar.charCodeAt(0) - 65);
     }
     
-    // Basic make detection from WMI (first 3 characters)
+    // Enhanced make detection from WMI (first 3 characters) - focusing on Toyota patterns
     const wmi = vin.substring(0, 3);
     let make = "Unknown";
     let model = "Vehicle";
     
-    if (wmi.startsWith("1G") || wmi.startsWith("1GC")) {
+    // Toyota patterns (including 5TD for RAV4, Highlander, etc.)
+    if (wmi.startsWith("5TD") || wmi.startsWith("5TF") || wmi.startsWith("5TB") || 
+        wmi.startsWith("JT") || wmi.startsWith("4T")) {
+      make = "Toyota";
+      // More specific model detection for Toyota
+      if (wmi === "5TD") {
+        if (vin.charAt(3) === 'Y') {
+          model = "RAV4";
+        } else if (vin.charAt(3) === 'Z') {
+          model = "Highlander";
+        } else {
+          model = "SUV";
+        }
+      } else {
+        model = "Camry";
+      }
+    } else if (wmi.startsWith("1G") || wmi.startsWith("1GC")) {
       make = "Chevrolet";
       model = "Silverado";
     } else if (wmi.startsWith("1F")) {
       make = "Ford";
       model = "F-150";
-    } else if (wmi.startsWith("JT")) {
-      make = "Toyota";
-      model = "Camry";
     } else if (wmi.startsWith("1H") || wmi.startsWith("19")) {
       make = "Honda";
       model = "Accord";
@@ -290,21 +277,23 @@ export class UnifiedLookupService {
       model = "3 Series";
     }
     
+    console.log(`🔧 Fallback vehicle generated for VIN ${vin}: ${year} ${make} ${model}`);
+    
     return {
       vin,
       year: Math.min(Math.max(year, 1980), currentYear + 1),
       make,
       model,
       trim: "Standard",
-      engine: "V6",
+      engine: make === "Toyota" ? "4-Cylinder" : "V6",
       transmission: "Automatic",
-      bodyType: "Sedan",
+      bodyType: model.includes("SUV") || model === "RAV4" || model === "Highlander" ? "SUV" : "Sedan",
       fuelType: "Gasoline",
-      drivetrain: "FWD",
+      drivetrain: model.includes("SUV") || model === "RAV4" || model === "Highlander" ? "AWD" : "FWD",
       doors: "4",
       seats: "5",
-      displacement: "3.0L",
-      confidenceScore: 60,
+      displacement: make === "Toyota" ? "2.5L" : "3.0L",
+      confidenceScore: make !== "Unknown" ? 70 : 50,
       mileage: 75000,
       condition: "Good"
     };
