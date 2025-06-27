@@ -1,10 +1,13 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, AlertCircle, MapPin } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { useZipValidation } from '@/hooks/useZipValidation';
 
 interface BasicInfoTabProps {
   formData: FollowUpAnswers;
@@ -12,24 +15,59 @@ interface BasicInfoTabProps {
 }
 
 export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
+  const [zipError, setZipError] = useState('');
+  const [mileageError, setMileageError] = useState('');
+  const { useZipQuery } = useZipValidation();
+  
+  const zipQuery = useZipQuery(formData.zip_code || '');
+
+  useEffect(() => {
+    if (formData.zip_code && formData.zip_code.length === 5) {
+      if (zipQuery.data?.isValid === false) {
+        setZipError('Invalid ZIP code');
+      } else if (zipQuery.data?.isValid === true) {
+        setZipError('');
+      }
+    } else if (formData.zip_code && formData.zip_code.length > 0) {
+      setZipError('ZIP code must be 5 digits');
+    } else {
+      setZipError('');
+    }
+  }, [zipQuery.data, formData.zip_code]);
+
   const handleMileageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, ''); // Only allow digits
-    updateFormData({ mileage: value ? parseInt(value) : 0 });
+    const value = e.target.value.replace(/[^\d]/g, '');
+    const numValue = parseInt(value) || 0;
+    
+    if (numValue < 0) {
+      setMileageError('Mileage cannot be negative');
+      return;
+    }
+    
+    if (numValue > 999999) {
+      setMileageError('Mileage seems too high');
+      return;
+    }
+    
+    setMileageError('');
+    updateFormData({ mileage: numValue });
   };
 
   const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 5); // Only digits, max 5
+    const value = e.target.value.replace(/[^\d]/g, '').slice(0, 5);
     updateFormData({ zip_code: value });
   };
 
   const handleLoanBalanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^\d.]/g, ''); // Only digits and decimal
-    updateFormData({ loan_balance: value ? parseFloat(value) : 0 });
+    const value = e.target.value.replace(/[^\d.]/g, '');
+    const numValue = parseFloat(value) || 0;
+    updateFormData({ loan_balance: numValue });
   };
 
   const handlePayoffAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^\d.]/g, ''); // Only digits and decimal
-    updateFormData({ payoffAmount: value ? parseFloat(value) : 0 });
+    const value = e.target.value.replace(/[^\d.]/g, '');
+    const numValue = parseFloat(value) || 0;
+    updateFormData({ payoffAmount: numValue });
   };
 
   const conditionOptions = [
@@ -37,24 +75,28 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
       value: 'excellent',
       label: 'Excellent',
       description: 'Like new, no visible wear',
+      details: 'Perfect condition, showroom quality',
       impact: 'Best Value'
     },
     {
       value: 'good',
       label: 'Good',
       description: 'Normal wear, good condition',
+      details: 'Well-maintained with minor wear',
       impact: 'Standard Value'
     },
     {
       value: 'fair',
       label: 'Fair',
       description: 'Noticeable wear, some issues',
+      details: 'Functional but shows age and use',
       impact: 'Reduced Value'
     },
     {
       value: 'poor',
       label: 'Poor',
       description: 'Significant issues present',
+      details: 'Major repairs needed',
       impact: 'Lower Value'
     }
   ];
@@ -64,7 +106,10 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
       {/* Vehicle Location */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Vehicle Location</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <MapPin className="w-5 h-5" />
+            Vehicle Location
+          </CardTitle>
           <p className="text-sm text-gray-600">Location affects market value and demand</p>
         </CardHeader>
         <CardContent>
@@ -72,16 +117,37 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
             <Label htmlFor="zip_code" className="text-sm font-medium">
               ZIP Code <span className="text-red-500">*</span>
             </Label>
-            <Input
-              id="zip_code"
-              type="text"
-              value={formData.zip_code || ''}
-              onChange={handleZipCodeChange}
-              placeholder="Enter ZIP code"
-              className="mt-1"
-              required
-              maxLength={5}
-            />
+            <div className="relative">
+              <Input
+                id="zip_code"
+                type="text"
+                value={formData.zip_code || ''}
+                onChange={handleZipCodeChange}
+                placeholder="Enter ZIP code"
+                className={`mt-1 ${zipError ? 'border-red-500' : zipQuery.data?.isValid ? 'border-green-500' : ''}`}
+                required
+                maxLength={5}
+              />
+              {zipQuery.isLoading && formData.zip_code?.length === 5 && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                </div>
+              )}
+              {zipQuery.data?.isValid && (
+                <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-green-500" />
+              )}
+              {zipError && (
+                <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-red-500" />
+              )}
+            </div>
+            {zipError && (
+              <p className="text-sm text-red-500 mt-1">{zipError}</p>
+            )}
+            {zipQuery.data?.isValid && zipQuery.data.location && (
+              <p className="text-sm text-green-600 mt-1">
+                {zipQuery.data.location['place name']}, {zipQuery.data.location['state abbreviation']}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -103,10 +169,13 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
               value={formData.mileage ? formData.mileage.toString() : ''}
               onChange={handleMileageChange}
               placeholder="Enter current mileage"
-              className="mt-1"
+              className={`mt-1 ${mileageError ? 'border-red-500' : ''}`}
               required
             />
-            {formData.mileage && (
+            {mileageError && (
+              <p className="text-sm text-red-500 mt-1">{mileageError}</p>
+            )}
+            {formData.mileage && !mileageError && (
               <p className="text-sm text-gray-500 mt-1">
                 {formData.mileage.toLocaleString()} miles
               </p>
@@ -134,7 +203,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
                   <div
                     key={option.value}
                     onClick={() => updateFormData({ condition: option.value })}
-                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                    className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
                       isSelected
                         ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-200'
                         : 'bg-white border-gray-200 hover:border-gray-300'
@@ -142,23 +211,25 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
-                        <div className={`w-3 h-3 rounded-full border-2 ${
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                           isSelected 
                             ? 'bg-blue-500 border-blue-500' 
                             : 'border-gray-300'
-                        }`} />
+                        }`}>
+                          {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
+                        </div>
                         <span className="font-medium text-sm">{option.label}</span>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        option.value === 'excellent' ? 'bg-green-100 text-green-700' :
-                        option.value === 'good' ? 'bg-blue-100 text-blue-700' :
-                        option.value === 'fair' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
+                      <Badge variant={
+                        option.value === 'excellent' ? 'default' :
+                        option.value === 'good' ? 'secondary' :
+                        option.value === 'fair' ? 'outline' : 'destructive'
+                      } className="text-xs">
                         {option.impact}
-                      </span>
+                      </Badge>
                     </div>
-                    <div className="text-xs text-gray-600">{option.description}</div>
+                    <div className="text-xs text-gray-600 mb-1">{option.description}</div>
+                    <div className="text-xs text-gray-500">{option.details}</div>
                   </div>
                 );
               })}
@@ -181,6 +252,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
               id="previous_owners"
               type="number"
               min="1"
+              max="10"
               value={formData.previous_owners || ''}
               onChange={(e) => updateFormData({ previous_owners: parseInt(e.target.value) || 1 })}
               placeholder="1"
@@ -193,7 +265,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
 
           <div>
             <Label className="text-sm font-medium">Previous Use Type</Label>
-            <p className="text-xs text-gray-500 mb-2">Primary Use</p>
+            <p className="text-xs text-gray-500 mb-2">Primary vehicle usage</p>
             <Select 
               value={formData.previous_use || 'personal'} 
               onValueChange={(value) => updateFormData({ previous_use: value })}
@@ -210,7 +282,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
               </SelectContent>
             </Select>
             <p className="text-sm text-gray-500 mt-1">
-              Daily commuting, family trips
+              Personal use typically maintains higher value
             </p>
           </div>
         </CardContent>

@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Car, Zap, Thermometer, Disc, Shield, Info } from 'lucide-react';
 
 interface DashboardLightsTabProps {
@@ -14,6 +15,8 @@ const dashboardLights = [
   {
     category: 'Critical Issues',
     color: 'text-red-600',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-200',
     lights: [
       {
         value: 'check_engine',
@@ -48,6 +51,8 @@ const dashboardLights = [
   {
     category: 'Safety Systems',
     color: 'text-orange-600',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-200',
     lights: [
       {
         value: 'abs',
@@ -75,6 +80,8 @@ const dashboardLights = [
   {
     category: 'Electrical System',
     color: 'text-yellow-600',
+    bgColor: 'bg-yellow-50',
+    borderColor: 'border-yellow-200',
     lights: [
       {
         value: 'battery',
@@ -95,14 +102,15 @@ const dashboardLights = [
 ];
 
 export function DashboardLightsTab({ formData, updateFormData }: DashboardLightsTabProps) {
-  const handleLightChange = (checked: boolean, lightValue: string) => {
-    const currentLights = formData.dashboard_lights || [];
-    let updatedLights;
+  const dashboardLightsList = formData.dashboard_lights || [];
+
+  const handleLightChange = (lightValue: string, checked: boolean) => {
+    let updatedLights: string[];
 
     if (checked) {
-      updatedLights = [...currentLights, lightValue];
+      updatedLights = [...dashboardLightsList, lightValue];
     } else {
-      updatedLights = currentLights.filter((light: string) => light !== lightValue);
+      updatedLights = dashboardLightsList.filter((light: string) => light !== lightValue);
     }
 
     updateFormData({ dashboard_lights: updatedLights });
@@ -114,6 +122,15 @@ export function DashboardLightsTab({ formData, updateFormData }: DashboardLights
       case 'warning': return 'bg-orange-50 border-orange-200';
       case 'info': return 'bg-blue-50 border-blue-200';
       default: return 'bg-gray-50 border-gray-200';
+    }
+  };
+
+  const getSeverityBadge = (severity: string) => {
+    switch (severity) {
+      case 'critical': return 'destructive';
+      case 'warning': return 'outline';
+      case 'info': return 'secondary';
+      default: return 'secondary';
     }
   };
 
@@ -130,62 +147,93 @@ export function DashboardLightsTab({ formData, updateFormData }: DashboardLights
         </CardHeader>
         <CardContent className="space-y-6">
           {dashboardLights.map((category) => (
-            <div key={category.category} className="space-y-3">
-              <h3 className={`font-medium ${category.color}`}>
-                {category.category}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {category.lights.map((light) => {
-                  const IconComponent = light.icon;
-                  const isChecked = formData.dashboard_lights?.includes(light.value) || false;
-                  
-                  return (
-                    <div
-                      key={light.value}
-                      className={`border rounded-lg p-3 transition-all duration-200 ${
-                        isChecked 
-                          ? `${getSeverityColor(light.severity)} ring-2 ring-blue-200` 
-                          : 'bg-white border-gray-200 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-start space-x-3">
-                        <Checkbox
-                          id={light.value}
-                          checked={isChecked}
-                          onCheckedChange={(checked: boolean) => 
-                            handleLightChange(checked, light.value)
-                          }
-                          className="mt-1"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <IconComponent className={`w-4 h-4 ${category.color}`} />
-                            <Label 
-                              htmlFor={light.value} 
-                              className="cursor-pointer font-medium"
-                            >
-                              {light.label}
-                            </Label>
+            <Card key={category.category} className={`${category.borderColor} ${category.bgColor}`}>
+              <CardHeader className="pb-3">
+                <CardTitle className={`text-lg ${category.color}`}>
+                  {category.category}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {category.lights.map((light) => {
+                    const IconComponent = light.icon;
+                    const isChecked = dashboardLightsList.includes(light.value);
+                    
+                    return (
+                      <div
+                        key={light.value}
+                        className={`border rounded-lg p-4 transition-all duration-200 ${
+                          isChecked 
+                            ? `${getSeverityColor(light.severity)} ring-2 ring-blue-200` 
+                            : 'bg-white border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-start space-x-3">
+                          <Checkbox
+                            id={light.value}
+                            checked={isChecked}
+                            onCheckedChange={(checked: boolean) => 
+                              handleLightChange(light.value, checked)
+                            }
+                            className="mt-1"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <IconComponent className={`w-4 h-4 ${category.color}`} />
+                                <Label 
+                                  htmlFor={light.value} 
+                                  className="cursor-pointer font-medium"
+                                >
+                                  {light.label}
+                                </Label>
+                              </div>
+                              <Badge variant={getSeverityBadge(light.severity)} className="text-xs">
+                                {light.severity.toUpperCase()}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-gray-600">
+                              {light.description}
+                            </p>
                           </div>
-                          <p className="text-xs text-gray-600 mt-1">
-                            {light.description}
-                          </p>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
           ))}
           
-          {formData.dashboard_lights?.length > 0 && (
-            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                <strong>Note:</strong> Active warning lights may significantly impact your vehicle's value. 
-                Consider having these issues diagnosed and repaired for the most accurate valuation.
-              </p>
-            </div>
+          {dashboardLightsList.length > 0 && (
+            <Card className="border-yellow-200 bg-yellow-50">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-yellow-800 font-medium mb-2">
+                      <strong>Warning Lights Detected ({dashboardLightsList.length})</strong>
+                    </p>
+                    <p className="text-sm text-yellow-700">
+                      Active warning lights may significantly impact your vehicle's value. 
+                      Consider having these issues diagnosed and repaired for the most accurate valuation.
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {dashboardLightsList.map((lightValue: string) => {
+                        const light = dashboardLights
+                          .flatMap(cat => cat.lights)
+                          .find(l => l.value === lightValue);
+                        return light ? (
+                          <Badge key={lightValue} variant="outline" className="text-xs">
+                            {light.label}
+                          </Badge>
+                        ) : null;
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </CardContent>
       </Card>
