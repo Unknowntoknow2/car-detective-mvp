@@ -54,7 +54,8 @@ const conditionOptions = [
 export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
   const { register } = useForm({
     defaultValues: {
-      mileage: formData.mileage || 0
+      mileage: formData.mileage || 0,
+      zip: formData.zip_code || ''
     }
   });
 
@@ -83,8 +84,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
         </CardHeader>
         <CardContent>
           <ZipCodeInput
-            value={formData.zip_code || ''}
-            onChange={(value) => updateFormData({ zip_code: value })}
+            register={register}
             required
           />
         </CardContent>
