@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -55,7 +54,7 @@ const conditionCategories = [
   {
     key: 'exterior_condition' as keyof FollowUpAnswers,
     title: 'Exterior Condition',
-    subtitle: 'Paint, body panels, and exterior components',
+    subtitle: 'Paint, body panels, and exterior components',  
     options: [
       {
         value: 'excellent',
@@ -183,12 +182,22 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
 
   const handleConditionChange = (key: keyof FollowUpAnswers, value: string) => {
     console.log(`Condition change: ${String(key)} = ${value}`);
-    setValue(key as string, value);
+    // Type assertion to handle the specific field names
+    setValue(key as any, value);
     updateFormData({ [key]: value });
   };
 
   const getConditionValue = (key: keyof FollowUpAnswers): string => {
-    return watch(key as string) || 'good';
+    return watch(key as any) || 'good';
+  };
+
+  // Create wrapper functions to match ConditionSelector interface
+  const createSetValueWrapper = (fieldKey: keyof FollowUpAnswers) => (name: string, value: string) => {
+    setValue(fieldKey as any, value);
+  };
+
+  const createWatchWrapper = (fieldKey: keyof FollowUpAnswers) => (name: string) => {
+    return watch(fieldKey as any) || 'good';
   };
 
   const getBadgeVariant = (value: string) => {
@@ -218,8 +227,8 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
                 value={currentValue}
                 onChange={(value) => handleConditionChange(category.key, value)}
                 title=""
-                setValue={setValue}
-                watch={watch}
+                setValue={createSetValueWrapper(category.key)}
+                watch={createWatchWrapper(category.key)}
               />
             </CardContent>
           </Card>
