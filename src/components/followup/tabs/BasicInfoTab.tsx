@@ -52,10 +52,13 @@ const conditionOptions = [
 ];
 
 export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
-  const { register } = useForm({
+  const { register, watch, setValue } = useForm({
     defaultValues: {
       mileage: formData.mileage || 0,
-      zip: formData.zip_code || ''
+      zip: formData.zip_code || '',
+      condition: formData.condition || 'good',
+      previous_owners: formData.previous_owners || 1,
+      previous_use: formData.previous_use || 'personal'
     }
   });
 
@@ -69,6 +72,17 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
     const value = e.target.value.replace(/[^\d.]/g, '');
     const numValue = parseFloat(value) || 0;
     updateFormData({ payoffAmount: numValue });
+  };
+
+  const handlePreviousOwnersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value) || 1;
+    setValue('previous_owners', value);
+    updateFormData({ previous_owners: value });
+  };
+
+  const handlePreviousUseChange = (value: string) => {
+    setValue('previous_use', value);
+    updateFormData({ previous_use: value });
   };
 
   return (
@@ -113,9 +127,14 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
         <CardContent>
           <ConditionSelector
             options={conditionOptions}
-            value={formData.condition || 'good'}
-            onChange={(value) => updateFormData({ condition: value })}
+            value={watch('condition')}
+            onChange={(value) => {
+              setValue('condition', value);
+              updateFormData({ condition: value });
+            }}
             title="Condition Rating"
+            setValue={setValue}
+            watch={watch}
           />
         </CardContent>
       </Card>
@@ -135,8 +154,8 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
               type="number"
               min="1"
               max="10"
-              value={formData.previous_owners || ''}
-              onChange={(e) => updateFormData({ previous_owners: parseInt(e.target.value) || 1 })}
+              value={watch('previous_owners')}
+              onChange={handlePreviousOwnersChange}
               placeholder="1"
               className="mt-1"
             />
@@ -149,8 +168,8 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
             <Label className="text-sm font-medium">Previous Use Type</Label>
             <p className="text-xs text-gray-500 mb-2">Primary vehicle usage</p>
             <Select 
-              value={formData.previous_use || 'personal'} 
-              onValueChange={(value) => updateFormData({ previous_use: value })}
+              value={watch('previous_use')} 
+              onValueChange={handlePreviousUseChange}
             >
               <SelectTrigger className="mt-1">
                 <SelectValue placeholder="Select previous use" />
