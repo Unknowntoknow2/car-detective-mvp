@@ -9,6 +9,7 @@ import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { MileageInput } from '../inputs/MileageInput';
 import { ZipCodeInput } from '../inputs/ZipCodeInput';
 import { ConditionSelector } from '../inputs/ConditionSelector';
+import { useForm } from 'react-hook-form';
 
 interface BasicInfoTabProps {
   formData: FollowUpAnswers;
@@ -51,6 +52,12 @@ const conditionOptions = [
 ];
 
 export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
+  const { register } = useForm({
+    defaultValues: {
+      mileage: formData.mileage || 0
+    }
+  });
+
   const handleLoanBalanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^\d.]/g, '');
     const numValue = parseFloat(value) || 0;
@@ -91,8 +98,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
         </CardHeader>
         <CardContent>
           <MileageInput
-            value={formData.mileage || 0}
-            onChange={(value) => updateFormData({ mileage: value })}
+            register={register}
             required
           />
         </CardContent>
