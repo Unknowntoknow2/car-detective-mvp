@@ -1,15 +1,16 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Clock, AlertCircle, MapPin, Car, Wrench, AlertTriangle, Settings, Star, Save, Send, ArrowLeft, ArrowRight, SkipForward } from 'lucide-react';
+import { CheckCircle, Clock, AlertCircle, MapPin, Car, Wrench, AlertTriangle, Settings, Star, Send, ArrowLeft, ArrowRight, SkipForward } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { useSimpleFollowUpForm } from '@/hooks/useSimpleFollowUpForm';
 
-// Import all tab components
-import { BasicInfoTab } from './tabs/BasicInfoTab';
+// Import tab components
+import { SimplifiedBasicInfoTab } from './tabs/SimplifiedBasicInfoTab';
 import { ConditionTab } from './tabs/ConditionTab';
 import { DashboardLightsTab } from './tabs/DashboardLightsTab';
 import { ServiceMaintenanceTab } from './tabs/ServiceMaintenanceTab';
@@ -18,17 +19,14 @@ import { ModificationsTab } from './tabs/ModificationsTab';
 import { FeaturesTab } from './tabs/FeaturesTab';
 
 interface TabbedFollowUpFormProps {
-  formData: FollowUpAnswers;
-  updateFormData: (updates: Partial<FollowUpAnswers>) => void;
+  vehicleData: {
+    vin: string;
+    year?: number;
+    make?: string;
+    model?: string;
+  };
   onSubmit: () => Promise<boolean>;
-  onSave: () => void;
-  isLoading?: boolean;
-  isSaving?: boolean;
-  saveError?: string | null;
-  lastSaveTime?: Date | null;
-  isFormValid?: boolean;
-  currentTab: string;
-  onTabChange: (tabId: string) => void;
+  onSave?: () => void;
 }
 
 const tabs = [
@@ -36,7 +34,7 @@ const tabs = [
     id: 'basic',
     label: 'Basic Info',
     icon: MapPin,
-    component: BasicInfoTab,
+    component: SimplifiedBasicInfoTab,
     required: true,
     description: 'Location and mileage'
   },
@@ -91,27 +89,33 @@ const tabs = [
 ];
 
 export function TabbedFollowUpForm({
-  formData,
-  updateFormData,
-  onSubmit,
-  onSave,
-  isLoading = false,
-  isSaving = false,
-  saveError,
-  lastSaveTime,
-  isFormValid = false,
-  currentTab,
-  onTabChange
+  vehicleData,
+  onSubmit
 }: TabbedFollowUpFormProps) {
+  const [currentTab, setCurrentTab] = useState('basic');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Silent auto-save on tab change
-  const handleTabChange = useCallback((tabId: string) => {
-    onSave(); // Silent save when changing tabs
-    onTabChange(tabId);
-  }, [onSave, onTabChange]);
+  const {
+    formData,
+    updateFormData,
+    saveProgress,
+    isLoading,
+    isSaving,
+    saveError,
+    lastSaveTime,
+    isFormValid
+  } = useSimpleFollowUpForm({
+    vin: vehicleData.vin,
+    initialData: { year: vehicleData.year }
+  });
 
-  // Enhanced completion calculation with proper validation
+  // Silent auto-save on tab change
+  const handleTabChange = useCallback(async (tabId: string) => {
+    await saveProgress(); // Silent save when changing tabs
+    setCurrentTab(tabId);
+  }, [saveProgress]);
+
+  // Calculate completion status for each tab
   const getTabCompletion = useCallback((tabId: string): 'complete' | 'partial' | 'empty' => {
     switch (tabId) {
       case 'basic':
@@ -128,68 +132,33 @@ export function TabbedFollowUpForm({
           formData.interior_condition && 
           formData.brake_condition
         );
-        
         return hasAllConditions ? 'complete' : 'partial';
         
-      case 'issues':
-        return 'partial'; // Dashboard lights are always optional
-        
-      case 'service':
-        return formData.serviceHistory?.hasRecords !== undefined ? 'complete' : 'partial';
-        
-      case 'accidents':
-        return formData.accidents?.hadAccident !== undefined ? 'complete' : 'partial';
-        
-      case 'modifications':
-        return formData.modifications?.hasModifications !== undefined ? 'complete' : 'partial';
-        
-      case 'features':
-        return 'partial'; // Features are always optional
-        
       default:
-        return 'empty';
+        return 'partial';
     }
   }, [formData]);
 
-  // Calculate overall progress with detailed logging
+  // Calculate overall progress
   const progressData = React.useMemo(() => {
     const requiredTabs = tabs.filter(tab => tab.required);
-    const optionalTabs = tabs.filter(tab => !tab.required);
-    
     const completedRequired = requiredTabs.filter(tab => getTabCompletion(tab.id) === 'complete').length;
-    const partialRequired = requiredTabs.filter(tab => getTabCompletion(tab.id) === 'partial').length;
-    const completedOptional = optionalTabs.filter(tab => getTabCompletion(tab.id) === 'complete').length;
+    const progressPercentage = Math.round((completedRequired / requiredTabs.length) * 100);
     
-    // Required tabs count as 70%, optional as 30%
-    const requiredWeight = 0.7;
-    const optionalWeight = 0.3;
-    
-    const requiredProgress = ((completedRequired + (partialRequired * 0.5)) / requiredTabs.length) * requiredWeight;
-    const optionalProgress = (completedOptional / optionalTabs.length) * optionalWeight;
-    
-    const progressPercentage = Math.round((requiredProgress + optionalProgress) * 100);
-    
-    // Enhanced canSubmit logic - only require basic info to be complete
-    const basicTabComplete = getTabCompletion('basic') === 'complete';
-    const canSubmit = basicTabComplete;
-
     return {
       progressPercentage,
-      canSubmit,
+      canSubmit: isFormValid,
       completedRequired,
-      completedOptional,
-      requiredTabs,
-      optionalTabs
+      requiredTabs
     };
-  }, [getTabCompletion, formData]);
+  }, [getTabCompletion, isFormValid]);
 
   const getTabStatus = useCallback((tabId: string) => {
     const completion = getTabCompletion(tabId);
-    const tab = tabs.find(t => t.id === tabId);
     
     if (completion === 'complete') {
       return { color: 'text-green-600', bg: 'bg-green-100', icon: CheckCircle };
-    } else if (completion === 'partial' || !tab?.required) {
+    } else if (completion === 'partial') {
       return { color: 'text-yellow-600', bg: 'bg-yellow-100', icon: Clock };
     } else {
       return { color: 'text-gray-400', bg: 'bg-gray-100', icon: AlertCircle };
@@ -226,13 +195,25 @@ export function TabbedFollowUpForm({
     
     setIsSubmitting(true);
     try {
+      await saveProgress(); // Save before submitting
       await onSubmit();
     } catch (error) {
-      console.error('❌ Submit error:', error);
+      console.error('Submit error:', error);
     } finally {
       setIsSubmitting(false);
     }
-  }, [progressData.canSubmit, onSubmit]);
+  }, [progressData.canSubmit, onSubmit, saveProgress]);
+
+  if (isLoading) {
+    return (
+      <Card className="p-8">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2">Loading your vehicle information...</span>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -261,19 +242,13 @@ export function TabbedFollowUpForm({
                   <CheckCircle className="w-4 h-4 text-green-600" />
                   Required: {progressData.completedRequired}/{progressData.requiredTabs.length}
                 </span>
-                <span className="flex items-center gap-1">
-                  <Star className="w-4 h-4 text-yellow-600" />
-                  Optional: {progressData.completedOptional}/{progressData.optionalTabs.length}
-                </span>
               </div>
               
-              <div className="flex items-center gap-2">
-                {lastSaveTime && (
-                  <div className="text-xs text-gray-500">
-                    Last saved: {lastSaveTime.toLocaleTimeString()}
-                  </div>
-                )}
-              </div>
+              {lastSaveTime && (
+                <div className="text-xs text-gray-500">
+                  Last saved: {lastSaveTime.toLocaleTimeString()}
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
@@ -398,9 +373,12 @@ export function TabbedFollowUpForm({
               <p className="text-sm text-yellow-800">
                 <strong>Complete Basic Info:</strong> Please fill in ZIP code, mileage, and condition to enable the Complete Valuation button.
               </p>
-              <div className="mt-2 text-xs text-yellow-700">
-                Missing fields: {!formData.zip_code && 'ZIP Code'} {!formData.mileage && 'Mileage'} {!formData.condition && 'Condition'}
-              </div>
+            </div>
+          )}
+
+          {saveError && (
+            <div className="mt-2 text-sm text-red-600">
+              {saveError}
             </div>
           )}
         </CardContent>
