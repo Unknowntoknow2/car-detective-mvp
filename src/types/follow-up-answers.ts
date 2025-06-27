@@ -51,7 +51,7 @@ export interface FollowUpAnswers {
   zip_code: string;
   mileage: number;
   condition: string;
-  year?: number; // Added year property
+  year?: number;
   
   // History
   accidents: AccidentDetails;
@@ -65,8 +65,8 @@ export interface FollowUpAnswers {
   tire_condition: string;
   exterior_condition?: string;
   interior_condition?: string;
-  dashboard_lights: string[];
   brake_condition?: string;
+  dashboard_lights: string[];
   
   // Financial
   loan_balance?: number;
