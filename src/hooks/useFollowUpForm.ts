@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
@@ -98,6 +97,29 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     
     // Auto-save after updates (debounced)
     debouncedSave(updated);
+  };
+
+  // Enhanced save function with better error handling
+  const saveProgress = async () => {
+    try {
+      setIsSaving(true);
+      setSaveError(null);
+      
+      const currentFormData = getValues();
+      const success = await saveFormData(currentFormData);
+      
+      if (success) {
+        setLastSaveTime(new Date());
+        console.log('✅ Progress saved successfully');
+      } else {
+        setSaveError('Failed to save progress');
+      }
+    } catch (error) {
+      console.error('❌ Error saving progress:', error);
+      setSaveError(error instanceof Error ? error.message : 'Unknown error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const submitForm = async () => {
@@ -276,7 +298,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     currentTab,
     updateCurrentTab,
     updateFormData,
-    saveFormData,
+    saveFormData: saveProgress, // Use enhanced save function
     submitForm,
     isLoading,
     isSaving,

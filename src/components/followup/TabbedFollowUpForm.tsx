@@ -1,12 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Clock, AlertCircle, MapPin, Car, Wrench, AlertTriangle, Settings, Star, Save, Send } from 'lucide-react';
+import { CheckCircle, Clock, AlertCircle, MapPin, Car, Wrench, AlertTriangle, Settings, Star, Save, Send, ArrowLeft, ArrowRight, SkipForward } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { toast } from 'sonner';
 
 // Import all tab components
 import { BasicInfoTab } from './tabs/BasicInfoTab';
@@ -99,6 +100,17 @@ export function TabbedFollowUpForm({
 }: TabbedFollowUpFormProps) {
   const [activeTab, setActiveTab] = useState('basic');
 
+  // Auto-save when form data changes
+  useEffect(() => {
+    if (formData && Object.keys(formData).length > 0) {
+      const timeoutId = setTimeout(() => {
+        onSave();
+      }, 2000); // Auto-save after 2 seconds of inactivity
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [formData, onSave]);
+
   // Enhanced completion calculation
   const getTabCompletion = (tabId: string): 'complete' | 'partial' | 'empty' => {
     switch (tabId) {
@@ -107,7 +119,6 @@ export function TabbedFollowUpForm({
         const hasValidMileage = Boolean(formData.mileage && formData.mileage > 0);
         const hasCondition = Boolean(formData.condition);
         
-        console.log('Basic tab completion check:', { hasValidZip, hasValidMileage, hasCondition, zip: formData.zip_code, mileage: formData.mileage, condition: formData.condition });
         return (hasValidZip && hasValidMileage && hasCondition) ? 'complete' : 'empty';
         
       case 'condition':
@@ -117,18 +128,10 @@ export function TabbedFollowUpForm({
           formData.interior_condition && 
           formData.brake_condition
         );
-        console.log('Condition tab completion:', { 
-          tire: formData.tire_condition, 
-          exterior: formData.exterior_condition, 
-          interior: formData.interior_condition, 
-          brake: formData.brake_condition,
-          complete: hasAllConditions
-        });
         return hasAllConditions ? 'complete' : 'partial';
         
       case 'issues':
-        // Dashboard lights are always optional
-        return 'partial';
+        return 'partial'; // Dashboard lights are always optional
         
       case 'service':
         return formData.serviceHistory?.hasRecords !== undefined ? 'complete' : 'partial';
@@ -167,18 +170,6 @@ export function TabbedFollowUpForm({
   // Can submit only if all required tabs are complete
   const canSubmit = completedRequired === requiredTabs.length;
 
-  console.log('Form state summary:', {
-    completedRequired,
-    totalRequired: requiredTabs.length,
-    canSubmit,
-    progressPercentage,
-    formData: {
-      zip: formData.zip_code,
-      mileage: formData.mileage,
-      condition: formData.condition
-    }
-  });
-
   const getTabStatus = (tabId: string) => {
     const completion = getTabCompletion(tabId);
     const tab = tabs.find(t => t.id === tabId);
@@ -190,6 +181,43 @@ export function TabbedFollowUpForm({
     } else {
       return { color: 'text-gray-400', bg: 'bg-gray-100', icon: AlertCircle };
     }
+  };
+
+  // Navigation functions
+  const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
+  const isFirstTab = currentTabIndex === 0;
+  const isLastTab = currentTabIndex === tabs.length - 1;
+
+  const goToPreviousTab = () => {
+    if (!isFirstTab) {
+      const previousTab = tabs[currentTabIndex - 1];
+      setActiveTab(previousTab.id);
+    }
+  };
+
+  const goToNextTab = () => {
+    if (!isLastTab) {
+      const nextTab = tabs[currentTabIndex + 1];
+      setActiveTab(nextTab.id);
+    }
+  };
+
+  const skipToFinalTab = () => {
+    setActiveTab(tabs[tabs.length - 1].id);
+    toast.info('Skipped to final section. You can always come back to fill in more details.');
+  };
+
+  const handleManualSave = () => {
+    onSave();
+    toast.success('Progress saved successfully!');
+  };
+
+  const handleSubmit = () => {
+    if (!canSubmit) {
+      toast.error('Please complete all required sections before submitting.');
+      return;
+    }
+    onSubmit();
   };
 
   return (
@@ -225,12 +253,20 @@ export function TabbedFollowUpForm({
                 </span>
               </div>
               
-              {lastSaveTime && (
-                <div className="flex items-center gap-1 text-gray-500">
-                  <Save className="w-4 h-4" />
-                  Last saved: {lastSaveTime.toLocaleTimeString()}
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                {isSaving && (
+                  <div className="flex items-center gap-1 text-gray-500">
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                    <span className="text-xs">Auto-saving...</span>
+                  </div>
+                )}
+                {lastSaveTime && !isSaving && (
+                  <div className="flex items-center gap-1 text-gray-500">
+                    <Save className="w-3 h-3" />
+                    <span className="text-xs">Saved {lastSaveTime.toLocaleTimeString()}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -282,57 +318,86 @@ export function TabbedFollowUpForm({
         })}
       </Tabs>
 
-      {/* Action Buttons */}
+      {/* Navigation Controls */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {isSaving && (
-                <div className="text-sm text-gray-600 flex items-center gap-1">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  Auto-saving...
-                </div>
-              )}
-              {saveError && (
-                <div className="text-sm text-red-600">
-                  Save error: {saveError}
-                </div>
-              )}
-            </div>
-            
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
-                onClick={onSave}
+                onClick={goToPreviousTab}
+                disabled={isFirstTab}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={handleManualSave}
                 disabled={isSaving}
                 className="flex items-center gap-2"
               >
                 <Save className="w-4 h-4" />
-                Save Progress
+                {isSaving ? 'Saving...' : 'Save Progress'}
               </Button>
+
+              {!isLastTab && currentTabIndex < tabs.length - 2 && (
+                <Button
+                  variant="ghost"
+                  onClick={skipToFinalTab}
+                  className="flex items-center gap-2 text-gray-600"
+                >
+                  <SkipForward className="w-4 h-4" />
+                  Skip to Finish
+                </Button>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {!isLastTab && (
+                <span className="text-sm text-gray-500">
+                  {Math.round(((currentTabIndex + 1) / tabs.length) * 100)}% complete
+                </span>
+              )}
               
-              <Button
-                onClick={onSubmit}
-                disabled={!canSubmit || isLoading}
-                className="flex items-center gap-2"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    Complete Valuation
-                  </>
-                )}
-              </Button>
+              {!isLastTab ? (
+                <Button
+                  onClick={goToNextTab}
+                  className="flex items-center gap-2"
+                >
+                  Continue
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!canSubmit || isLoading}
+                  className={`flex items-center gap-2 ${
+                    canSubmit 
+                      ? 'bg-green-600 hover:bg-green-700' 
+                      : 'bg-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Complete Valuation
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </div>
           
-          {!canSubmit && (
-            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          {!canSubmit && isLastTab && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800">
                 <strong>Complete required sections:</strong> Please fill in all required fields in the Basic Info and Condition tabs to continue.
               </p>
