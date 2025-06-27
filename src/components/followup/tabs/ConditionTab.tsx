@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { ConditionSelector } from '../inputs/ConditionSelector';
+import { useForm } from 'react-hook-form';
 
 interface ConditionTabProps {
   formData: FollowUpAnswers;
@@ -171,13 +172,23 @@ const conditionCategories = [
 ];
 
 export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
+  const { watch, setValue } = useForm({
+    defaultValues: {
+      tire_condition: formData.tire_condition || 'good',
+      exterior_condition: formData.exterior_condition || 'good',
+      interior_condition: formData.interior_condition || 'good',
+      brake_condition: formData.brake_condition || 'good'
+    }
+  });
+
   const handleConditionChange = (key: keyof FollowUpAnswers, value: string) => {
     console.log(`Condition change: ${String(key)} = ${value}`);
+    setValue(key as string, value);
     updateFormData({ [key]: value });
   };
 
   const getConditionValue = (key: keyof FollowUpAnswers): string => {
-    return (formData[key] as string) || 'good';
+    return watch(key as string) || 'good';
   };
 
   const getBadgeVariant = (value: string) => {
@@ -207,6 +218,8 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
                 value={currentValue}
                 onChange={(value) => handleConditionChange(category.key, value)}
                 title=""
+                setValue={setValue}
+                watch={watch}
               />
             </CardContent>
           </Card>
