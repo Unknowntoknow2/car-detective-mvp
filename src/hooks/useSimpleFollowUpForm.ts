@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
@@ -60,7 +59,8 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
   useEffect(() => {
     const loadData = async () => {
       try {
-        const { data, error } = await supabase
+        // First try to load by VIN
+        let { data, error } = await supabase
           .from('follow_up_answers')
           .select('*')
           .eq('vin', vin)
@@ -69,12 +69,31 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
         if (error && error.code !== 'PGRST116') {
           console.error('Error loading follow-up data:', error);
         } else if (data) {
-          // Map database fields to form fields
+          console.log('✅ Loaded existing follow-up data for VIN:', vin);
           const mappedData = {
             ...data,
-            payoffAmount: data.payoff_amount || 0 // Map database field to form field
+            payoffAmount: data.payoff_amount || 0
           };
           setFormData(prev => ({ ...prev, ...mappedData }));
+        } else {
+          // If no data by VIN, try to link to existing valuation
+          console.log('🔗 No follow-up data found, checking for valuation to link');
+          const { data: valuationData } = await supabase
+            .from('valuation_results')
+            .select('id')
+            .eq('vin', vin)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (valuationData) {
+            console.log('✅ Found valuation to link:', valuationData.id);
+            setFormData(prev => ({ 
+              ...prev, 
+              valuation_id: valuationData.id,
+              vin: vin // Ensure VIN is preserved
+            }));
+          }
         }
       } catch (error) {
         console.error('Error loading follow-up data:', error);
@@ -86,34 +105,45 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
     loadData();
   }, [vin]);
 
-  // Silent auto-save function with proper field mapping
+  // Enhanced auto-save function with proper VIN linking
   const saveFormData = useCallback(async (dataToSave: FollowUpAnswers) => {
     try {
       setIsSaving(true);
       setSaveError(null);
 
-      // Calculate completion percentage
-      const requiredFields = ['zip_code', 'mileage', 'condition'];
-      const completedRequired = requiredFields.filter(field => {
-        const value = dataToSave[field as keyof FollowUpAnswers];
-        if (field === 'zip_code') return value && String(value).length === 5;
-        if (field === 'mileage') return value && Number(value) > 0;
-        return value && String(value).trim() !== '';
-      }).length;
-      
-      const completionPercentage = Math.round((completedRequired / requiredFields.length) * 100);
-
-      // Map form fields to database fields
+      // Ensure VIN is always included
       const saveData = {
         ...dataToSave,
-        payoff_amount: dataToSave.payoffAmount || 0, // Map form field to database field
-        completion_percentage: completionPercentage,
-        is_complete: completionPercentage === 100,
+        vin: vin, // Force VIN to be correct
+        payoff_amount: dataToSave.payoffAmount || 0,
+        completion_percentage: Math.round((
+          [dataToSave.zip_code, dataToSave.mileage, dataToSave.condition].filter(Boolean).length / 3
+        ) * 100),
+        is_complete: dataToSave.zip_code && dataToSave.mileage && dataToSave.condition,
         updated_at: new Date().toISOString()
       };
 
+      // If no valuation_id, try to find and link one
+      if (!saveData.valuation_id) {
+        console.log('🔗 Attempting to link follow-up to valuation via VIN:', vin);
+        const { data: valuationData } = await supabase
+          .from('valuation_results')
+          .select('id')
+          .eq('vin', vin)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (valuationData) {
+          saveData.valuation_id = valuationData.id;
+          console.log('✅ Linked to valuation:', valuationData.id);
+        }
+      }
+
       // Remove the form-only field before saving
       const { payoffAmount, ...dbData } = saveData;
+
+      console.log('💾 Saving follow-up data with VIN:', dbData.vin, 'valuation_id:', dbData.valuation_id);
 
       const { error } = await supabase
         .from('follow_up_answers')
@@ -127,6 +157,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
       setLastSaveTime(new Date());
       setSaveError(null);
+      console.log('✅ Follow-up data saved successfully');
       return true;
     } catch (error) {
       console.error('Silent save error:', error);
@@ -135,7 +166,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
     } finally {
       setIsSaving(false);
     }
-  }, []);
+  }, [vin]);
 
   // Auto-save with retry logic (every 10 seconds)
   useEffect(() => {

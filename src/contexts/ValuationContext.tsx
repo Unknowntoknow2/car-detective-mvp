@@ -10,6 +10,7 @@ interface ProcessFreeValuationInput {
   mileage: number;
   condition: string;
   zipCode: string;
+  vin?: string; // Add VIN to input
 }
 
 interface ProcessFreeValuationResult {
@@ -34,7 +35,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const createValuation = useCallback(async (data: any) => {
     setIsLoading(true);
     try {
-      console.log('🔄 Creating new valuation record...');
+      console.log('🔄 Creating new valuation record with VIN:', data.vin);
       
       const { data: result, error } = await supabase
         .from('valuation_results')
@@ -47,12 +48,10 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         throw error;
       }
 
-      // Log VIN storage status during creation
       if (result.vin) {
         console.log('✅ Valuation created with VIN:', result.vin, 'valuation_id:', result.id);
       } else {
         console.warn('⚠️ New valuation_results created without VIN — may break decoded vehicle linkage');
-        console.log('📋 Valuation created:', result.id, 'VIN: missing');
       }
 
       return result;
@@ -90,29 +89,11 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const updateValuation = useCallback(async (id: string, data: any) => {
     setIsLoading(true);
     try {
-      console.log('🔄 Updating valuation:', id);
-      
-      // Only update VIN if it was missing previously
-      const { data: existingData } = await supabase
-        .from('valuation_results')
-        .select('vin')
-        .eq('id', id)
-        .single();
-
-      const updateData = { ...data };
-      
-      // Fix VIN storage: only update if missing
-      if (!existingData?.vin && data.vin) {
-        updateData.vin = data.vin;
-        console.log('🔧 Adding missing VIN to existing valuation:', data.vin);
-      } else if (existingData?.vin && data.vin && existingData.vin !== data.vin) {
-        console.log('⚠️ VIN mismatch detected - keeping existing VIN:', existingData.vin);
-        delete updateData.vin; // Don't overwrite existing VIN
-      }
+      console.log('🔄 Updating valuation:', id, 'with VIN:', data.vin);
       
       const { data: result, error } = await supabase
         .from('valuation_results')
-        .update(updateData)
+        .update(data)
         .eq('id', id)
         .select()
         .single();
@@ -122,11 +103,10 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         throw error;
       }
 
-      // Log VIN status during update
       if (result.vin) {
-        console.log('✅ Valuation updated with VIN:', result.vin, 'valuation_id:', result.id);
+        console.log('✅ Valuation updated with VIN:', result.vin);
       } else {
-        console.warn('⚠️ Valuation updated without VIN — may break decoded vehicle linkage');
+        console.warn('⚠️ Valuation updated without VIN');
       }
 
       return result;
@@ -138,49 +118,166 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, []);
 
+  // Enhanced valuation calculation with real adjustments
+  const calculateRealAdjustments = (input: ProcessFreeValuationInput, baseValue: number) => {
+    const adjustments = [];
+    let finalValue = baseValue;
+
+    // Geographic adjustment based on ZIP code
+    const geographicMultipliers: Record<string, { multiplier: number; description: string }> = {
+      '90210': { multiplier: 1.15, description: 'Beverly Hills premium market (+15%)' },
+      '10001': { multiplier: 1.12, description: 'Manhattan premium market (+12%)' },
+      '94102': { multiplier: 1.18, description: 'San Francisco premium market (+18%)' },
+      '02101': { multiplier: 1.10, description: 'Boston premium market (+10%)' },
+    };
+
+    const geoAdjustment = geographicMultipliers[input.zipCode];
+    if (geoAdjustment) {
+      const impact = Math.round(baseValue * (geoAdjustment.multiplier - 1));
+      adjustments.push({
+        factor: 'Geographic Premium',
+        impact: impact,
+        percentage: (geoAdjustment.multiplier - 1) * 100,
+        description: geoAdjustment.description
+      });
+      finalValue *= geoAdjustment.multiplier;
+    }
+
+    // Mileage adjustment
+    const avgMileagePerYear = 12000;
+    const vehicleAge = new Date().getFullYear() - input.year;
+    const expectedMileage = avgMileagePerYear * vehicleAge;
+    const mileageDifference = input.mileage - expectedMileage;
+    
+    if (Math.abs(mileageDifference) > 5000) {
+      const mileageAdjustment = (mileageDifference / 1000) * -100; // $100 per 1000 miles difference
+      adjustments.push({
+        factor: 'Mileage Adjustment',
+        impact: Math.round(mileageAdjustment),
+        percentage: (mileageAdjustment / baseValue) * 100,
+        description: `${input.mileage.toLocaleString()} miles vs expected ${expectedMileage.toLocaleString()} miles`
+      });
+      finalValue += mileageAdjustment;
+    }
+
+    // Condition adjustment
+    const conditionMultipliers: Record<string, { multiplier: number; description: string }> = {
+      'Excellent': { multiplier: 1.08, description: 'Excellent condition premium (+8%)' },
+      'Very Good': { multiplier: 1.04, description: 'Very good condition (+4%)' },
+      'Good': { multiplier: 1.0, description: 'Good condition (baseline)' },
+      'Fair': { multiplier: 0.92, description: 'Fair condition penalty (-8%)' },
+      'Poor': { multiplier: 0.80, description: 'Poor condition penalty (-20%)' }
+    };
+
+    const conditionAdjustment = conditionMultipliers[input.condition];
+    if (conditionAdjustment && conditionAdjustment.multiplier !== 1.0) {
+      const impact = Math.round(baseValue * (conditionAdjustment.multiplier - 1));
+      adjustments.push({
+        factor: 'Vehicle Condition',
+        impact: impact,
+        percentage: (conditionAdjustment.multiplier - 1) * 100,
+        description: conditionAdjustment.description
+      });
+      finalValue = (finalValue - baseValue) + (baseValue * conditionAdjustment.multiplier);
+    }
+
+    // Year/Depreciation adjustment
+    const currentYear = new Date().getFullYear();
+    const yearsDifference = currentYear - input.year;
+    if (yearsDifference > 0) {
+      const depreciationRate = 0.15; // 15% per year average
+      const depreciationMultiplier = Math.pow(1 - depreciationRate, yearsDifference);
+      const depreciationImpact = Math.round(baseValue * (depreciationMultiplier - 1));
+      
+      adjustments.push({
+        factor: 'Age Depreciation',
+        impact: depreciationImpact,
+        percentage: (depreciationMultiplier - 1) * 100,
+        description: `${yearsDifference} year${yearsDifference > 1 ? 's' : ''} old vehicle depreciation`
+      });
+    }
+
+    return {
+      adjustments,
+      finalValue: Math.max(1000, Math.round(finalValue)) // Minimum $1000
+    };
+  };
+
   const processFreeValuation = useCallback(async (input: ProcessFreeValuationInput): Promise<ProcessFreeValuationResult> => {
     setIsLoading(true);
     try {
-      console.log('🚀 Processing free valuation:', input);
+      console.log('🚀 Processing valuation with VIN:', input.vin);
 
-      // Calculate a basic estimated value based on input
-      const baseValue = 20000; // Default base value
-      const yearAdjustment = (input.year - 2010) * 1000;
-      const mileageAdjustment = -(input.mileage / 1000) * 100;
-      
-      const conditionMultipliers = {
-        'Excellent': 1.1,
-        'Very Good': 1.05,
-        'Good': 1.0,
-        'Fair': 0.9,
-        'Poor': 0.8
+      // Enhanced base value calculation
+      const makeMultipliers: Record<string, number> = {
+        'Toyota': 1.1,
+        'Honda': 1.08,
+        'Lexus': 1.25,
+        'BMW': 1.3,
+        'Mercedes-Benz': 1.35,
+        'Audi': 1.25,
+        'Nissan': 1.0,
+        'Ford': 0.95,
+        'Chevrolet': 0.92
       };
-      
-      const conditionMultiplier = conditionMultipliers[input.condition as keyof typeof conditionMultipliers] || 1.0;
-      const estimatedValue = Math.round((baseValue + yearAdjustment + mileageAdjustment) * conditionMultiplier);
-      
-      // Create valuation record - ensure VIN is included when available
+
+      const baseMSRP = 25000; // Base MSRP for calculations
+      const makeMultiplier = makeMultipliers[input.make] || 1.0;
+      const baseValue = Math.round(baseMSRP * makeMultiplier);
+
+      // Calculate real adjustments
+      const { adjustments, finalValue } = calculateRealAdjustments(input, baseValue);
+
+      // Calculate confidence score based on data completeness
+      let confidenceScore = 75; // Base confidence
+      if (input.vin) confidenceScore += 10; // VIN provides more data
+      if (input.zipCode && input.zipCode !== '90210') confidenceScore += 5; // Real location
+      if (input.mileage > 0) confidenceScore += 5; // Actual mileage
+      confidenceScore = Math.min(95, confidenceScore);
+
+      // Create comprehensive valuation record
       const valuationData = {
+        vin: input.vin || null, // Preserve VIN
         make: input.make,
         model: input.model,
         year: input.year,
         mileage: input.mileage,
         condition: input.condition,
         zip_code: input.zipCode,
-        estimated_value: estimatedValue,
-        confidence_score: 75,
+        estimated_value: finalValue,
+        confidence_score: confidenceScore,
+        adjustments: adjustments,
+        price_range_low: Math.round(finalValue * 0.92),
+        price_range_high: Math.round(finalValue * 1.08),
+        vehicle_data: {
+          baseValue: baseValue,
+          makeMultiplier: makeMultiplier,
+          calculationMethod: 'enhanced_adjustment_model',
+          dataCompleteness: {
+            hasVin: !!input.vin,
+            hasRealLocation: input.zipCode !== '90210',
+            hasActualMileage: input.mileage > 0
+          }
+        },
         valuation_type: 'free'
       };
+
+      console.log('💰 Calculated valuation:', {
+        baseValue,
+        adjustments: adjustments.length,
+        finalValue,
+        confidenceScore
+      });
 
       const result = await createValuation(valuationData);
       
       return {
         valuationId: result.id,
-        estimatedValue: estimatedValue,
-        confidenceScore: 75
+        estimatedValue: finalValue,
+        confidenceScore: confidenceScore
       };
     } catch (error) {
-      console.error('❌ Error processing free valuation:', error);
+      console.error('❌ Error processing enhanced valuation:', error);
       throw error;
     } finally {
       setIsLoading(false);
