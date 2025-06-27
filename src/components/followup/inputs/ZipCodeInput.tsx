@@ -6,14 +6,16 @@ import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { useZipValidation } from '@/hooks/useZipValidation';
 
 interface ZipCodeInputProps {
-  register: any;
+  value: string;
+  onChange: (value: string) => void;
   label?: string;
   required?: boolean;
   className?: string;
 }
 
 export function ZipCodeInput({ 
-  register,
+  value,
+  onChange,
   label = "ZIP Code", 
   required = false,
   className = ""
@@ -28,27 +30,26 @@ export function ZipCodeInput({
     if (!shouldValidate) return;
     
     const timer = setTimeout(() => {
-      const zipInput = document.getElementById('zip_code') as HTMLInputElement;
-      if (zipInput && zipInput.value.length === 5) {
-        setDebouncedZip(zipInput.value);
+      if (value.length === 5) {
+        setDebouncedZip(value);
       }
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [shouldValidate]);
+  }, [value, shouldValidate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^\d]/g, '').slice(0, 5);
-    e.target.value = value;
+    const newValue = e.target.value.replace(/[^\d]/g, '').slice(0, 5);
+    onChange(newValue);
     
-    if (value.length === 5) {
+    if (newValue.length === 5) {
       setShouldValidate(true);
     }
   };
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    if (e.target.value.length === 5) {
-      setDebouncedZip(e.target.value);
+  const handleBlur = () => {
+    if (value.length === 5) {
+      setDebouncedZip(value);
       setShouldValidate(true);
     }
   };
@@ -73,7 +74,7 @@ export function ZipCodeInput({
             'border-gray-300'
           }`}
           maxLength={5}
-          {...register("zip", { required })}
+          value={value}
           onChange={handleInputChange}
           onBlur={handleBlur}
         />
