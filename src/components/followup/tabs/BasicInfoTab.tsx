@@ -75,7 +75,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
   const handlePayoffAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^\d.]/g, '');
     const numValue = parseFloat(value) || 0;
-    updateFormData({ payoff_amount: numValue });
+    updateFormData({ payoffAmount: numValue });
   };
 
   const handlePreviousOwnersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -232,7 +232,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
             <Input
               id="payoff_amount"
               type="text"
-              value={formData.payoff_amount ? formData.payoff_amount.toString() : ''}
+              value={formData.payoffAmount ? formData.payoffAmount.toString() : ''}
               onChange={handlePayoffAmountChange}
               placeholder="0.00"
               className="mt-1"
