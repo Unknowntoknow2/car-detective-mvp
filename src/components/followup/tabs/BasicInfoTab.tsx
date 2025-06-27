@@ -9,7 +9,6 @@ import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { MileageInput } from '../inputs/MileageInput';
 import { ZipCodeInput } from '../inputs/ZipCodeInput';
 import { ConditionSelector } from '../inputs/ConditionSelector';
-import { useForm } from 'react-hook-form';
 
 interface BasicInfoTabProps {
   formData: FollowUpAnswers;
@@ -52,15 +51,17 @@ const conditionOptions = [
 ];
 
 export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
-  const { register, watch, setValue } = useForm({
-    defaultValues: {
-      mileage: formData.mileage || 0,
-      zip: formData.zip_code || '',
-      condition: formData.condition || 'good',
-      previous_owners: formData.previous_owners || 1,
-      previous_use: formData.previous_use || 'personal'
-    }
-  });
+  const handleZipCodeChange = (value: string) => {
+    updateFormData({ zip_code: value });
+  };
+
+  const handleMileageChange = (value: number) => {
+    updateFormData({ mileage: value });
+  };
+
+  const handleConditionChange = (value: string) => {
+    updateFormData({ condition: value });
+  };
 
   const handleLoanBalanceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^\d.]/g, '');
@@ -76,27 +77,11 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
 
   const handlePreviousOwnersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value) || 1;
-    setValue('previous_owners', value);
     updateFormData({ previous_owners: value });
   };
 
   const handlePreviousUseChange = (value: string) => {
-    setValue('previous_use', value);
     updateFormData({ previous_use: value });
-  };
-
-  // Create wrapper functions to match ConditionSelector interface
-  const setValueWrapper = (name: string, value: string) => {
-    if (name === 'condition') {
-      setValue('condition', value);
-    }
-  };
-
-  const watchWrapper = (name: string) => {
-    if (name === 'condition') {
-      return watch('condition');
-    }
-    return '';
   };
 
   return (
@@ -112,7 +97,8 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
         </CardHeader>
         <CardContent>
           <ZipCodeInput
-            register={register}
+            value={formData.zip_code || ''}
+            onChange={handleZipCodeChange}
             required
           />
         </CardContent>
@@ -126,7 +112,8 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
         </CardHeader>
         <CardContent>
           <MileageInput
-            register={register}
+            value={formData.mileage || 0}
+            onChange={handleMileageChange}
             required
           />
         </CardContent>
@@ -141,14 +128,20 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
         <CardContent>
           <ConditionSelector
             options={conditionOptions}
-            value={watch('condition')}
-            onChange={(value) => {
-              setValue('condition', value);
-              updateFormData({ condition: value });
-            }}
+            value={formData.condition || 'good'}
+            onChange={handleConditionChange}
             title="Condition Rating"
-            setValue={setValueWrapper}
-            watch={watchWrapper}
+            setValue={(name: string, value: string) => {
+              if (name === 'condition') {
+                handleConditionChange(value);
+              }
+            }}
+            watch={(name: string) => {
+              if (name === 'condition') {
+                return formData.condition || 'good';
+              }
+              return '';
+            }}
           />
         </CardContent>
       </Card>
@@ -168,7 +161,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
               type="number"
               min="1"
               max="10"
-              value={watch('previous_owners')}
+              value={formData.previous_owners || 1}
               onChange={handlePreviousOwnersChange}
               placeholder="1"
               className="mt-1"
@@ -182,7 +175,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
             <Label className="text-sm font-medium">Previous Use Type</Label>
             <p className="text-xs text-gray-500 mb-2">Primary vehicle usage</p>
             <Select 
-              value={watch('previous_use')} 
+              value={formData.previous_use || 'personal'} 
               onValueChange={handlePreviousUseChange}
             >
               <SelectTrigger className="mt-1">

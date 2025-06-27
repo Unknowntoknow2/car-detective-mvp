@@ -4,18 +4,25 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 interface MileageInputProps {
-  register: any;
+  value: number;
+  onChange: (value: number) => void;
   label?: string;
   required?: boolean;
   className?: string;
 }
 
 export function MileageInput({ 
-  register,
+  value,
+  onChange,
   label = "Current Mileage", 
   required = false,
   className = ""
 }: MileageInputProps) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const numValue = parseInt(e.target.value) || 0;
+    onChange(numValue);
+  };
+
   return (
     <div className={className}>
       <Label htmlFor="mileage" className="text-sm font-medium">
@@ -26,7 +33,8 @@ export function MileageInput({
           id="mileage"
           type="number"
           placeholder="Enter mileage"
-          {...register("mileage", { valueAsNumber: true })}
+          value={value || ''}
+          onChange={handleChange}
           required={required}
         />
       </div>
