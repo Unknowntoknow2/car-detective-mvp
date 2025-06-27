@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MapPin } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { SimpleZipCodeInput } from '../inputs/SimpleZipCodeInput';
+import { EnhancedZipCodeInput } from '../inputs/EnhancedZipCodeInput';
 import { SimpleMileageInput } from '../inputs/SimpleMileageInput';
 
 interface SimplifiedBasicInfoTabProps {
@@ -33,7 +33,7 @@ export function SimplifiedBasicInfoTab({ formData, updateFormData }: SimplifiedB
           <p className="text-sm text-gray-600">Location affects market value and demand</p>
         </CardHeader>
         <CardContent>
-          <SimpleZipCodeInput
+          <EnhancedZipCodeInput
             value={formData.zip_code || ''}
             onChange={(value) => updateFormData({ zip_code: value })}
             required

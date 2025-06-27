@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock, AlertCircle, MapPin, Car, Wrench, AlertTriangle, Settings, Star, Send, ArrowLeft, ArrowRight, SkipForward } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { useSimpleFollowUpForm } from '@/hooks/useSimpleFollowUpForm';
+import { SilentSaveIndicator } from './SilentSaveIndicator';
 
 // Import tab components
 import { SimplifiedBasicInfoTab } from './tabs/SimplifiedBasicInfoTab';
@@ -26,7 +27,6 @@ interface TabbedFollowUpFormProps {
     model?: string;
   };
   onSubmit: () => Promise<boolean>;
-  onSave?: () => void;
 }
 
 const tabs = [
@@ -244,11 +244,11 @@ export function TabbedFollowUpForm({
                 </span>
               </div>
               
-              {lastSaveTime && (
-                <div className="text-xs text-gray-500">
-                  Last saved: {lastSaveTime.toLocaleTimeString()}
-                </div>
-              )}
+              <SilentSaveIndicator
+                isSaving={isSaving}
+                saveError={saveError}
+                lastSaveTime={lastSaveTime}
+              />
             </div>
           </div>
         </CardContent>
@@ -373,12 +373,6 @@ export function TabbedFollowUpForm({
               <p className="text-sm text-yellow-800">
                 <strong>Complete Basic Info:</strong> Please fill in ZIP code, mileage, and condition to enable the Complete Valuation button.
               </p>
-            </div>
-          )}
-
-          {saveError && (
-            <div className="mt-2 text-sm text-red-600">
-              {saveError}
             </div>
           )}
         </CardContent>
