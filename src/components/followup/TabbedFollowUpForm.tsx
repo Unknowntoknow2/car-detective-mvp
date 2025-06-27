@@ -1,34 +1,92 @@
-import React, { useState, useMemo } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, Clock, AlertCircle, MapPin, Car, Wrench, AlertTriangle, Settings, Star, Save, Send } from 'lucide-react';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
+
+// Import all tab components
 import { BasicInfoTab } from './tabs/BasicInfoTab';
 import { ConditionTab } from './tabs/ConditionTab';
-import { VehicleIssuesTab } from './tabs/VehicleIssuesTab';
-import { ServiceHistoryTab } from './tabs/ServiceHistoryTab';
-import { AccidentsTab } from './tabs/AccidentsTab';
+import { DashboardLightsTab } from './tabs/DashboardLightsTab';
+import { ServiceMaintenanceTab } from './tabs/ServiceMaintenanceTab';
+import { AccidentHistoryTab } from './tabs/AccidentHistoryTab';
 import { ModificationsTab } from './tabs/ModificationsTab';
 import { FeaturesTab } from './tabs/FeaturesTab';
-import { TabNavigation } from './TabNavigation';
-import { TabValidation } from './validation/TabValidation';
-import { SaveStatusIndicator } from './SaveStatusIndicator';
-import { QuickOverviewCard } from './QuickOverviewCard';
-import { TabProgressHeader } from './TabProgressHeader';
-import { TabValidationAlerts } from './TabValidationAlerts';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { CheckCircle, Circle, AlertTriangle, Eye, RefreshCw } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { VehicleIssuesTab } from './tabs/VehicleIssuesTab';
 
 interface TabbedFollowUpFormProps {
   formData: FollowUpAnswers;
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
-  onSubmit: () => Promise<void>;
+  onSubmit: () => void;
   onSave: () => void;
   isLoading?: boolean;
   isSaving?: boolean;
   saveError?: string | null;
   lastSaveTime?: Date | null;
 }
+
+const tabs = [
+  {
+    id: 'basic',
+    label: 'Basic Info',
+    icon: MapPin,
+    component: BasicInfoTab,
+    required: true,
+    description: 'Location and mileage'
+  },
+  {
+    id: 'condition',
+    label: 'Condition',
+    icon: Car,
+    component: ConditionTab,
+    required: true,
+    description: 'Overall vehicle condition'
+  },
+  {
+    id: 'issues',
+    label: 'Dashboard',
+    icon: AlertCircle,
+    component: DashboardLightsTab,
+    required: false,
+    description: 'Warning lights and issues'
+  },
+  {
+    id: 'service',
+    label: 'Service',
+    icon: Wrench,
+    component: ServiceMaintenanceTab,
+    required: false,
+    description: 'Maintenance history'
+  },
+  {
+    id: 'accidents',
+    label: 'Accidents',
+    icon: AlertTriangle,
+    component: AccidentHistoryTab,
+    required: false,
+    description: 'Accident history'
+  },
+  {
+    id: 'modifications',
+    label: 'Modifications',
+    icon: Settings,
+    component: ModificationsTab,
+    required: false,
+    description: 'Vehicle modifications'
+  },
+  {
+    id: 'features',
+    label: 'Features',
+    icon: Star,
+    component: FeaturesTab,
+    required: false,
+    description: 'Premium features'
+  }
+];
 
 export function TabbedFollowUpForm({
   formData,
@@ -37,214 +95,202 @@ export function TabbedFollowUpForm({
   onSave,
   isLoading = false,
   isSaving = false,
-  saveError = null,
-  lastSaveTime = null
+  saveError,
+  lastSaveTime
 }: TabbedFollowUpFormProps) {
-  const [activeTab, setActiveTab] = useState("basic");
-  const [showQuickOverview, setShowQuickOverview] = useState(false);
+  const [activeTab, setActiveTab] = useState('basic');
 
-  const tabs = ["basic", "condition", "issues", "service", "accidents", "modifications", "features"];
-  
-  const tabLabels = {
-    basic: "Basic Info",
-    condition: "Condition", 
-    issues: "Issues",
-    service: "Service History",
-    accidents: "Accidents",
-    modifications: "Modifications",
-    features: "Features"
+  // Calculate completion for each tab
+  const getTabCompletion = (tabId: string): 'complete' | 'partial' | 'empty' => {
+    switch (tabId) {
+      case 'basic':
+        return (formData.mileage && formData.zip_code) ? 'complete' : 'empty';
+      case 'condition':
+        return formData.condition ? 'complete' : 'empty';
+      case 'issues':
+        return (formData.dashboard_lights && formData.dashboard_lights.length > 0) ? 'complete' : 'partial';
+      case 'service':
+        return formData.serviceHistory?.hasRecords ? 'complete' : 'partial';
+      case 'accidents':
+        return formData.accidents?.hadAccident !== undefined ? 'complete' : 'partial';
+      case 'modifications':
+        return formData.modifications?.hasModifications !== undefined ? 'complete' : 'partial';
+      case 'features':
+        return (formData.features && formData.features.length > 0) ? 'complete' : 'partial';
+      default:
+        return 'empty';
+    }
   };
-
-  // Calculate validation and completion status for each tab
-  const tabValidations = useMemo(() => {
-    return TabValidation.validateAllTabs(formData);
-  }, [formData]);
-
-  const tabCompletion = useMemo(() => {
-    const validations = tabValidations;
-    return {
-      basic: validations.basic.isValid,
-      condition: validations.condition.isValid,
-      issues: validations.issues.isValid,
-      service: validations.service.isValid,
-      accidents: validations.accidents.isValid,
-      modifications: validations.modifications.isValid,
-      features: validations.features.isValid
-    };
-  }, [tabValidations]);
 
   // Calculate overall progress
-  const completionPercentage = useMemo(() => {
-    return TabValidation.getOverallCompletion(formData);
-  }, [formData]);
+  const requiredTabs = tabs.filter(tab => tab.required);
+  const completedRequired = requiredTabs.filter(tab => getTabCompletion(tab.id) === 'complete').length;
+  const totalOptionalCompleted = tabs.filter(tab => !tab.required && getTabCompletion(tab.id) === 'complete').length;
+  const progressPercentage = Math.round(((completedRequired + totalOptionalCompleted * 0.5) / (requiredTabs.length + tabs.filter(t => !t.required).length * 0.5)) * 100);
 
-  // Update completion percentage in form data
-  React.useEffect(() => {
-    if (formData.completion_percentage !== completionPercentage) {
-      updateFormData({ completion_percentage: completionPercentage });
-    }
-  }, [completionPercentage, formData.completion_percentage, updateFormData]);
+  const canSubmit = completedRequired === requiredTabs.length;
 
-  const currentTabValid = tabCompletion[activeTab as keyof typeof tabCompletion];
-  const currentTabValidation = tabValidations[activeTab as keyof typeof tabValidations];
-  const isLastTab = activeTab === "features";
-
-  const handleServiceHistoryChange = (updates: Partial<FollowUpAnswers>) => {
-    updateFormData(updates);
-  };
-
-  const handleRetryConnection = () => {
-    onSave(); // Trigger a manual save
-  };
-
-  const getTabIcon = (tabKey: string) => {
-    const validation = tabValidations[tabKey as keyof typeof tabValidations];
+  const getTabStatus = (tabId: string) => {
+    const completion = getTabCompletion(tabId);
+    const tab = tabs.find(t => t.id === tabId);
     
-    if (validation.isValid) {
-      return <CheckCircle className="w-4 h-4 text-green-600" />;
-    } else if (validation.errors.length > 0) {
-      return <Circle className="w-4 h-4 text-red-400" />;
+    if (completion === 'complete') {
+      return { color: 'text-green-600', bg: 'bg-green-100', icon: CheckCircle };
+    } else if (completion === 'partial' || !tab?.required) {
+      return { color: 'text-yellow-600', bg: 'bg-yellow-100', icon: Clock };
     } else {
-      return <Circle className="w-4 h-4 text-gray-400" />;
+      return { color: 'text-gray-400', bg: 'bg-gray-100', icon: Clock };
     }
   };
-
-  if (showQuickOverview) {
-    return (
-      <div className="w-full max-w-6xl mx-auto p-6">
-        <QuickOverviewCard
-          formData={formData}
-          updateFormData={updateFormData}
-          onSubmit={onSubmit}
-          onBack={() => setShowQuickOverview(false)}
-          isLoading={isLoading}
-        />
-      </div>
-    );
-  }
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-6">
-      <TabProgressHeader
-        completionPercentage={completionPercentage}
-        onShowQuickOverview={() => setShowQuickOverview(true)}
-        saveStatusIndicator={
-          <SaveStatusIndicator 
-            isSaving={isSaving}
-            saveError={saveError}
-            lastSaveTime={lastSaveTime}
-            onRetry={handleRetryConnection}
-          />
-        }
-      />
-
-      <TabValidationAlerts
-        saveError={saveError}
-        currentTabValidation={currentTabValidation}
-        isLastTab={isLastTab}
-        activeTab={activeTab}
-        tabs={tabs}
-        onTabChange={setActiveTab}
-        onRetryConnection={handleRetryConnection}
-        isSaving={isSaving}
-      />
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-7 mb-6 h-auto p-1">
-          {tabs.map((tab) => {
-            const validation = tabValidations[tab as keyof typeof tabValidations];
-            const isCompleted = tabCompletion[tab as keyof typeof tabCompletion];
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Progress Header */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold">Follow-up Questions</h2>
+                <p className="text-sm text-gray-600">
+                  Complete the required sections to get your accurate valuation
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-blue-600">{progressPercentage}%</div>
+                <div className="text-sm text-gray-500">Complete</div>
+              </div>
+            </div>
             
-            return (
-              <TabsTrigger 
-                key={tab} 
-                value={tab} 
-                className="flex flex-col items-center gap-1 text-xs p-2 h-auto relative"
-              >
-                <div className="flex items-center gap-1">
-                  {getTabIcon(tab)}
-                  <span className="hidden sm:inline">{tabLabels[tab as keyof typeof tabLabels]}</span>
-                  <span className="sm:hidden">{tab === 'basic' ? 'Info' : tab === 'condition' ? 'Cond' : tab === 'service' ? 'Svc' : tab === 'accidents' ? 'Acc' : tab === 'modifications' ? 'Mod' : tab === 'features' ? 'Feat' : 'Issues'}</span>
+            <Progress value={progressPercentage} className="h-2" />
+            
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-4">
+                <span className="flex items-center gap-1">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  Required: {completedRequired}/{requiredTabs.length}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-yellow-600" />
+                  Optional: {totalOptionalCompleted}/{tabs.filter(t => !t.required).length}
+                </span>
+              </div>
+              
+              {lastSaveTime && (
+                <div className="flex items-center gap-1 text-gray-500">
+                  <Save className="w-4 h-4" />
+                  Last saved: {lastSaveTime.toLocaleTimeString()}
                 </div>
-                {validation.warnings.length > 0 && (
-                  <AlertTriangle className="w-3 h-3 text-yellow-500" />
-                )}
-                {isCompleted && (
-                  <Badge variant="secondary" className="text-xs px-1 py-0">
-                    Done
-                  </Badge>
-                )}
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
-        
-        <div className="mt-6 min-h-[400px]">
-          <TabsContent value="basic" className="space-y-6">
-            <BasicInfoTab
-              formData={formData}
-              updateFormData={updateFormData}
-            />
-          </TabsContent>
-          
-          <TabsContent value="condition" className="space-y-6">
-            <ConditionTab
-              formData={formData}
-              updateFormData={updateFormData}
-            />
-          </TabsContent>
-          
-          <TabsContent value="issues" className="space-y-6">
-            <VehicleIssuesTab
-              formData={formData}
-              updateFormData={updateFormData}
-            />
-          </TabsContent>
-          
-          <TabsContent value="service" className="space-y-6">
-            <ServiceHistoryTab
-              formData={formData}
-              updateFormData={updateFormData}
-              onServiceHistoryChange={handleServiceHistoryChange}
-            />
-          </TabsContent>
-          
-          <TabsContent value="accidents" className="space-y-6">
-            <AccidentsTab
-              formData={formData}
-              updateFormData={updateFormData}
-            />
-          </TabsContent>
-          
-          <TabsContent value="modifications" className="space-y-6">
-            <ModificationsTab
-              formData={formData}
-              updateFormData={updateFormData}
-            />
-          </TabsContent>
-          
-          <TabsContent value="features" className="space-y-6">
-            <FeaturesTab
-              formData={formData}
-              updateFormData={updateFormData}
-            />
-          </TabsContent>
-        </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-        <TabNavigation
-          currentTab={activeTab}
-          onTabChange={setActiveTab}
-          onSave={onSave}
-          onSubmit={onSubmit}
-          isLastTab={isLastTab}
-          isValid={currentTabValid}
-          isLoading={isLoading}
-          isSaving={isSaving}
-          tabs={tabs}
-        />
+      {/* Main Form */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Card>
+          <CardContent className="pt-6">
+            <TabsList className="grid w-full grid-cols-7 gap-1">
+              {tabs.map((tab) => {
+                const status = getTabStatus(tab.id);
+                const IconComponent = tab.icon;
+                const StatusIcon = status.icon;
+                
+                return (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className="flex flex-col items-center gap-1 p-3 h-auto data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+                  >
+                    <div className="flex items-center gap-1">
+                      <IconComponent className="w-4 h-4" />
+                      <StatusIcon className={`w-3 h-3 ${status.color}`} />
+                    </div>
+                    <span className="text-xs font-medium">{tab.label}</span>
+                    <span className="text-xs text-gray-500 hidden md:block">{tab.description}</span>
+                    {tab.required && (
+                      <Badge variant="secondary" className="text-xs py-0 px-1">Required</Badge>
+                    )}
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </CardContent>
+        </Card>
+
+        {/* Tab Content */}
+        {tabs.map((tab) => {
+          const TabComponent = tab.component;
+          return (
+            <TabsContent key={tab.id} value={tab.id} className="mt-6">
+              <TabComponent
+                formData={formData}
+                updateFormData={updateFormData}
+              />
+            </TabsContent>
+          );
+        })}
       </Tabs>
+
+      {/* Action Buttons */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {isSaving && (
+                <div className="text-sm text-gray-600 flex items-center gap-1">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  Saving...
+                </div>
+              )}
+              {saveError && (
+                <div className="text-sm text-red-600">
+                  Save failed: {saveError}
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={onSave}
+                disabled={isSaving}
+                className="flex items-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                Save Progress
+              </Button>
+              
+              <Button
+                onClick={onSubmit}
+                disabled={!canSubmit || isLoading}
+                className="flex items-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    Complete Valuation
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+          
+          {!canSubmit && (
+            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                <strong>Complete required sections:</strong> Please fill in the Basic Info and Condition tabs to continue.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
-
-export default TabbedFollowUpForm;

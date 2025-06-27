@@ -1,126 +1,138 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Badge } from '@/components/ui/badge';
-import { FollowUpAnswers, ModificationDetails } from '@/types/follow-up-answers';
-import { Wrench, AlertTriangle, CheckCircle, X } from 'lucide-react';
+import { Settings, Zap, Palette, Car, Shield, AlertTriangle } from 'lucide-react';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface ModificationsTabProps {
   formData: FollowUpAnswers;
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
 }
 
-const modificationCategories = {
-  'Performance': [
-    'Cold air intake',
-    'Exhaust system upgrade',
-    'Turbo/Supercharger',
-    'Engine tune/ECU remap',
-    'Suspension modifications',
-    'Brake upgrades',
-    'Transmission modifications'
-  ],
-  'Exterior': [
-    'Custom paint/wrap',
-    'Body kit',
-    'Spoiler/Wing',
-    'Custom wheels/Rims',
-    'Lowered/Raised suspension',
-    'Tinted windows',
-    'Custom lighting'
-  ],
-  'Interior': [
-    'Custom upholstery',
-    'Aftermarket stereo/Audio',
-    'Racing seats',
-    'Custom dashboard',
-    'Steering wheel upgrade',
-    'Interior lighting',
-    'Gauge cluster modifications'
-  ],
-  'Safety/Security': [
-    'Alarm system upgrade',
-    'GPS tracking',
-    'Dash camera',
-    'Roll cage',
-    'Racing harnesses',
-    'Fire suppression system'
-  ]
-};
+const modificationCategories = [
+  {
+    category: 'Performance',
+    icon: Zap,
+    color: 'text-red-600',
+    impact: 'Variable impact',
+    items: [
+      { value: 'cold_air_intake', label: 'Cold air intake' },
+      { value: 'exhaust_upgrade', label: 'Exhaust system upgrade' },
+      { value: 'turbo_supercharger', label: 'Turbo/Supercharger' },
+      { value: 'engine_tune', label: 'Engine tune/ECU remap' },
+      { value: 'suspension_mods', label: 'Suspension modifications' },
+      { value: 'brake_upgrades', label: 'Brake upgrades' },
+      { value: 'transmission_mods', label: 'Transmission modifications' }
+    ]
+  },
+  {
+    category: 'Exterior',
+    icon: Car,
+    color: 'text-blue-600',
+    impact: 'Often decreases value',
+    items: [
+      { value: 'custom_paint', label: 'Custom paint/wrap' },
+      { value: 'body_kit', label: 'Body kit' },
+      { value: 'spoiler_wing', label: 'Spoiler/Wing' },
+      { value: 'custom_wheels', label: 'Custom wheels/Rims' },
+      { value: 'lowered_raised', label: 'Lowered/Raised suspension' },
+      { value: 'tinted_windows', label: 'Tinted windows' },
+      { value: 'custom_lighting', label: 'Custom lighting' }
+    ]
+  },
+  {
+    category: 'Interior',
+    icon: Palette,
+    color: 'text-purple-600',
+    impact: 'Mixed impact',
+    items: [
+      { value: 'custom_upholstery', label: 'Custom upholstery' },
+      { value: 'aftermarket_stereo', label: 'Aftermarket stereo/Audio' },
+      { value: 'racing_seats', label: 'Racing seats' },
+      { value: 'custom_dashboard', label: 'Custom dashboard' },
+      { value: 'steering_wheel', label: 'Steering wheel upgrade' },
+      { value: 'interior_lighting', label: 'Interior lighting' },
+      { value: 'gauge_cluster', label: 'Gauge cluster modifications' }
+    ]
+  },
+  {
+    category: 'Safety/Security',
+    icon: Shield,
+    color: 'text-green-600',
+    impact: 'Often increases value',
+    items: [
+      { value: 'alarm_upgrade', label: 'Alarm system upgrade' },
+      { value: 'gps_tracking', label: 'GPS tracking' },
+      { value: 'dash_camera', label: 'Dash camera' },
+      { value: 'roll_cage', label: 'Roll cage' },
+      { value: 'racing_harness', label: 'Racing harnesses' },
+      { value: 'fire_suppression', label: 'Fire suppression system' }
+    ]
+  }
+];
 
 export function ModificationsTab({ formData, updateFormData }: ModificationsTabProps) {
-  const modifications = formData.modifications || {
-    hasModifications: false,
-    modified: false,
-    types: [],
-    additionalNotes: ''
-  };
+  const hasModifications = formData.modifications?.hasModifications || false;
 
-  const updateModifications = (updates: Partial<ModificationDetails>) => {
+  const handleModificationChange = (value: string) => {
+    const hasModifications = value === 'yes';
     updateFormData({
-      modifications: { ...modifications, ...updates }
-    });
-  };
-
-  const handleModificationStatusChange = (hasModifications: string) => {
-    const hasModified = hasModifications === 'yes';
-    updateModifications({
-      hasModifications: hasModified,
-      modified: hasModified,
-      types: hasModified ? modifications.types : [],
-      additionalNotes: hasModified ? modifications.additionalNotes : ''
+      modifications: {
+        hasModifications,
+        modified: hasModifications,
+        types: hasModifications ? (formData.modifications?.types || []) : [],
+        reversible: hasModifications ? (formData.modifications?.reversible || false) : false,
+        description: hasModifications ? (formData.modifications?.description || '') : '',
+        additionalNotes: hasModifications ? (formData.modifications?.additionalNotes || '') : ''
+      }
     });
   };
 
   const handleModificationTypeChange = (type: string, checked: boolean) => {
-    const currentTypes = modifications.types || [];
+    const currentTypes = formData.modifications?.types || [];
     const updatedTypes = checked 
       ? [...currentTypes, type]
       : currentTypes.filter(t => t !== type);
-    updateModifications({ types: updatedTypes });
-  };
-
-  const getModificationImpact = () => {
-    const modCount = modifications.types?.length || 0;
-    if (modCount === 0) return null;
     
-    if (modCount <= 2) {
-      return { 
-        level: 'Low Impact', 
-        color: 'bg-green-500', 
-        icon: CheckCircle,
-        description: 'Minor modifications, minimal value impact' 
-      };
-    } else if (modCount <= 5) {
-      return { 
-        level: 'Moderate Impact', 
-        color: 'bg-yellow-500', 
-        icon: AlertTriangle,
-        description: 'Several modifications, may affect resale value' 
-      };
-    } else {
-      return { 
-        level: 'High Impact', 
-        color: 'bg-red-500', 
-        icon: X,
-        description: 'Extensive modifications, significant value considerations' 
-      };
-    }
+    updateFormData({
+      modifications: {
+        ...formData.modifications,
+        types: updatedTypes,
+        hasModifications: formData.modifications?.hasModifications || false,
+        modified: formData.modifications?.modified || false,
+        reversible: formData.modifications?.reversible || false,
+        description: formData.modifications?.description || '',
+        additionalNotes: formData.modifications?.additionalNotes || ''
+      }
+    });
   };
 
-  const impact = getModificationImpact();
+  const handleModificationDetailChange = (field: string, value: any) => {
+    updateFormData({
+      modifications: {
+        ...formData.modifications,
+        hasModifications: formData.modifications?.hasModifications || false,
+        modified: formData.modifications?.modified || false,
+        types: formData.modifications?.types || [],
+        reversible: formData.modifications?.reversible || false,
+        description: formData.modifications?.description || '',
+        additionalNotes: formData.modifications?.additionalNotes || '',
+        [field]: value
+      }
+    });
+  };
 
   return (
     <div className="space-y-6">
-      {/* Modification Status */}
+      {/* Main Modification Question */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Wrench className="w-5 h-5 text-blue-500" />
+            <Settings className="w-5 h-5 text-blue-600" />
             Vehicle Modifications
           </CardTitle>
           <p className="text-sm text-gray-600">
@@ -129,26 +141,35 @@ export function ModificationsTab({ formData, updateFormData }: ModificationsTabP
         </CardHeader>
         <CardContent>
           <RadioGroup
-            value={modifications.hasModifications ? 'yes' : 'no'}
-            onValueChange={handleModificationStatusChange}
-            className="flex gap-6"
+            value={hasModifications ? 'yes' : 'no'}
+            onValueChange={handleModificationChange}
+            className="grid grid-cols-2 gap-4"
           >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="no" id="no-modifications" />
-              <Label htmlFor="no-modifications" className="font-medium">No modifications</Label>
+            <div className="flex items-center space-x-2 border rounded-lg p-4">
+              <RadioGroupItem value="no" id="modifications-no" />
+              <Label htmlFor="modifications-no" className="cursor-pointer">
+                <div>
+                  <div className="font-medium">No modifications</div>
+                  <div className="text-sm text-gray-500">Factory original condition</div>
+                </div>
+              </Label>
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="yes" id="has-modifications" />
-              <Label htmlFor="has-modifications" className="font-medium">Yes, has modifications</Label>
+            <div className="flex items-center space-x-2 border rounded-lg p-4">
+              <RadioGroupItem value="yes" id="modifications-yes" />
+              <Label htmlFor="modifications-yes" className="cursor-pointer">
+                <div>
+                  <div className="font-medium">Yes, has modifications</div>
+                  <div className="text-sm text-gray-500">Select types below</div>
+                </div>
+              </Label>
             </div>
           </RadioGroup>
         </CardContent>
       </Card>
 
-      {/* Modification Details */}
-      {modifications.hasModifications && (
+      {/* Modification Types */}
+      {hasModifications && (
         <>
-          {/* Modification Types */}
           <Card>
             <CardHeader>
               <CardTitle>Types of Modifications</CardTitle>
@@ -156,67 +177,40 @@ export function ModificationsTab({ formData, updateFormData }: ModificationsTabP
                 Select all modifications that have been made to this vehicle
               </p>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {Object.entries(modificationCategories).map(([category, types]) => (
-                  <div key={category}>
-                    <h3 className="font-semibold text-lg mb-3 text-gray-800 border-b pb-2">
-                      {category}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {types.map((type) => (
-                        <div key={type} className="flex items-center space-x-2">
+            <CardContent className="space-y-6">
+              {modificationCategories.map((category) => {
+                const IconComponent = category.icon;
+                return (
+                  <div key={category.category} className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <IconComponent className={`w-5 h-5 ${category.color}`} />
+                      <h3 className={`font-medium ${category.color}`}>
+                        {category.category}
+                      </h3>
+                      <span className="text-xs text-gray-500">
+                        {category.impact}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 ml-7">
+                      {category.items.map((item) => (
+                        <div key={item.value} className="flex items-center space-x-2">
                           <Checkbox
-                            id={`mod-${type}`}
-                            checked={modifications.types?.includes(type) || false}
-                            onCheckedChange={(checked) => 
-                              handleModificationTypeChange(type, checked as boolean)
-                            }
+                            id={item.value}
+                            checked={formData.modifications?.types?.includes(item.value) || false}
+                            onCheckedChange={(checked) => handleModificationTypeChange(item.value, checked as boolean)}
                           />
-                          <Label htmlFor={`mod-${type}`} className="text-sm">
-                            {type}
+                          <Label htmlFor={item.value} className="cursor-pointer text-sm">
+                            {item.label}
                           </Label>
                         </div>
                       ))}
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </CardContent>
           </Card>
 
-          {/* Selected Modifications Summary */}
-          {modifications.types && modifications.types.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Selected Modifications</span>
-                  {impact && (
-                    <div className="flex items-center gap-2">
-                      <impact.icon className="w-4 h-4" />
-                      <Badge className={`${impact.color} text-white`}>
-                        {impact.level}
-                      </Badge>
-                    </div>
-                  )}
-                </CardTitle>
-                {impact && (
-                  <p className="text-sm text-gray-600">{impact.description}</p>
-                )}
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {modifications.types.map((type) => (
-                    <Badge key={type} variant="secondary" className="text-sm">
-                      {type}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Additional Details */}
           <Card>
             <CardHeader>
               <CardTitle>Modification Details</CardTitle>
@@ -225,21 +219,16 @@ export function ModificationsTab({ formData, updateFormData }: ModificationsTabP
               </p>
             </CardHeader>
             <CardContent>
-              <div>
-                <Label htmlFor="modification-notes">Additional Notes</Label>
-                <Textarea
-                  id="modification-notes"
-                  placeholder="Include details such as: brand names, installation quality, professional vs DIY, costs, performance gains, warranty status, reversibility, etc."
-                  value={modifications.additionalNotes || ''}
-                  onChange={(e) => updateModifications({ additionalNotes: e.target.value })}
-                  rows={4}
-                  className="w-full mt-1"
-                />
-              </div>
+              <Textarea
+                placeholder="Include details such as: brand names, installation quality, professional vs DIY, costs, performance gains, warranty status, reversibility, etc."
+                value={formData.modifications?.additionalNotes || ''}
+                onChange={(e) => handleModificationDetailChange('additionalNotes', e.target.value)}
+                rows={4}
+                className="w-full"
+              />
             </CardContent>
           </Card>
 
-          {/* Modification Impact Warning */}
           <Card className="border-orange-200 bg-orange-50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-orange-800">
@@ -248,10 +237,8 @@ export function ModificationsTab({ formData, updateFormData }: ModificationsTabP
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm text-orange-700">
-                <p>
-                  <strong>Important:</strong> Vehicle modifications can significantly impact valuation:
-                </p>
+              <div className="text-sm text-orange-700 space-y-2">
+                <p className="font-medium">Important: Vehicle modifications can significantly impact valuation:</p>
                 <ul className="list-disc list-inside space-y-1 ml-4">
                   <li>Performance modifications may reduce resale appeal</li>
                   <li>Quality of installation affects value impact</li>
@@ -263,23 +250,6 @@ export function ModificationsTab({ formData, updateFormData }: ModificationsTabP
             </CardContent>
           </Card>
         </>
-      )}
-
-      {/* No Modifications Info */}
-      {!modifications.hasModifications && (
-        <Card className="border-green-200 bg-green-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-800">
-              <CheckCircle className="w-5 h-5" />
-              Factory Original Condition
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-green-700">
-              Vehicles in original factory condition typically maintain better resale value and appeal to a wider range of buyers.
-            </p>
-          </CardContent>
-        </Card>
       )}
     </div>
   );
