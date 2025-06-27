@@ -85,6 +85,20 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
     updateFormData({ previous_use: value });
   };
 
+  // Create wrapper functions to match ConditionSelector interface
+  const setValueWrapper = (name: string, value: string) => {
+    if (name === 'condition') {
+      setValue('condition', value);
+    }
+  };
+
+  const watchWrapper = (name: string) => {
+    if (name === 'condition') {
+      return watch('condition');
+    }
+    return '';
+  };
+
   return (
     <div className="space-y-6">
       {/* Vehicle Location */}
@@ -133,8 +147,8 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
               updateFormData({ condition: value });
             }}
             title="Condition Rating"
-            setValue={setValue}
-            watch={watch}
+            setValue={setValueWrapper}
+            watch={watchWrapper}
           />
         </CardContent>
       </Card>
