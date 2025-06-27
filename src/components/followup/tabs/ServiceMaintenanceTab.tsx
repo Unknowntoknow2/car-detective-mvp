@@ -260,7 +260,7 @@ export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaint
                 <div className="text-center">
                   <div className="text-sm font-medium text-blue-700 mb-1">Frequency</div>
                   <Badge variant="secondary" className="text-xs">
-                    {serviceHistory.frequency?.charAt(0).toUpperCase() + serviceHistory.frequency?.slice(1) || 'Unknown'}
+                    {(serviceHistory.frequency || 'unknown').charAt(0).toUpperCase() + (serviceHistory.frequency || 'unknown').slice(1)}
                   </Badge>
                 </div>
                 <div className="text-center">
