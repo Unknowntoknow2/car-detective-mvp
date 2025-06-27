@@ -8,11 +8,9 @@ export const useVinLookup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Use the real unified lookup service instead of mock data
   const { lookupByVin } = useUnifiedLookup({ mode: 'vpic' });
 
   const lookupVin = useCallback(async (vin: string): Promise<DecodedVehicleInfo | null> => {
-    console.log('🔄 useVinLookup: Routing to real NHTSA API via useUnifiedLookup for VIN:', vin);
     setIsLoading(true);
     setError(null);
     
@@ -20,18 +18,17 @@ export const useVinLookup = () => {
       const result = await lookupByVin(vin);
       if (result && result.success && result.vehicle) {
         setDecodedInfo(result.vehicle);
-        console.log('✅ useVinLookup: Successfully decoded vehicle:', result.vehicle);
         return result.vehicle;
       } else {
         const errorMessage = result?.error || 'VIN lookup failed';
         setError(errorMessage);
-        console.error('❌ useVinLookup error:', errorMessage);
+        console.error('VIN lookup error:', errorMessage);
         return null;
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'VIN lookup failed';
       setError(errorMessage);
-      console.error('❌ useVinLookup exception:', errorMessage);
+      console.error('VIN lookup exception:', errorMessage);
       return null;
     } finally {
       setIsLoading(false);

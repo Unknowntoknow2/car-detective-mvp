@@ -8,11 +8,9 @@ export const useUnifiedDecoder = () => {
   const [isDecoding, setIsDecoding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Use the real unified lookup service instead of mock data
   const { lookupByVin, isLoading } = useUnifiedLookup({ mode: 'vpic' });
 
   const decodeVehicle = useCallback(async (identifier: string, type: 'vin' | 'plate') => {
-    console.log('🔄 useUnifiedDecoder: Routing to real NHTSA API via useUnifiedLookup');
     setIsDecoding(true);
     setError(null);
     
@@ -31,7 +29,7 @@ export const useUnifiedDecoder = () => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Decoding failed';
       setError(errorMessage);
-      console.error('❌ useUnifiedDecoder error:', errorMessage);
+      console.error('Decoder error:', errorMessage);
       throw err;
     } finally {
       setIsDecoding(false);

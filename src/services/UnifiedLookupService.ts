@@ -26,12 +26,9 @@ export interface LookupOptions {
 
 export class UnifiedLookupService {
   static async lookupByVin(vin: string, options: LookupOptions): Promise<UnifiedVehicleLookupResult> {
-    console.log("🚀 UnifiedLookupService: Starting optimized VIN lookup for:", vin);
-    
     try {
-      // Validate VIN format with enhanced validation
       if (!this.validateVin(vin)) {
-        console.error('❌ UnifiedLookupService: Invalid VIN format:', vin);
+        console.error('Invalid VIN format:', vin);
         return {
           success: false,
           source: 'failed',
@@ -40,23 +37,15 @@ export class UnifiedLookupService {
         };
       }
 
-      // Single attempt call to unified-decode edge function for maximum speed
-      console.log('🔍 UnifiedLookupService: Making single optimized call to unified-decode for VIN:', vin);
-      
-      const startTime = Date.now();
       const response = await supabase.functions.invoke('unified-decode', {
         body: { vin: vin.toUpperCase() }
       });
-      const endTime = Date.now();
-      
-      console.log(`⚡ Optimized edge function call completed in ${endTime - startTime}ms`);
       
       const { data, error } = response;
 
       if (error) {
-        console.error('❌ UnifiedLookupService: Edge function error:', error);
+        console.error('Edge function error:', error);
         
-        // Generate smart fallback vehicle data using advanced VIN analysis
         const smartFallbackVehicle = this.generateSmartFallbackVehicle(vin);
         
         return {
@@ -69,9 +58,6 @@ export class UnifiedLookupService {
         };
       }
 
-      console.log('✅ UnifiedLookupService: Edge function response received:', data);
-
-      // Handle successful decode with enhanced processing
       if (data && data.success && data.decoded) {
         const decodedData = data.decoded;
         
@@ -92,8 +78,6 @@ export class UnifiedLookupService {
           confidenceScore: data.source === 'nhtsa' ? 98 : (data.source === 'cache' ? 95 : 80),
         };
 
-        console.log('🎉 UnifiedLookupService: Successfully processed NHTSA vehicle data with high confidence:', vehicle);
-
         const result: UnifiedVehicleLookupResult = {
           success: true,
           vehicle,
@@ -103,7 +87,6 @@ export class UnifiedLookupService {
           warning: data.warning
         };
 
-        // Add premium features if applicable
         if (options.tier === 'premium') {
           result.enhancedData = {
             carfaxReport: { accidents: 0, owners: 1, serviceRecords: 15 },
@@ -115,9 +98,6 @@ export class UnifiedLookupService {
         return result;
       }
 
-      // Handle failed decode - generate smart fallback with improved accuracy
-      console.warn('⚠️ UnifiedLookupService: NHTSA returned incomplete data, using smart fallback:', data);
-      
       const smartFallbackVehicle = this.generateSmartFallbackVehicle(vin);
       
       return {
@@ -130,9 +110,8 @@ export class UnifiedLookupService {
       };
 
     } catch (error) {
-      console.error("❌ UnifiedLookupService: VIN lookup exception:", error);
+      console.error("VIN lookup exception:", error);
       
-      // Final fallback for network errors with enhanced accuracy
       const smartFallbackVehicle = this.generateSmartFallbackVehicle(vin);
       
       return {
@@ -147,10 +126,7 @@ export class UnifiedLookupService {
   }
 
   static async lookupByPlate(plate: string, state: string, options: LookupOptions): Promise<UnifiedVehicleLookupResult> {
-    console.log("UnifiedLookupService: Plate lookup", plate, state, options);
-    
     try {
-      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       const mockVehicle: DecodedVehicleInfo = {
@@ -195,8 +171,6 @@ export class UnifiedLookupService {
   }
 
   static processManualEntry(data: any, options: LookupOptions): UnifiedVehicleLookupResult {
-    console.log("UnifiedLookupService: Manual entry", data, options);
-    
     try {
       const vehicle: DecodedVehicleInfo = {
         year: parseInt(data.year),
@@ -208,7 +182,7 @@ export class UnifiedLookupService {
         zipCode: data.zipCode,
         fuelType: data.fuelType,
         transmission: data.transmission,
-        confidenceScore: 70 // Lower confidence for manual entry
+        confidenceScore: 70
       };
 
       return {
@@ -239,15 +213,13 @@ export class UnifiedLookupService {
     const currentYear = new Date().getFullYear();
     const yearChar = vin.charAt(9);
     
-    // Enhanced year extraction with improved accuracy
-    let year = currentYear - 5; // Default to 5 years ago
+    let year = currentYear - 5;
     if (yearChar >= '1' && yearChar <= '9') {
       year = 2001 + parseInt(yearChar);
     } else if (yearChar >= 'A' && yearChar <= 'Y') {
       year = 2010 + (yearChar.charCodeAt(0) - 65);
     }
     
-    // Advanced make detection with comprehensive Toyota pattern recognition
     const wmi = vin.substring(0, 3);
     const vds = vin.substring(3, 6);
     let make = "Unknown";
@@ -257,14 +229,13 @@ export class UnifiedLookupService {
     let displacement = "2.5L";
     let drivetrain = "FWD";
     let trim = "Standard";
-    let fuelType = "Gasoline"; // Define fuelType variable
+    let fuelType = "Gasoline";
     
     // Comprehensive Toyota patterns with enhanced model detection
     if (wmi.startsWith("5TD") || wmi.startsWith("5TF") || wmi.startsWith("5TB") || 
         wmi.startsWith("JT") || wmi.startsWith("4T")) {
       make = "Toyota";
       
-      // Enhanced Toyota model detection with VDS analysis
       if (wmi === "5TD") {
         const modelChar = vin.charAt(3);
         const subModelChar = vin.charAt(4);
@@ -315,7 +286,6 @@ export class UnifiedLookupService {
         drivetrain = "4WD";
         trim = "TRD";
       } else if (wmi.startsWith("JT")) {
-        // JT prefix analysis for additional Toyota models
         if (vds.startsWith("KD")) {
           model = "Corolla";
           bodyType = "Sedan";
@@ -366,8 +336,6 @@ export class UnifiedLookupService {
       trim = "330i";
     }
     
-    console.log(`🔧 Smart fallback vehicle generated for VIN ${vin}: ${year} ${make} ${model} ${trim}`);
-    
     return {
       vin,
       year: Math.min(Math.max(year, 1980), currentYear + 1),
@@ -389,9 +357,6 @@ export class UnifiedLookupService {
   }
 
   static startPremiumValuation = (vehicleData: DecodedVehicleInfo): void => {
-    console.log("UnifiedLookupService: Starting premium valuation for", vehicleData);
-
-    // Store vehicle data for premium valuation
     localStorage.setItem(
       "premium_vehicle",
       JSON.stringify({

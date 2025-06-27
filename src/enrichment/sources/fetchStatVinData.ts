@@ -3,12 +3,6 @@ import { StatVinData } from '../types';
 
 export async function fetchStatVinData(vin: string): Promise<StatVinData | null> {
   try {
-    console.log(`🔍 Fetching real STAT.vin data for VIN: ${vin}`);
-    
-    // Method 1: Direct API call (if STAT.vin provides an API)
-    // Note: STAT.vin may require special access or partnership
-    
-    // Method 2: Web scraping via BrightData
     const brightDataEndpoint = 'https://api.brightdata.com/scraper/statvin';
     
     const response = await fetch(brightDataEndpoint, {
@@ -26,18 +20,15 @@ export async function fetchStatVinData(vin: string): Promise<StatVinData | null>
     });
 
     if (!response.ok) {
-      console.warn(`STAT.vin API returned ${response.status}, falling back to scraping`);
       return await fallbackStatVinScraping(vin);
     }
 
     const data = await response.json();
     
     if (!data.success || !data.vehicle) {
-      console.log('No STAT.vin data found for this VIN');
       return null;
     }
 
-    // Transform BrightData response to our StatVinData format
     return {
       vin: data.vehicle.vin || vin,
       salePrice: data.vehicle.sale_price,
@@ -78,7 +69,6 @@ export async function fetchStatVinData(vin: string): Promise<StatVinData | null>
 
 async function fallbackStatVinScraping(vin: string): Promise<StatVinData | null> {
   try {
-    // Direct web scraping as fallback
     const url = `https://stat.vin/vin-decoder/${vin}`;
     
     const response = await fetch(url, {
@@ -96,9 +86,6 @@ async function fallbackStatVinScraping(vin: string): Promise<StatVinData | null>
     }
 
     const html = await response.text();
-    
-    // Parse HTML for auction data
-    // This is a simplified parser - in production you'd use a more robust HTML parser
     const auctionData = parseStatVinHTML(html, vin);
     
     return auctionData;
@@ -111,16 +98,13 @@ async function fallbackStatVinScraping(vin: string): Promise<StatVinData | null>
 
 function parseStatVinHTML(html: string, vin: string): StatVinData | null {
   try {
-    // Basic HTML parsing for auction data
-    // In production, you'd use a proper HTML parser like Cheerio
-    
     const salePriceMatch = html.match(/Sale Price[:\s]*\$?([\d,]+)/i);
     const damageMatch = html.match(/Damage[:\s]*([^<\n]+)/i);
     const dateMatch = html.match(/Sale Date[:\s]*(\d{4}-\d{2}-\d{2})/i);
     const locationMatch = html.match(/Location[:\s]*([^<\n]+)/i);
     
     if (!salePriceMatch) {
-      return null; // No auction data found
+      return null;
     }
 
     return {
@@ -130,7 +114,6 @@ function parseStatVinHTML(html: string, vin: string): StatVinData | null {
       auctionDate: dateMatch?.[1],
       location: locationMatch?.[1]?.trim(),
       images: extractImageUrls(html),
-      // Additional fields would be parsed similarly
       make: extractMake(html),
       model: extractModel(html),
       year: extractYear(html),
