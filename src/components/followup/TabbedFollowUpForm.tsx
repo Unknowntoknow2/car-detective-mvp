@@ -99,31 +99,35 @@ export function TabbedFollowUpForm({
 }: TabbedFollowUpFormProps) {
   const [activeTab, setActiveTab] = useState('basic');
 
-  // Enhanced completion calculation
+  // Enhanced completion calculation with proper validation
   const getTabCompletion = (tabId: string): 'complete' | 'partial' | 'empty' => {
     switch (tabId) {
       case 'basic':
-        const hasBasicRequired = Boolean(
-          formData.mileage && 
-          formData.mileage > 0 && 
-          formData.zip_code && 
-          formData.zip_code.length === 5 && 
-          /^\d{5}$/.test(formData.zip_code) &&
-          formData.condition
-        );
-        return hasBasicRequired ? 'complete' : 'empty';
+        const hasZip = Boolean(formData.zip_code && formData.zip_code.length === 5 && /^\d{5}$/.test(formData.zip_code));
+        const hasMileage = Boolean(formData.mileage && formData.mileage > 0);
+        const hasCondition = Boolean(formData.condition);
+        
+        console.log('Basic tab validation:', { hasZip, hasMileage, hasCondition });
+        return (hasZip && hasMileage && hasCondition) ? 'complete' : 'empty';
         
       case 'condition':
-        const hasConditionData = Boolean(
-          formData.tire_condition || 
-          formData.exterior_condition || 
-          formData.interior_condition || 
+        const hasAllConditions = Boolean(
+          formData.tire_condition && 
+          formData.exterior_condition && 
+          formData.interior_condition && 
           formData.brake_condition
         );
-        return hasConditionData ? 'complete' : 'empty';
+        console.log('Condition tab validation:', { 
+          tire: formData.tire_condition, 
+          exterior: formData.exterior_condition, 
+          interior: formData.interior_condition, 
+          brake: formData.brake_condition 
+        });
+        return hasAllConditions ? 'complete' : 'partial';
         
       case 'issues':
-        return (formData.dashboard_lights && formData.dashboard_lights.length > 0) ? 'complete' : 'partial';
+        // Dashboard lights tab is always optional, so it's either complete or partial
+        return 'partial';
         
       case 'service':
         return formData.serviceHistory?.hasRecords !== undefined ? 'complete' : 'partial';
@@ -135,7 +139,7 @@ export function TabbedFollowUpForm({
         return formData.modifications?.hasModifications !== undefined ? 'complete' : 'partial';
         
       case 'features':
-        return (formData.features && formData.features.length > 0) ? 'complete' : 'partial';
+        return 'partial'; // Features are always optional
         
       default:
         return 'empty';
@@ -147,18 +151,29 @@ export function TabbedFollowUpForm({
   const optionalTabs = tabs.filter(tab => !tab.required);
   
   const completedRequired = requiredTabs.filter(tab => getTabCompletion(tab.id) === 'complete').length;
+  const partialRequired = requiredTabs.filter(tab => getTabCompletion(tab.id) === 'partial').length;
   const completedOptional = optionalTabs.filter(tab => getTabCompletion(tab.id) === 'complete').length;
   
   // Required tabs count as 70%, optional as 30%
   const requiredWeight = 0.7;
   const optionalWeight = 0.3;
   
-  const requiredProgress = (completedRequired / requiredTabs.length) * requiredWeight;
+  const requiredProgress = ((completedRequired + (partialRequired * 0.5)) / requiredTabs.length) * requiredWeight;
   const optionalProgress = (completedOptional / optionalTabs.length) * optionalWeight;
   
   const progressPercentage = Math.round((requiredProgress + optionalProgress) * 100);
 
+  // Can submit only if all required tabs are complete
   const canSubmit = completedRequired === requiredTabs.length;
+
+  console.log('Form progress:', {
+    completedRequired,
+    partialRequired,
+    completedOptional,
+    requiredTabs: requiredTabs.length,
+    canSubmit,
+    progressPercentage
+  });
 
   const getTabStatus = (tabId: string) => {
     const completion = getTabCompletion(tabId);
@@ -169,7 +184,7 @@ export function TabbedFollowUpForm({
     } else if (completion === 'partial' || !tab?.required) {
       return { color: 'text-yellow-600', bg: 'bg-yellow-100', icon: Clock };
     } else {
-      return { color: 'text-gray-400', bg: 'bg-gray-100', icon: Clock };
+      return { color: 'text-gray-400', bg: 'bg-gray-100', icon: AlertCircle };
     }
   };
 
@@ -317,6 +332,9 @@ export function TabbedFollowUpForm({
               <p className="text-sm text-yellow-800">
                 <strong>Complete required sections:</strong> Please fill in all required fields in the Basic Info and Condition tabs to continue.
               </p>
+              <div className="mt-2 text-xs text-yellow-700">
+                Missing: {requiredTabs.filter(tab => getTabCompletion(tab.id) !== 'complete').map(tab => tab.label).join(', ')}
+              </div>
             </div>
           )}
         </CardContent>
