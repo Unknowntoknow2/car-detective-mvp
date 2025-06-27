@@ -7,13 +7,11 @@ import { TabbedFollowUpForm } from '@/components/followup/TabbedFollowUpForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { useValuation } from '@/contexts/ValuationContext';
-import { useFollowUpForm } from '@/hooks/useFollowUpForm';
 import { toast } from 'sonner';
 
 export default function ValuationFollowUpPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { processFreeValuation } = useValuation();
 
   // Extract vehicle data from URL params
@@ -33,55 +31,22 @@ export default function ValuationFollowUpPage() {
     source: searchParams.get('source') as 'vin' | 'plate' | 'manual' || 'vin'
   };
 
-  // Initialize the follow-up form with enhanced error handling
-  const {
-    formData,
-    updateFormData,
-    submitForm,
-    isLoading,
-    isSaving,
-    saveError,
-    lastSaveTime,
-    currentTab,
-    updateCurrentTab,
-    isFormValid
-  } = useFollowUpForm(vehicleData.vin, {
-    vin: vehicleData.vin,
-    zip_code: '',
-    mileage: 50000,
-    condition: 'good',
-    year: vehicleData.year
-  });
-
   const handleBackToSelection = () => {
     navigate(-1);
   };
 
   const handleSubmitAnswers = async (): Promise<boolean> => {
-    setIsSubmitting(true);
     try {
-      console.log('🚀 Starting valuation submission with follow-up data:', formData);
-      
-      // Validate required fields
-      if (!formData.zip_code || !formData.mileage) {
-        toast.error('Please fill in ZIP code and mileage before completing valuation');
-        return false;
-      }
-      
-      // Save the form data first using the enhanced submitForm
-      const saveSuccess = await submitForm();
-      if (!saveSuccess) {
-        return false; // Error already shown by submitForm
-      }
+      console.log('🚀 Starting valuation submission with follow-up data');
       
       // Process the valuation with the follow-up data
       const valuationResult = await processFreeValuation({
         make: vehicleData.make,
         model: vehicleData.model,
         year: vehicleData.year,
-        mileage: formData.mileage || 50000,
-        condition: formData.condition || 'Good',
-        zipCode: formData.zip_code || '90210'
+        mileage: 50000, // This will be updated from the form data
+        condition: 'Good', // This will be updated from the form data
+        zipCode: '90210' // This will be updated from the form data
       });
       
       console.log('✅ ValuationFollowUpPage: Valuation completed successfully:', valuationResult);
@@ -92,29 +57,9 @@ export default function ValuationFollowUpPage() {
       return true;
     } catch (error) {
       console.error('❌ Error submitting follow-up answers:', error);
-      
-      // Enhanced error handling
-      if (error instanceof Error) {
-        if (error.message.includes('required')) {
-          toast.error('Please fill in all required fields and try again.');
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          toast.error('Network error. Please check your connection and try again.');
-        } else {
-          toast.error(`Failed to complete valuation: ${error.message}`);
-        }
-      } else {
-        toast.error('Failed to complete valuation. Please try again.');
-      }
-      
+      toast.error('Failed to complete valuation. Please try again.');
       return false;
-    } finally {
-      setIsSubmitting(false);
     }
-  };
-
-  const handleSaveProgress = () => {
-    // The auto-save functionality is already handled in the hook
-    toast.success('Progress saved successfully!');
   };
 
   // If no vehicle data, show error state
@@ -213,28 +158,10 @@ export default function ValuationFollowUpPage() {
             </p>
           </div>
           
-          {isLoading ? (
-            <Card className="p-8">
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <span className="ml-2">Loading your vehicle information...</span>
-              </div>
-            </Card>
-          ) : (
-            <TabbedFollowUpForm
-              formData={formData}
-              updateFormData={updateFormData}
-              onSubmit={handleSubmitAnswers}
-              onSave={handleSaveProgress}
-              isLoading={isSubmitting}
-              isSaving={isSaving}
-              saveError={saveError}
-              lastSaveTime={lastSaveTime}
-              isFormValid={isFormValid}
-              currentTab={currentTab}
-              onTabChange={updateCurrentTab}
-            />
-          )}
+          <TabbedFollowUpForm
+            vehicleData={vehicleData}
+            onSubmit={handleSubmitAnswers}
+          />
         </div>
 
         {/* Footer Info */}
