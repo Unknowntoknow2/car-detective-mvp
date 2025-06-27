@@ -18,6 +18,8 @@ interface ConditionSelectorProps {
   onChange: (value: string) => void;
   title: string;
   subtitle?: string;
+  setValue?: (name: string, value: string) => void;
+  watch?: (name: string) => string;
 }
 
 export function ConditionSelector({ 
@@ -25,7 +27,9 @@ export function ConditionSelector({
   value, 
   onChange, 
   title, 
-  subtitle 
+  subtitle,
+  setValue,
+  watch
 }: ConditionSelectorProps) {
   const getBadgeVariant = (optionValue: string) => {
     switch (optionValue) {
@@ -36,6 +40,15 @@ export function ConditionSelector({
       case 'poor': return 'destructive';
       default: return 'secondary';
     }
+  };
+
+  const currentValue = watch ? watch("condition") : value;
+
+  const handleOptionClick = (optionValue: string) => {
+    if (setValue) {
+      setValue("condition", optionValue);
+    }
+    onChange(optionValue);
   };
 
   return (
@@ -49,13 +62,14 @@ export function ConditionSelector({
       
       <div className="grid grid-cols-2 gap-3">
         {options.map((option) => {
-          const isSelected = value === option.value;
+          const isSelected = currentValue === option.value;
           
           return (
-            <div
+            <button
               key={option.value}
-              onClick={() => onChange(option.value)}
-              className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md min-h-[120px] ${
+              type="button"
+              onClick={() => handleOptionClick(option.value)}
+              className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md min-h-[120px] w-full text-left ${
                 isSelected
                   ? `${option.color} ring-2 ring-opacity-50 ring-current`
                   : 'bg-white border-gray-200 hover:border-gray-300'
@@ -78,7 +92,7 @@ export function ConditionSelector({
               </div>
               <div className="text-xs text-gray-600 mb-2 font-medium">{option.description}</div>
               <div className="text-xs text-gray-500 leading-relaxed">{option.details}</div>
-            </div>
+            </button>
           );
         })}
       </div>
