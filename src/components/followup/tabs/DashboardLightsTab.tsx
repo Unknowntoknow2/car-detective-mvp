@@ -102,9 +102,11 @@ const dashboardLights = [
 ];
 
 export function DashboardLightsTab({ formData, updateFormData }: DashboardLightsTabProps) {
-  const dashboardLightsList = formData.dashboard_lights || [];
+  const dashboardLightsList = Array.isArray(formData.dashboard_lights) ? formData.dashboard_lights : [];
 
   const handleLightChange = (lightValue: string, checked: boolean) => {
+    console.log('Dashboard light change:', lightValue, checked);
+    
     let updatedLights: string[];
 
     if (checked) {
@@ -113,6 +115,7 @@ export function DashboardLightsTab({ formData, updateFormData }: DashboardLights
       updatedLights = dashboardLightsList.filter((light: string) => light !== lightValue);
     }
 
+    console.log('Updated dashboard lights:', updatedLights);
     updateFormData({ dashboard_lights: updatedLights });
   };
 
@@ -172,9 +175,10 @@ export function DashboardLightsTab({ formData, updateFormData }: DashboardLights
                           <Checkbox
                             id={light.value}
                             checked={isChecked}
-                            onCheckedChange={(checked: boolean) => 
-                              handleLightChange(light.value, checked)
-                            }
+                            onCheckedChange={(checked) => {
+                              console.log('Checkbox changed:', light.value, checked);
+                              handleLightChange(light.value, checked === true);
+                            }}
                             className="mt-1"
                           />
                           <div className="flex-1 min-w-0">
@@ -184,6 +188,7 @@ export function DashboardLightsTab({ formData, updateFormData }: DashboardLights
                                 <Label 
                                   htmlFor={light.value} 
                                   className="cursor-pointer font-medium"
+                                  onClick={() => handleLightChange(light.value, !isChecked)}
                                 >
                                   {light.label}
                                 </Label>

@@ -21,28 +21,32 @@ const conditionCategories = [
         label: 'Excellent',
         description: 'Like new condition',
         details: 'Tread: 8-10/32", No visible wear, Recently replaced',
-        impact: 'Best Value'
+        impact: 'Best Value',
+        color: 'bg-green-50 border-green-200 text-green-800'
       },
       {
         value: 'good',
         label: 'Good', 
         description: 'Normal wear and tear',
         details: 'Tread: 4-6/32", Adequate tread, some wear visible',
-        impact: 'Standard Value'
+        impact: 'Standard Value',
+        color: 'bg-blue-50 border-blue-200 text-blue-800'
       },
       {
         value: 'fair',
         label: 'Fair',
         description: 'Noticeable wear',
         details: 'Tread: 2-4/32", Significant wear, consider replacement soon',
-        impact: 'Reduced Value'
+        impact: 'Reduced Value',
+        color: 'bg-yellow-50 border-yellow-200 text-yellow-800'
       },
       {
         value: 'poor',
         label: 'Poor',
         description: 'Needs replacement',
         details: 'Tread: <2/32", Unsafe, immediate replacement needed',
-        impact: 'Lower Value'
+        impact: 'Lower Value',
+        color: 'bg-red-50 border-red-200 text-red-800'
       }
     ]
   },
@@ -56,28 +60,32 @@ const conditionCategories = [
         label: 'Excellent',
         description: 'Perfect condition',
         details: 'No scratches, dents, or paint issues. Showroom quality',
-        impact: 'Best Value'
+        impact: 'Best Value',
+        color: 'bg-green-50 border-green-200 text-green-800'
       },
       {
         value: 'good',
         label: 'Good',
         description: 'Normal wear and tear',
         details: 'Minor scratches, good paint condition, well-maintained',
-        impact: 'Standard Value'
+        impact: 'Standard Value',
+        color: 'bg-blue-50 border-blue-200 text-blue-800'
       },
       {
         value: 'fair',
         label: 'Fair',
         description: 'Visible wear',
         details: 'Multiple scratches, some dents, paint fading or chips',
-        impact: 'Reduced Value'
+        impact: 'Reduced Value',
+        color: 'bg-yellow-50 border-yellow-200 text-yellow-800'
       },
       {
         value: 'poor',
         label: 'Poor',
         description: 'Significant damage',
         details: 'Major dents, rust, extensive paint damage',
-        impact: 'Lower Value'
+        impact: 'Lower Value',
+        color: 'bg-red-50 border-red-200 text-red-800'
       }
     ]
   },
@@ -91,28 +99,32 @@ const conditionCategories = [
         label: 'Excellent',
         description: 'Like new condition',
         details: 'No wear, stains, or damage. All components function perfectly',
-        impact: 'Best Value'
+        impact: 'Best Value',
+        color: 'bg-green-50 border-green-200 text-green-800'
       },
       {
         value: 'good',
         label: 'Good',
         description: 'Normal wear and tear',
         details: 'Light wear, clean, well-maintained, minor scuffs',
-        impact: 'Standard Value'
+        impact: 'Standard Value',
+        color: 'bg-blue-50 border-blue-200 text-blue-800'
       },
       {
         value: 'fair',
         label: 'Fair',
         description: 'Noticeable wear',
         details: 'Moderate wear, some stains or tears, functional issues',
-        impact: 'Reduced Value'
+        impact: 'Reduced Value',
+        color: 'bg-yellow-50 border-yellow-200 text-yellow-800'
       },
       {
         value: 'poor',
         label: 'Poor',
         description: 'Heavy wear/damage',
         details: 'Significant stains, tears, or damage. Major repairs needed',
-        impact: 'Lower Value'
+        impact: 'Lower Value',
+        color: 'bg-red-50 border-red-200 text-red-800'
       }
     ]
   },
@@ -126,28 +138,32 @@ const conditionCategories = [
         label: 'Excellent',
         description: 'Like new condition',
         details: 'Life: 80-100%, Recently serviced, smooth operation',
-        impact: 'Best Value'
+        impact: 'Best Value',
+        color: 'bg-green-50 border-green-200 text-green-800'
       },
       {
         value: 'good',
         label: 'Good',
         description: 'Normal wear and tear',
         details: 'Life: 40-60%, Normal brake wear, good performance',
-        impact: 'Standard Value'
+        impact: 'Standard Value',
+        color: 'bg-blue-50 border-blue-200 text-blue-800'
       },
       {
         value: 'fair',
         label: 'Fair',
         description: 'Some wear present',
         details: 'Life: 20-40%, Service recommended soon, minor issues',
-        impact: 'Reduced Value'
+        impact: 'Reduced Value',
+        color: 'bg-yellow-50 border-yellow-200 text-yellow-800'
       },
       {
         value: 'poor',
         label: 'Poor',
         description: 'Needs service',
         details: 'Life: <20%, Immediate service required, safety concern',
-        impact: 'Lower Value'
+        impact: 'Lower Value',
+        color: 'bg-red-50 border-red-200 text-red-800'
       }
     ]
   }
@@ -162,23 +178,13 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
     return (formData[key] as string) || 'good';
   };
 
-  const getConditionBadgeVariant = (value: string) => {
+  const getBadgeVariant = (value: string) => {
     switch (value) {
       case 'excellent': return 'default';
       case 'good': return 'secondary';
       case 'fair': return 'outline';
       case 'poor': return 'destructive';
       default: return 'secondary';
-    }
-  };
-
-  const getConditionColor = (value: string) => {
-    switch (value) {
-      case 'excellent': return 'text-green-600 bg-green-50 border-green-200';
-      case 'good': return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'fair': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'poor': return 'text-red-600 bg-red-50 border-red-200';
-      default: return 'text-blue-600 bg-blue-50 border-blue-200';
     }
   };
 
@@ -202,24 +208,24 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
                     <div
                       key={option.value}
                       onClick={() => handleConditionChange(category.key, option.value)}
-                      className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
                         isSelected
-                          ? `${getConditionColor(option.value)} ring-2 ring-opacity-50`
+                          ? `${option.color} ring-2 ring-opacity-50 ring-current`
                           : 'bg-white border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-2">
-                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                             isSelected 
-                              ? 'bg-blue-500 border-blue-500' 
-                              : 'border-gray-300'
+                              ? 'bg-current border-current' 
+                              : 'border-gray-400'
                           }`}>
                             {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
                           </div>
                           <span className="font-medium text-sm">{option.label}</span>
                         </div>
-                        <Badge variant={getConditionBadgeVariant(option.value)} className="text-xs">
+                        <Badge variant={getBadgeVariant(option.value)} className="text-xs">
                           {option.impact}
                         </Badge>
                       </div>
@@ -251,7 +257,7 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
                   <div className="text-sm font-medium text-blue-700 mb-1">
                     {category.title.replace(' Condition', '')}
                   </div>
-                  <Badge variant={getConditionBadgeVariant(value)} className="text-xs">
+                  <Badge variant={getBadgeVariant(value)} className="text-xs">
                     {value.charAt(0).toUpperCase() + value.slice(1)}
                   </Badge>
                 </div>

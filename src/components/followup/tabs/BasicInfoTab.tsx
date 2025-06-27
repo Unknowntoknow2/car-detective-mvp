@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, AlertCircle, MapPin } from 'lucide-react';
+import { CheckCircle, AlertCircle, MapPin, Loader2 } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { useZipValidation } from '@/hooks/useZipValidation';
 
@@ -21,10 +21,11 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
   
   const zipQuery = useZipQuery(formData.zip_code || '');
 
+  // Handle ZIP code validation
   useEffect(() => {
     if (formData.zip_code && formData.zip_code.length === 5) {
       if (zipQuery.data?.isValid === false) {
-        setZipError('Invalid ZIP code');
+        setZipError(zipQuery.data.error || 'Invalid ZIP code');
       } else if (zipQuery.data?.isValid === true) {
         setZipError('');
       }
@@ -45,7 +46,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
     }
     
     if (numValue > 999999) {
-      setMileageError('Mileage seems too high');
+      setMileageError('Mileage seems too high (max: 999,999)');
       return;
     }
     
@@ -76,28 +77,32 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
       label: 'Excellent',
       description: 'Like new, no visible wear',
       details: 'Perfect condition, showroom quality',
-      impact: 'Best Value'
+      impact: 'Best Value',
+      color: 'bg-green-50 border-green-200 text-green-800'
     },
     {
       value: 'good',
       label: 'Good',
       description: 'Normal wear, good condition',
       details: 'Well-maintained with minor wear',
-      impact: 'Standard Value'
+      impact: 'Standard Value',
+      color: 'bg-blue-50 border-blue-200 text-blue-800'
     },
     {
       value: 'fair',
       label: 'Fair',
       description: 'Noticeable wear, some issues',
       details: 'Functional but shows age and use',
-      impact: 'Reduced Value'
+      impact: 'Reduced Value',
+      color: 'bg-yellow-50 border-yellow-200 text-yellow-800'
     },
     {
       value: 'poor',
       label: 'Poor',
       description: 'Significant issues present',
       details: 'Major repairs needed',
-      impact: 'Lower Value'
+      impact: 'Lower Value',
+      color: 'bg-red-50 border-red-200 text-red-800'
     }
   ];
 
@@ -124,27 +129,33 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
                 value={formData.zip_code || ''}
                 onChange={handleZipCodeChange}
                 placeholder="Enter ZIP code"
-                className={`mt-1 ${zipError ? 'border-red-500' : zipQuery.data?.isValid ? 'border-green-500' : ''}`}
+                className={`mt-1 ${
+                  zipError ? 'border-red-500 focus:border-red-500' : 
+                  zipQuery.data?.isValid ? 'border-green-500 focus:border-green-500' : 
+                  'border-gray-300'
+                }`}
                 required
                 maxLength={5}
               />
               {zipQuery.isLoading && formData.zip_code?.length === 5 && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                </div>
+                <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 animate-spin text-blue-600" />
               )}
-              {zipQuery.data?.isValid && (
+              {zipQuery.data?.isValid && !zipQuery.isLoading && (
                 <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-green-500" />
               )}
-              {zipError && (
+              {zipError && !zipQuery.isLoading && (
                 <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-red-500" />
               )}
             </div>
             {zipError && (
-              <p className="text-sm text-red-500 mt-1">{zipError}</p>
+              <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {zipError}
+              </p>
             )}
             {zipQuery.data?.isValid && zipQuery.data.location && (
-              <p className="text-sm text-green-600 mt-1">
+              <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
                 {zipQuery.data.location['place name']}, {zipQuery.data.location['state abbreviation']}
               </p>
             )}
@@ -169,14 +180,18 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
               value={formData.mileage ? formData.mileage.toString() : ''}
               onChange={handleMileageChange}
               placeholder="Enter current mileage"
-              className={`mt-1 ${mileageError ? 'border-red-500' : ''}`}
+              className={`mt-1 ${mileageError ? 'border-red-500 focus:border-red-500' : 'border-gray-300'}`}
               required
             />
             {mileageError && (
-              <p className="text-sm text-red-500 mt-1">{mileageError}</p>
+              <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {mileageError}
+              </p>
             )}
             {formData.mileage && !mileageError && (
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" />
                 {formData.mileage.toLocaleString()} miles
               </p>
             )}
@@ -203,20 +218,20 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
                   <div
                     key={option.value}
                     onClick={() => updateFormData({ condition: option.value })}
-                    className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
                       isSelected
-                        ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-200'
+                        ? `${option.color} ring-2 ring-opacity-50 ring-current`
                         : 'bg-white border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-2">
-                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                           isSelected 
-                            ? 'bg-blue-500 border-blue-500' 
-                            : 'border-gray-300'
+                            ? 'bg-current border-current' 
+                            : 'border-gray-400'
                         }`}>
-                          {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
+                          {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
                         </div>
                         <span className="font-medium text-sm">{option.label}</span>
                       </div>
@@ -228,8 +243,8 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
                         {option.impact}
                       </Badge>
                     </div>
-                    <div className="text-xs text-gray-600 mb-1">{option.description}</div>
-                    <div className="text-xs text-gray-500">{option.details}</div>
+                    <div className="text-xs text-gray-600 mb-2 font-medium">{option.description}</div>
+                    <div className="text-xs text-gray-500 leading-relaxed">{option.details}</div>
                   </div>
                 );
               })}
