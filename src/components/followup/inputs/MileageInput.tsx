@@ -19,8 +19,17 @@ export function MileageInput({
   className = ""
 }: MileageInputProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const numValue = parseInt(e.target.value) || 0;
-    onChange(numValue);
+    const inputValue = e.target.value;
+    // Allow empty string for user experience while typing
+    if (inputValue === '') {
+      onChange(0);
+      return;
+    }
+    
+    const numValue = parseInt(inputValue) || 0;
+    if (numValue >= 0) {
+      onChange(numValue);
+    }
   };
 
   return (
@@ -36,6 +45,8 @@ export function MileageInput({
           value={value || ''}
           onChange={handleChange}
           required={required}
+          min="0"
+          step="1"
         />
       </div>
     </div>

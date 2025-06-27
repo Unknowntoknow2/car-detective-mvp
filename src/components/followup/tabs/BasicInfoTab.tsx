@@ -52,14 +52,17 @@ const conditionOptions = [
 
 export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
   const handleZipCodeChange = (value: string) => {
+    console.log('ZIP code changed to:', value);
     updateFormData({ zip_code: value });
   };
 
   const handleMileageChange = (value: number) => {
+    console.log('Mileage changed to:', value);
     updateFormData({ mileage: value });
   };
 
   const handleConditionChange = (value: string) => {
+    console.log('Condition changed to:', value);
     updateFormData({ condition: value });
   };
 
@@ -72,7 +75,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
   const handlePayoffAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^\d.]/g, '');
     const numValue = parseFloat(value) || 0;
-    updateFormData({ payoffAmount: numValue });
+    updateFormData({ payoff_amount: numValue });
   };
 
   const handlePreviousOwnersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,7 +232,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
             <Input
               id="payoff_amount"
               type="text"
-              value={formData.payoffAmount ? formData.payoffAmount.toString() : ''}
+              value={formData.payoff_amount ? formData.payoff_amount.toString() : ''}
               onChange={handlePayoffAmountChange}
               placeholder="0.00"
               className="mt-1"
