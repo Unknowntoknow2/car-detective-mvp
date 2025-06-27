@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -21,12 +21,15 @@ import { FeaturesTab } from './tabs/FeaturesTab';
 interface TabbedFollowUpFormProps {
   formData: FollowUpAnswers;
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
-  onSubmit: () => void;
+  onSubmit: () => Promise<boolean>;
   onSave: () => void;
   isLoading?: boolean;
   isSaving?: boolean;
   saveError?: string | null;
   lastSaveTime?: Date | null;
+  isFormValid?: boolean;
+  currentTab: string;
+  onTabChange: (tabId: string) => void;
 }
 
 const tabs = [
@@ -96,23 +99,28 @@ export function TabbedFollowUpForm({
   isLoading = false,
   isSaving = false,
   saveError,
-  lastSaveTime
+  lastSaveTime,
+  isFormValid = false,
+  currentTab,
+  onTabChange
 }: TabbedFollowUpFormProps) {
-  const [activeTab, setActiveTab] = useState('basic');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Auto-save when form data changes
+  // Debounced auto-save that triggers after 2 seconds of inactivity
   useEffect(() => {
     if (formData && Object.keys(formData).length > 0) {
       const timeoutId = setTimeout(() => {
-        onSave();
-      }, 2000); // Auto-save after 2 seconds of inactivity
+        if (!isSaving && !isSubmitting) {
+          onSave();
+        }
+      }, 2000);
 
       return () => clearTimeout(timeoutId);
     }
-  }, [formData, onSave]);
+  }, [formData, onSave, isSaving, isSubmitting]);
 
   // Enhanced completion calculation
-  const getTabCompletion = (tabId: string): 'complete' | 'partial' | 'empty' => {
+  const getTabCompletion = useCallback((tabId: string): 'complete' | 'partial' | 'empty' => {
     switch (tabId) {
       case 'basic':
         const hasValidZip = Boolean(formData.zip_code && formData.zip_code.length === 5 && /^\d{5}$/.test(formData.zip_code));
@@ -148,29 +156,38 @@ export function TabbedFollowUpForm({
       default:
         return 'empty';
     }
-  };
+  }, [formData]);
 
   // Calculate overall progress
-  const requiredTabs = tabs.filter(tab => tab.required);
-  const optionalTabs = tabs.filter(tab => !tab.required);
-  
-  const completedRequired = requiredTabs.filter(tab => getTabCompletion(tab.id) === 'complete').length;
-  const partialRequired = requiredTabs.filter(tab => getTabCompletion(tab.id) === 'partial').length;
-  const completedOptional = optionalTabs.filter(tab => getTabCompletion(tab.id) === 'complete').length;
-  
-  // Required tabs count as 70%, optional as 30%
-  const requiredWeight = 0.7;
-  const optionalWeight = 0.3;
-  
-  const requiredProgress = ((completedRequired + (partialRequired * 0.5)) / requiredTabs.length) * requiredWeight;
-  const optionalProgress = (completedOptional / optionalTabs.length) * optionalWeight;
-  
-  const progressPercentage = Math.round((requiredProgress + optionalProgress) * 100);
+  const progressData = React.useMemo(() => {
+    const requiredTabs = tabs.filter(tab => tab.required);
+    const optionalTabs = tabs.filter(tab => !tab.required);
+    
+    const completedRequired = requiredTabs.filter(tab => getTabCompletion(tab.id) === 'complete').length;
+    const partialRequired = requiredTabs.filter(tab => getTabCompletion(tab.id) === 'partial').length;
+    const completedOptional = optionalTabs.filter(tab => getTabCompletion(tab.id) === 'complete').length;
+    
+    // Required tabs count as 70%, optional as 30%
+    const requiredWeight = 0.7;
+    const optionalWeight = 0.3;
+    
+    const requiredProgress = ((completedRequired + (partialRequired * 0.5)) / requiredTabs.length) * requiredWeight;
+    const optionalProgress = (completedOptional / optionalTabs.length) * optionalWeight;
+    
+    const progressPercentage = Math.round((requiredProgress + optionalProgress) * 100);
+    const canSubmit = completedRequired === requiredTabs.length && isFormValid;
 
-  // Can submit only if all required tabs are complete
-  const canSubmit = completedRequired === requiredTabs.length;
+    return {
+      progressPercentage,
+      canSubmit,
+      completedRequired,
+      completedOptional,
+      requiredTabs,
+      optionalTabs
+    };
+  }, [getTabCompletion, isFormValid]);
 
-  const getTabStatus = (tabId: string) => {
+  const getTabStatus = useCallback((tabId: string) => {
     const completion = getTabCompletion(tabId);
     const tab = tabs.find(t => t.id === tabId);
     
@@ -181,44 +198,55 @@ export function TabbedFollowUpForm({
     } else {
       return { color: 'text-gray-400', bg: 'bg-gray-100', icon: AlertCircle };
     }
-  };
+  }, [getTabCompletion]);
 
   // Navigation functions
-  const currentTabIndex = tabs.findIndex(tab => tab.id === activeTab);
+  const currentTabIndex = tabs.findIndex(tab => tab.id === currentTab);
   const isFirstTab = currentTabIndex === 0;
   const isLastTab = currentTabIndex === tabs.length - 1;
 
-  const goToPreviousTab = () => {
+  const goToPreviousTab = useCallback(() => {
     if (!isFirstTab) {
       const previousTab = tabs[currentTabIndex - 1];
-      setActiveTab(previousTab.id);
+      onTabChange(previousTab.id);
     }
-  };
+  }, [currentTabIndex, isFirstTab, onTabChange]);
 
-  const goToNextTab = () => {
+  const goToNextTab = useCallback(() => {
     if (!isLastTab) {
       const nextTab = tabs[currentTabIndex + 1];
-      setActiveTab(nextTab.id);
+      onTabChange(nextTab.id);
     }
-  };
+  }, [currentTabIndex, isLastTab, onTabChange]);
 
-  const skipToFinalTab = () => {
-    setActiveTab(tabs[tabs.length - 1].id);
+  const skipToFinalTab = useCallback(() => {
+    onTabChange(tabs[tabs.length - 1].id);
     toast.info('Skipped to final section. You can always come back to fill in more details.');
-  };
+  }, [onTabChange]);
 
-  const handleManualSave = () => {
+  const handleManualSave = useCallback(() => {
     onSave();
     toast.success('Progress saved successfully!');
-  };
+  }, [onSave]);
 
-  const handleSubmit = () => {
-    if (!canSubmit) {
+  const handleSubmit = useCallback(async () => {
+    if (!progressData.canSubmit) {
       toast.error('Please complete all required sections before submitting.');
       return;
     }
-    onSubmit();
-  };
+    
+    setIsSubmitting(true);
+    try {
+      const success = await onSubmit();
+      if (success) {
+        toast.success('Valuation completed successfully!');
+      }
+    } catch (error) {
+      toast.error('Failed to complete valuation. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [progressData.canSubmit, onSubmit]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -234,22 +262,22 @@ export function TabbedFollowUpForm({
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-blue-600">{progressPercentage}%</div>
+                <div className="text-2xl font-bold text-blue-600">{progressData.progressPercentage}%</div>
                 <div className="text-sm text-gray-500">Complete</div>
               </div>
             </div>
             
-            <Progress value={progressPercentage} className="h-2" />
+            <Progress value={progressData.progressPercentage} className="h-2" />
             
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1">
                   <CheckCircle className="w-4 h-4 text-green-600" />
-                  Required: {completedRequired}/{requiredTabs.length}
+                  Required: {progressData.completedRequired}/{progressData.requiredTabs.length}
                 </span>
                 <span className="flex items-center gap-1">
                   <Star className="w-4 h-4 text-yellow-600" />
-                  Optional: {completedOptional}/{optionalTabs.length}
+                  Optional: {progressData.completedOptional}/{progressData.optionalTabs.length}
                 </span>
               </div>
               
@@ -273,7 +301,7 @@ export function TabbedFollowUpForm({
       </Card>
 
       {/* Main Form */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={currentTab} onValueChange={onTabChange} className="space-y-6">
         <Card>
           <CardContent className="pt-6">
             <TabsList className="grid w-full grid-cols-7 gap-1">
@@ -373,14 +401,14 @@ export function TabbedFollowUpForm({
               ) : (
                 <Button
                   onClick={handleSubmit}
-                  disabled={!canSubmit || isLoading}
+                  disabled={!progressData.canSubmit || isSubmitting}
                   className={`flex items-center gap-2 ${
-                    canSubmit 
+                    progressData.canSubmit 
                       ? 'bg-green-600 hover:bg-green-700' 
                       : 'bg-gray-400 cursor-not-allowed'
                   }`}
                 >
-                  {isLoading ? (
+                  {isSubmitting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       Processing...
@@ -396,13 +424,13 @@ export function TabbedFollowUpForm({
             </div>
           </div>
           
-          {!canSubmit && isLastTab && (
+          {!progressData.canSubmit && isLastTab && (
             <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800">
                 <strong>Complete required sections:</strong> Please fill in all required fields in the Basic Info and Condition tabs to continue.
               </p>
               <div className="mt-2 text-xs text-yellow-700">
-                Missing: {requiredTabs.filter(tab => getTabCompletion(tab.id) !== 'complete').map(tab => tab.label).join(', ')}
+                Missing: {progressData.requiredTabs.filter(tab => getTabCompletion(tab.id) !== 'complete').map(tab => tab.label).join(', ')}
               </div>
             </div>
           )}
