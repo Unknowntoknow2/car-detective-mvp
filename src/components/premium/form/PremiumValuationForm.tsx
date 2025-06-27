@@ -4,7 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import MakeAndModelSelector from "@/components/lookup/form-parts/MakeAndModelSelector";
 import { ZipCodeInput } from "@/components/common/ZipCodeInput";
@@ -57,7 +58,7 @@ export function PremiumValuationForm() {
     },
   });
 
-  const { setValue } = form;
+  const { setValue, register } = form;
 
   const onSubmit = async (data: PremiumValuationFormData) => {
     setIsSubmitting(true);
@@ -89,40 +90,79 @@ export function PremiumValuationForm() {
         />
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Year</label>
-            <input 
-              type="number" 
-              {...form.register("year")}
-              className="w-full p-2 border rounded"
-              placeholder="2020"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Mileage</label>
-            <input 
-              type="number" 
-              {...form.register("mileage")}
-              className="w-full p-2 border rounded"
-              placeholder="50000"
-            />
-          </div>
-        </div>
-        
-        <ZipCodeInput
-          value={form.watch("zipCode") || ""}
-          onChange={(value) => setValue("zipCode", value)}
-        />
-        
-        <div>
-          <label className="block text-sm font-medium mb-2">VIN (Optional)</label>
-          <input 
-            type="text" 
-            {...form.register("vin")}
-            className="w-full p-2 border rounded"
-            placeholder="Enter VIN"
+          <FormField
+            control={form.control}
+            name="year"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Year</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="2020"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="mileage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mileage</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="50000"
+                    {...register("mileage", { valueAsNumber: true })}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
+        
+        <FormField
+          control={form.control}
+          name="zipCode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>ZIP Code</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  placeholder="Enter ZIP code"
+                  maxLength={5}
+                  {...register("zipCode", { required: "ZIP code is required" })}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="vin"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>VIN (Optional)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="text" 
+                  placeholder="Enter VIN"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
         <Button 
           type="submit" 
