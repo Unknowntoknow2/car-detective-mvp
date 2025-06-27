@@ -38,7 +38,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
     brake_condition: 'good',
     dashboard_lights: [],
     loan_balance: 0,
-    payoffAmount: 0,
+    payoffAmount: 0, // Keep this for form state
     modifications: {
       hasModifications: false,
       modified: false,
@@ -68,13 +68,16 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
         if (error && error.code !== 'PGRST116') {
           console.error('Error loading follow-up data:', error);
-          setSaveError('Failed to load existing data');
         } else if (data) {
-          setFormData(prev => ({ ...prev, ...data }));
+          // Map database fields to form fields
+          const mappedData = {
+            ...data,
+            payoffAmount: data.payoff_amount || 0 // Map database field to form field
+          };
+          setFormData(prev => ({ ...prev, ...mappedData }));
         }
       } catch (error) {
         console.error('Error loading follow-up data:', error);
-        setSaveError('Failed to load existing data');
       } finally {
         setIsLoading(false);
       }
@@ -83,7 +86,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
     loadData();
   }, [vin]);
 
-  // Silent auto-save function
+  // Silent auto-save function with proper field mapping
   const saveFormData = useCallback(async (dataToSave: FollowUpAnswers) => {
     try {
       setIsSaving(true);
@@ -100,44 +103,50 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       
       const completionPercentage = Math.round((completedRequired / requiredFields.length) * 100);
 
+      // Map form fields to database fields
       const saveData = {
         ...dataToSave,
+        payoff_amount: dataToSave.payoffAmount || 0, // Map form field to database field
         completion_percentage: completionPercentage,
         is_complete: completionPercentage === 100,
         updated_at: new Date().toISOString()
       };
 
+      // Remove the form-only field before saving
+      const { payoffAmount, ...dbData } = saveData;
+
       const { error } = await supabase
         .from('follow_up_answers')
-        .upsert(saveData, { onConflict: 'vin' });
+        .upsert(dbData, { onConflict: 'vin' });
 
       if (error) {
-        console.error('Save error:', error);
-        setSaveError('Failed to save progress');
+        console.error('Silent save error:', error);
+        setSaveError('Connection issue - will retry automatically');
         return false;
       }
 
       setLastSaveTime(new Date());
+      setSaveError(null);
       return true;
     } catch (error) {
-      console.error('Save error:', error);
-      setSaveError('Failed to save progress');
+      console.error('Silent save error:', error);
+      setSaveError('Connection issue - will retry automatically');
       return false;
     } finally {
       setIsSaving(false);
     }
   }, []);
 
-  // Debounced save (60 seconds)
+  // Auto-save with retry logic (every 10 seconds)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!isLoading && formData.vin) {
-        saveFormData(formData);
+    const timer = setInterval(async () => {
+      if (!isLoading && formData.vin && (saveError || !lastSaveTime || Date.now() - lastSaveTime.getTime() > 10000)) {
+        await saveFormData(formData);
       }
-    }, 60000);
+    }, 10000);
 
-    return () => clearTimeout(timer);
-  }, [formData, isLoading, saveFormData]);
+    return () => clearInterval(timer);
+  }, [formData, isLoading, saveFormData, saveError, lastSaveTime]);
 
   // Update form data function
   const updateFormData = useCallback((updates: Partial<FollowUpAnswers>) => {
