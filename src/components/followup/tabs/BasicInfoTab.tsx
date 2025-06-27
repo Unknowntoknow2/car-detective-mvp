@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface BasicInfoTabProps {
@@ -26,7 +27,7 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            📍 Location & Mileage
+            📍 Basic Information
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -64,6 +65,29 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
             />
             <p className="text-xs text-gray-500 mt-1">
               Used for local market analysis
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="condition" className="text-sm font-medium">
+              Overall Condition <span className="text-red-500">*</span>
+            </Label>
+            <Select 
+              value={formData.condition || ''} 
+              onValueChange={(value) => updateFormData({ condition: value })}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select condition" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="excellent">Excellent</SelectItem>
+                <SelectItem value="good">Good</SelectItem>
+                <SelectItem value="fair">Fair</SelectItem>
+                <SelectItem value="poor">Poor</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500 mt-1">
+              Select the overall condition of your vehicle
             </p>
           </div>
         </CardContent>
