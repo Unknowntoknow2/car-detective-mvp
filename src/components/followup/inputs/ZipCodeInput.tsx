@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
@@ -20,11 +20,11 @@ export function ZipCodeInput({
   required = false,
   className = ""
 }: ZipCodeInputProps) {
-  const [error, setError] = useState('');
+  const [error, setError] = React.useState('');
   const { useZipQuery } = useZipValidation();
   const zipQuery = useZipQuery(value);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (value && value.length === 5) {
       if (zipQuery.data?.isValid === false) {
         setError(zipQuery.data.error || 'Invalid ZIP code');
