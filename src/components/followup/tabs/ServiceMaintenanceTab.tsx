@@ -1,168 +1,330 @@
 
-import React from 'react';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { FollowUpAnswers, ServiceHistoryDetails } from '@/types/follow-up-answers';
-import { Wrench, Calendar, Star } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Plus, Trash2, Wrench, Calendar, FileText } from 'lucide-react';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface ServiceMaintenanceTabProps {
   formData: FollowUpAnswers;
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
 }
 
+const serviceTypes = [
+  'Oil Change',
+  'Brake Service',
+  'Tire Rotation/Replacement',
+  'Transmission Service',
+  'Engine Service',
+  'Electrical Repair',
+  'AC/Heating Service',
+  'Battery Replacement',
+  'Suspension Work',
+  'Exhaust Repair',
+  'Other'
+];
+
 export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaintenanceTabProps) {
-  // Convert string to object if needed, or use default
-  const getServiceData = (): ServiceHistoryDetails => {
-    if (typeof formData.serviceHistory === 'object' && formData.serviceHistory !== null) {
-      return formData.serviceHistory;
+  const [newService, setNewService] = useState({
+    type: '',
+    date: '',
+    mileage: '',
+    description: ''
+  });
+
+  const handleServiceRecordsChange = (value: string) => {
+    const hasRecords = value === 'yes';
+    updateFormData({
+      serviceHistory: {
+        ...formData.serviceHistory,
+        hasRecords,
+        services: hasRecords ? (formData.serviceHistory?.services || []) : []
+      }
+    });
+  };
+
+  const handleMaintenanceFrequencyChange = (value: string) => {
+    updateFormData({
+      serviceHistory: {
+        ...formData.serviceHistory,
+        frequency: value as any,
+        hasRecords: formData.serviceHistory?.hasRecords || false,
+        dealerMaintained: formData.serviceHistory?.dealerMaintained || false,
+        description: formData.serviceHistory?.description || '',
+        services: formData.serviceHistory?.services || []
+      }
+    });
+  };
+
+  const handleDealerMaintenanceChange = (value: string) => {
+    updateFormData({
+      serviceHistory: {
+        ...formData.serviceHistory,
+        dealerMaintained: value === 'yes',
+        hasRecords: formData.serviceHistory?.hasRecords || false,
+        frequency: formData.serviceHistory?.frequency || 'unknown',
+        description: formData.serviceHistory?.description || '',
+        services: formData.serviceHistory?.services || []
+      }
+    });
+  };
+
+  const addService = () => {
+    if (newService.type && newService.date) {
+      const services = formData.serviceHistory?.services || [];
+      updateFormData({
+        serviceHistory: {
+          ...formData.serviceHistory,
+          services: [...services, { ...newService }],
+          hasRecords: formData.serviceHistory?.hasRecords || false,
+          frequency: formData.serviceHistory?.frequency || 'unknown',
+          dealerMaintained: formData.serviceHistory?.dealerMaintained || false,
+          description: formData.serviceHistory?.description || ''
+        }
+      });
+      setNewService({ type: '', date: '', mileage: '', description: '' });
     }
-    return {
-      hasRecords: false,
-      lastService: '',
-      frequency: 'unknown',
-      dealerMaintained: false,
-      description: '',
-      services: []
-    };
   };
 
-  const serviceData = getServiceData();
-  const hasRecords = serviceData.hasRecords;
-
-  const handleServiceToggle = (checked: boolean) => {
-    const updatedData: ServiceHistoryDetails = {
-      ...serviceData,
-      hasRecords: checked,
-      ...(checked ? {} : {
-        lastService: '',
-        frequency: 'unknown',
-        dealerMaintained: false,
-        description: '',
-        services: []
-      })
-    };
-    updateFormData({ serviceHistory: updatedData });
-  };
-
-  const handleFieldChange = (field: keyof ServiceHistoryDetails, value: any) => {
-    const updatedData: ServiceHistoryDetails = {
-      ...serviceData,
-      [field]: value
-    };
-    updateFormData({ serviceHistory: updatedData });
-  };
-
-  const handleMaintenanceChange = (checked: boolean, serviceType: string) => {
-    const currentServices = serviceData.services || [];
-    let updatedServices;
-
-    if (checked) {
-      // Add new service object
-      const newService = {
-        type: serviceType,
-        date: new Date().toISOString().split('T')[0],
-        mileage: '',
-        description: ''
-      };
-      updatedServices = [...currentServices, newService];
-    } else {
-      // Remove service by type
-      updatedServices = currentServices.filter((service) => service.type !== serviceType);
-    }
-
-    const updatedData: ServiceHistoryDetails = {
-      ...serviceData,
-      hasRecords: true,
-      services: updatedServices
-    };
-
-    updateFormData({ serviceHistory: updatedData });
+  const removeService = (index: number) => {
+    const services = formData.serviceHistory?.services || [];
+    const updatedServices = services.filter((_, i) => i !== index);
+    updateFormData({
+      serviceHistory: {
+        ...formData.serviceHistory,
+        services: updatedServices,
+        hasRecords: formData.serviceHistory?.hasRecords || false,
+        frequency: formData.serviceHistory?.frequency || 'unknown',
+        dealerMaintained: formData.serviceHistory?.dealerMaintained || false,
+        description: formData.serviceHistory?.description || ''
+      }
+    });
   };
 
   return (
-    <div className="space-y-4">
-      <div className="p-3 rounded-lg border bg-blue-50 border-blue-200">
-        <div className="flex items-center gap-2 mb-3">
-          <Wrench className="h-4 w-4 text-blue-600" />
-          <h3 className="font-medium text-sm">Service & Maintenance History</h3>
-        </div>
-        
-        <div className="flex items-center space-x-2 mb-3">
-          <Switch
-            id="service-records-toggle"
-            checked={hasRecords}
-            onCheckedChange={handleServiceToggle}
-          />
-          <Label htmlFor="service-records-toggle" className="text-xs font-medium">
-            Do you have service records for this vehicle?
-          </Label>
-        </div>
+    <div className="space-y-6">
+      {/* Service Records Available */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            Service Records Available
+          </CardTitle>
+          <p className="text-sm text-gray-600">
+            Do you have maintenance and service records for this vehicle?
+          </p>
+        </CardHeader>
+        <CardContent>
+          <RadioGroup
+            value={formData.serviceHistory?.hasRecords ? 'yes' : 'no'}
+            onValueChange={handleServiceRecordsChange}
+            className="grid grid-cols-2 gap-4"
+          >
+            <div className="flex items-center space-x-2 border rounded-lg p-4">
+              <RadioGroupItem value="yes" id="records-yes" />
+              <Label htmlFor="records-yes" className="cursor-pointer">
+                <div>
+                  <div className="font-medium">Yes, I have service records</div>
+                  <div className="text-sm text-gray-500">Complete maintenance history available</div>
+                </div>
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2 border rounded-lg p-4">
+              <RadioGroupItem value="no" id="records-no" />
+              <Label htmlFor="records-no" className="cursor-pointer">
+                <div>
+                  <div className="font-medium">No records available</div>
+                  <div className="text-sm text-gray-500">Limited or no service documentation</div>
+                </div>
+              </Label>
+            </div>
+          </RadioGroup>
+        </CardContent>
+      </Card>
 
-        {hasRecords && (
-          <div className="space-y-3 p-2 bg-white rounded-md border border-blue-200">
-            <div className="grid grid-cols-2 gap-3">
+      {/* Maintenance Pattern */}
+      {formData.serviceHistory?.hasRecords && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Maintenance Pattern
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="last-service" className="text-xs font-medium text-gray-700 flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  Last Service Date
-                </Label>
-                <Input
-                  id="last-service"
-                  type="date"
-                  value={serviceData.lastService || ''}
-                  onChange={(e) => handleFieldChange('lastService', e.target.value)}
-                  className="mt-1 h-8 text-xs"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="service-frequency" className="text-xs font-medium text-gray-700">Service Frequency</Label>
-                <Select
-                  value={serviceData.frequency || ''}
-                  onValueChange={(value: 'regular' | 'occasional' | 'rare' | 'unknown') => handleFieldChange('frequency', value)}
+                <Label className="text-sm font-medium mb-3 block">Maintenance Frequency</Label>
+                <Select 
+                  value={formData.serviceHistory?.frequency || 'unknown'} 
+                  onValueChange={handleMaintenanceFrequencyChange}
                 >
-                  <SelectTrigger className="mt-1 h-8 text-xs">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select frequency" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="regular">Regular (Every 3-6 months)</SelectItem>
-                    <SelectItem value="occasional">Occasional (6-12 months)</SelectItem>
-                    <SelectItem value="rare">Rare (12+ months)</SelectItem>
+                    <SelectItem value="regular">Regular - On schedule</SelectItem>
+                    <SelectItem value="occasional">Occasional - Some delays</SelectItem>
+                    <SelectItem value="rare">Rare - Minimal maintenance</SelectItem>
                     <SelectItem value="unknown">Unknown</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            </div>
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="dealer-maintained-toggle"
-                checked={serviceData.dealerMaintained || false}
-                onCheckedChange={(checked: boolean) => handleFieldChange('dealerMaintained', checked)}
-              />
-              <Label htmlFor="dealer-maintained-toggle" className="text-xs font-medium flex items-center gap-1">
-                <Star className="h-3 w-3" />
-                Dealer Maintained
-              </Label>
-            </div>
+              <div>
+                <Label className="text-sm font-medium mb-3 block">Dealer Maintained</Label>
+                <RadioGroup
+                  value={formData.serviceHistory?.dealerMaintained ? 'yes' : 'no'}
+                  onValueChange={handleDealerMaintenanceChange}
+                  className="flex space-x-6"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="yes" id="dealer-yes" />
+                    <Label htmlFor="dealer-yes">Primarily serviced at authorized dealers</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="no" id="dealer-no" />
+                    <Label htmlFor="dealer-no">Independent shops or DIY</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </CardContent>
+          </Card>
 
-            <div>
-              <Label htmlFor="service-description" className="text-xs font-medium text-gray-700">Service History Details</Label>
+          {/* Service History */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Wrench className="w-5 h-5" />
+                Service History
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                Add specific service and maintenance records
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Add Service Form */}
+              <div className="border rounded-lg p-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="service-type">Service Type</Label>
+                    <Select 
+                      value={newService.type} 
+                      onValueChange={(value) => setNewService(prev => ({ ...prev, type: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select service" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {serviceTypes.map((type) => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="service-date">Service Date</Label>
+                    <Input
+                      id="service-date"
+                      type="date"
+                      value={newService.date}
+                      onChange={(e) => setNewService(prev => ({ ...prev, date: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="service-mileage">Mileage</Label>
+                  <Input
+                    id="service-mileage"
+                    type="number"
+                    placeholder="Miles"
+                    value={newService.mileage}
+                    onChange={(e) => setNewService(prev => ({ ...prev, mileage: e.target.value }))}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="service-description">Description (Optional)</Label>
+                  <Textarea
+                    id="service-description"
+                    placeholder="Additional details about the service"
+                    value={newService.description}
+                    onChange={(e) => setNewService(prev => ({ ...prev, description: e.target.value }))}
+                    rows={2}
+                  />
+                </div>
+                
+                <Button onClick={addService} className="w-full">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Service
+                </Button>
+              </div>
+
+              {/* Service List */}
+              {formData.serviceHistory?.services && formData.serviceHistory.services.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-medium">Recorded Services</h4>
+                  {formData.serviceHistory.services.map((service, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="font-medium">{service.type}</div>
+                        <div className="text-sm text-gray-600">
+                          {service.date} {service.mileage && `• ${service.mileage} miles`}
+                        </div>
+                        {service.description && (
+                          <div className="text-sm text-gray-500 mt-1">{service.description}</div>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeService(index)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Additional Service Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Additional Service Information</CardTitle>
+              <p className="text-sm text-gray-600">
+                Provide any additional details about the vehicle's maintenance history
+              </p>
+            </CardHeader>
+            <CardContent>
               <Textarea
-                id="service-description"
-                value={serviceData.description || ''}
-                onChange={(e) => handleFieldChange('description', e.target.value)}
-                placeholder="Describe the service history, major repairs, maintenance schedules..."
-                rows={2}
-                className="mt-1 text-xs"
+                placeholder="Include information about: warranty coverage, extended service plans, recalls completed, major component replacements, preventive maintenance schedules, etc."
+                value={formData.serviceHistory?.description || ''}
+                onChange={(e) => updateFormData({
+                  serviceHistory: {
+                    ...formData.serviceHistory,
+                    description: e.target.value,
+                    hasRecords: formData.serviceHistory?.hasRecords || false,
+                    frequency: formData.serviceHistory?.frequency || 'unknown',
+                    dealerMaintained: formData.serviceHistory?.dealerMaintained || false,
+                    services: formData.serviceHistory?.services || []
+                  }
+                })}
+                rows={4}
+                className="w-full"
               />
-            </div>
-          </div>
-        )}
-      </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
