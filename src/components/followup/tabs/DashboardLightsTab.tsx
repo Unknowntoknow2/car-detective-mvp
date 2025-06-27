@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Car, Zap, Thermometer, Disc, Shield, Info } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 
 interface DashboardLightsTabProps {
   formData: any;
@@ -102,7 +103,13 @@ const dashboardLights = [
 ];
 
 export function DashboardLightsTab({ formData, updateFormData }: DashboardLightsTabProps) {
-  const dashboardLightsList = Array.isArray(formData.dashboard_lights) ? formData.dashboard_lights : [];
+  const { setValue, watch } = useForm({
+    defaultValues: {
+      dashboard_lights: Array.isArray(formData.dashboard_lights) ? formData.dashboard_lights : []
+    }
+  });
+
+  const dashboardLightsList = watch('dashboard_lights') || [];
 
   const handleLightChange = (lightValue: string, checked: boolean) => {
     let updatedLights: string[];
@@ -117,6 +124,7 @@ export function DashboardLightsTab({ formData, updateFormData }: DashboardLights
       updatedLights = dashboardLightsList.filter((light: string) => light !== lightValue);
     }
 
+    setValue('dashboard_lights', updatedLights);
     updateFormData({ dashboard_lights: updatedLights });
   };
 
@@ -177,9 +185,8 @@ export function DashboardLightsTab({ formData, updateFormData }: DashboardLights
                           <Checkbox
                             id={light.value}
                             checked={isChecked}
-                            onCheckedChange={(checked) => handleLightChange(light.value, checked === true)}
-                            className="mt-1"
-                            onClick={(e) => e.stopPropagation()}
+                            readOnly
+                            className="mt-1 pointer-events-none"
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-2">
@@ -187,16 +194,16 @@ export function DashboardLightsTab({ formData, updateFormData }: DashboardLights
                                 <IconComponent className={`w-4 h-4 ${category.color}`} />
                                 <Label 
                                   htmlFor={light.value} 
-                                  className="cursor-pointer font-medium"
+                                  className="font-medium pointer-events-none"
                                 >
                                   {light.label}
                                 </Label>
                               </div>
-                              <Badge variant={getSeverityBadge(light.severity)} className="text-xs">
+                              <Badge variant={getSeverityBadge(light.severity)} className="text-xs pointer-events-none">
                                 {light.severity.toUpperCase()}
                               </Badge>
                             </div>
-                            <p className="text-xs text-gray-600">
+                            <p className="text-xs text-gray-600 pointer-events-none">
                               {light.description}
                             </p>
                           </div>
