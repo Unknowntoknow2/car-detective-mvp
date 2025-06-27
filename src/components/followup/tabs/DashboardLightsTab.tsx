@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -185,7 +184,6 @@ export function DashboardLightsTab({ formData, updateFormData }: DashboardLights
                           <Checkbox
                             id={light.value}
                             checked={isChecked}
-                            readOnly
                             className="mt-1 pointer-events-none"
                           />
                           <div className="flex-1 min-w-0">
