@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +9,6 @@ import { PremiumPdfSection } from '@/components/valuation/PremiumPdfSection';
 import { TabbedFollowUpForm } from '@/components/followup/TabbedFollowUpForm';
 import { Loader2, Car, MapPin, Gauge, Star } from 'lucide-react';
 import { toast } from 'sonner';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 export default function ResultsPage() {
   const { id } = useParams<{ id: string }>();
@@ -17,49 +17,6 @@ export default function ResultsPage() {
   const [valuationData, setValuationData] = useState<any>(null);
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [currentTab, setCurrentTab] = useState('basic');
-  const [followUpData, setFollowUpData] = useState<FollowUpAnswers>({
-    vin: '',
-    mileage: 0,
-    condition: 'good',
-    zip_code: '',
-    title_status: 'clean',
-    transmission: 'automatic',
-    previous_use: 'personal',
-    previous_owners: 1,
-    tire_condition: 'good',
-    exterior_condition: 'good',
-    interior_condition: 'good',
-    brake_condition: 'good',
-    dashboard_lights: [],
-    loan_balance: 0,
-    payoffAmount: 0,
-    accidents: {
-      hadAccident: false,
-      count: 0,
-      severity: 'minor',
-      repaired: false,
-      frameDamage: false
-    },
-    modifications: {
-      hasModifications: false,
-      modified: false,
-      types: [],
-      reversible: true
-    },
-    serviceHistory: {
-      hasRecords: false,
-      frequency: 'unknown',
-      dealerMaintained: false,
-      description: '',
-      services: []
-    },
-    features: [],
-    additional_notes: '',
-    completion_percentage: 0,
-    is_complete: false,
-    vehicleConfirmed: false
-  });
 
   useEffect(() => {
     const loadValuationData = async () => {
@@ -115,17 +72,6 @@ export default function ResultsPage() {
         console.log('✅ Setting valuation data');
         setValuationData(data);
         
-        // Initialize follow-up data with valuation data
-        const initialFollowUpData = {
-          ...followUpData,
-          vin: data.vin || '',
-          mileage: data.mileage || 50000,
-          condition: data.condition || 'good',
-          zip_code: data.zip_code || '90210'
-        };
-        
-        setFollowUpData(initialFollowUpData);
-        
         // Determine if follow-up is needed based on valuation type and data completeness
         const shouldShowFollowUp = (
           data.vin && // Has VIN (indicates VIN lookup)
@@ -151,18 +97,8 @@ export default function ResultsPage() {
     loadValuationData();
   }, [id, searchParams, getValuationById]);
 
-  const updateFollowUpData = (updates: Partial<FollowUpAnswers>) => {
-    setFollowUpData((prev: FollowUpAnswers) => ({ ...prev, ...updates }));
-  };
-
   const handleFollowUpSubmit = async (): Promise<boolean> => {
     try {
-      setValuationData((prev: any) => ({
-        ...prev,
-        mileage: followUpData.mileage || prev.mileage,
-        condition: followUpData.condition || prev.condition,
-        zip_code: followUpData.zip_code || prev.zip_code,
-      }));
       setShowFollowUp(false);
       toast.success('Vehicle details updated successfully!');
       return true;
@@ -171,14 +107,6 @@ export default function ResultsPage() {
       toast.error('Failed to update vehicle details');
       return false;
     }
-  };
-
-  const handleFollowUpSave = () => {
-    toast.success('Progress saved!');
-  };
-
-  const handleTabChange = (tabId: string) => {
-    setCurrentTab(tabId);
   };
 
   const getValuationType = (data: any) => {
@@ -315,13 +243,13 @@ export default function ResultsPage() {
           </CardHeader>
           <CardContent>
             <TabbedFollowUpForm
-              formData={followUpData}
-              updateFormData={updateFollowUpData}
+              vehicleData={{
+                vin: valuationData.vin || '',
+                year: valuationData.year,
+                make: valuationData.make,
+                model: valuationData.model
+              }}
               onSubmit={handleFollowUpSubmit}
-              onSave={handleFollowUpSave}
-              isLoading={false}
-              currentTab={currentTab}
-              onTabChange={handleTabChange}
             />
           </CardContent>
         </Card>
