@@ -154,7 +154,7 @@ export default function ResultsPage() {
     setFollowUpData((prev: FollowUpAnswers) => ({ ...prev, ...updates }));
   };
 
-  const handleFollowUpSubmit = async () => {
+  const handleFollowUpSubmit = async (): Promise<boolean> => {
     try {
       setValuationData((prev: any) => ({
         ...prev,
@@ -164,9 +164,11 @@ export default function ResultsPage() {
       }));
       setShowFollowUp(false);
       toast.success('Vehicle details updated successfully!');
+      return true;
     } catch (error) {
       console.error('❌ Error updating valuation:', error);
       toast.error('Failed to update vehicle details');
+      return false;
     }
   };
 
