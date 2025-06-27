@@ -17,11 +17,28 @@ export function useFollowUpAutoSave({
   setLastSaveTime
 }: UseFollowUpAutoSaveProps) {
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const isSavingRef = useRef(false);
 
   const saveFormData = useCallback(async (dataToSave: FollowUpAnswers): Promise<boolean> => {
+    // Prevent concurrent saves
+    if (isSavingRef.current) {
+      console.log('Save already in progress, skipping...');
+      return false;
+    }
+
     try {
+      isSavingRef.current = true;
       setIsSaving(true);
       setSaveError(null);
+
+      // Cancel any previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      // Create new abort controller for this request
+      abortControllerRef.current = new AbortController();
 
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -37,6 +54,12 @@ export function useFollowUpAutoSave({
           onConflict: 'vin,user_id'
         });
 
+      // Check if request was aborted
+      if (abortControllerRef.current?.signal.aborted) {
+        console.log('Save request was cancelled');
+        return false;
+      }
+
       if (error) {
         console.error('Save error:', error);
         setSaveError(error.message);
@@ -46,22 +69,41 @@ export function useFollowUpAutoSave({
       setLastSaveTime(new Date());
       return true;
     } catch (error) {
+      // Don't log error if it was an abort
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Save request was aborted');
+        return false;
+      }
+      
       console.error('Save error:', error);
       setSaveError(error instanceof Error ? error.message : 'Unknown error');
       return false;
     } finally {
+      isSavingRef.current = false;
       setIsSaving(false);
+      // Clear the abort controller reference once done
+      if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
+        abortControllerRef.current = null;
+      }
     }
   }, [setSaveError, setIsSaving, setLastSaveTime]);
 
   const debouncedSave = useCallback((dataToSave: FollowUpAnswers) => {
+    // Cancel any existing timeout
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
 
+    // Cancel any in-flight save request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    // Set new timeout with stable 500ms delay
     saveTimeoutRef.current = setTimeout(() => {
       saveFormData(dataToSave);
-    }, 1000);
+    }, 500);
   }, [saveFormData]);
 
   return {
