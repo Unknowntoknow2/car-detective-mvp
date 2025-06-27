@@ -119,13 +119,17 @@ export function TabbedFollowUpForm({
     }
   }, [formData, onSave, isSaving, isSubmitting]);
 
-  // Enhanced completion calculation
+  // Enhanced completion calculation with proper validation
   const getTabCompletion = useCallback((tabId: string): 'complete' | 'partial' | 'empty' => {
+    console.log('🔍 Checking completion for tab:', tabId, 'with data:', formData);
+    
     switch (tabId) {
       case 'basic':
         const hasValidZip = Boolean(formData.zip_code && formData.zip_code.length === 5 && /^\d{5}$/.test(formData.zip_code));
         const hasValidMileage = Boolean(formData.mileage && formData.mileage > 0);
         const hasCondition = Boolean(formData.condition);
+        
+        console.log('📊 Basic tab validation:', { hasValidZip, hasValidMileage, hasCondition, zip: formData.zip_code, mileage: formData.mileage, condition: formData.condition });
         
         return (hasValidZip && hasValidMileage && hasCondition) ? 'complete' : 'empty';
         
@@ -136,6 +140,14 @@ export function TabbedFollowUpForm({
           formData.interior_condition && 
           formData.brake_condition
         );
+        
+        console.log('🚗 Condition tab validation:', { hasAllConditions, conditions: {
+          tire: formData.tire_condition,
+          exterior: formData.exterior_condition,
+          interior: formData.interior_condition,
+          brake: formData.brake_condition
+        }});
+        
         return hasAllConditions ? 'complete' : 'partial';
         
       case 'issues':
@@ -158,7 +170,7 @@ export function TabbedFollowUpForm({
     }
   }, [formData]);
 
-  // Calculate overall progress
+  // Calculate overall progress with detailed logging
   const progressData = React.useMemo(() => {
     const requiredTabs = tabs.filter(tab => tab.required);
     const optionalTabs = tabs.filter(tab => !tab.required);
@@ -175,7 +187,23 @@ export function TabbedFollowUpForm({
     const optionalProgress = (completedOptional / optionalTabs.length) * optionalWeight;
     
     const progressPercentage = Math.round((requiredProgress + optionalProgress) * 100);
-    const canSubmit = completedRequired === requiredTabs.length && isFormValid;
+    
+    // Enhanced canSubmit logic - only require basic info to be complete
+    const basicTabComplete = getTabCompletion('basic') === 'complete';
+    const canSubmit = basicTabComplete;
+
+    console.log('🎯 Progress calculation:', {
+      completedRequired,
+      requiredTabs: requiredTabs.length,
+      basicTabComplete,
+      canSubmit,
+      progressPercentage,
+      formData: {
+        zip: formData.zip_code,
+        mileage: formData.mileage,
+        condition: formData.condition
+      }
+    });
 
     return {
       progressPercentage,
@@ -185,7 +213,7 @@ export function TabbedFollowUpForm({
       requiredTabs,
       optionalTabs
     };
-  }, [getTabCompletion, isFormValid]);
+  }, [getTabCompletion, formData]);
 
   const getTabStatus = useCallback((tabId: string) => {
     const completion = getTabCompletion(tabId);
@@ -230,8 +258,18 @@ export function TabbedFollowUpForm({
   }, [onSave]);
 
   const handleSubmit = useCallback(async () => {
+    console.log('🚀 Submit button clicked:', { 
+      canSubmit: progressData.canSubmit, 
+      isSubmitting,
+      formData: {
+        zip: formData.zip_code,
+        mileage: formData.mileage,
+        condition: formData.condition
+      }
+    });
+    
     if (!progressData.canSubmit) {
-      toast.error('Please complete all required sections before submitting.');
+      toast.error('Please complete the Basic Info section with ZIP code, mileage, and condition.');
       return;
     }
     
@@ -242,11 +280,12 @@ export function TabbedFollowUpForm({
         toast.success('Valuation completed successfully!');
       }
     } catch (error) {
+      console.error('❌ Submit error:', error);
       toast.error('Failed to complete valuation. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
-  }, [progressData.canSubmit, onSubmit]);
+  }, [progressData.canSubmit, onSubmit, formData, isSubmitting]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -427,10 +466,10 @@ export function TabbedFollowUpForm({
           {!progressData.canSubmit && isLastTab && (
             <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800">
-                <strong>Complete required sections:</strong> Please fill in all required fields in the Basic Info and Condition tabs to continue.
+                <strong>Complete Basic Info:</strong> Please fill in ZIP code, mileage, and condition to enable the Complete Valuation button.
               </p>
               <div className="mt-2 text-xs text-yellow-700">
-                Missing: {progressData.requiredTabs.filter(tab => getTabCompletion(tab.id) !== 'complete').map(tab => tab.label).join(', ')}
+                Missing fields: {!formData.zip_code && 'ZIP Code'} {!formData.mileage && 'Mileage'} {!formData.condition && 'Condition'}
               </div>
             </div>
           )}
