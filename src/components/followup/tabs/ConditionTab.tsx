@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
+import { ConditionSelector } from '../inputs/ConditionSelector';
 
 interface ConditionTabProps {
   formData: FollowUpAnswers;
@@ -171,6 +172,7 @@ const conditionCategories = [
 
 export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
   const handleConditionChange = (key: keyof FollowUpAnswers, value: string) => {
+    console.log(`Condition change: ${String(key)} = ${value}`);
     updateFormData({ [key]: value });
   };
 
@@ -200,41 +202,12 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
               <p className="text-sm text-gray-600">{category.subtitle}</p>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-3">
-                {category.options.map((option) => {
-                  const isSelected = currentValue === option.value;
-                  
-                  return (
-                    <div
-                      key={option.value}
-                      onClick={() => handleConditionChange(category.key, option.value)}
-                      className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
-                        isSelected
-                          ? `${option.color} ring-2 ring-opacity-50 ring-current`
-                          : 'bg-white border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                            isSelected 
-                              ? 'bg-current border-current' 
-                              : 'border-gray-400'
-                          }`}>
-                            {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
-                          </div>
-                          <span className="font-medium text-sm">{option.label}</span>
-                        </div>
-                        <Badge variant={getBadgeVariant(option.value)} className="text-xs">
-                          {option.impact}
-                        </Badge>
-                      </div>
-                      <div className="text-xs text-gray-600 mb-2 font-medium">{option.description}</div>
-                      <div className="text-xs text-gray-500 leading-relaxed">{option.details}</div>
-                    </div>
-                  );
-                })}
-              </div>
+              <ConditionSelector
+                options={category.options}
+                value={currentValue}
+                onChange={(value) => handleConditionChange(category.key, value)}
+                title=""
+              />
             </CardContent>
           </Card>
         );

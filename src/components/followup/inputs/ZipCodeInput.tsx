@@ -1,0 +1,93 @@
+
+import React, { useState, useEffect } from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import { useZipValidation } from '@/hooks/useZipValidation';
+
+interface ZipCodeInputProps {
+  value: string;
+  onChange: (value: string) => void;
+  label?: string;
+  required?: boolean;
+  className?: string;
+}
+
+export function ZipCodeInput({ 
+  value, 
+  onChange, 
+  label = "ZIP Code", 
+  required = false,
+  className = ""
+}: ZipCodeInputProps) {
+  const [error, setError] = useState('');
+  const { useZipQuery } = useZipValidation();
+  const zipQuery = useZipQuery(value);
+
+  useEffect(() => {
+    if (value && value.length === 5) {
+      if (zipQuery.data?.isValid === false) {
+        setError(zipQuery.data.error || 'Invalid ZIP code');
+      } else if (zipQuery.data?.isValid === true) {
+        setError('');
+      }
+    } else if (value && value.length > 0 && value.length < 5) {
+      setError('ZIP code must be 5 digits');
+    } else {
+      setError('');
+    }
+  }, [zipQuery.data, value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value.replace(/[^\d]/g, '').slice(0, 5);
+    onChange(inputValue);
+  };
+
+  const isValid = value.length === 5 && zipQuery.data?.isValid === true;
+  const isLoading = zipQuery.isLoading && value.length === 5;
+
+  return (
+    <div className={className}>
+      <Label htmlFor="zip_code" className="text-sm font-medium">
+        {label} {required && <span className="text-red-500">*</span>}
+      </Label>
+      <div className="relative mt-1">
+        <Input
+          id="zip_code"
+          type="text"
+          value={value}
+          onChange={handleChange}
+          placeholder="Enter ZIP code"
+          className={`pr-10 ${
+            error ? 'border-red-500 focus:border-red-500' : 
+            isValid ? 'border-green-500 focus:border-green-500' : 
+            'border-gray-300'
+          }`}
+          required={required}
+          maxLength={5}
+        />
+        {isLoading && (
+          <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 animate-spin text-blue-600" />
+        )}
+        {isValid && !isLoading && (
+          <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-green-500" />
+        )}
+        {error && !isLoading && (
+          <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-red-500" />
+        )}
+      </div>
+      {error && (
+        <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
+          <AlertCircle className="w-3 h-3" />
+          {error}
+        </p>
+      )}
+      {isValid && zipQuery.data?.location && (
+        <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
+          <CheckCircle className="w-3 h-3" />
+          {zipQuery.data.location['place name']}, {zipQuery.data.location['state abbreviation']}
+        </p>
+      )}
+    </div>
+  );
+}

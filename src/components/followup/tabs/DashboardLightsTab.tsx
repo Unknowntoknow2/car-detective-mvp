@@ -110,8 +110,14 @@ export function DashboardLightsTab({ formData, updateFormData }: DashboardLights
     let updatedLights: string[];
 
     if (checked) {
-      updatedLights = [...dashboardLightsList, lightValue];
+      // Add the light if it's not already in the list
+      if (!dashboardLightsList.includes(lightValue)) {
+        updatedLights = [...dashboardLightsList, lightValue];
+      } else {
+        updatedLights = dashboardLightsList;
+      }
     } else {
+      // Remove the light from the list
       updatedLights = dashboardLightsList.filter((light: string) => light !== lightValue);
     }
 
@@ -165,18 +171,19 @@ export function DashboardLightsTab({ formData, updateFormData }: DashboardLights
                     return (
                       <div
                         key={light.value}
-                        className={`border rounded-lg p-4 transition-all duration-200 ${
+                        className={`border rounded-lg p-4 transition-all duration-200 cursor-pointer ${
                           isChecked 
                             ? `${getSeverityColor(light.severity)} ring-2 ring-blue-200` 
                             : 'bg-white border-gray-200 hover:bg-gray-50'
                         }`}
+                        onClick={() => handleLightChange(light.value, !isChecked)}
                       >
                         <div className="flex items-start space-x-3">
                           <Checkbox
                             id={light.value}
                             checked={isChecked}
                             onCheckedChange={(checked) => {
-                              console.log('Checkbox changed:', light.value, checked);
+                              console.log('Checkbox onCheckedChange:', light.value, checked);
                               handleLightChange(light.value, checked === true);
                             }}
                             className="mt-1"
@@ -188,7 +195,6 @@ export function DashboardLightsTab({ formData, updateFormData }: DashboardLights
                                 <Label 
                                   htmlFor={light.value} 
                                   className="cursor-pointer font-medium"
-                                  onClick={() => handleLightChange(light.value, !isChecked)}
                                 >
                                   {light.label}
                                 </Label>

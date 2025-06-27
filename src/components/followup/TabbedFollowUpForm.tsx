@@ -99,16 +99,16 @@ export function TabbedFollowUpForm({
 }: TabbedFollowUpFormProps) {
   const [activeTab, setActiveTab] = useState('basic');
 
-  // Enhanced completion calculation with proper validation
+  // Enhanced completion calculation
   const getTabCompletion = (tabId: string): 'complete' | 'partial' | 'empty' => {
     switch (tabId) {
       case 'basic':
-        const hasZip = Boolean(formData.zip_code && formData.zip_code.length === 5 && /^\d{5}$/.test(formData.zip_code));
-        const hasMileage = Boolean(formData.mileage && formData.mileage > 0);
+        const hasValidZip = Boolean(formData.zip_code && formData.zip_code.length === 5 && /^\d{5}$/.test(formData.zip_code));
+        const hasValidMileage = Boolean(formData.mileage && formData.mileage > 0);
         const hasCondition = Boolean(formData.condition);
         
-        console.log('Basic tab validation:', { hasZip, hasMileage, hasCondition });
-        return (hasZip && hasMileage && hasCondition) ? 'complete' : 'empty';
+        console.log('Basic tab completion check:', { hasValidZip, hasValidMileage, hasCondition, zip: formData.zip_code, mileage: formData.mileage, condition: formData.condition });
+        return (hasValidZip && hasValidMileage && hasCondition) ? 'complete' : 'empty';
         
       case 'condition':
         const hasAllConditions = Boolean(
@@ -117,16 +117,17 @@ export function TabbedFollowUpForm({
           formData.interior_condition && 
           formData.brake_condition
         );
-        console.log('Condition tab validation:', { 
+        console.log('Condition tab completion:', { 
           tire: formData.tire_condition, 
           exterior: formData.exterior_condition, 
           interior: formData.interior_condition, 
-          brake: formData.brake_condition 
+          brake: formData.brake_condition,
+          complete: hasAllConditions
         });
         return hasAllConditions ? 'complete' : 'partial';
         
       case 'issues':
-        // Dashboard lights tab is always optional, so it's either complete or partial
+        // Dashboard lights are always optional
         return 'partial';
         
       case 'service':
@@ -146,7 +147,7 @@ export function TabbedFollowUpForm({
     }
   };
 
-  // Calculate overall progress with proper weighting
+  // Calculate overall progress
   const requiredTabs = tabs.filter(tab => tab.required);
   const optionalTabs = tabs.filter(tab => !tab.required);
   
@@ -166,13 +167,16 @@ export function TabbedFollowUpForm({
   // Can submit only if all required tabs are complete
   const canSubmit = completedRequired === requiredTabs.length;
 
-  console.log('Form progress:', {
+  console.log('Form state summary:', {
     completedRequired,
-    partialRequired,
-    completedOptional,
-    requiredTabs: requiredTabs.length,
+    totalRequired: requiredTabs.length,
     canSubmit,
-    progressPercentage
+    progressPercentage,
+    formData: {
+      zip: formData.zip_code,
+      mileage: formData.mileage,
+      condition: formData.condition
+    }
   });
 
   const getTabStatus = (tabId: string) => {
@@ -286,12 +290,12 @@ export function TabbedFollowUpForm({
               {isSaving && (
                 <div className="text-sm text-gray-600 flex items-center gap-1">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  Saving...
+                  Auto-saving...
                 </div>
               )}
               {saveError && (
                 <div className="text-sm text-red-600">
-                  Save failed: {saveError}
+                  Save error: {saveError}
                 </div>
               )}
             </div>
