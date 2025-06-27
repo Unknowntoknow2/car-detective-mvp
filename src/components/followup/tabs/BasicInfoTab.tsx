@@ -26,7 +26,7 @@ const conditionOptions = [
   },
   {
     value: 'good',
-    label: 'Good',
+    label: 'Good', 
     description: 'Normal wear, good condition',
     details: 'Well-maintained with minor wear',
     impact: 'Standard Value',
@@ -52,17 +52,14 @@ const conditionOptions = [
 
 export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
   const handleZipCodeChange = (value: string) => {
-    console.log('ZIP code changed to:', value);
     updateFormData({ zip_code: value });
   };
 
   const handleMileageChange = (value: number) => {
-    console.log('Mileage changed to:', value);
     updateFormData({ mileage: value });
   };
 
   const handleConditionChange = (value: string) => {
-    console.log('Condition changed to:', value);
     updateFormData({ condition: value });
   };
 
@@ -129,23 +126,26 @@ export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
           <p className="text-sm text-gray-600">General assessment of the vehicle's condition</p>
         </CardHeader>
         <CardContent>
-          <ConditionSelector
-            options={conditionOptions}
-            value={formData.condition || 'good'}
-            onChange={handleConditionChange}
-            title="Condition Rating"
-            setValue={(name: string, value: string) => {
-              if (name === 'condition') {
-                handleConditionChange(value);
-              }
-            }}
-            watch={(name: string) => {
-              if (name === 'condition') {
-                return formData.condition || 'good';
-              }
-              return '';
-            }}
-          />
+          <div>
+            <Label className="text-sm font-medium">
+              Condition Rating <span className="text-red-500">*</span>
+            </Label>
+            <Select value={formData.condition || ''} onValueChange={handleConditionChange}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select condition" />
+              </SelectTrigger>
+              <SelectContent>
+                {conditionOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{option.label}</span>
+                      <span className="text-sm text-gray-500">{option.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
 

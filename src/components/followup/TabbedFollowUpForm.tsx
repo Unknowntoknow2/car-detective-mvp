@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock, AlertCircle, MapPin, Car, Wrench, AlertTriangle, Settings, Star, Save, Send, ArrowLeft, ArrowRight, SkipForward } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { toast } from 'sonner';
 
 // Import all tab components
 import { BasicInfoTab } from './tabs/BasicInfoTab';
@@ -106,30 +105,19 @@ export function TabbedFollowUpForm({
 }: TabbedFollowUpFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Debounced auto-save that triggers after 2 seconds of inactivity
-  useEffect(() => {
-    if (formData && Object.keys(formData).length > 0) {
-      const timeoutId = setTimeout(() => {
-        if (!isSaving && !isSubmitting) {
-          onSave();
-        }
-      }, 2000);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [formData, onSave, isSaving, isSubmitting]);
+  // Silent auto-save on tab change
+  const handleTabChange = useCallback((tabId: string) => {
+    onSave(); // Silent save when changing tabs
+    onTabChange(tabId);
+  }, [onSave, onTabChange]);
 
   // Enhanced completion calculation with proper validation
   const getTabCompletion = useCallback((tabId: string): 'complete' | 'partial' | 'empty' => {
-    console.log('🔍 Checking completion for tab:', tabId, 'with data:', formData);
-    
     switch (tabId) {
       case 'basic':
         const hasValidZip = Boolean(formData.zip_code && formData.zip_code.length === 5 && /^\d{5}$/.test(formData.zip_code));
         const hasValidMileage = Boolean(formData.mileage && formData.mileage > 0);
         const hasCondition = Boolean(formData.condition);
-        
-        console.log('📊 Basic tab validation:', { hasValidZip, hasValidMileage, hasCondition, zip: formData.zip_code, mileage: formData.mileage, condition: formData.condition });
         
         return (hasValidZip && hasValidMileage && hasCondition) ? 'complete' : 'empty';
         
@@ -140,13 +128,6 @@ export function TabbedFollowUpForm({
           formData.interior_condition && 
           formData.brake_condition
         );
-        
-        console.log('🚗 Condition tab validation:', { hasAllConditions, conditions: {
-          tire: formData.tire_condition,
-          exterior: formData.exterior_condition,
-          interior: formData.interior_condition,
-          brake: formData.brake_condition
-        }});
         
         return hasAllConditions ? 'complete' : 'partial';
         
@@ -192,19 +173,6 @@ export function TabbedFollowUpForm({
     const basicTabComplete = getTabCompletion('basic') === 'complete';
     const canSubmit = basicTabComplete;
 
-    console.log('🎯 Progress calculation:', {
-      completedRequired,
-      requiredTabs: requiredTabs.length,
-      basicTabComplete,
-      canSubmit,
-      progressPercentage,
-      formData: {
-        zip: formData.zip_code,
-        mileage: formData.mileage,
-        condition: formData.condition
-      }
-    });
-
     return {
       progressPercentage,
       canSubmit,
@@ -236,56 +204,35 @@ export function TabbedFollowUpForm({
   const goToPreviousTab = useCallback(() => {
     if (!isFirstTab) {
       const previousTab = tabs[currentTabIndex - 1];
-      onTabChange(previousTab.id);
+      handleTabChange(previousTab.id);
     }
-  }, [currentTabIndex, isFirstTab, onTabChange]);
+  }, [currentTabIndex, isFirstTab, handleTabChange]);
 
   const goToNextTab = useCallback(() => {
     if (!isLastTab) {
       const nextTab = tabs[currentTabIndex + 1];
-      onTabChange(nextTab.id);
+      handleTabChange(nextTab.id);
     }
-  }, [currentTabIndex, isLastTab, onTabChange]);
+  }, [currentTabIndex, isLastTab, handleTabChange]);
 
   const skipToFinalTab = useCallback(() => {
-    onTabChange(tabs[tabs.length - 1].id);
-    toast.info('Skipped to final section. You can always come back to fill in more details.');
-  }, [onTabChange]);
-
-  const handleManualSave = useCallback(() => {
-    onSave();
-    toast.success('Progress saved successfully!');
-  }, [onSave]);
+    handleTabChange(tabs[tabs.length - 1].id);
+  }, [handleTabChange]);
 
   const handleSubmit = useCallback(async () => {
-    console.log('🚀 Submit button clicked:', { 
-      canSubmit: progressData.canSubmit, 
-      isSubmitting,
-      formData: {
-        zip: formData.zip_code,
-        mileage: formData.mileage,
-        condition: formData.condition
-      }
-    });
-    
     if (!progressData.canSubmit) {
-      toast.error('Please complete the Basic Info section with ZIP code, mileage, and condition.');
       return;
     }
     
     setIsSubmitting(true);
     try {
-      const success = await onSubmit();
-      if (success) {
-        toast.success('Valuation completed successfully!');
-      }
+      await onSubmit();
     } catch (error) {
       console.error('❌ Submit error:', error);
-      toast.error('Failed to complete valuation. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
-  }, [progressData.canSubmit, onSubmit, formData, isSubmitting]);
+  }, [progressData.canSubmit, onSubmit]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -321,16 +268,9 @@ export function TabbedFollowUpForm({
               </div>
               
               <div className="flex items-center gap-2">
-                {isSaving && (
-                  <div className="flex items-center gap-1 text-gray-500">
-                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-                    <span className="text-xs">Auto-saving...</span>
-                  </div>
-                )}
-                {lastSaveTime && !isSaving && (
-                  <div className="flex items-center gap-1 text-gray-500">
-                    <Save className="w-3 h-3" />
-                    <span className="text-xs">Saved {lastSaveTime.toLocaleTimeString()}</span>
+                {lastSaveTime && (
+                  <div className="text-xs text-gray-500">
+                    Last saved: {lastSaveTime.toLocaleTimeString()}
                   </div>
                 )}
               </div>
@@ -340,7 +280,7 @@ export function TabbedFollowUpForm({
       </Card>
 
       {/* Main Form */}
-      <Tabs value={currentTab} onValueChange={onTabChange} className="space-y-6">
+      <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
         <Card>
           <CardContent className="pt-6">
             <TabsList className="grid w-full grid-cols-7 gap-1">
@@ -398,16 +338,6 @@ export function TabbedFollowUpForm({
               >
                 <ArrowLeft className="w-4 h-4" />
                 Previous
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={handleManualSave}
-                disabled={isSaving}
-                className="flex items-center gap-2"
-              >
-                <Save className="w-4 h-4" />
-                {isSaving ? 'Saving...' : 'Save Progress'}
               </Button>
 
               {!isLastTab && currentTabIndex < tabs.length - 2 && (
