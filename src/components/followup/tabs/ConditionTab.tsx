@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface ConditionTabProps {
@@ -12,124 +14,140 @@ const conditionCategories = [
   {
     key: 'tire_condition' as keyof FollowUpAnswers,
     title: 'Tire Condition',
-    subtitle: 'Condition Rating',
+    subtitle: 'Tread depth and overall tire health',
     options: [
       {
         value: 'excellent',
         label: 'Excellent',
         description: 'Like new condition',
-        details: 'Tread: 8-10/32", No visible wear'
+        details: 'Tread: 8-10/32", No visible wear, Recently replaced',
+        impact: 'Best Value'
       },
       {
         value: 'good',
         label: 'Good', 
         description: 'Normal wear and tear',
-        details: 'Tread: 4-6/32", Adequate tread, some wear visible'
+        details: 'Tread: 4-6/32", Adequate tread, some wear visible',
+        impact: 'Standard Value'
       },
       {
         value: 'fair',
         label: 'Fair',
         description: 'Noticeable wear',
-        details: 'Tread: 2-4/32", Significant wear, consider replacement soon'
+        details: 'Tread: 2-4/32", Significant wear, consider replacement soon',
+        impact: 'Reduced Value'
       },
       {
         value: 'poor',
         label: 'Poor',
         description: 'Needs replacement',
-        details: 'Tread: <2/32", Unsafe, immediate replacement needed'
+        details: 'Tread: <2/32", Unsafe, immediate replacement needed',
+        impact: 'Lower Value'
       }
     ]
   },
   {
     key: 'exterior_condition' as keyof FollowUpAnswers,
     title: 'Exterior Condition',
-    subtitle: 'Condition Rating',
+    subtitle: 'Paint, body panels, and exterior components',
     options: [
       {
         value: 'excellent',
         label: 'Excellent',
         description: 'Perfect condition',
-        details: 'No scratches, dents, or paint issues'
+        details: 'No scratches, dents, or paint issues. Showroom quality',
+        impact: 'Best Value'
       },
       {
         value: 'good',
         label: 'Good',
         description: 'Normal wear and tear',
-        details: 'Minor scratches, good paint condition'
+        details: 'Minor scratches, good paint condition, well-maintained',
+        impact: 'Standard Value'
       },
       {
         value: 'fair',
         label: 'Fair',
         description: 'Visible wear',
-        details: 'Multiple scratches, some dents, paint fading'
+        details: 'Multiple scratches, some dents, paint fading or chips',
+        impact: 'Reduced Value'
       },
       {
         value: 'poor',
         label: 'Poor',
         description: 'Significant damage',
-        details: 'Major dents, rust, paint damage'
+        details: 'Major dents, rust, extensive paint damage',
+        impact: 'Lower Value'
       }
     ]
   },
   {
     key: 'interior_condition' as keyof FollowUpAnswers,
     title: 'Interior Condition',
-    subtitle: 'Condition Rating',
+    subtitle: 'Seats, dashboard, and interior components',
     options: [
       {
         value: 'excellent',
         label: 'Excellent',
         description: 'Like new condition',
-        details: 'No wear, stains, or damage'
+        details: 'No wear, stains, or damage. All components function perfectly',
+        impact: 'Best Value'
       },
       {
         value: 'good',
         label: 'Good',
         description: 'Normal wear and tear',
-        details: 'Light wear, clean, well-maintained'
+        details: 'Light wear, clean, well-maintained, minor scuffs',
+        impact: 'Standard Value'
       },
       {
         value: 'fair',
         label: 'Fair',
         description: 'Noticeable wear',
-        details: 'Moderate wear, some stains or tears'
+        details: 'Moderate wear, some stains or tears, functional issues',
+        impact: 'Reduced Value'
       },
       {
         value: 'poor',
         label: 'Poor',
         description: 'Heavy wear/damage',
-        details: 'Significant stains, tears, or damage'
+        details: 'Significant stains, tears, or damage. Major repairs needed',
+        impact: 'Lower Value'
       }
     ]
   },
   {
     key: 'brake_condition' as keyof FollowUpAnswers,
     title: 'Brake Condition',
-    subtitle: 'Condition Rating',
+    subtitle: 'Brake pads, rotors, and braking performance',
     options: [
       {
         value: 'excellent',
         label: 'Excellent',
         description: 'Like new condition',
-        details: 'Life: 80-100%, Recently serviced'
+        details: 'Life: 80-100%, Recently serviced, smooth operation',
+        impact: 'Best Value'
       },
       {
         value: 'good',
         label: 'Good',
         description: 'Normal wear and tear',
-        details: 'Life: 40-60%, Normal brake wear'
+        details: 'Life: 40-60%, Normal brake wear, good performance',
+        impact: 'Standard Value'
       },
       {
         value: 'fair',
         label: 'Fair',
         description: 'Some wear present',
-        details: 'Life: 20-40%, Service recommended soon'
+        details: 'Life: 20-40%, Service recommended soon, minor issues',
+        impact: 'Reduced Value'
       },
       {
         value: 'poor',
         label: 'Poor',
         description: 'Needs service',
-        details: 'Life: <20%, Immediate service required'
+        details: 'Life: <20%, Immediate service required, safety concern',
+        impact: 'Lower Value'
       }
     ]
   }
@@ -140,21 +158,34 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
     updateFormData({ [key]: value });
   };
 
-  const getSelectedConditions = () => {
-    return {
-      tires: formData.tire_condition || 'good',
-      exterior: formData.exterior_condition || 'good',
-      interior: formData.interior_condition || 'good',
-      brakes: formData.brake_condition || 'good'
-    };
+  const getConditionValue = (key: keyof FollowUpAnswers): string => {
+    return (formData[key] as string) || 'good';
   };
 
-  const selectedConditions = getSelectedConditions();
+  const getConditionBadgeVariant = (value: string) => {
+    switch (value) {
+      case 'excellent': return 'default';
+      case 'good': return 'secondary';
+      case 'fair': return 'outline';
+      case 'poor': return 'destructive';
+      default: return 'secondary';
+    }
+  };
+
+  const getConditionColor = (value: string) => {
+    switch (value) {
+      case 'excellent': return 'text-green-600 bg-green-50 border-green-200';
+      case 'good': return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'fair': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'poor': return 'text-red-600 bg-red-50 border-red-200';
+      default: return 'text-blue-600 bg-blue-50 border-blue-200';
+    }
+  };
 
   return (
     <div className="space-y-6">
       {conditionCategories.map((category) => {
-        const currentValue = formData[category.key] as string || 'good';
+        const currentValue = getConditionValue(category.key);
         
         return (
           <Card key={category.key}>
@@ -171,34 +202,29 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
                     <div
                       key={option.value}
                       onClick={() => handleConditionChange(category.key, option.value)}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                      className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
                         isSelected
-                          ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-200'
+                          ? `${getConditionColor(option.value)} ring-2 ring-opacity-50`
                           : 'bg-white border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-2">
-                          <div className={`w-3 h-3 rounded-full border-2 ${
+                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                             isSelected 
                               ? 'bg-blue-500 border-blue-500' 
                               : 'border-gray-300'
-                          }`} />
+                          }`}>
+                            {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
+                          </div>
                           <span className="font-medium text-sm">{option.label}</span>
                         </div>
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          option.value === 'excellent' ? 'bg-green-100 text-green-700' :
-                          option.value === 'good' ? 'bg-blue-100 text-blue-700' :
-                          option.value === 'fair' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {option.value === 'excellent' ? 'Best Value' :
-                           option.value === 'good' ? 'Standard Value' :
-                           option.value === 'fair' ? 'Reduced Value' : 'Lower Value'}
-                        </span>
+                        <Badge variant={getConditionBadgeVariant(option.value)} className="text-xs">
+                          {option.impact}
+                        </Badge>
                       </div>
-                      <div className="text-xs text-gray-600 mb-1">{option.description}</div>
-                      <div className="text-xs text-gray-500">{option.details}</div>
+                      <div className="text-xs text-gray-600 mb-2 font-medium">{option.description}</div>
+                      <div className="text-xs text-gray-500 leading-relaxed">{option.details}</div>
                     </div>
                   );
                 })}
@@ -211,54 +237,32 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
       {/* Condition Summary */}
       <Card className="border-blue-200 bg-blue-50">
         <CardHeader>
-          <CardTitle className="text-blue-800">Condition Summary</CardTitle>
+          <CardTitle className="text-blue-800 flex items-center gap-2">
+            <CheckCircle className="w-5 h-5" />
+            Condition Summary
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-sm font-medium text-blue-700">Tires</div>
-              <div className={`text-xs px-2 py-1 rounded mt-1 inline-block ${
-                selectedConditions.tires === 'excellent' ? 'bg-green-100 text-green-700' :
-                selectedConditions.tires === 'good' ? 'bg-blue-100 text-blue-700' :
-                selectedConditions.tires === 'fair' ? 'bg-yellow-100 text-yellow-700' :
-                'bg-red-100 text-red-700'
-              }`}>
-                {selectedConditions.tires.charAt(0).toUpperCase() + selectedConditions.tires.slice(1)}
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-sm font-medium text-blue-700">Exterior</div>
-              <div className={`text-xs px-2 py-1 rounded mt-1 inline-block ${
-                selectedConditions.exterior === 'excellent' ? 'bg-green-100 text-green-700' :
-                selectedConditions.exterior === 'good' ? 'bg-blue-100 text-blue-700' :
-                selectedConditions.exterior === 'fair' ? 'bg-yellow-100 text-yellow-700' :
-                'bg-red-100 text-red-700'
-              }`}>
-                {selectedConditions.exterior.charAt(0).toUpperCase() + selectedConditions.exterior.slice(1)}
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-sm font-medium text-blue-700">Interior</div>
-              <div className={`text-xs px-2 py-1 rounded mt-1 inline-block ${
-                selectedConditions.interior === 'excellent' ? 'bg-green-100 text-green-700' :
-                selectedConditions.interior === 'good' ? 'bg-blue-100 text-blue-700' :
-                selectedConditions.interior === 'fair' ? 'bg-yellow-100 text-yellow-700' :
-                'bg-red-100 text-red-700'
-              }`}>
-                {selectedConditions.interior.charAt(0).toUpperCase() + selectedConditions.interior.slice(1)}
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-sm font-medium text-blue-700">Brakes</div>
-              <div className={`text-xs px-2 py-1 rounded mt-1 inline-block ${
-                selectedConditions.brakes === 'excellent' ? 'bg-green-100 text-green-700' :
-                selectedConditions.brakes === 'good' ? 'bg-blue-100 text-blue-700' :
-                selectedConditions.brakes === 'fair' ? 'bg-yellow-100 text-yellow-700' :
-                'bg-red-100 text-red-700'
-              }`}>
-                {selectedConditions.brakes.charAt(0).toUpperCase() + selectedConditions.brakes.slice(1)}
-              </div>
-            </div>
+            {conditionCategories.map((category) => {
+              const value = getConditionValue(category.key);
+              return (
+                <div key={category.key} className="text-center">
+                  <div className="text-sm font-medium text-blue-700 mb-1">
+                    {category.title.replace(' Condition', '')}
+                  </div>
+                  <Badge variant={getConditionBadgeVariant(value)} className="text-xs">
+                    {value.charAt(0).toUpperCase() + value.slice(1)}
+                  </Badge>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-4 p-3 bg-blue-100 rounded-lg">
+            <p className="text-sm text-blue-700">
+              <strong>Impact:</strong> Your condition ratings directly affect your vehicle's estimated value. 
+              Higher ratings result in better valuations.
+            </p>
           </div>
         </CardContent>
       </Card>

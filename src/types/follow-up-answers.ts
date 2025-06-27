@@ -47,7 +47,7 @@ export interface FollowUpAnswers {
   user_id?: string;
   valuation_id?: string;
   
-  // Basic info
+  // Basic info - enhanced validation
   zip_code: string;
   mileage: number;
   condition: string;
@@ -61,14 +61,14 @@ export interface FollowUpAnswers {
   serviceHistory: ServiceHistoryDetails;
   previous_owners?: number;
   
-  // Condition details
+  // Enhanced condition details with proper types
   tire_condition: string;
-  exterior_condition?: string;
-  interior_condition?: string;
-  brake_condition?: string;
+  exterior_condition: string;
+  interior_condition: string;
+  brake_condition: string;
   dashboard_lights: string[];
   
-  // Financial
+  // Financial with proper number types
   loan_balance?: number;
   payoffAmount?: number;
   
@@ -79,7 +79,7 @@ export interface FollowUpAnswers {
   // Additional
   additional_notes: string;
   
-  // Meta
+  // Meta with proper validation
   completion_percentage: number;
   is_complete: boolean;
   created_at?: string;

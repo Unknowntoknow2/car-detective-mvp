@@ -16,7 +16,6 @@ import { ServiceMaintenanceTab } from './tabs/ServiceMaintenanceTab';
 import { AccidentHistoryTab } from './tabs/AccidentHistoryTab';
 import { ModificationsTab } from './tabs/ModificationsTab';
 import { FeaturesTab } from './tabs/FeaturesTab';
-import { VehicleIssuesTab } from './tabs/VehicleIssuesTab';
 
 interface TabbedFollowUpFormProps {
   formData: FollowUpAnswers;
@@ -44,7 +43,7 @@ const tabs = [
     icon: Car,
     component: ConditionTab,
     required: true,
-    description: 'Overall vehicle condition'
+    description: 'Vehicle condition assessment'
   },
   {
     id: 'issues',
@@ -100,33 +99,64 @@ export function TabbedFollowUpForm({
 }: TabbedFollowUpFormProps) {
   const [activeTab, setActiveTab] = useState('basic');
 
-  // Calculate completion for each tab
+  // Enhanced completion calculation
   const getTabCompletion = (tabId: string): 'complete' | 'partial' | 'empty' => {
     switch (tabId) {
       case 'basic':
-        return (formData.mileage && formData.zip_code) ? 'complete' : 'empty';
+        const hasBasicRequired = Boolean(
+          formData.mileage && 
+          formData.mileage > 0 && 
+          formData.zip_code && 
+          formData.zip_code.length === 5 && 
+          /^\d{5}$/.test(formData.zip_code) &&
+          formData.condition
+        );
+        return hasBasicRequired ? 'complete' : 'empty';
+        
       case 'condition':
-        return formData.condition ? 'complete' : 'empty';
+        const hasConditionData = Boolean(
+          formData.tire_condition || 
+          formData.exterior_condition || 
+          formData.interior_condition || 
+          formData.brake_condition
+        );
+        return hasConditionData ? 'complete' : 'empty';
+        
       case 'issues':
         return (formData.dashboard_lights && formData.dashboard_lights.length > 0) ? 'complete' : 'partial';
+        
       case 'service':
-        return formData.serviceHistory?.hasRecords ? 'complete' : 'partial';
+        return formData.serviceHistory?.hasRecords !== undefined ? 'complete' : 'partial';
+        
       case 'accidents':
         return formData.accidents?.hadAccident !== undefined ? 'complete' : 'partial';
+        
       case 'modifications':
         return formData.modifications?.hasModifications !== undefined ? 'complete' : 'partial';
+        
       case 'features':
         return (formData.features && formData.features.length > 0) ? 'complete' : 'partial';
+        
       default:
         return 'empty';
     }
   };
 
-  // Calculate overall progress
+  // Calculate overall progress with proper weighting
   const requiredTabs = tabs.filter(tab => tab.required);
+  const optionalTabs = tabs.filter(tab => !tab.required);
+  
   const completedRequired = requiredTabs.filter(tab => getTabCompletion(tab.id) === 'complete').length;
-  const totalOptionalCompleted = tabs.filter(tab => !tab.required && getTabCompletion(tab.id) === 'complete').length;
-  const progressPercentage = Math.round(((completedRequired + totalOptionalCompleted * 0.5) / (requiredTabs.length + tabs.filter(t => !t.required).length * 0.5)) * 100);
+  const completedOptional = optionalTabs.filter(tab => getTabCompletion(tab.id) === 'complete').length;
+  
+  // Required tabs count as 70%, optional as 30%
+  const requiredWeight = 0.7;
+  const optionalWeight = 0.3;
+  
+  const requiredProgress = (completedRequired / requiredTabs.length) * requiredWeight;
+  const optionalProgress = (completedOptional / optionalTabs.length) * optionalWeight;
+  
+  const progressPercentage = Math.round((requiredProgress + optionalProgress) * 100);
 
   const canSubmit = completedRequired === requiredTabs.length;
 
@@ -172,7 +202,7 @@ export function TabbedFollowUpForm({
                 </span>
                 <span className="flex items-center gap-1">
                   <Star className="w-4 h-4 text-yellow-600" />
-                  Optional: {totalOptionalCompleted}/{tabs.filter(t => !t.required).length}
+                  Optional: {completedOptional}/{optionalTabs.length}
                 </span>
               </div>
               
@@ -285,7 +315,7 @@ export function TabbedFollowUpForm({
           {!canSubmit && (
             <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800">
-                <strong>Complete required sections:</strong> Please fill in the Basic Info and Condition tabs to continue.
+                <strong>Complete required sections:</strong> Please fill in all required fields in the Basic Info and Condition tabs to continue.
               </p>
             </div>
           )}
