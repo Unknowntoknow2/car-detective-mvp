@@ -1,5 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { TabValidation } from '@/components/followup/validation/TabValidation';
@@ -16,55 +17,105 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
   console.log('📥 Follow-up form initialized with VIN:', vin);
   console.log('📋 Initial data valuation_id:', initialData?.valuation_id || 'missing');
 
-  const { formData, setFormData, isLoading } = useFollowUpDataLoader({ 
+  const { formData: loadedData, setFormData, isLoading } = useFollowUpDataLoader({ 
     vin, 
     initialData 
   });
 
+  // Initialize shared form instance with loaded data
+  const formMethods = useForm<FollowUpAnswers>({
+    defaultValues: loadedData,
+    mode: 'onChange'
+  });
+
+  const { watch, setValue, getValues } = formMethods;
+
+  // Watch all form fields for changes
+  const watchedValues = watch();
+
+  // Maintain current tab in sessionStorage
+  const [currentTab, setCurrentTab] = useState(() => {
+    return sessionStorage.getItem(`followup-tab-${vin}`) || 'basic';
+  });
+
+  // Update sessionStorage when tab changes
+  const updateCurrentTab = (tabId: string) => {
+    setCurrentTab(tabId);
+    sessionStorage.setItem(`followup-tab-${vin}`, tabId);
+  };
+
+  // Sync form values with loadedData when it changes
+  useEffect(() => {
+    if (loadedData && Object.keys(loadedData).length > 0) {
+      Object.entries(loadedData).forEach(([key, value]) => {
+        if (value !== undefined) {
+          setValue(key as keyof FollowUpAnswers, value, { shouldDirty: false });
+        }
+      });
+    }
+  }, [loadedData, setValue]);
+
+  // Sync watched values back to formData state
+  useEffect(() => {
+    if (watchedValues && Object.keys(watchedValues).length > 0) {
+      const hasChanges = Object.entries(watchedValues).some(([key, value]) => {
+        return loadedData[key as keyof FollowUpAnswers] !== value;
+      });
+
+      if (hasChanges) {
+        setFormData(watchedValues);
+      }
+    }
+  }, [watchedValues, setFormData, loadedData]);
+
   const { saveFormData, debouncedSave } = useFollowUpAutoSave({
-    formData,
+    formData: watchedValues || loadedData,
     setSaveError,
     setIsSaving,
     setLastSaveTime
   });
 
   const updateFormData = (updates: Partial<FollowUpAnswers>) => {
-    setFormData(prev => {
-      const updated = {
-        ...prev,
-        ...updates
-      };
-      
-      // Update completion percentage based on validation
-      const completionPercentage = TabValidation.getOverallCompletion(updated);
-      updated.completion_percentage = completionPercentage;
-
-      console.log('💬 Auto-saving form with condition:', updated.condition || 'empty');
-      if (!updated.condition) {
-        console.log('⚠️ Condition field is empty — possibly saved before user selected');
-      }
-      
-      // Auto-save after updates (debounced)
-      debouncedSave(updated);
-      
-      return updated;
+    // Update form values using setValue to maintain form state
+    Object.entries(updates).forEach(([key, value]) => {
+      setValue(key as keyof FollowUpAnswers, value, { shouldDirty: true });
     });
+
+    const currentValues = getValues();
+    const updated = {
+      ...currentValues,
+      ...updates
+    };
+    
+    // Update completion percentage based on validation
+    const completionPercentage = TabValidation.getOverallCompletion(updated);
+    setValue('completion_percentage', completionPercentage, { shouldDirty: true });
+
+    console.log('💬 Auto-saving form with condition:', updated.condition || 'empty');
+    if (!updated.condition) {
+      console.log('⚠️ Condition field is empty — possibly saved before user selected');
+    }
+    
+    // Auto-save after updates (debounced)
+    debouncedSave(updated);
   };
 
   const submitForm = async () => {
     try {
       console.log('🚀 Starting follow-up form submission for VIN:', vin);
-      console.log('📤 Form submission year:', formData.year);
+      
+      const currentFormData = getValues();
+      console.log('📤 Form submission year:', currentFormData.year);
       console.log('✅ Final submit triggered — is_complete: true, completion: 100%');
       
       // Validate required fields first
-      if (!formData.zip_code || !formData.mileage) {
+      if (!currentFormData.zip_code || !currentFormData.mileage) {
         toast.error('Please fill in ZIP code and mileage before completing valuation');
         return false;
       }
 
       // Ensure valuation_id is linked before saving
-      let resolvedValuationId = formData.valuation_id;
+      let resolvedValuationId = currentFormData.valuation_id;
       
       if (!resolvedValuationId) {
         console.log('🔗 Resolving missing valuation_id during submission for VIN:', vin);
@@ -87,7 +138,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
 
       // Save the completed form data first with resolved valuation_id
       const saveSuccess = await saveFormData({
-        ...formData,
+        ...currentFormData,
         valuation_id: resolvedValuationId,
         is_complete: true,
         completion_percentage: 100
@@ -115,8 +166,8 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       if (decodedVehicle) {
         console.log('🧠 Decoded vehicle year:', decodedVehicle.year);
         
-        if (formData.year && formData.year !== decodedVehicle.year) {
-          console.log('⚠️ Year mismatch: decoded=' + decodedVehicle.year + ' vs form=' + formData.year + ' — using decoded value');
+        if (currentFormData.year && currentFormData.year !== decodedVehicle.year) {
+          console.log('⚠️ Year mismatch: decoded=' + decodedVehicle.year + ' vs form=' + currentFormData.year + ' — using decoded value');
         }
 
         console.log('🧮 Running valuation with complete follow-up data');
@@ -126,18 +177,18 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
           vin,
           make: decodedVehicle.make || 'Unknown',
           model: decodedVehicle.model || 'Unknown',
-          year: decodedVehicle.year || formData.year || new Date().getFullYear(),
-          mileage: formData.mileage,
-          condition: formData.condition,
-          zipCode: formData.zip_code,
+          year: decodedVehicle.year || currentFormData.year || new Date().getFullYear(),
+          mileage: currentFormData.mileage,
+          condition: currentFormData.condition,
+          zipCode: currentFormData.zip_code,
           trim: decodedVehicle.trim,
           bodyType: decodedVehicle.bodyType,
           fuelType: decodedVehicle.fueltype,
           transmission: decodedVehicle.transmission,
           followUpAnswers: {
-            ...formData,
+            ...currentFormData,
             valuation_id: resolvedValuationId,
-            year: decodedVehicle.year || formData.year // Use decoded year
+            year: decodedVehicle.year || currentFormData.year // Use decoded year
           }
         });
 
@@ -164,7 +215,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
                 price_range_high: valuationResult.valuation.priceRange[1],
                 adjustments: valuationResult.valuation.adjustments,
                 vin: vin, // Ensure VIN is explicitly saved
-                year: decodedVehicle.year || formData.year, // Use decoded year
+                year: decodedVehicle.year || currentFormData.year, // Use decoded year
                 vehicle_data: {
                   ...decodedVehicle,
                   marketAnalysis: valuationResult.valuation.marketAnalysis,
@@ -194,6 +245,9 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
         toast.success('Follow-up completed successfully!');
       }
 
+      // Clear tab state on successful completion
+      sessionStorage.removeItem(`followup-tab-${vin}`);
+
       return true;
 
     } catch (error) {
@@ -217,7 +271,10 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
   };
 
   return {
-    formData,
+    formData: watchedValues || loadedData,
+    formMethods,
+    currentTab,
+    updateCurrentTab,
     updateFormData,
     saveFormData,
     submitForm,
