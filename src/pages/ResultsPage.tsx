@@ -17,6 +17,7 @@ export default function ResultsPage() {
   const [valuationData, setValuationData] = useState<any>(null);
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [currentTab, setCurrentTab] = useState('basic');
   const [followUpData, setFollowUpData] = useState<FollowUpAnswers>({
     vin: '',
     mileage: 0,
@@ -176,6 +177,10 @@ export default function ResultsPage() {
     toast.success('Progress saved!');
   };
 
+  const handleTabChange = (tabId: string) => {
+    setCurrentTab(tabId);
+  };
+
   const getValuationType = (data: any) => {
     if (data.valuation_type === 'premium') return 'Premium';
     if (data.vin) return 'VIN Lookup';
@@ -315,6 +320,8 @@ export default function ResultsPage() {
               onSubmit={handleFollowUpSubmit}
               onSave={handleFollowUpSave}
               isLoading={false}
+              currentTab={currentTab}
+              onTabChange={handleTabChange}
             />
           </CardContent>
         </Card>
