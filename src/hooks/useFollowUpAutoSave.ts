@@ -19,12 +19,20 @@ export function useFollowUpAutoSave({
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
   const abortControllerRef = useRef<AbortController | null>(null);
   const isSavingRef = useRef(false);
+  const lastSavedDataRef = useRef<string>('');
 
   const saveFormData = useCallback(async (dataToSave: FollowUpAnswers): Promise<boolean> => {
     // Prevent concurrent saves
     if (isSavingRef.current) {
       console.log('Save already in progress, skipping...');
       return false;
+    }
+
+    // Check if data has actually changed
+    const currentDataString = JSON.stringify(dataToSave);
+    if (currentDataString === lastSavedDataRef.current) {
+      console.log('No changes detected, skipping save...');
+      return true;
     }
 
     try {
@@ -66,6 +74,8 @@ export function useFollowUpAutoSave({
         return false;
       }
 
+      // Update the last saved data reference
+      lastSavedDataRef.current = currentDataString;
       setLastSaveTime(new Date());
       return true;
     } catch (error) {
