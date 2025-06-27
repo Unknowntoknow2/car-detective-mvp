@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +8,7 @@ import { PremiumPdfSection } from '@/components/valuation/PremiumPdfSection';
 import { TabbedFollowUpForm } from '@/components/followup/TabbedFollowUpForm';
 import { Loader2, Car, MapPin, Gauge, Star } from 'lucide-react';
 import { toast } from 'sonner';
+import { ValueBreakdown } from '@/components/valuation/ValueBreakdown';
 
 export default function ResultsPage() {
   const { id } = useParams<{ id: string }>();
@@ -26,7 +26,6 @@ export default function ResultsPage() {
           searchParams.get('id');
 
         console.log('🔍 Loading valuation data for ID:', valuationId);
-        console.log('📊 Rendering result for valuation_id:', valuationId);
 
         if (!valuationId) {
           console.log('❌ No valuation ID found');
@@ -45,11 +44,7 @@ export default function ResultsPage() {
           return;
         }
 
-        // Validate form-to-valuation linkage on results page
-        if (data.id && !data.vin) {
-          console.warn('⚠️ Valuation', data.id, 'missing VIN — enrichment blocked');
-        }
-
+        // Enhanced validation with better error messages
         if (!data.estimated_value || data.estimated_value <= 0) {
           console.warn('⚠️ Invalid estimated_value:', data.estimated_value);
           toast.error('Invalid valuation data - please try again');
@@ -57,34 +52,30 @@ export default function ResultsPage() {
           return;
         }
 
-        console.log('📊 Rendering result for VIN:', data.vin || 'missing');
-        console.log('📉 Confidence:', (data.confidence_score || 75) + '% — market data missing?');
+        console.log('📊 Real valuation data:', {
+          vin: data.vin || 'missing',
+          make: data.make,
+          model: data.model,
+          year: data.year,
+          value: data.estimated_value,
+          adjustments: data.adjustments?.length || 0,
+          confidence: data.confidence_score
+        });
 
-        if (!data.vin) {
-          console.log('⚠️ Cannot enrich results — valuation record lacks VIN linkage');
-        }
-
-        // Check for missing MSRP
-        if (data.estimated_value && data.estimated_value < 25000 && data.make === 'Toyota') {
-          console.log('⚠️ Missing MSRP prevents accurate baseline valuation');
-        }
-
-        console.log('✅ Setting valuation data');
         setValuationData(data);
         
-        // Determine if follow-up is needed based on valuation type and data completeness
+        // Show follow-up only if we have VIN and need more data
         const shouldShowFollowUp = (
-          data.vin && // Has VIN (indicates VIN lookup)
-          (data.mileage === 50000 || // Default mileage indicates incomplete data
-           data.confidence_score < 80 || // Low confidence
-           !data.condition || // Missing condition
-           data.zip_code === '90210') // Default zip code
+          data.vin && 
+          (data.confidence_score < 85 || 
+           !data.adjustments?.length ||
+           data.zip_code === '90210')
         );
 
         if (shouldShowFollowUp) {
-          console.log('✅ Setting showFollowUp to true');
+          console.log('✅ Setting showFollowUp to true - low confidence or missing data');
           setShowFollowUp(true);
-          toast.info('Please provide additional details for a more accurate valuation');
+          toast.info('Complete additional questions for higher accuracy');
         }
       } catch (error) {
         console.error('❌ Error loading valuation data:', error);
@@ -173,6 +164,11 @@ export default function ResultsPage() {
                       {valuationData.confidence_score || 75}% Confidence
                     </span>
                   </div>
+                  {valuationData.vin && (
+                    <Badge variant="secondary" className="font-mono text-xs">
+                      VIN: {valuationData.vin.slice(-8)}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -193,14 +189,6 @@ export default function ResultsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {valuationData.vin && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">VIN:</span>
-                <span className="text-sm font-mono text-muted-foreground">
-                  {valuationData.vin.slice(-8)}
-                </span>
-              </div>
-            )}
             <div className="flex items-center gap-2">
               <Gauge className="w-4 h-4" />
               <span className="text-sm font-medium">Mileage:</span>
@@ -219,26 +207,41 @@ export default function ResultsPage() {
                 {valuationData.zip_code || 'Unknown'}
               </span>
             </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Data Quality:</span>
+              <Badge variant={valuationData.vin ? "default" : "secondary"}>
+                {valuationData.vin ? 'Complete' : 'Partial'}
+              </Badge>
+            </div>
           </div>
           
-          {/* Show notice for VIN-based valuations */}
-          {valuationData.vin && showFollowUp && (
+          {/* Show data source notice */}
+          {valuationData.vin && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
               <div className="text-sm text-blue-800">
-                <strong>Initial VIN-based valuation.</strong> Complete the questions below for a more accurate estimate.
+                <strong>VIN-based valuation.</strong> This estimate uses your vehicle's specific data and market conditions.
+                {showFollowUp && ' Complete additional questions for maximum accuracy.'}
               </div>
             </div>
           )}
         </CardContent>
       </Card>
 
+      {/* Value Breakdown - New Component */}
+      <ValueBreakdown
+        adjustments={valuationData.adjustments || []}
+        baseValue={valuationData.vehicle_data?.baseValue}
+        finalValue={valuationData.estimated_value}
+        confidenceScore={valuationData.confidence_score || 75}
+      />
+
       {/* Follow-up Questions */}
       {showFollowUp && (
         <Card>
           <CardHeader>
-            <CardTitle>Complete Your Valuation</CardTitle>
+            <CardTitle>Improve Your Valuation Accuracy</CardTitle>
             <p className="text-muted-foreground">
-              Please provide additional details to get a more accurate valuation.
+              Answer a few more questions to get the most precise estimate possible.
             </p>
           </CardHeader>
           <CardContent>
@@ -251,30 +254,6 @@ export default function ResultsPage() {
               }}
               onSubmit={handleFollowUpSubmit}
             />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Value Adjustments */}
-      {valuationData.adjustments && valuationData.adjustments.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Value Adjustments</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {valuationData.adjustments.map((adjustment: any, index: number) => (
-                <div key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
-                  <div>
-                    <div className="font-medium">{adjustment.factor}</div>
-                    <div className="text-sm text-muted-foreground">{adjustment.description}</div>
-                  </div>
-                  <div className={`font-medium ${adjustment.impact >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {adjustment.impact >= 0 ? '+' : ''}${adjustment.impact?.toLocaleString() || 0}
-                  </div>
-                </div>
-              ))}
-            </div>
           </CardContent>
         </Card>
       )}
@@ -292,7 +271,7 @@ export default function ResultsPage() {
         </Button>
         {!showFollowUp && valuationData.vin && (
           <Button variant="outline" onClick={() => setShowFollowUp(true)}>
-            Update Vehicle Details
+            Improve Accuracy
           </Button>
         )}
       </div>
