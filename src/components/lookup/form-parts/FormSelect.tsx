@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   FormControl,
@@ -43,19 +44,21 @@ export const FormSelect: React.FC<FormSelectProps> = ({
     return null;
   }
 
+  const { control, watch, setValue } = form;
+
   return (
     <FormField
-      control={form.control}
+      control={control}
       name={name}
       render={({ field }) => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <Select
+            value={watch(name)}
             onValueChange={(value) => {
-              field.onChange(value);
+              setValue(name, value);
               onChange?.(value);
             }}
-            defaultValue={field.value}
             disabled={disabled}
           >
             <FormControl>
