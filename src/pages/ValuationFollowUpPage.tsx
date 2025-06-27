@@ -41,7 +41,10 @@ export default function ValuationFollowUpPage() {
     isLoading,
     isSaving,
     saveError,
-    lastSaveTime
+    lastSaveTime,
+    currentTab,
+    updateCurrentTab,
+    isFormValid
   } = useFollowUpForm(vehicleData.vin, {
     vin: vehicleData.vin,
     zip_code: '',
@@ -54,7 +57,7 @@ export default function ValuationFollowUpPage() {
     navigate(-1);
   };
 
-  const handleSubmitAnswers = async () => {
+  const handleSubmitAnswers = async (): Promise<boolean> => {
     setIsSubmitting(true);
     try {
       console.log('🚀 Starting valuation submission with follow-up data:', formData);
@@ -62,13 +65,13 @@ export default function ValuationFollowUpPage() {
       // Validate required fields
       if (!formData.zip_code || !formData.mileage) {
         toast.error('Please fill in ZIP code and mileage before completing valuation');
-        return;
+        return false;
       }
       
       // Save the form data first using the enhanced submitForm
       const saveSuccess = await submitForm();
       if (!saveSuccess) {
-        return; // Error already shown by submitForm
+        return false; // Error already shown by submitForm
       }
       
       // Process the valuation with the follow-up data
@@ -86,6 +89,7 @@ export default function ValuationFollowUpPage() {
       
       // Navigate to results page
       navigate(`/results/${valuationResult.valuationId}`);
+      return true;
     } catch (error) {
       console.error('❌ Error submitting follow-up answers:', error);
       
@@ -101,6 +105,8 @@ export default function ValuationFollowUpPage() {
       } else {
         toast.error('Failed to complete valuation. Please try again.');
       }
+      
+      return false;
     } finally {
       setIsSubmitting(false);
     }
@@ -224,6 +230,9 @@ export default function ValuationFollowUpPage() {
               isSaving={isSaving}
               saveError={saveError}
               lastSaveTime={lastSaveTime}
+              isFormValid={isFormValid}
+              currentTab={currentTab}
+              onTabChange={updateCurrentTab}
             />
           )}
         </div>
