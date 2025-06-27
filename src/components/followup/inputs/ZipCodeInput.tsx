@@ -21,37 +21,23 @@ export function ZipCodeInput({
   className = ""
 }: ZipCodeInputProps) {
   const [debouncedZip, setDebouncedZip] = React.useState('');
-  const [shouldValidate, setShouldValidate] = React.useState(false);
   const { useZipQuery } = useZipValidation();
   const zipQuery = useZipQuery(debouncedZip);
 
-  // Debounce logic
+  // Debounce validation only - not the input itself
   React.useEffect(() => {
-    if (!shouldValidate) return;
-    
     const timer = setTimeout(() => {
       if (value.length === 5) {
         setDebouncedZip(value);
       }
-    }, 300);
+    }, 500);
 
     return () => clearTimeout(timer);
-  }, [value, shouldValidate]);
+  }, [value]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value.replace(/[^\d]/g, '').slice(0, 5);
     onChange(newValue);
-    
-    if (newValue.length === 5) {
-      setShouldValidate(true);
-    }
-  };
-
-  const handleBlur = () => {
-    if (value.length === 5) {
-      setDebouncedZip(value);
-      setShouldValidate(true);
-    }
   };
 
   const isValid = debouncedZip.length === 5 && zipQuery.data?.isValid === true;
@@ -76,7 +62,6 @@ export function ZipCodeInput({
           maxLength={5}
           value={value}
           onChange={handleInputChange}
-          onBlur={handleBlur}
         />
         {isLoading && (
           <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 animate-spin text-blue-600" />
