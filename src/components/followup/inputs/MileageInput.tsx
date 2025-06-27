@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, CheckCircle } from 'lucide-react';
@@ -19,37 +19,11 @@ export function MileageInput({
   required = false,
   className = ""
 }: MileageInputProps) {
-  const [displayValue, setDisplayValue] = useState('');
-  const [error, setError] = useState('');
-  const [isFocused, setIsFocused] = useState(false);
-
-  useEffect(() => {
-    if (value > 0) {
-      setDisplayValue(isFocused ? value.toString() : value.toLocaleString());
-    } else {
-      setDisplayValue('');
-    }
-  }, [value, isFocused]);
-
-  const handleFocus = () => {
-    setIsFocused(true);
-    if (value > 0) {
-      setDisplayValue(value.toString());
-    }
-  };
-
-  const handleBlur = () => {
-    setIsFocused(false);
-    if (value > 0) {
-      setDisplayValue(value.toLocaleString());
-    }
-  };
+  const [error, setError] = React.useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
     const numericValue = inputValue.replace(/[^\d]/g, '');
-    
-    setDisplayValue(numericValue);
     
     if (numericValue === '') {
       setError('');
@@ -74,6 +48,7 @@ export function MileageInput({
   };
 
   const isValid = value > 0 && value <= 999999 && !error;
+  const displayValue = value > 0 ? value.toString() : '';
 
   return (
     <div className={className}>
@@ -86,8 +61,6 @@ export function MileageInput({
           type="text"
           value={displayValue}
           onChange={handleChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
           placeholder="Enter mileage"
           className={`pr-10 ${
             error ? 'border-red-500 focus:border-red-500' : 

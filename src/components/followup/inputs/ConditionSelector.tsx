@@ -38,17 +38,14 @@ export function ConditionSelector({
     }
   };
 
-  const handleOptionClick = (optionValue: string) => {
-    console.log(`Condition selector: ${title} changed to ${optionValue}`);
-    onChange(optionValue);
-  };
-
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-medium">{title}</h3>
-        {subtitle && <p className="text-sm text-gray-600">{subtitle}</p>}
-      </div>
+      {title && (
+        <div>
+          <h3 className="text-lg font-medium">{title}</h3>
+          {subtitle && <p className="text-sm text-gray-600">{subtitle}</p>}
+        </div>
+      )}
       
       <div className="grid grid-cols-2 gap-3">
         {options.map((option) => {
@@ -57,8 +54,8 @@ export function ConditionSelector({
           return (
             <div
               key={option.value}
-              onClick={() => handleOptionClick(option.value)}
-              className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
+              onClick={() => onChange(option.value)}
+              className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md min-h-[120px] ${
                 isSelected
                   ? `${option.color} ring-2 ring-opacity-50 ring-current`
                   : 'bg-white border-gray-200 hover:border-gray-300'

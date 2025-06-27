@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Settings, Zap, Palette, Car, Shield, AlertTriangle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Settings, CheckCircle, AlertTriangle } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface ModificationsTabProps {
@@ -13,244 +13,301 @@ interface ModificationsTabProps {
   updateFormData: (updates: Partial<FollowUpAnswers>) => void;
 }
 
-const modificationCategories = [
-  {
-    category: 'Performance',
-    icon: Zap,
-    color: 'text-red-600',
-    impact: 'Variable impact',
-    items: [
-      { value: 'cold_air_intake', label: 'Cold air intake' },
-      { value: 'exhaust_upgrade', label: 'Exhaust system upgrade' },
-      { value: 'turbo_supercharger', label: 'Turbo/Supercharger' },
-      { value: 'engine_tune', label: 'Engine tune/ECU remap' },
-      { value: 'suspension_mods', label: 'Suspension modifications' },
-      { value: 'brake_upgrades', label: 'Brake upgrades' },
-      { value: 'transmission_mods', label: 'Transmission modifications' }
-    ]
-  },
-  {
-    category: 'Exterior',
-    icon: Car,
-    color: 'text-blue-600',
-    impact: 'Often decreases value',
-    items: [
-      { value: 'custom_paint', label: 'Custom paint/wrap' },
-      { value: 'body_kit', label: 'Body kit' },
-      { value: 'spoiler_wing', label: 'Spoiler/Wing' },
-      { value: 'custom_wheels', label: 'Custom wheels/Rims' },
-      { value: 'lowered_raised', label: 'Lowered/Raised suspension' },
-      { value: 'tinted_windows', label: 'Tinted windows' },
-      { value: 'custom_lighting', label: 'Custom lighting' }
-    ]
-  },
-  {
-    category: 'Interior',
-    icon: Palette,
-    color: 'text-purple-600',
-    impact: 'Mixed impact',
-    items: [
-      { value: 'custom_upholstery', label: 'Custom upholstery' },
-      { value: 'aftermarket_stereo', label: 'Aftermarket stereo/Audio' },
-      { value: 'racing_seats', label: 'Racing seats' },
-      { value: 'custom_dashboard', label: 'Custom dashboard' },
-      { value: 'steering_wheel', label: 'Steering wheel upgrade' },
-      { value: 'interior_lighting', label: 'Interior lighting' },
-      { value: 'gauge_cluster', label: 'Gauge cluster modifications' }
-    ]
-  },
-  {
-    category: 'Safety/Security',
-    icon: Shield,
-    color: 'text-green-600',
-    impact: 'Often increases value',
-    items: [
-      { value: 'alarm_upgrade', label: 'Alarm system upgrade' },
-      { value: 'gps_tracking', label: 'GPS tracking' },
-      { value: 'dash_camera', label: 'Dash camera' },
-      { value: 'roll_cage', label: 'Roll cage' },
-      { value: 'racing_harness', label: 'Racing harnesses' },
-      { value: 'fire_suppression', label: 'Fire suppression system' }
-    ]
-  }
+const modificationTypes = [
+  { value: 'performance', label: 'Performance Modifications', desc: 'Engine, exhaust, suspension tuning' },
+  { value: 'appearance', label: 'Appearance Modifications', desc: 'Body kits, paint, wheels, tinting' },
+  { value: 'suspension', label: 'Suspension Modifications', desc: 'Lowering, lifting, coilovers' },
+  { value: 'wheels', label: 'Wheels & Tires', desc: 'Aftermarket wheels, performance tires' },
+  { value: 'interior', label: 'Interior Modifications', desc: 'Seats, stereo, dashboard changes' },
+  { value: 'lighting', label: 'Lighting Modifications', desc: 'LED, HID, custom lighting' },
+  { value: 'exhaust', label: 'Exhaust System', desc: 'Aftermarket exhaust, headers' },
+  { value: 'other', label: 'Other Modifications', desc: 'Any other aftermarket changes' }
 ];
 
 export function ModificationsTab({ formData, updateFormData }: ModificationsTabProps) {
-  const hasModifications = formData.modifications?.hasModifications || false;
-
-  const handleModificationChange = (value: string) => {
-    const hasModifications = value === 'yes';
-    updateFormData({
-      modifications: {
-        hasModifications,
-        modified: hasModifications,
-        types: hasModifications ? (formData.modifications?.types || []) : [],
-        reversible: hasModifications ? (formData.modifications?.reversible || false) : false,
-        description: hasModifications ? (formData.modifications?.description || '') : '',
-        additionalNotes: hasModifications ? (formData.modifications?.additionalNotes || '') : ''
-      }
-    });
+  const modifications = formData.modifications || {
+    hasModifications: false,
+    modified: false,
+    types: [],
+    reversible: false,
+    description: '',
+    additionalNotes: ''
   };
 
-  const handleModificationTypeChange = (type: string, checked: boolean) => {
-    const currentTypes = formData.modifications?.types || [];
-    const updatedTypes = checked 
-      ? [...currentTypes, type]
-      : currentTypes.filter(t => t !== type);
-    
+  const handleModificationChange = (field: string, value: any) => {
     updateFormData({
       modifications: {
-        ...formData.modifications,
-        types: updatedTypes,
-        hasModifications: formData.modifications?.hasModifications || false,
-        modified: formData.modifications?.modified || false,
-        reversible: formData.modifications?.reversible || false,
-        description: formData.modifications?.description || '',
-        additionalNotes: formData.modifications?.additionalNotes || ''
-      }
-    });
-  };
-
-  const handleModificationDetailChange = (field: string, value: any) => {
-    updateFormData({
-      modifications: {
-        ...formData.modifications,
-        hasModifications: formData.modifications?.hasModifications || false,
-        modified: formData.modifications?.modified || false,
-        types: formData.modifications?.types || [],
-        reversible: formData.modifications?.reversible || false,
-        description: formData.modifications?.description || '',
-        additionalNotes: formData.modifications?.additionalNotes || '',
+        ...modifications,
         [field]: value
       }
     });
   };
 
+  const handleHasModificationsChange = (hasModifications: boolean) => {
+    updateFormData({
+      modifications: {
+        ...modifications,
+        hasModifications,
+        modified: hasModifications,
+        types: hasModifications ? modifications.types : []
+      }
+    });
+  };
+
+  const handleTypeChange = (type: string, checked: boolean) => {
+    const currentTypes = modifications.types || [];
+    const updatedTypes = checked 
+      ? [...currentTypes, type]
+      : currentTypes.filter(t => t !== type);
+    
+    handleModificationChange('types', updatedTypes);
+  };
+
   return (
     <div className="space-y-6">
-      {/* Main Modification Question */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Settings className="w-5 h-5 text-blue-600" />
+            <Settings className="w-5 h-5" />
             Vehicle Modifications
           </CardTitle>
           <p className="text-sm text-gray-600">
-            Has this vehicle been modified from its original factory condition?
+            Information about any aftermarket modifications or customizations
           </p>
         </CardHeader>
-        <CardContent>
-          <RadioGroup
-            value={hasModifications ? 'yes' : 'no'}
-            onValueChange={handleModificationChange}
-            className="grid grid-cols-2 gap-4"
-          >
-            <div className="flex items-center space-x-2 border rounded-lg p-4">
-              <RadioGroupItem value="no" id="modifications-no" />
-              <Label htmlFor="modifications-no" className="cursor-pointer">
-                <div>
-                  <div className="font-medium">No modifications</div>
-                  <div className="text-sm text-gray-500">Factory original condition</div>
-                </div>
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2 border rounded-lg p-4">
-              <RadioGroupItem value="yes" id="modifications-yes" />
-              <Label htmlFor="modifications-yes" className="cursor-pointer">
-                <div>
-                  <div className="font-medium">Yes, has modifications</div>
-                  <div className="text-sm text-gray-500">Select types below</div>
-                </div>
-              </Label>
-            </div>
-          </RadioGroup>
-        </CardContent>
-      </Card>
-
-      {/* Modification Types */}
-      {hasModifications && (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle>Types of Modifications</CardTitle>
-              <p className="text-sm text-gray-600">
-                Select all modifications that have been made to this vehicle
+        <CardContent className="space-y-6">
+          {/* Has Modifications */}
+          <div className="space-y-4">
+            <div>
+              <Label className="text-base font-medium">Has this vehicle been modified?</Label>
+              <p className="text-sm text-gray-600 mb-3">
+                Include any aftermarket parts, performance modifications, or customizations
               </p>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {modificationCategories.map((category) => {
-                const IconComponent = category.icon;
-                return (
-                  <div key={category.category} className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <IconComponent className={`w-5 h-5 ${category.color}`} />
-                      <h3 className={`font-medium ${category.color}`}>
-                        {category.category}
-                      </h3>
-                      <span className="text-xs text-gray-500">
-                        {category.impact}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 ml-7">
-                      {category.items.map((item) => (
-                        <div key={item.value} className="flex items-center space-x-2">
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div
+                className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md min-h-[80px] ${
+                  modifications.hasModifications === false
+                    ? 'bg-green-50 border-green-200 ring-2 ring-green-200'
+                    : 'bg-white border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => handleHasModificationsChange(false)}
+              >
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    checked={modifications.hasModifications === false}
+                    onCheckedChange={() => handleHasModificationsChange(false)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <div>
+                    <Label className="cursor-pointer font-medium text-green-700">
+                      Stock/Unmodified
+                    </Label>
+                    <p className="text-xs text-gray-600 mt-1">
+                      No aftermarket modifications
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md min-h-[80px] ${
+                  modifications.hasModifications === true
+                    ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-200'
+                    : 'bg-white border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => handleHasModificationsChange(true)}
+              >
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    checked={modifications.hasModifications === true}
+                    onCheckedChange={() => handleHasModificationsChange(true)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <div>
+                    <Label className="cursor-pointer font-medium text-blue-700">
+                      Yes, has modifications
+                    </Label>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Aftermarket parts installed
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Modification Types - Only show if has modifications */}
+          {modifications.hasModifications && (
+            <>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-base font-medium">Types of Modifications</Label>
+                  <p className="text-sm text-gray-600">Select all types of modifications present</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {modificationTypes.map((type) => {
+                    const isChecked = modifications.types?.includes(type.value) || false;
+                    
+                    return (
+                      <div
+                        key={type.value}
+                        className={`p-3 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${
+                          isChecked
+                            ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-200'
+                            : 'bg-white border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => handleTypeChange(type.value, !isChecked)}
+                      >
+                        <div className="flex items-center space-x-3">
                           <Checkbox
-                            id={item.value}
-                            checked={formData.modifications?.types?.includes(item.value) || false}
-                            onCheckedChange={(checked) => handleModificationTypeChange(item.value, checked as boolean)}
+                            checked={isChecked}
+                            onCheckedChange={(checked) => handleTypeChange(type.value, checked === true)}
+                            onClick={(e) => e.stopPropagation()}
                           />
-                          <Label htmlFor={item.value} className="cursor-pointer text-sm">
-                            {item.label}
-                          </Label>
+                          <div>
+                            <Label className="cursor-pointer font-medium text-blue-700">
+                              {type.label}
+                            </Label>
+                            <p className="text-xs text-gray-600 mt-1">{type.desc}</p>
+                          </div>
                         </div>
-                      ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Reversible */}
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-base font-medium">Are modifications reversible?</Label>
+                  <p className="text-sm text-gray-600">Can the vehicle be returned to stock condition?</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md min-h-[80px] ${
+                      modifications.reversible === true
+                        ? 'bg-green-50 border-green-200 ring-2 ring-green-200'
+                        : 'bg-white border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => handleModificationChange('reversible', true)}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        checked={modifications.reversible === true}
+                        onCheckedChange={() => handleModificationChange('reversible', true)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div>
+                        <Label className="cursor-pointer font-medium text-green-700">
+                          Reversible
+                        </Label>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Can return to stock condition
+                        </p>
+                      </div>
                     </div>
                   </div>
-                );
-              })}
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Modification Details</CardTitle>
-              <p className="text-sm text-gray-600">
-                Provide additional information about the modifications
-              </p>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                placeholder="Include details such as: brand names, installation quality, professional vs DIY, costs, performance gains, warranty status, reversibility, etc."
-                value={formData.modifications?.additionalNotes || ''}
-                onChange={(e) => handleModificationDetailChange('additionalNotes', e.target.value)}
-                rows={4}
-                className="w-full"
-              />
-            </CardContent>
-          </Card>
+                  <div
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md min-h-[80px] ${
+                      modifications.reversible === false
+                        ? 'bg-red-50 border-red-200 ring-2 ring-red-200'
+                        : 'bg-white border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => handleModificationChange('reversible', false)}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        checked={modifications.reversible === false}
+                        onCheckedChange={() => handleModificationChange('reversible', false)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div>
+                        <Label className="cursor-pointer font-medium text-red-700">
+                          Permanent
+                        </Label>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Cannot be easily reversed
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-          <Card className="border-orange-200 bg-orange-50">
+              {/* Modification Description */}
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="modification-description" className="text-base font-medium">
+                    Modification Details
+                  </Label>
+                  <p className="text-sm text-gray-600">
+                    Describe the specific modifications, brands, and quality of work
+                  </p>
+                </div>
+                
+                <Textarea
+                  id="modification-description"
+                  value={modifications.description || ''}
+                  onChange={(e) => handleModificationChange('description', e.target.value)}
+                  placeholder="Describe the modifications in detail..."
+                  className="min-h-[100px]"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Modifications Summary */}
+          <Card className={`${modifications.hasModifications ? 'border-blue-200 bg-blue-50' : 'border-green-200 bg-green-50'}`}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-orange-800">
-                <AlertTriangle className="w-5 h-5" />
-                Modification Impact Notice
+              <CardTitle className={`${modifications.hasModifications ? 'text-blue-800' : 'text-green-800'} flex items-center gap-2`}>
+                {modifications.hasModifications ? (
+                  <Settings className="w-5 h-5" />
+                ) : (
+                  <CheckCircle className="w-5 h-5" />
+                )}
+                Modification Status
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-orange-700 space-y-2">
-                <p className="font-medium">Important: Vehicle modifications can significantly impact valuation:</p>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>Performance modifications may reduce resale appeal</li>
-                  <li>Quality of installation affects value impact</li>
-                  <li>Original parts retention is important</li>
-                  <li>Professional installation vs DIY affects valuation</li>
-                  <li>Some modifications may void warranties</li>
-                </ul>
-              </div>
+              {modifications.hasModifications ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <div className="text-sm font-medium text-blue-700 mb-1">Types</div>
+                      <Badge variant="secondary" className="text-xs">
+                        {modifications.types?.length || 0} Selected
+                      </Badge>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm font-medium text-blue-700 mb-1">Reversible</div>
+                      <Badge variant={modifications.reversible ? 'default' : 'destructive'} className="text-xs">
+                        {modifications.reversible ? 'Yes' : 'No'}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                      <strong>Impact:</strong> Modifications can affect value positively or negatively depending on quality, type, and market appeal.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 bg-green-100 rounded-lg">
+                  <p className="text-sm text-green-700">
+                    <strong>Stock Vehicle:</strong> Unmodified vehicles typically have broader market appeal and stable resale values.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
-        </>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
