@@ -154,7 +154,5 @@ export async function populateMsrpsFromWebSearch(): Promise<void> {
   }
 }
 
-// Run the script if called directly
-if (import.meta.main) {
-  populateMsrpsFromWebSearch();
-}
+// Export for use in other modules
+export default populateMsrpsFromWebSearch;
