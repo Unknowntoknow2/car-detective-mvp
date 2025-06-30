@@ -11,8 +11,8 @@ interface TrimData {
     model_name: string;
     makes: {
       make_name: string;
-    };
-  } | null;
+    }[];
+  }[];
 }
 
 function extractPrice(text: string): number | null {
@@ -89,8 +89,9 @@ export async function populateMsrpsFromWebSearch(): Promise<void> {
 
     for (const row of trims) {
       const { id, year, trim_name, msrp } = row;
-      const make = row.models?.makes?.make_name;
-      const model = row.models?.model_name;
+      // Access the first elements since they're arrays
+      const make = row.models?.[0]?.makes?.[0]?.make_name;
+      const model = row.models?.[0]?.model_name;
 
       if (!make || !model || msrp) {
         console.log(`⏭️ Skipping incomplete data for trim ID: ${id}`);
