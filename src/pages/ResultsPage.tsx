@@ -1,14 +1,14 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useValuation } from '@/contexts/ValuationContext';
+import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 import { PremiumPdfSection } from '@/components/valuation/PremiumPdfSection';
 import { TabbedFollowUpForm } from '@/components/followup/TabbedFollowUpForm';
-import { Loader2, Car, MapPin, Gauge, Star } from 'lucide-react';
-import { toast } from 'sonner';
 import { ValueBreakdown } from '@/components/valuation/ValueBreakdown';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function ResultsPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,42 +25,25 @@ export default function ResultsPage() {
           localStorage.getItem('latest_valuation_id') || 
           searchParams.get('id');
 
-        console.log('🔍 Loading valuation data for ID:', valuationId);
-
         if (!valuationId) {
-          console.log('❌ No valuation ID found');
           toast.error('No valuation ID found');
           setLoading(false);
           return;
         }
 
         const data = await getValuationById(valuationId);
-        console.log('📊 Valuation data loaded:', data);
 
         if (!data) {
-          console.log('❌ No data returned from getValuationById');
           toast.error('Valuation not found');
           setLoading(false);
           return;
         }
 
-        // Enhanced validation with better error messages
         if (!data.estimated_value || data.estimated_value <= 0) {
-          console.warn('⚠️ Invalid estimated_value:', data.estimated_value);
           toast.error('Invalid valuation data - please try again');
           setLoading(false);
           return;
         }
-
-        console.log('📊 Real valuation data:', {
-          vin: data.vin || 'missing',
-          make: data.make,
-          model: data.model,
-          year: data.year,
-          value: data.estimated_value,
-          adjustments: data.adjustments?.length || 0,
-          confidence: data.confidence_score
-        });
 
         setValuationData(data);
         
@@ -73,12 +56,11 @@ export default function ResultsPage() {
         );
 
         if (shouldShowFollowUp) {
-          console.log('✅ Setting showFollowUp to true - low confidence or missing data');
           setShowFollowUp(true);
           toast.info('Complete additional questions for higher accuracy');
         }
       } catch (error) {
-        console.error('❌ Error loading valuation data:', error);
+        console.error('Error loading valuation data:', error);
         toast.error('Failed to load valuation data');
       } finally {
         setLoading(false);
@@ -94,22 +76,10 @@ export default function ResultsPage() {
       toast.success('Vehicle details updated successfully!');
       return true;
     } catch (error) {
-      console.error('❌ Error updating valuation:', error);
+      console.error('Error updating valuation:', error);
       toast.error('Failed to update vehicle details');
       return false;
     }
-  };
-
-  const getValuationType = (data: any) => {
-    if (data.valuation_type === 'premium') return 'Premium';
-    if (data.vin) return 'VIN Lookup';
-    return 'Free';
-  };
-
-  const getConfidenceColor = (score: number) => {
-    if (score >= 85) return 'text-green-600';
-    if (score >= 70) return 'text-yellow-600';
-    return 'text-red-600';
   };
 
   if (loading || isLoading) {
@@ -123,111 +93,49 @@ export default function ResultsPage() {
 
   if (!valuationData) {
     return (
-      <div className="container mx-auto py-8">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <h2 className="text-xl font-semibold mb-4">Valuation Not Found</h2>
-            <p className="text-muted-foreground mb-4">
-              We couldn't find the valuation results you're looking for.
-            </p>
-            <Button onClick={() => window.location.href = '/'}>
-              Start New Valuation
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="container mx-auto py-8 text-center">
+        <h2 className="text-xl font-semibold mb-4">Valuation Not Found</h2>
+        <p className="text-muted-foreground mb-4">
+          We couldn't find the valuation results you're looking for.
+        </p>
+        <Button onClick={() => window.location.href = '/'}>
+          Start New Valuation
+        </Button>
       </div>
     );
   }
 
-  const displayValue = valuationData.estimated_value > 0 
-    ? valuationData.estimated_value 
-    : 'Processing...';
+  const vehicleInfo = {
+    year: valuationData.year,
+    make: valuationData.make,
+    model: valuationData.model,
+    trim: valuationData.vehicle_data?.trim,
+    mileage: valuationData.mileage || 0,
+    condition: valuationData.condition || 'Good',
+    vin: valuationData.vin,
+    zipCode: valuationData.zip_code
+  };
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      {/* Vehicle Information Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Car className="w-8 h-8 text-blue-600" />
-              <div>
-                <CardTitle className="text-2xl">
-                  {valuationData.year} {valuationData.make} {valuationData.model}
-                  {valuationData.vehicle_data?.trim && ` ${valuationData.vehicle_data.trim}`}
-                </CardTitle>
-                <div className="flex items-center gap-4 mt-2">
-                  <Badge variant="outline">{getValuationType(valuationData)}</Badge>
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4" />
-                    <span className={`text-sm font-medium ${getConfidenceColor(valuationData.confidence_score || 75)}`}>
-                      {valuationData.confidence_score || 75}% Confidence
-                    </span>
-                  </div>
-                  {valuationData.vin && (
-                    <Badge variant="secondary" className="font-mono text-xs">
-                      VIN: {valuationData.vin.slice(-8)}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold text-green-600">
-                {typeof displayValue === 'number' 
-                  ? `$${displayValue.toLocaleString()}` 
-                  : displayValue}
-              </div>
-              {valuationData.price_range_low && valuationData.price_range_high && (
-                <div className="text-sm text-muted-foreground mt-1">
-                  Range: ${Math.floor(valuationData.price_range_low).toLocaleString()} - 
-                  ${Math.ceil(valuationData.price_range_high).toLocaleString()}
-                </div>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center gap-2">
-              <Gauge className="w-4 h-4" />
-              <span className="text-sm font-medium">Mileage:</span>
-              <span className="text-sm text-muted-foreground">
-                {valuationData.mileage?.toLocaleString() || 'Unknown'} miles
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Condition:</span>
-              <Badge variant="secondary">{valuationData.condition || 'Good'}</Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
-              <span className="text-sm font-medium">Location:</span>
-              <span className="text-sm text-muted-foreground">
-                {valuationData.zip_code || 'Unknown'}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Data Quality:</span>
-              <Badge variant={valuationData.vin ? "default" : "secondary"}>
-                {valuationData.vin ? 'Complete' : 'Partial'}
-              </Badge>
-            </div>
-          </div>
-          
-          {/* Show data source notice */}
-          {valuationData.vin && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-              <div className="text-sm text-blue-800">
-                <strong>VIN-based valuation.</strong> This estimate uses your vehicle's specific data and market conditions.
-                {showFollowUp && ' Complete additional questions for maximum accuracy.'}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Main Valuation Result */}
+      <UnifiedValuationResult
+        vehicleInfo={vehicleInfo}
+        estimatedValue={valuationData.estimated_value}
+        confidenceScore={valuationData.confidence_score || 75}
+        priceRange={
+          valuationData.price_range_low && valuationData.price_range_high
+            ? [valuationData.price_range_low, valuationData.price_range_high]
+            : undefined
+        }
+        adjustments={valuationData.adjustments || []}
+        zipCode={valuationData.zip_code}
+        isPremium={valuationData.valuation_type === 'premium'}
+        onEmailReport={() => toast.info('Email feature coming soon')}
+        onUpgrade={() => toast.info('Premium upgrade coming soon')}
+      />
 
-      {/* Value Breakdown - New Component */}
+      {/* Value Breakdown */}
       <ValueBreakdown
         adjustments={valuationData.adjustments || []}
         baseValue={valuationData.vehicle_data?.baseValue}
@@ -237,25 +145,21 @@ export default function ResultsPage() {
 
       {/* Follow-up Questions */}
       {showFollowUp && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Improve Your Valuation Accuracy</CardTitle>
-            <p className="text-muted-foreground">
-              Answer a few more questions to get the most precise estimate possible.
-            </p>
-          </CardHeader>
-          <CardContent>
-            <TabbedFollowUpForm
-              vehicleData={{
-                vin: valuationData.vin || '',
-                year: valuationData.year,
-                make: valuationData.make,
-                model: valuationData.model
-              }}
-              onSubmit={handleFollowUpSubmit}
-            />
-          </CardContent>
-        </Card>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold mb-2">Improve Your Valuation Accuracy</h3>
+          <p className="text-muted-foreground mb-4">
+            Answer a few more questions to get the most precise estimate possible.
+          </p>
+          <TabbedFollowUpForm
+            vehicleData={{
+              vin: valuationData.vin || '',
+              year: valuationData.year,
+              make: valuationData.make,
+              model: valuationData.model
+            }}
+            onSubmit={handleFollowUpSubmit}
+          />
+        </div>
       )}
 
       {/* Premium PDF Section */}
