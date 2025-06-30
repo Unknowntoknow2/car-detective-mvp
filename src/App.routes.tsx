@@ -9,7 +9,7 @@ import DealerDashboard from './pages/DealerDashboard';
 import OffersPage from './pages/OffersPage';
 import ViewOfferPage from './pages/view-offer/ViewOfferPage';
 import PremiumPage from './pages/PremiumPage';
-import ValuationResultPage from './pages/ValuationResultPage';
+import ResultsPage from './pages/ResultsPage'; // Use the real ResultsPage
 import MyValuationsPage from './pages/MyValuationsPage';
 import ProfilePage from './pages/ProfilePage';
 import AuditPage from './pages/admin/AuditPage';
@@ -68,11 +68,11 @@ const routes = [
       },
       {
         path: "valuation-result/:id",
-        element: <ValuationResultPage />,
+        element: <ResultsPage />, // Fixed: Use ResultsPage instead of ValuationResultPage
       },
       {
         path: "results/:id",
-        element: <ValuationResultPage />,
+        element: <ResultsPage />, // Fixed: Use ResultsPage instead of ValuationResultPage
       },
       {
         path: "valuation/followup",
