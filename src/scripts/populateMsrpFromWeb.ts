@@ -104,7 +104,7 @@ export async function populateMsrpsFromWebSearch(): Promise<void> {
       try {
         console.log(`🔍 Searching MSRP for: ${vehicleDesc}`);
 
-        const response = await openai.chat.completions.create({
+        const response = await openai.createChatCompletion({
           model: 'gpt-4o',
           messages: [
             {
