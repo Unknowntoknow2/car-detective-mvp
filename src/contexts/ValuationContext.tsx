@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -123,7 +122,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const adjustments = [];
     let finalValue = baseValue;
 
-    // Geographic adjustment based on ZIP code
+    // Geographic adjustment based on ZIP code - FIXED: Handle empty ZIP codes
     const geographicMultipliers: Record<string, { multiplier: number; description: string }> = {
       '90210': { multiplier: 1.15, description: 'Beverly Hills premium market (+15%)' },
       '10001': { multiplier: 1.12, description: 'Manhattan premium market (+12%)' },
@@ -131,17 +130,37 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       '02101': { multiplier: 1.10, description: 'Boston premium market (+10%)' },
     };
 
-    const geoAdjustment = geographicMultipliers[input.zipCode];
-    if (geoAdjustment) {
-      const impact = Math.round(baseValue * (geoAdjustment.multiplier - 1));
+    // FIXED: Only apply geographic adjustment if ZIP code is provided and valid
+    if (input.zipCode && input.zipCode.length === 5 && /^\d{5}$/.test(input.zipCode)) {
+      const geoAdjustment = geographicMultipliers[input.zipCode];
+      if (geoAdjustment) {
+        const impact = Math.round(baseValue * (geoAdjustment.multiplier - 1));
+        adjustments.push({
+          factor: 'Geographic Premium',
+          impact: impact,
+          percentage: (geoAdjustment.multiplier - 1) * 100,
+          description: geoAdjustment.description
+        });
+        finalValue *= geoAdjustment.multiplier;
+      } else {
+        // Real ZIP code but not in our premium list - neutral adjustment
+        adjustments.push({
+          factor: 'Geographic Location',
+          impact: 0,
+          percentage: 0,
+          description: `ZIP ${input.zipCode} - standard market conditions`
+        });
+      }
+    } else if (input.zipCode && input.zipCode.length > 0) {
+      // Invalid ZIP code format
       adjustments.push({
-        factor: 'Geographic Premium',
-        impact: impact,
-        percentage: (geoAdjustment.multiplier - 1) * 100,
-        description: geoAdjustment.description
+        factor: 'Geographic Location',
+        impact: 0,
+        percentage: 0,
+        description: 'Invalid ZIP code - using national average'
       });
-      finalValue *= geoAdjustment.multiplier;
     }
+    // If no ZIP code at all, don't add any geographic adjustment
 
     // Mileage adjustment
     const avgMileagePerYear = 12000;
@@ -207,6 +226,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setIsLoading(true);
     try {
       console.log('🚀 Processing valuation with VIN:', input.vin);
+      console.log('🏠 ZIP Code provided:', input.zipCode || 'none');
 
       // Enhanced base value calculation
       const makeMultipliers: Record<string, number> = {
@@ -231,19 +251,21 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Calculate confidence score based on data completeness
       let confidenceScore = 75; // Base confidence
       if (input.vin) confidenceScore += 10; // VIN provides more data
-      if (input.zipCode && input.zipCode !== '90210') confidenceScore += 5; // Real location
+      if (input.zipCode && input.zipCode.length === 5 && /^\d{5}$/.test(input.zipCode)) {
+        confidenceScore += 5; // Real location data
+      }
       if (input.mileage > 0) confidenceScore += 5; // Actual mileage
       confidenceScore = Math.min(95, confidenceScore);
 
       // Create comprehensive valuation record
       const valuationData = {
-        vin: input.vin || null, // Preserve VIN
+        vin: input.vin || null, // FIXED: Preserve VIN properly
         make: input.make,
         model: input.model,
         year: input.year,
         mileage: input.mileage,
         condition: input.condition,
-        zip_code: input.zipCode,
+        zip_code: input.zipCode || null, // FIXED: Store empty ZIP as null instead of '90210'
         estimated_value: finalValue,
         confidence_score: confidenceScore,
         adjustments: adjustments,
@@ -255,7 +277,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           calculationMethod: 'enhanced_adjustment_model',
           dataCompleteness: {
             hasVin: !!input.vin,
-            hasRealLocation: input.zipCode !== '90210',
+            hasRealLocation: !!(input.zipCode && input.zipCode.length === 5 && /^\d{5}$/.test(input.zipCode)),
             hasActualMileage: input.mileage > 0
           }
         },
@@ -266,7 +288,9 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         baseValue,
         adjustments: adjustments.length,
         finalValue,
-        confidenceScore
+        confidenceScore,
+        hasVin: !!input.vin,
+        hasZip: !!input.zipCode
       });
 
       const result = await createValuation(valuationData);

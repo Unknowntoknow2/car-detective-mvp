@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
@@ -59,6 +60,8 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
   useEffect(() => {
     const loadData = async () => {
       try {
+        console.log('🔍 Loading follow-up data for VIN:', vin);
+        
         // First try to load by VIN
         let { data, error } = await supabase
           .from('follow_up_answers')
@@ -91,7 +94,14 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
             setFormData(prev => ({ 
               ...prev, 
               valuation_id: valuationData.id,
-              vin: vin // Ensure VIN is preserved
+              vin: vin // FIXED: Ensure VIN is preserved
+            }));
+          } else {
+            console.log('⚠️ No valuation found to link for VIN:', vin);
+            // Still preserve the VIN even if no valuation exists
+            setFormData(prev => ({ 
+              ...prev, 
+              vin: vin
             }));
           }
         }
@@ -102,7 +112,12 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       }
     };
 
-    loadData();
+    if (vin) {
+      loadData();
+    } else {
+      console.warn('⚠️ No VIN provided to useSimpleFollowUpForm');
+      setIsLoading(false);
+    }
   }, [vin]);
 
   // Enhanced auto-save function with proper VIN linking
@@ -111,10 +126,16 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       setIsSaving(true);
       setSaveError(null);
 
-      // Ensure VIN is always included
+      // FIXED: Ensure VIN is always included and not null
+      if (!vin) {
+        console.error('❌ Cannot save follow-up data without VIN');
+        setSaveError('VIN required for saving');
+        return false;
+      }
+
       const saveData = {
         ...dataToSave,
-        vin: vin, // Force VIN to be correct
+        vin: vin, // FIXED: Force VIN to be correct and not null
         payoff_amount: dataToSave.payoffAmount || 0,
         completion_percentage: Math.round((
           [dataToSave.zip_code, dataToSave.mileage, dataToSave.condition].filter(Boolean).length / 3
@@ -137,6 +158,8 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
         if (valuationData) {
           saveData.valuation_id = valuationData.id;
           console.log('✅ Linked to valuation:', valuationData.id);
+        } else {
+          console.log('⚠️ No valuation found to link for VIN:', vin);
         }
       }
 
@@ -181,8 +204,12 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
   // Update form data function
   const updateFormData = useCallback((updates: Partial<FollowUpAnswers>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
-  }, []);
+    setFormData(prev => ({ 
+      ...prev, 
+      ...updates,
+      vin: vin // FIXED: Always preserve the VIN
+    }));
+  }, [vin]);
 
   // Manual save function for tab changes
   const saveProgress = useCallback(async () => {
