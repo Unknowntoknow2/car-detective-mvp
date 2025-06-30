@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -125,20 +126,19 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // First try to find exact match with make/model/year
       const { data: trimData, error } = await supabase
         .from('model_trims')
-        .select('msrp, trim_name')
-        .eq('year', year)
-        .in('model_id', 
-          supabase
-            .from('models')
-            .select('id')
-            .eq('model_name', model)
-            .in('make_id',
-              supabase
-                .from('makes')
-                .select('id')
-                .eq('make_name', make)
+        .select(`
+          msrp, 
+          trim_name,
+          models!inner (
+            model_name,
+            makes!inner (
+              make_name
             )
-        )
+          )
+        `)
+        .eq('year', year)
+        .eq('models.model_name', model)
+        .eq('models.makes.make_name', make)
         .not('msrp', 'is', null)
         .order('msrp', { ascending: false })
         .limit(1)
@@ -152,21 +152,21 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Fallback: try to find similar year (±2 years)
       const { data: fallbackData, error: fallbackError } = await supabase
         .from('model_trims')
-        .select('msrp, year, trim_name')
+        .select(`
+          msrp, 
+          year, 
+          trim_name,
+          models!inner (
+            model_name,
+            makes!inner (
+              make_name
+            )
+          )
+        `)
         .gte('year', year - 2)
         .lte('year', year + 2)
-        .in('model_id', 
-          supabase
-            .from('models')
-            .select('id')
-            .eq('model_name', model)
-            .in('make_id',
-              supabase
-                .from('makes')
-                .select('id')
-                .eq('make_name', make)
-            )
-        )
+        .eq('models.model_name', model)
+        .eq('models.makes.make_name', make)
         .not('msrp', 'is', null)
         .order('year', { ascending: false })
         .limit(1)
