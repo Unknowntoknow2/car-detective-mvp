@@ -14,10 +14,11 @@ interface SimplifiedBasicInfoTabProps {
 }
 
 const conditionOptions = [
-  { value: 'excellent', label: 'Excellent', description: 'Like new, no visible wear' },
-  { value: 'good', label: 'Good', description: 'Normal wear, good condition' },
-  { value: 'fair', label: 'Fair', description: 'Noticeable wear, some issues' },
-  { value: 'poor', label: 'Poor', description: 'Significant issues present' }
+  { value: 'Excellent', label: 'Excellent', description: 'Like new, no visible wear' },
+  { value: 'Very Good', label: 'Very Good', description: 'Minor wear, excellent condition' },
+  { value: 'Good', label: 'Good', description: 'Normal wear, good condition' },
+  { value: 'Fair', label: 'Fair', description: 'Noticeable wear, some issues' },
+  { value: 'Poor', label: 'Poor', description: 'Significant issues present' }
 ];
 
 export function SimplifiedBasicInfoTab({ formData, updateFormData }: SimplifiedBasicInfoTabProps) {
@@ -38,6 +39,9 @@ export function SimplifiedBasicInfoTab({ formData, updateFormData }: SimplifiedB
             onChange={(value) => updateFormData({ zip_code: value })}
             required
           />
+          <p className="text-xs text-gray-500 mt-2">
+            Enter your ZIP code for accurate local market pricing
+          </p>
         </CardContent>
       </Card>
 

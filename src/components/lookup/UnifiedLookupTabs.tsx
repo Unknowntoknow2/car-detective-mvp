@@ -64,13 +64,13 @@ export function UnifiedLookupTabs() {
       if (result && result.success && result.vehicle) {
         console.log('✅ VIN Lookup: Successfully decoded vehicle:', result.vehicle);
         
-        // Navigate to follow-up questions with vehicle data
+        // Navigate to follow-up questions with vehicle data INCLUDING VIN
         const params = new URLSearchParams({
           year: result.vehicle.year.toString(),
           make: result.vehicle.make,
           model: result.vehicle.model,
           trim: result.vehicle.trim || '',
-          vin: result.vehicle.vin || vin,
+          vin: result.vehicle.vin || vin, // Ensure VIN is always passed
           engine: result.vehicle.engine || '',
           transmission: result.vehicle.transmission || '',
           bodyType: result.vehicle.bodyType || '',
@@ -114,13 +114,15 @@ export function UnifiedLookupTabs() {
       }
 
       // For manual entry, go directly to results since user provided all details
+      // FIXED: Pass actual zipCode instead of defaulting to '90210'
       const valuationResult = await processFreeValuation({
         make: selectedMake.make_name,
         model: selectedModel.model_name,
         year: selectedYear,
         mileage: parseInt(mileage) || 50000,
         condition: condition,
-        zipCode: zipCode || '90210'
+        zipCode: zipCode || '', // FIXED: Use empty string instead of '90210'
+        vin: undefined // Manual entry doesn't have VIN
       });
       
       console.log('✅ Manual Entry: Valuation completed:', valuationResult);
@@ -151,7 +153,7 @@ export function UnifiedLookupTabs() {
       if (result && result.success && result.vehicle) {
         console.log('✅ Plate Lookup: Successfully found vehicle:', result.vehicle);
         
-        // Navigate to follow-up questions with vehicle data
+        // Navigate to follow-up questions with vehicle data INCLUDING plate info
         const params = new URLSearchParams({
           year: result.vehicle.year.toString(),
           make: result.vehicle.make,
@@ -159,6 +161,7 @@ export function UnifiedLookupTabs() {
           trim: result.vehicle.trim || '',
           plate: plateData.plate,
           state: plateData.state,
+          vin: result.vehicle.vin || `PLATE_${plateData.plate}_${plateData.state}`, // Generate placeholder VIN for plates
           engine: result.vehicle.engine || '',
           transmission: result.vehicle.transmission || '',
           bodyType: result.vehicle.bodyType || '',
@@ -313,8 +316,12 @@ export function UnifiedLookupTabs() {
                       id="zipCode"
                       value={zipCode}
                       onChange={(e) => setZipCode(e.target.value)}
-                      placeholder="e.g., 90210"
+                      placeholder="e.g., 12345"
+                      maxLength={5}
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Optional - affects local market pricing
+                    </p>
                   </div>
                 </div>
                 
