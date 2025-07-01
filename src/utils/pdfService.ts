@@ -1,3 +1,4 @@
+
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
@@ -218,6 +219,27 @@ export async function generateValuationPdf(data: ReportData, options: PdfOptions
   });
   yPosition -= 25;
 
+  // Add MSRP information if available
+  if (data.basePrice && data.basePrice > 0) {
+    page.drawText(`MSRP Used: $${data.basePrice.toLocaleString()}`, {
+      x: margin,
+      y: yPosition,
+      size: 10,
+      font: font,
+      color: rgb(0.4, 0.4, 0.4),
+    });
+    yPosition -= 15;
+    
+    page.drawText('Source: CarPerfector MSRP Database (Real vehicle data)', {
+      x: margin,
+      y: yPosition,
+      size: 10,
+      font: font,
+      color: rgb(0.4, 0.4, 0.4),
+    });
+    yPosition -= 20;
+  }
+
   if (data.priceRange && Array.isArray(data.priceRange)) {
     page.drawText(`Price Range: $${data.priceRange[0]?.toLocaleString()} - $${data.priceRange[1]?.toLocaleString()}`, {
       x: margin,
@@ -236,10 +258,59 @@ export async function generateValuationPdf(data: ReportData, options: PdfOptions
     font: font,
     color: rgb(0, 0, 0),
   });
+  yPosition -= 30;
+
+  // Value Breakdown Section
+  if (data.adjustments && data.adjustments.length > 0) {
+    page.drawText('Valuation Breakdown', {
+      x: margin,
+      y: yPosition,
+      size: 16,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    });
+    yPosition -= 25;
+
+    if (data.basePrice && data.basePrice > 0) {
+      page.drawText(`Base MSRP: $${data.basePrice.toLocaleString()}`, {
+        x: margin,
+        y: yPosition,
+        size: 11,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      yPosition -= 18;
+    }
+
+    data.adjustments.forEach((adjustment) => {
+      const adjustmentText = `${adjustment.factor}: ${adjustment.impact > 0 ? '+' : ''}$${adjustment.impact.toLocaleString()}`;
+      page.drawText(adjustmentText, {
+        x: margin,
+        y: yPosition,
+        size: 10,
+        font: font,
+        color: adjustment.impact > 0 ? rgb(0, 0.6, 0) : rgb(0.8, 0, 0),
+      });
+      
+      // Add description on next line if available
+      if (adjustment.description) {
+        yPosition -= 12;
+        page.drawText(`  ${adjustment.description}`, {
+          x: margin,
+          y: yPosition,
+          size: 9,
+          font: font,
+          color: rgb(0.5, 0.5, 0.5),
+        });
+      }
+      
+      yPosition -= 16;
+    });
+  }
 
   // Add AI Condition if available
   if (data.aiCondition) {
-    yPosition -= 30;
+    yPosition -= 20;
     page.drawText('AI Condition Assessment', {
       x: margin,
       y: yPosition,
@@ -266,6 +337,16 @@ export async function generateValuationPdf(data: ReportData, options: PdfOptions
       color: rgb(0.3, 0.3, 0.3),
     });
   }
+
+  // Add footer with data source information
+  const footerY = 60;
+  page.drawText('Data Sources: CarPerfector MSRP Database, Market Analysis, Condition Assessment', {
+    x: margin,
+    y: footerY,
+    size: 8,
+    font: font,
+    color: rgb(0.6, 0.6, 0.6),
+  });
 
   let pdfBytes = await pdfDoc.save();
 

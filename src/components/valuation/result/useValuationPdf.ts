@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { downloadPdf, ReportData } from '@/utils/pdf';
 import { toast } from 'sonner';
@@ -38,7 +39,9 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
         isPremium: isPremium,
         adjustments: valuationData.adjustments || [],
         generatedAt: new Date().toISOString(),
-        priceRange: [0, 0] // Will be replaced below
+        priceRange: [0, 0], // Will be replaced below
+        // Include MSRP data for PDF
+        basePrice: valuationData.vehicle_data?.baseMSRP || valuationData.basePrice
       };
       
       // Handle priceRange conversion - ensure it's always a tuple format
