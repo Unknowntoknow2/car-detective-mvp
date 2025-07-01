@@ -116,29 +116,54 @@ export default function ResultsPage() {
     zipCode: valuationData.zip_code
   };
 
+  // Extract MSRP from vehicle_data if available
+  const baseMSRP = valuationData.vehicle_data?.baseMSRP;
+  const msrpSource = valuationData.vehicle_data?.msrpSource;
+
   return (
     <div className="container mx-auto py-8 space-y-6">
       {/* Main Valuation Result */}
-      <UnifiedValuationResult
-        vehicleInfo={vehicleInfo}
-        estimatedValue={valuationData.estimated_value}
-        confidenceScore={valuationData.confidence_score || 75}
-        priceRange={
-          valuationData.price_range_low && valuationData.price_range_high
-            ? [valuationData.price_range_low, valuationData.price_range_high]
-            : undefined
-        }
-        adjustments={valuationData.adjustments || []}
-        zipCode={valuationData.zip_code}
-        isPremium={valuationData.valuation_type === 'premium'}
-        onEmailReport={() => toast.info('Email feature coming soon')}
-        onUpgrade={() => toast.info('Premium upgrade coming soon')}
-      />
+      <div className="space-y-2">
+        <UnifiedValuationResult
+          vehicleInfo={vehicleInfo}
+          estimatedValue={valuationData.estimated_value}
+          confidenceScore={valuationData.confidence_score || 75}
+          priceRange={
+            valuationData.price_range_low && valuationData.price_range_high
+              ? [valuationData.price_range_low, valuationData.price_range_high]
+              : undefined
+          }
+          adjustments={valuationData.adjustments || []}
+          zipCode={valuationData.zip_code}
+          isPremium={valuationData.valuation_type === 'premium'}
+          onEmailReport={() => toast.info('Email feature coming soon')}
+          onUpgrade={() => toast.info('Premium upgrade coming soon')}
+        />
+        
+        {/* Display MSRP if available and not a fallback value */}
+        {baseMSRP && baseMSRP !== 25000 && msrpSource && msrpSource !== 'make_fallback' && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium">MSRP Used in Calculation:</span> ${baseMSRP.toLocaleString()}
+            </p>
+            {msrpSource === 'trim_id' && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Sourced from specific trim data
+              </p>
+            )}
+            {msrpSource === 'database_fallback' && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Sourced from vehicle database
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Value Breakdown */}
       <ValueBreakdown
         adjustments={valuationData.adjustments || []}
-        baseValue={valuationData.vehicle_data?.baseValue}
+        baseValue={valuationData.vehicle_data?.baseValue || baseMSRP}
         finalValue={valuationData.estimated_value}
         confidenceScore={valuationData.confidence_score || 75}
       />

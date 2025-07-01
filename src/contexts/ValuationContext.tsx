@@ -11,6 +11,7 @@ interface ProcessFreeValuationInput {
   condition: string;
   zipCode: string;
   vin?: string;
+  trim_id?: string;
 }
 
 interface ProcessFreeValuationResult {
@@ -118,13 +119,27 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, []);
 
-  // NEW: Function to get real MSRP from database
-  const getRealMSRP = async (make: string, model: string, year: number): Promise<number> => {
+  // Load real MSRP from model_trims table
+  const getRealMSRP = async (make: string, model: string, year: number, trim_id?: string): Promise<{ msrp: number; source: string }> => {
     try {
-      console.log('🔍 Looking up real MSRP for:', { make, model, year });
+      console.log('🔍 Looking up real MSRP for:', { make, model, year, trim_id });
       
-      // First try to find exact match with make/model/year
-      const { data: trimData, error } = await supabase
+      // First try to use trim_id if provided
+      if (trim_id) {
+        const { data: trimData, error } = await supabase
+          .from('model_trims')
+          .select('msrp, trim_name')
+          .eq('id', trim_id)
+          .maybeSingle();
+
+        if (trimData?.msrp && !isNaN(trimData.msrp)) {
+          console.log('✅ Found MSRP via trim_id:', trimData.msrp, 'for trim:', trimData.trim_name);
+          return { msrp: trimData.msrp, source: 'trim_id' };
+        }
+      }
+      
+      // Fallback: try to find exact match with make/model/year
+      const { data: fallbackData, error } = await supabase
         .from('model_trims')
         .select(`
           msrp, 
@@ -144,48 +159,17 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .limit(1)
         .maybeSingle();
 
-      if (trimData && trimData.msrp) {
-        console.log('✅ Found real MSRP:', trimData.msrp, 'for trim:', trimData.trim_name);
-        return trimData.msrp;
-      }
-
-      // Fallback: try to find similar year (±2 years)
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from('model_trims')
-        .select(`
-          msrp, 
-          year, 
-          trim_name,
-          models!inner (
-            model_name,
-            makes!inner (
-              make_name
-            )
-          )
-        `)
-        .gte('year', year - 2)
-        .lte('year', year + 2)
-        .eq('models.model_name', model)
-        .eq('models.makes.make_name', make)
-        .not('msrp', 'is', null)
-        .order('year', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (fallbackData && fallbackData.msrp) {
-        // Adjust for year difference
-        const yearDiff = year - fallbackData.year;
-        const adjustedMSRP = fallbackData.msrp + (yearDiff * 500); // $500 per year adjustment
-        console.log('✅ Found fallback MSRP:', adjustedMSRP, `(${fallbackData.msrp} adjusted for ${yearDiff} years)`);
-        return Math.max(adjustedMSRP, 15000); // Minimum $15k
+      if (fallbackData?.msrp) {
+        console.log('✅ Found fallback MSRP:', fallbackData.msrp, 'for trim:', fallbackData.trim_name);
+        return { msrp: fallbackData.msrp, source: 'database_fallback' };
       }
 
       console.warn('⚠️ No MSRP found in database, using make-based fallback');
-      return getMakeFallbackMSRP(make, year);
+      return { msrp: getMakeFallbackMSRP(make, year), source: 'make_fallback' };
       
     } catch (error) {
       console.error('❌ Error fetching MSRP:', error);
-      return getMakeFallbackMSRP(make, year);
+      return { msrp: getMakeFallbackMSRP(make, year), source: 'error_fallback' };
     }
   };
 
@@ -217,7 +201,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       'Genesis': 47000
     };
 
-    const baseMSRP = makeMultipliers[make] || 30000;
+    const baseMSRP = makeMultipliers[make] || 25000; // Default fallback
     return baseMSRP + yearFactor;
   };
 
@@ -226,12 +210,13 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     adjustments: any[];
     finalValue: number;
     baseMSRP: number;
+    msrpSource: string;
   }> => {
     const adjustments = [];
     
     // Get real MSRP from database
-    const baseMSRP = await getRealMSRP(input.make, input.model, input.year);
-    console.log('💰 Using real base MSRP:', baseMSRP);
+    const { msrp: baseMSRP, source: msrpSource } = await getRealMSRP(input.make, input.model, input.year, input.trim_id);
+    console.log('💰 Using MSRP:', baseMSRP, 'from source:', msrpSource);
     
     let finalValue = baseMSRP;
 
@@ -324,7 +309,8 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return {
       adjustments,
       finalValue: Math.max(2000, Math.round(finalValue)), // Minimum $2000
-      baseMSRP: Math.round(baseMSRP)
+      baseMSRP: Math.round(baseMSRP),
+      msrpSource
     };
   };
 
@@ -334,7 +320,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.log('🚀 Processing valuation with real MSRP for:', input.make, input.model, input.year);
 
       // Calculate real adjustments with MSRP from database
-      const { adjustments, finalValue, baseMSRP } = await calculateRealAdjustments(input);
+      const { adjustments, finalValue, baseMSRP, msrpSource } = await calculateRealAdjustments(input);
 
       // Calculate confidence score based on data completeness
       let confidenceScore = 80; // Higher base confidence with real MSRP
@@ -361,12 +347,14 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         price_range_high: Math.round(finalValue * 1.08),
         vehicle_data: {
           baseMSRP: baseMSRP, // Store the real MSRP used
+          msrpSource: msrpSource, // Track MSRP source for transparency
           calculationMethod: 'real_msrp_model',
           dataCompleteness: {
             hasVin: !!input.vin,
             hasRealLocation: !!(input.zipCode && input.zipCode.length === 5 && /^\d{5}$/.test(input.zipCode)),
             hasActualMileage: input.mileage > 0,
-            usedRealMSRP: true
+            usedRealMSRP: msrpSource !== 'error_fallback',
+            trimId: input.trim_id || null
           }
         },
         valuation_type: 'free'
@@ -374,6 +362,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       console.log('💰 Real valuation completed:', {
         baseMSRP,
+        msrpSource,
         adjustments: adjustments.length,
         finalValue,
         confidenceScore,
