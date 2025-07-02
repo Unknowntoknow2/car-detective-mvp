@@ -13,7 +13,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
     vin,
     zip_code: '',
     mileage: 0,
-    condition: '',
+    condition: 'good', // FIXED: Valid default condition
     year: initialData?.year || new Date().getFullYear(),
     accidents: {
       hadAccident: false,
@@ -126,10 +126,17 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       setIsSaving(true);
       setSaveError(null);
 
-      // FIXED: Ensure VIN is always included and not null
+      // FIXED: Validate required fields before save
       if (!vin) {
         console.error('❌ Cannot save follow-up data without VIN');
         setSaveError('VIN required for saving');
+        return false;
+      }
+
+      // CRITICAL: Validate condition is valid enum value
+      if (!dataToSave.condition || !['excellent', 'good', 'fair', 'poor'].includes(dataToSave.condition)) {
+        console.error('❌ Invalid condition value:', dataToSave.condition);
+        setSaveError('Please select a valid vehicle condition');
         return false;
       }
 
@@ -173,8 +180,20 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
         .upsert(dbData, { onConflict: 'vin' });
 
       if (error) {
-        console.error('Silent save error:', error);
-        setSaveError('Connection issue - will retry automatically');
+        console.error('Save error details:', error);
+        
+        // Enhanced error classification
+        if (error.message?.includes('follow_up_answers_condition_check')) {
+          setSaveError('Please select a valid condition (excellent/good/fair/poor)');
+        } else if (error.message?.includes('violates foreign key constraint')) {
+          setSaveError('Data linking error - please refresh and try again');
+        } else if (error.message?.includes('violates check constraint')) {
+          setSaveError('Invalid data format - please check your entries');
+        } else if (error.message?.includes('network') || error.code === 'ECONNRESET') {
+          setSaveError('Network error - please check connection and try again');
+        } else {
+          setSaveError(`Save failed: ${error.message}`);
+        }
         return false;
       }
 
@@ -183,8 +202,22 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       console.log('✅ Follow-up data saved successfully');
       return true;
     } catch (error) {
-      console.error('Silent save error:', error);
-      setSaveError('Connection issue - will retry automatically');
+      console.error('Save error caught:', error);
+      
+      // Enhanced error handling with user-friendly messages
+      if (error instanceof Error) {
+        if (error.message?.includes('condition_check')) {
+          setSaveError('Please select a valid vehicle condition');
+        } else if (error.message?.includes('foreign key')) {
+          setSaveError('Data linking error - please refresh the page');
+        } else if (error.message?.includes('network')) {
+          setSaveError('Network error - please check your connection');
+        } else {
+          setSaveError(`Error: ${error.message}`);
+        }
+      } else {
+        setSaveError('Unexpected error - please try again');
+      }
       return false;
     } finally {
       setIsSaving(false);
@@ -223,9 +256,9 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
   const isFormValid = useCallback(() => {
     const hasValidZip = formData.zip_code && formData.zip_code.length === 5 && /^\d{5}$/.test(formData.zip_code);
     const hasValidMileage = formData.mileage && formData.mileage > 0;
-    const hasCondition = formData.condition && formData.condition.trim() !== '';
+    const hasValidCondition = formData.condition && ['excellent', 'good', 'fair', 'poor'].includes(formData.condition);
     
-    return Boolean(hasValidZip && hasValidMileage && hasCondition);
+    return Boolean(hasValidZip && hasValidMileage && hasValidCondition);
   }, [formData]);
 
   return {

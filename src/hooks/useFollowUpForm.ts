@@ -261,10 +261,17 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       console.error('❌ Error submitting follow-up form:', error);
       
       if (error instanceof Error) {
-        if (error.message.includes('row-level security')) {
+        // Enhanced error classification for better user feedback
+        if (error.message.includes('condition_check') || error.message.includes('violates check constraint')) {
+          toast.error('Please select a valid vehicle condition (excellent/good/fair/poor)');
+        } else if (error.message.includes('foreign key constraint')) {
+          toast.error('Data linking error. Please refresh the page and try again.');
+        } else if (error.message.includes('row-level security')) {
           toast.error('Permission error. Please refresh the page and try again.');
-        } else if (error.message.includes('network')) {
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
           toast.error('Network error. Please check your connection and try again.');
+        } else if (error.message.includes('timeout')) {
+          toast.error('Request timed out. Please try again.');
         } else {
           toast.error(`Failed to complete follow-up: ${error.message}`);
         }

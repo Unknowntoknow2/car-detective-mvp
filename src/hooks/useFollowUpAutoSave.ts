@@ -69,8 +69,18 @@ export function useFollowUpAutoSave({
       }
 
       if (error) {
-        console.error('Save error:', error);
-        setSaveError(error.message);
+        console.error('Auto-save error details:', error);
+        
+        // Enhanced error classification for auto-save
+        if (error.message?.includes('condition_check')) {
+          setSaveError('Invalid condition - please select excellent/good/fair/poor');
+        } else if (error.message?.includes('foreign key')) {
+          setSaveError('Data linking issue - please refresh page');
+        } else if (error.message?.includes('network')) {
+          setSaveError('Network issue - will retry automatically');
+        } else {
+          setSaveError(error.message);
+        }
         return false;
       }
 

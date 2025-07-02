@@ -95,10 +95,11 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
             <div>
               <Label htmlFor="condition">Overall Condition *</Label>
               <Select 
-                value={formData.condition || ''} 
+                value={formData.condition || 'good'} 
                 onValueChange={(value) => updateFormData({ condition: value })}
+                required
               >
-                <SelectTrigger>
+                <SelectTrigger className={!formData.condition ? 'border-red-300' : ''}>
                   <SelectValue placeholder="Select condition" />
                 </SelectTrigger>
                 <SelectContent>
@@ -108,6 +109,9 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
                   <SelectItem value="poor">Poor</SelectItem>
                 </SelectContent>
               </Select>
+              {!formData.condition && (
+                <p className="text-sm text-red-600 mt-1">Vehicle condition is required</p>
+              )}
             </div>
           </div>
         );
