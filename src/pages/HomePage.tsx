@@ -10,7 +10,7 @@ import { FinalCTA } from '@/components/home/FinalCTA';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* FANG-Level Hero Section */}
       <FangHeroSection />
       
@@ -18,17 +18,17 @@ export default function HomePage() {
       <TrustIndicatorsSection />
       
       {/* Main Feature: Valuation Tool */}
-      <section className="py-20 px-4 bg-gray-50" data-section="valuation">
+      <section className="py-20 px-4 bg-muted/50" data-section="valuation">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
               Get Your Vehicle's True Value
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Professional-grade valuation in seconds. Enter your VIN or license plate to get started.
             </p>
           </div>
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="bg-card rounded-2xl shadow-xl p-8">
             <UnifiedLookupTabs />
           </div>
         </div>
