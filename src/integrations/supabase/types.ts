@@ -336,6 +336,60 @@ export type Database = {
         }
         Relationships: []
       }
+      data_sources: {
+        Row: {
+          auth_config: Json | null
+          base_url: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          last_scraped: string | null
+          notes: string | null
+          rate_limit_per_hour: number | null
+          requires_auth: boolean | null
+          scraping_config: Json | null
+          search_pattern: string | null
+          source_name: string
+          source_type: string
+          success_rate: number | null
+          updated_at: string
+        }
+        Insert: {
+          auth_config?: Json | null
+          base_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_scraped?: string | null
+          notes?: string | null
+          rate_limit_per_hour?: number | null
+          requires_auth?: boolean | null
+          scraping_config?: Json | null
+          search_pattern?: string | null
+          source_name: string
+          source_type: string
+          success_rate?: number | null
+          updated_at?: string
+        }
+        Update: {
+          auth_config?: Json | null
+          base_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_scraped?: string | null
+          notes?: string | null
+          rate_limit_per_hour?: number | null
+          requires_auth?: boolean | null
+          scraping_config?: Json | null
+          search_pattern?: string | null
+          source_name?: string
+          source_type?: string
+          success_rate?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       dealer_applications: {
         Row: {
           contact_name: string
@@ -1512,6 +1566,60 @@ export type Database = {
           },
         ]
       }
+      pricing_analytics: {
+        Row: {
+          analysis_period: string | null
+          avg_price: number | null
+          created_at: string
+          id: string
+          last_updated: string
+          make: string
+          max_price: number | null
+          median_price: number | null
+          min_price: number | null
+          model: string
+          price_trend: number | null
+          region: string | null
+          sample_size: number | null
+          trim: string | null
+          year: number
+        }
+        Insert: {
+          analysis_period?: string | null
+          avg_price?: number | null
+          created_at?: string
+          id?: string
+          last_updated?: string
+          make: string
+          max_price?: number | null
+          median_price?: number | null
+          min_price?: number | null
+          model: string
+          price_trend?: number | null
+          region?: string | null
+          sample_size?: number | null
+          trim?: string | null
+          year: number
+        }
+        Update: {
+          analysis_period?: string | null
+          avg_price?: number | null
+          created_at?: string
+          id?: string
+          last_updated?: string
+          make?: string
+          max_price?: number | null
+          median_price?: number | null
+          min_price?: number | null
+          model?: string
+          price_trend?: number | null
+          region?: string | null
+          sample_size?: number | null
+          trim?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
       pricing_curves: {
         Row: {
           condition: string
@@ -2369,6 +2477,96 @@ export type Database = {
           id?: string
           make?: string
           model?: string
+        }
+        Relationships: []
+      }
+      vehicle_pricing_data: {
+        Row: {
+          cpo_status: boolean | null
+          created_at: string
+          date_listed: string | null
+          date_scraped: string
+          dealer_name: string | null
+          id: string
+          incentives: string | null
+          is_active: boolean | null
+          listing_url: string | null
+          location: string | null
+          make: string
+          markdown_notes: string | null
+          mileage: number | null
+          model: string
+          offer_type: string | null
+          price: number
+          provenance: Json | null
+          screenshot_url: string | null
+          source_name: string
+          source_type: string
+          stock_number: string | null
+          trim: string | null
+          updated_at: string
+          vehicle_condition: string | null
+          vin: string | null
+          year: number
+          zip_code: string | null
+        }
+        Insert: {
+          cpo_status?: boolean | null
+          created_at?: string
+          date_listed?: string | null
+          date_scraped?: string
+          dealer_name?: string | null
+          id?: string
+          incentives?: string | null
+          is_active?: boolean | null
+          listing_url?: string | null
+          location?: string | null
+          make: string
+          markdown_notes?: string | null
+          mileage?: number | null
+          model: string
+          offer_type?: string | null
+          price: number
+          provenance?: Json | null
+          screenshot_url?: string | null
+          source_name: string
+          source_type: string
+          stock_number?: string | null
+          trim?: string | null
+          updated_at?: string
+          vehicle_condition?: string | null
+          vin?: string | null
+          year: number
+          zip_code?: string | null
+        }
+        Update: {
+          cpo_status?: boolean | null
+          created_at?: string
+          date_listed?: string | null
+          date_scraped?: string
+          dealer_name?: string | null
+          id?: string
+          incentives?: string | null
+          is_active?: boolean | null
+          listing_url?: string | null
+          location?: string | null
+          make?: string
+          markdown_notes?: string | null
+          mileage?: number | null
+          model?: string
+          offer_type?: string | null
+          price?: number
+          provenance?: Json | null
+          screenshot_url?: string | null
+          source_name?: string
+          source_type?: string
+          stock_number?: string | null
+          trim?: string | null
+          updated_at?: string
+          vehicle_condition?: string | null
+          vin?: string | null
+          year?: number
+          zip_code?: string | null
         }
         Relationships: []
       }
