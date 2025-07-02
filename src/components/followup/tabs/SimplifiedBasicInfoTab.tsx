@@ -14,11 +14,10 @@ interface SimplifiedBasicInfoTabProps {
 }
 
 const conditionOptions = [
-  { value: 'Excellent', label: 'Excellent', description: 'Like new, no visible wear' },
-  { value: 'Very Good', label: 'Very Good', description: 'Minor wear, excellent condition' },
-  { value: 'Good', label: 'Good', description: 'Normal wear, good condition' },
-  { value: 'Fair', label: 'Fair', description: 'Noticeable wear, some issues' },
-  { value: 'Poor', label: 'Poor', description: 'Significant issues present' }
+  { value: 'excellent', label: 'Excellent', description: 'Like new, no visible wear' },
+  { value: 'good', label: 'Good', description: 'Normal wear, good condition' },
+  { value: 'fair', label: 'Fair', description: 'Noticeable wear, some issues' },
+  { value: 'poor', label: 'Poor', description: 'Significant issues present' }
 ];
 
 export function SimplifiedBasicInfoTab({ formData, updateFormData }: SimplifiedBasicInfoTabProps) {

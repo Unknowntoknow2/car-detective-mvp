@@ -190,6 +190,16 @@ export function FeaturesTab({ formData, updateFormData }: FeaturesTabProps) {
                     <strong>Value Impact:</strong> Premium features and options can significantly increase your vehicle's value, especially when well-maintained.
                   </p>
                 </div>
+
+                {/* Debug: Show current form data */}
+                <div className="p-3 bg-gray-100 rounded-lg">
+                  <p className="text-xs text-gray-600 mb-2"><strong>Current Form Data:</strong></p>
+                  <div className="text-xs space-y-1">
+                    <div>Zip Code: {formData.zip_code || 'Not entered'}</div>
+                    <div>Mileage: {formData.mileage || 'Not entered'}</div>
+                    <div>Condition: {formData.condition || 'Not selected'}</div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
