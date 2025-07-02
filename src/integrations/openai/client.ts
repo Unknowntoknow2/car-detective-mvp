@@ -45,22 +45,12 @@ class OpenAIClient {
   }
 }
 
-let openai: OpenAIClient | null = null;
+// SECURITY: Removed client-side OpenAI API key exposure
+// OpenAI functionality moved to server-side Edge Functions
+export const openai = null;
 
-try {
-  const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY;
-
-  if (openaiApiKey) {
-    openai = new OpenAIClient({
-      apiKey: openaiApiKey,
-    });
-  } else {
-    console.warn('OpenAI API key not found. Some features may not work.');
-  }
-} catch (error) {
-  console.error('Failed to initialize OpenAI client:', error);
-  openai = null;
+if (process.env.NODE_ENV !== 'production') {
+  console.warn('OpenAI client disabled - use server-side Edge Functions for AI features');
 }
 
-export { openai };
 export default openai;
