@@ -23,7 +23,7 @@ export function UnifiedLookupTabs() {
   const [selectedTrimId, setSelectedTrimId] = useState('');
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [mileage, setMileage] = useState('');
-  const [condition, setCondition] = useState('Good');
+  const [condition, setCondition] = useState('good');
   const [zipCode, setZipCode] = useState('');
   
   // Plate lookup states
@@ -302,11 +302,10 @@ export function UnifiedLookupTabs() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Excellent">Excellent</SelectItem>
-                        <SelectItem value="Very Good">Very Good</SelectItem>
-                        <SelectItem value="Good">Good</SelectItem>
-                        <SelectItem value="Fair">Fair</SelectItem>
-                        <SelectItem value="Poor">Poor</SelectItem>
+                        <SelectItem value="excellent">Excellent</SelectItem>
+                        <SelectItem value="good">Good</SelectItem>
+                        <SelectItem value="fair">Fair</SelectItem>
+                        <SelectItem value="poor">Poor</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
