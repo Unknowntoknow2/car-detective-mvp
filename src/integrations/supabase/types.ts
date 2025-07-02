@@ -2301,6 +2301,66 @@ export type Database = {
           },
         ]
       }
+      valuation_requests: {
+        Row: {
+          comp_count: number | null
+          confidence_score: number | null
+          created_at: string
+          engine_response: Json | null
+          final_value: number | null
+          id: string
+          make: string
+          mileage: number | null
+          model: string
+          request_params: Json | null
+          status: string
+          trim: string | null
+          updated_at: string
+          user_id: string | null
+          vin: string | null
+          year: number
+          zip_code: string | null
+        }
+        Insert: {
+          comp_count?: number | null
+          confidence_score?: number | null
+          created_at?: string
+          engine_response?: Json | null
+          final_value?: number | null
+          id?: string
+          make: string
+          mileage?: number | null
+          model: string
+          request_params?: Json | null
+          status?: string
+          trim?: string | null
+          updated_at?: string
+          user_id?: string | null
+          vin?: string | null
+          year: number
+          zip_code?: string | null
+        }
+        Update: {
+          comp_count?: number | null
+          confidence_score?: number | null
+          created_at?: string
+          engine_response?: Json | null
+          final_value?: number | null
+          id?: string
+          make?: string
+          mileage?: number | null
+          model?: string
+          request_params?: Json | null
+          status?: string
+          trim?: string | null
+          updated_at?: string
+          user_id?: string | null
+          vin?: string | null
+          year?: number
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       valuation_responses: {
         Row: {
           accident: string | null
