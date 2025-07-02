@@ -16,8 +16,8 @@ export const submitManualValuation = async (data: ManualEntryFormData): Promise<
         make: data.make,
         model: data.model,
         year: Number(data.year),
-        mileage: Number(data.mileage) || 50000,
-        condition: data.condition || 'Good',
+        mileage: Number(data.mileage) || 0,
+        condition: data.condition || 'good',
         estimated_value: baseValue,
         confidence_score: 75, // Manual entries get moderate confidence
         price_range_low: baseValue * 0.92,
@@ -25,7 +25,7 @@ export const submitManualValuation = async (data: ManualEntryFormData): Promise<
         adjustments: [],
         vehicle_data: data,
         valuation_type: 'free',
-        zip_code: data.zipCode || '90210'
+        zip_code: data.zipCode || ''
       }])
       .select()
       .single();
@@ -82,7 +82,7 @@ function calculateBaseValue(data: ManualEntryFormData): number {
 
   // Mileage adjustment
   const expectedMileage = age * 12000;
-  const actualMileage = Number(data.mileage) || 50000;
+  const actualMileage = Number(data.mileage) || expectedMileage;
   if (actualMileage > expectedMileage + 20000) {
     baseValue *= 0.9; // High mileage penalty
   }

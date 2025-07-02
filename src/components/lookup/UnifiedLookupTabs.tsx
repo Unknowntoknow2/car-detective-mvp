@@ -119,7 +119,7 @@ export function UnifiedLookupTabs() {
         make: selectedMake.make_name,
         model: selectedModel.model_name,
         year: selectedYear,
-        mileage: parseInt(mileage) || 50000,
+        mileage: parseInt(mileage) || 0,
         condition: condition,
         zipCode: zipCode || '', // FIXED: Use empty string instead of '90210'
         vin: undefined // Manual entry doesn't have VIN

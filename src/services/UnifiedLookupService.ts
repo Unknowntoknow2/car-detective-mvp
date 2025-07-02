@@ -146,7 +146,7 @@ export class UnifiedLookupService {
         doors: '4',
         seats: '5',
         displacement: '1.5L',
-        mileage: 52000,
+        mileage: Math.floor(Math.random() * 60000) + 30000,
         condition: 'Good',
         confidenceScore: options.tier === 'premium' ? 90 : 75,
         vin: 'MOCK_VIN_FROM_PLATE'
@@ -351,8 +351,8 @@ export class UnifiedLookupService {
       seats: bodyType === "Minivan" ? "8" : "5",
       displacement,
       confidenceScore: make !== "Unknown" ? 80 : 55,
-      mileage: 75000,
-      condition: "Good"
+      mileage: Math.floor(Math.random() * 100000) + 30000,
+      condition: "good"
     };
   }
 
