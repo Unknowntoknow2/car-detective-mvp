@@ -130,6 +130,9 @@ export default function FANGOrchestrationDashboard() {
       case 'marketplace': return '🌐';
       case 'p2p': return '👥';
       case 'oem': return '🏭';
+      case 'valuation_api': return '📈';
+      case 'instant_offer': return '⚡';
+      case 'data_quality': return '🔍';
       default: return '📊';
     }
   };
