@@ -58,7 +58,7 @@ serve(async (req) => {
   try {
     console.log('🚀 FANG Market Aggregation starting...');
     
-    const { request_id }: AggregateRequest = await req.json();
+    const { request_id, source_filter, search_query }: AggregateRequest = await req.json();
     const startTime = Date.now();
 
     // Get valuation request details
@@ -73,6 +73,34 @@ serve(async (req) => {
     }
 
     console.log(`🎯 Aggregating for: ${valuationRequest.year} ${valuationRequest.make} ${valuationRequest.model}`);
+
+    // If this is a call to the full orchestrator, delegate to it
+    if (!source_filter) {
+      console.log('🚀 Delegating to full market orchestrator...');
+      
+      const { data, error } = await supabase.functions.invoke('ain-full-market-orchestrator', {
+        body: {
+          request_id,
+          vehicle_params: {
+            year: valuationRequest.year,
+            make: valuationRequest.make,
+            model: valuationRequest.model,
+            trim: valuationRequest.trim,
+            mileage: valuationRequest.mileage,
+            zip_code: valuationRequest.zip_code,
+            condition: valuationRequest.condition
+          }
+        }
+      });
+
+      if (error) {
+        throw new Error(`Orchestrator error: ${error.message}`);
+      }
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Update status to in_progress
     await supabase
