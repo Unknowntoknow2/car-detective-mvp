@@ -309,6 +309,48 @@ export type Database = {
         }
         Relationships: []
       }
+      compliance_log: {
+        Row: {
+          action_type: string
+          attribution_provided: boolean | null
+          compliance_notes: string | null
+          created_at: string
+          data_type: string
+          id: string
+          legal_review_status: string | null
+          source_name: string
+          takedown_date: string | null
+          takedown_requested: boolean | null
+          terms_compliance: boolean | null
+        }
+        Insert: {
+          action_type: string
+          attribution_provided?: boolean | null
+          compliance_notes?: string | null
+          created_at?: string
+          data_type: string
+          id?: string
+          legal_review_status?: string | null
+          source_name: string
+          takedown_date?: string | null
+          takedown_requested?: boolean | null
+          terms_compliance?: boolean | null
+        }
+        Update: {
+          action_type?: string
+          attribution_provided?: boolean | null
+          compliance_notes?: string | null
+          created_at?: string
+          data_type?: string
+          id?: string
+          legal_review_status?: string | null
+          source_name?: string
+          takedown_date?: string | null
+          takedown_requested?: boolean | null
+          terms_compliance?: boolean | null
+        }
+        Relationships: []
+      }
       condition_descriptions: {
         Row: {
           condition_level: string
@@ -333,6 +375,63 @@ export type Database = {
           id?: string
           improvement_tips?: string | null
           value_impact?: number
+        }
+        Relationships: []
+      }
+      data_fetch_tasks: {
+        Row: {
+          created_at: string
+          error_log: string | null
+          frequency_minutes: number
+          id: string
+          last_run_at: string | null
+          max_retries: number
+          next_run_at: string
+          priority: number
+          provenance: Json | null
+          retry_count: number
+          search_params: Json
+          source_name: string
+          status: string
+          target_url: string | null
+          task_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_log?: string | null
+          frequency_minutes?: number
+          id?: string
+          last_run_at?: string | null
+          max_retries?: number
+          next_run_at?: string
+          priority?: number
+          provenance?: Json | null
+          retry_count?: number
+          search_params: Json
+          source_name: string
+          status?: string
+          target_url?: string | null
+          task_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_log?: string | null
+          frequency_minutes?: number
+          id?: string
+          last_run_at?: string | null
+          max_retries?: number
+          next_run_at?: string
+          priority?: number
+          provenance?: Json | null
+          retry_count?: number
+          search_params?: Json
+          source_name?: string
+          status?: string
+          target_url?: string | null
+          task_type?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1718,6 +1817,54 @@ export type Database = {
           },
         ]
       }
+      qa_reports: {
+        Row: {
+          avg_confidence_score: number | null
+          created_at: string
+          duplicate_comps_removed: number | null
+          id: string
+          missing_data_flags: number | null
+          outliers_detected: number | null
+          price_variance_coefficient: number | null
+          qa_alerts: Json | null
+          recommendations: Json | null
+          report_date: string
+          source_failures: number | null
+          total_comps_ingested: number | null
+          vehicle_segment: string | null
+        }
+        Insert: {
+          avg_confidence_score?: number | null
+          created_at?: string
+          duplicate_comps_removed?: number | null
+          id?: string
+          missing_data_flags?: number | null
+          outliers_detected?: number | null
+          price_variance_coefficient?: number | null
+          qa_alerts?: Json | null
+          recommendations?: Json | null
+          report_date?: string
+          source_failures?: number | null
+          total_comps_ingested?: number | null
+          vehicle_segment?: string | null
+        }
+        Update: {
+          avg_confidence_score?: number | null
+          created_at?: string
+          duplicate_comps_removed?: number | null
+          id?: string
+          missing_data_flags?: number | null
+          outliers_detected?: number | null
+          price_variance_coefficient?: number | null
+          qa_alerts?: Json | null
+          recommendations?: Json | null
+          report_date?: string
+          source_failures?: number | null
+          total_comps_ingested?: number | null
+          vehicle_segment?: string | null
+        }
+        Relationships: []
+      }
       recall_factor: {
         Row: {
           description: string | null
@@ -1944,6 +2091,66 @@ export type Database = {
             referencedColumns: ["vin"]
           },
         ]
+      }
+      source_intelligence: {
+        Row: {
+          access_status: string | null
+          avg_response_time: number | null
+          base_url: string | null
+          comp_quality_score: number | null
+          created_at: string
+          id: string
+          last_successful_fetch: string | null
+          pricing_bias: number | null
+          restrictions: Json | null
+          source_name: string
+          source_type: string
+          success_rate: number | null
+          total_failures: number | null
+          total_fetches: number | null
+          total_successes: number | null
+          typical_comp_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          access_status?: string | null
+          avg_response_time?: number | null
+          base_url?: string | null
+          comp_quality_score?: number | null
+          created_at?: string
+          id?: string
+          last_successful_fetch?: string | null
+          pricing_bias?: number | null
+          restrictions?: Json | null
+          source_name: string
+          source_type: string
+          success_rate?: number | null
+          total_failures?: number | null
+          total_fetches?: number | null
+          total_successes?: number | null
+          typical_comp_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          access_status?: string | null
+          avg_response_time?: number | null
+          base_url?: string | null
+          comp_quality_score?: number | null
+          created_at?: string
+          id?: string
+          last_successful_fetch?: string | null
+          pricing_bias?: number | null
+          restrictions?: Json | null
+          source_name?: string
+          source_type?: string
+          success_rate?: number | null
+          total_failures?: number | null
+          total_fetches?: number | null
+          total_successes?: number | null
+          typical_comp_count?: number | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       title_status: {
         Row: {
@@ -2366,6 +2573,101 @@ export type Database = {
           zip_demand_factor?: number | null
         }
         Relationships: []
+      }
+      vehicle_comparisons: {
+        Row: {
+          confidence_score: number | null
+          cpo_status: boolean | null
+          created_at: string
+          dealer_name: string | null
+          explanation: string
+          fetch_timestamp: string
+          id: string
+          incentives: string | null
+          is_verified: boolean | null
+          listing_date: string | null
+          listing_url: string
+          location: string | null
+          make: string
+          mileage: number | null
+          model: string
+          price: number
+          quality_flags: Json | null
+          screenshot_url: string | null
+          source_name: string
+          source_type: string
+          task_id: string | null
+          trim: string | null
+          vehicle_condition: string | null
+          vin: string | null
+          year: number
+          zip_code: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          cpo_status?: boolean | null
+          created_at?: string
+          dealer_name?: string | null
+          explanation: string
+          fetch_timestamp?: string
+          id?: string
+          incentives?: string | null
+          is_verified?: boolean | null
+          listing_date?: string | null
+          listing_url: string
+          location?: string | null
+          make: string
+          mileage?: number | null
+          model: string
+          price: number
+          quality_flags?: Json | null
+          screenshot_url?: string | null
+          source_name: string
+          source_type: string
+          task_id?: string | null
+          trim?: string | null
+          vehicle_condition?: string | null
+          vin?: string | null
+          year: number
+          zip_code?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          cpo_status?: boolean | null
+          created_at?: string
+          dealer_name?: string | null
+          explanation?: string
+          fetch_timestamp?: string
+          id?: string
+          incentives?: string | null
+          is_verified?: boolean | null
+          listing_date?: string | null
+          listing_url?: string
+          location?: string | null
+          make?: string
+          mileage?: number | null
+          model?: string
+          price?: number
+          quality_flags?: Json | null
+          screenshot_url?: string | null
+          source_name?: string
+          source_type?: string
+          task_id?: string | null
+          trim?: string | null
+          vehicle_condition?: string | null
+          vin?: string | null
+          year?: number
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_comparisons_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "data_fetch_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vehicle_features: {
         Row: {
