@@ -97,6 +97,29 @@ serve(async (req) => {
       }
     });
 
+    // Also invoke marketplace and OEM data scrapers in parallel
+    const additionalScrapers = [
+      invokeMarketplaceScraper(params),
+      invokeOEMDataFetcher(params),
+      invokeAuctionScrapers(params)
+    ];
+
+    const [, marketplaceResults, oemResults, auctionResults] = await Promise.allSettled([
+      Promise.allSettled(sourcePromises),
+      ...additionalScrapers
+    ]);
+
+    // Process additional scraper results
+    if (marketplaceResults.status === 'fulfilled' && marketplaceResults.value) {
+      console.log(`🏪 Marketplace scraper: ${marketplaceResults.value.total || 0} results`);
+    }
+    if (oemResults.status === 'fulfilled' && oemResults.value) {
+      console.log(`🏭 OEM data fetcher: completed`);
+    }
+    if (auctionResults.status === 'fulfilled' && auctionResults.value) {
+      console.log(`🏛️ Auction scrapers: ${auctionResults.value.total || 0} results`);
+    }
+
     await Promise.allSettled(sourcePromises);
 
     // Save results to database
@@ -266,6 +289,52 @@ async function scrapeGeneric(url: string, params: VehicleSearchParams, source: a
     return [];
   } catch (error) {
     throw new Error(`Generic scraping failed: ${error.message}`);
+  }
+}
+
+async function invokeMarketplaceScraper(params: VehicleSearchParams) {
+  try {
+    const { data, error } = await supabase.functions.invoke('scrape-marketplace', {
+      body: params
+    });
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Marketplace scraper error:', error);
+    return null;
+  }
+}
+
+async function invokeOEMDataFetcher(params: VehicleSearchParams) {
+  try {
+    const { data, error } = await supabase.functions.invoke('fetch-oem-data', {
+      body: params
+    });
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('OEM data fetcher error:', error);
+    return null;
+  }
+}
+
+async function invokeAuctionScrapers(params: VehicleSearchParams) {
+  try {
+    const [manheimResult] = await Promise.allSettled([
+      supabase.functions.invoke('scrape-manheim', { body: params })
+    ]);
+    
+    let totalResults = 0;
+    if (manheimResult.status === 'fulfilled' && manheimResult.value.data) {
+      totalResults += manheimResult.value.data.total || 0;
+    }
+    
+    return { total: totalResults };
+  } catch (error) {
+    console.error('Auction scrapers error:', error);
+    return null;
   }
 }
 
