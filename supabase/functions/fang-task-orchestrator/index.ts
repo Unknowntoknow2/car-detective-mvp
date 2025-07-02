@@ -186,6 +186,15 @@ async function executeTask(task: any, vehicleParams?: any): Promise<TaskExecutio
       case 'oem':
         result = await executeOEMTask(task, searchParams);
         break;
+      case 'valuation_api':
+        result = await executeValuationAPITask(task, searchParams);
+        break;
+      case 'instant_offer':
+        result = await executeInstantOfferTask(task, searchParams);
+        break;
+      case 'data_quality':
+        result = await executeDataQualityTask(task, searchParams);
+        break;
       default:
         result = await executeGenericTask(task, searchParams);
     }
@@ -389,6 +398,105 @@ async function executeOEMTask(task: any, params: any): Promise<TaskExecutionResu
     };
   } catch (error) {
     throw new Error(`OEM task failed: ${error.message}`);
+  }
+}
+
+async function executeValuationAPITask(task: any, params: any): Promise<TaskExecutionResult> {
+  try {
+    // Use specialized valuation API handlers
+    let endpoint = 'fetch-competitor-prices';
+    
+    // Route to specific API based on source
+    if (task.source_name.includes('KBB') || task.source_name.includes('Kelley')) {
+      endpoint = 'fetch-competitor-prices';
+      params.source = 'kbb';
+    } else if (task.source_name.includes('Edmunds')) {
+      endpoint = 'fetch-competitor-prices';
+      params.source = 'edmunds';
+    } else if (task.source_name.includes('Black Book')) {
+      endpoint = 'fetch-market-intelligence';
+      params.source = 'blackbook';
+    }
+
+    const { data, error } = await supabase.functions.invoke(endpoint, {
+      body: params
+    });
+
+    if (error) throw error;
+
+    const valuesCount = Object.keys(data?.pricing || {}).length;
+    
+    return {
+      task_id: task.id,
+      source_name: task.source_name,
+      status: 'completed',
+      comps_found: valuesCount,
+      execution_time_ms: 0,
+      quality_score: 95 // API data is high quality
+    };
+  } catch (error) {
+    throw new Error(`Valuation API task failed: ${error.message}`);
+  }
+}
+
+async function executeInstantOfferTask(task: any, params: any): Promise<TaskExecutionResult> {
+  try {
+    const { data, error } = await supabase.functions.invoke('fetch-competitor-prices', {
+      body: {
+        ...params,
+        offer_type: 'instant',
+        source: task.source_name.toLowerCase()
+      }
+    });
+
+    if (error) throw error;
+
+    const offersCount = data?.instant_offers?.length || 1;
+    
+    return {
+      task_id: task.id,
+      source_name: task.source_name,
+      status: 'completed',
+      comps_found: offersCount,
+      execution_time_ms: 0,
+      quality_score: 90 // Instant offers are real market signals
+    };
+  } catch (error) {
+    throw new Error(`Instant offer task failed: ${error.message}`);
+  }
+}
+
+async function executeDataQualityTask(task: any, params: any): Promise<TaskExecutionResult> {
+  try {
+    let endpoint = 'fetch-oem-data';
+    
+    // Route based on data quality source
+    if (task.source_name.includes('Carfax') || task.source_name.includes('AutoCheck')) {
+      endpoint = 'fetch-vehicle-history';
+    } else if (task.source_name.includes('NHTSA')) {
+      endpoint = 'fetch_nhtsa_recalls';
+    }
+
+    const { data, error } = await supabase.functions.invoke(endpoint, {
+      body: params
+    });
+
+    if (error) throw error;
+
+    const dataPoints = (data?.history?.length || 0) + 
+                      (data?.recalls?.length || 0) + 
+                      (data?.complaints?.length || 0);
+    
+    return {
+      task_id: task.id,
+      source_name: task.source_name,
+      status: 'completed',
+      comps_found: dataPoints,
+      execution_time_ms: 0,
+      quality_score: 85 // Quality data is important for calibration
+    };
+  } catch (error) {
+    throw new Error(`Data quality task failed: ${error.message}`);
   }
 }
 

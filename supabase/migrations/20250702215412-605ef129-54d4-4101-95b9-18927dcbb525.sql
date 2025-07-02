@@ -188,21 +188,71 @@ CREATE TRIGGER schedule_task_trigger
   FOR EACH ROW
   EXECUTE FUNCTION public.schedule_next_task_run();
 
--- Insert initial task configurations for all major sources
+-- Insert comprehensive task configurations for all enterprise sources
 INSERT INTO public.data_fetch_tasks (task_type, source_name, target_url, search_params, priority, frequency_minutes) VALUES
-('dealer', 'AutoNation', 'https://www.autonation.com/inventory', '{"vehicle_type": "all"}', 80, 360),
-('dealer', 'Lithia Motors', 'https://www.lithia.com/inventory', '{"vehicle_type": "all"}', 80, 360),
-('dealer', 'Sonic Automotive', 'https://www.sonicautomotive.com/', '{"vehicle_type": "all"}', 75, 360),
-('big_box', 'CarMax', 'https://www.carmax.com/cars', '{"vehicle_type": "all"}', 90, 240),
-('big_box', 'Carvana', 'https://www.carvana.com/cars', '{"vehicle_type": "all"}', 90, 240),
-('auction', 'Manheim', 'https://www.manheim.com/', '{"vehicle_type": "all"}', 95, 720),
-('marketplace', 'Autotrader', 'https://www.autotrader.com/', '{"vehicle_type": "all"}', 85, 480),
-('marketplace', 'Cars.com', 'https://www.cars.com/', '{"vehicle_type": "all"}', 85, 480),
-('marketplace', 'CarGurus', 'https://www.cargurus.com/', '{"vehicle_type": "all"}', 85, 480),
-('p2p', 'Craigslist', 'https://craigslist.org/', '{"vehicle_type": "all"}', 70, 720),
-('p2p', 'Facebook Marketplace', 'https://www.facebook.com/marketplace/', '{"vehicle_type": "all"}', 70, 720),
-('p2p', 'eBay Motors', 'https://www.ebay.com/motors', '{"vehicle_type": "all"}', 75, 720),
-('oem', 'NHTSA API', 'https://vpic.nhtsa.dot.gov/api/', '{"data_type": "recalls"}', 60, 1440)
+-- Wholesale & Auction Data (Highest Priority)
+('auction', 'Manheim', 'https://www.manheim.com/', '{"vehicle_type": "all"}', 95, 360),
+('auction', 'ADESA', 'https://www.adesa.com/inventory/', '{"vehicle_type": "all"}', 95, 360),
+('auction', 'Copart', 'https://www.copart.com/', '{"vehicle_type": "all"}', 90, 480),
+('auction', 'IAAI', 'https://www.iaai.com/Search', '{"vehicle_type": "all"}', 90, 480),
+('auction', 'BacklotCars', 'https://www.backlotcars.com/buy/search', '{"vehicle_type": "all"}', 85, 720),
+('auction', 'ACV Auctions', 'https://www.acvauctions.com/', '{"vehicle_type": "all"}', 85, 720),
+('auction', 'Edge Pipeline', 'https://www.edgepipeline.com/', '{"vehicle_type": "all"}', 80, 720),
+('auction', 'KAR Global', 'https://www.karglobal.com/', '{"vehicle_type": "all"}', 80, 720),
+
+-- Major Franchise Dealer Groups (High Priority)
+('dealer', 'AutoNation', 'https://www.autonation.com/inventory', '{"vehicle_type": "all"}', 90, 240),
+('dealer', 'Lithia Motors', 'https://www.lithia.com/', '{"vehicle_type": "all"}', 90, 240),
+('dealer', 'Sonic Automotive', 'https://www.sonicautomotive.com/', '{"vehicle_type": "all"}', 85, 360),
+('dealer', 'Group 1 Automotive', 'https://www.group1auto.com/', '{"vehicle_type": "all"}', 85, 360),
+('dealer', 'Penske Automotive', 'https://www.penskeautomotive.com/inventory', '{"vehicle_type": "all"}', 85, 360),
+('dealer', 'Asbury Automotive', 'https://www.asburyauto.com/', '{"vehicle_type": "all"}', 80, 360),
+('dealer', 'Hendrick Automotive', 'https://www.hendrickcars.com/', '{"vehicle_type": "all"}', 80, 360),
+
+-- Online Retailers & National "Big Box" Outlets (High Priority)
+('big_box', 'CarMax', 'https://www.carmax.com/cars', '{"vehicle_type": "all"}', 95, 180),
+('big_box', 'Carvana', 'https://www.carvana.com/cars', '{"vehicle_type": "all"}', 95, 180),
+('big_box', 'Vroom', 'https://www.vroom.com/', '{"vehicle_type": "all"}', 85, 240),
+('big_box', 'EchoPark', 'https://www.echopark.com/', '{"vehicle_type": "all"}', 85, 240),
+('big_box', 'Shift', 'https://www.shift.com/', '{"vehicle_type": "all"}', 80, 360),
+('big_box', 'Drivetime', 'https://www.drivetime.com/', '{"vehicle_type": "all"}', 75, 480),
+('big_box', 'CarLotz', 'https://www.carlotz.com/', '{"vehicle_type": "all"}', 75, 480),
+
+-- Marketplaces & Classifieds (Medium-High Priority)
+('marketplace', 'Cars.com', 'https://www.cars.com/shopping/', '{"vehicle_type": "all"}', 90, 360),
+('marketplace', 'AutoTrader', 'https://www.autotrader.com/', '{"vehicle_type": "all"}', 90, 360),
+('marketplace', 'CarGurus', 'https://www.cargurus.com/', '{"vehicle_type": "all"}', 90, 360),
+('marketplace', 'TrueCar', 'https://www.truecar.com/', '{"vehicle_type": "all"}', 85, 480),
+
+-- Peer-to-Peer Sources (Medium Priority)
+('p2p', 'Craigslist', 'https://craigslist.org/', '{"vehicle_type": "all"}', 75, 720),
+('p2p', 'Facebook Marketplace', 'https://www.facebook.com/marketplace/', '{"vehicle_type": "all"}', 75, 720),
+('p2p', 'OfferUp', 'https://offerup.com/explore/cars', '{"vehicle_type": "all"}', 70, 720),
+('p2p', 'eBay Motors', 'https://www.ebay.com/motors', '{"vehicle_type": "all"}', 70, 720),
+
+-- Book/Guide/Reference Valuations (Critical for Calibration)
+('valuation_api', 'Kelley Blue Book', 'https://www.kbb.com/', '{"data_type": "valuation"}', 100, 360),
+('valuation_api', 'Edmunds', 'https://www.edmunds.com/appraisal/', '{"data_type": "valuation"}', 100, 360),
+('valuation_api', 'Black Book', 'https://www.blackbook.com/', '{"data_type": "wholesale"}', 95, 480),
+('valuation_api', 'NADA J.D. Power', 'https://www.jdpower.com/cars', '{"data_type": "guide_values"}', 90, 720),
+('valuation_api', 'Galves', 'https://galves.com/', '{"data_type": "wholesale_api"}', 85, 720),
+
+-- OEM/Certified Pre-Owned Sources (Medium Priority)
+('oem', 'Ford CPO', 'https://www.ford.com/certified-used/', '{"vehicle_type": "cpo"}', 80, 720),
+('oem', 'Toyota Certified', 'https://www.toyotacertified.com/', '{"vehicle_type": "cpo"}', 80, 720),
+('oem', 'GM Certified', 'https://www.gmcertified.com/', '{"vehicle_type": "cpo"}', 80, 720),
+
+-- Instant Offer & Trade-In APIs (High Value for Training)
+('instant_offer', 'KBB Instant Cash', 'https://www.kbb.com/instant-cash-offer/', '{"data_type": "instant_offer"}', 90, 480),
+('instant_offer', 'Edmunds Instant', 'https://www.edmunds.com/appraisal/', '{"data_type": "instant_offer"}', 90, 480),
+('instant_offer', 'TrueCar Sell', 'https://www.truecar.com/sell/', '{"data_type": "trade_in"}', 85, 480),
+
+-- History, Recalls & Data Quality Sources (Daily)
+('data_quality', 'Carfax', 'https://www.carfax.com/', '{"data_type": "history"}', 70, 1440),
+('data_quality', 'AutoCheck', 'https://www.autocheck.com/vehiclehistory/', '{"data_type": "history"}', 70, 1440),
+('data_quality', 'NHTSA Recalls', 'https://www.nhtsa.gov/recalls', '{"data_type": "recalls"}', 60, 1440),
+('data_quality', 'Consumer Reports', 'https://www.consumerreports.org/cars/', '{"data_type": "reliability"}', 60, 1440),
+('data_quality', 'CarComplaints', 'https://www.carcomplaints.com/', '{"data_type": "complaints"}', 50, 1440)
 ON CONFLICT DO NOTHING;
 
 -- Insert source intelligence baselines
