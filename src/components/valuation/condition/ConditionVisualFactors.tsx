@@ -4,12 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 
-interface ValuationFactorEngineProps {
+interface ConditionVisualFactorsProps {
   value: string;
   onChange: (value: string) => void;
 }
 
-export function ValuationFactorEngine({ value, onChange }: ValuationFactorEngineProps) {
+export function ConditionVisualFactors({ value, onChange }: ConditionVisualFactorsProps) {
   return (
     <Card className="shadow-sm">
       <CardHeader className="pb-2">
