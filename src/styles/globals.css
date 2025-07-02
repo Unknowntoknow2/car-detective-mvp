@@ -71,31 +71,31 @@
 
   /* Typography scale */
   h1, .h1 {
-    @apply text-4xl sm:text-5xl font-bold tracking-tight leading-tight text-gray-900;
+    @apply text-4xl sm:text-5xl font-bold tracking-tight leading-tight text-foreground;
   }
 
   h2, .h2 {
-    @apply text-3xl sm:text-4xl font-bold tracking-tight leading-tight text-gray-900;
+    @apply text-3xl sm:text-4xl font-bold tracking-tight leading-tight text-foreground;
   }
 
   h3, .h3 {
-    @apply text-2xl sm:text-3xl font-semibold tracking-tight leading-tight text-gray-900;
+    @apply text-2xl sm:text-3xl font-semibold tracking-tight leading-tight text-foreground;
   }
 
   h4, .h4 {
-    @apply text-xl sm:text-2xl font-semibold tracking-tight leading-tight text-gray-900;
+    @apply text-xl sm:text-2xl font-semibold tracking-tight leading-tight text-foreground;
   }
 
   h5, .h5 {
-    @apply text-lg sm:text-xl font-semibold tracking-tight leading-tight text-gray-900;
+    @apply text-lg sm:text-xl font-semibold tracking-tight leading-tight text-foreground;
   }
 
   h6, .h6 {
-    @apply text-base sm:text-lg font-medium tracking-tight leading-tight text-gray-900;
+    @apply text-base sm:text-lg font-medium tracking-tight leading-tight text-foreground;
   }
 
   p {
-    @apply text-base text-gray-700 leading-relaxed;
+    @apply text-base text-muted-foreground leading-relaxed;
   }
 
   :focus-visible {
@@ -103,13 +103,13 @@
   }
 
   input, select, textarea {
-    @apply border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/20 focus:border-primary;
+    @apply border border-input rounded-md focus:ring-2 focus:ring-primary/20 focus:border-primary;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-border/50 transition-all p-6 hover:shadow-md;
+    @apply bg-card rounded-xl shadow-sm border border-border/50 transition-all p-6 hover:shadow-md;
   }
 
   .card-interactive {
@@ -133,7 +133,7 @@
   }
 
   .btn-primary {
-    @apply bg-primary text-white hover:bg-primary/90;
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
   }
 
   .btn-secondary {
