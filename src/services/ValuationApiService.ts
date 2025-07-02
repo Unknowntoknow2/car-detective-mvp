@@ -113,31 +113,61 @@ export class ValuationApiService {
 
   /**
    * POST /api/valuation/aggregate
-   * Triggers market data aggregation for a request
+   * Triggers comprehensive market data aggregation using OpenAI web search
    */
-  static async triggerAggregation(requestId: string): Promise<{
+  static async triggerAggregation(requestId: string, sources?: string[]): Promise<{
     success: boolean;
-    comps_found?: number;
+    total_comps?: number;
     sources_processed?: number;
     execution_time_ms?: number;
+    comp_summary?: any;
     error?: string;
   }> {
     try {
-      console.log('🚀 Triggering aggregation for request:', requestId);
+      console.log('🚀 Triggering comprehensive aggregation for request:', requestId);
 
-      const { data, error } = await supabase.functions.invoke('valuation-aggregate', {
-        body: { request_id: requestId }
+      // First get the request details
+      const { data: requestData } = await supabase
+        .from('valuation_requests')
+        .select('*')
+        .eq('id', requestId)
+        .single();
+
+      if (!requestData) {
+        throw new Error('Valuation request not found');
+      }
+
+      // Call the full market orchestrator
+      const { data, error } = await supabase.functions.invoke('ain-full-market-orchestrator', {
+        body: {
+          request_id: requestId,
+          vehicle_params: {
+            year: requestData.year,
+            make: requestData.make,
+            model: requestData.model,
+            trim: requestData.trim,
+            mileage: requestData.mileage,
+            zip_code: requestData.zip_code,
+            condition: requestData.condition
+          },
+          sources: sources
+        }
       });
 
       if (error) {
         throw new Error(error.message);
       }
 
+      if (!data.success) {
+        throw new Error(data.error || 'Aggregation failed');
+      }
+
       return {
         success: true,
-        comps_found: data.comps_found,
+        total_comps: data.total_comps,
         sources_processed: data.sources_processed,
-        execution_time_ms: data.execution_time_ms
+        execution_time_ms: data.execution_time_ms,
+        comp_summary: data.comp_summary
       };
 
     } catch (error) {
