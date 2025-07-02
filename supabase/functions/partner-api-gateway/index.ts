@@ -1,7 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { createHash } from "https://deno.land/std@0.168.0/hash/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -60,7 +59,12 @@ function checkRateLimit(apiKey: string, hourlyLimit: number): boolean {
 }
 
 async function authenticatePartner(supabaseClient: any, apiKey: string) {
-  const hashedKey = createHash("sha256").update(apiKey).toString();
+  // Hash the API key using Web Crypto API
+  const encoder = new TextEncoder();
+  const data = encoder.encode(apiKey);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashedKey = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   
   const { data: partner } = await supabaseClient
     .from('api_partners')
