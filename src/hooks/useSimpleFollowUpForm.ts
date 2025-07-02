@@ -135,8 +135,9 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
         return false;
       }
 
-      // CRITICAL: Validate condition is valid enum value
-      if (!dataToSave.condition || !['excellent', 'good', 'fair', 'poor'].includes(dataToSave.condition)) {
+      // CRITICAL: Validate condition is valid enum value and not empty
+      const validConditions = ['excellent', 'good', 'fair', 'poor'];
+      if (!dataToSave.condition || dataToSave.condition === '' || !validConditions.includes(dataToSave.condition)) {
         console.error('❌ Invalid condition value:', dataToSave.condition);
         setSaveError('Please select a valid vehicle condition');
         return false;
@@ -149,8 +150,28 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
         completion_percentage: Math.round((
           [dataToSave.zip_code, dataToSave.mileage, dataToSave.condition].filter(Boolean).length / 3
         ) * 100),
-        is_complete: dataToSave.zip_code && dataToSave.mileage && dataToSave.condition,
-        updated_at: new Date().toISOString()
+        is_complete: Boolean(dataToSave.zip_code && dataToSave.mileage && dataToSave.condition),
+        updated_at: new Date().toISOString(),
+        // Ensure JSONB fields have proper boolean types
+        accidents: {
+          ...dataToSave.accidents,
+          hadAccident: Boolean(dataToSave.accidents?.hadAccident),
+          repaired: Boolean(dataToSave.accidents?.repaired),
+          frameDamage: Boolean(dataToSave.accidents?.frameDamage),
+          airbagDeployment: Boolean(dataToSave.accidents?.airbagDeployment)
+        },
+        serviceHistory: {
+          ...dataToSave.serviceHistory,
+          hasRecords: Boolean(dataToSave.serviceHistory?.hasRecords),
+          regularMaintenance: Boolean(dataToSave.serviceHistory?.regularMaintenance),
+          dealerMaintained: Boolean(dataToSave.serviceHistory?.dealerMaintained)
+        },
+        modifications: {
+          ...dataToSave.modifications,
+          hasModifications: Boolean(dataToSave.modifications?.hasModifications),
+          modified: Boolean(dataToSave.modifications?.modified),
+          reversible: Boolean(dataToSave.modifications?.reversible)
+        }
       };
 
       // If no valuation_id, try to find and link one
