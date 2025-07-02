@@ -7,7 +7,7 @@ export { LoadingButton, LoadingSpinner, LoadingGrid, LoadingState, Spinner } fro
 export { ZipCodeInput } from './ZipCodeInput';
 export { RouteRedirect } from './RouteRedirect';
 export { SEO } from './SEO';
-export { ServiceStatus } from './ServiceStatus';
+// export { ServiceStatus } from './ServiceStatus'; // Removed - no longer needed
 
 // Condition Selectors
 export { UnifiedConditionSelector } from './UnifiedConditionSelector';

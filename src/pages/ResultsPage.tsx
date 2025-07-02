@@ -105,20 +105,21 @@ export default function ResultsPage() {
     );
   }
 
+  // Safe vehicle info extraction with defaults
   const vehicleInfo = {
-    year: valuationData.year,
-    make: valuationData.make,
-    model: valuationData.model,
-    trim: valuationData.vehicle_data?.trim,
+    year: valuationData.year || new Date().getFullYear(),
+    make: valuationData.make || 'Unknown',
+    model: valuationData.model || 'Unknown',
+    trim: valuationData.vehicle_data?.trim || '',
     mileage: valuationData.mileage || 0,
     condition: valuationData.condition || 'Good',
-    vin: valuationData.vin,
-    zipCode: valuationData.zip_code
+    vin: valuationData.vin || '',
+    zipCode: valuationData.zip_code || ''
   };
 
-  // Extract MSRP from vehicle_data if available
-  const baseMSRP = valuationData.vehicle_data?.baseMSRP;
-  const msrpSource = valuationData.vehicle_data?.msrpSource;
+  // Safe MSRP extraction with fallbacks
+  const baseMSRP = valuationData.vehicle_data?.baseMSRP || 25000;
+  const msrpSource = valuationData.vehicle_data?.msrpSource || 'estimated';
 
   return (
     <div className="container mx-auto py-8 space-y-6">
@@ -131,10 +132,13 @@ export default function ResultsPage() {
           priceRange={
             valuationData.price_range_low && valuationData.price_range_high
               ? [valuationData.price_range_low, valuationData.price_range_high]
-              : undefined
+              : [
+                  Math.round(valuationData.estimated_value * 0.92),
+                  Math.round(valuationData.estimated_value * 1.08)
+                ]
           }
           adjustments={valuationData.adjustments || []}
-          zipCode={valuationData.zip_code}
+          zipCode={valuationData.zip_code || ''}
           isPremium={valuationData.valuation_type === 'premium'}
           onEmailReport={() => toast.info('Email feature coming soon')}
           onUpgrade={() => toast.info('Premium upgrade coming soon')}

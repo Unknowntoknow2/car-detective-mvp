@@ -36,7 +36,7 @@ export function TabValidationAlerts({
               <div>
                 <strong>Save Error:</strong> {saveError}
                 <br />
-                <span className="text-sm">Your changes are being saved locally and will sync when the connection is restored.</span>
+                <span className="text-sm">Please check your connection and try again.</span>
               </div>
               <Button
                 variant="outline"
