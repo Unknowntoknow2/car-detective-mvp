@@ -163,9 +163,14 @@ export default function ResultsPage() {
       {/* Value Breakdown */}
       <ValueBreakdown
         adjustments={valuationData.adjustments || []}
-        baseValue={valuationData.vehicle_data?.baseValue || baseMSRP}
+        baseValue={valuationData.vehicle_data?.baseMSRP || baseMSRP}
         finalValue={valuationData.estimated_value}
         confidenceScore={valuationData.confidence_score || 75}
+        vehicleData={{
+          baseMSRP: valuationData.vehicle_data?.baseMSRP || baseMSRP,
+          calculationMethod: valuationData.vehicle_data?.calculationMethod || 'standard',
+          usedRealMSRP: valuationData.vehicle_data?.msrpSource !== 'make_fallback' && valuationData.vehicle_data?.msrpSource !== 'error_fallback'
+        }}
       />
 
       {/* Follow-up Questions */}
