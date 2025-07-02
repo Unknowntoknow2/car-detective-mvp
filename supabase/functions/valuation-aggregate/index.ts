@@ -74,10 +74,10 @@ serve(async (req) => {
 
     console.log(`🎯 Aggregating for: ${valuationRequest.year} ${valuationRequest.make} ${valuationRequest.model}`);
 
-    // Update status to running
+    // Update status to in_progress
     await supabase
       .from('valuation_requests')
-      .update({ status: 'running' })
+      .update({ status: 'in_progress' })
       .eq('id', request_id);
 
     // Log start of aggregation
@@ -164,22 +164,30 @@ Return only valid JSON array. Find at least 3-5 listings if available.`
               // Insert each comp into market_listings
               for (const comp of parsedComps) {
                 if (comp.price && parseFloat(comp.price.toString().replace(/[^\d.]/g, '')) > 0) {
-                  await supabase
+                    await supabase
                     .from('market_listings')
                     .insert({
                       valuation_request_id: request_id,
                       vin: comp.vin || valuationRequest.vin,
                       source: source.name,
+                      source_site: source.name.toLowerCase().replace(/\s+/g, ''),
                       source_type: source.type,
+                      year: valuationRequest.year,
+                      make: valuationRequest.make,
+                      model: valuationRequest.model,
+                      trim: valuationRequest.trim,
                       price: parseFloat(comp.price.toString().replace(/[^\d.]/g, '')),
                       mileage: comp.mileage ? parseInt(comp.mileage.toString().replace(/[^\d]/g, '')) : null,
                       condition: comp.condition,
                       dealer_name: comp.dealer_name,
+                      dealer: comp.dealer_name,
                       location: comp.location,
                       listing_url: comp.listing_url || source.url,
                       is_cpo: comp.is_cpo === true || comp.is_cpo === 'true',
+                      cpo: comp.is_cpo === true || comp.is_cpo === 'true',
                       date_listed: comp.date_listed ? new Date(comp.date_listed).toISOString() : null,
                       raw_data: comp,
+                      extra: { notes: comp.notes },
                       notes: comp.notes
                     });
                   totalComps++;

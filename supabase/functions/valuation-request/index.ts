@@ -19,6 +19,10 @@ interface ValuationRequestInput {
   year: number;
   mileage?: number;
   zip_code?: string;
+  condition?: string;
+  features?: string[];
+  requested_by?: 'web' | 'api' | 'internal';
+  meta?: Record<string, any>;
   user_id?: string;
 }
 
@@ -62,6 +66,10 @@ serve(async (req) => {
         year: requestData.year,
         mileage: requestData.mileage,
         zip_code: requestData.zip_code,
+        condition: requestData.condition,
+        features: requestData.features || [],
+        requested_by: requestData.requested_by || 'web',
+        meta: requestData.meta || {},
         status: 'pending',
         request_params: requestData,
         comp_count: 0
