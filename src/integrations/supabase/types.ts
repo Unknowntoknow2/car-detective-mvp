@@ -53,6 +53,50 @@ export type Database = {
           },
         ]
       }
+      ai_market_snapshots: {
+        Row: {
+          created_at: string
+          id: string
+          processed_payload: Json | null
+          processing_time_ms: number | null
+          raw_payload: Json
+          snapshot_type: string
+          source: string
+          token_count: number | null
+          valuation_request_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          processed_payload?: Json | null
+          processing_time_ms?: number | null
+          raw_payload: Json
+          snapshot_type: string
+          source: string
+          token_count?: number | null
+          valuation_request_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          processed_payload?: Json | null
+          processing_time_ms?: number | null
+          raw_payload?: Json
+          snapshot_type?: string
+          source?: string
+          token_count?: number | null
+          valuation_request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_market_snapshots_valuation_request_id_fkey"
+            columns: ["valuation_request_id"]
+            isOneToOne: false
+            referencedRelation: "valuation_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auction_enrichment_by_vin: {
         Row: {
           created_at: string | null
@@ -2238,6 +2282,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      valuation_audit_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event: string
+          execution_time_ms: number | null
+          id: string
+          input_data: Json | null
+          metadata: Json | null
+          output_data: Json | null
+          run_by: string | null
+          source: string | null
+          valuation_request_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event: string
+          execution_time_ms?: number | null
+          id?: string
+          input_data?: Json | null
+          metadata?: Json | null
+          output_data?: Json | null
+          run_by?: string | null
+          source?: string | null
+          valuation_request_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event?: string
+          execution_time_ms?: number | null
+          id?: string
+          input_data?: Json | null
+          metadata?: Json | null
+          output_data?: Json | null
+          run_by?: string | null
+          source?: string | null
+          valuation_request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "valuation_audit_logs_valuation_request_id_fkey"
+            columns: ["valuation_request_id"]
+            isOneToOne: false
+            referencedRelation: "valuation_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       valuation_factors: {
         Row: {
