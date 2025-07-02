@@ -15,8 +15,10 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  console.log('📥 Follow-up form initialized with VIN:', vin);
-  console.log('📋 Initial data valuation_id:', initialData?.valuation_id || 'missing');
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('📥 Follow-up form initialized with VIN:', vin);
+    console.log('📋 Initial data valuation_id:', initialData?.valuation_id || 'missing');
+  }
 
   const { formData: loadedData, setFormData, isLoading } = useFollowUpDataLoader({ 
     vin, 
