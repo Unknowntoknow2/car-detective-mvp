@@ -178,11 +178,36 @@ export default function FANGOrchestrationDashboard() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => executeOrchestrator({ task_types: ['big_box', 'dealer'] })}
+            onClick={() => executeOrchestrator({ specific_sources: ['CarMax', 'Carvana', 'AutoNation'] })}
             disabled={isRunning}
           >
             <Database className="w-4 h-4 mr-2" />
             High Priority Only
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => supabase.functions.invoke('ain-full-market-orchestrator', {
+              body: {
+                year: 2022,
+                make: 'Ford',
+                model: 'F-150',
+                trim: 'LARIAT',
+                zip: '95624',
+                mileage: 9534,
+                vin: '1FTFW1E82NFB42108'
+              }
+            }).then(result => {
+              console.log('AIN Protocol Result:', result);
+              toast.success('AIN Full Market Protocol completed');
+              setTimeout(loadDashboardData, 2000);
+            }).catch(error => {
+              console.error('AIN Protocol Error:', error);
+              toast.error('AIN Protocol failed');
+            })}
+            disabled={isRunning}
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            AIN Full Protocol
           </Button>
         </div>
       </div>
