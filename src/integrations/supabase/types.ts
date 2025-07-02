@@ -97,6 +97,87 @@ export type Database = {
           },
         ]
       }
+      ai_photo_analysis: {
+        Row: {
+          analysis_results: Json
+          condition_score: number | null
+          confidence_score: number | null
+          created_at: string | null
+          damage_detected: Json | null
+          features_detected: Json | null
+          id: string
+          listing_id: string | null
+          photo_urls: string[] | null
+          processed_at: string | null
+          vin: string | null
+        }
+        Insert: {
+          analysis_results?: Json
+          condition_score?: number | null
+          confidence_score?: number | null
+          created_at?: string | null
+          damage_detected?: Json | null
+          features_detected?: Json | null
+          id?: string
+          listing_id?: string | null
+          photo_urls?: string[] | null
+          processed_at?: string | null
+          vin?: string | null
+        }
+        Update: {
+          analysis_results?: Json
+          condition_score?: number | null
+          confidence_score?: number | null
+          created_at?: string | null
+          damage_detected?: Json | null
+          features_detected?: Json | null
+          id?: string
+          listing_id?: string | null
+          photo_urls?: string[] | null
+          processed_at?: string | null
+          vin?: string | null
+        }
+        Relationships: []
+      }
+      api_partners: {
+        Row: {
+          api_key_hash: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_accessed: string | null
+          partner_name: string
+          partner_type: string
+          permissions: Json
+          rate_limit_per_hour: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          api_key_hash: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_accessed?: string | null
+          partner_name: string
+          partner_type: string
+          permissions?: Json
+          rate_limit_per_hour?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          api_key_hash?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_accessed?: string | null
+          partner_name?: string
+          partner_type?: string
+          permissions?: Json
+          rate_limit_per_hour?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       auction_enrichment_by_vin: {
         Row: {
           created_at: string | null
@@ -350,6 +431,60 @@ export type Database = {
           model?: string | null
           vin?: string
           year?: string | null
+        }
+        Relationships: []
+      }
+      compliance_audit_log: {
+        Row: {
+          action: string
+          compliance_flags: string[] | null
+          created_at: string | null
+          data_sources_used: string[] | null
+          entity_id: string
+          entity_type: string
+          id: string
+          input_data: Json | null
+          ip_address: unknown | null
+          output_data: Json | null
+          processing_time_ms: number | null
+          retention_until: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          compliance_flags?: string[] | null
+          created_at?: string | null
+          data_sources_used?: string[] | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          input_data?: Json | null
+          ip_address?: unknown | null
+          output_data?: Json | null
+          processing_time_ms?: number | null
+          retention_until?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          compliance_flags?: string[] | null
+          created_at?: string | null
+          data_sources_used?: string[] | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          input_data?: Json | null
+          ip_address?: unknown | null
+          output_data?: Json | null
+          processing_time_ms?: number | null
+          retention_until?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1104,6 +1239,51 @@ export type Database = {
           },
         ]
       }
+      fraud_detection_flags: {
+        Row: {
+          auto_flagged: boolean | null
+          confidence_score: number | null
+          created_at: string | null
+          flag_reason: string
+          flag_type: string
+          human_reviewed: boolean | null
+          id: string
+          is_valid: boolean | null
+          listing_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          vin: string | null
+        }
+        Insert: {
+          auto_flagged?: boolean | null
+          confidence_score?: number | null
+          created_at?: string | null
+          flag_reason: string
+          flag_type: string
+          human_reviewed?: boolean | null
+          id?: string
+          is_valid?: boolean | null
+          listing_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          vin?: string | null
+        }
+        Update: {
+          auto_flagged?: boolean | null
+          confidence_score?: number | null
+          created_at?: string | null
+          flag_reason?: string
+          flag_type?: string
+          human_reviewed?: boolean | null
+          id?: string
+          is_valid?: boolean | null
+          listing_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          vin?: string | null
+        }
+        Relationships: []
+      }
       fuel_type_adjustment: {
         Row: {
           description: string | null
@@ -1221,6 +1401,51 @@ export type Database = {
         }
         Relationships: []
       }
+      market_context_data: {
+        Row: {
+          avg_days_on_market: number | null
+          created_at: string | null
+          id: string
+          last_updated: string | null
+          make: string
+          market_temperature: string | null
+          model: string
+          price_trend_90d: Json | null
+          supply_demand_ratio: number | null
+          trim: string | null
+          year: number
+          zip_code: string
+        }
+        Insert: {
+          avg_days_on_market?: number | null
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+          make: string
+          market_temperature?: string | null
+          model: string
+          price_trend_90d?: Json | null
+          supply_demand_ratio?: number | null
+          trim?: string | null
+          year: number
+          zip_code: string
+        }
+        Update: {
+          avg_days_on_market?: number | null
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+          make?: string
+          market_temperature?: string | null
+          model?: string
+          price_trend_90d?: Json | null
+          supply_demand_ratio?: number | null
+          trim?: string | null
+          year?: number
+          zip_code?: string
+        }
+        Relationships: []
+      }
       market_listings: {
         Row: {
           condition: string | null
@@ -1334,6 +1559,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      model_training_runs: {
+        Row: {
+          created_at: string | null
+          deployed_at: string | null
+          deployment_status: string | null
+          feature_importance: Json | null
+          hyperparameters: Json | null
+          id: string
+          model_version: string
+          test_rmse: number | null
+          training_data_size: number
+          validation_rmse: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          deployed_at?: string | null
+          deployment_status?: string | null
+          feature_importance?: Json | null
+          hyperparameters?: Json | null
+          id?: string
+          model_version: string
+          test_rmse?: number | null
+          training_data_size: number
+          validation_rmse?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          deployed_at?: string | null
+          deployment_status?: string | null
+          feature_importance?: Json | null
+          hyperparameters?: Json | null
+          id?: string
+          model_version?: string
+          test_rmse?: number | null
+          training_data_size?: number
+          validation_rmse?: number | null
+        }
+        Relationships: []
       }
       model_trims: {
         Row: {
@@ -1529,6 +1793,50 @@ export type Database = {
             columns: ["valuation_id"]
             isOneToOne: false
             referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_submissions: {
+        Row: {
+          created_at: string | null
+          id: string
+          partner_id: string | null
+          processed: boolean | null
+          sale_data: Json | null
+          submission_type: string
+          vehicle_data: Json
+          verification_status: string | null
+          vin: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          partner_id?: string | null
+          processed?: boolean | null
+          sale_data?: Json | null
+          submission_type: string
+          vehicle_data: Json
+          verification_status?: string | null
+          vin: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          partner_id?: string | null
+          processed?: boolean | null
+          sale_data?: Json | null
+          submission_type?: string
+          vehicle_data?: Json
+          verification_status?: string | null
+          vin?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_submissions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "api_partners"
             referencedColumns: ["id"]
           },
         ]
@@ -2359,6 +2667,56 @@ export type Database = {
         }
         Relationships: []
       }
+      user_valuation_feedback: {
+        Row: {
+          accuracy_rating: number | null
+          actual_sale_price: number | null
+          best_offer_received: number | null
+          created_at: string | null
+          feedback_notes: string | null
+          id: string
+          sale_date: string | null
+          sale_type: string | null
+          user_id: string | null
+          valuation_request_id: string | null
+          would_recommend: boolean | null
+        }
+        Insert: {
+          accuracy_rating?: number | null
+          actual_sale_price?: number | null
+          best_offer_received?: number | null
+          created_at?: string | null
+          feedback_notes?: string | null
+          id?: string
+          sale_date?: string | null
+          sale_type?: string | null
+          user_id?: string | null
+          valuation_request_id?: string | null
+          would_recommend?: boolean | null
+        }
+        Update: {
+          accuracy_rating?: number | null
+          actual_sale_price?: number | null
+          best_offer_received?: number | null
+          created_at?: string | null
+          feedback_notes?: string | null
+          id?: string
+          sale_date?: string | null
+          sale_type?: string | null
+          user_id?: string | null
+          valuation_request_id?: string | null
+          would_recommend?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_valuation_feedback_valuation_request_id_fkey"
+            columns: ["valuation_request_id"]
+            isOneToOne: false
+            referencedRelation: "valuation_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       valuation_audit_logs: {
         Row: {
           action: string | null
@@ -2411,6 +2769,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "valuation_audit_logs_valuation_request_id_fkey"
+            columns: ["valuation_request_id"]
+            isOneToOne: false
+            referencedRelation: "valuation_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      valuation_explanations: {
+        Row: {
+          adjustment_factors: Json
+          confidence_breakdown: Json
+          created_at: string | null
+          explanation_markdown: string
+          id: string
+          influential_comps: Json
+          price_range_explanation: string | null
+          source_weights: Json
+          valuation_request_id: string | null
+        }
+        Insert: {
+          adjustment_factors?: Json
+          confidence_breakdown?: Json
+          created_at?: string | null
+          explanation_markdown: string
+          id?: string
+          influential_comps?: Json
+          price_range_explanation?: string | null
+          source_weights?: Json
+          valuation_request_id?: string | null
+        }
+        Update: {
+          adjustment_factors?: Json
+          confidence_breakdown?: Json
+          created_at?: string | null
+          explanation_markdown?: string
+          id?: string
+          influential_comps?: Json
+          price_range_explanation?: string | null
+          source_weights?: Json
+          valuation_request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "valuation_explanations_valuation_request_id_fkey"
             columns: ["valuation_request_id"]
             isOneToOne: false
             referencedRelation: "valuation_requests"
@@ -2476,6 +2878,53 @@ export type Database = {
             columns: ["valuation_id"]
             isOneToOne: false
             referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      valuation_qa_reviews: {
+        Row: {
+          approved: boolean | null
+          created_at: string | null
+          id: string
+          manual_override_estimate: number | null
+          original_estimate: number
+          override_reason: string | null
+          qa_notes: string | null
+          quality_score: number | null
+          reviewer_id: string | null
+          valuation_request_id: string | null
+        }
+        Insert: {
+          approved?: boolean | null
+          created_at?: string | null
+          id?: string
+          manual_override_estimate?: number | null
+          original_estimate: number
+          override_reason?: string | null
+          qa_notes?: string | null
+          quality_score?: number | null
+          reviewer_id?: string | null
+          valuation_request_id?: string | null
+        }
+        Update: {
+          approved?: boolean | null
+          created_at?: string | null
+          id?: string
+          manual_override_estimate?: number | null
+          original_estimate?: number
+          override_reason?: string | null
+          qa_notes?: string | null
+          quality_score?: number | null
+          reviewer_id?: string | null
+          valuation_request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "valuation_qa_reviews_valuation_request_id_fkey"
+            columns: ["valuation_request_id"]
+            isOneToOne: false
+            referencedRelation: "valuation_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -3167,6 +3616,42 @@ export type Database = {
         Update: {
           fetched_at?: string | null
           nicb_data?: Json
+          vin?: string
+        }
+        Relationships: []
+      }
+      vin_enrichment_data: {
+        Row: {
+          build_data: Json | null
+          created_at: string | null
+          decoded_data: Json
+          enrichment_score: number | null
+          features_detected: Json | null
+          id: string
+          last_enriched_at: string | null
+          source: string
+          vin: string
+        }
+        Insert: {
+          build_data?: Json | null
+          created_at?: string | null
+          decoded_data?: Json
+          enrichment_score?: number | null
+          features_detected?: Json | null
+          id?: string
+          last_enriched_at?: string | null
+          source: string
+          vin: string
+        }
+        Update: {
+          build_data?: Json | null
+          created_at?: string | null
+          decoded_data?: Json
+          enrichment_score?: number | null
+          features_detected?: Json | null
+          id?: string
+          last_enriched_at?: string | null
+          source?: string
           vin?: string
         }
         Relationships: []
