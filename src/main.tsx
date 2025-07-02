@@ -3,7 +3,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AppProviders } from './providers/AppProviders';
-import { ThemeProvider } from '@/components/theme/ThemeProvider'; // ✅ Use the correct theme provider
 import './styles/index.css';
 
 const renderApp = () => {
@@ -15,11 +14,9 @@ const renderApp = () => {
 
     ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
-        <ThemeProvider> {/* ✅ Wrap the entire app */}
-          <AppProviders>
-            <App />
-          </AppProviders>
-        </ThemeProvider>
+        <AppProviders>
+          <App />
+        </AppProviders>
       </React.StrictMode>
     );
   } catch (error) {
