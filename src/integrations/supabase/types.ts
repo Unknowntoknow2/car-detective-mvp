@@ -3856,6 +3856,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_records_needing_vin_enrichment: {
+        Args: { batch_limit?: number; force_reprocess?: boolean }
+        Returns: {
+          id: string
+          vin: string
+          make: string
+          model: string
+          year: number
+          trim_level: string
+          table_name: string
+        }[]
+      }
       get_trims_by_make_model_year: {
         Args: { input_make: string; input_model: string; input_year: number }
         Returns: {
