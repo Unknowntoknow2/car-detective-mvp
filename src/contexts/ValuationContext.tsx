@@ -36,7 +36,9 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const createValuation = useCallback(async (data: any) => {
     setIsLoading(true);
     try {
-      console.log('🔄 Creating new valuation record with VIN:', data.vin);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🔄 Creating new valuation record with VIN:', data.vin);
+      }
       
       const { data: result, error } = await supabase
         .from('valuation_results')

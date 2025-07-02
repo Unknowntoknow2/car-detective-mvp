@@ -60,7 +60,9 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
   useEffect(() => {
     const loadData = async () => {
       try {
-        console.log('🔍 Loading follow-up data for VIN:', vin);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('🔍 Loading follow-up data for VIN:', vin);
+        }
         
         // First try to load by VIN
         let { data, error } = await supabase
