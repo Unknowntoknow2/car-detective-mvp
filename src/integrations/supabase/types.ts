@@ -1223,31 +1223,100 @@ export type Database = {
       }
       market_listings: {
         Row: {
+          condition: string | null
+          confidence_score: number | null
+          cpo: boolean | null
           created_at: string | null
+          dealer: string | null
+          dealer_name: string | null
+          extra: Json | null
+          features: Json | null
+          fetched_at: string
           id: string
+          is_cpo: boolean | null
           listing_date: string | null
+          listing_url: string
+          location: string | null
+          make: string | null
+          mileage: number | null
+          model: string | null
+          notes: string | null
           price: number
+          raw_data: Json | null
           source: string
+          source_site: string | null
+          source_type: string
+          trim: string | null
           url: string | null
           valuation_id: string
+          valuation_request_id: string | null
+          vin: string | null
+          year: number | null
+          zip_code: string | null
         }
         Insert: {
+          condition?: string | null
+          confidence_score?: number | null
+          cpo?: boolean | null
           created_at?: string | null
+          dealer?: string | null
+          dealer_name?: string | null
+          extra?: Json | null
+          features?: Json | null
+          fetched_at?: string
           id?: string
+          is_cpo?: boolean | null
           listing_date?: string | null
+          listing_url?: string
+          location?: string | null
+          make?: string | null
+          mileage?: number | null
+          model?: string | null
+          notes?: string | null
           price: number
+          raw_data?: Json | null
           source: string
+          source_site?: string | null
+          source_type?: string
+          trim?: string | null
           url?: string | null
           valuation_id: string
+          valuation_request_id?: string | null
+          vin?: string | null
+          year?: number | null
+          zip_code?: string | null
         }
         Update: {
+          condition?: string | null
+          confidence_score?: number | null
+          cpo?: boolean | null
           created_at?: string | null
+          dealer?: string | null
+          dealer_name?: string | null
+          extra?: Json | null
+          features?: Json | null
+          fetched_at?: string
           id?: string
+          is_cpo?: boolean | null
           listing_date?: string | null
+          listing_url?: string
+          location?: string | null
+          make?: string | null
+          mileage?: number | null
+          model?: string | null
+          notes?: string | null
           price?: number
+          raw_data?: Json | null
           source?: string
+          source_site?: string | null
+          source_type?: string
+          trim?: string | null
           url?: string | null
           valuation_id?: string
+          valuation_request_id?: string | null
+          vin?: string | null
+          year?: number | null
+          zip_code?: string | null
         }
         Relationships: [
           {
@@ -1255,6 +1324,13 @@ export type Database = {
             columns: ["valuation_id"]
             isOneToOne: false
             referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_listings_valuation_request_id_fkey"
+            columns: ["valuation_request_id"]
+            isOneToOne: false
+            referencedRelation: "valuation_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -2285,40 +2361,49 @@ export type Database = {
       }
       valuation_audit_logs: {
         Row: {
+          action: string | null
           created_at: string
           error_message: string | null
           event: string
           execution_time_ms: number | null
           id: string
           input_data: Json | null
+          message: string | null
           metadata: Json | null
           output_data: Json | null
+          raw_data: Json | null
           run_by: string | null
           source: string | null
           valuation_request_id: string
         }
         Insert: {
+          action?: string | null
           created_at?: string
           error_message?: string | null
           event: string
           execution_time_ms?: number | null
           id?: string
           input_data?: Json | null
+          message?: string | null
           metadata?: Json | null
           output_data?: Json | null
+          raw_data?: Json | null
           run_by?: string | null
           source?: string | null
           valuation_request_id: string
         }
         Update: {
+          action?: string | null
           created_at?: string
           error_message?: string | null
           event?: string
           execution_time_ms?: number | null
           id?: string
           input_data?: Json | null
+          message?: string | null
           metadata?: Json | null
           output_data?: Json | null
+          raw_data?: Json | null
           run_by?: string | null
           source?: string | null
           valuation_request_id?: string
@@ -2398,15 +2483,19 @@ export type Database = {
       valuation_requests: {
         Row: {
           comp_count: number | null
+          condition: string | null
           confidence_score: number | null
           created_at: string
           engine_response: Json | null
+          features: Json | null
           final_value: number | null
           id: string
           make: string
+          meta: Json | null
           mileage: number | null
           model: string
           request_params: Json | null
+          requested_by: string | null
           status: string
           trim: string | null
           updated_at: string
@@ -2417,15 +2506,19 @@ export type Database = {
         }
         Insert: {
           comp_count?: number | null
+          condition?: string | null
           confidence_score?: number | null
           created_at?: string
           engine_response?: Json | null
+          features?: Json | null
           final_value?: number | null
           id?: string
           make: string
+          meta?: Json | null
           mileage?: number | null
           model: string
           request_params?: Json | null
+          requested_by?: string | null
           status?: string
           trim?: string | null
           updated_at?: string
@@ -2436,15 +2529,19 @@ export type Database = {
         }
         Update: {
           comp_count?: number | null
+          condition?: string | null
           confidence_score?: number | null
           created_at?: string
           engine_response?: Json | null
+          features?: Json | null
           final_value?: number | null
           id?: string
           make?: string
+          meta?: Json | null
           mileage?: number | null
           model?: string
           request_params?: Json | null
+          requested_by?: string | null
           status?: string
           trim?: string | null
           updated_at?: string
