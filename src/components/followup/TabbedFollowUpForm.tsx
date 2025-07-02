@@ -121,9 +121,9 @@ export function TabbedFollowUpForm({
       case 'basic':
         const hasValidZip = Boolean(formData.zip_code && formData.zip_code.length === 5 && /^\d{5}$/.test(formData.zip_code));
         const hasValidMileage = Boolean(formData.mileage && formData.mileage > 0);
-        const hasCondition = Boolean(formData.condition);
+        const hasValidCondition = Boolean(formData.condition && ['excellent', 'good', 'fair', 'poor'].includes(formData.condition));
         
-        return (hasValidZip && hasValidMileage && hasCondition) ? 'complete' : 'empty';
+        return (hasValidZip && hasValidMileage && hasValidCondition) ? 'complete' : 'empty';
         
       case 'condition':
         const hasAllConditions = Boolean(
