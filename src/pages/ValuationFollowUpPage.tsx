@@ -44,9 +44,9 @@ export default function ValuationFollowUpPage() {
         make: vehicleData.make,
         model: vehicleData.model,
         year: vehicleData.year,
-        mileage: 50000, // This will be updated from the form data
-        condition: 'Good', // This will be updated from the form data
-        zipCode: '90210' // This will be updated from the form data
+        mileage: 0, // Will be required from form - no hardcoded defaults
+        condition: 'good', // Default to valid condition value
+        zipCode: '' // Will be required from form - no hardcoded defaults
       });
       
       console.log('✅ ValuationFollowUpPage: Valuation completed successfully:', valuationResult);

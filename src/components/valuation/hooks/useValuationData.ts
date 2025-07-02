@@ -27,15 +27,19 @@ export function useValuationData(valuationId: string) {
         // Simulate API call with mock data
         await new Promise(resolve => setTimeout(resolve, 1000));
         
+        const currentYear = new Date().getFullYear();
+        const randomYear = currentYear - Math.floor(Math.random() * 10);
+        const randomMileage = Math.floor(Math.random() * 80000) + 20000;
+        
         const mockData: ValuationData = {
           make: 'Toyota',
           model: 'Test Vehicle',
-          year: 2020,
-          mileage: 50000,
-          condition: 'Good',
+          year: randomYear,
+          mileage: randomMileage,
+          condition: 'good',
           estimatedValue: 25000,
           confidenceScore: 85,
-          zipCode: '12345',
+          zipCode: '90210', // Test data - would be user provided in real app
           vin: valuationId,
           isPremium: false
         };

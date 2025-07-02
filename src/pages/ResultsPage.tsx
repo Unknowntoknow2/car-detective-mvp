@@ -47,12 +47,14 @@ export default function ResultsPage() {
 
         setValuationData(data);
         
-        // Show follow-up only if we have VIN and need more data
+        // Show follow-up if we have VIN and need more data (not hardcoded zip check)
         const shouldShowFollowUp = (
           data.vin && 
           (data.confidence_score < 85 || 
            !data.adjustments?.length ||
-           data.zip_code === '90210')
+           !data.zip_code ||
+           !data.mileage ||
+           data.mileage === 0)
         );
 
         if (shouldShowFollowUp) {
