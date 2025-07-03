@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useValuation } from '@/contexts/ValuationContext';
+import { useAuth } from '@/hooks/useAuth';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 import { PremiumPdfSection } from '@/components/valuation/PremiumPdfSection';
 import { TabbedFollowUpForm } from '@/components/followup/TabbedFollowUpForm';
@@ -15,9 +16,11 @@ export default function ResultsPage() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const { getValuationById, isLoading } = useValuation();
+  const { user, userDetails } = useAuth();
   const [valuationData, setValuationData] = useState<any>(null);
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [emailSending, setEmailSending] = useState(false);
 
   useEffect(() => {
     const loadValuationData = async () => {
@@ -144,24 +147,37 @@ export default function ResultsPage() {
           zipCode={valuationData.zip_code || ''}
           isPremium={valuationData.valuation_type === 'premium'}
           onEmailReport={async () => {
+            // Prevent duplicate sends
+            if (emailSending) return;
+            
+            if (!user?.email) {
+              toast.error('Please log in to email your report');
+              return;
+            }
+
+            setEmailSending(true);
             try {
               const response = await fetch(`${window.location.origin}/functions/v1/email-valuation-pdf`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   valuationId: valuationData.id,
-                  email: 'user@example.com' // This should come from user profile
+                  email: user.email,
+                  userName: userDetails?.full_name || user.email?.split('@')[0]
                 })
               });
               
               if (response.ok) {
-                toast.success('Valuation report sent to your email!');
+                toast.success(`Valuation report sent to ${user.email}!`);
               } else {
                 const error = await response.json();
                 toast.error(error.error || 'Failed to send email');
               }
             } catch (error) {
+              console.error('Email error:', error);
               toast.error('Failed to send email report');
+            } finally {
+              setEmailSending(false);
             }
           }}
           onUpgrade={() => toast.info('Premium upgrade coming soon')}
