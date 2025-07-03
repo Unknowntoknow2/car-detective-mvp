@@ -2,6 +2,17 @@
  * Production monitoring and error tracking utilities
  */
 
+// Global type declarations
+declare global {
+  interface Window {
+    Sentry?: {
+      withScope: (callback: (scope: any) => void) => void;
+      captureException: (error: Error) => void;
+    };
+    gtag?: (command: string, action: string, parameters?: Record<string, any>) => void;
+  }
+}
+
 interface ErrorContext {
   userId?: string;
   valuationId?: string;
@@ -45,7 +56,7 @@ class MonitoringService {
             scope.setExtra(key, value);
           });
         }
-        window.Sentry.captureException(error);
+        window.Sentry?.captureException(error);
       });
     }
   }
@@ -164,7 +175,7 @@ class MonitoringService {
     if (navigation) {
       const metrics = {
         loadTime: navigation.loadEventEnd - navigation.loadEventStart,
-        domContentLoaded: navigation.domContentLoadedEventEnd - navigation.navigationStart,
+        domContentLoaded: navigation.domContentLoadedEventEnd - navigation.fetchStart,
         firstPaint: 0,
         firstContentfulPaint: 0,
       };
