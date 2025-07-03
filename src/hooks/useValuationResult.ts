@@ -1,12 +1,12 @@
 
 import { useState, useEffect } from 'react';
-import { ValuationResult } from '@/types/valuation';
+import { LegacyValuationResult } from '@/types/valuation';
 import { getValuationById } from '@/utils/valuation';
 
 export const useValuationResult = (valuationId?: string) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<ValuationResult | null>(null);
+  const [result, setResult] = useState<LegacyValuationResult | null>(null);
 
   useEffect(() => {
     if (valuationId) {

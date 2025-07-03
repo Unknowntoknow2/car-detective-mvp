@@ -1,5 +1,5 @@
 
-import { ValuationResult } from "@/types/valuation";
+import { LegacyValuationResult } from "@/types/valuation";
 import { EnhancedValuationParams } from "@/utils/valuation/types";
 import { calculateVehicleValue } from "@/valuation/calculateVehicleValue";
 import { getZipAdjustment, getRegionNameFromZip } from "@/utils/adjustments/locationAdjustments";
@@ -14,7 +14,7 @@ export interface EnrichedDataSource {
 export async function aggregateValuationSources(
   params: EnhancedValuationParams,
   enrichedSources: EnrichedDataSource[] = []
-): Promise<ValuationResult> {
+): Promise<LegacyValuationResult> {
   // Base market value estimation
   const baseMarketValue = params.baseMarketValue || estimateBaseValue(params);
   

@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import type { ValuationResult, MarketListing, AuditLog } from '@/types/valuation';
 
 export interface ValuationRequest {
   vin?: string;
@@ -14,53 +15,8 @@ export interface ValuationRequest {
   meta?: Record<string, any>;
 }
 
-export interface ValuationResult {
-  request_id: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'failed';
-  estimated_value?: number;
-  confidence_score?: number;
-  comp_count: number;
-  market_listings: MarketListing[];
-  audit_logs: AuditLog[];
-  price_range?: {
-    low: number;
-    high: number;
-    median: number;
-  };
-  source_breakdown?: Record<string, {
-    count: number;
-    avg_price: number;
-  }>;
-}
-
-export interface MarketListing {
-  id: string;
-  source: string;
-  source_type: string;
-  price: number;
-  year?: number;
-  make?: string;
-  model?: string;
-  trim?: string;
-  vin?: string;
-  mileage?: number;
-  condition?: string;
-  dealer_name?: string;
-  location?: string;
-  listing_url: string;
-  is_cpo: boolean;
-  fetched_at: string;
-  confidence_score: number;
-}
-
-export interface AuditLog {
-  id: string;
-  action: string;
-  message: string;
-  created_at: string;
-  execution_time_ms?: number;
-  raw_data?: Record<string, any>;
-}
+// Re-export ValuationResult for backward compatibility
+export type { ValuationResult };
 
 export interface SourceStatus {
   name: string;
