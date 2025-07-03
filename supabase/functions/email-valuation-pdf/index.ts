@@ -160,7 +160,7 @@ serve(async (req) => {
     // Step 8: Send email with PDF attachment
     try {
       const emailResponse = await resend.emails.send({
-        from: 'Car Detective <noreply@cardetective.ai>',
+        from: `Car Detective <noreply@${Deno.env.get("EMAIL_DOMAIN") || "cardetective.ai"}>`,
         to: [email],
         subject: `Your Vehicle Valuation Report - ${valuationData.year} ${valuationData.make} ${valuationData.model}`,
         html: `
@@ -190,7 +190,7 @@ serve(async (req) => {
               <p style="color: #6b7280; font-size: 14px;">
                 Best regards,<br>
                 The Car Detective Team<br>
-                <a href="https://cardetective.ai" style="color: #2563eb;">cardetective.ai</a>
+                <a href="${Deno.env.get("APP_URL") || "https://cardetective.ai"}" style="color: #2563eb;">${Deno.env.get("EMAIL_DOMAIN") || "cardetective.ai"}</a>
               </p>
             </div>
           </div>

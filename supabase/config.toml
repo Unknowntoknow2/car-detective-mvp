@@ -50,3 +50,9 @@ verify_jwt = false
 
 [functions.fetch-competitor-prices]
 verify_jwt = false
+
+[functions.export-valuation-json]
+verify_jwt = false
+
+[functions.test-email-integration]
+verify_jwt = false
