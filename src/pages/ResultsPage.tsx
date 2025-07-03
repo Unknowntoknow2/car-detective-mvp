@@ -143,7 +143,27 @@ export default function ResultsPage() {
           adjustments={valuationData.adjustments || []}
           zipCode={valuationData.zip_code || ''}
           isPremium={valuationData.valuation_type === 'premium'}
-          onEmailReport={() => toast.info('Email feature coming soon')}
+          onEmailReport={async () => {
+            try {
+              const response = await fetch(`${window.location.origin}/functions/v1/email-valuation-pdf`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  valuationId: valuationData.id,
+                  email: 'user@example.com' // This should come from user profile
+                })
+              });
+              
+              if (response.ok) {
+                toast.success('Valuation report sent to your email!');
+              } else {
+                const error = await response.json();
+                toast.error(error.error || 'Failed to send email');
+              }
+            } catch (error) {
+              toast.error('Failed to send email report');
+            }
+          }}
           onUpgrade={() => toast.info('Premium upgrade coming soon')}
         />
         

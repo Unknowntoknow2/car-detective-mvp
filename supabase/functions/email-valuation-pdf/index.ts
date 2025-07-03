@@ -1,8 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-// Import Resend package - this would be implemented in a real application
-// import { Resend } from 'npm:resend@1.0.0';
+import { Resend } from 'npm:resend@2.0.0';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,63 +36,211 @@ serve(async (req) => {
       { auth: { persistSession: false } },
     );
 
-    // In a real implementation, we would:
-    // 1. Fetch the valuation data from Supabase
-    // 2. Generate the PDF
-    // 3. Use Resend to send the email with the PDF attached
-    // For now, we'll just simulate this by logging and creating an email log
+    // Check if we have Resend API key
+    const resendApiKey = Deno.env.get('RESEND_API_KEY');
+    
+    if (!resendApiKey) {
+      console.warn('RESEND_API_KEY not configured - email functionality disabled');
+      
+      // Still log the email attempt
+      const { error: logError } = await supabaseAdmin
+        .from("email_logs")
+        .insert({
+          email: email,
+          valuation_id: valuationId,
+          email_type: "valuation_pdf",
+          status: "failed",
+          error: "RESEND_API_KEY not configured"
+        });
 
-    console.log(
-      `Sending valuation PDF for ID ${valuationId} to email: ${email}`,
-    );
-
-    // Create a record in the email logs
-    const { error: logError } = await supabaseAdmin
-      .from("email_logs")
-      .insert({
-        email: email,
-        valuation_id: valuationId,
-        email_type: "valuation_pdf",
-        status: "processed",
-      });
-
-    if (logError) {
-      console.error("Error logging email:", logError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Email service not configured" 
+        }),
+        {
+          status: 503,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
-    // In a real implementation with Resend:
-    /*
-    const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
+    // Fetch valuation data
+    const { data: valuationData, error: valuationError } = await supabaseAdmin
+      .from("valuations")
+      .select(`
+        *,
+        profiles (email, full_name)
+      `)
+      .eq('id', valuationId)
+      .single();
 
-    const emailResponse = await resend.emails.send({
-      from: 'CarDetective <no-reply@cardetective.ai>',
-      to: [email],
-      subject: 'Your Vehicle Valuation Report',
-      html: `
-        <h1>Your Vehicle Valuation Report</h1>
-        <p>Hello ${userName || 'there'},</p>
-        <p>Thank you for using CarDetective. Your vehicle valuation report is attached.</p>
-        <p>Best regards,<br>The CarDetective Team</p>
-      `,
-      attachments: [
+    if (valuationError || !valuationData) {
+      console.error('Failed to fetch valuation data:', valuationError);
+      
+      await supabaseAdmin
+        .from("email_logs")
+        .insert({
+          email: email,
+          valuation_id: valuationId,
+          email_type: "valuation_pdf",
+          status: "failed",
+          error: "Valuation not found"
+        });
+
+      return new Response(
+        JSON.stringify({ error: "Valuation not found" }),
         {
-          filename: 'ValuationReport.pdf',
-          content: pdfBuffer // This would be the generated PDF
-        }
-      ]
-    });
-    */
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: `Valuation report sent to ${email}`,
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    // Generate PDF using the existing PDF generation logic
+    // Since we can't import the frontend PDF service directly, we'll trigger the generation
+    const pdfGenerationResponse = await supabaseAdmin.functions.invoke('generate-valuation-pdf', {
+      body: {
+        reportData: {
+          id: valuationData.id,
+          vin: valuationData.vin,
+          make: valuationData.make,
+          model: valuationData.model,
+          year: valuationData.year,
+          trim: valuationData.trim,
+          mileage: valuationData.mileage,
+          condition: valuationData.condition,
+          estimatedValue: valuationData.estimated_value,
+          price: valuationData.estimated_value,
+          confidenceScore: valuationData.confidence_score,
+          zipCode: valuationData.zip_code || valuationData.state,
+          adjustments: valuationData.adjustments || [],
+          generatedAt: new Date().toISOString(),
+          isPremium: valuationData.valuation_type === 'premium'
+        }
+      }
+    });
+
+    if (pdfGenerationResponse.error) {
+      console.error('PDF generation failed:', pdfGenerationResponse.error);
+      
+      await supabaseAdmin
+        .from("email_logs")
+        .insert({
+          email: email,
+          valuation_id: valuationId,
+          email_type: "valuation_pdf",
+          status: "failed",
+          error: "PDF generation failed"
+        });
+
+      return new Response(
+        JSON.stringify({ error: "PDF generation failed" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Initialize Resend
+    const resend = new Resend(resendApiKey);
+
+    // Send email with PDF attachment
+    try {
+      const emailResponse = await resend.emails.send({
+        from: 'Car Detective <noreply@cardetective.ai>',
+        to: [email],
+        subject: `Your Vehicle Valuation Report - ${valuationData.year} ${valuationData.make} ${valuationData.model}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #2563eb;">Your Vehicle Valuation Report</h1>
+            <p>Hello ${userName || valuationData.profiles?.full_name || 'there'},</p>
+            
+            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h2 style="color: #1e40af; margin-top: 0;">Vehicle Details</h2>
+              <p><strong>Vehicle:</strong> ${valuationData.year} ${valuationData.make} ${valuationData.model}</p>
+              ${valuationData.vin ? `<p><strong>VIN:</strong> ${valuationData.vin}</p>` : ''}
+              <p><strong>Estimated Value:</strong> $${valuationData.estimated_value?.toLocaleString()}</p>
+              <p><strong>Confidence Score:</strong> ${valuationData.confidence_score}%</p>
+            </div>
+            
+            <p>Your comprehensive vehicle valuation report is attached to this email as a PDF. This report includes:</p>
+            <ul>
+              <li>Detailed value breakdown and adjustments</li>
+              <li>Market analysis and comparable vehicles</li>
+              <li>Confidence scoring methodology</li>
+              <li>Full audit trail of data sources</li>
+            </ul>
+            
+            <p>Thank you for using Car Detective for your vehicle valuation needs.</p>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <p style="color: #6b7280; font-size: 14px;">
+                Best regards,<br>
+                The Car Detective Team<br>
+                <a href="https://cardetective.ai" style="color: #2563eb;">cardetective.ai</a>
+              </p>
+            </div>
+          </div>
+        `,
+        attachments: [
+          {
+            filename: `CarDetective_${valuationData.year}_${valuationData.make}_${valuationData.model}_${valuationData.id}.pdf`,
+            content: pdfGenerationResponse.data.pdfBuffer
+          }
+        ]
+      });
+
+      if (emailResponse.error) {
+        throw new Error(emailResponse.error.message);
+      }
+
+      // Log successful email
+      await supabaseAdmin
+        .from("email_logs")
+        .insert({
+          email: email,
+          valuation_id: valuationId,
+          email_type: "valuation_pdf",
+          status: "sent",
+        });
+
+      console.log('✅ Email sent successfully:', emailResponse.data?.id);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: `Valuation report sent to ${email}`,
+          emailId: emailResponse.data?.id
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+
+    } catch (emailError) {
+      console.error('Email sending failed:', emailError);
+      
+      await supabaseAdmin
+        .from("email_logs")
+        .insert({
+          email: email,
+          valuation_id: valuationId,
+          email_type: "valuation_pdf",
+          status: "failed",
+          error: emailError.message
+        });
+
+      return new Response(
+        JSON.stringify({ error: "Failed to send email: " + emailError.message }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
   } catch (err) {
     console.error("Error in email-valuation-pdf function:", err);
 
