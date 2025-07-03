@@ -1,10 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ValuationResult } from "@/types/valuation";
+import { LegacyValuationResult } from "@/types/valuation";
 
 export async function getValuationContext(
   valuationId?: string,
-): Promise<Partial<ValuationResult> | null> {
+): Promise<Partial<LegacyValuationResult> | null> {
   if (!valuationId) return null;
 
   try {

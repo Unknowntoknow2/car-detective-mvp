@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { ValuationResult, SavedValuation } from '@/types/valuation';
+import { LegacyValuationResult, SavedValuation } from '@/types/valuation';
 
 export interface UseValuationDataOptions {
   userId?: string;
@@ -9,7 +9,7 @@ export interface UseValuationDataOptions {
 }
 
 export interface UseValuationDataReturn {
-  valuations: ValuationResult[];
+  valuations: LegacyValuationResult[];
   savedValuations: SavedValuation[];
   isLoading: boolean;
   error: string | null;
@@ -20,7 +20,7 @@ export interface UseValuationDataReturn {
 export function useValuationData(options: UseValuationDataOptions = {}): UseValuationDataReturn {
   const { userId, loadSaved = false, loadHistory = false } = options;
   
-  const [valuations, setValuations] = useState<ValuationResult[]>([]);
+  const [valuations, setValuations] = useState<LegacyValuationResult[]>([]);
   const [savedValuations, setSavedValuations] = useState<SavedValuation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

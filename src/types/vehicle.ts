@@ -28,6 +28,8 @@ export interface DecodedVehicleInfo {
   doors?: string;
   seats?: string;
   displacement?: string;
+  engineCylinders?: string;
+  displacementL?: string;
   mileage?: number;
   condition?: string;
   color?: string;
@@ -35,6 +37,18 @@ export interface DecodedVehicleInfo {
   zipCode?: string;
   photos?: string[];
   primaryPhoto?: string;
+  estimatedValue?: number;
+  // VIN enrichment fields
+  enrichmentScore?: number;
+  lastEnrichedAt?: string;
+  source?: 'nhtsa' | 'vinaudit' | 'cache' | 'fallback' | 'vpic';
+  enhancedData?: {
+    carfaxReport?: any;
+    marketData?: any;
+    msrp?: number;
+    features?: string[];
+    packageDetails?: any;
+  };
 }
 
 export interface PlateLookupInfo {
