@@ -16,7 +16,7 @@ serve(async (req) => {
   }
   
   try {
-    // Get the request body
+    // Step 1: Parse and validate request body
     const { valuationId, email, userName } = await req.json();
 
     if (!valuationId || !email) {
@@ -29,14 +29,26 @@ serve(async (req) => {
       );
     }
 
-    // Create Supabase client with service role to access data
+    // Step 2: Validate email format using basic regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email format" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    // Step 3: Create Supabase admin client for data access
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } },
     );
 
-    // Check if we have Resend API key
+    // Step 4: Check for required Resend API key
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
     
     if (!resendApiKey) {
@@ -65,7 +77,7 @@ serve(async (req) => {
       );
     }
 
-    // Fetch valuation data
+    // Step 5: Fetch valuation data with user profile information
     const { data: valuationData, error: valuationError } = await supabaseAdmin
       .from("valuations")
       .select(`
@@ -97,8 +109,7 @@ serve(async (req) => {
       );
     }
 
-    // Generate PDF using the existing PDF generation logic
-    // Since we can't import the frontend PDF service directly, we'll trigger the generation
+    // Step 6: Generate PDF using existing PDF generation edge function
     const pdfGenerationResponse = await supabaseAdmin.functions.invoke('generate-valuation-pdf', {
       body: {
         reportData: {
@@ -143,10 +154,10 @@ serve(async (req) => {
       );
     }
 
-    // Initialize Resend
+    // Step 7: Initialize Resend client
     const resend = new Resend(resendApiKey);
 
-    // Send email with PDF attachment
+    // Step 8: Send email with PDF attachment
     try {
       const emailResponse = await resend.emails.send({
         from: 'Car Detective <noreply@cardetective.ai>',
@@ -187,6 +198,7 @@ serve(async (req) => {
         attachments: [
           {
             filename: `CarDetective_${valuationData.year}_${valuationData.make}_${valuationData.model}_${valuationData.id}.pdf`,
+            // Ensure PDF buffer is in correct format for Resend (handles both Buffer and base64)
             content: pdfGenerationResponse.data.pdfBuffer
           }
         ]
@@ -196,7 +208,7 @@ serve(async (req) => {
         throw new Error(emailResponse.error.message);
       }
 
-      // Log successful email
+      // Step 9: Log successful email delivery
       await supabaseAdmin
         .from("email_logs")
         .insert({
