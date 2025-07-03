@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.20.0";
-import Stripe from "https://esm.sh/stripe@14.21.0";
+import { createClient } from "https://cdn.skypack.dev/@supabase/supabase-js@2.20.0";
+import Stripe from "https://cdn.skypack.dev/stripe@14.21.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
