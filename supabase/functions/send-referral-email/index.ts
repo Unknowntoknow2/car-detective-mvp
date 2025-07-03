@@ -6,7 +6,7 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-const appUrl = "https://car-detective.app"; // Replace with your actual app URL
+const appUrl = Deno.env.get("APP_URL") || "https://car-detective.app";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -196,7 +196,7 @@ serve(async (req) => {
 
     // Send the email
     const { data: emailResult, error: emailError } = await resend.emails.send({
-      from: "Car Detective <referrals@car-detective.app>",
+      from: `Car Detective <referrals@${Deno.env.get("EMAIL_DOMAIN") || "car-detective.app"}>`,
       to: [recipientEmail],
       subject: subject,
       html: html,

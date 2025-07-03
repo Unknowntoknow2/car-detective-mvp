@@ -66,7 +66,7 @@ async function generateEmailContent(
   switch (emailType) {
     case "abandoned_valuation":
       const valuationUrl =
-        `https://car-detective.app/valuation/continue?id=${valuationData?.id}`;
+        `${Deno.env.get("APP_URL") || "https://car-detective.app"}/valuation/continue?id=${valuationData?.id}`;
 
       html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -88,7 +88,7 @@ async function generateEmailContent(
 
     case "premium_upsell":
       const premiumUrl =
-        `https://car-detective.app/premium?id=${valuationData?.id}`;
+        `${Deno.env.get("APP_URL") || "https://car-detective.app"}/premium?id=${valuationData?.id}`;
 
       html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -116,7 +116,7 @@ async function generateEmailContent(
 
     case "dealer_offer_followup":
       // Check if we have a secure token for this valuation
-      let offerViewUrl = `https://car-detective.app/my-valuations`;
+      let offerViewUrl = `${Deno.env.get("APP_URL") || "https://car-detective.app"}/my-valuations`;
 
       // Try to find a secure token for this valuation in dealer_leads
       if (valuationData?.id && req?.supabaseClient) {
@@ -128,7 +128,7 @@ async function generateEmailContent(
 
         if (!leadError && leadData?.secure_token) {
           offerViewUrl =
-            `https://car-detective.app/view-offer/${leadData.secure_token}`;
+            `${Deno.env.get("APP_URL") || "https://car-detective.app"}/view-offer/${leadData.secure_token}`;
         }
       }
 
@@ -152,7 +152,7 @@ async function generateEmailContent(
 
     case "photo_upload_prompt":
       const photoUploadUrl =
-        `https://car-detective.app/valuation/photos?id=${valuationData?.id}`;
+        `${Deno.env.get("APP_URL") || "https://car-detective.app"}/valuation/photos?id=${valuationData?.id}`;
 
       html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -172,7 +172,7 @@ async function generateEmailContent(
       break;
 
     case "reactivation":
-      const dashboardUrl = `https://car-detective.app/dashboard`;
+      const dashboardUrl = `${Deno.env.get("APP_URL") || "https://car-detective.app"}/dashboard`;
 
       html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -213,7 +213,7 @@ async function sendEmail(
     );
 
     const { data, error } = await resend.emails.send({
-      from: `${template.fromName} <noreply@car-detective.app>`,
+      from: `${template.fromName} <noreply@${Deno.env.get("EMAIL_DOMAIN") || "car-detective.app"}>`,
       to: [userEmail],
       subject: template.subject,
       html: html,
