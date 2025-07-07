@@ -1406,6 +1406,81 @@ export type Database = {
         }
         Relationships: []
       }
+      market_comps: {
+        Row: {
+          condition: string | null
+          confidence_score: number | null
+          created_at: string | null
+          dealer_name: string | null
+          features: Json | null
+          id: string
+          incentives: string | null
+          is_cpo: boolean | null
+          listing_url: string | null
+          location: string | null
+          make: string | null
+          mileage: number | null
+          model: string | null
+          price: number
+          raw_data: Json | null
+          source: string
+          source_type: string
+          trim: string | null
+          updated_at: string | null
+          valuation_request_id: string | null
+          vin: string | null
+          year: number | null
+        }
+        Insert: {
+          condition?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          dealer_name?: string | null
+          features?: Json | null
+          id?: string
+          incentives?: string | null
+          is_cpo?: boolean | null
+          listing_url?: string | null
+          location?: string | null
+          make?: string | null
+          mileage?: number | null
+          model?: string | null
+          price: number
+          raw_data?: Json | null
+          source: string
+          source_type: string
+          trim?: string | null
+          updated_at?: string | null
+          valuation_request_id?: string | null
+          vin?: string | null
+          year?: number | null
+        }
+        Update: {
+          condition?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          dealer_name?: string | null
+          features?: Json | null
+          id?: string
+          incentives?: string | null
+          is_cpo?: boolean | null
+          listing_url?: string | null
+          location?: string | null
+          make?: string | null
+          mileage?: number | null
+          model?: string | null
+          price?: number
+          raw_data?: Json | null
+          source?: string
+          source_type?: string
+          trim?: string | null
+          updated_at?: string | null
+          valuation_request_id?: string | null
+          vin?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
       market_context_data: {
         Row: {
           avg_days_on_market: number | null
