@@ -16,6 +16,10 @@ import AuditPage from './pages/admin/AuditPage';
 import ValuationFollowUpPage from './pages/ValuationFollowUpPage';
 import PlateValuationPage from './pages/valuation/plate/PlateValuationPage';
 
+// Auth pages
+import AuthPage from './pages/AuthPage';
+import DealerSignup from './pages/DealerSignup';
+
 // Auth components
 import { AuthProvider } from '@/hooks/useAuth';
 import { DealerGuard } from '@/guards/DealerGuard';
@@ -105,6 +109,22 @@ const routes = [
             <AuditPage />
           </AuthenticatedLayout>
         ),
+      },
+      {
+        path: "auth",
+        element: <AuthPage />,
+      },
+      {
+        path: "login-user",
+        element: <AuthPage />,
+      },
+      {
+        path: "login-dealer",
+        element: <AuthPage />,
+      },
+      {
+        path: "dealer-signup",
+        element: <DealerSignup />,
       },
       {
         path: "*",
