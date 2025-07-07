@@ -19,6 +19,7 @@ import PlateValuationPage from './pages/valuation/plate/PlateValuationPage';
 // Auth pages
 import AuthPage from './pages/AuthPage';
 import DealerSignup from './pages/DealerSignup';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 // Auth components
 import { AuthProvider } from '@/hooks/useAuth';
@@ -125,6 +126,10 @@ const routes = [
       {
         path: "dealer-signup",
         element: <DealerSignup />,
+      },
+      {
+        path: "reset-password",
+        element: <ResetPasswordPage />,
       },
       {
         path: "*",

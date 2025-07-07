@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { MainLayout } from '@/components/layout';
 import { SEO } from '@/components/layout/seo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 import { Sentry } from '@/lib/sentry';
 
 export default function PlatformDiagnosticsPage() {

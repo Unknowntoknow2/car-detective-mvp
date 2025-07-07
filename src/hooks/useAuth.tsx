@@ -73,16 +73,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // Set up auth state listener
+    let mounted = true;
+
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
+        if (!mounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Use setTimeout to prevent potential deadlocks
+          // Use setTimeout to prevent deadlocks
           setTimeout(() => {
-            fetchUserDetails(session.user.id);
+            if (mounted) {
+              fetchUserDetails(session.user.id);
+            }
           }, 0);
         } else {
           setUserDetails(null);
@@ -92,19 +98,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // Check for existing session
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchUserDetails(session.user.id);
+        setTimeout(() => {
+          if (mounted) {
+            fetchUserDetails(session.user.id);
+          }
+        }, 0);
       }
       
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
