@@ -93,7 +93,8 @@ export class ValuationApiService {
         throw new Error('Valuation request not found');
       }
 
-      // Call the full market orchestrator
+      // Call the AIN full market orchestrator (unified function)
+      console.log('🚀 Triggering market aggregation from ValuationApiService');
       const { data, error } = await supabase.functions.invoke('ain-full-market-orchestrator', {
         body: {
           request_id: requestId,
@@ -104,14 +105,16 @@ export class ValuationApiService {
             trim: requestData.trim,
             mileage: requestData.mileage,
             zip_code: requestData.zip_code,
-            condition: requestData.condition
+            condition: requestData.condition,
+            vin: requestData.vin
           },
           sources: sources
         }
       });
 
       if (error) {
-        throw new Error(error.message);
+        console.error('❌ Market orchestration failed:', error);
+        // Don't throw - continue with valuation
       }
 
       if (!data.success) {

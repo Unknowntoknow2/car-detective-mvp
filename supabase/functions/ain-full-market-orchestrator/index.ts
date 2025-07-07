@@ -150,10 +150,12 @@ serve(async (req) => {
       await Promise.all(priorityPromises);
     }
 
-    // Normalize and save all comps
+    // Normalize and save all comps to BOTH tables for compatibility
     const normalizedComps = allComps.map(comp => normalizeCompData(comp, request_id));
+    const marketListings = allComps.map(comp => normalizeToMarketListings(comp, request_id, vehicle_params));
     
     if (normalizedComps.length > 0) {
+      // Save to market_comps (new table)
       const { error: insertError } = await supabase
         .from('market_comps')
         .insert(normalizedComps);
@@ -161,7 +163,18 @@ serve(async (req) => {
       if (insertError) {
         console.error('❌ Error saving comps:', insertError);
       } else {
-        console.log(`✅ Saved ${normalizedComps.length} comps to database`);
+        console.log(`✅ Saved ${normalizedComps.length} comps to market_comps`);
+      }
+
+      // Save to market_listings (legacy compatibility)
+      const { error: listingsError } = await supabase
+        .from('market_listings')
+        .insert(marketListings);
+
+      if (listingsError) {
+        console.error('❌ Error saving to market_listings:', listingsError);
+      } else {
+        console.log(`✅ Saved ${marketListings.length} listings to market_listings`);
       }
     }
 
@@ -440,4 +453,31 @@ function calculateStandardDeviation(values: number[]): number {
   const squaredDiffs = values.map(v => Math.pow(v - mean, 2));
   const avgSquaredDiff = squaredDiffs.reduce((sum, d) => sum + d, 0) / values.length;
   return Math.sqrt(avgSquaredDiff);
+}
+
+function normalizeToMarketListings(comp: any, requestId: string, vehicleParams: any): any {
+  return {
+    valuation_request_id: requestId,
+    vin: comp.vin || vehicleParams.vin || null,
+    source: comp.source,
+    source_site: comp.source.toLowerCase().replace(/\s+/g, ''),
+    source_type: comp.source_type,
+    year: vehicleParams.year,
+    make: vehicleParams.make,
+    model: vehicleParams.model,
+    trim: vehicleParams.trim,
+    price: parseFloat(comp.price) || 0,
+    mileage: comp.mileage ? parseInt(comp.mileage) : null,
+    condition: comp.condition || 'used',
+    dealer_name: comp.dealer_name || comp.dealer || null,
+    dealer: comp.dealer_name || comp.dealer || null,
+    location: comp.location || null,
+    listing_url: comp.listing_url || comp.url || '#',
+    is_cpo: comp.is_cpo || comp.cpo || false,
+    cpo: comp.is_cpo || comp.cpo || false,
+    date_listed: comp.date_listed ? new Date(comp.date_listed).toISOString() : null,
+    raw_data: comp,
+    extra: { notes: comp.notes },
+    notes: comp.notes
+  };
 }

@@ -166,7 +166,7 @@ serve(async (req) => {
           throw requestError;
         }
 
-        // Trigger aggregation
+        // Trigger aggregation using unified orchestrator
         const { data: aggregationResult } = await supabaseClient.functions.invoke('ain-full-market-orchestrator', {
           body: {
             request_id: request.id,
