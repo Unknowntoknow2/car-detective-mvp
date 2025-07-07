@@ -188,13 +188,16 @@ export default function FANGOrchestrationDashboard() {
             variant="outline"
             onClick={() => supabase.functions.invoke('ain-full-market-orchestrator', {
               body: {
-                year: 2022,
-                make: 'Ford',
-                model: 'F-150',
-                trim: 'LARIAT',
-                zip: '95624',
-                mileage: 9534,
-                vin: '1FTFW1E82NFB42108'
+                request_id: 'test-' + Date.now(),
+                vehicle_params: {
+                  year: 2022,
+                  make: 'Ford',
+                  model: 'F-150',
+                  trim: 'LARIAT',
+                  zip_code: '95624',
+                  mileage: 9534,
+                  vin: '1FTFW1E82NFB42108'
+                }
               }
             }).then(result => {
               console.log('AIN Protocol Result:', result);
