@@ -114,11 +114,17 @@ export class ValuationApiService {
 
       if (error) {
         console.error('❌ Market orchestration failed:', error);
-        // Don't throw - continue with valuation
+        return {
+          success: false,
+          error: error.message || 'Market orchestration failed'
+        };
       }
 
-      if (!data.success) {
-        throw new Error(data.error || 'Aggregation failed');
+      if (!data || !data.success) {
+        return {
+          success: false,
+          error: data?.error || 'Aggregation failed'
+        };
       }
 
       return {

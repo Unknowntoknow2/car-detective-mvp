@@ -3024,6 +3024,7 @@ export type Database = {
           mileage: number | null
           model: string
           request_params: Json | null
+          request_source: string | null
           requested_by: string | null
           status: string
           trim: string | null
@@ -3047,6 +3048,7 @@ export type Database = {
           mileage?: number | null
           model: string
           request_params?: Json | null
+          request_source?: string | null
           requested_by?: string | null
           status?: string
           trim?: string | null
@@ -3070,6 +3072,7 @@ export type Database = {
           mileage?: number | null
           model?: string
           request_params?: Json | null
+          request_source?: string | null
           requested_by?: string | null
           status?: string
           trim?: string | null
