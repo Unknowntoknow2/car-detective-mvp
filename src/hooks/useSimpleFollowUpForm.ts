@@ -148,9 +148,9 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
         vin: vin, // FIXED: Force VIN to be correct and not null
         payoff_amount: dataToSave.payoffAmount || 0,
         completion_percentage: Math.round((
-          [dataToSave.zip_code, dataToSave.mileage, dataToSave.condition].filter(Boolean).length / 3
+          [dataToSave.zip_code, dataToSave.mileage && dataToSave.mileage > 0, dataToSave.condition].filter(Boolean).length / 3
         ) * 100),
-        is_complete: Boolean(dataToSave.zip_code && dataToSave.mileage && dataToSave.condition),
+        is_complete: Boolean(dataToSave.zip_code && dataToSave.mileage && dataToSave.mileage > 0 && dataToSave.condition),
         updated_at: new Date().toISOString(),
         // Ensure JSONB fields have proper boolean types
         accidents: {
