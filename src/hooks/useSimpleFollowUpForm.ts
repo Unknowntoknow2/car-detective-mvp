@@ -196,7 +196,13 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       // Remove the form-only field before saving
       const { payoffAmount, ...dbData } = saveData;
 
-      console.log('💾 Saving follow-up data with VIN:', dbData.vin, 'valuation_id:', dbData.valuation_id);
+      console.log('💾 Saving follow-up data:', {
+        vin: dbData.vin,
+        valuation_id: dbData.valuation_id,
+        mileage: dbData.mileage,
+        zip_code: dbData.zip_code,
+        condition: dbData.condition
+      });
 
       const { error } = await supabase
         .from('follow_up_answers')

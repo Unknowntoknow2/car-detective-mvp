@@ -52,6 +52,7 @@ export default function ResultsPage() {
         }
 
         setValuationData(data);
+        console.log('📊 Valuation data loaded:', data);
         
         // Try to fetch follow-up data based on valuation ID or VIN
         try {
@@ -64,6 +65,8 @@ export default function ResultsPage() {
             .eq('valuation_id', valuationId)
             .single();
           
+          console.log('🔍 Follow-up data by valuation_id:', followUpByValuationId);
+          
           // If not found and we have a VIN, try by VIN
           if (!followUpByValuationId && data.vin) {
             const { data: followUpByVin } = await followUpQuery
@@ -72,14 +75,18 @@ export default function ResultsPage() {
               .limit(1)
               .single();
             
+            console.log('🔍 Follow-up data by VIN:', followUpByVin);
             followUpByValuationId = followUpByVin;
           }
           
           if (followUpByValuationId) {
             setFollowUpData(followUpByValuationId);
+            console.log('✅ Follow-up data set:', followUpByValuationId);
+          } else {
+            console.log('❌ No follow-up data found');
           }
         } catch (error) {
-          console.log('No follow-up data found, continuing with valuation data');
+          console.log('❌ Error fetching follow-up data:', error);
         }
         
         // Show follow-up if we have VIN and need more data (not hardcoded zip check)
@@ -153,6 +160,10 @@ export default function ResultsPage() {
     vin: valuationData.vin || '',
     zipCode: followUpData?.zip_code || valuationData.zip_code || ''
   };
+
+  console.log('🚗 Vehicle info used for display:', vehicleInfo);
+  console.log('📋 Follow-up data mileage:', followUpData?.mileage);
+  console.log('📋 Valuation data mileage:', valuationData.mileage);
 
   // Safe MSRP extraction with fallbacks
   const baseMSRP = valuationData.vehicle_data?.baseMSRP || 25000;
