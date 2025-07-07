@@ -13,7 +13,7 @@ interface UnifiedValuationResultProps {
     make: string;
     model: string;
     trim?: string;
-    mileage: number;
+    mileage: number | null;
     condition: string;
     vin?: string;
   };
@@ -94,13 +94,15 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center gap-2">
-              <Gauge className="w-4 h-4" />
-              <span className="text-sm font-medium">Mileage:</span>
-              <span className="text-sm text-muted-foreground">
-                {vehicleInfo.mileage.toLocaleString()} miles
-              </span>
-            </div>
+            {vehicleInfo.mileage && vehicleInfo.mileage > 0 && (
+              <div className="flex items-center gap-2">
+                <Gauge className="w-4 h-4" />
+                <span className="text-sm font-medium">Mileage:</span>
+                <span className="text-sm text-muted-foreground">
+                  {vehicleInfo.mileage.toLocaleString()} miles
+                </span>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Condition:</span>
               <Badge variant="secondary">{vehicleInfo.condition}</Badge>
