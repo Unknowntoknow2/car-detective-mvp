@@ -79,18 +79,18 @@ export default function ResultsPage() {
             followUpByValuationId = followUpByVin;
           }
           
-          // If still not found, try using the current valuation_results ID with the VIN  
-          if (!followUpByValuationId && valuationId) {
-            const { data: followUpByResultsId } = await supabase
+          // If still not found, try the generic search across all follow-up data for this VIN
+          if (!followUpByValuationId && data.vin) {
+            const { data: followUpGeneric } = await supabase
               .from('follow_up_answers')
               .select('*')
-              .eq('vin', '1FTFW1E82NFB42108') // Known VIN from the issue
+              .eq('vin', data.vin)
               .order('updated_at', { ascending: false })
               .limit(1)
-              .single();
+              .maybeSingle();
             
-            console.log('🔍 Follow-up data by known VIN:', followUpByResultsId);
-            followUpByValuationId = followUpByResultsId;
+            console.log('🔍 Follow-up data by generic VIN search:', followUpGeneric);
+            followUpByValuationId = followUpGeneric;
           }
           
           if (followUpByValuationId) {
@@ -163,14 +163,15 @@ export default function ResultsPage() {
     );
   }
 
-  // Safe vehicle info extraction with defaults - prioritize follow-up data
+  // FIXED: Prioritize follow-up data over valuation data for display
   const vehicleInfo = {
     year: valuationData.year || new Date().getFullYear(),
     make: valuationData.make || 'Unknown',
     model: valuationData.model || 'Unknown',
     trim: valuationData.vehicle_data?.trim || '',
-    mileage: followUpData?.mileage && followUpData.mileage > 0 ? followUpData.mileage : 
-             (valuationData.mileage && valuationData.mileage > 0 ? valuationData.mileage : null), // Prioritize user-entered mileage
+    // CRITICAL FIX: Always prioritize follow-up data for user-entered values
+    mileage: followUpData?.mileage > 0 ? followUpData.mileage : 
+             (valuationData.mileage > 0 ? valuationData.mileage : null),
     condition: followUpData?.condition || valuationData.condition || 'Good',
     vin: valuationData.vin || '',
     zipCode: followUpData?.zip_code || valuationData.zip_code || ''

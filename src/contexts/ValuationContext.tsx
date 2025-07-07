@@ -321,27 +321,62 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       console.log('🚀 Processing valuation with real MSRP for:', input.make, input.model, input.year);
 
-      // Calculate real adjustments with MSRP from database
-      const { adjustments, finalValue, baseMSRP, msrpSource } = await calculateRealAdjustments(input);
+      // FIXED: Load follow-up data if VIN provided to get real user inputs
+      let actualInput = { ...input };
+      if (input.vin) {
+        console.log('🔍 Loading follow-up data for VIN:', input.vin);
+        try {
+          const { data: followUpData } = await supabase
+            .from('follow_up_answers')
+            .select('*')
+            .eq('vin', input.vin)
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (followUpData && followUpData.mileage > 0) {
+            console.log('✅ Using follow-up data for calculations:', {
+              mileage: followUpData.mileage,
+              condition: followUpData.condition,
+              zipCode: followUpData.zip_code
+            });
+            
+            // Use follow-up data instead of hardcoded defaults
+            actualInput = {
+              ...input,
+              mileage: followUpData.mileage,
+              condition: followUpData.condition || input.condition,
+              zipCode: followUpData.zip_code || input.zipCode
+            };
+          } else {
+            console.log('⚠️ No valid follow-up data found, using input values');
+          }
+        } catch (error) {
+          console.log('❌ Error loading follow-up data:', error);
+        }
+      }
+
+      // Calculate real adjustments with MSRP from database using actual user data
+      const { adjustments, finalValue, baseMSRP, msrpSource } = await calculateRealAdjustments(actualInput);
 
       // Calculate confidence score based on data completeness
       let confidenceScore = 80; // Higher base confidence with real MSRP
-      if (input.vin) confidenceScore += 10;
-      if (input.zipCode && input.zipCode.length === 5 && /^\d{5}$/.test(input.zipCode)) {
+      if (actualInput.vin) confidenceScore += 10;
+      if (actualInput.zipCode && actualInput.zipCode.length === 5 && /^\d{5}$/.test(actualInput.zipCode)) {
         confidenceScore += 5;
       }
-      if (input.mileage > 0) confidenceScore += 5;
+      if (actualInput.mileage > 0) confidenceScore += 5;
       confidenceScore = Math.min(95, confidenceScore);
 
       // Create comprehensive valuation record
       const valuationData = {
-        vin: input.vin || null,
-        make: input.make,
-        model: input.model,
-        year: input.year,
-        mileage: input.mileage,
-        condition: input.condition,
-        zip_code: input.zipCode || null,
+        vin: actualInput.vin || null,
+        make: actualInput.make,
+        model: actualInput.model,
+        year: actualInput.year,
+        mileage: actualInput.mileage, // Use actual mileage from follow-up
+        condition: actualInput.condition, // Use actual condition from follow-up
+        zip_code: actualInput.zipCode || null,
         estimated_value: finalValue,
         confidence_score: confidenceScore,
         adjustments: adjustments,
@@ -352,11 +387,12 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           msrpSource: msrpSource, // Track MSRP source for transparency
           calculationMethod: 'real_msrp_model',
           dataCompleteness: {
-            hasVin: !!input.vin,
-            hasRealLocation: !!(input.zipCode && input.zipCode.length === 5 && /^\d{5}$/.test(input.zipCode)),
-            hasActualMileage: input.mileage > 0,
+            hasVin: !!actualInput.vin,
+            hasRealLocation: !!(actualInput.zipCode && actualInput.zipCode.length === 5 && /^\d{5}$/.test(actualInput.zipCode)),
+            hasActualMileage: actualInput.mileage > 0,
             usedRealMSRP: msrpSource !== 'error_fallback',
-            trimId: input.trim_id || null
+            trimId: actualInput.trim_id || null,
+            usedFollowUpData: actualInput !== input // Track if we used follow-up data
           }
         },
         valuation_type: 'free'
