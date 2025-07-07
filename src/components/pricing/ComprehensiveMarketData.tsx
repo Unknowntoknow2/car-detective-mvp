@@ -124,25 +124,46 @@ export function ComprehensiveMarketData({ vehicleData, className }: Comprehensiv
     setAggregationProgress(0);
 
     try {
-      console.log('🚀 Triggering FANG-level data aggregation...');
+      console.log('🚀 Triggering AIN Market Orchestration...');
       
       // Simulate progress updates
       const progressInterval = setInterval(() => {
-        setAggregationProgress(prev => Math.min(prev + 10, 90));
-      }, 1000);
+        setAggregationProgress(prev => Math.min(prev + 15, 90));
+      }, 2000);
 
-      const response = await supabase.functions.invoke('aggregate-vehicle-pricing', {
+      // Create valuation request
+      const { data: request, error: requestError } = await supabase
+        .from('valuation_requests')
+        .insert({
+          vehicle_params: {
+            year: vehicleData.year,
+            make: vehicleData.make,
+            model: vehicleData.model,
+            trim: vehicleData.trim,
+            vin: vehicleData.vin,
+            zip_code: vehicleData.zipCode
+          },
+          user_id: (await supabase.auth.getUser()).data.user?.id || null
+        })
+        .select()
+        .single();
+
+      if (requestError) {
+        throw requestError;
+      }
+
+      // Invoke the AIN full market orchestrator
+      const response = await supabase.functions.invoke('ain-full-market-orchestrator', {
         body: {
-          year: vehicleData.year,
-          make: vehicleData.make,
-          model: vehicleData.model,
-          trim: vehicleData.trim,
-          vin: vehicleData.vin,
-          zipCode: vehicleData.zipCode,
-          sources: [
-            'CarMax', 'Carvana', 'AutoTrader', 'Cars.com', 'CarGurus',
-            'AutoNation', 'Lithia Motors', 'Enterprise Car Sales'
-          ]
+          request_id: request.id,
+          vehicle_params: {
+            year: vehicleData.year,
+            make: vehicleData.make,
+            model: vehicleData.model,
+            trim: vehicleData.trim,
+            vin: vehicleData.vin,
+            zip_code: vehicleData.zipCode
+          }
         }
       });
 
@@ -154,21 +175,77 @@ export function ComprehensiveMarketData({ vehicleData, className }: Comprehensiv
       }
 
       const result = response.data;
-      console.log('✅ Aggregation completed:', result);
+      console.log('✅ AIN Market Orchestration completed:', result);
 
       toast.success(
-        `Data aggregation completed! Found ${result.total_results} listings from ${result.sources_successful}/${result.sources_scraped} sources.`
+        `Market orchestration completed! Found ${result.total_comps} listings from ${result.sources_processed} sources with AI-powered web search.`
       );
 
-      // Reload data
-      await loadExistingData();
+      // Load the new market data
+      await loadMarketComps(request.id);
 
     } catch (error) {
-      console.error('❌ Aggregation error:', error);
-      toast.error('Data aggregation failed. Some sources may be temporarily unavailable.');
+      console.error('❌ Market orchestration error:', error);
+      toast.error('Market orchestration failed. AI search may be temporarily unavailable.');
     } finally {
       setIsAggregating(false);
       setAggregationProgress(0);
+    }
+  };
+
+  const loadMarketComps = async (requestId: string) => {
+    try {
+      const { data: comps, error } = await supabase
+        .from('market_comps')
+        .select('*')
+        .eq('valuation_request_id', requestId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform market comps to match the expected PricingData structure
+      const transformedComps: PricingData[] = (comps || []).map(comp => ({
+        id: comp.id,
+        vin: comp.vin || undefined,
+        price: Number(comp.price),
+        mileage: comp.mileage || undefined,
+        location: comp.location || undefined,
+        dealer_name: comp.dealer_name || undefined,
+        source_name: comp.source,
+        source_type: comp.source_type,
+        listing_url: comp.listing_url || undefined,
+        cpo_status: comp.is_cpo || false,
+        vehicle_condition: comp.condition || undefined,
+        date_listed: undefined,
+        date_scraped: comp.created_at,
+        offer_type: 'listing',
+        markdown_notes: undefined,
+        incentives: comp.incentives || undefined
+      }));
+
+      setPricingData(transformedComps);
+
+      // Calculate basic analytics
+      if (transformedComps.length > 0) {
+        const prices = transformedComps.map(c => c.price).sort((a, b) => a - b);
+        const avg = prices.reduce((sum, p) => sum + p, 0) / prices.length;
+        const median = prices[Math.floor(prices.length / 2)];
+        
+        setAnalytics({
+          avg_price: avg,
+          median_price: median,
+          min_price: Math.min(...prices),
+          max_price: Math.max(...prices),
+          sample_size: prices.length,
+          last_updated: new Date().toISOString()
+        });
+      }
+
+      setLastUpdated(new Date());
+
+    } catch (error) {
+      console.error('Error loading market comps:', error);
+      toast.error('Failed to load market comparison data');
     }
   };
 

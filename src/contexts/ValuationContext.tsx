@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getFullyNormalizedMsrp } from '@/utils/valuation/msrpInflationNormalizer';
 
 interface ProcessFreeValuationInput {
   make: string;
@@ -26,6 +27,7 @@ interface ValuationContextType {
   getValuationById: (id: string) => Promise<any>;
   updateValuation: (id: string, data: any) => Promise<any>;
   processFreeValuation: (input: ProcessFreeValuationInput) => Promise<ProcessFreeValuationResult>;
+  triggerMarketOrchestration: (vehicleParams: any) => Promise<any>;
 }
 
 const ValuationContext = createContext<ValuationContextType | undefined>(undefined);
@@ -136,7 +138,10 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
         if (trimData?.msrp && !isNaN(trimData.msrp)) {
           console.log('✅ Found MSRP via trim_id:', trimData.msrp, 'for trim:', trimData.trim_name);
-          return { msrp: trimData.msrp, source: 'trim_id' };
+          // Apply inflation normalization
+          const normalized = getFullyNormalizedMsrp(trimData.msrp, make, model, year);
+          console.log('💰 Inflation-normalized MSRP:', normalized.finalMsrp, 'from original:', trimData.msrp);
+          return { msrp: normalized.finalMsrp, source: 'trim_id_normalized' };
         }
       }
       
@@ -163,7 +168,10 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       if (fallbackData?.msrp) {
         console.log('✅ Found fallback MSRP:', fallbackData.msrp, 'for trim:', fallbackData.trim_name);
-        return { msrp: fallbackData.msrp, source: 'database_fallback' };
+        // Apply inflation normalization
+        const normalized = getFullyNormalizedMsrp(fallbackData.msrp, make, model, year);
+        console.log('💰 Inflation-normalized fallback MSRP:', normalized.finalMsrp, 'from original:', fallbackData.msrp);
+        return { msrp: normalized.finalMsrp, source: 'database_fallback_normalized' };
       }
 
       console.warn('⚠️ No MSRP found in database, using make-based fallback');
@@ -316,6 +324,44 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
   };
 
+  const triggerMarketOrchestration = useCallback(async (vehicleParams: any) => {
+    try {
+      console.log('🚀 Triggering AIN Market Orchestration:', vehicleParams);
+      
+      // Create valuation request
+      const { data: request, error: requestError } = await supabase
+        .from('valuation_requests')
+        .insert({
+          vehicle_params: vehicleParams,
+          user_id: (await supabase.auth.getUser()).data.user?.id || null
+        })
+        .select()
+        .single();
+
+      if (requestError) {
+        throw requestError;
+      }
+
+      // Invoke the AIN full market orchestrator
+      const { data, error } = await supabase.functions.invoke('ain-full-market-orchestrator', {
+        body: {
+          request_id: request.id,
+          vehicle_params: vehicleParams
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('✅ Market orchestration completed:', data);
+      return data;
+    } catch (error) {
+      console.error('❌ Market orchestration error:', error);
+      throw error;
+    }
+  }, []);
+
   const processFreeValuation = useCallback(async (input: ProcessFreeValuationInput): Promise<ProcessFreeValuationResult> => {
     setIsLoading(true);
     try {
@@ -408,6 +454,21 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       });
 
       const result = await createValuation(valuationData);
+
+      // Trigger market orchestration for enhanced intelligence
+      try {
+        await triggerMarketOrchestration({
+          year: actualInput.year,
+          make: actualInput.make,
+          model: actualInput.model,
+          vin: actualInput.vin,
+          zip_code: actualInput.zipCode,
+          mileage: actualInput.mileage,
+          condition: actualInput.condition
+        });
+      } catch (orchestrationError) {
+        console.warn('⚠️ Market orchestration failed, continuing with basic valuation:', orchestrationError);
+      }
       
       return {
         valuationId: result.id,
@@ -420,14 +481,15 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } finally {
       setIsLoading(false);
     }
-  }, [createValuation]);
+  }, [createValuation, triggerMarketOrchestration]);
 
   const value = {
     isLoading,
     createValuation,
     getValuationById,
     updateValuation,
-    processFreeValuation
+    processFreeValuation,
+    triggerMarketOrchestration
   };
 
   return (
