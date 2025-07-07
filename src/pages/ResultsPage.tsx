@@ -11,6 +11,7 @@ import { ValueBreakdown } from '@/components/valuation/ValueBreakdown';
 import { ComprehensiveMarketData } from '@/components/pricing/ComprehensiveMarketData';
 import { Loader2, TrendingUp, Database } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function ResultsPage() {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +19,7 @@ export default function ResultsPage() {
   const { getValuationById, isLoading } = useValuation();
   const { user, userDetails } = useAuth();
   const [valuationData, setValuationData] = useState<any>(null);
+  const [followUpData, setFollowUpData] = useState<any>(null);
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [loading, setLoading] = useState(true);
   const [emailSending, setEmailSending] = useState(false);
@@ -50,6 +52,35 @@ export default function ResultsPage() {
         }
 
         setValuationData(data);
+        
+        // Try to fetch follow-up data based on valuation ID or VIN
+        try {
+          let followUpQuery = supabase
+            .from('follow_up_answers')
+            .select('*');
+          
+          // First try by valuation_id
+          let { data: followUpByValuationId } = await followUpQuery
+            .eq('valuation_id', valuationId)
+            .single();
+          
+          // If not found and we have a VIN, try by VIN
+          if (!followUpByValuationId && data.vin) {
+            const { data: followUpByVin } = await followUpQuery
+              .eq('vin', data.vin)
+              .order('updated_at', { ascending: false })
+              .limit(1)
+              .single();
+            
+            followUpByValuationId = followUpByVin;
+          }
+          
+          if (followUpByValuationId) {
+            setFollowUpData(followUpByValuationId);
+          }
+        } catch (error) {
+          console.log('No follow-up data found, continuing with valuation data');
+        }
         
         // Show follow-up if we have VIN and need more data (not hardcoded zip check)
         const shouldShowFollowUp = (
@@ -111,16 +142,16 @@ export default function ResultsPage() {
     );
   }
 
-  // Safe vehicle info extraction with defaults
+  // Safe vehicle info extraction with defaults - prioritize follow-up data
   const vehicleInfo = {
     year: valuationData.year || new Date().getFullYear(),
     make: valuationData.make || 'Unknown',
     model: valuationData.model || 'Unknown',
     trim: valuationData.vehicle_data?.trim || '',
-    mileage: valuationData.mileage || 0,
-    condition: valuationData.condition || 'Good',
+    mileage: followUpData?.mileage ?? (valuationData.mileage || 0), // Use follow-up mileage if available
+    condition: followUpData?.condition || valuationData.condition || 'Good',
     vin: valuationData.vin || '',
-    zipCode: valuationData.zip_code || ''
+    zipCode: followUpData?.zip_code || valuationData.zip_code || ''
   };
 
   // Safe MSRP extraction with fallbacks
