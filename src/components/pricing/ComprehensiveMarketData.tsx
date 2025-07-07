@@ -126,6 +126,9 @@ export function ComprehensiveMarketData({ vehicleData, className }: Comprehensiv
     try {
       console.log('🚀 Triggering AIN Market Orchestration...');
       
+      // Enhanced logging for debugging
+      console.log('Vehicle data:', vehicleData);
+      
       // Simulate progress updates
       const progressInterval = setInterval(() => {
         setAggregationProgress(prev => Math.min(prev + 15, 90));
@@ -152,7 +155,19 @@ export function ComprehensiveMarketData({ vehicleData, className }: Comprehensiv
         throw requestError;
       }
 
-      // Invoke the AIN full market orchestrator
+      // Invoke the AIN full market orchestrator with enhanced logging
+      console.log('📡 Invoking edge function with payload:', {
+        request_id: request.id,
+        vehicle_params: {
+          year: vehicleData.year,
+          make: vehicleData.make,
+          model: vehicleData.model,
+          trim: vehicleData.trim,
+          vin: vehicleData.vin,
+          zip_code: vehicleData.zipCode
+        }
+      });
+
       const response = await supabase.functions.invoke('ain-full-market-orchestrator', {
         body: {
           request_id: request.id,
@@ -167,19 +182,33 @@ export function ComprehensiveMarketData({ vehicleData, className }: Comprehensiv
         }
       });
 
+      console.log('📨 Edge function response:', response);
+
       clearInterval(progressInterval);
       setAggregationProgress(100);
 
       if (response.error) {
+        console.error('❌ Edge function error:', response.error);
+        
+        // Check if it's an OpenAI API key issue
+        if (response.error.message?.includes('OpenAI API key')) {
+          toast.error('OpenAI API key not configured. Please configure it in Supabase Edge Functions secrets.');
+          return;
+        }
+        
         throw new Error(response.error.message);
       }
 
       const result = response.data;
       console.log('✅ AIN Market Orchestration completed:', result);
 
-      toast.success(
-        `Market orchestration completed! Found ${result.total_comps} listings from ${result.sources_processed} sources with AI-powered web search.`
-      );
+      if (result && result.total_comps !== undefined) {
+        toast.success(
+          `Market orchestration completed! Found ${result.total_comps} listings from ${result.sources_processed} sources with AI-powered web search.`
+        );
+      } else {
+        toast.warning('Market orchestration completed, but no data was returned. Check edge function logs.');
+      }
 
       // Load the new market data
       await loadMarketComps(request.id);
