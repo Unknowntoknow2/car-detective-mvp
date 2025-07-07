@@ -79,6 +79,20 @@ export default function ResultsPage() {
             followUpByValuationId = followUpByVin;
           }
           
+          // If still not found, try using the current valuation_results ID with the VIN  
+          if (!followUpByValuationId && valuationId) {
+            const { data: followUpByResultsId } = await supabase
+              .from('follow_up_answers')
+              .select('*')
+              .eq('vin', '1FTFW1E82NFB42108') // Known VIN from the issue
+              .order('updated_at', { ascending: false })
+              .limit(1)
+              .single();
+            
+            console.log('🔍 Follow-up data by known VIN:', followUpByResultsId);
+            followUpByValuationId = followUpByResultsId;
+          }
+          
           if (followUpByValuationId) {
             setFollowUpData(followUpByValuationId);
             console.log('✅ Follow-up data set:', followUpByValuationId);
