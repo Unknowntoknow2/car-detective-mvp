@@ -8,13 +8,13 @@ interface DealerGuardProps {
 }
 
 export const DealerGuard: React.FC<DealerGuardProps> = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, userDetails, loading } = useAuth();
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  if (!user || user.user_metadata?.role !== 'dealer') {
+  if (!user || userDetails?.role !== 'dealer') {
     return <Navigate to="/login-dealer" replace />;
   }
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/utils/supabaseClient";
+import { supabase } from "@/integrations/supabase/client";
 import { useUser } from "./useUser";
 import { ValuationWithCondition } from "@/types/dealer";
 
