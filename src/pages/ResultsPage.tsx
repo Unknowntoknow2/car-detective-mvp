@@ -169,9 +169,9 @@ export default function ResultsPage() {
     make: valuationData.make || 'Unknown',
     model: valuationData.model || 'Unknown',
     trim: valuationData.vehicle_data?.trim || '',
-    mileage: (followUpData?.is_complete && followUpData?.mileage && followUpData.mileage > 0) ? followUpData.mileage : 
-             (valuationData.mileage && valuationData.mileage > 0 ? valuationData.mileage : null), // Only show if form complete and > 0
-    condition: (followUpData?.is_complete && followUpData?.condition) ? followUpData.condition : valuationData.condition,
+    mileage: followUpData?.mileage && followUpData.mileage > 0 ? followUpData.mileage : 
+             (valuationData.mileage && valuationData.mileage > 0 ? valuationData.mileage : null), // Prioritize user-entered mileage
+    condition: followUpData?.condition || valuationData.condition || 'Good',
     vin: valuationData.vin || '',
     zipCode: followUpData?.zip_code || valuationData.zip_code || ''
   };
