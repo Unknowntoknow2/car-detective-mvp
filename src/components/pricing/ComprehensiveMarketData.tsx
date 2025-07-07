@@ -213,9 +213,13 @@ export function ComprehensiveMarketData({ vehicleData, className }: Comprehensiv
       // Load the new market data
       await loadMarketComps(request.id);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Market orchestration error:', error);
-      toast.error('Market orchestration failed. AI search may be temporarily unavailable.');
+      toast.error(
+        error.message?.includes('OpenAI API key') 
+          ? 'OpenAI API key not configured. Please configure it in Supabase Edge Functions secrets.'
+          : 'Market orchestration failed. AI search may be temporarily unavailable.'
+      );
     } finally {
       setIsAggregating(false);
       setAggregationProgress(0);
