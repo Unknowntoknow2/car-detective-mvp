@@ -1152,7 +1152,6 @@ export type Database = {
           previous_owners: number | null
           previous_use: string | null
           service_history: string | null
-          servicehistory: Json | null
           serviceHistory: Json | null
           tire_condition: string | null
           title_status: string | null
@@ -1187,7 +1186,6 @@ export type Database = {
           previous_owners?: number | null
           previous_use?: string | null
           service_history?: string | null
-          servicehistory?: Json | null
           serviceHistory?: Json | null
           tire_condition?: string | null
           title_status?: string | null
@@ -1222,7 +1220,6 @@ export type Database = {
           previous_owners?: number | null
           previous_use?: string | null
           service_history?: string | null
-          servicehistory?: Json | null
           serviceHistory?: Json | null
           tire_condition?: string | null
           title_status?: string | null
@@ -1678,66 +1675,6 @@ export type Database = {
           validation_rmse?: number | null
         }
         Relationships: []
-      }
-      model_trims: {
-        Row: {
-          created_at: string
-          description: string | null
-          engine_type: string | null
-          fuel_type: string | null
-          id: string
-          image_url: string | null
-          model_id: string | null
-          msrp: number | null
-          transmission: string | null
-          trim_name: string | null
-          updated_at: string
-          year: number | null
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          engine_type?: string | null
-          fuel_type?: string | null
-          id?: string
-          image_url?: string | null
-          model_id?: string | null
-          msrp?: number | null
-          transmission?: string | null
-          trim_name?: string | null
-          updated_at?: string
-          year?: number | null
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          engine_type?: string | null
-          fuel_type?: string | null
-          id?: string
-          image_url?: string | null
-          model_id?: string | null
-          msrp?: number | null
-          transmission?: string | null
-          trim_name?: string | null
-          updated_at?: string
-          year?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_model_trims_model_id"
-            columns: ["model_id"]
-            isOneToOne: false
-            referencedRelation: "models"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "model_trims_model_id_fkey"
-            columns: ["model_id"]
-            isOneToOne: false
-            referencedRelation: "models"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       models: {
         Row: {
