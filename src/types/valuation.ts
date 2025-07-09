@@ -182,6 +182,82 @@ export interface AuditLog {
   raw_data?: Record<string, any>;
 }
 
+// Enhanced audit log for valuation traceability
+export interface EnhancedAuditLog {
+  vin: string;
+  valuationId?: string;
+  timestamp: string;
+  zip: string;
+  mileage?: number;
+  condition?: string;
+  sources: string[];
+  quality: number;
+  confidence_score: number;
+  fallbackUsed: boolean;
+  listings?: MarketListing[];
+  aiFallback?: any;
+  baseMSRP?: number | null;
+  msrpSource?: "manufacturer" | "market_api" | "make_fallback" | "missing";
+  marketListingsCount?: number;
+  marketListingSources?: string[];
+  mileageConfidence?: "actual" | "estimated" | "missing";
+  zipConfidence?: "valid" | "invalid" | "missing";
+  confidenceBreakdown?: {
+    vin: boolean;
+    zip: boolean;
+    actualMileage: boolean;
+    msrpEstimated: boolean;
+    marketListings: boolean;
+  };
+  valueBreakdown?: {
+    baseValue: number;
+    depreciationAdjustment: number;
+    mileageAdjustment: number;
+    conditionAdjustment: number;
+    otherAdjustments: number;
+  };
+  finalValue?: number;
+  sourcesUsed?: string[];
+  warnings?: string[];
+  followUpCompleted?: boolean;
+}
+
+// Valuation input interface
+export interface ValuationInput {
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage?: number;
+  condition?: string;
+  zipCode: string;
+  trim?: string;
+  color?: string;
+  bodyType?: string;
+  fuelType?: string;
+  transmission?: string;
+}
+
+// Enhanced valuation result interface
+export interface EnhancedValuationResult {
+  estimated_value: number;
+  base_value_source: string;
+  mileage_adjustment?: number;
+  depreciation?: number;
+  value_breakdown: {
+    baseValue: number;
+    depreciationAdjustment: number;
+    mileageAdjustment: number;
+    conditionAdjustment: number;
+    otherAdjustments: number;
+  };
+  confidence_score: number;
+  valuation_explanation: string;
+  price_range_low?: number;
+  price_range_high?: number;
+  audit_id?: string;
+}
+
 export interface DealerInsights {
   totalOffers: number;
   averageOfferValue: number;

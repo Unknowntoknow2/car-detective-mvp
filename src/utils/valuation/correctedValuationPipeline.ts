@@ -1,7 +1,10 @@
 
-import { ValuationEngine, ValuationEngineInput, ValuationEngineResult } from '@/services/valuation/ValuationEngine';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
-import { supabase } from '@/integrations/supabase/client';
+// Enhanced Valuation Pipeline with Real Market Data + AI Fallback + Full Audit Trail
+import { fetchMarketComps } from "@/agents/marketSearchAgent";
+import { generateOpenAIFallbackValuation } from "@/agents/openaiAgent";
+import { ValuationInput, EnhancedValuationResult, EnhancedAuditLog } from "@/types/valuation";
+import { calculateValuationFromListings } from "@/services/valuationEngine";
+import { saveAuditLog } from "@/integrations/supabase/auditLogClient";
 
 export interface CorrectedValuationInput {
   vin: string;
@@ -16,7 +19,6 @@ export interface CorrectedValuationInput {
   bodyType?: string;
   fuelType?: string;
   transmission?: string;
-  followUpAnswers?: FollowUpAnswers;
 }
 
 export interface CorrectedValuationResult {
@@ -31,130 +33,189 @@ export interface CorrectedValuationResult {
     riskFactors?: any[];
     recommendations?: string[];
   };
+  audit_id?: string;
   error?: string;
 }
 
 export async function runCorrectedValuationPipeline(
   input: CorrectedValuationInput
 ): Promise<CorrectedValuationResult> {
+  console.log('🚀 Enhanced Valuation Pipeline: Starting with full traceability');
+  
+  // Initialize comprehensive audit log
+  const audit: EnhancedAuditLog = {
+    vin: input.vin,
+    timestamp: new Date().toISOString(),
+    zip: input.zipCode,
+    mileage: input.mileage,
+    condition: input.condition,
+    sources: [],
+    quality: 0,
+    confidence_score: 0,
+    fallbackUsed: false,
+    confidenceBreakdown: {
+      vin: !!input.vin && input.vin.length === 17,
+      zip: !!input.zipCode && input.zipCode.length === 5,
+      actualMileage: !!input.mileage,
+      msrpEstimated: false,
+      marketListings: false
+    },
+    warnings: [],
+    sourcesUsed: [],
+    followUpCompleted: false
+  };
+
   try {
-    console.log('🚀 Starting corrected valuation pipeline:', input);
-    console.log('🧠 Running correctedValuationPipeline with:');
-    console.log('  VIN:', input.vin);
-    console.log('  Year:', input.year);
-    console.log('  Decoded Trim:', input.trim);
-    console.log('  Mileage:', input.followUpAnswers?.mileage);
-    console.log('  ZIP:', input.zipCode);
-
-    // Get or create follow-up answers
-    let followUpAnswers = input.followUpAnswers;
+    console.log('🔍 Step 1: Attempting to fetch real market listings...');
     
-    if (!followUpAnswers) {
-      // Check if follow-up answers exist for this VIN
-      const { data: existingAnswers } = await supabase
-        .from('follow_up_answers')
-        .select('*')
-        .eq('vin', input.vin)
-        .maybeSingle();
-
-      if (existingAnswers) {
-        followUpAnswers = existingAnswers as FollowUpAnswers;
-        console.log('📋 Found existing follow-up answers:', followUpAnswers);
-      } else {
-        // Create default follow-up answers with provided data
-        followUpAnswers = createDefaultFollowUpAnswers(input);
-        console.log('📝 Created default follow-up answers:', followUpAnswers);
-      }
-    }
-
-    // Validate follow-up answers structure
-    followUpAnswers = validateAndSanitizeFollowUpAnswers(followUpAnswers);
-
-    // Fix year override conflict: Always prefer decoded vehicle year
-    let finalYear = input.year; // Start with input year (likely from decoded vehicle)
-    
-    // Check if we have decoded vehicle data to get the authoritative year
-    const { data: decodedVehicle } = await supabase
-      .from('decoded_vehicles')
-      .select('year')
-      .eq('vin', input.vin)
-      .maybeSingle();
-    
-    if (decodedVehicle?.year) {
-      finalYear = decodedVehicle.year;
-      console.log('🔧 Using decoded vehicle year:', finalYear, 'over input year:', input.year);
-      
-      if (followUpAnswers.year && followUpAnswers.year !== finalYear) {
-        console.log('⚠️ Year conflict resolved: form=' + followUpAnswers.year + ' vs decoded=' + finalYear + ' — using decoded');
-      }
-    } else if (followUpAnswers.year && followUpAnswers.year !== input.year) {
-      // If no decoded vehicle data, prefer form year over input year if they differ
-      finalYear = followUpAnswers.year;
-      console.log('📝 Using form year:', finalYear, 'over input year:', input.year);
-    }
-
-    // Initialize valuation engine
-    const engine = new ValuationEngine();
-
-    // Prepare engine input with resolved year
-    const engineInput: ValuationEngineInput = {
+    // Step 1: Try to get real-time listings from market agent
+    const listings = await fetchMarketComps({
       vin: input.vin,
       make: input.make,
       model: input.model,
-      year: finalYear, // Use resolved year
-      followUpData: {
-        ...followUpAnswers,
-        year: finalYear // Ensure follow-up data also uses resolved year
-      },
-      decodedVehicleData: {
-        trim: input.trim,
-        color: input.color,
-        bodyType: input.bodyType,
-        fuelType: input.fuelType,
-        transmission: input.transmission
-      }
-    };
+      year: input.year,
+      mileage: input.mileage,
+      condition: input.condition,
+      zipCode: input.zipCode,
+      trim: input.trim
+    });
 
-    // Calculate valuation using the engine (now includes market data diagnostics)
-    const result = await engine.calculateValuation(engineInput);
-    console.log('🎯 Valuation engine result:', result);
-    console.log('🧮 Calculated base value:', result.basePrice, 'Confidence:', result.confidenceScore + '%');
+    if (listings && listings.length > 0) {
+      console.log('✅ Got', listings.length, 'real market listings');
+      
+      // Update audit with market data success
+      audit.sources.push("market_listings");
+      audit.sourcesUsed!.push(`market_listings_${listings.length}_found`);
+      audit.quality += 40;
+      audit.confidence_score += 40;
+      audit.confidenceBreakdown!.marketListings = true;
+      audit.marketListingsCount = listings.length;
+      audit.marketListingSources = Array.from(new Set(listings.map(l => l.source)));
 
-    // Log market data availability
-    if (result.marketAnalysis) {
-      console.log('📊 Market data status:');
-      console.log('  - MSRP data:', result.marketAnalysis.msrpDataAvailable ? '✅' : '❌');
-      console.log('  - Auction data:', result.marketAnalysis.auctionDataAvailable ? '✅' : '❌');
-      console.log('  - Competitor data:', result.marketAnalysis.competitorDataAvailable ? '✅' : '❌');
-      console.log('  - Market listings:', result.marketAnalysis.marketListingsAvailable ? '✅' : '❌');
+      // Calculate valuation from real market data
+      const valuation = await calculateValuationFromListings({
+        vin: input.vin,
+        make: input.make,
+        model: input.model,
+        year: input.year,
+        mileage: input.mileage,
+        condition: input.condition,
+        zipCode: input.zipCode
+      }, listings);
+
+      // Enhance audit with valuation results
+      audit.finalValue = valuation.estimated_value;
+      audit.valueBreakdown = valuation.value_breakdown;
+      audit.confidence_score = valuation.confidence_score;
+
+      // Save audit log
+      const auditId = await saveAuditLog({ ...audit, listings });
+      valuation.audit_id = auditId;
+
+      console.log('🎯 Market-based valuation completed:', valuation.estimated_value);
+      
+      return {
+        success: true,
+        valuation: {
+          estimatedValue: valuation.estimated_value,
+          confidenceScore: valuation.confidence_score,
+          basePrice: valuation.value_breakdown.baseValue,
+          adjustments: [
+            {
+              factor: 'Mileage',
+              impact: valuation.value_breakdown.mileageAdjustment,
+              percentage: (valuation.value_breakdown.mileageAdjustment / valuation.value_breakdown.baseValue) * 100,
+              description: valuation.mileage_adjustment ? `Mileage adjustment: ${valuation.mileage_adjustment}` : 'No mileage adjustment'
+            },
+            {
+              factor: 'Condition',
+              impact: valuation.value_breakdown.conditionAdjustment,
+              percentage: (valuation.value_breakdown.conditionAdjustment / valuation.value_breakdown.baseValue) * 100,
+              description: `Condition adjustment for ${input.condition || 'good'} condition`
+            }
+          ],
+          priceRange: [valuation.price_range_low || valuation.estimated_value * 0.9, valuation.price_range_high || valuation.estimated_value * 1.1],
+          marketAnalysis: {
+            dataSource: 'real_market_listings',
+            listingCount: listings.length,
+            sources: audit.marketListingSources,
+            confidence: 'high'
+          }
+        },
+        audit_id: auditId
+      };
     }
 
-    // Validate result
-    if (!result.estimatedValue || result.estimatedValue <= 0) {
-      throw new Error('Invalid valuation result: estimated value is zero or negative');
-    }
+    console.log('⚠️ No market listings found, falling back to AI estimation...');
+    audit.warnings!.push('No market listings available');
+    
+    // Step 2: Fallback to AI search (OpenAI)
+    console.log('🤖 Step 2: Using OpenAI AI fallback...');
+    const aiFallback = await generateOpenAIFallbackValuation({
+      vin: input.vin,
+      make: input.make,
+      model: input.model,
+      year: input.year,
+      mileage: input.mileage,
+      condition: input.condition,
+      zipCode: input.zipCode
+    });
+
+    // Update audit with AI fallback
+    audit.sources.push("openai_fallback");
+    audit.sourcesUsed!.push("openai_ai_estimation");
+    audit.quality += 15;
+    audit.confidence_score = aiFallback.confidence_score;
+    audit.fallbackUsed = true;
+    audit.finalValue = aiFallback.estimated_value;
+    audit.valueBreakdown = aiFallback.value_breakdown;
+    audit.warnings!.push('Used AI fallback due to no market data');
+
+    // Save audit log
+    const auditId = await saveAuditLog({ ...audit, aiFallback });
+
+    console.log('🎯 AI fallback valuation completed:', aiFallback.estimated_value);
 
     return {
       success: true,
       valuation: {
-        estimatedValue: result.estimatedValue,
-        confidenceScore: result.confidenceScore,
-        basePrice: result.basePrice,
-        adjustments: result.adjustments.map(adj => ({
-          factor: adj.factor,
-          impact: Math.round(result.basePrice * adj.impact),
-          percentage: adj.percentage,
-          description: adj.description
-        })),
-        priceRange: result.priceRange,
-        marketAnalysis: result.marketAnalysis,
-        riskFactors: result.riskFactors,
-        recommendations: result.recommendations
-      }
+        estimatedValue: aiFallback.estimated_value,
+        confidenceScore: aiFallback.confidence_score,
+        basePrice: aiFallback.value_breakdown.baseValue,
+        adjustments: [
+          {
+            factor: 'Depreciation',
+            impact: aiFallback.value_breakdown.depreciationAdjustment,
+            percentage: (aiFallback.value_breakdown.depreciationAdjustment / aiFallback.value_breakdown.baseValue) * 100,
+            description: 'AI-estimated depreciation'
+          },
+          {
+            factor: 'Mileage',
+            impact: aiFallback.value_breakdown.mileageAdjustment,
+            percentage: (aiFallback.value_breakdown.mileageAdjustment / aiFallback.value_breakdown.baseValue) * 100,
+            description: 'AI-estimated mileage adjustment'
+          }
+        ],
+        priceRange: [aiFallback.estimated_value * 0.85, aiFallback.estimated_value * 1.15],
+        marketAnalysis: {
+          dataSource: 'ai_estimation',
+          listingCount: 0,
+          sources: ['openai'],
+          confidence: 'low'
+        },
+        recommendations: ['Consider getting a professional appraisal due to limited market data']
+      },
+      audit_id: auditId
     };
 
   } catch (error) {
-    console.error('❌ Error in corrected valuation pipeline:', error);
+    console.error('❌ Enhanced Pipeline Error:', error);
+    
+    // Save error audit
+    audit.warnings!.push(`Pipeline error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    audit.confidence_score = 5;
+    const auditId = await saveAuditLog(audit);
+
     return {
       success: false,
       valuation: {
@@ -164,126 +225,13 @@ export async function runCorrectedValuationPipeline(
         adjustments: [],
         priceRange: [0, 0]
       },
+      audit_id: auditId,
       error: error instanceof Error ? error.message : 'Unknown error occurred'
     };
   }
 }
 
-function createDefaultFollowUpAnswers(input: CorrectedValuationInput): FollowUpAnswers {
-  return {
-    vin: input.vin,
-    zip_code: input.zipCode,
-    mileage: input.mileage || 50000,
-    condition: input.condition || 'good',
-    accidents: {
-      hadAccident: false,
-      count: 0,
-      severity: 'minor',
-      repaired: false,
-      frameDamage: false,
-      description: '',
-      types: [],
-      repairShops: [],
-      airbagDeployment: false
-    },
-    transmission: input.transmission || 'automatic',
-    title_status: 'clean',
-    previous_use: 'personal',
-    serviceHistory: {
-      hasRecords: false,
-      frequency: 'unknown',
-      dealerMaintained: false,
-      description: '',
-      services: []
-    },
-    tire_condition: 'good',
-    exterior_condition: 'good',
-    interior_condition: 'good',
-    brake_condition: 'good',
-    dashboard_lights: [],
-    modifications: {
-      hasModifications: false,
-      modified: false,
-      types: [],
-      additionalNotes: ''
-    },
-    features: [],
-    additional_notes: '',
-    completion_percentage: 60, // Default completion since we have basic data
-    is_complete: false,
-    previous_owners: 1,
-    loan_balance: 0,
-    payoffAmount: 0,
-    year: input.year // Use the input year for default follow-up
-  };
-}
-
-function validateAndSanitizeFollowUpAnswers(answers: FollowUpAnswers): FollowUpAnswers {
-  // Ensure all required nested objects exist with proper structure
-  const sanitized = { ...answers };
-
-  // Validate accidents structure
-  if (!sanitized.accidents || typeof sanitized.accidents !== 'object') {
-    sanitized.accidents = {
-      hadAccident: false,
-      count: 0,
-      severity: 'minor',
-      repaired: false,
-      frameDamage: false,
-      description: '',
-      types: [],
-      repairShops: [],
-      airbagDeployment: false
-    };
-  }
-
-  // Validate serviceHistory structure
-  if (!sanitized.serviceHistory || typeof sanitized.serviceHistory !== 'object') {
-    sanitized.serviceHistory = {
-      hasRecords: false,
-      frequency: 'unknown',
-      dealerMaintained: false,
-      description: '',
-      services: []
-    };
-  }
-
-  // Validate modifications structure
-  if (!sanitized.modifications || typeof sanitized.modifications !== 'object') {
-    sanitized.modifications = {
-      hasModifications: false,
-      modified: false,
-      types: [],
-      additionalNotes: ''
-    };
-  }
-
-  // Ensure arrays exist
-  if (!Array.isArray(sanitized.dashboard_lights)) {
-    sanitized.dashboard_lights = [];
-  }
-  if (!Array.isArray(sanitized.features)) {
-    sanitized.features = [];
-  }
-
-  // Ensure numeric values
-  if (!sanitized.mileage || sanitized.mileage <= 0) {
-    sanitized.mileage = 50000; // Default reasonable mileage
-  }
-  if (!sanitized.completion_percentage) {
-    sanitized.completion_percentage = 0;
-  }
-
-  // Ensure string values
-  if (!sanitized.condition) {
-    sanitized.condition = 'good';
-  }
-  if (!sanitized.zip_code) {
-    sanitized.zip_code = '90210'; // Default zip code
-  }
-
-  return sanitized;
-}
+// Legacy helper functions removed - not needed in enhanced pipeline
 
 // Export legacy function for backward compatibility
 export const calculateFinalValuation = runCorrectedValuationPipeline;

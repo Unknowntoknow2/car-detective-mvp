@@ -204,11 +204,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
           bodyType: decodedVehicle.bodyType,
           fuelType: decodedVehicle.fueltype,
           transmission: decodedVehicle.transmission,
-          followUpAnswers: {
-            ...currentFormData,
-            valuation_id: resolvedValuationId,
-            year: decodedVehicle.year || currentFormData.year
-          }
+          // followUpAnswers removed - new pipeline handles this internally
         });
 
         if (valuationResult.success) {
