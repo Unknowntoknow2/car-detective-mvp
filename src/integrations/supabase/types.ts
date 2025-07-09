@@ -3141,14 +3141,17 @@ export type Database = {
       valuations: {
         Row: {
           accident_count: number | null
+          adjustments: Json | null
           auction_avg_price: number | null
           base_price: number | null
           body_style: string | null
           body_type: string | null
           color: string | null
+          condition: string | null
           condition_score: number | null
           confidence_score: number | null
           created_at: string
+          datasource: Json | null
           dealer_avg_price: number | null
           displacement_l: string | null
           drivetrain: string | null
@@ -3165,26 +3168,33 @@ export type Database = {
           pdf_url: string | null
           plate: string | null
           premium_unlocked: boolean | null
+          price_range_high: number | null
+          price_range_low: number | null
           sale_date: string | null
           seasonal_multiplier: number | null
           state: string | null
           transmission: string | null
           user_id: string | null
+          vehicle_data: Json | null
           vin: string | null
           warranty_status: string | null
           year: number | null
+          zip_code: string | null
           zip_demand_factor: number | null
         }
         Insert: {
           accident_count?: number | null
+          adjustments?: Json | null
           auction_avg_price?: number | null
           base_price?: number | null
           body_style?: string | null
           body_type?: string | null
           color?: string | null
+          condition?: string | null
           condition_score?: number | null
           confidence_score?: number | null
           created_at?: string
+          datasource?: Json | null
           dealer_avg_price?: number | null
           displacement_l?: string | null
           drivetrain?: string | null
@@ -3201,26 +3211,33 @@ export type Database = {
           pdf_url?: string | null
           plate?: string | null
           premium_unlocked?: boolean | null
+          price_range_high?: number | null
+          price_range_low?: number | null
           sale_date?: string | null
           seasonal_multiplier?: number | null
           state?: string | null
           transmission?: string | null
           user_id?: string | null
+          vehicle_data?: Json | null
           vin?: string | null
           warranty_status?: string | null
           year?: number | null
+          zip_code?: string | null
           zip_demand_factor?: number | null
         }
         Update: {
           accident_count?: number | null
+          adjustments?: Json | null
           auction_avg_price?: number | null
           base_price?: number | null
           body_style?: string | null
           body_type?: string | null
           color?: string | null
+          condition?: string | null
           condition_score?: number | null
           confidence_score?: number | null
           created_at?: string
+          datasource?: Json | null
           dealer_avg_price?: number | null
           displacement_l?: string | null
           drivetrain?: string | null
@@ -3237,14 +3254,18 @@ export type Database = {
           pdf_url?: string | null
           plate?: string | null
           premium_unlocked?: boolean | null
+          price_range_high?: number | null
+          price_range_low?: number | null
           sale_date?: string | null
           seasonal_multiplier?: number | null
           state?: string | null
           transmission?: string | null
           user_id?: string | null
+          vehicle_data?: Json | null
           vin?: string | null
           warranty_status?: string | null
           year?: number | null
+          zip_code?: string | null
           zip_demand_factor?: number | null
         }
         Relationships: []
