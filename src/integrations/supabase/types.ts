@@ -2346,6 +2346,36 @@ export type Database = {
         }
         Relationships: []
       }
+      regional_fuel_costs: {
+        Row: {
+          area_name: string
+          created_at: string | null
+          id: string
+          period: string
+          price: number
+          product_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          area_name: string
+          created_at?: string | null
+          id?: string
+          period: string
+          price: number
+          product_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          area_name?: string
+          created_at?: string | null
+          id?: string
+          period?: string
+          price?: number
+          product_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       saved_valuations: {
         Row: {
           condition_score: number | null

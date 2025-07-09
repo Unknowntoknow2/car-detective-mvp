@@ -1,5 +1,6 @@
 import { MarketListing, ValuationInput, EnhancedValuationResult, ValueBreakdown } from "@/types/valuation";
 import { logValuationAudit } from "@/services/valuationAuditLogger";
+import { fetchRegionalFuelPrice, computeFuelCostImpact } from "@/services/fuelCostService";
 
 // Helper: Compute average from numeric field
 function average(numbers: number[]): number {
@@ -15,6 +16,10 @@ export async function calculateValuationFromListings(
   const prices = listings.map(l => l.price).filter(Boolean);
   const baseValue = average(prices);
 
+  // Fetch regional fuel price for cost-of-ownership calculations
+  const regionalFuelPrice = await fetchRegionalFuelPrice(input.zipCode, input.fuelType || 'gasoline');
+  const fuelCostImpact = computeFuelCostImpact(regionalFuelPrice, input.mpg || null, input.fuelType || 'gasoline');
+
   // Multi-factor real-world adjustments
   const adjustments = {
     depreciation: computeDepreciation(input.year),
@@ -23,6 +28,7 @@ export async function calculateValuationFromListings(
     ownership: computeOwnershipAdjustment(input.ownership),
     usageType: computeUsageAdjustment(input.usageType),
     marketSignal: computeMarketAdjustment(listings),
+    fuelCost: Math.round(fuelCostImpact.annualSavings * 0.3), // 30% of annual fuel savings affects resale value
   };
 
   const totalAdjustments = Object.values(adjustments).reduce((sum, val) => sum + val, 0);
