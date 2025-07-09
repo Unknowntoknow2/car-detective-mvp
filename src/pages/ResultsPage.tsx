@@ -202,6 +202,8 @@ export default function ResultsPage() {
           adjustments={valuationData.adjustments || []}
           zipCode={valuationData.zip_code || ''}
           isPremium={valuationData.valuation_type === 'premium'}
+          dataSources={valuationData.data_sources || []}
+          valuationNotes={valuationData.valuation_notes || []}
           onEmailReport={async () => {
             // Prevent duplicate sends
             if (emailSending) return;

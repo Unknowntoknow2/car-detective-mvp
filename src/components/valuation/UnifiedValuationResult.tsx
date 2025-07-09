@@ -31,6 +31,9 @@ interface UnifiedValuationResultProps {
   isPremium?: boolean;
   onEmailReport?: () => void;
   onUpgrade?: () => void;
+  // New props for truthful display
+  dataSources?: string[];
+  valuationNotes?: string[];
 }
 
 export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
@@ -42,7 +45,9 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
   zipCode,
   isPremium = false,
   onEmailReport,
-  onUpgrade
+  onUpgrade,
+  dataSources = [],
+  valuationNotes = []
 }) => {
   const getConfidenceColor = (score: number) => {
     if (score >= 85) return 'text-green-600';
@@ -73,22 +78,39 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
                   <Badge variant={isPremium ? "default" : "secondary"}>
                     {isPremium ? 'Premium' : 'Free'} Valuation
                   </Badge>
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4" />
-                    <span className={`text-sm font-medium ${getConfidenceColor(confidenceScore)}`}>
-                      {confidenceScore}% Data Quality
-                    </span>
-                    <div className="text-xs text-muted-foreground ml-1">
-                      ({getConfidenceLevel(confidenceScore)} reliability)
+                  {confidenceScore && confidenceScore >= 50 ? (
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4" />
+                      <span className={`text-sm font-medium ${getConfidenceColor(confidenceScore)}`}>
+                        {confidenceScore}% Data Quality
+                      </span>
+                      <div className="text-xs text-muted-foreground ml-1">
+                        ({getConfidenceLevel(confidenceScore)} reliability)
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 text-amber-600" />
+                      <span className="text-sm font-medium text-amber-700">
+                        Confidence score not available or too low to display
+                      </span>
+                      <div className="text-xs text-muted-foreground ml-1">
+                        Add more vehicle info or upgrade to premium for higher accuracy
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
             <div className="text-right">
               <div className="text-3xl font-bold text-green-600">
-                ${estimatedValue.toLocaleString()}
+                ${estimatedValue ? estimatedValue.toLocaleString() : "Unavailable"}
               </div>
+              {dataSources.includes("fallback_msrp") && (
+                <div className="text-sm text-amber-600 mt-1">
+                  ⚠️ This value is based on an estimated MSRP. Real market data not available.
+                </div>
+              )}
               {priceRange && priceRange[0] > 0 && priceRange[1] > 0 ? (
                 <div className="text-sm text-muted-foreground mt-1">
                   <span className="font-medium">Market Range:</span> ${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}
@@ -96,8 +118,7 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
                 </div>
               ) : (
                 <div className="text-sm text-amber-600 mt-1">
-                  <span className="font-medium">⚠️ No market range available</span>
-                  <div className="text-xs text-muted-foreground">Need 3+ comparable listings for range calculation</div>
+                  <span className="font-medium italic">No market range available — not enough comparable listings</span>
                 </div>
               )}
             </div>
@@ -167,6 +188,22 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
                     </p>
                   )}
                 </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Source Disclosure Section */}
+      {valuationNotes && valuationNotes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-amber-700">Data Source Disclosure</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-amber-50 border border-amber-200 p-3 rounded text-sm text-amber-900 space-y-2">
+              {valuationNotes.map((note, idx) => (
+                <p key={idx}>⚠️ {note}</p>
               ))}
             </div>
           </CardContent>
