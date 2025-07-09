@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ArrowRight, Loader2, RotateCcw } from "lucide-react";
 import { formatCurrency } from "@/utils/formatters";
+import { supabase } from '@/integrations/supabase/client';
 
 interface PredictionReviewStepProps {
   step: number;
@@ -20,7 +21,7 @@ interface ValuationResult {
   fetchValuationPrediction: (data: any) => Promise<any>;
 }
 
-// Mock hook for useValuation
+// Real valuation hook that connects to actual valuation engine
 const useValuation = (): ValuationResult => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,40 +32,54 @@ const useValuation = (): ValuationResult => {
     setError(null);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Create valuation request using actual form data
+      const { data: valuationRequest, error: requestError } = await supabase
+        .from('valuation_requests')
+        .insert({
+          make: data.make,
+          model: data.model,
+          year: data.year,
+          mileage: data.mileage,
+          zip_code: data.zipCode,
+          trim: data.trim,
+          status: 'pending'
+        })
+        .select('*')
+        .single();
 
-      // Mock result
-      const result = {
-        estimatedValue: 25000 + Math.floor(Math.random() * 10000),
-        confidenceScore: 85,
-        priceRange: {
-          low: 23000,
-          high: 27000,
-        },
-        adjustments: [
-          {
-            factor: "Mileage",
-            impact: -800,
-            description: "Higher than average mileage",
-          },
-          {
-            factor: "Condition",
-            impact: 1200,
-            description: "Good condition for age",
-          },
-          {
-            factor: "Market Demand",
-            impact: 2000,
-            description: "High local demand",
-          },
-        ],
-      };
+      if (requestError) {
+        throw new Error(requestError.message);
+      }
 
-      setPredictionResult(result);
-      return result;
+      // Get valuation result using the actual valuation-result edge function
+      const { data: resultData, error: resultError } = await supabase.functions.invoke('valuation-result', {
+        body: { requestId: valuationRequest.id }
+      });
+
+      if (resultError) {
+        throw new Error(resultError.message);
+      }
+
+      if (resultData?.success && resultData?.valuation_result) {
+        const result = {
+          estimatedValue: resultData.valuation_result.estimated_value,
+          confidenceScore: resultData.valuation_result.confidence_score,
+          priceRange: {
+            low: resultData.valuation_result.price_range_low,
+            high: resultData.valuation_result.price_range_high,
+          },
+          adjustments: resultData.valuation_result.adjustments || [],
+          compCount: resultData.valuation_result.comp_count || 0
+        };
+        
+        setPredictionResult(result);
+        return result;
+      } else {
+        throw new Error('No valuation result available');
+      }
     } catch (err) {
-      setError("Failed to generate valuation");
+      console.error('Valuation error:', err);
+      setError(err instanceof Error ? err.message : "Failed to generate valuation");
       return null;
     } finally {
       setIsLoading(false);
