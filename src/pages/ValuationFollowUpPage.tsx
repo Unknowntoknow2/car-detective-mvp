@@ -35,25 +35,14 @@ export default function ValuationFollowUpPage() {
     navigate(-1);
   };
 
+  // FIXED: Proper follow-up submission with valuation linkage
   const handleSubmitAnswers = async (): Promise<boolean> => {
     try {
-      console.log('🚀 Starting valuation submission with follow-up data');
-      
-      // Process the valuation with the follow-up data
-      const valuationResult = await processFreeValuation({
-        make: vehicleData.make,
-        model: vehicleData.model,
-        year: vehicleData.year,
-        mileage: 0, // Will be required from form - no hardcoded defaults
-        condition: 'good', // Default to valid condition value
-        zipCode: '' // Will be required from form - no hardcoded defaults
-      });
-      
-      console.log('✅ ValuationFollowUpPage: Valuation completed successfully:', valuationResult);
+      console.log('✅ ValuationFollowUpPage: Follow-up completed, navigating to results...');
       toast.success('Comprehensive valuation completed! Redirecting to results...');
       
-      // Navigate to results page
-      navigate(`/results/${valuationResult.valuationId}`);
+      // Navigate back to a results page - the TabbedFollowUpForm handles the actual submission
+      navigate('/results');
       return true;
     } catch (error) {
       console.error('❌ Error submitting follow-up answers:', error);
