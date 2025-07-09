@@ -20,10 +20,11 @@ export async function calculateValuationFromListings(
   const estimatedValue = Math.max(baseValue + depreciation + mileageAdj, 0);
 
   const breakdown: ValueBreakdown = {
-    base_value: baseValue,
-    depreciation,
-    mileage_adjustment: mileageAdj,
-    total_adjustments: depreciation + mileageAdj,
+    baseValue: baseValue,
+    depreciationAdjustment: depreciation,
+    mileageAdjustment: mileageAdj,
+    conditionAdjustment: 0, // No condition adjustment in market-based valuation
+    otherAdjustments: 0,
   };
 
   return {

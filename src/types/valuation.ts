@@ -254,10 +254,11 @@ export interface EnhancedValuationResult {
 
 // Value breakdown for transparency
 export interface ValueBreakdown {
-  base_value: number;
-  depreciation: number;
-  mileage_adjustment: number;
-  total_adjustments: number;
+  baseValue: number;
+  depreciationAdjustment: number;
+  mileageAdjustment: number;
+  conditionAdjustment: number;
+  otherAdjustments: number;
 }
 
 export interface DealerInsights {
