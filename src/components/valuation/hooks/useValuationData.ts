@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ValuationData {
   make?: string;
@@ -24,29 +25,39 @@ export function useValuationData(valuationId: string) {
       try {
         setIsLoading(true);
         
-        // Simulate API call with mock data
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const currentYear = new Date().getFullYear();
-        const randomYear = currentYear - Math.floor(Math.random() * 10);
-        const randomMileage = Math.floor(Math.random() * 80000) + 20000;
-        
-        const mockData: ValuationData = {
-          make: 'Toyota',
-          model: 'Test Vehicle',
-          year: randomYear,
-          mileage: randomMileage,
-          condition: 'good',
-          estimatedValue: 25000,
-          confidenceScore: 85,
-          zipCode: '90210', // Test data - would be user provided in real app
-          vin: valuationId,
-          isPremium: false
-        };
-        
-        setValuationData(mockData);
-        setError(null);
+        // Fetch real valuation data from the valuation-result edge function
+        const { data, error } = await supabase.functions.invoke('valuation-result', {
+          body: { requestId: valuationId }
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        if (data?.success && data?.valuation_result) {
+          const result = data.valuation_result;
+          const request = data.valuation_request;
+          
+          const realData: ValuationData = {
+            make: request.make,
+            model: request.model,
+            year: request.year,
+            mileage: result.follow_up_data?.mileage || request.mileage,
+            condition: result.follow_up_data?.condition || 'good',
+            estimatedValue: result.estimated_value,
+            confidenceScore: result.confidence_score,
+            zipCode: request.zip_code,
+            vin: request.vin,
+            isPremium: false
+          };
+          
+          setValuationData(realData);
+          setError(null);
+        } else {
+          throw new Error('No valuation result found');
+        }
       } catch (err) {
+        console.error('Error fetching valuation data:', err);
         setError('Failed to load valuation data');
         setValuationData(null);
       } finally {

@@ -60,24 +60,57 @@ export async function getValuationById(id: string): Promise<ValuationResult | nu
  */
 export async function createVinValuation(vin: string, userId?: string | null): Promise<ValuationResult | null> {
   try {
-    // In a real app, you would fetch VIN details from an API
-    // For now, we'll use mock data
-    const mockData = {
-      vin,
-      user_id: userId,
-      is_vin_lookup: true,
-      estimated_value: Math.floor(15000 + Math.random() * 10000),
-      confidence_score: Math.floor(70 + Math.random() * 30),
-      base_price: 15000,
-      year: new Date().getFullYear() - Math.floor(Math.random() * 5),
-      make: 'Auto-detected', // This would be filled by actual VIN decoder
-      model: 'Auto-detected',
-      mileage: Math.floor(20000 + Math.random() * 50000),
-    };
-    
+    // Decode VIN using the unified-decode edge function
+    const { data: decodedData, error: decodeError } = await supabase.functions.invoke('unified-decode', {
+      body: { vin }
+    });
+
+    if (decodeError) {
+      console.error('Error decoding VIN:', decodeError);
+      return null;
+    }
+
+    const decodedVehicle = decodedData?.data;
+    if (!decodedVehicle) {
+      console.error('No vehicle data returned from VIN decode');
+      return null;
+    }
+
+    // Create valuation request for processing
+    const { data: valuationRequest, error: requestError } = await supabase
+      .from('valuation_requests')
+      .insert({
+        user_id: userId,
+        vin: vin,
+        make: decodedVehicle.make || 'Unknown',
+        model: decodedVehicle.model || 'Unknown',
+        year: decodedVehicle.year || new Date().getFullYear(),
+        mileage: null, // Will be filled in follow-up
+        status: 'pending'
+      })
+      .select('*')
+      .single();
+
+    if (requestError) {
+      console.error('Error creating valuation request:', requestError);
+      return null;
+    }
+
+    // Create legacy valuation record for backward compatibility
     const { data, error } = await supabase
       .from('valuations')
-      .insert(mockData)
+      .insert({
+        vin,
+        user_id: userId,
+        is_vin_lookup: true,
+        estimated_value: 0, // Will be calculated by valuation engine
+        confidence_score: 0, // Will be calculated by valuation engine
+        base_price: 0,
+        year: decodedVehicle.year,
+        make: decodedVehicle.make,
+        model: decodedVehicle.model,
+        mileage: null,
+      })
       .select('*')
       .single();
     
@@ -98,34 +131,10 @@ export async function createVinValuation(vin: string, userId?: string | null): P
  */
 export async function createPlateValuation(plate: string, state: string, userId?: string | null): Promise<ValuationResult | null> {
   try {
-    // In a real app, you would fetch plate details from an API
-    // For now, we'll use mock data
-    const mockData = {
-      plate,
-      state,
-      user_id: userId,
-      is_vin_lookup: false,
-      estimated_value: Math.floor(12000 + Math.random() * 8000),
-      confidence_score: Math.floor(65 + Math.random() * 25),
-      base_price: 12000,
-      year: new Date().getFullYear() - Math.floor(Math.random() * 6),
-      make: 'Auto-detected', // This would be filled by actual plate lookup
-      model: 'Auto-detected',
-      mileage: Math.floor(25000 + Math.random() * 60000),
-    };
-    
-    const { data, error } = await supabase
-      .from('valuations')
-      .insert(mockData)
-      .select('*')
-      .single();
-    
-    if (error) {
-      console.error('Error creating plate valuation:', error);
-      return null;
-    }
-    
-    return data as ValuationResult;
+    // TODO: Implement actual plate lookup API integration
+    // For now, return null to force manual entry flow
+    console.log('Plate lookup not yet implemented for production use');
+    return null;
   } catch (error) {
     console.error('Error in createPlateValuation:', error);
     return null;

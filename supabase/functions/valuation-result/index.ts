@@ -17,8 +17,16 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const requestId = url.pathname.split('/').pop();
+    let requestId: string;
+    
+    // Handle both URL path and POST body request ID
+    if (req.method === 'POST') {
+      const body = await req.json();
+      requestId = body.requestId;
+    } else {
+      const url = new URL(req.url);
+      requestId = url.pathname.split('/').pop() || '';
+    }
 
     if (!requestId) {
       throw new Error('Request ID is required');
@@ -36,6 +44,21 @@ serve(async (req) => {
     if (requestError || !valuationRequest) {
       throw new Error(`Valuation request not found: ${requestId}`);
     }
+
+    // CRITICAL FIX: Get follow-up answers for this valuation/VIN
+    const { data: followUpAnswers, error: followUpError } = await supabase
+      .from('follow_up_answers')
+      .select('*')
+      .or(`valuation_id.eq.${requestId},vin.eq.${valuationRequest.vin}`)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (followUpError) {
+      console.log('Error fetching follow-up answers:', followUpError);
+    }
+
+    console.log(`📋 Follow-up data found:`, followUpAnswers ? 'YES' : 'NO');
 
     // Get all market listings/comps
     const { data: marketListings, error: listingsError } = await supabase
@@ -85,11 +108,25 @@ serve(async (req) => {
           return acc;
         }, {} as any);
 
-        // Calculate confidence based on comp count and spread
+        // Calculate dynamic confidence based on data completeness and market data
         const priceSpread = high - low;
         const spreadPercentage = (priceSpread / median) * 100;
-        let confidence = 85; // Base confidence
+        let confidence = 60; // Base confidence
         
+        // Boost confidence based on follow-up data completeness
+        if (followUpAnswers) {
+          if (followUpAnswers.mileage) confidence += 5;
+          if (followUpAnswers.condition) confidence += 5;
+          if (followUpAnswers.accidents) confidence += 5;
+          if (followUpAnswers.serviceHistory) confidence += 5;
+          if (followUpAnswers.tire_condition) confidence += 3;
+          if (followUpAnswers.exterior_condition) confidence += 3;
+          if (followUpAnswers.interior_condition) confidence += 3;
+          if (followUpAnswers.transmission) confidence += 3;
+          if (followUpAnswers.title_status) confidence += 3;
+        }
+        
+        // Boost confidence based on market data quality
         if (prices.length >= 10) confidence += 10;
         else if (prices.length >= 5) confidence += 5;
         
@@ -98,14 +135,108 @@ serve(async (req) => {
 
         confidence = Math.max(60, Math.min(95, confidence));
 
+        // Apply user-specific adjustments based on follow-up answers
+        let adjustedValue = median;
+        let adjustments = [];
+
+        if (followUpAnswers) {
+          // Apply condition adjustments
+          if (followUpAnswers.condition) {
+            const conditionMultipliers = {
+              'excellent': 1.15,
+              'very-good': 1.08,
+              'good': 1.0,
+              'fair': 0.85,
+              'poor': 0.65
+            };
+            const multiplier = conditionMultipliers[followUpAnswers.condition] || 1.0;
+            if (multiplier !== 1.0) {
+              const adjustment = adjustedValue * (multiplier - 1);
+              adjustedValue *= multiplier;
+              adjustments.push({
+                name: `Vehicle Condition (${followUpAnswers.condition})`,
+                amount: Math.round(adjustment),
+                type: adjustment > 0 ? 'positive' : 'negative'
+              });
+            }
+          }
+
+          // Apply accident history adjustments
+          if (followUpAnswers.accidents) {
+            const accidentData = typeof followUpAnswers.accidents === 'string' 
+              ? JSON.parse(followUpAnswers.accidents) 
+              : followUpAnswers.accidents;
+            
+            if (accidentData.hadAccident) {
+              let reduction = 0.05; // 5% base reduction
+              
+              if (accidentData.severity === 'major') reduction = 0.15;
+              else if (accidentData.severity === 'moderate') reduction = 0.10;
+              
+              if (accidentData.frameDamage === 'true' || accidentData.frameDamage === true) {
+                reduction += 0.10;
+              }
+              
+              const adjustment = adjustedValue * -reduction;
+              adjustedValue += adjustment;
+              adjustments.push({
+                name: `Accident History (${accidentData.severity || 'minor'})`,
+                amount: Math.round(adjustment),
+                type: 'negative'
+              });
+            }
+          }
+
+          // Apply mileage adjustments
+          if (followUpAnswers.mileage && valuationRequest.mileage) {
+            const mileageDiff = followUpAnswers.mileage - valuationRequest.mileage;
+            const adjustmentPerMile = -0.05;
+            const adjustment = mileageDiff * adjustmentPerMile;
+            
+            if (Math.abs(adjustment) > 100) {
+              adjustedValue += adjustment;
+              adjustments.push({
+                name: `Mileage Update (${followUpAnswers.mileage.toLocaleString()} miles)`,
+                amount: Math.round(adjustment),
+                type: adjustment > 0 ? 'positive' : 'negative'
+              });
+            }
+          }
+
+          // Apply service history adjustments
+          if (followUpAnswers.serviceHistory) {
+            const serviceData = typeof followUpAnswers.serviceHistory === 'string' 
+              ? JSON.parse(followUpAnswers.serviceHistory) 
+              : followUpAnswers.serviceHistory;
+            
+            if (serviceData.hasRecords && serviceData.frequency === 'regular') {
+              const adjustment = adjustedValue * 0.03;
+              adjustedValue += adjustment;
+              adjustments.push({
+                name: 'Regular Maintenance History',
+                amount: Math.round(adjustment),
+                type: 'positive'
+              });
+            }
+          }
+        }
+
         valuationResult = {
-          estimated_value: Math.round(median),
+          estimated_value: Math.round(adjustedValue),
           price_range_low: Math.round(low),
           price_range_high: Math.round(high),
           mean_price: Math.round(mean),
           confidence_score: confidence,
           comp_count: prices.length,
           source_breakdown: sourceBreakdown,
+          adjustments: adjustments,
+          follow_up_data: followUpAnswers ? {
+            hasFollowUp: true,
+            condition: followUpAnswers.condition,
+            mileage: followUpAnswers.mileage,
+            accidents: followUpAnswers.accidents,
+            serviceHistory: followUpAnswers.serviceHistory
+          } : { hasFollowUp: false },
           price_distribution: {
             q1: Math.round(prices[Math.floor(prices.length * 0.25)]),
             median: Math.round(median),
