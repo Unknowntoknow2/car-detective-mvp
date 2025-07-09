@@ -242,20 +242,22 @@ export interface ValuationInput {
 export interface EnhancedValuationResult {
   estimated_value: number;
   base_value_source: string;
-  mileage_adjustment?: number;
-  depreciation?: number;
-  value_breakdown: {
-    baseValue: number;
-    depreciationAdjustment: number;
-    mileageAdjustment: number;
-    conditionAdjustment: number;
-    otherAdjustments: number;
-  };
-  confidence_score: number;
-  valuation_explanation: string;
   price_range_low?: number;
   price_range_high?: number;
+  depreciation?: number;
+  mileage_adjustment?: number;
+  value_breakdown: ValueBreakdown;
+  confidence_score: number;
+  valuation_explanation: string;
   audit_id?: string;
+}
+
+// Value breakdown for transparency
+export interface ValueBreakdown {
+  base_value: number;
+  depreciation: number;
+  mileage_adjustment: number;
+  total_adjustments: number;
 }
 
 export interface DealerInsights {
