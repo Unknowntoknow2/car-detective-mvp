@@ -23,7 +23,9 @@ interface UnifiedValuationResultProps {
   adjustments?: Array<{
     factor: string;
     impact: number;
-    description: string;
+    description?: string;
+    source?: string;
+    timestamp?: string;
   }>;
   zipCode?: string;
   isPremium?: boolean;
@@ -84,9 +86,13 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
               <div className="text-3xl font-bold text-green-600">
                 ${estimatedValue.toLocaleString()}
               </div>
-              {priceRange && (
+              {priceRange && priceRange[0] > 0 && priceRange[1] > 0 ? (
                 <div className="text-sm text-muted-foreground mt-1">
                   Range: ${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}
+                </div>
+              ) : (
+                <div className="text-sm text-amber-600 mt-1">
+                  Range unavailable - limited data
                 </div>
               )}
             </div>
@@ -126,22 +132,35 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
         </CardContent>
       </Card>
 
-      {/* Adjustments */}
+      {/* Adjustments with data source attribution */}
       {adjustments.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Value Adjustments</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {adjustments.map((adjustment, index) => (
-                <div key={index} className="flex justify-between items-center">
-                  <span className="text-sm">{adjustment.factor}</span>
-                  <span className={`text-sm font-medium ${
-                    adjustment.impact > 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {adjustment.impact > 0 ? '+' : ''}${adjustment.impact.toLocaleString()}
-                  </span>
+                <div key={index} className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">{adjustment.factor}</span>
+                    <span className={`text-sm font-medium ${
+                      adjustment.impact > 0 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {adjustment.impact > 0 ? '+' : ''}${adjustment.impact.toLocaleString()}
+                    </span>
+                  </div>
+                  {adjustment.description && (
+                    <p className="text-xs text-muted-foreground">{adjustment.description}</p>
+                  )}
+                  {adjustment.source && (
+                    <p className="text-xs text-blue-600">Source: {adjustment.source}</p>
+                  )}
+                  {adjustment.timestamp && (
+                    <p className="text-xs text-muted-foreground">
+                      Applied: {new Date(adjustment.timestamp).toLocaleString()}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>

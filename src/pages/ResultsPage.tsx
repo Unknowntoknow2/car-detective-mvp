@@ -181,9 +181,9 @@ export default function ResultsPage() {
   console.log('📋 Follow-up data mileage:', followUpData?.mileage);
   console.log('📋 Valuation data mileage:', valuationData.mileage);
 
-  // Safe MSRP extraction with fallbacks
-  const baseMSRP = valuationData.vehicle_data?.baseMSRP || 25000;
-  const msrpSource = valuationData.vehicle_data?.msrpSource || 'estimated';
+  // MSRP extraction - no fallbacks, use only real data
+  const baseMSRP = valuationData.vehicle_data?.baseMSRP;
+  const msrpSource = valuationData.vehicle_data?.msrpSource;
 
   return (
     <div className="container mx-auto py-8 space-y-6">
@@ -192,14 +192,11 @@ export default function ResultsPage() {
         <UnifiedValuationResult
           vehicleInfo={vehicleInfo}
           estimatedValue={valuationData.estimated_value}
-          confidenceScore={valuationData.confidence_score || 75}
+          confidenceScore={valuationData.confidence_score || 0}
           priceRange={
             valuationData.price_range_low && valuationData.price_range_high
               ? [valuationData.price_range_low, valuationData.price_range_high]
-              : [
-                  Math.round(valuationData.estimated_value * 0.92),
-                  Math.round(valuationData.estimated_value * 1.08)
-                ]
+              : undefined
           }
           adjustments={valuationData.adjustments || []}
           zipCode={valuationData.zip_code || ''}
@@ -241,38 +238,75 @@ export default function ResultsPage() {
           onUpgrade={() => toast.info('Premium upgrade coming soon')}
         />
         
-        {/* Display MSRP if available and not a fallback value */}
-        {baseMSRP && baseMSRP !== 25000 && msrpSource && msrpSource !== 'make_fallback' && (
+        {/* Display data source information when available */}
+        {valuationData.dataSource && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium">MSRP Used in Calculation:</span> ${baseMSRP.toLocaleString()}
-            </p>
-            {msrpSource === 'trim_id' && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Sourced from specific trim data
+            <h4 className="font-medium text-sm mb-2">Valuation Data Sources</h4>
+            {valuationData.dataSource.marketListings && (
+              <p className="text-xs text-muted-foreground mb-1">
+                Based on {valuationData.dataSource.marketListings} market listings
               </p>
             )}
-            {msrpSource === 'database_fallback' && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Sourced from vehicle database
+            {valuationData.dataSource.calculationMethod && (
+              <p className="text-xs text-muted-foreground mb-1">
+                Method: {valuationData.dataSource.calculationMethod}
+              </p>
+            )}
+            {valuationData.dataSource.dataSourcesUsed && (
+              <p className="text-xs text-muted-foreground mb-1">
+                Sources: {valuationData.dataSource.dataSourcesUsed.join(', ')}
+              </p>
+            )}
+            {valuationData.dataSource.timestamp && (
+              <p className="text-xs text-muted-foreground">
+                Calculated: {new Date(valuationData.dataSource.timestamp).toLocaleString()}
               </p>
             )}
           </div>
         )}
+
+        {/* Show when MSRP data is available */}
+        {baseMSRP && msrpSource && msrpSource !== 'make_fallback' && msrpSource !== 'error_fallback' && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium">MSRP Used:</span> ${baseMSRP.toLocaleString()}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Source: {msrpSource === 'trim_id' ? 'Specific trim data' : 'Vehicle database'}
+            </p>
+          </div>
+        )}
+
+        {/* Show warning when critical data is missing */}
+        {(!baseMSRP || !valuationData.confidence_score || !valuationData.dataSource?.marketListings) && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <h4 className="font-medium text-sm text-amber-800 mb-2">Limited Data Available</h4>
+            <ul className="text-xs text-amber-700 space-y-1">
+              {!baseMSRP && <li>• No reliable MSRP data found</li>}
+              {!valuationData.confidence_score && <li>• Confidence score not calculated</li>}
+              {!valuationData.dataSource?.marketListings && <li>• Market comparison data limited</li>}
+            </ul>
+            <p className="text-xs text-amber-600 mt-2">
+              This valuation may be less accurate than usual. Consider upgrading to premium for more comprehensive data.
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Value Breakdown */}
-      <ValueBreakdown
-        adjustments={valuationData.adjustments || []}
-        baseValue={valuationData.vehicle_data?.baseMSRP || baseMSRP}
-        finalValue={valuationData.estimated_value}
-        confidenceScore={valuationData.confidence_score || 75}
-        vehicleData={{
-          baseMSRP: valuationData.vehicle_data?.baseMSRP || baseMSRP,
-          calculationMethod: valuationData.vehicle_data?.calculationMethod || 'standard',
-          usedRealMSRP: valuationData.vehicle_data?.msrpSource !== 'make_fallback' && valuationData.vehicle_data?.msrpSource !== 'error_fallback'
-        }}
-      />
+      {/* Value Breakdown - only show if we have real data */}
+      {(baseMSRP || valuationData.adjustments?.length) && (
+        <ValueBreakdown
+          adjustments={valuationData.adjustments || []}
+          baseValue={baseMSRP || 0}
+          finalValue={valuationData.estimated_value}
+          confidenceScore={valuationData.confidence_score || 0}
+          vehicleData={{
+            baseMSRP: baseMSRP || 0,
+            calculationMethod: valuationData.vehicle_data?.calculationMethod || 'market_analysis',
+            usedRealMSRP: !!baseMSRP && msrpSource !== 'make_fallback' && msrpSource !== 'error_fallback'
+          }}
+        />
+      )}
 
       {/* Follow-up Questions */}
       {showFollowUp && (

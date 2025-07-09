@@ -15,6 +15,8 @@ export type ValuationData = {
     factor: string;
     impact: number;
     description?: string;
+    source?: string; // Data source for the adjustment
+    timestamp?: string; // When the adjustment was calculated
   }>;
   explanation?: string;
   fuelType?: string;
@@ -27,6 +29,12 @@ export type ValuationData = {
     issuesDetected?: string[];
     summary?: string;
   } | null;
+  dataSource?: {
+    marketListings?: number; // Number of real market listings used
+    calculationMethod?: string; // How the value was calculated
+    dataSourcesUsed?: string[]; // List of data sources
+    timestamp?: string; // When the calculation was performed
+  };
 };
 
 export interface PremiumCheckoutResult {
@@ -62,26 +70,25 @@ export const useValuationLogic = (data?: ValuationData) => {
   useEffect(() => {
     if (!data) return;
 
-    // Calculate price range based on confidence score
-    const confidenceModifier = (data.confidenceScore || 75) / 100;
-    const range = Math.round(
-      data.estimatedValue * (1 - confidenceModifier) * 0.15,
-    );
+    // Only calculate price range if confidence score is available from real data
+    if (data.confidenceScore && data.confidenceScore > 0) {
+      const confidenceModifier = data.confidenceScore / 100;
+      const range = Math.round(
+        data.estimatedValue * (1 - confidenceModifier) * 0.15,
+      );
 
-    setPriceRange({
-      low: Math.max(0, data.estimatedValue - range),
-      high: data.estimatedValue + range,
-    });
-
-    // Determine market trend (mocked - would come from real data)
-    const trendValue = Math.random();
-    if (trendValue > 0.66) {
-      setMarketTrend("up");
-    } else if (trendValue > 0.33) {
-      setMarketTrend("stable");
+      setPriceRange({
+        low: Math.max(0, data.estimatedValue - range),
+        high: data.estimatedValue + range,
+      });
     } else {
-      setMarketTrend("down");
+      // No confidence data available - set to zero to indicate missing data
+      setPriceRange({ low: 0, high: 0 });
     }
+
+    // Market trend must come from real market data - no mock values
+    // This would be set from actual market analysis data
+    setMarketTrend("stable"); // Default only - real implementation would use market data
 
     // Set recommendation based on trend and condition
     const condition = data.condition?.toLowerCase() || "good";
@@ -121,12 +128,16 @@ export const useValuationLogic = (data?: ValuationData) => {
     }
     setRecommendationText(text);
 
-    // Set confidence level and color
+    // Set confidence level and color only if real confidence data exists
     const score = data.confidenceScore || 0;
-    let level: "low" | "medium" | "high" = "medium";
+    let level: "low" | "medium" | "high" = "low";
     let color = "";
 
-    if (score >= 85) {
+    if (!data.confidenceScore) {
+      // No confidence data available
+      level = "low";
+      color = "text-muted-foreground";
+    } else if (score >= 85) {
       level = "high";
       color = "text-success-dark";
     } else if (score >= 70) {
