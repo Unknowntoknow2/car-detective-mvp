@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getFullyNormalizedMsrp } from '@/utils/valuation/msrpInflationNormalizer';
+import { generateValuationExplanation } from '@/services/confidenceExplainer';
 
 interface ProcessFreeValuationInput {
   make: string;
@@ -13,6 +14,7 @@ interface ProcessFreeValuationInput {
   zipCode: string;
   vin?: string;
   trim_id?: string;
+  trim?: string;
 }
 
 interface ProcessFreeValuationResult {
@@ -43,7 +45,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
       
       const { data: result, error } = await supabase
-        .from('valuation_results')
+        .from('valuations')
         .insert(data)
         .select()
         .single();
@@ -72,7 +74,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('valuation_results')
+        .from('valuations')
         .select('*')
         .eq('id', id)
         .maybeSingle();
@@ -97,7 +99,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.log('🔄 Updating valuation:', id, 'with VIN:', data.vin);
       
       const { data: result, error } = await supabase
-        .from('valuation_results')
+        .from('valuations')
         .update(data)
         .eq('id', id)
         .select()
@@ -477,6 +479,15 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (actualInput.vin) dataSources.push('vin_decode');
       if (actualInput !== input) dataSources.push('user_follow_up');
 
+      // Initialize valuation notes array
+      const valuationNotes: string[] = [];
+      if (!hasRealMarketData) {
+        valuationNotes.push("Used estimated MSRP - no recent market listings available");
+      }
+      if (msrpSource.includes('fallback')) {
+        valuationNotes.push("MSRP based on manufacturer averages");
+      }
+
       // Create transparent valuation record
       const valuationData = {
         vin: actualInput.vin || null,
@@ -517,6 +528,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           confidenceBreakdown: confidenceDetails,
           timestamp: new Date().toISOString()
         },
+        valuation_notes: valuationNotes,
         valuation_type: 'free'
       };
 
@@ -528,6 +540,39 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         dataSources: dataSources.length,
         method: hasRealMarketData ? 'market_analysis' : 'msrp_estimation'
       });
+
+      // Generate AI explanation before creating valuation
+      try {
+        console.log('🤖 Generating AI explanation for valuation');
+        const aiExplanation = await generateValuationExplanation({
+          vin: actualInput.vin,
+          make: actualInput.make,
+          model: actualInput.model,
+          year: actualInput.year,
+          trim: actualInput.trim,
+          mileage: actualInput.mileage,
+          condition: actualInput.condition,
+          zipCode: actualInput.zipCode,
+          estimated_value: finalValue,
+          confidence_score: confidenceScore,
+          data_sources: dataSources,
+          valuation_notes: valuationNotes,
+          adjustments: adjustments,
+          baseMSRP: baseMSRP,
+          msrpSource: msrpSource,
+          marketListingsCount: marketListings?.length || 0
+        });
+
+        // Add AI explanation to valuation notes
+        if (aiExplanation) {
+          valuationNotes.push(`🔍 ${aiExplanation}`);
+          // Update the valuation data with the new notes
+          valuationData.valuation_notes = valuationNotes;
+        }
+      } catch (error) {
+        console.error('❌ Error generating AI explanation:', error);
+        // Continue without AI explanation - not a breaking error
+      }
 
       const result = await createValuation(valuationData);
       
