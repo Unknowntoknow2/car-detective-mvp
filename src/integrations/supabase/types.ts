@@ -3175,6 +3175,7 @@ export type Database = {
           state: string | null
           transmission: string | null
           user_id: string | null
+          valuation_notes: Json | null
           vehicle_data: Json | null
           vin: string | null
           warranty_status: string | null
@@ -3218,6 +3219,7 @@ export type Database = {
           state?: string | null
           transmission?: string | null
           user_id?: string | null
+          valuation_notes?: Json | null
           vehicle_data?: Json | null
           vin?: string | null
           warranty_status?: string | null
@@ -3261,6 +3263,7 @@ export type Database = {
           state?: string | null
           transmission?: string | null
           user_id?: string | null
+          valuation_notes?: Json | null
           vehicle_data?: Json | null
           vin?: string | null
           warranty_status?: string | null
