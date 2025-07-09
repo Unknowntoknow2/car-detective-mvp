@@ -35,17 +35,38 @@ export default function ValuationFollowUpPage() {
     navigate(-1);
   };
 
-  // FIXED: Proper follow-up submission with valuation linkage
+  // FIXED: Proper follow-up submission with valuation creation
   const handleSubmitAnswers = async (): Promise<boolean> => {
     try {
-      console.log('✅ ValuationFollowUpPage: Follow-up completed, navigating to results...');
-      toast.success('Comprehensive valuation completed! Redirecting to results...');
+      console.log('🚀 ValuationFollowUpPage: Creating valuation for VIN:', vehicleData.vin);
       
-      // Navigate back to a results page - the TabbedFollowUpForm handles the actual submission
-      navigate('/results');
-      return true;
+      // Create valuation using the context
+      const valuationInput = {
+        make: vehicleData.make,
+        model: vehicleData.model,
+        year: vehicleData.year,
+        vin: vehicleData.vin,
+        trim: vehicleData.trim || '',
+        mileage: 50000, // Default - will be updated from follow-up data
+        condition: 'good', // Default - will be updated from follow-up data 
+        zipCode: '90210', // Default - will be updated from follow-up data
+      };
+
+      console.log('🚀 Processing valuation with data:', valuationInput);
+      const valuationResult = await processFreeValuation(valuationInput);
+      
+      if (valuationResult?.valuationId) {
+        console.log('✅ Valuation created successfully:', valuationResult.valuationId);
+        toast.success('Valuation completed successfully!');
+        navigate(`/results/${valuationResult.valuationId}`, { replace: true });
+        return true;
+      } else {
+        console.error('❌ Valuation creation failed');
+        toast.error('Failed to create valuation - please try again');
+        return false;
+      }
     } catch (error) {
-      console.error('❌ Error submitting follow-up answers:', error);
+      console.error('❌ Error creating valuation:', error);
       toast.error('Failed to complete valuation. Please try again.');
       return false;
     }

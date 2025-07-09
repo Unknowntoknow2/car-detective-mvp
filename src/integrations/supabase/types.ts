@@ -1146,7 +1146,9 @@ export type Database = {
           last_service_date: string | null
           loan_balance: number | null
           maintenance_status: string | null
+          make: string | null
           mileage: number | null
+          model: string | null
           modifications: Json | null
           payoff_amount: number | null
           previous_owners: number | null
@@ -1156,6 +1158,7 @@ export type Database = {
           tire_condition: string | null
           title_status: string | null
           transmission: string | null
+          trim: string | null
           updated_at: string
           user_id: string | null
           valuation_id: string | null
@@ -1180,7 +1183,9 @@ export type Database = {
           last_service_date?: string | null
           loan_balance?: number | null
           maintenance_status?: string | null
+          make?: string | null
           mileage?: number | null
+          model?: string | null
           modifications?: Json | null
           payoff_amount?: number | null
           previous_owners?: number | null
@@ -1190,6 +1195,7 @@ export type Database = {
           tire_condition?: string | null
           title_status?: string | null
           transmission?: string | null
+          trim?: string | null
           updated_at?: string
           user_id?: string | null
           valuation_id?: string | null
@@ -1214,7 +1220,9 @@ export type Database = {
           last_service_date?: string | null
           loan_balance?: number | null
           maintenance_status?: string | null
+          make?: string | null
           mileage?: number | null
+          model?: string | null
           modifications?: Json | null
           payoff_amount?: number | null
           previous_owners?: number | null
@@ -1224,6 +1232,7 @@ export type Database = {
           tire_condition?: string | null
           title_status?: string | null
           transmission?: string | null
+          trim?: string | null
           updated_at?: string
           user_id?: string | null
           valuation_id?: string | null

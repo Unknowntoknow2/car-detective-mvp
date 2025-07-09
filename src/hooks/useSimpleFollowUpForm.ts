@@ -84,7 +84,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
           // If no data by VIN, try to link to existing valuation
           console.log('🔗 No follow-up data found, checking for valuation to link');
           const { data: valuationData } = await supabase
-            .from('valuation_results')
+            .from('valuations')
             .select('id')
             .eq('vin', vin)
             .order('created_at', { ascending: false })
@@ -178,7 +178,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       if (!saveData.valuation_id) {
         console.log('🔗 Attempting to link follow-up to valuation via VIN:', vin);
         const { data: valuationData } = await supabase
-          .from('valuation_results')
+          .from('valuations')
           .select('id')
           .eq('vin', vin)
           .order('created_at', { ascending: false })
@@ -291,7 +291,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
   }, [formData]);
 
   // NEW: Complete submission function that links follow-up to valuation
-  const submitFollowUpAndStartValuation = useCallback(async (): Promise<{ success: boolean; message: string; valuationId?: string }> => {
+  const submitFollowUpAndStartValuation = useCallback(async (): Promise<{ success: boolean; message: string; valuationId?: string; requiresValuation?: boolean }> => {
     try {
       if (!vin) {
         return { success: false, message: 'VIN required for valuation' };
@@ -304,7 +304,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
       // 1. Check for existing valuation by VIN
       const { data: existingValuations } = await supabase
-        .from('valuation_results')
+        .from('valuations')
         .select('id')
         .eq('vin', vin)
         .order('created_at', { ascending: false })
@@ -312,18 +312,21 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
       let valuation_id: string | undefined = existingValuations?.[0]?.id ?? undefined;
 
-      // 2. If no valuation exists, create one using processFreeValuation from context
+      // 2. If no valuation exists, return a flag indicating valuation is needed
       if (!valuation_id) {
-        console.log('🚀 No existing valuation found, creating new one for VIN:', vin);
+        console.log('🚀 No existing valuation found, signaling parent to create valuation for VIN:', vin);
         
-        // Get the processFreeValuation function from the context
-        const { useValuation } = await import('@/contexts/ValuationContext');
+        // Save follow-up data first, then signal parent to create valuation
+        const saveSuccess = await saveFormData(formData);
+        if (!saveSuccess) {
+          return { success: false, message: 'Failed to save follow-up data' };
+        }
         
-        // We need to access the context, but we can't use hooks here
-        // Instead, we'll need to access it differently or use a different approach
-        // For now, let's create a minimal valuation record that will be enhanced by the context later
-        
-        return { success: false, message: 'Valuation creation needs to be handled by parent component' };
+        return { 
+          success: false, 
+          message: 'NEEDS_VALUATION_CREATION',
+          requiresValuation: true 
+        };
       } else {
         console.log('✅ Found existing valuation:', valuation_id);
       }
