@@ -38,20 +38,23 @@ export default function ValuationFollowUpPage() {
   // Load actual follow-up data and create valuation
   const handleSubmitAnswers = async (): Promise<boolean> => {
     try {
-      console.log('🚀 ValuationFollowUpPage: Creating valuation for VIN:', vehicleData.vin);
+      console.log('🚀 [DEBUG] ValuationFollowUpPage: Starting handleSubmitAnswers for VIN:', vehicleData.vin);
+      console.log('🚀 [DEBUG] Vehicle data:', vehicleData);
       
       // FIXED: Load actual follow-up data instead of using defaults
       const { FollowUpService } = await import('@/services/followUpService');
       const { data: followUpData, error: followUpError } = await FollowUpService.getAnswersByVin(vehicleData.vin);
       
+      console.log('🔍 [DEBUG] Loading follow-up data for VIN:', vehicleData.vin);
       if (followUpError) {
-        console.error('❌ Error loading follow-up data:', followUpError);
+        console.error('❌ [DEBUG] Error loading follow-up data:', followUpError);
         toast.error('Failed to load your information. Please try again.');
         return false;
       }
 
+      console.log('🔍 [DEBUG] Follow-up data result:', followUpData);
       if (!followUpData || !followUpData.mileage || !followUpData.zip_code) {
-        console.error('❌ Missing required follow-up data');
+        console.error('❌ [DEBUG] Missing required follow-up data. Data:', followUpData);
         toast.error('Please complete all required fields before submitting.');
         return false;
       }
@@ -68,9 +71,11 @@ export default function ValuationFollowUpPage() {
         zipCode: followUpData.zip_code,
       };
 
-      console.log('🚀 Processing valuation with REAL user data:', valuationInput);
+      console.log('🚀 [DEBUG] Processing valuation with REAL user data:', valuationInput);
+      console.log('🚀 [DEBUG] About to call processFreeValuation...');
       const valuationResult = await processFreeValuation(valuationInput);
       
+      console.log('🔍 [DEBUG] Valuation result:', valuationResult);
       if (valuationResult?.valuationId) {
         console.log('✅ Valuation created successfully:', valuationResult.valuationId);
         toast.success('Valuation completed successfully!');
@@ -82,7 +87,8 @@ export default function ValuationFollowUpPage() {
         return false;
       }
     } catch (error) {
-      console.error('❌ Error creating valuation:', error);
+      console.error('❌ [DEBUG] Error in handleSubmitAnswers:', error);
+      console.error('❌ [DEBUG] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       toast.error('Failed to complete valuation. Please try again.');
       return false;
     }
