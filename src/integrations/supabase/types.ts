@@ -2692,50 +2692,65 @@ export type Database = {
       valuation_audit_logs: {
         Row: {
           action: string | null
+          audit_data: Json | null
+          confidence_score: number | null
           created_at: string
           error_message: string | null
           event: string
           execution_time_ms: number | null
+          fallback_used: boolean | null
           id: string
           input_data: Json | null
           message: string | null
           metadata: Json | null
           output_data: Json | null
+          quality_score: number | null
           raw_data: Json | null
           run_by: string | null
           source: string | null
+          sources_used: string[] | null
           valuation_request_id: string
         }
         Insert: {
           action?: string | null
+          audit_data?: Json | null
+          confidence_score?: number | null
           created_at?: string
           error_message?: string | null
           event: string
           execution_time_ms?: number | null
+          fallback_used?: boolean | null
           id?: string
           input_data?: Json | null
           message?: string | null
           metadata?: Json | null
           output_data?: Json | null
+          quality_score?: number | null
           raw_data?: Json | null
           run_by?: string | null
           source?: string | null
+          sources_used?: string[] | null
           valuation_request_id: string
         }
         Update: {
           action?: string | null
+          audit_data?: Json | null
+          confidence_score?: number | null
           created_at?: string
           error_message?: string | null
           event?: string
           execution_time_ms?: number | null
+          fallback_used?: boolean | null
           id?: string
           input_data?: Json | null
           message?: string | null
           metadata?: Json | null
           output_data?: Json | null
+          quality_score?: number | null
           raw_data?: Json | null
           run_by?: string | null
           source?: string | null
+          sources_used?: string[] | null
           valuation_request_id?: string
         }
         Relationships: [
