@@ -521,7 +521,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             hasMarketRange: !!priceRangeLow
           }
         },
-        dataSource: {
+        data_source: {
           marketListings: marketListings?.length || 0,
           calculationMethod: hasRealMarketData ? 'market_analysis' : 'msrp_estimation',
           dataSourcesUsed: dataSources,

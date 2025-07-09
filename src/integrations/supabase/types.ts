@@ -3151,7 +3151,7 @@ export type Database = {
           condition_score: number | null
           confidence_score: number | null
           created_at: string
-          datasource: Json | null
+          data_source: Json | null
           dealer_avg_price: number | null
           displacement_l: string | null
           drivetrain: string | null
@@ -3194,7 +3194,7 @@ export type Database = {
           condition_score?: number | null
           confidence_score?: number | null
           created_at?: string
-          datasource?: Json | null
+          data_source?: Json | null
           dealer_avg_price?: number | null
           displacement_l?: string | null
           drivetrain?: string | null
@@ -3237,7 +3237,7 @@ export type Database = {
           condition_score?: number | null
           confidence_score?: number | null
           created_at?: string
-          datasource?: Json | null
+          data_source?: Json | null
           dealer_avg_price?: number | null
           displacement_l?: string | null
           drivetrain?: string | null

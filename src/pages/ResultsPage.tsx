@@ -243,7 +243,7 @@ export default function ResultsPage() {
         
         {/* Data Integrity Panel - Complete Transparency */}
         <DataIntegrityPanel
-          dataSource={valuationData.dataSource}
+          dataSource={valuationData.data_source}
           vehicleData={valuationData.vehicle_data}
           confidenceScore={valuationData.confidence_score || 0}
         />
