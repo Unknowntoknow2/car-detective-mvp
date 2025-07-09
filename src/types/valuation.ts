@@ -236,6 +236,8 @@ export interface ValuationInput {
   bodyType?: string;
   fuelType?: string;
   transmission?: string;
+  ownership?: number; // Number of previous owners
+  usageType?: string; // "personal" | "rental" | "fleet" | "commercial"
 }
 
 // Enhanced valuation result interface
@@ -254,11 +256,14 @@ export interface EnhancedValuationResult {
 
 // Value breakdown for transparency
 export interface ValueBreakdown {
-  baseValue: number;
-  depreciationAdjustment: number;
-  mileageAdjustment: number;
-  conditionAdjustment: number;
-  otherAdjustments: number;
+  base_value: number;
+  total_adjustments: number;
+  depreciation: number;
+  mileage: number;
+  condition: number;
+  ownership: number;
+  usageType: number;
+  marketSignal: number;
 }
 
 export interface DealerInsights {

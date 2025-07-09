@@ -43,11 +43,14 @@ export async function generateOpenAIFallbackValuation(input: ValuationInput): Pr
       mileage_adjustment: aiValuation.mileage_adjustment || -2000,
       depreciation: aiValuation.depreciation || -5000,
       value_breakdown: {
-        baseValue: baseValue + 7000, // Reverse calculate base
-        depreciationAdjustment: aiValuation.depreciation || -5000,
-        mileageAdjustment: aiValuation.mileage_adjustment || -2000,
-        conditionAdjustment: 0,
-        otherAdjustments: 0
+        base_value: baseValue + 7000, // Reverse calculate base
+        total_adjustments: (aiValuation.depreciation || -5000) + (aiValuation.mileage_adjustment || -2000),
+        depreciation: aiValuation.depreciation || -5000,
+        mileage: aiValuation.mileage_adjustment || -2000,
+        condition: 0,
+        ownership: 0,
+        usageType: 0,
+        marketSignal: 0
       },
       confidence_score: 25, // Low confidence for AI fallback
       valuation_explanation: data.explanation || `AI-estimated value for ${input.year} ${input.make} ${input.model}. This estimate is based on market trends and vehicle specifications, but has lower confidence due to limited market data.`
@@ -65,11 +68,14 @@ export async function generateOpenAIFallbackValuation(input: ValuationInput): Pr
       estimated_value: fallbackValue,
       base_value_source: "basic_fallback",
       value_breakdown: {
-        baseValue: fallbackValue,
-        depreciationAdjustment: 0,
-        mileageAdjustment: 0,
-        conditionAdjustment: 0,
-        otherAdjustments: 0
+        base_value: fallbackValue,
+        total_adjustments: 0,
+        depreciation: 0,
+        mileage: 0,
+        condition: 0,
+        ownership: 0,
+        usageType: 0,
+        marketSignal: 0
       },
       confidence_score: 10, // Very low confidence
       valuation_explanation: `Basic fallback estimate for ${input.year} ${input.make} ${input.model}. This is a rough estimate with very low confidence.`

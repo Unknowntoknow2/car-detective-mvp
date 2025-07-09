@@ -105,7 +105,13 @@ export async function runCorrectedValuationPipeline(
 
       // Enhance audit with valuation results
       audit.finalValue = valuation.estimated_value;
-      audit.valueBreakdown = valuation.value_breakdown;
+      audit.valueBreakdown = {
+        baseValue: valuation.value_breakdown.base_value,
+        depreciationAdjustment: valuation.value_breakdown.depreciation,
+        mileageAdjustment: valuation.value_breakdown.mileage,
+        conditionAdjustment: valuation.value_breakdown.condition,
+        otherAdjustments: valuation.value_breakdown.ownership + valuation.value_breakdown.usageType + valuation.value_breakdown.marketSignal
+      };
       audit.confidence_score = valuation.confidence_score;
 
       // Save audit log
@@ -119,19 +125,31 @@ export async function runCorrectedValuationPipeline(
         valuation: {
           estimatedValue: valuation.estimated_value,
           confidenceScore: valuation.confidence_score,
-          basePrice: valuation.value_breakdown.baseValue,
+          basePrice: valuation.value_breakdown.base_value,
           adjustments: [
             {
+              factor: 'Depreciation',
+              impact: valuation.value_breakdown.depreciation,
+              percentage: (valuation.value_breakdown.depreciation / valuation.value_breakdown.base_value) * 100,
+              description: `Age-based depreciation: ${valuation.depreciation || valuation.value_breakdown.depreciation}`
+            },
+            {
               factor: 'Mileage',
-              impact: valuation.value_breakdown.mileageAdjustment,
-              percentage: (valuation.value_breakdown.mileageAdjustment / valuation.value_breakdown.baseValue) * 100,
-              description: valuation.mileage_adjustment ? `Mileage adjustment: ${valuation.mileage_adjustment}` : 'No mileage adjustment'
+              impact: valuation.value_breakdown.mileage,
+              percentage: (valuation.value_breakdown.mileage / valuation.value_breakdown.base_value) * 100,
+              description: `Mileage adjustment: ${valuation.mileage_adjustment || valuation.value_breakdown.mileage}`
             },
             {
               factor: 'Condition',
-              impact: valuation.value_breakdown.conditionAdjustment,
-              percentage: (valuation.value_breakdown.conditionAdjustment / valuation.value_breakdown.baseValue) * 100,
+              impact: valuation.value_breakdown.condition,
+              percentage: (valuation.value_breakdown.condition / valuation.value_breakdown.base_value) * 100,
               description: `Condition adjustment for ${input.condition || 'good'} condition`
+            },
+            {
+              factor: 'Other Factors',
+              impact: valuation.value_breakdown.ownership + valuation.value_breakdown.usageType + valuation.value_breakdown.marketSignal,
+              percentage: ((valuation.value_breakdown.ownership + valuation.value_breakdown.usageType + valuation.value_breakdown.marketSignal) / valuation.value_breakdown.base_value) * 100,
+              description: 'Ownership history, usage type, and market volatility adjustments'
             }
           ],
           priceRange: [valuation.price_range_low || valuation.estimated_value * 0.9, valuation.price_range_high || valuation.estimated_value * 1.1],
@@ -168,7 +186,13 @@ export async function runCorrectedValuationPipeline(
     audit.confidence_score = aiFallback.confidence_score;
     audit.fallbackUsed = true;
     audit.finalValue = aiFallback.estimated_value;
-    audit.valueBreakdown = aiFallback.value_breakdown;
+    audit.valueBreakdown = {
+      baseValue: aiFallback.value_breakdown.base_value,
+      depreciationAdjustment: aiFallback.value_breakdown.depreciation,
+      mileageAdjustment: aiFallback.value_breakdown.mileage,
+      conditionAdjustment: aiFallback.value_breakdown.condition,
+      otherAdjustments: aiFallback.value_breakdown.ownership + aiFallback.value_breakdown.usageType + aiFallback.value_breakdown.marketSignal
+    };
     audit.warnings!.push('Used AI fallback due to no market data');
 
     // Save audit log
@@ -181,18 +205,18 @@ export async function runCorrectedValuationPipeline(
       valuation: {
         estimatedValue: aiFallback.estimated_value,
         confidenceScore: aiFallback.confidence_score,
-        basePrice: aiFallback.value_breakdown.baseValue,
+        basePrice: aiFallback.value_breakdown.base_value,
         adjustments: [
           {
-            factor: 'Depreciation',
-            impact: aiFallback.value_breakdown.depreciationAdjustment,
-            percentage: (aiFallback.value_breakdown.depreciationAdjustment / aiFallback.value_breakdown.baseValue) * 100,
+            factor: 'Depreciation (AI)',
+            impact: aiFallback.value_breakdown.depreciation,
+            percentage: (aiFallback.value_breakdown.depreciation / aiFallback.value_breakdown.base_value) * 100,
             description: 'AI-estimated depreciation'
           },
           {
-            factor: 'Mileage',
-            impact: aiFallback.value_breakdown.mileageAdjustment,
-            percentage: (aiFallback.value_breakdown.mileageAdjustment / aiFallback.value_breakdown.baseValue) * 100,
+            factor: 'Mileage (AI)',
+            impact: aiFallback.value_breakdown.mileage,
+            percentage: (aiFallback.value_breakdown.mileage / aiFallback.value_breakdown.base_value) * 100,
             description: 'AI-estimated mileage adjustment'
           }
         ],
