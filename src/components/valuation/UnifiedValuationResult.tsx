@@ -76,8 +76,11 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4" />
                     <span className={`text-sm font-medium ${getConfidenceColor(confidenceScore)}`}>
-                      {confidenceScore}% ({getConfidenceLevel(confidenceScore)})
+                      {confidenceScore}% Data Quality
                     </span>
+                    <div className="text-xs text-muted-foreground ml-1">
+                      ({getConfidenceLevel(confidenceScore)} reliability)
+                    </div>
                   </div>
                 </div>
               </div>
@@ -88,11 +91,13 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
               </div>
               {priceRange && priceRange[0] > 0 && priceRange[1] > 0 ? (
                 <div className="text-sm text-muted-foreground mt-1">
-                  Range: ${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}
+                  <span className="font-medium">Market Range:</span> ${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}
+                  <span className="text-xs text-green-600 ml-2">✓ Based on real comparables</span>
                 </div>
               ) : (
                 <div className="text-sm text-amber-600 mt-1">
-                  Range unavailable - limited data
+                  <span className="font-medium">⚠️ No market range available</span>
+                  <div className="text-xs text-muted-foreground">Need 3+ comparable listings for range calculation</div>
                 </div>
               )}
             </div>

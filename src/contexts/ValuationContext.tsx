@@ -356,9 +356,9 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const processFreeValuation = useCallback(async (input: ProcessFreeValuationInput): Promise<ProcessFreeValuationResult> => {
     setIsLoading(true);
     try {
-      console.log('🚀 Processing valuation with real MSRP for:', input.make, input.model, input.year);
+      console.log('🚀 Processing valuation with REAL data integrity for:', input.make, input.model, input.year);
 
-      // FIXED: Load follow-up data if VIN provided to get real user inputs
+      // INTEGRITY: Load follow-up data if VIN provided to get real user inputs
       let actualInput = { ...input };
       if (input.vin) {
         console.log('🔍 Loading follow-up data for VIN:', input.vin);
@@ -378,7 +378,6 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
               zipCode: followUpData.zip_code
             });
             
-            // Use follow-up data instead of hardcoded defaults
             actualInput = {
               ...input,
               mileage: followUpData.mileage,
@@ -393,73 +392,144 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
       }
 
-      // Calculate real adjustments with MSRP from database using actual user data
+      // INTEGRITY: Fetch real market listings to base confidence on actual data
+      const { data: marketListings } = await supabase
+        .from('market_listings')
+        .select('price, source, confidence_score, mileage, condition')
+        .eq('make', actualInput.make)
+        .eq('model', actualInput.model)
+        .gte('year', actualInput.year - 2)
+        .lte('year', actualInput.year + 2)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      const hasRealMarketData = marketListings && marketListings.length >= 3;
+      console.log(`📊 Market data: ${marketListings?.length || 0} listings found`);
+
+      // Calculate real adjustments with MSRP from database
       const { adjustments, finalValue, baseMSRP, msrpSource } = await calculateRealAdjustments(actualInput);
 
-      // Calculate confidence score based on data completeness
-      let confidenceScore = 80; // Higher base confidence with real MSRP
-      if (actualInput.vin) confidenceScore += 10;
-      if (actualInput.zipCode && actualInput.zipCode.length === 5 && /^\d{5}$/.test(actualInput.zipCode)) {
-        confidenceScore += 5;
-      }
-      if (actualInput.mileage > 0) confidenceScore += 5;
-      confidenceScore = Math.min(95, confidenceScore);
+      // INTEGRITY: Data-driven confidence score (NO MORE HARDCODED 80%)
+      let confidenceScore = 25; // Start with minimal baseline
+      let confidenceDetails: string[] = [];
 
-      // Create comprehensive valuation record
+      // Market data confidence
+      if (hasRealMarketData) {
+        const marketConfidence = Math.min(40, marketListings.length * 3);
+        confidenceScore += marketConfidence;
+        confidenceDetails.push(`${marketConfidence}pts: ${marketListings.length} market comparables`);
+      } else {
+        confidenceDetails.push(`0pts: No market comparables found`);
+      }
+
+      // MSRP data confidence
+      if (msrpSource === 'trim_id_normalized') {
+        confidenceScore += 25;
+        confidenceDetails.push(`25pts: Real trim-specific MSRP`);
+      } else if (msrpSource === 'database_fallback_normalized') {
+        confidenceScore += 15;
+        confidenceDetails.push(`15pts: Database MSRP fallback`);
+      } else {
+        confidenceScore += 5;
+        confidenceDetails.push(`5pts: Estimated MSRP (${msrpSource})`);
+      }
+
+      // Vehicle-specific data confidence
+      if (actualInput.vin) {
+        confidenceScore += 10;
+        confidenceDetails.push(`10pts: VIN provided`);
+      }
+      if (actualInput.zipCode && /^\d{5}$/.test(actualInput.zipCode)) {
+        confidenceScore += 5;
+        confidenceDetails.push(`5pts: Valid location`);
+      }
+      if (actualInput.mileage > 0) {
+        confidenceScore += 10;
+        confidenceDetails.push(`10pts: Actual mileage`);
+      } else {
+        confidenceDetails.push(`0pts: No mileage data`);
+      }
+
+      confidenceScore = Math.min(95, confidenceScore);
+      console.log(`🎯 Data-driven confidence: ${confidenceScore}% (${confidenceDetails.join(', ')})`);
+
+      // INTEGRITY: Only create price ranges if we have real market data
+      let priceRangeLow = null;
+      let priceRangeHigh = null;
+      if (hasRealMarketData) {
+        const prices = marketListings.map(l => l.price).sort((a, b) => a - b);
+        const median = prices[Math.floor(prices.length / 2)];
+        const variance = Math.sqrt(prices.reduce((sum, p) => sum + Math.pow(p - median, 2), 0) / prices.length);
+        
+        priceRangeLow = Math.max(finalValue - variance, finalValue * 0.85);
+        priceRangeHigh = Math.min(finalValue + variance, finalValue * 1.15);
+        console.log(`📈 Real market-based range: $${priceRangeLow.toLocaleString()} - $${priceRangeHigh.toLocaleString()}`);
+      } else {
+        console.log(`❌ No price range - insufficient market data`);
+      }
+
+      // INTEGRITY: Enhanced data source tracking
+      const dataSources: string[] = [];
+      if (hasRealMarketData) dataSources.push(`market_listings (${marketListings.length})`);
+      if (msrpSource.includes('trim_id')) dataSources.push('trim_database');
+      else if (msrpSource.includes('database')) dataSources.push('vehicle_database');
+      else dataSources.push('estimated_msrp');
+      if (actualInput.vin) dataSources.push('vin_decode');
+      if (actualInput !== input) dataSources.push('user_follow_up');
+
+      // Create transparent valuation record
       const valuationData = {
         vin: actualInput.vin || null,
         make: actualInput.make,
         model: actualInput.model,
         year: actualInput.year,
-        mileage: actualInput.mileage, // Use actual mileage from follow-up
-        condition: actualInput.condition, // Use actual condition from follow-up
+        mileage: actualInput.mileage,
+        condition: actualInput.condition,
         zip_code: actualInput.zipCode || null,
         estimated_value: finalValue,
         confidence_score: confidenceScore,
-        adjustments: adjustments,
-        price_range_low: Math.round(finalValue * 0.92),
-        price_range_high: Math.round(finalValue * 1.08),
+        adjustments: adjustments.map(adj => ({
+          ...adj,
+          source: 'calculation_based',
+          timestamp: new Date().toISOString()
+        })),
+        price_range_low: priceRangeLow ? Math.round(priceRangeLow) : null,
+        price_range_high: priceRangeHigh ? Math.round(priceRangeHigh) : null,
         vehicle_data: {
-          baseMSRP: baseMSRP, // Store the real MSRP used
-          msrpSource: msrpSource, // Track MSRP source for transparency
-          calculationMethod: 'real_msrp_model',
+          baseMSRP: baseMSRP,
+          msrpSource: msrpSource,
+          calculationMethod: hasRealMarketData ? 'market_analysis' : 'msrp_estimation',
           dataCompleteness: {
             hasVin: !!actualInput.vin,
-            hasRealLocation: !!(actualInput.zipCode && actualInput.zipCode.length === 5 && /^\d{5}$/.test(actualInput.zipCode)),
+            hasRealLocation: !!(actualInput.zipCode && /^\d{5}$/.test(actualInput.zipCode)),
             hasActualMileage: actualInput.mileage > 0,
-            usedRealMSRP: msrpSource !== 'error_fallback',
+            usedRealMSRP: !msrpSource.includes('fallback'),
             trimId: actualInput.trim_id || null,
-            usedFollowUpData: actualInput !== input // Track if we used follow-up data
+            usedFollowUpData: actualInput !== input,
+            marketListingsCount: marketListings?.length || 0,
+            hasMarketRange: !!priceRangeLow
           }
+        },
+        dataSource: {
+          marketListings: marketListings?.length || 0,
+          calculationMethod: hasRealMarketData ? 'market_analysis' : 'msrp_estimation',
+          dataSourcesUsed: dataSources,
+          confidenceBreakdown: confidenceDetails,
+          timestamp: new Date().toISOString()
         },
         valuation_type: 'free'
       };
 
-      console.log('💰 Real valuation completed:', {
+      console.log('💰 INTEGRITY-COMPLIANT valuation completed:', {
         baseMSRP,
         msrpSource,
-        adjustments: adjustments.length,
-        finalValue,
+        marketData: hasRealMarketData,
         confidenceScore,
-        method: 'real_msrp'
+        dataSources: dataSources.length,
+        method: hasRealMarketData ? 'market_analysis' : 'msrp_estimation'
       });
 
       const result = await createValuation(valuationData);
-
-      // Trigger market orchestration for enhanced intelligence
-      try {
-        await triggerMarketOrchestration({
-          year: actualInput.year,
-          make: actualInput.make,
-          model: actualInput.model,
-          vin: actualInput.vin,
-          zip_code: actualInput.zipCode,
-          mileage: actualInput.mileage,
-          condition: actualInput.condition
-        });
-      } catch (orchestrationError) {
-        console.warn('⚠️ Market orchestration failed, continuing with basic valuation:', orchestrationError);
-      }
       
       return {
         valuationId: result.id,
@@ -467,12 +537,12 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         confidenceScore: confidenceScore
       };
     } catch (error) {
-      console.error('❌ Error processing real MSRP valuation:', error);
+      console.error('❌ Error processing data-integrity valuation:', error);
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, [createValuation, triggerMarketOrchestration]);
+  }, [createValuation]);
 
   const value = {
     isLoading,

@@ -8,6 +8,7 @@ import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationR
 import { PremiumPdfSection } from '@/components/valuation/PremiumPdfSection';
 import { TabbedFollowUpForm } from '@/components/followup/TabbedFollowUpForm';
 import { ValueBreakdown } from '@/components/valuation/ValueBreakdown';
+import { DataIntegrityPanel } from '@/components/valuation/DataIntegrityPanel';
 
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -238,59 +239,12 @@ export default function ResultsPage() {
           onUpgrade={() => toast.info('Premium upgrade coming soon')}
         />
         
-        {/* Display data source information when available */}
-        {valuationData.dataSource && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-medium text-sm mb-2">Valuation Data Sources</h4>
-            {valuationData.dataSource.marketListings && (
-              <p className="text-xs text-muted-foreground mb-1">
-                Based on {valuationData.dataSource.marketListings} market listings
-              </p>
-            )}
-            {valuationData.dataSource.calculationMethod && (
-              <p className="text-xs text-muted-foreground mb-1">
-                Method: {valuationData.dataSource.calculationMethod}
-              </p>
-            )}
-            {valuationData.dataSource.dataSourcesUsed && (
-              <p className="text-xs text-muted-foreground mb-1">
-                Sources: {valuationData.dataSource.dataSourcesUsed.join(', ')}
-              </p>
-            )}
-            {valuationData.dataSource.timestamp && (
-              <p className="text-xs text-muted-foreground">
-                Calculated: {new Date(valuationData.dataSource.timestamp).toLocaleString()}
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Show when MSRP data is available */}
-        {baseMSRP && msrpSource && msrpSource !== 'make_fallback' && msrpSource !== 'error_fallback' && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium">MSRP Used:</span> ${baseMSRP.toLocaleString()}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Source: {msrpSource === 'trim_id' ? 'Specific trim data' : 'Vehicle database'}
-            </p>
-          </div>
-        )}
-
-        {/* Show warning when critical data is missing */}
-        {(!baseMSRP || !valuationData.confidence_score || !valuationData.dataSource?.marketListings) && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <h4 className="font-medium text-sm text-amber-800 mb-2">Limited Data Available</h4>
-            <ul className="text-xs text-amber-700 space-y-1">
-              {!baseMSRP && <li>• No reliable MSRP data found</li>}
-              {!valuationData.confidence_score && <li>• Confidence score not calculated</li>}
-              {!valuationData.dataSource?.marketListings && <li>• Market comparison data limited</li>}
-            </ul>
-            <p className="text-xs text-amber-600 mt-2">
-              This valuation may be less accurate than usual. Consider upgrading to premium for more comprehensive data.
-            </p>
-          </div>
-        )}
+        {/* Data Integrity Panel - Complete Transparency */}
+        <DataIntegrityPanel
+          dataSource={valuationData.dataSource}
+          vehicleData={valuationData.vehicle_data}
+          confidenceScore={valuationData.confidence_score || 0}
+        />
       </div>
 
       {/* Value Breakdown - only show if we have real data */}
