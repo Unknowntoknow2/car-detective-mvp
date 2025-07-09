@@ -3174,8 +3174,10 @@ export type Database = {
           seasonal_multiplier: number | null
           state: string | null
           transmission: string | null
+          updated_at: string | null
           user_id: string | null
           valuation_notes: Json | null
+          valuation_type: string | null
           vehicle_data: Json | null
           vin: string | null
           warranty_status: string | null
@@ -3218,8 +3220,10 @@ export type Database = {
           seasonal_multiplier?: number | null
           state?: string | null
           transmission?: string | null
+          updated_at?: string | null
           user_id?: string | null
           valuation_notes?: Json | null
+          valuation_type?: string | null
           vehicle_data?: Json | null
           vin?: string | null
           warranty_status?: string | null
@@ -3262,8 +3266,10 @@ export type Database = {
           seasonal_multiplier?: number | null
           state?: string | null
           transmission?: string | null
+          updated_at?: string | null
           user_id?: string | null
           valuation_notes?: Json | null
+          valuation_type?: string | null
           vehicle_data?: Json | null
           vin?: string | null
           warranty_status?: string | null
