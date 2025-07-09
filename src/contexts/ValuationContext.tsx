@@ -342,28 +342,11 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         throw requestError;
       }
 
-      // Invoke the AIN full market orchestrator with enhanced error handling
-      console.log('🚀 Triggering market orchestration from ValuationContext');
-      const { data, error } = await supabase.functions.invoke('ain-full-market-orchestrator', {
-        body: {
-          request_id: request.id,
-          vehicle_params: vehicleParams
-        }
-      });
-
-      if (error) {
-        console.error('❌ Market orchestration error:', error);
-        // Continue with valuation even if market data fails
-      } else {
-        console.log('✅ Market orchestration triggered successfully:', data);
-      }
-
-      if (error) {
-        throw error;
-      }
-
-      console.log('✅ Market orchestration completed:', data);
-      return data;
+      // Market orchestration has been removed
+      console.log('ℹ️ Market orchestration feature removed');
+      // Continue with valuation using existing data
+      
+      return { success: true, message: 'Market orchestration feature removed' };
     } catch (error) {
       console.error('❌ Market orchestration error:', error);
       throw error;

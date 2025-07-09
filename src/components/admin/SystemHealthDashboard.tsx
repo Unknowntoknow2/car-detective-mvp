@@ -186,15 +186,9 @@ export function SystemHealthDashboard({ className = '' }: SystemHealthDashboardP
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-3 gap-4">
-            <Button variant="outline" asChild>
-              <a 
-                href="https://supabase.com/dashboard/project/xltxqqzattxogxtqrggt/functions/ain-full-market-orchestrator/logs" 
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View Orchestrator Logs
-              </a>
+            <Button variant="outline" disabled>
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Orchestrator Logs (Removed)
             </Button>
             <Button variant="outline" asChild>
               <a 

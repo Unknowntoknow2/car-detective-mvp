@@ -68,20 +68,14 @@ export function DataAggregationDashboard() {
 
       if (sourcesError) throw sourcesError;
 
-      // Load aggregation stats
-      const { data: pricingCount } = await supabase
-        .from('vehicle_pricing_data')
-        .select('id', { count: 'exact', head: true });
-
-      const { data: todayCount } = await supabase
-        .from('vehicle_pricing_data')
-        .select('id', { count: 'exact', head: true })
-        .gte('date_scraped', new Date().toISOString().split('T')[0]);
+      // Load aggregation stats (tables removed)
+      const pricingCount = 0;
+      const todayCount = 0;
 
       setDataSources(sources || []);
       setStats({
-        total_records: pricingCount?.length || 0,
-        records_today: todayCount?.length || 0,
+        total_records: pricingCount || 0,
+        records_today: todayCount || 0,
         active_sources: sources?.filter(s => s.is_active).length || 0,
         avg_success_rate: sources?.reduce((acc, s) => acc + s.success_rate, 0) / (sources?.length || 1) || 0,
         last_24h_scrapes: 0 // Would calculate from actual scraping logs
@@ -113,24 +107,7 @@ export function DataAggregationDashboard() {
   };
 
   const runTestAggregation = async () => {
-    try {
-      toast.info('Running test aggregation...');
-
-      const response = await supabase.functions.invoke('aggregate-vehicle-pricing', {
-        body: testVehicle
-      });
-
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-
-      toast.success(`Test completed: ${response.data.total_results} results from ${response.data.sources_successful} sources`);
-      loadDashboardData();
-
-    } catch (error) {
-      console.error('Test aggregation error:', error);
-      toast.error('Test aggregation failed');
-    }
+    toast.info('Test aggregation feature has been removed');
   };
 
   const getSourceTypeColor = (sourceType: string) => {

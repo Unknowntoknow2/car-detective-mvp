@@ -8,8 +8,8 @@ import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationR
 import { PremiumPdfSection } from '@/components/valuation/PremiumPdfSection';
 import { TabbedFollowUpForm } from '@/components/followup/TabbedFollowUpForm';
 import { ValueBreakdown } from '@/components/valuation/ValueBreakdown';
-import { ComprehensiveMarketData } from '@/components/pricing/ComprehensiveMarketData';
-import { Loader2, TrendingUp, Database } from 'lucide-react';
+
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -293,25 +293,6 @@ export default function ResultsPage() {
         </div>
       )}
 
-      {/* FANG-Level Comprehensive Market Data */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Database className="w-6 h-6 text-blue-600" />
-          <h2 className="text-2xl font-bold">Comprehensive Market Intelligence</h2>
-          <TrendingUp className="w-5 h-5 text-green-500" />
-        </div>
-        <ComprehensiveMarketData
-          vehicleData={{
-            year: vehicleInfo.year,
-            make: vehicleInfo.make,
-            model: vehicleInfo.model,
-            trim: vehicleInfo.trim,
-            vin: vehicleInfo.vin,
-            zipCode: vehicleInfo.zipCode
-          }}
-          className="w-full"
-        />
-      </div>
 
       {/* Premium PDF Section */}
       <PremiumPdfSection
