@@ -194,17 +194,42 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
         </Card>
       )}
 
+      {/* AI Explanation Section */}
+      {valuationNotes?.some(note => note.startsWith("🔍")) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-blue-700 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              AI Valuation Explanation
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded text-sm text-blue-900 space-y-2">
+              {valuationNotes
+                .filter(note => note.startsWith("🔍"))
+                .map((note, idx) => (
+                  <p key={idx} className="leading-relaxed">
+                    {note.replace("🔍 ", "")}
+                  </p>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Source Disclosure Section */}
-      {valuationNotes && valuationNotes.length > 0 && (
+      {valuationNotes && valuationNotes.filter(note => !note.startsWith("🔍")).length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-amber-700">Data Source Disclosure</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="bg-amber-50 border border-amber-200 p-3 rounded text-sm text-amber-900 space-y-2">
-              {valuationNotes.map((note, idx) => (
-                <p key={idx}>⚠️ {note}</p>
-              ))}
+              {valuationNotes
+                .filter(note => !note.startsWith("🔍"))
+                .map((note, idx) => (
+                  <p key={idx}>⚠️ {note}</p>
+                ))}
             </div>
           </CardContent>
         </Card>
