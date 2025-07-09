@@ -1,4 +1,5 @@
 import { MarketListing, ValuationInput, EnhancedValuationResult, ValueBreakdown } from "@/types/valuation";
+import { logValuationAudit } from "@/services/valuationAuditLogger";
 
 // Helper: Compute average from numeric field
 function average(numbers: number[]): number {
@@ -14,49 +15,106 @@ export async function calculateValuationFromListings(
   const prices = listings.map(l => l.price).filter(Boolean);
   const baseValue = average(prices);
 
-  const depreciation = computeDepreciation(input.year);
-  const mileageAdj = computeMileageAdjustment(input.mileage);
+  // Multi-factor real-world adjustments
+  const adjustments = {
+    depreciation: computeDepreciation(input.year),
+    mileage: computeMileageAdjustment(input.mileage),
+    condition: computeConditionAdjustment(input.condition),
+    ownership: computeOwnershipAdjustment(input.ownership),
+    usageType: computeUsageAdjustment(input.usageType),
+    marketSignal: computeMarketAdjustment(listings),
+  };
 
-  const estimatedValue = Math.max(baseValue + depreciation + mileageAdj, 0);
+  const totalAdjustments = Object.values(adjustments).reduce((sum, val) => sum + val, 0);
+  const estimatedValue = Math.max(baseValue + totalAdjustments, 0);
 
   const breakdown: ValueBreakdown = {
-    baseValue: baseValue,
-    depreciationAdjustment: depreciation,
-    mileageAdjustment: mileageAdj,
-    conditionAdjustment: 0, // No condition adjustment in market-based valuation
-    otherAdjustments: 0,
+    base_value: baseValue,
+    total_adjustments: totalAdjustments,
+    ...adjustments,
   };
+
+  const auditPayload = {
+    source: "market_listings",
+    input,
+    baseValue,
+    adjustments: { ...adjustments, total_adjustments: totalAdjustments },
+    confidence: computeConfidenceScore(listings.length),
+    listings_count: listings.length,
+    prices,
+    timestamp: new Date().toISOString(),
+  };
+
+  const audit_id = await logValuationAudit(auditPayload);
 
   return {
     estimated_value: Math.round(estimatedValue),
     base_value_source: "market_listings",
     price_range_low: Math.min(...prices),
     price_range_high: Math.max(...prices),
-    depreciation,
-    mileage_adjustment: mileageAdj,
+    depreciation: adjustments.depreciation,
+    mileage_adjustment: adjustments.mileage,
     value_breakdown: breakdown,
-    valuation_explanation: `Calculated from ${listings.length} real listings for ${input.make} ${input.model} in ${input.zipCode}`,
+    valuation_explanation: `Calculated from ${listings.length} verified listings for ${input.make} ${input.model} in ${input.zipCode}. Adjustments: depreciation (${adjustments.depreciation}), mileage (${adjustments.mileage}), condition (${adjustments.condition}), ownership (${adjustments.ownership}), usage type (${adjustments.usageType}), market volatility (${adjustments.marketSignal}).`,
     confidence_score: computeConfidenceScore(listings.length),
-    audit_id: undefined,
+    audit_id,
   };
 }
 
 function computeDepreciation(year?: number): number {
   if (!year) return 0;
   const age = new Date().getFullYear() - year;
-  const depreciationRate = 0.15; // 15% per year
-  return -1 * age * depreciationRate * 27000; // assume new MSRP $27k
+  const base = -0.15 * age * 27000;
+  return Math.round(base);
 }
 
 function computeMileageAdjustment(mileage?: number): number {
   if (!mileage) return 0;
-  const expected = 12000 * 5; // average 60k miles for a 5 year old
-  const diff = mileage - expected;
-  return -1 * (diff / 1000) * 100; // $100 per 1k miles over
+  const avg = 12000 * 5;
+  const diff = mileage - avg;
+  return Math.round(-1 * (diff / 1000) * 100);
+}
+
+function computeConditionAdjustment(condition?: string): number {
+  switch (condition?.toLowerCase()) {
+    case "excellent": return 1000;
+    case "good": return 0;
+    case "fair": return -800;
+    case "poor": return -2000;
+    default: return 0;
+  }
+}
+
+function computeOwnershipAdjustment(owners?: number): number {
+  if (!owners || owners === 1) return 0;
+  if (owners === 2) return -500;
+  return -1200; // 3+ owners
+}
+
+function computeUsageAdjustment(type?: string): number {
+  switch (type?.toLowerCase()) {
+    case "rental": return -1800;
+    case "fleet": return -1000;
+    case "commercial": return -1200;
+    default: return 0; // personal use
+  }
+}
+
+function computeMarketAdjustment(listings: MarketListing[]): number {
+  // Volatility penalty - high price variance indicates uncertain market
+  const volatility = computeStdDev(listings.map(l => l.price));
+  return -1 * Math.min(Math.round(volatility * 0.1), 2000); // Max 2k penalty
+}
+
+function computeStdDev(numbers: number[]): number {
+  if (numbers.length < 2) return 0;
+  const mean = average(numbers);
+  const squaredDiffs = numbers.map(n => Math.pow(n - mean, 2));
+  return Math.sqrt(average(squaredDiffs));
 }
 
 function computeConfidenceScore(listingCount: number): number {
-  if (listingCount >= 10) return 85;
+  if (listingCount >= 10) return 90;
   if (listingCount >= 5) return 75;
   if (listingCount >= 2) return 60;
   return 40;
