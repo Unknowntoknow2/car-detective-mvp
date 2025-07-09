@@ -93,46 +93,15 @@ export class ValuationApiService {
         throw new Error('Valuation request not found');
       }
 
-      // Call the AIN full market orchestrator (unified function)
-      console.log('🚀 Triggering market aggregation from ValuationApiService');
-      const { data, error } = await supabase.functions.invoke('ain-full-market-orchestrator', {
-        body: {
-          request_id: requestId,
-          vehicle_params: {
-            year: requestData.year,
-            make: requestData.make,
-            model: requestData.model,
-            trim: requestData.trim,
-            mileage: requestData.mileage,
-            zip_code: requestData.zip_code,
-            condition: requestData.condition,
-            vin: requestData.vin
-          },
-          sources: sources
-        }
-      });
-
-      if (error) {
-        console.error('❌ Market orchestration failed:', error);
-        return {
-          success: false,
-          error: error.message || 'Market orchestration failed'
-        };
-      }
-
-      if (!data || !data.success) {
-        return {
-          success: false,
-          error: data?.error || 'Aggregation failed'
-        };
-      }
+      // Market aggregation feature has been removed
+      console.log('ℹ️ Market aggregation feature removed from ValuationApiService');
 
       return {
         success: true,
-        total_comps: data.total_comps,
-        sources_processed: data.sources_processed,
-        execution_time_ms: data.execution_time_ms,
-        comp_summary: data.comp_summary
+        total_comps: 0,
+        sources_processed: 0,
+        execution_time_ms: 0,
+        comp_summary: { message: 'Market aggregation feature removed' }
       };
 
     } catch (error) {

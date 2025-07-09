@@ -33,8 +33,6 @@ port = 54328
 enabled = true
 port = 54329
 
-[functions.ain-full-market-orchestrator]
-verify_jwt = true
 
 [functions.fetch-auction-data]
 verify_jwt = false
