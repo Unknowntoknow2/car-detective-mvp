@@ -234,10 +234,11 @@ export interface ValuationInput {
   trim?: string;
   color?: string;
   bodyType?: string;
-  fuelType?: string;
+  fuelType?: 'gasoline' | 'diesel';
   transmission?: string;
   ownership?: number; // Number of previous owners
   usageType?: string; // "personal" | "rental" | "fleet" | "commercial"
+  mpg?: number; // Vehicle fuel economy
 }
 
 // Enhanced valuation result interface
@@ -264,6 +265,7 @@ export interface ValueBreakdown {
   ownership: number;
   usageType: number;
   marketSignal: number;
+  fuelCost: number;
 }
 
 export interface DealerInsights {
