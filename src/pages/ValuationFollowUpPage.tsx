@@ -35,24 +35,40 @@ export default function ValuationFollowUpPage() {
     navigate(-1);
   };
 
-  // FIXED: Proper follow-up submission with valuation creation
+  // Load actual follow-up data and create valuation
   const handleSubmitAnswers = async (): Promise<boolean> => {
     try {
       console.log('🚀 ValuationFollowUpPage: Creating valuation for VIN:', vehicleData.vin);
       
-      // Create valuation using the context
+      // FIXED: Load actual follow-up data instead of using defaults
+      const { FollowUpService } = await import('@/services/followUpService');
+      const { data: followUpData, error: followUpError } = await FollowUpService.getAnswersByVin(vehicleData.vin);
+      
+      if (followUpError) {
+        console.error('❌ Error loading follow-up data:', followUpError);
+        toast.error('Failed to load your information. Please try again.');
+        return false;
+      }
+
+      if (!followUpData || !followUpData.mileage || !followUpData.zip_code) {
+        console.error('❌ Missing required follow-up data');
+        toast.error('Please complete all required fields before submitting.');
+        return false;
+      }
+
+      // Use real follow-up data for valuation
       const valuationInput = {
         make: vehicleData.make,
         model: vehicleData.model,
         year: vehicleData.year,
         vin: vehicleData.vin,
         trim: vehicleData.trim || '',
-        mileage: 50000, // Default - will be updated from follow-up data
-        condition: 'good', // Default - will be updated from follow-up data 
-        zipCode: '90210', // Default - will be updated from follow-up data
+        mileage: followUpData.mileage,
+        condition: followUpData.condition || 'good',
+        zipCode: followUpData.zip_code,
       };
 
-      console.log('🚀 Processing valuation with data:', valuationInput);
+      console.log('🚀 Processing valuation with REAL user data:', valuationInput);
       const valuationResult = await processFreeValuation(valuationInput);
       
       if (valuationResult?.valuationId) {
