@@ -99,6 +99,7 @@ export function TabbedFollowUpForm({
     formData,
     updateFormData,
     saveProgress,
+    submitFollowUpAndStartValuation,
     isLoading,
     isSaving,
     saveError,
@@ -106,7 +107,11 @@ export function TabbedFollowUpForm({
     isFormValid
   } = useSimpleFollowUpForm({
     vin: vehicleData.vin,
-    initialData: { year: vehicleData.year }
+    initialData: { 
+      year: vehicleData.year,
+      make: vehicleData.make,
+      model: vehicleData.model
+    }
   });
 
   // Silent auto-save on tab change
@@ -195,14 +200,20 @@ export function TabbedFollowUpForm({
     
     setIsSubmitting(true);
     try {
-      await saveProgress(); // Save before submitting
-      await onSubmit();
+      // Use the new integrated submission function
+      const result = await submitFollowUpAndStartValuation();
+      if (result.success && result.valuationId) {
+        // Navigate to results using the parent's onSubmit (which handles navigation)
+        await onSubmit();
+      } else {
+        console.error('Submission failed:', result.message);
+      }
     } catch (error) {
       console.error('Submit error:', error);
     } finally {
       setIsSubmitting(false);
     }
-  }, [progressData.canSubmit, onSubmit, saveProgress]);
+  }, [progressData.canSubmit, submitFollowUpAndStartValuation, onSubmit]);
 
   if (isLoading) {
     return (

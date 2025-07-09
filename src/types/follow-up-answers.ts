@@ -47,11 +47,16 @@ export interface FollowUpAnswers {
   user_id?: string;
   valuation_id?: string;
   
+  // Vehicle identification
+  make?: string;
+  model?: string;
+  year?: number;
+  trim_id?: string;
+  
   // Basic info - enhanced validation
   zip_code: string;
   mileage: number;
   condition: string;
-  year?: number;
   
   // History
   accidents: AccidentDetails;
