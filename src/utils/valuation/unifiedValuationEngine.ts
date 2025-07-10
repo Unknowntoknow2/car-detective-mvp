@@ -198,18 +198,53 @@ export async function processValuation(
       await logValuationStep('MARKET_SEARCH_COMPLETE', vin, { status: marketSearchStatus, error: e instanceof Error ? e.message : 'Unknown error' }, userId);
     }
     
-    // Step 7: Calculate confidence score (10% Progress)
+    // Step 7: Calculate confidence score (10% Progress) - Enhanced Market Confidence Engine v2
     tracker.startStep('confidence_calc', { marketStatus: marketSearchStatus });
-    let confidenceScore = 55;
+    
+    // Start with base confidence
+    let confidenceScore = 40;
+    
+    // Vehicle data quality bonus
     if (vehicleMake !== 'Unknown' && vehicleModel !== 'Unknown' && vehicleYear > 1900) confidenceScore += 10;
+    
+    // Market search success bonus
     if (marketSearchStatus === "success") confidenceScore += 10;
+    
+    // Data completeness bonuses
     if (mileage > 0) confidenceScore += 5;
     if (condition && condition !== 'unknown') confidenceScore += 5;
     
+    // Market listing volume analysis
+    if (listings.length >= 5) confidenceScore += 10;
+    else if (listings.length >= 3) confidenceScore += 5;
+    
+    // Market spread analysis for confidence
+    if (listingRange && finalValue > 0) {
+      const spread = listingRange.max - listingRange.min;
+      const spreadPercent = spread / finalValue;
+      
+      console.log(`📊 Market spread analysis: ${spread} (${(spreadPercent * 100).toFixed(1)}% of final value)`);
+      
+      // Tight spread = higher confidence, wide spread = lower confidence
+      if (spreadPercent < 0.1) {
+        confidenceScore += 10; // Very tight clustering
+        console.log('✅ Very tight market spread detected (+10 confidence)');
+      } else if (spreadPercent < 0.2) {
+        confidenceScore += 5; // Moderate clustering
+        console.log('✅ Moderate market spread detected (+5 confidence)');
+      } else if (spreadPercent > 0.4) {
+        confidenceScore -= 5; // Very wide spread
+        console.log('⚠️ Wide market spread detected (-5 confidence)');
+      }
+    }
+    
+    // Cap confidence score between 30 and 95
+    confidenceScore = Math.max(30, Math.min(95, confidenceScore));
+    
     // Ensure final value is reasonable
     finalValue = Math.max(3000, Math.round(finalValue));
-    tracker.completeStep('confidence_calc', { score: confidenceScore });
-    await logValuationStep('CONFIDENCE_COMPUTED', vin, { confidenceScore, finalValue }, userId);
+    tracker.completeStep('confidence_calc', { score: confidenceScore, spreadAnalysis: listingRange ? (listingRange.max - listingRange.min) / finalValue : null });
+    await logValuationStep('CONFIDENCE_COMPUTED', vin, { confidenceScore, finalValue, listingCount: listings.length, marketSpread: listingRange }, userId);
     
     // Step 8: Generate AI explanation (10% Progress)
     tracker.startStep('ai_explanation', { finalValue, confidenceScore });

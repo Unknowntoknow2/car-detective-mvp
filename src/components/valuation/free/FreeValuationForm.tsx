@@ -20,7 +20,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Loader2, Info, Bot } from "lucide-react";
 import { useValuation } from "@/contexts/ValuationContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -109,16 +110,26 @@ export const FreeValuationForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="text-xl">Free Basic Valuation</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form
-          id="valuation-form"
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-4"
-        >
+    <TooltipProvider>
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle className="text-xl flex items-center gap-2">
+            <Bot className="w-5 h-5" />
+            Free Basic Valuation
+          </CardTitle>
+          <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
+            <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
+              <Info className="w-4 h-4" />
+              I'm AIN, your valuation assistant. Hover over any ⓘ icon to understand how each field affects your vehicle's value.
+            </p>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <form
+            id="valuation-form"
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-4"
+          >
           <div className="space-y-2">
             <Label htmlFor="make">Make</Label>
             <Input
@@ -161,7 +172,17 @@ export const FreeValuationForm = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="mileage">Mileage</Label>
+              <Label htmlFor="mileage" className="flex items-center gap-2">
+                Mileage
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="w-4 h-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Mileage impacts depreciation. Lower mileage = higher value.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </Label>
               <Input
                 id="mileage"
                 type="number"
@@ -175,13 +196,36 @@ export const FreeValuationForm = () => {
             </div>
           </div>
 
-          <ZipCodeInput
-            value={watch("zipCode") || ""}
-            onChange={(value) => setValue("zipCode", value)}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="zipCode" className="flex items-center gap-2">
+              ZIP Code
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="w-4 h-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>We use this to apply local fuel costs and regional market multipliers.</p>
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+            <ZipCodeInput
+              value={watch("zipCode") || ""}
+              onChange={(value) => setValue("zipCode", value)}
+            />
+          </div>
 
           <div className="space-y-2">
-            <Label htmlFor="condition">Condition</Label>
+            <Label htmlFor="condition" className="flex items-center gap-2">
+              Condition
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="w-4 h-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Vehicle condition can shift the value by $1,000–$2,000 or more.</p>
+                </TooltipContent>
+              </Tooltip>
+            </Label>
             <Select
               onValueChange={handleConditionChange}
               defaultValue="Good"
@@ -228,6 +272,7 @@ export const FreeValuationForm = () => {
         </Button>
       </CardFooter>
     </Card>
+    </TooltipProvider>
   );
 };
 
