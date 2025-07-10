@@ -1891,6 +1891,39 @@ export type Database = {
         }
         Relationships: []
       }
+      pdf_downloads: {
+        Row: {
+          created_at: string
+          download_count: number | null
+          file_size: number | null
+          generated_at: string
+          id: string
+          user_id: string | null
+          valuation_id: string | null
+          vin: string | null
+        }
+        Insert: {
+          created_at?: string
+          download_count?: number | null
+          file_size?: number | null
+          generated_at?: string
+          id?: string
+          user_id?: string | null
+          valuation_id?: string | null
+          vin?: string | null
+        }
+        Update: {
+          created_at?: string
+          download_count?: number | null
+          file_size?: number | null
+          generated_at?: string
+          id?: string
+          user_id?: string | null
+          valuation_id?: string | null
+          vin?: string | null
+        }
+        Relationships: []
+      }
       photo_condition_scores: {
         Row: {
           condition_score: number

@@ -63,7 +63,7 @@ export async function processValuation(
   try {
     console.log('🚀 Starting unified valuation process:', input);
     
-    const { vin, zipCode, mileage, condition } = input;
+    const { vin, zipCode, mileage, condition, userId, isPremium } = input;
     
     // Initialize progress tracking
     const tracker = progressTracker || new ValuationProgressTracker();
@@ -231,6 +231,54 @@ export async function processValuation(
     });
     tracker.completeStep('audit_log', { success: true });
     
+    // Step 10: Generate PDF for premium users (5% Progress)
+    let pdfUrl: string | undefined;
+    if (isPremium) {
+      try {
+        tracker.startStep('pdf_generation', { isPremium: true });
+        
+        // Save valuation to database first to get an ID for PDF generation
+        const { data: savedValuation, error: saveError } = await supabase
+          .from('valuations')
+          .insert({
+            user_id: userId,
+            vin,
+            make: vehicleMake,
+            model: vehicleModel,
+            year: vehicleYear,
+            mileage,
+            condition,
+            state: zipCode,
+            estimated_value: finalValue,
+            confidence_score: confidenceScore,
+            base_value: baseValue,
+            created_at: new Date().toISOString()
+          })
+          .select('id')
+          .single();
+
+        if (!saveError && savedValuation) {
+          // Call the PDF generation edge function
+          const { data: pdfData, error: pdfError } = await supabase.functions.invoke('generate-valuation-pdf', {
+            body: { valuationId: savedValuation.id }
+          });
+
+          if (!pdfError && pdfData?.url) {
+            pdfUrl = pdfData.url;
+            console.log('✅ PDF generated successfully:', pdfUrl);
+          } else {
+            console.error('❌ PDF generation failed:', pdfError);
+          }
+        }
+        
+        tracker.completeStep('pdf_generation', { pdfUrl: !!pdfUrl });
+      } catch (error) {
+        console.error('❌ Error during PDF generation:', error);
+        tracker.completeStep('pdf_generation', { error: (error as Error).message });
+        // Don't fail the entire valuation if PDF generation fails
+      }
+    }
+    
     const result: ValuationResult = {
       vehicle: {
         year: vehicleYear,
@@ -251,7 +299,12 @@ export async function processValuation(
       listingCount: listings.length,
       listings,
       marketSearchStatus,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      shareLink: `https://ain.ai/share/${vin}-${Date.now()}`, // Mock share link
+      qrCode: `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="white"/><text x="50" y="50" text-anchor="middle" dy=".3em" font-size="8">QR:${vin}</text></svg>`)}`, // Mock QR
+      isPremium: isPremium || false,
+      vin,
+      pdfUrl
     };
     
     console.log('✅ Valuation complete:', { finalValue, confidenceScore, adjustmentCount: adjustments.length });
