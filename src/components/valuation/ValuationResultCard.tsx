@@ -206,95 +206,73 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
       </Card>
 
       {/* Valuation Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Share2 className="w-5 h-5" />
-            Your Report
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* PDF Download - Premium Gated */}
-          {result.isPremium && result.pdfUrl && (
-            <Button asChild className="w-full">
-              <a href={result.pdfUrl} target="_blank" rel="noopener noreferrer">
-                📄 Download Full PDF Report
-              </a>
-            </Button>
-          )}
+      <Card className="mt-6 p-4 border shadow-sm">
+        <h3 className="text-lg font-semibold mb-2">📊 Valuation Actions</h3>
+        
+        {/* PDF Download - Premium Gated */}
+        {result.isPremium && result.pdfUrl && (
+          <Button asChild className="w-full mt-2">
+            <a
+              href={result.pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              📄 Download Full PDF Report
+            </a>
+          </Button>
+        )}
 
-          {/* Share Link */}
-          {result.shareLink && (
-            <div className="mt-4">
-              <Label className="text-sm">🔗 Share Link:</Label>
-              <div className="flex gap-2 mt-1">
-                <Input 
-                  value={result.shareLink} 
-                  readOnly 
-                  className="text-xs" 
-                />
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={copyToClipboard}
-                  className="shrink-0"
-                >
-                  {copySuccess ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                </Button>
-              </div>
-              {copySuccess && (
-                <p className="text-xs text-green-600 mt-1">Link copied to clipboard!</p>
-              )}
+        {!result.isPremium && (
+          <p className="text-sm text-muted-foreground mt-2">
+            Upgrade to Premium to unlock the full downloadable PDF report.
+          </p>
+        )}
+
+        {/* Share Link + Copy Button */}
+        {result.shareLink && (
+          <div className="mt-4">
+            <Label className="text-sm">🔗 Share this valuation:</Label>
+            <div className="flex items-center gap-2 mt-1">
+              <Input
+                value={result.shareLink}
+                readOnly
+                className="text-xs flex-grow"
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={copyToClipboard}
+              >
+                {copySuccess ? 'Copied!' : 'Copy'}
+              </Button>
             </div>
-          )}
-
-          {/* QR Code */}
-          {result.qrCode && (
-            <div className="mt-4">
-              <Label className="text-sm">📷 QR Code:</Label>
-              <div className="mt-2">
-                <img 
-                  src={result.qrCode} 
-                  alt="QR Code to share valuation" 
-                  className="h-28 border rounded-lg"
-                  title="This report can be viewed on any device by scanning the QR code."
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  This report can be viewed on any device by scanning the QR code.
-                </p>
-              </div>
-            </div>
-          )}
-
-          <Separator className="my-4" />
-
-          {/* Progress Bar & Confidence */}
-          <div className="space-y-2">
-            <Progress value={result.confidenceScore} className="mt-6" />
-            <div className="flex items-center justify-between">
-              <Label className="text-xs text-muted-foreground">
-                Confidence Score: {result.confidenceScore}%
-              </Label>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>✅ VIN decoded</span>
-                <span>✅ Fuel adjusted</span>
-                <span>✅ Mileage, condition</span>
-                <span className={`${result.marketSearchStatus === 'success' ? 'text-green-600' : 'text-yellow-600'}`}>
-                  {result.marketSearchStatus === 'success' ? '✅' : '⚠️'} Market search
-                </span>
-                {result.isPremium && result.pdfUrl && <span className="text-green-600">✅ PDF generated</span>}
-              </div>
-            </div>
+            {copySuccess && (
+              <p className="text-xs text-green-600 mt-1">Link copied to clipboard!</p>
+            )}
           </div>
+        )}
 
-          {/* Audit Footer */}
-          <div className="pt-2 border-t">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Powered by: {result.sources.join(", ").replace(/_/g, ' ')}</span>
-              {result.vin && <span>VIN: {result.vin}</span>}
-            </div>
+        {/* QR Code Display */}
+        {result.qrCode && (
+          <div className="mt-4">
+            <Label className="text-sm">📱 QR Code:</Label>
+            <img
+              src={result.qrCode}
+              alt="QR Code to share valuation"
+              className="h-28 mt-2 rounded border"
+            />
           </div>
-        </CardContent>
+        )}
+
+        {/* Confidence Progress Bar */}
+        <div className="mt-6">
+          <Label className="text-sm">Confidence Score</Label>
+          <Progress value={result.confidenceScore} className="mt-2" />
+          <p className="text-xs text-muted-foreground mt-1">
+            Based on VIN accuracy, fuel cost match, and market data injection
+          </p>
+        </div>
       </Card>
     </div>
   );
