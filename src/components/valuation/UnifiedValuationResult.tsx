@@ -163,29 +163,36 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
         <Card>
           <CardHeader>
             <CardTitle>Value Adjustments</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Detailed breakdown of factors affecting your vehicle's value
+            </p>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {adjustments.map((adjustment, index) => (
-                <div key={index} className="space-y-1">
+                <div key={index} className="space-y-1 p-3 border rounded-lg">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">{adjustment.factor}</span>
-                    <span className={`text-sm font-medium ${
+                    <span className={`text-sm font-semibold ${
                       adjustment.impact > 0 ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {adjustment.impact > 0 ? '+' : ''}${adjustment.impact.toLocaleString()}
+                      {adjustment.impact > 0 ? '+' : ''}${Math.abs(adjustment.impact).toLocaleString()}
                     </span>
                   </div>
                   {adjustment.description && (
                     <p className="text-xs text-muted-foreground">{adjustment.description}</p>
                   )}
                   {adjustment.source && (
-                    <p className="text-xs text-blue-600">Source: {adjustment.source}</p>
-                  )}
-                  {adjustment.timestamp && (
-                    <p className="text-xs text-muted-foreground">
-                      Applied: {new Date(adjustment.timestamp).toLocaleString()}
-                    </p>
+                    <div className="flex items-center gap-1">
+                      <Badge variant="outline" className="text-xs">
+                        {adjustment.source}
+                      </Badge>
+                      {adjustment.timestamp && (
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(adjustment.timestamp).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
@@ -217,19 +224,27 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
         </Card>
       )}
 
-      {/* Source Disclosure Section */}
-      {valuationNotes && valuationNotes.filter(note => !note.startsWith("🔍")).length > 0 && (
+      {/* Data Sources & Transparency */}
+      {dataSources && dataSources.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-amber-700">Data Source Disclosure</CardTitle>
+            <CardTitle className="text-blue-700">Data Sources & Transparency</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="bg-amber-50 border border-amber-200 p-3 rounded text-sm text-amber-900 space-y-2">
-              {valuationNotes
-                .filter(note => !note.startsWith("🔍"))
-                .map((note, idx) => (
-                  <p key={idx}>⚠️ {note}</p>
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded text-sm space-y-2">
+              <p className="font-medium text-blue-900">This valuation used the following data sources:</p>
+              <ul className="list-disc list-inside space-y-1 text-blue-800">
+                {dataSources.map((source, idx) => (
+                  <li key={idx}>
+                    {source === 'eia_fuel_costs' && 'U.S. Energy Information Administration (EIA) regional fuel pricing'}
+                    {source === 'openai_market_search' && 'Real-time market listing analysis via OpenAI'}
+                    {source === 'estimated_msrp' && 'Estimated MSRP based on vehicle specifications'}
+                    {source === 'decoded_msrp' && 'Real MSRP from vehicle database'}
+                    {source === 'unified_engine' && 'Unified valuation engine with multiple adjustment factors'}
+                    {!['eia_fuel_costs', 'openai_market_search', 'estimated_msrp', 'decoded_msrp', 'unified_engine'].includes(source) && source}
+                  </li>
                 ))}
+              </ul>
             </div>
           </CardContent>
         </Card>
