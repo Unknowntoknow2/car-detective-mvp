@@ -1,6 +1,9 @@
 // OpenAI Agent - AI-powered fallback valuation
 import { ValuationInput, EnhancedValuationResult } from "@/types/valuation";
 
+// Re-export the AI explanation service
+export { generateAIExplanation } from "@/services/aiExplanationService";
+
 export async function generateOpenAIFallbackValuation(input: ValuationInput): Promise<EnhancedValuationResult> {
   try {
     console.log('🤖 OpenAI Agent: Generating AI fallback valuation for:', {
