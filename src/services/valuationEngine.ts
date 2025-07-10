@@ -1,6 +1,7 @@
 import { MarketListing, ValuationInput, EnhancedValuationResult, ValueBreakdown } from "@/types/valuation";
 import { logValuationAudit } from "@/services/valuationAuditLogger";
 import { fetchRegionalFuelPrice, computeFuelCostImpact } from "@/services/fuelCostService";
+import { fetchMarketComps } from "@/agents/marketSearchAgent";
 
 // Helper: Compute average from numeric field
 function average(numbers: number[]): number {
@@ -14,7 +15,12 @@ export async function calculateValuationFromListings(
   if (!listings || listings.length === 0) throw new Error("No listings provided");
 
   const prices = listings.map(l => l.price).filter(Boolean);
-  const baseValue = average(prices);
+  let baseValue = average(prices);
+  
+  // TODO: Implement real market comps via OpenAI search
+  // This will be added in a future iteration
+  let marketCompsAdjustment = 0;
+  let marketCompsUsed = false;
 
   // Fetch regional fuel price for cost-of-ownership calculations
   const regionalFuelPrice = await fetchRegionalFuelPrice(input.zipCode, input.fuelType || 'gasoline');
@@ -29,6 +35,7 @@ export async function calculateValuationFromListings(
     usageType: computeUsageAdjustment(input.usageType),
     marketSignal: computeMarketAdjustment(listings),
     fuelCost: Math.round(fuelCostImpact.annualSavings * 0.3), // 30% of annual fuel savings affects resale value
+    marketComps: marketCompsAdjustment, // Real market data adjustment
   };
 
   const totalAdjustments = Object.values(adjustments).reduce((sum, val) => sum + val, 0);
@@ -44,9 +51,11 @@ export async function calculateValuationFromListings(
     source: "market_listings",
     input,
     baseValue,
-    adjustments: { ...adjustments, total_adjustments: totalAdjustments },
-    confidence: computeConfidenceScore(listings.length),
+    adjustments,
+    confidence: computeConfidenceScore(listings.length, marketCompsUsed),
     listings_count: listings.length,
+    market_comps_used: marketCompsUsed,
+    fuel_price_used: regionalFuelPrice,
     prices,
     timestamp: new Date().toISOString(),
   };
@@ -61,8 +70,8 @@ export async function calculateValuationFromListings(
     depreciation: adjustments.depreciation,
     mileage_adjustment: adjustments.mileage,
     value_breakdown: breakdown,
-    valuation_explanation: `Calculated from ${listings.length} verified listings for ${input.make} ${input.model} in ${input.zipCode}. Adjustments: depreciation (${adjustments.depreciation}), mileage (${adjustments.mileage}), condition (${adjustments.condition}), ownership (${adjustments.ownership}), usage type (${adjustments.usageType}), market volatility (${adjustments.marketSignal}).`,
-    confidence_score: computeConfidenceScore(listings.length),
+    valuation_explanation: generateEnhancedExplanation(input, listings.length, adjustments, marketCompsUsed, fuelCostImpact),
+    confidence_score: computeConfidenceScore(listings.length, marketCompsUsed),
     audit_id,
   };
 }
@@ -119,9 +128,52 @@ function computeStdDev(numbers: number[]): number {
   return Math.sqrt(average(squaredDiffs));
 }
 
-function computeConfidenceScore(listingCount: number): number {
-  if (listingCount >= 10) return 90;
-  if (listingCount >= 5) return 75;
-  if (listingCount >= 2) return 60;
-  return 40;
+function computeConfidenceScore(listingCount: number, marketCompsUsed: boolean = false): number {
+  let baseConfidence = 40;
+  
+  if (listingCount >= 10) baseConfidence = 90;
+  else if (listingCount >= 5) baseConfidence = 75;
+  else if (listingCount >= 2) baseConfidence = 60;
+  
+  // Boost confidence if real market comps were used
+  if (marketCompsUsed) {
+    baseConfidence += 10;
+  }
+  
+  return Math.min(baseConfidence, 95); // Cap at 95%
+}
+
+function generateEnhancedExplanation(
+  input: ValuationInput, 
+  listingCount: number, 
+  adjustments: any, 
+  marketCompsUsed: boolean,
+  fuelCostImpact: any
+): string {
+  let explanation = '';
+  
+  if (marketCompsUsed) {
+    explanation += `Based on real market listings for ${input.year} ${input.make} ${input.model}`;
+    if (input.trim) explanation += ` ${input.trim}`;
+    explanation += ` near ${input.zipCode}. `;
+  } else {
+    explanation += `Calculated from ${listingCount} verified listings for ${input.make} ${input.model} in ${input.zipCode}. `;
+  }
+  
+  const adjustmentDetails = [];
+  if (adjustments.depreciation) adjustmentDetails.push(`depreciation (${adjustments.depreciation})`);
+  if (adjustments.mileage) adjustmentDetails.push(`mileage (${adjustments.mileage})`);
+  if (adjustments.condition) adjustmentDetails.push(`condition (${adjustments.condition})`);
+  if (adjustments.fuelCost) adjustmentDetails.push(`fuel cost impact (${adjustments.fuelCost})`);
+  if (adjustments.marketComps) adjustmentDetails.push(`market adjustment (${adjustments.marketComps})`);
+  
+  if (adjustmentDetails.length > 0) {
+    explanation += `Key adjustments: ${adjustmentDetails.join(', ')}.`;
+  }
+  
+  if (fuelCostImpact.annualSavings !== 0) {
+    explanation += ` ${fuelCostImpact.explanation}`;
+  }
+  
+  return explanation;
 }

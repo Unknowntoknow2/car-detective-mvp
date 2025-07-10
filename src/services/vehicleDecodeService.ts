@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { VehicleDecodeResponse, DecodedVehicleInfo } from '@/types/vehicle-decode';
+import { parseVehicleMetadataWithMpg } from '@/utils/vehicleMetaParser';
 
 export async function decodeVin(vin: string): Promise<VehicleDecodeResponse> {
   try {
@@ -24,11 +25,31 @@ export async function decodeVin(vin: string): Promise<VehicleDecodeResponse> {
     
     // Handle successful response
     if (data && data.success) {
+      const decoded = data.decoded;
+      
+      // Parse enhanced metadata from decode result
+      const metadata = parseVehicleMetadataWithMpg(
+        decoded,
+        decoded.make || '',
+        decoded.model || '',
+        decoded.year || new Date().getFullYear()
+      );
+      
+      console.log('🔧 Parsed vehicle metadata:', metadata);
+      
       return {
         success: true,
         vin: data.vin,
         source: data.source,
-        decoded: data.decoded
+        decoded: {
+          ...decoded,
+          // Inject parsed metadata into decoded result
+          trim: metadata.trim || decoded.trim,
+          fuelType: metadata.fuelType !== 'Unknown' ? metadata.fuelType : decoded.fuelType,
+          fuel_type: metadata.fuelType !== 'Unknown' ? metadata.fuelType : decoded.fuel_type,
+          engine: metadata.engine || decoded.engine,
+          estimatedMpg: metadata.estimatedMpg,
+        }
       };
     }
     

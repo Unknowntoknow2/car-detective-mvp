@@ -266,6 +266,7 @@ export interface ValueBreakdown {
   usageType: number;
   marketSignal: number;
   fuelCost: number;
+  marketComps: number;
 }
 
 export interface DealerInsights {
