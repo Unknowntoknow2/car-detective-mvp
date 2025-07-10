@@ -42,7 +42,7 @@ export function ValueBreakdown({
     return 'text-gray-600';
   };
 
-  const totalAdjustments = adjustments.reduce((sum, adj) => sum + adj.impact, 0);
+  const totalAdjustments = adjustments.reduce((sum, adj) => sum + (adj.impact || 0), 0);
   const realBaseMSRP = vehicleData?.baseMSRP || baseValue;
   const usedRealMSRP = vehicleData?.usedRealMSRP || false;
 
@@ -109,9 +109,9 @@ export function ValueBreakdown({
                   </div>
                 </div>
                 <div className={`font-semibold ${getAdjustmentColor(adjustment.impact)}`}>
-                  {adjustment.impact >= 0 ? '+' : ''}${adjustment.impact.toLocaleString()}
+                  {adjustment.impact >= 0 ? '+' : ''}${(adjustment.impact || 0).toLocaleString()}
                   <div className="text-xs text-muted-foreground">
-                    ({adjustment.percentage >= 0 ? '+' : ''}{adjustment.percentage.toFixed(1)}%)
+                    ({(adjustment.percentage || 0) >= 0 ? '+' : ''}{(adjustment.percentage || 0).toFixed(1)}%)
                   </div>
                 </div>
               </div>

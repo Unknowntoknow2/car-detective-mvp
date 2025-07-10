@@ -197,7 +197,13 @@ export default function ResultsPage() {
         
         {/* Data Integrity Panel - Complete Transparency */}
         <DataIntegrityPanel
-          dataSource={valuationData.data_source}
+          dataSource={valuationData.data_source || {
+            marketListings: 0,
+            calculationMethod: 'market_analysis',
+            dataSourcesUsed: [],
+            confidenceBreakdown: [],
+            timestamp: new Date().toISOString()
+          }}
           vehicleData={valuationData.vehicle_data}
           confidenceScore={valuationData.confidence_score || 0}
         />
@@ -206,9 +212,14 @@ export default function ResultsPage() {
       {/* Value Breakdown - only show if we have real data */}
       {(baseMSRP || valuationData.adjustments?.length) && (
         <ValueBreakdown
-          adjustments={valuationData.adjustments || []}
+          adjustments={(valuationData.adjustments || []).map((adj: any) => ({
+            factor: adj.factor || 'Unknown factor',
+            impact: adj.impact || 0,
+            percentage: adj.percentage || 0,
+            description: adj.description || 'No description available'
+          }))}
           baseValue={baseMSRP || 0}
-          finalValue={valuationData.estimated_value}
+          finalValue={valuationData.estimated_value || 0}
           confidenceScore={valuationData.confidence_score || 0}
           vehicleData={{
             baseMSRP: baseMSRP || 0,
