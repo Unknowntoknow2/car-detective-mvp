@@ -16,11 +16,43 @@ export async function calculateValuationFromListings(
 
   const prices = listings.map(l => l.price).filter(Boolean);
   let baseValue = average(prices);
+  let baseValueSource = "market_listings";
   
-  // TODO: Implement real market comps via OpenAI search
-  // This will be added in a future iteration
+  // GPT Market Comps with Fallback Logic
   let marketCompsAdjustment = 0;
   let marketCompsUsed = false;
+  let usedMarketFallback = false;
+  let listingSources: any[] = [];
+
+  try {
+    console.log('🔍 Attempting to fetch live market comps via OpenAI...');
+    const comps = await fetchMarketComps(input);
+
+    if (comps && comps.length >= 2) {
+      const compPrices = comps.map(c => c.price);
+      const avgCompPrice = average(compPrices);
+      const delta = avgCompPrice - baseValue;
+      
+      // Only use if the adjustment is reasonable (less than 50% of base value)
+      if (Math.abs(delta) < 0.5 * baseValue) {
+        marketCompsAdjustment = delta;
+        baseValue = avgCompPrice;
+        baseValueSource = "real_listings";
+        marketCompsUsed = true;
+        listingSources = comps.slice(0, 5); // Keep top 5 for display
+        console.log(`✅ Market comps applied: ${comps.length} listings, avg: $${avgCompPrice.toLocaleString()}`);
+      } else {
+        usedMarketFallback = true;
+        console.warn(`[ValuationEngine] Market comp adjustment too large (${delta}), using fallback.`);
+      }
+    } else {
+      usedMarketFallback = true;
+      console.warn("[ValuationEngine] Market comp fallback triggered: insufficient listings found.");
+    }
+  } catch (err) {
+    usedMarketFallback = true;
+    console.error("[ValuationEngine] Market comp fetch failed:", err);
+  }
 
   // Fetch regional fuel price for cost-of-ownership calculations
   const regionalFuelPrice = await fetchRegionalFuelPrice(input.zipCode, input.fuelType || 'gasoline');
@@ -64,13 +96,13 @@ export async function calculateValuationFromListings(
 
   return {
     estimated_value: Math.round(estimatedValue),
-    base_value_source: "market_listings",
+    base_value_source: baseValueSource,
     price_range_low: Math.min(...prices),
     price_range_high: Math.max(...prices),
     depreciation: adjustments.depreciation,
     mileage_adjustment: adjustments.mileage,
     value_breakdown: breakdown,
-    valuation_explanation: generateEnhancedExplanation(input, listings.length, adjustments, marketCompsUsed, fuelCostImpact),
+    valuation_explanation: generateEnhancedExplanation(input, listings.length, adjustments, marketCompsUsed, fuelCostImpact, usedMarketFallback, listingSources),
     confidence_score: computeConfidenceScore(listings.length, marketCompsUsed),
     audit_id,
   };
@@ -148,14 +180,18 @@ function generateEnhancedExplanation(
   listingCount: number, 
   adjustments: any, 
   marketCompsUsed: boolean,
-  fuelCostImpact: any
+  fuelCostImpact: any,
+  usedMarketFallback: boolean = false,
+  listingSources: any[] = []
 ): string {
   let explanation = '';
   
   if (marketCompsUsed) {
-    explanation += `Based on real market listings for ${input.year} ${input.make} ${input.model}`;
+    explanation += `✅ Based on ${listingSources.length} real market listings for ${input.year} ${input.make} ${input.model}`;
     if (input.trim) explanation += ` ${input.trim}`;
     explanation += ` near ${input.zipCode}. `;
+  } else if (usedMarketFallback) {
+    explanation += `ℹ️ Live market listings were unavailable for ${input.year} ${input.make} ${input.model} near ${input.zipCode}. This estimate uses verified listings from our database with MSRP adjustments. `;
   } else {
     explanation += `Calculated from ${listingCount} verified listings for ${input.make} ${input.model} in ${input.zipCode}. `;
   }
