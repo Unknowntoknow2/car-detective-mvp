@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, FileText, AlertTriangle, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { ExternalLink, FileText, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Download, Loader2 } from 'lucide-react';
 import type { ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
+import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 
 interface ValuationResultCardProps {
   result: ValuationResult;
@@ -15,6 +16,8 @@ interface ValuationResultCardProps {
 }
 
 export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: ValuationResultCardProps) {
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  
   const {
     vehicle,
     finalValue,
@@ -26,6 +29,22 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
     marketSearchStatus,
     sources
   } = result;
+
+  const handleDownloadPdf = async () => {
+    if (isGeneratingPdf) return;
+    
+    setIsGeneratingPdf(true);
+    try {
+      await downloadValuationPdf(result);
+      // Call the optional callback if provided
+      onDownloadPdf?.();
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      // Could add toast notification here
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   // Confidence indicator color
   const getConfidenceColor = (score: number) => {
@@ -173,9 +192,18 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
 
       {/* Action Buttons */}
       <div className="flex gap-4">
-        <Button onClick={onDownloadPdf} className="flex-1" variant="outline">
-          <FileText className="w-4 h-4 mr-2" />
-          Download Report
+        <Button 
+          onClick={handleDownloadPdf} 
+          className="flex-1" 
+          variant="outline"
+          disabled={isGeneratingPdf}
+        >
+          {isGeneratingPdf ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Download className="w-4 h-4 mr-2" />
+          )}
+          {isGeneratingPdf ? 'Generating PDF...' : 'Download PDF Report'}
         </Button>
         <Button onClick={onShareReport} className="flex-1">
           <ExternalLink className="w-4 h-4 mr-2" />
