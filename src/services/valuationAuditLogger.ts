@@ -24,13 +24,32 @@ export async function logValuationAudit(payload: ValuationAuditPayload): Promise
       baseValue: payload.baseValue
     });
 
+    // Prepare the correct data structure for the edge function
+    const auditData = {
+      vin: payload.input?.vin || 'unknown',
+      action: 'valuation_calculated',
+      input_data: payload.input,
+      output_data: {
+        finalValue: payload.baseValue,
+        adjustments: payload.adjustments,
+        sources: Object.keys(payload.adjustments || {}),
+        listingCount: payload.listings_count,
+        prices: payload.prices
+      },
+      confidence_score: payload.confidence,
+      sources_used: [`market_listings_${payload.listings_count}`],
+      processing_time_ms: Date.now() - new Date(payload.timestamp).getTime(),
+      created_at: payload.timestamp
+    };
+
     // Use edge function for service role access to bypass RLS
     const { data, error } = await supabase.functions.invoke('log-valuation-audit', {
-      body: payload
+      body: auditData
     });
 
     if (error) {
       console.error('❌ Error calling audit logging function:', error);
+      console.error('❌ Error details:', JSON.stringify(error, null, 2));
       return 'audit_error_' + Date.now();
     }
 

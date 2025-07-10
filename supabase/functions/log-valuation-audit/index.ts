@@ -27,41 +27,34 @@ serve(async (req) => {
       confidence: payload.confidence_score
     });
 
-    // Extract key data from payload
+    // Extract key data from payload - match actual table schema
     const auditData = {
+      user_id: payload.input_data?.userId || null,
       vin: payload.vin || payload.input_data?.vin || 'unknown',
-      action: payload.action || 'valuation_calculated',
-      input_data: {
-        vehicle: {
-          vin: payload.input_data?.vin,
-          make: payload.input_data?.make,
-          model: payload.input_data?.model,
-          year: payload.input_data?.year,
-          mileage: payload.input_data?.mileage,
-          condition: payload.input_data?.condition,
-          zipCode: payload.input_data?.zipCode,
-          userId: payload.input_data?.userId
-        },
-        timestamp: payload.input_data?.timestamp || new Date().toISOString()
-      },
-      output_data: {
-        estimated_value: payload.output_data?.finalValue,
-        confidence_score: payload.confidence_score,
-        base_value: payload.output_data?.baseValue,
-        adjustments: payload.output_data?.adjustments,
+      zip_code: payload.input_data?.zipCode || null,
+      step: payload.action || 'valuation_calculated',
+      adjustment: 0, // Default value for required field
+      final_value: payload.output_data?.finalValue || 0,
+      confidence_score: payload.confidence_score || 85,
+      status: 'COMPLETED',
+      valuation_request_id: null, // Will be set when we implement proper request tracking
+      adjustment_reason: 'Market data analysis',
+      base_value: payload.output_data?.baseValue || payload.output_data?.finalValue || 0,
+      adjustment_percentage: 0,
+      data_sources: payload.sources_used || ['market_listings'],
+      metadata: {
+        input_data: payload.input_data,
+        output_data: payload.output_data,
+        processing_time_ms: payload.processing_time_ms,
         sources: payload.output_data?.sources,
-        listing_count: payload.output_data?.listingCount,
-        market_search_status: payload.output_data?.marketSearchStatus,
-        status: payload.output_data?.status
+        listing_count: payload.output_data?.listingCount
       },
-      audit_data: payload.audit_data || payload,
-      confidence_score: payload.confidence_score,
-      sources_used: payload.sources_used || [],
-      fallback_used: !payload.sources_used?.includes('market_listings'),
-      quality_score: payload.confidence_score,
-      processing_time_ms: payload.processing_time_ms,
-      created_at: payload.created_at || new Date().toISOString()
+      timestamp: new Date(payload.created_at || new Date().toISOString()),
+      created_at: new Date(payload.created_at || new Date().toISOString()),
+      updated_at: new Date()
     };
+
+    console.log('🔍 Inserting audit data:', JSON.stringify(auditData, null, 2));
 
     const { data, error } = await supabase
       .from('valuation_audit_logs')
