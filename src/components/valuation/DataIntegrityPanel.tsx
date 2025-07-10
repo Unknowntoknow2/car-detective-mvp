@@ -115,7 +115,7 @@ export const DataIntegrityPanel: React.FC<DataIntegrityPanelProps> = ({
               <div className="text-xs text-muted-foreground">
                 {getMSRPSourceDescription(vehicleData.msrpSource || 'unknown')}
               </div>
-              {!vehicleData.dataCompleteness.usedRealMSRP && (
+              {vehicleData.dataCompleteness && !vehicleData.dataCompleteness.usedRealMSRP && (
                 <div className="flex items-center gap-1 text-amber-600">
                   <AlertTriangle className="w-3 h-3" />
                   <span className="text-xs">Using estimated MSRP</span>
