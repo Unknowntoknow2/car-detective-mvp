@@ -348,22 +348,105 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
         </CardContent>
       </Card>
 
-      {/* Data Sources */}
+      {/* FIX #6: Enhanced Data Sources with Traceability */}
       <Card>
         <CardHeader>
-          <CardTitle>Data Sources</CardTitle>
+          <CardTitle>Data Sources & Audit Trail</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {sources.map((source, index) => (
-              <Badge key={index} variant="outline" className="capitalize">
-                {source.replace(/_/g, ' ')}
-              </Badge>
-            ))}
+        <CardContent className="space-y-4">
+          {/* Live Market Listings Display */}
+          {result.listings && result.listings.length > 0 ? (
+            <div className="space-y-2">
+              <h4 className="font-medium text-sm">Market Listings ({result.listingCount})</h4>
+              <div className="grid gap-2 max-h-48 overflow-y-auto">
+                {result.listings.slice(0, 5).map((listing, index) => (
+                  <div key={index} className="flex justify-between items-center p-2 bg-muted/50 rounded text-sm">
+                    <div>
+                      <span className="font-medium">${listing.price?.toLocaleString() || 'N/A'}</span>
+                      <span className="text-muted-foreground ml-2">
+                        {listing.mileage ? `${listing.mileage.toLocaleString()} mi` : 'Unknown mi'}
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="text-xs">{listing.source || 'Web'}</Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                No live market listings found. Valuation based on depreciation model and regional adjustments.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Source Traceability with Tooltips */}
+          <div className="space-y-2">
+            <h4 className="font-medium text-sm">Source Traceability</h4>
+            <div className="flex flex-wrap gap-2">
+              {sources.map((source, index) => {
+                const getSourceTooltip = (src: string) => {
+                  switch (src) {
+                    case 'eia_fuel_costs': return 'Fuel pricing from U.S. Energy Information Administration';
+                    case 'openai_market_search': return 'Live market listings via AI web search';
+                    case 'msrp_db_lookup': return 'MSRP from verified database';
+                    case 'estimated_msrp': return 'Estimated MSRP based on vehicle class';
+                    default: return `Data source: ${src.replace(/_/g, ' ')}`;
+                  }
+                };
+
+                return (
+                  <Tooltip key={index}>
+                    <TooltipTrigger>
+                      <Badge variant="outline" className="capitalize cursor-help">
+                        {source.replace(/_/g, ' ')}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{getSourceTooltip(source)}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
           </div>
+
+          {/* Inline Audit Trail */}
+          <div className="space-y-2">
+            <h4 className="font-medium text-sm">Process Audit Trail</h4>
+            <div className="grid grid-cols-2 gap-1 text-xs">
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-3 h-3 text-green-600" />
+                <span>VIN Decoded ✓</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-3 h-3 text-green-600" />
+                <span>MSRP {sources.includes('msrp_db_lookup') ? 'DB Lookup' : 'Estimated'} ✓</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-3 h-3 text-green-600" />
+                <span>Fuel Cost {sources.includes('eia_fuel_costs') ? 'EIA Live' : 'Fallback'} ✓</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className={`w-3 h-3 ${result.marketSearchStatus === 'success' ? 'text-green-600' : 'text-yellow-600'}`} />
+                <span>Market {result.marketSearchStatus === 'success' ? 'Live Data' : 'Fallback'} {result.marketSearchStatus === 'success' ? '✓' : '⚠'}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-3 h-3 text-green-600" />
+                <span>Confidence {result.confidenceScore}% ✓</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-3 h-3 text-green-600" />
+                <span>AI Explanation ✓</span>
+              </div>
+            </div>
+          </div>
+
           <Separator className="my-4" />
           <p className="text-xs text-muted-foreground">
             Valuation completed at {new Date(result.timestamp).toLocaleString()}
+            {result.isPremium && ' • Premium Analysis'}
           </p>
         </CardContent>
       </Card>

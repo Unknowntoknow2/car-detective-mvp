@@ -54,6 +54,26 @@ export async function getFuelCostByZip(zipCode: string, fuelType: string = 'gaso
 
     if (freshData?.success && freshData.cost_per_gallon) {
       console.log(`✅ Fresh fuel price: $${freshData.cost_per_gallon}/gal`);
+      
+      // FIX #3: Cache fresh fuel data to database
+      try {
+        await supabase
+          .from('regional_fuel_costs')
+          .upsert({
+            zip_code: zipCode,
+            fuel_type: fuelType,
+            cost_per_gallon: freshData.cost_per_gallon,
+            source: 'EIA',
+            state_code: freshData.state_code,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'zip_code,fuel_type'
+          });
+        console.log('✅ Fuel price cached to database');
+      } catch (cacheError) {
+        console.error('⚠️ Failed to cache fuel price:', cacheError);
+      }
+      
       return {
         cost_per_gallon: freshData.cost_per_gallon,
         source: freshData.source,
