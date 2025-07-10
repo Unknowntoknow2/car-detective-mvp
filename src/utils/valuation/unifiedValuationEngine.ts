@@ -45,6 +45,11 @@ export interface ValuationResult {
   listings: any[];
   marketSearchStatus: "success" | "fallback" | "error";
   timestamp: number;
+  // Sharing and premium features
+  shareLink?: string;
+  qrCode?: string;
+  isPremium?: boolean;
+  vin?: string;
 }
 
 /**

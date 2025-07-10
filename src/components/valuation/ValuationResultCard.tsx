@@ -5,7 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, FileText, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Download, Loader2 } from 'lucide-react';
+import { ExternalLink, FileText, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Download, Loader2, QrCode, Share2, Lock } from 'lucide-react';
 import type { ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
 import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 
@@ -190,26 +190,105 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
         </CardContent>
       </Card>
 
+      {/* Shareable Report Link + QR Code */}
+      {result.shareLink && result.qrCode && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Share2 className="w-5 h-5" />
+              Shareable Report
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-2">Share this report with others:</p>
+                <p className="text-sm break-words bg-muted p-3 rounded">
+                  <a 
+                    href={result.shareLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-primary hover:underline"
+                  >
+                    {result.shareLink}
+                  </a>
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-2">QR Code:</p>
+                  <img 
+                    src={result.qrCode} 
+                    alt="QR Code for shareable report" 
+                    className="w-32 h-32 border rounded-lg" 
+                  />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground">
+                    Anyone with this link can view a public version of your valuation report. 
+                    Scan the QR code or share the link to provide instant access.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Action Buttons */}
       <div className="flex gap-4">
-        <Button 
-          onClick={handleDownloadPdf} 
-          className="flex-1" 
-          variant="outline"
-          disabled={isGeneratingPdf}
-        >
-          {isGeneratingPdf ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <Download className="w-4 h-4 mr-2" />
-          )}
-          {isGeneratingPdf ? 'Generating PDF...' : 'Download PDF Report'}
-        </Button>
+        {/* PDF Download - Premium Gated */}
+        {result.isPremium ? (
+          <Button 
+            onClick={handleDownloadPdf} 
+            className="flex-1" 
+            variant="outline"
+            disabled={isGeneratingPdf}
+          >
+            {isGeneratingPdf ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4 mr-2" />
+            )}
+            {isGeneratingPdf ? 'Generating PDF...' : 'Download PDF Report'}
+          </Button>
+        ) : (
+          <div className="flex-1">
+            <Button 
+              className="w-full" 
+              variant="outline"
+              disabled
+            >
+              <Lock className="w-4 h-4 mr-2" />
+              Premium PDF Report
+            </Button>
+            <p className="text-xs text-muted-foreground mt-1 text-center">
+              Upgrade to premium to download your full PDF report
+            </p>
+          </div>
+        )}
+        
         <Button onClick={onShareReport} className="flex-1">
           <ExternalLink className="w-4 h-4 mr-2" />
           Share Report
         </Button>
       </div>
+
+      {/* Audit Meta Section */}
+      <Card className="bg-muted/30">
+        <CardContent className="pt-4">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center gap-4">
+              <span>Confidence: {result.confidenceScore}%</span>
+              <span>•</span>
+              <span>Powered by: {result.sources.join(", ").replace(/_/g, ' ')}</span>
+            </div>
+            <div>
+              {result.vin && <span>VIN: {result.vin}</span>}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
