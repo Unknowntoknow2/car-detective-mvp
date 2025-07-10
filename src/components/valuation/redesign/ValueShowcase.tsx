@@ -25,6 +25,14 @@ export function ValueShowcase({
   confidenceScore,
   className = ''
 }: ValueShowcaseProps) {
+  // Add defensive checks
+  if (!estimatedValue || typeof estimatedValue !== 'number') {
+    return (
+      <Card className="p-6">
+        <p className="text-muted-foreground">Loading value data...</p>
+      </Card>
+    );
+  }
   const [displayValue, setDisplayValue] = useState(0);
   const motionValue = useMotionValue(0);
   const rounded = useTransform(motionValue, latest => Math.round(latest));

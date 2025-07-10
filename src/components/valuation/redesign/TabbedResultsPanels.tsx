@@ -24,6 +24,14 @@ interface TabbedResultsPanelsProps {
 }
 
 export function TabbedResultsPanels({ result }: TabbedResultsPanelsProps) {
+  // Add defensive checks
+  if (!result) {
+    return (
+      <Card className="p-6">
+        <p className="text-muted-foreground">Loading results data...</p>
+      </Card>
+    );
+  }
   const tabs = [
     {
       id: 'overview',

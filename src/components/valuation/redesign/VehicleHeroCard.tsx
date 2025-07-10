@@ -31,6 +31,14 @@ export function VehicleHeroCard({
   timestamp,
   isPremium = false
 }: VehicleHeroCardProps) {
+  // Add defensive checks
+  if (!vehicle || !estimatedValue) {
+    return (
+      <Card className="h-48 flex items-center justify-center">
+        <p className="text-muted-foreground">Loading vehicle information...</p>
+      </Card>
+    );
+  }
   const getConfidenceLevel = (score: number) => {
     if (score >= 85) return { label: 'High Confidence', variant: 'default' as const, color: 'text-emerald-600' };
     if (score >= 70) return { label: 'Good Confidence', variant: 'secondary' as const, color: 'text-blue-600' };

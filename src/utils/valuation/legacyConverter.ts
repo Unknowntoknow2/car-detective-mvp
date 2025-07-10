@@ -35,6 +35,7 @@ export function convertLegacyToUnified(
   vehicleInfo: LegacyVehicleInfo,
   valuationData: LegacyValuationData
 ): ValuationResult {
+  console.log('🔄 Converting legacy data:', { vehicleInfo, valuationData });
   return {
     vin: vehicleInfo.vin || '',
     vehicle: {
