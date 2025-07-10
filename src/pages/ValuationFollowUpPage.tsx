@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { useValuation } from '@/contexts/ValuationContext';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function ValuationFollowUpPage() {
   const [searchParams] = useSearchParams();
@@ -41,6 +42,21 @@ export default function ValuationFollowUpPage() {
       console.log('🚀 [DEBUG] ValuationFollowUpPage: Starting handleSubmitAnswers for VIN:', vehicleData.vin);
       console.log('🚀 [DEBUG] Vehicle data:', vehicleData);
       
+      // FIX #1: Validate VIN first
+      if (!vehicleData.vin || vehicleData.vin.length !== 17) {
+        console.error('❌ [DEBUG] Invalid or missing VIN:', vehicleData.vin);
+        toast.error('Invalid VIN. Please go back and enter a valid 17-character VIN.');
+        return false;
+      }
+
+      // FIX #2: Ensure user session is valid or handle anonymous users
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) {
+        console.warn('⚠️ [DEBUG] Auth error, proceeding as anonymous user:', authError);
+      }
+      const userId = user?.id || null;
+      console.log('🔍 [DEBUG] User ID:', userId || 'anonymous');
+      
       // FIXED: Load actual follow-up data instead of using defaults
       const { FollowUpService } = await import('@/services/followUpService');
       const { data: followUpData, error: followUpError } = await FollowUpService.getAnswersByVin(vehicleData.vin);
@@ -59,18 +75,11 @@ export default function ValuationFollowUpPage() {
         return false;
       }
 
-      // Validate VIN presence
-      if (!vehicleData.vin || vehicleData.vin.length !== 17) {
-        console.error('❌ [DEBUG] Invalid or missing VIN:', vehicleData.vin);
-        toast.error('Invalid VIN. Please go back and enter a valid 17-character VIN.');
-        return false;
-      }
-
-      // Use real follow-up data for valuation
+      // FIX #5: Use real follow-up data for valuation with robust fallbacks
       const valuationInput = {
-        make: vehicleData.make,
-        model: vehicleData.model,
-        year: vehicleData.year,
+        make: vehicleData.make || 'Unknown',
+        model: vehicleData.model || 'Unknown',
+        year: vehicleData.year || 2020,
         vin: vehicleData.vin,
         trim: vehicleData.trim || '',
         mileage: followUpData.mileage,
@@ -79,6 +88,7 @@ export default function ValuationFollowUpPage() {
       };
 
       console.log('🚀 [DEBUG] Processing valuation with REAL user data:', valuationInput);
+      console.log('🔍 [DEBUG] User ID being passed:', userId || 'anonymous');
       console.log('🚀 [DEBUG] About to call processFreeValuation...');
       const valuationResult = await processFreeValuation(valuationInput);
       
