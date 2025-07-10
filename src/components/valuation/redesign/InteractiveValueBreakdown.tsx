@@ -14,7 +14,9 @@ import {
   Car,
   Fuel,
   Gauge,
-  MapPin
+  MapPin,
+  Package,
+  Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -59,10 +61,14 @@ export function InteractiveValueBreakdown({
       'fuel type impact': Fuel,
       'fuel cost impact': Fuel,
       'market anchoring': MapPin,
+      'market anchor': MapPin,
+      'package': Package,
       'default': TrendingUp
     };
     
     const key = label.toLowerCase();
+    // Check if label contains "package" for package adjustments
+    if (key.includes('package')) return Package;
     return iconMap[key] || iconMap.default;
   };
 
