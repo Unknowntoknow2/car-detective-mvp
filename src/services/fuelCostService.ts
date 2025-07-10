@@ -123,10 +123,118 @@ export async function fetchRegionalFuelPrice(
   }
 }
 
+export async function getFuelCostByZip(
+  zipCode: string, 
+  fuelType: 'gasoline' | 'diesel' | 'hybrid' | 'electric' = 'gasoline'
+): Promise<{ cost_per_gallon: number; source: string; explanation: string } | null> {
+  try {
+    // For EVs and hybrids, we'll use gasoline prices as a reference for savings calculations
+    const referenceFuelType = (fuelType === 'electric' || fuelType === 'hybrid') ? 'gasoline' : fuelType;
+    
+    const state = zipToState(zipCode);
+    if (!state) {
+      console.warn(`Could not determine state for ZIP: ${zipCode}`);
+      return null;
+    }
+
+    const regionName = STATE_TO_REGION_MAP[state];
+    if (!regionName) {
+      console.warn(`No region mapping for state: ${state}`);
+      return null;
+    }
+
+    const productName = referenceFuelType === 'gasoline' ? 'Regular Gasoline' : 'Diesel Fuel';
+
+    const { data, error } = await supabase
+      .from('regional_fuel_costs')
+      .select('price, period, area_name')
+      .eq('area_name', regionName)
+      .eq('product_name', productName)
+      .order('period', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error || !data) {
+      console.warn(`No fuel price data found for ${regionName}, ${productName}`);
+      return null;
+    }
+
+    const explanation = `Real-time ${productName.toLowerCase()} pricing from U.S. Energy Information Administration for ${regionName} region (${data.period})`;
+    
+    return {
+      cost_per_gallon: data.price,
+      source: 'EIA_API',
+      explanation
+    };
+  } catch (error) {
+    console.error('Error fetching fuel cost by ZIP:', error);
+    return null;
+  }
+}
+
+export function computeFuelTypeAdjustment(
+  fuelType: 'gasoline' | 'diesel' | 'hybrid' | 'electric',
+  baseValue: number,
+  regionalFuelPrice: number | null,
+  zipCode: string
+): { adjustment: number; explanation: string; confidence: number } {
+  let adjustment = 0;
+  let explanation = '';
+  let confidence = 85; // Base confidence
+
+  const fuelPriceInfo = regionalFuelPrice ? 
+    `(regional gas: $${regionalFuelPrice.toFixed(2)}/gal)` : 
+    '(using national average)';
+
+  switch (fuelType) {
+    case 'electric':
+      // EVs: Significant TCO advantage, especially in high gas price areas
+      const evBonus = regionalFuelPrice && regionalFuelPrice > 4.0 ? 0.035 : 0.025; // 3.5% or 2.5%
+      adjustment = evBonus * baseValue;
+      explanation = `Electric vehicles provide significant fuel cost savings vs gasoline ${fuelPriceInfo}. Added ${(evBonus * 100).toFixed(1)}% value boost in ZIP ${zipCode}.`;
+      confidence = 95; // High confidence in EV savings
+      break;
+      
+    case 'hybrid':
+      // Hybrids: Moderate TCO advantage
+      const hybridBonus = regionalFuelPrice && regionalFuelPrice > 3.5 ? 0.025 : 0.02; // 2.5% or 2%
+      adjustment = hybridBonus * baseValue;
+      explanation = `Hybrid fuel efficiency provides cost savings vs conventional vehicles ${fuelPriceInfo}. Added ${(hybridBonus * 100).toFixed(1)}% value boost in ZIP ${zipCode}.`;
+      confidence = 90;
+      break;
+      
+    case 'diesel':
+      // Diesel: May have penalty in high-cost regions, bonus in efficient applications
+      if (regionalFuelPrice && regionalFuelPrice > 4.5) {
+        adjustment = -0.01 * baseValue; // Small penalty for expensive diesel
+        explanation = `Diesel fuel costs are elevated in this region ${fuelPriceInfo}. Applied small adjustment in ZIP ${zipCode}.`;
+      } else {
+        adjustment = 0.005 * baseValue; // Small bonus for fuel efficiency
+        explanation = `Diesel fuel efficiency provides modest advantage ${fuelPriceInfo} in ZIP ${zipCode}.`;
+      }
+      confidence = 80;
+      break;
+      
+    case 'gasoline':
+    default:
+      // Gasoline: Baseline, no fuel type adjustment
+      adjustment = 0;
+      explanation = `Standard gasoline vehicle ${fuelPriceInfo}. No fuel type adjustment applied.`;
+      confidence = 75; // Lower confidence as baseline
+      break;
+  }
+
+  return {
+    adjustment: Math.round(adjustment),
+    explanation,
+    confidence
+  };
+}
+
 export function computeFuelCostImpact(
   regionalFuelPrice: number | null,
   vehicleMpg: number | null,
-  fuelType: 'gasoline' | 'diesel' = 'gasoline'
+  fuelType: 'gasoline' | 'diesel' | 'hybrid' | 'electric' = 'gasoline'
 ): FuelCostImpact {
   // Default values
   const nationalAvgGasoline = 3.25;

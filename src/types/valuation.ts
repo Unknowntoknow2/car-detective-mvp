@@ -234,7 +234,7 @@ export interface ValuationInput {
   trim?: string;
   color?: string;
   bodyType?: string;
-  fuelType?: 'gasoline' | 'diesel';
+  fuelType?: 'gasoline' | 'diesel' | 'hybrid' | 'electric';
   transmission?: string;
   ownership?: number; // Number of previous owners
   usageType?: string; // "personal" | "rental" | "fleet" | "commercial"
@@ -266,6 +266,7 @@ export interface ValueBreakdown {
   usageType: number;
   marketSignal: number;
   fuelCost: number;
+  fuelType: number;
   marketComps: number;
 }
 

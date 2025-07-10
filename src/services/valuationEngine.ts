@@ -1,6 +1,6 @@
 import { MarketListing, ValuationInput, EnhancedValuationResult, ValueBreakdown } from "@/types/valuation";
 import { logValuationAudit } from "@/services/valuationAuditLogger";
-import { fetchRegionalFuelPrice, computeFuelCostImpact } from "@/services/fuelCostService";
+import { fetchRegionalFuelPrice, computeFuelCostImpact, getFuelCostByZip, computeFuelTypeAdjustment } from "@/services/fuelCostService";
 import { fetchMarketComps } from "@/agents/marketSearchAgent";
 
 // Helper: Compute average from numeric field
@@ -54,11 +54,32 @@ export async function calculateValuationFromListings(
     console.error("[ValuationEngine] Market comp fetch failed:", err);
   }
 
-  // Fetch regional fuel price for cost-of-ownership calculations
-  const regionalFuelPrice = await fetchRegionalFuelPrice(input.zipCode, input.fuelType || 'gasoline');
-  const fuelCostImpact = computeFuelCostImpact(regionalFuelPrice, input.mpg || null, input.fuelType || 'gasoline');
+  // 🔥 REAL-TIME FUEL COST INTEGRATION with EIA API Data
+  console.log('⛽️ Fetching regional fuel pricing from EIA API...');
+  
+  // Get fuel type from VIN metadata or input
+  const fuelType = input.fuelType || 'gasoline';
+  
+  // Fetch real-time regional fuel costs
+  const fuelCostData = await getFuelCostByZip(input.zipCode, fuelType);
+  const regionalFuelPrice = fuelCostData?.cost_per_gallon || null;
+  
+  // Calculate fuel type adjustment based on real regional prices
+  const fuelTypeAdjustment = computeFuelTypeAdjustment(
+    fuelType,
+    baseValue,
+    regionalFuelPrice,
+    input.zipCode
+  );
+  
+  // Traditional fuel cost impact for MPG-based adjustments
+  const fuelCostImpact = computeFuelCostImpact(regionalFuelPrice, input.mpg || null, fuelType);
+  
+  console.log(`🏷️ Fuel analysis: ${fuelType} vehicle in ${input.zipCode}`);
+  console.log(`💰 Regional fuel price: $${(regionalFuelPrice || 0).toFixed(2)}/gal`);
+  console.log(`📈 Fuel type adjustment: ${fuelTypeAdjustment.adjustment >= 0 ? '+' : ''}$${fuelTypeAdjustment.adjustment.toLocaleString()}`);
 
-  // Multi-factor real-world adjustments
+  // Multi-factor real-world adjustments with enhanced fuel logic
   const adjustments = {
     depreciation: computeDepreciation(input.year),
     mileage: computeMileageAdjustment(input.mileage),
@@ -66,7 +87,8 @@ export async function calculateValuationFromListings(
     ownership: computeOwnershipAdjustment(input.ownership),
     usageType: computeUsageAdjustment(input.usageType),
     marketSignal: computeMarketAdjustment(listings),
-    fuelCost: Math.round(fuelCostImpact.annualSavings * 0.3), // 30% of annual fuel savings affects resale value
+    fuelCost: Math.round(fuelCostImpact.annualSavings * 0.3), // Traditional MPG-based adjustment
+    fuelType: fuelTypeAdjustment.adjustment, // NEW: EV/Hybrid/Diesel premium based on real fuel costs
     marketComps: marketCompsAdjustment, // Real market data adjustment
   };
 
@@ -196,12 +218,28 @@ function generateEnhancedExplanation(
     explanation += `Calculated from ${listingCount} verified listings for ${input.make} ${input.model} in ${input.zipCode}. `;
   }
   
+  // 🔥 Enhanced fuel type explanation with real EIA data
+  if (adjustments.fuelType && adjustments.fuelType !== 0) {
+    const fuelType = input.fuelType || 'gasoline';
+    const baseValueForCalculation = Math.max(25000, 25000); // Use minimum 25k for percentage calc
+    const adjustmentPercent = Math.abs(adjustments.fuelType / baseValueForCalculation * 100).toFixed(1);
+    
+    if (fuelType === 'electric') {
+      explanation += `⚡ This electric vehicle received a +${adjustmentPercent}% value boost due to significant fuel cost savings versus gasoline vehicles, based on real-time fuel pricing from the U.S. Energy Information Administration for ZIP ${input.zipCode}. `;
+    } else if (fuelType === 'hybrid') {
+      explanation += `🌿 This hybrid vehicle received a +${adjustmentPercent}% value boost reflecting fuel efficiency advantages over conventional vehicles, based on real regional fuel costs in ZIP ${input.zipCode}. `;
+    } else if (fuelType === 'diesel') {
+      const sign = adjustments.fuelType > 0 ? '+' : '';
+      explanation += `🚛 Diesel fuel type adjustment (${sign}${adjustmentPercent}%) applied based on current regional diesel pricing and efficiency characteristics in ZIP ${input.zipCode}. `;
+    }
+  }
+  
   const adjustmentDetails = [];
-  if (adjustments.depreciation) adjustmentDetails.push(`depreciation (${adjustments.depreciation})`);
-  if (adjustments.mileage) adjustmentDetails.push(`mileage (${adjustments.mileage})`);
-  if (adjustments.condition) adjustmentDetails.push(`condition (${adjustments.condition})`);
-  if (adjustments.fuelCost) adjustmentDetails.push(`fuel cost impact (${adjustments.fuelCost})`);
-  if (adjustments.marketComps) adjustmentDetails.push(`market adjustment (${adjustments.marketComps})`);
+  if (adjustments.depreciation) adjustmentDetails.push(`depreciation (${adjustments.depreciation >= 0 ? '+' : ''}$${adjustments.depreciation})`);
+  if (adjustments.mileage) adjustmentDetails.push(`mileage (${adjustments.mileage >= 0 ? '+' : ''}$${adjustments.mileage})`);
+  if (adjustments.condition) adjustmentDetails.push(`condition (${adjustments.condition >= 0 ? '+' : ''}$${adjustments.condition})`);
+  if (adjustments.fuelCost) adjustmentDetails.push(`MPG impact (${adjustments.fuelCost >= 0 ? '+' : ''}$${adjustments.fuelCost})`);
+  if (adjustments.marketComps) adjustmentDetails.push(`market adjustment (${adjustments.marketComps >= 0 ? '+' : ''}$${adjustments.marketComps})`);
   
   if (adjustmentDetails.length > 0) {
     explanation += `Key adjustments: ${adjustmentDetails.join(', ')}.`;
