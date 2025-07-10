@@ -6,6 +6,10 @@ export interface ValuationRequestInput {
   mileage?: number;
   userId?: string;
   additionalData?: Record<string, any>;
+  // Required vehicle data to satisfy database constraints
+  make: string;
+  model: string;
+  year: number;
 }
 
 export interface ValuationRequestRecord {
@@ -34,6 +38,9 @@ export async function createValuationRequest(input: ValuationRequestInput): Prom
         vin: input.vin,
         zip_code: input.zipCode,
         mileage: input.mileage || null,
+        make: input.make,
+        model: input.model,
+        year: input.year,
         status: 'processing',
         additional_data: input.additionalData || {},
         created_at: new Date().toISOString(),
