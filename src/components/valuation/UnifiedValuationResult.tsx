@@ -71,7 +71,7 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
                 vinAccuracy: 85,
                 marketData: result.listingCount > 0 ? 80 : 45,
                 fuelCostMatch: 90,
-                msrpQuality: result.msrpSource?.includes('real') ? 95 : 65
+                msrpQuality: result.sources?.includes('msrp_db_lookup') ? 95 : 65
               }}
               recommendations={confidenceRecommendations}
               onImproveClick={() => {
@@ -90,7 +90,6 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
                 min: result.listingRange.min,
                 max: result.listingRange.max
               } : undefined}
-              marketComparison={result.marketComparison}
               confidenceScore={result.confidenceScore}
             />
           </div>
