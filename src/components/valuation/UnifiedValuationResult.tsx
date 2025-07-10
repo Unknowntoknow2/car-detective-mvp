@@ -32,12 +32,33 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
     'Specify exact trim level and options'
   ] : [];
 
+  // Add error boundary and defensive rendering
+  console.log('🔍 UnifiedValuationResult received:', result);
+  
+  if (!result) {
+    console.error('❌ No result data provided to UnifiedValuationResult');
+    return (
+      <div className="container mx-auto p-6 text-center">
+        <p className="text-muted-foreground">No valuation data available</p>
+      </div>
+    );
+  }
+
+  if (!result.finalValue || typeof result.finalValue !== 'number') {
+    console.error('❌ Invalid finalValue in result:', result.finalValue);
+    return (
+      <div className="container mx-auto p-6 text-center">
+        <p className="text-muted-foreground">Invalid valuation data</p>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className="min-h-screen bg-gradient-to-br from-background via-background/98 to-primary/5"
+      className="bg-gradient-to-br from-background via-background/98 to-primary/5"
     >
       <div className="max-w-6xl mx-auto p-6 space-y-8">
         {/* Hero Section */}

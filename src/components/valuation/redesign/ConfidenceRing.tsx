@@ -27,6 +27,15 @@ export function ConfidenceRing({
   onImproveClick
 }: ConfidenceRingProps) {
   const [showBreakdown, setShowBreakdown] = useState(false);
+  
+  // Add defensive checks
+  if (typeof score !== 'number' || isNaN(score)) {
+    return (
+      <Card className="p-6">
+        <p className="text-muted-foreground">Loading confidence data...</p>
+      </Card>
+    );
+  }
 
   const getScoreColor = (score: number) => {
     if (score >= 85) return {
