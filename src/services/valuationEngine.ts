@@ -1,7 +1,7 @@
 import { MarketListing, ValuationInput, EnhancedValuationResult, ValueBreakdown } from "@/types/valuation";
 import { logValuationAudit } from "@/services/valuationAuditLogger";
 import { fetchRegionalFuelPrice, computeFuelCostImpact, getFuelCostByZip, computeFuelTypeAdjustment } from "@/services/fuelCostService";
-import { fetchMarketComps } from "@/agents/marketSearchAgent";
+import { fetchMarketComps, type MarketSearchResult } from "@/agents/marketSearchAgent";
 
 // Helper: Compute average from numeric field
 function average(numbers: number[]): number {
@@ -18,18 +18,24 @@ export async function calculateValuationFromListings(
   let baseValue = average(prices);
   let baseValueSource = "market_listings";
   
-  // Enhanced GPT Market Comps with Live Listing Integration
+  // Enhanced GPT Market Comps with Trust-Based Adjustments
   let marketCompsAdjustment = 0;
   let marketCompsUsed = false;
   let usedMarketFallback = false;
   let listingSources: any[] = [];
   let confidenceBoost = 0;
+  let trustScore = 0;
+  let trustNotes: string[] = [];
 
   try {
-    console.log('🔍 Attempting to fetch live market comps via enhanced OpenAI search...');
-    const comps = await fetchMarketComps(input);
+    console.log('🔍 Attempting to fetch live market comps with trust scoring...');
+    const searchResult: MarketSearchResult = await fetchMarketComps(input);
+    
+    trustScore = searchResult.trust;
+    trustNotes = searchResult.notes;
+    const comps = searchResult.listings;
 
-    if (comps && comps.length >= 3) {
+    if (comps && comps.length >= 2 && trustScore >= 0.3) {
       // Filter out outliers (prices more than 2 standard deviations from mean)
       const compPrices = comps.map(c => c.price);
       const mean = average(compPrices);
@@ -41,26 +47,32 @@ export async function calculateValuationFromListings(
         const avgCompPrice = average(filteredPrices);
         const delta = avgCompPrice - baseValue;
         
-        // Use more lenient adjustment threshold for live data
-        if (Math.abs(delta) < 0.6 * baseValue) {
-          marketCompsAdjustment = delta;
-          baseValue = avgCompPrice;
-          baseValueSource = "live_market_listings";
+        // Apply trust scaling to the adjustment
+        const trustedDelta = delta * trustScore;
+        
+        // Use more lenient adjustment threshold for live data but scale by trust
+        if (Math.abs(trustedDelta) < 0.6 * baseValue) {
+          marketCompsAdjustment = trustedDelta;
+          baseValue = baseValue + trustedDelta; // Apply trusted adjustment
+          baseValueSource = trustScore >= 0.7 ? "verified_web_listings" : "web_listings_low_confidence";
           marketCompsUsed = true;
-          listingSources = filteredComps.slice(0, 6); // Keep top 6 for display
-          confidenceBoost = Math.min(filteredComps.length * 2, 15); // Boost confidence based on listing count
-          console.log(`✅ Live market comps applied: ${filteredComps.length}/${comps.length} listings, avg: $${avgCompPrice.toLocaleString()}`);
+          listingSources = filteredComps.slice(0, 6);
+          confidenceBoost = Math.min(filteredComps.length * 2 * trustScore, 15); // Scale confidence by trust
+          console.log(`✅ Trust-scaled market comps applied: ${filteredComps.length}/${comps.length} listings, trust: ${Math.round(trustScore * 100)}%, avg: $${avgCompPrice.toLocaleString()}, adjusted: $${(avgCompPrice + trustedDelta).toLocaleString()}`);
         } else {
           usedMarketFallback = true;
-          console.warn(`[ValuationEngine] Market comp adjustment too large (${Math.round(delta)}), using fallback.`);
+          console.warn(`[ValuationEngine] Trust-adjusted market comp too large (${Math.round(trustedDelta)}), using fallback.`);
         }
       } else {
         usedMarketFallback = true;
-        console.warn("[ValuationEngine] Too many outliers in market comps, using fallback.");
+        console.warn("[ValuationEngine] Too many outliers in market comps after trust filtering, using fallback.");
       }
+    } else if (comps && comps.length >= 1 && trustScore < 0.3) {
+      usedMarketFallback = true;
+      console.warn(`[ValuationEngine] Low trust score (${Math.round(trustScore * 100)}%), using fallback.`);
     } else {
       usedMarketFallback = true;
-      console.warn(`[ValuationEngine] Insufficient market comps found (${comps?.length || 0}), using fallback.`);
+      console.warn(`[ValuationEngine] Insufficient market comps found (${comps?.length || 0}) or trust score too low, using fallback.`);
     }
   } catch (err) {
     usedMarketFallback = true;
@@ -122,6 +134,8 @@ export async function calculateValuationFromListings(
     confidence: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost),
     listings_count: listings.length,
     market_comps_used: marketCompsUsed,
+    trust_score: trustScore,
+    trust_notes: trustNotes,
     fuel_price_used: regionalFuelPrice,
     prices,
     timestamp: new Date().toISOString(),
@@ -137,7 +151,7 @@ export async function calculateValuationFromListings(
     depreciation: adjustments.depreciation,
     mileage_adjustment: adjustments.mileage,
     value_breakdown: breakdown,
-    valuation_explanation: generateEnhancedExplanation(input, listings.length, adjustments, marketCompsUsed, fuelCostImpact, usedMarketFallback, listingSources),
+    valuation_explanation: generateEnhancedExplanation(input, listings.length, adjustments, marketCompsUsed, fuelCostImpact, usedMarketFallback, listingSources, trustScore, trustNotes),
     confidence_score: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost),
     audit_id,
   };
@@ -220,7 +234,9 @@ function generateEnhancedExplanation(
   marketCompsUsed: boolean,
   fuelCostImpact: any,
   usedMarketFallback: boolean = false,
-  listingSources: any[] = []
+  listingSources: any[] = [],
+  trustScore: number = 0,
+  trustNotes: string[] = []
 ): string {
   let explanation = '';
   
@@ -229,11 +245,23 @@ function generateEnhancedExplanation(
       `$${Math.min(...listingSources.map(l => l.price)).toLocaleString()} to $${Math.max(...listingSources.map(l => l.price)).toLocaleString()}` : 
       `around $${listingSources[0]?.price?.toLocaleString() || 'N/A'}`;
     
-    explanation += `✅ Based on ${listingSources.length} live market listings for ${input.year} ${input.make} ${input.model}`;
+    const trustLevel = trustScore >= 0.8 ? 'high' : trustScore >= 0.5 ? 'moderate' : 'low';
+    const confidenceText = trustScore >= 0.7 ? 'verified' : 'estimated';
+    
+    explanation += `✅ Based on ${listingSources.length} ${confidenceText} market listings for ${input.year} ${input.make} ${input.model}`;
     if (input.trim) explanation += ` ${input.trim}`;
-    explanation += ` near ${input.zipCode}, ranging from ${priceRange}. These prices were sourced from current listings on Cars.com, AutoTrader, and other major marketplaces. `;
+    explanation += ` near ${input.zipCode}, ranging from ${priceRange}. Trust score: ${Math.round(trustScore * 100)}% (${trustLevel} confidence). `;
+    
+    if (trustNotes.length > 0) {
+      explanation += `${trustNotes.join('. ')}. `;
+    }
   } else if (usedMarketFallback) {
-    explanation += `ℹ️ Live market listings were unavailable for ${input.year} ${input.make} ${input.model} near ${input.zipCode}. This estimate uses verified listings from our database with MSRP adjustments. `;
+    const fallbackReason = trustScore < 0.3 ? `low data quality (${Math.round(trustScore * 100)}% trust)` : 'unavailable';
+    explanation += `ℹ️ Live market listings were ${fallbackReason} for ${input.year} ${input.make} ${input.model} near ${input.zipCode}. This estimate uses verified listings from our database with MSRP adjustments. `;
+    
+    if (trustNotes.length > 0) {
+      explanation += `Issues detected: ${trustNotes.join(', ')}. `;
+    }
   } else {
     explanation += `Calculated from ${listingCount} verified listings for ${input.make} ${input.model} in ${input.zipCode}. `;
   }

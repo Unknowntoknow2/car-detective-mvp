@@ -1,6 +1,6 @@
 
 // Enhanced Valuation Pipeline with Real Market Data + AI Fallback + Full Audit Trail
-import { fetchMarketComps } from "@/agents/marketSearchAgent";
+import { fetchMarketComps, type MarketSearchResult } from "@/agents/marketSearchAgent";
 import { generateOpenAIFallbackValuation } from "@/agents/openaiAgent";
 import { ValuationInput, EnhancedValuationResult, EnhancedAuditLog } from "@/types/valuation";
 import { calculateValuationFromListings } from "@/services/valuationEngine";
@@ -69,7 +69,7 @@ export async function runCorrectedValuationPipeline(
     console.log('🔍 Step 1: Attempting to fetch real market listings...');
     
     // Step 1: Try to get real-time listings from market agent
-    const listings = await fetchMarketComps({
+    const marketData: MarketSearchResult = await fetchMarketComps({
       vin: input.vin,
       make: input.make,
       model: input.model,
@@ -80,17 +80,21 @@ export async function runCorrectedValuationPipeline(
       trim: input.trim
     });
 
-    if (listings && listings.length > 0) {
-      console.log('✅ Got', listings.length, 'real market listings');
+    if (marketData && marketData.listings.length > 0) {
+      console.log('✅ Got', marketData.listings.length, 'real market listings with trust score:', Math.round(marketData.trust * 100) + '%');
       
       // Update audit with market data success
       audit.sources.push("market_listings");
-      audit.sourcesUsed!.push(`market_listings_${listings.length}_found`);
-      audit.quality += 40;
-      audit.confidence_score += 40;
+      audit.sourcesUsed!.push(`market_listings_${marketData.listings.length}_found`);
+      audit.quality += 40 * marketData.trust; // Scale quality by trust
+      audit.confidence_score += 40 * marketData.trust;
       audit.confidenceBreakdown!.marketListings = true;
-      audit.marketListingsCount = listings.length;
-      audit.marketListingSources = Array.from(new Set(listings.map(l => l.source)));
+      audit.marketListingsCount = marketData.listings.length;
+      audit.marketListingSources = Array.from(new Set(marketData.listings.map((l: any) => l.source)));
+
+      // Add trust information to audit
+      (audit as any).trustScore = marketData.trust;
+      (audit as any).trustNotes = marketData.notes;
 
       // Calculate valuation from real market data
       const valuation = await calculateValuationFromListings({
@@ -101,7 +105,7 @@ export async function runCorrectedValuationPipeline(
         mileage: input.mileage,
         condition: input.condition,
         zipCode: input.zipCode
-      }, listings);
+      }, marketData.listings);
 
       // Enhance audit with valuation results
       audit.finalValue = valuation.estimated_value;
@@ -115,7 +119,7 @@ export async function runCorrectedValuationPipeline(
       audit.confidence_score = valuation.confidence_score;
 
       // Save audit log
-      const auditId = await saveAuditLog({ ...audit, listings });
+      const auditId = await saveAuditLog(audit);
       valuation.audit_id = auditId;
 
       console.log('🎯 Market-based valuation completed:', valuation.estimated_value);
@@ -154,10 +158,11 @@ export async function runCorrectedValuationPipeline(
           ],
           priceRange: [valuation.price_range_low || valuation.estimated_value * 0.9, valuation.price_range_high || valuation.estimated_value * 1.1],
           marketAnalysis: {
-            dataSource: 'real_market_listings',
-            listingCount: listings.length,
+            dataSource: marketData.trust >= 0.7 ? 'verified_market_listings' : 'unverified_market_listings',
+            listingCount: marketData.listings.length,
             sources: audit.marketListingSources,
-            confidence: 'high'
+            confidence: marketData.trust >= 0.7 ? 'high' : marketData.trust >= 0.4 ? 'medium' : 'low',
+            trustScore: Math.round(marketData.trust * 100)
           }
         },
         audit_id: auditId
