@@ -18,7 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 export default function ResultsPage() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
-  const { getValuationById, isLoading } = useValuation();
+  const { getValuationById, isLoading, processFreeValuation } = useValuation();
   const { user, userDetails } = useAuth();
   const [valuationData, setValuationData] = useState<any>(null);
   const [followUpData, setFollowUpData] = useState<any>(null);
@@ -139,6 +139,44 @@ export default function ResultsPage() {
       console.error('Error updating valuation:', error);
       toast.error('Failed to update vehicle details');
       return false;
+    }
+  };
+
+  const handleRerunValuation = async () => {
+    if (!valuationData || !followUpData) {
+      toast.error('Missing vehicle data for rerun');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log('🔄 Rerunning valuation with unified engine...');
+      
+      const result = await processFreeValuation({
+        vin: valuationData.vin,
+        make: valuationData.make,
+        model: valuationData.model,
+        year: valuationData.year,
+        mileage: followUpData.mileage || valuationData.mileage,
+        condition: followUpData.condition || valuationData.condition,
+        zipCode: followUpData.zip_code || valuationData.zip_code
+      });
+
+      if (result && result.valuationId) {
+        toast.success('Valuation updated with latest engine!');
+        // Reload the page with new valuation data
+        const data = await getValuationById(result.valuationId);
+        if (data) {
+          setValuationData(data);
+        }
+      } else {
+        toast.error('Failed to rerun valuation');
+      }
+    } catch (error) {
+      console.error('Error rerunning valuation:', error);
+      toast.error('Failed to rerun valuation');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -269,7 +307,7 @@ export default function ResultsPage() {
       />
 
       {/* Actions */}
-      <div className="flex gap-4">
+      <div className="flex gap-4 flex-wrap">
         <Button variant="outline" onClick={() => window.location.href = '/'}>
           Start New Valuation
         </Button>
@@ -278,6 +316,28 @@ export default function ResultsPage() {
             Improve Accuracy
           </Button>
         )}
+        
+        {/* Debug: Rerun Valuation Button */}
+        {followUpData && (
+          <Button 
+            variant="secondary" 
+            onClick={handleRerunValuation}
+            disabled={loading}
+          >
+            {loading ? 'Rerunning...' : 'Rerun with Enhanced Engine'}
+          </Button>
+        )}
+      </div>
+      
+      {/* Debug Info */}
+      <div className="bg-muted/50 p-4 rounded-lg border">
+        <h3 className="text-sm font-medium mb-2">Debug Info</h3>
+        <div className="text-xs space-y-1">
+          <p>Current Engine: {valuationData.vehicle_data?.calculationMethod || 'legacy'}</p>
+          <p>Has Follow-up Data: {followUpData ? 'Yes' : 'No'}</p>
+          <p>Market Listings: {valuationData.listings?.length || 0}</p>
+          <p>Confidence: {valuationData.confidence_score}%</p>
+        </div>
       </div>
     </div>
   );
