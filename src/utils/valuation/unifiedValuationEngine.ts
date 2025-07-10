@@ -8,6 +8,7 @@ import { logValuationAudit, logValuationError, logValuationStep, logAdjustmentSt
 import { ValuationProgressTracker } from "@/utils/valuation/progressTracker";
 import { getDynamicMSRP } from "@/services/valuation/msrpLookupService";
 import { calculateAdvancedConfidence, getConfidenceBreakdown } from "@/services/valuation/confidenceEngine";
+import { saveMarketListings } from "@/services/valuation/marketListingService";
 import type { DecodedVehicleInfo } from "@/types/vehicle";
 
 // Unified input interface
@@ -230,6 +231,22 @@ export async function processValuation(
       
       if (marketResult.listings && marketResult.listings.length > 0) {
         listings = marketResult.listings;
+        
+        // FIX #2: Persist market listings to database for analytics and reuse
+        const persistResult = await saveMarketListings(listings, {
+          vin,
+          userId,
+          valuationId: valuationRequest?.id
+        });
+        
+        if (persistResult.success) {
+          console.log(`✅ Persisted ${persistResult.savedCount} market listings to database`);
+          sources.push("market_listings_database");
+        } else {
+          console.error('❌ Failed to save market listings:', persistResult.errors);
+          // Continue with valuation - don't fail if database save fails
+        }
+        
         const prices = listings.map(l => l.price).filter(p => p > 0);
         
         if (prices.length > 0) {
