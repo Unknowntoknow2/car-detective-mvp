@@ -416,7 +416,6 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           source: 'unified_engine',
           timestamp: new Date().toISOString()
         })),
-        data_sources: engineResult.sources,
         valuation_notes: [
           `🔍 ${engineResult.aiExplanation}`,
           engineResult.marketSearchStatus === 'success' 
