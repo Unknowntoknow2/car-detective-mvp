@@ -10,6 +10,7 @@ import { ValueShowcase } from './redesign/ValueShowcase';
 import { ConfidenceRing } from './redesign/ConfidenceRing';
 import { TabbedResultsPanels } from './redesign/TabbedResultsPanels';
 import { PremiumFeatureOverlay } from './redesign/PremiumFeatureOverlay';
+import { ConfidenceExplanationBadge } from './ConfidenceExplanationBadge';
 
 interface UnifiedValuationResultProps {
   result: ValuationResult;
@@ -60,12 +61,18 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
   return (
     <div className="bg-gradient-to-br from-background via-background/98 to-primary/5">
       <div className="max-w-6xl mx-auto p-6 space-y-8">
-        {/* Debug Section */}
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded">
-          <h4 className="font-semibold">Component Debug:</h4>
-          <p>Final Value: ${result.finalValue?.toLocaleString()}</p>
-          <p>Vehicle: {result.vehicle.year} {result.vehicle.make} {result.vehicle.model}</p>
-          <p>Confidence: {result.confidenceScore}%</p>
+        {/* Confidence Badge */}
+        <div className="flex justify-center mb-4">
+          <ConfidenceExplanationBadge
+            confidenceScore={result.confidenceScore}
+            marketSearchStatus={result.marketSearchStatus}
+            listingCount={result.listingCount}
+            sources={result.sources}
+            onRetrySearch={() => {
+              // Could trigger a re-fetch of market data
+              console.log('Retry market search requested');
+            }}
+          />
         </div>
         
         {/* Hero Section */}

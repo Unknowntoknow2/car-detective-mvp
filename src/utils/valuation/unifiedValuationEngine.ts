@@ -12,6 +12,8 @@ import { calculateAdvancedConfidence, getConfidenceBreakdown } from "@/services/
 import { saveMarketListings } from "@/services/valuation/marketListingService";
 import { saveValuationExplanation } from "@/services/supabase/explanationService";
 import { generateQRCode } from "@/utils/qrCodeGenerator";
+import { getPackageAdjustments } from "@/utils/adjustments/packageAdjustments";
+// import { generateConfidenceExplanation } from "@/utils/valuation/confidenceExplainer";
 import type { DecodedVehicleInfo } from "@/types/vehicle";
 
 // Unified input interface
@@ -192,7 +194,7 @@ export async function processValuation(
     
     // Step 2: Apply depreciation adjustment (10% Progress)
     tracker.startStep('depreciation', { year: vehicleYear, baseValue });
-    const depreciation = getDepreciationAdjustment(vehicleYear);
+    const depreciation = getDepreciationAdjustment(vehicleYear, vehicleMake, vehicleFuelType);
     const afterDepreciation = finalValue + depreciation;
     adjustments.push({ 
       label: "Depreciation", 
@@ -284,6 +286,35 @@ export async function processValuation(
     tracker.completeStep('fuel_cost', { adjustment: fuelAdj });
     await logValuationStep('FUEL_PRICING_FETCHED', vin, valuationRequest?.id || 'fallback', { amount: fuelAdj, fuelType: vehicleFuelType, baseValue: finalValue - fuelAdj, newValue: finalValue }, userId, zipCode);
     
+    // Step 5.5: Apply package/feature adjustments
+    tracker.startStep('package_adjustments', { make: vehicleMake, model: vehicleModel, trim: vehicleTrim });
+    const packageAdjustments = getPackageAdjustments(vehicleMake, vehicleModel, vehicleTrim);
+    let totalPackageValue = 0;
+    
+    for (const pkg of packageAdjustments) {
+      totalPackageValue += pkg.value;
+      adjustments.push({
+        label: `Package: ${pkg.name}`,
+        amount: pkg.value,
+        reason: pkg.description
+      });
+      
+      await logAdjustmentStep(vin, valuationRequest?.id || 'fallback', {
+        label: `Package: ${pkg.name}`,
+        amount: pkg.value,
+        reason: pkg.description,
+        baseValue: finalValue,
+        newValue: finalValue + pkg.value
+      }, userId, zipCode);
+    }
+    
+    finalValue += totalPackageValue;
+    if (totalPackageValue > 0) {
+      sources.push("package_detection");
+    }
+    tracker.completeStep('package_adjustments', { totalValue: totalPackageValue, packageCount: packageAdjustments.length });
+    await logValuationStep('PACKAGE_ADJUSTMENTS', vin, valuationRequest?.id || 'fallback', { totalValue: totalPackageValue, packages: packageAdjustments.length }, userId, zipCode);
+    
     // Step 6: Market listings integration (15% Progress)
     tracker.startStep('market_search', { year: vehicleYear, make: vehicleMake, model: vehicleModel });
     let listings: any[] = [];
@@ -327,12 +358,14 @@ export async function processValuation(
           const max = Math.max(...prices);
           const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
           
-          const marketAdj = avg - finalValue;
-          const afterMarket = avg;
+          // Enhanced market anchoring with trust-based weighting
+          const marketWeight = Math.min(0.5, marketResult.trust); // Cap at 50% influence
+          const marketAdj = (avg - finalValue) * marketWeight;
+          const afterMarket = finalValue + marketAdj;
           adjustments.push({ 
-            label: "Market Anchoring", 
+            label: "Market Anchor", 
             amount: marketAdj, 
-            reason: `Based on ${prices.length} comparable listings` 
+            reason: `Adjusted toward ${prices.length} real listings (avg: $${avg.toLocaleString()}, trust: ${Math.round(marketResult.trust * 100)}%)` 
           });
           
           // Enhanced audit logging with metadata

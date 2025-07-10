@@ -61,19 +61,31 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
     // Use OpenAI web search to find live listings with enhanced query and trust scoring
     console.log('🤖 Fetching live market listings via OpenAI web search...');
     
-    // Enhanced query with VIN-specific search if available
-    let query = `Find used ${input.year} ${input.make} ${input.model} ${input.trim || ''} vehicles for sale near ZIP ${input.zipCode}`;
+    // Enhanced query with VIN-specific search if available - prioritize VIN matches
+    let query = '';
     
-    // Add VIN-specific search if available
     if (input.vin) {
-      query += ` OR VIN ${input.vin}`;
-    }
-    
-    // Add specific dealership networks likely to have this vehicle
-    if (input.make === 'Toyota') {
-      query += ` site:toyota.com OR "Toyota dealer" OR "Roseville Toyota"`;
-    } else if (input.make === 'Honda') {
-      query += ` site:honda.com OR "Honda dealer"`;
+      // VIN-specific search with high priority
+      query = `"${input.vin}" OR VIN ${input.vin}`;
+      
+      // Add brand-specific dealer sites for VIN search
+      if (input.make === 'Toyota') {
+        query += ` site:rosevilletoyota.com OR site:toyota.com OR "Toyota dealer"`;
+      } else if (input.make === 'Honda') {
+        query += ` site:honda.com OR "Honda dealer"`;
+      }
+      
+      query += ` "${input.year} ${input.make} ${input.model}" for sale near ${input.zipCode}`;
+    } else {
+      // Fallback to model-based search
+      query = `Find used ${input.year} ${input.make} ${input.model} ${input.trim || ''} vehicles for sale near ZIP ${input.zipCode}`;
+      
+      // Add specific dealership networks likely to have this vehicle
+      if (input.make === 'Toyota') {
+        query += ` site:toyota.com OR "Toyota dealer"`;
+      } else if (input.make === 'Honda') {
+        query += ` site:honda.com OR "Honda dealer"`;
+      }
     }
     
     query += `. Include exact prices, mileage, and source websites like Cars.com, AutoTrader, CarGurus, Edmunds, CarMax, CarSense, dealer websites. Focus on listings with ${input.mileage ? `around ${input.mileage.toLocaleString()} miles` : 'similar mileage'}. Show specific dollar amounts, dealer names, and package information.`;
