@@ -88,7 +88,7 @@ export async function logValuationAudit(
       const auditEntry = {
         action: `VALUATION_${status}`,
         entity_type: 'valuation',
-        entity_id: data.vin || crypto.randomUUID(),
+        entity_id: crypto.randomUUID(), // Always use a proper UUID
         user_id: data.userId,
         input_data: {
           vin: data.vin,
@@ -161,6 +161,10 @@ export async function logValuationStep(
       ? ((data.adjustment / data.baseValue) * 100)
       : 0;
     
+    // Validate and clean valuationRequestId to ensure it's a valid UUID
+    const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(valuationRequestId);
+    const cleanValuationRequestId = isValidUUID ? valuationRequestId : null;
+    
     // Prepare audit log entry for the new valuation_audit_logs table
     const auditEntry = {
       user_id: userId || null,
@@ -172,7 +176,7 @@ export async function logValuationStep(
       confidence_score: data.confidenceScore || 85,
       status: step === 'COMPLETE' || step === 'VALUATION_COMPLETE' ? 'COMPLETE' : 'IN_PROGRESS',
       timestamp: new Date().toISOString(),
-      valuation_request_id: valuationRequestId,
+      valuation_request_id: cleanValuationRequestId,
       adjustment_reason: data.adjustmentReason || data.reason || `Applied ${step}`,
       base_value: data.baseValue,
       adjustment_percentage: adjustmentPercentage,
