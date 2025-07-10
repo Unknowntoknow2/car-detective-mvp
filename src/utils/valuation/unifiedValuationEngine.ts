@@ -1,10 +1,11 @@
-// Unified Valuation Engine - Phase 1 Implementation
+// Unified Valuation Engine with Real-Time Progress Tracking
 import { supabase } from "@/integrations/supabase/client";
 import { decodeVin } from "@/services/vehicleDecodeService";
 import { getFuelCostAdjustment, getDepreciationAdjustment, getMileageAdjustment, getConditionAdjustment } from "@/services/adjustmentHelpers";
 import { generateAIExplanation } from "@/services/aiExplanationService";
 import { fetchMarketComps } from "@/agents/marketSearchAgent";
 import { logValuationAudit, logValuationError } from "@/utils/valuationAuditLogger";
+import { ValuationProgressTracker } from "@/utils/valuation/progressTracker";
 import type { DecodedVehicleInfo } from "@/types/vehicle";
 
 // Unified input interface
@@ -47,13 +48,20 @@ export interface ValuationResult {
 /**
  * Main valuation processing function - Phase 1 Implementation
  */
-export async function processValuation(input: ValuationInput): Promise<ValuationResult> {
+export async function processValuation(
+  input: ValuationInput, 
+  progressTracker?: ValuationProgressTracker
+): Promise<ValuationResult> {
   try {
     console.log('🚀 Starting unified valuation process:', input);
     
     const { vin, zipCode, mileage, condition } = input;
     
-    // Step 1: Decode VIN
+    // Initialize progress tracking
+    const tracker = progressTracker || new ValuationProgressTracker();
+    
+    // Step 1: Decode VIN (5% Progress)
+    tracker.startStep('vin_decode', { vin });
     const decoded = await decodeVin(vin);
     
     // Extract vehicle data from decoded response
@@ -64,6 +72,7 @@ export async function processValuation(input: ValuationInput): Promise<Valuation
     const vehicleTrim = vehicleData.trim || '';
     const vehicleFuelType = vehicleData.fuelType || 'gasoline';
     
+    tracker.completeStep('vin_decode', { vehicle: vehicleData });
     console.log('✅ VIN decoded:', { make: vehicleMake, model: vehicleModel, year: vehicleYear });
     
     // Step 2: Establish base value
@@ -73,7 +82,8 @@ export async function processValuation(input: ValuationInput): Promise<Valuation
     const sources = ["estimated_msrp"];
     let marketSearchStatus: "success" | "fallback" | "error" = "fallback";
     
-    // Step 3: Apply depreciation adjustment
+    // Step 2: Apply depreciation adjustment (10% Progress)
+    tracker.startStep('depreciation', { year: vehicleYear, baseValue });
     const depreciation = getDepreciationAdjustment(vehicleYear);
     finalValue += depreciation;
     adjustments.push({ 
@@ -81,8 +91,10 @@ export async function processValuation(input: ValuationInput): Promise<Valuation
       amount: depreciation, 
       reason: `${vehicleYear} model year (${new Date().getFullYear() - vehicleYear} years old)` 
     });
+    tracker.completeStep('depreciation', { adjustment: depreciation });
     
-    // Step 4: Apply mileage adjustment
+    // Step 3: Apply mileage adjustment (15% Progress)
+    tracker.startStep('mileage', { mileage, baseValue });
     const mileageAdj = getMileageAdjustment(mileage);
     finalValue += mileageAdj;
     adjustments.push({ 
@@ -90,8 +102,10 @@ export async function processValuation(input: ValuationInput): Promise<Valuation
       amount: mileageAdj, 
       reason: `${mileage.toLocaleString()} miles` 
     });
+    tracker.completeStep('mileage', { adjustment: mileageAdj });
     
-    // Step 5: Apply condition adjustment
+    // Step 4: Apply condition adjustment (15% Progress)  
+    tracker.startStep('condition', { condition });
     const conditionAdj = getConditionAdjustment(condition);
     finalValue += conditionAdj;
     adjustments.push({ 
@@ -99,8 +113,10 @@ export async function processValuation(input: ValuationInput): Promise<Valuation
       amount: conditionAdj, 
       reason: `${condition} condition` 
     });
+    tracker.completeStep('condition', { adjustment: conditionAdj });
     
-    // Step 6: Apply fuel cost adjustment (regional)
+    // Step 5: Apply fuel cost adjustment (15% Progress)
+    tracker.startStep('fuel_cost', { fuelType: vehicleFuelType, zipCode });
     const fuelType = vehicleFuelType;
     const fuelAdj = await getFuelCostAdjustment(fuelType, zipCode);
     finalValue += fuelAdj;
@@ -110,8 +126,10 @@ export async function processValuation(input: ValuationInput): Promise<Valuation
       reason: `${fuelType} fuel type in ZIP ${zipCode}` 
     });
     sources.push("eia_fuel_costs");
+    tracker.completeStep('fuel_cost', { adjustment: fuelAdj });
     
-    // Step 7: Market listings integration with fallback
+    // Step 6: Market listings integration (15% Progress)
+    tracker.startStep('market_search', { year: vehicleYear, make: vehicleMake, model: vehicleModel });
     let listings: any[] = [];
     let listingRange: { min: number; max: number } | undefined;
     
@@ -145,18 +163,23 @@ export async function processValuation(input: ValuationInput): Promise<Valuation
           listingRange = { min, max };
           sources.push("openai_market_search");
           marketSearchStatus = "success";
+          tracker.completeStep('market_search', { listingCount: prices.length, avgPrice: avg });
         } else {
           marketSearchStatus = "fallback";
+          tracker.completeStep('market_search', { error: "No valid prices found" });
         }
       } else {
         marketSearchStatus = "fallback";
+        tracker.completeStep('market_search', { error: "No listings found" });
       }
     } catch (e) {
       console.error("Market search error:", e);
       marketSearchStatus = "error";
+      tracker.errorStep('market_search', e instanceof Error ? e.message : 'Unknown error');
     }
     
-    // Step 8: Calculate confidence score
+    // Step 7: Calculate confidence score (10% Progress)
+    tracker.startStep('confidence_calc', { marketStatus: marketSearchStatus });
     let confidenceScore = 55;
     if (vehicleMake !== 'Unknown' && vehicleModel !== 'Unknown' && vehicleYear > 1900) confidenceScore += 10;
     if (marketSearchStatus === "success") confidenceScore += 10;
@@ -165,8 +188,10 @@ export async function processValuation(input: ValuationInput): Promise<Valuation
     
     // Ensure final value is reasonable
     finalValue = Math.max(3000, Math.round(finalValue));
+    tracker.completeStep('confidence_calc', { score: confidenceScore });
     
-    // Step 9: Generate AI explanation
+    // Step 8: Generate AI explanation (10% Progress)
+    tracker.startStep('ai_explanation', { finalValue, confidenceScore });
     const explanation = await generateAIExplanation({
       baseValue,
       adjustments,
@@ -183,8 +208,10 @@ export async function processValuation(input: ValuationInput): Promise<Valuation
       listings,
       confidenceScore
     });
+    tracker.completeStep('ai_explanation', { explanation });
     
-    // Step 10: Log audit trail
+    // Step 9: Log audit trail (5% Progress)
+    tracker.startStep('audit_log', { finalValue, confidenceScore });
     await logValuationAudit("COMPLETE", { 
       vin, 
       zipCode, 
@@ -194,6 +221,7 @@ export async function processValuation(input: ValuationInput): Promise<Valuation
       sources,
       adjustmentCount: adjustments.length
     });
+    tracker.completeStep('audit_log', { success: true });
     
     const result: ValuationResult = {
       vehicle: {
