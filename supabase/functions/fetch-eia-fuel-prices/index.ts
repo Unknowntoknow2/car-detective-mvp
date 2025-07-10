@@ -233,16 +233,18 @@ serve(async (req) => {
       throw new Error(`No EIA series found for state ${state_code} and fuel type ${fuel_type}`);
     }
 
-    // Enhanced caching: Check for both specific ZIP and ZIP prefix data
+    // FIXED CACHING: Check for cached data within 7 days (not 24 hours)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    
     const { data: cachedData, error: cacheError } = await supabase
       .from('regional_fuel_costs')
       .select('*')
       .or(`zip_code.eq.${zip_code},zip_code.eq.${zip_prefix}000`)
       .eq('fuel_type', fuel_type)
-      .gte('updated_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      .gte('updated_at', sevenDaysAgo)
       .order('updated_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle(); // Use maybeSingle() to avoid errors when no data found
 
     if (cachedData && !cacheError) {
       console.log(`✅ Using cached fuel price: $${cachedData.cost_per_gallon}/gal`);
@@ -262,22 +264,38 @@ serve(async (req) => {
 
     console.log(`🌐 Fetching fresh data from EIA API for series: ${seriesId}`);
 
-    // Fetch from EIA API
-    const eiaUrl = `https://api.eia.gov/series/?api_key=${EIA_API_KEY}&series_id=${seriesId}`;
+    // FIXED: Use modern EIA v2 API endpoint for better reliability  
+    const eiaUrl = `https://api.eia.gov/v2/petroleum/pri/gnd/data/?frequency=weekly&data[0]=value&facets[area-name][]=${state_code}&facets[product-name][]=${fuel_type.charAt(0).toUpperCase() + fuel_type.slice(1)}&sort[0][column]=period&sort[0][direction]=desc&offset=0&length=1&api_key=${EIA_API_KEY}`;
+    
     const eiaResponse = await fetch(eiaUrl);
     
     if (!eiaResponse.ok) {
-      throw new Error(`EIA API error: ${eiaResponse.status}`);
+      throw new Error(`EIA API error: ${eiaResponse.status} ${eiaResponse.statusText}`);
     }
 
     const eiaData = await eiaResponse.json();
-    const latest = eiaData.series?.[0]?.data?.[0];
     
-    if (!latest) {
-      throw new Error('No price data available from EIA');
+    // FIXED: Parse new v2 API response format
+    const responseData = eiaData.response?.data?.[0];
+    if (!responseData || !responseData.value) {
+      console.warn('⚠️ No data from EIA v2 API, trying fallback...');
+      
+      // Fallback to v1 API
+      const fallbackUrl = `https://api.eia.gov/series/?api_key=${EIA_API_KEY}&series_id=${seriesId}`;
+      const fallbackResponse = await fetch(fallbackUrl);
+      const fallbackData = await fallbackResponse.json();
+      const latest = fallbackData.series?.[0]?.data?.[0];
+      
+      if (!latest) {
+        throw new Error('No price data available from EIA v1 or v2 APIs');
+      }
+      
+      var [date, pricePerGallon] = latest;
+    } else {
+      var date = responseData.period;
+      var pricePerGallon = responseData.value;
     }
 
-    const [date, pricePerGallon] = latest;
     const costPerGallon = parseFloat(pricePerGallon);
 
     if (isNaN(costPerGallon) || costPerGallon <= 0) {
@@ -355,11 +373,41 @@ serve(async (req) => {
   } catch (error) {
     console.error('❌ Fuel price fetch error:', error);
     
+    // ENHANCED FALLBACK: Try to get any cached data regardless of age
+    try {
+      const { data: fallbackData } = await supabase
+        .from('regional_fuel_costs')
+        .select('cost_per_gallon, updated_at')
+        .eq('zip_code', zip_code)
+        .eq('fuel_type', fuel_type)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+        
+      if (fallbackData) {
+        console.log('✅ Using stale cached data as fallback');
+        return new Response(
+          JSON.stringify({
+            success: true,
+            zip_code,
+            fuel_type,
+            cost_per_gallon: fallbackData.cost_per_gallon,
+            source: 'stale_cache',
+            cached_at: fallbackData.updated_at,
+            warning: 'Using outdated cached data due to API failure'
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } catch (fallbackError) {
+      console.warn('⚠️ Fallback cache lookup failed:', fallbackError);
+    }
+    
     return new Response(
       JSON.stringify({
         success: false,
         error: error.message,
-        fallback_price: fuel_type === 'diesel' ? 4.25 : 3.85 // National averages
+        fallback_price: fuel_type === 'diesel' ? 4.25 : fuel_type === 'premium' ? 4.15 : 3.85 // Enhanced fallback prices
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
