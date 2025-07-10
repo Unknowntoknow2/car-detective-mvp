@@ -78,10 +78,6 @@ export function UnifiedLookupTabs() {
           bodyType: result.vehicle.bodyType || '',
           fuelType: result.vehicle.fuelType || '',
           drivetrain: result.vehicle.drivetrain || '',
-          // Pass pre-filled form data
-          mileage: mileage || '',
-          condition: condition || 'good',
-          zipCode: zipCode || '',
           source: 'vin'
         });
         
@@ -244,48 +240,10 @@ export function UnifiedLookupTabs() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="vin-mileage">Mileage (optional)</Label>
-                      <Input
-                        id="vin-mileage"
-                        type="number"
-                        min="0"
-                        value={mileage}
-                        onChange={(e) => setMileage(e.target.value)}
-                        placeholder="e.g., 50000"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="vin-condition">Condition</Label>
-                      <Select value={condition} onValueChange={setCondition}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="excellent">Excellent</SelectItem>
-                          <SelectItem value="good">Good</SelectItem>
-                          <SelectItem value="fair">Fair</SelectItem>
-                          <SelectItem value="poor">Poor</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="vin-zipCode">Zip Code *</Label>
-                      <Input
-                        id="vin-zipCode"
-                        value={zipCode}
-                        onChange={(e) => setZipCode(e.target.value)}
-                        placeholder="e.g., 12345"
-                        maxLength={5}
-                        required
-                      />
-                    </div>
-                  </div>
                 </div>
                 <Button 
                   type="submit" 
-                  disabled={!validateVin(vin) || !zipCode || isUnifiedLoading}
+                  disabled={!validateVin(vin) || isUnifiedLoading}
                   className="w-full"
                 >
                   {isUnifiedLoading ? (
