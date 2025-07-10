@@ -187,12 +187,25 @@ export default function ResultsPage() {
   const baseMSRP = valuationData.vehicle_data?.baseMSRP;
   const msrpSource = valuationData.vehicle_data?.msrpSource;
 
+  // Add debug logging before conversion
+  console.log('🔍 About to convert data:', { vehicleInfo, valuationData });
+  const convertedResult = convertLegacyToUnified(vehicleInfo, valuationData);
+  console.log('🔄 Converted result:', convertedResult);
+
   return (
     <div className="container mx-auto py-8 space-y-6">
+      {/* Debug info */}
+      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <h4 className="font-semibold">Debug Information:</h4>
+        <p>Vehicle Info: {JSON.stringify(vehicleInfo, null, 2)}</p>
+        <p>Final Value: {valuationData.estimated_value}</p>
+        <p>Converted Result Final Value: {convertedResult?.finalValue}</p>
+      </div>
+      
       {/* Main Valuation Result */}
       <div className="space-y-2">
         <UnifiedValuationResult
-          result={convertLegacyToUnified(vehicleInfo, valuationData)}
+          result={convertedResult}
         />
         
         {/* Data Integrity Panel - Complete Transparency */}

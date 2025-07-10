@@ -38,8 +38,9 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
   if (!result) {
     console.error('❌ No result data provided to UnifiedValuationResult');
     return (
-      <div className="container mx-auto p-6 text-center">
-        <p className="text-muted-foreground">No valuation data available</p>
+      <div className="container mx-auto p-6 text-center bg-red-50 border border-red-200 rounded">
+        <p className="text-red-600">No valuation data available</p>
+        <p className="text-sm text-red-500 mt-2">Debug: result is null or undefined</p>
       </div>
     );
   }
@@ -47,73 +48,77 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
   if (!result.finalValue || typeof result.finalValue !== 'number') {
     console.error('❌ Invalid finalValue in result:', result.finalValue);
     return (
-      <div className="container mx-auto p-6 text-center">
-        <p className="text-muted-foreground">Invalid valuation data</p>
+      <div className="container mx-auto p-6 text-center bg-red-50 border border-red-200 rounded">
+        <p className="text-red-600">Invalid valuation data</p>
+        <p className="text-sm text-red-500 mt-2">Debug: finalValue = {JSON.stringify(result.finalValue)}</p>
       </div>
     );
   }
 
+  console.log('✅ Data validation passed, rendering components...');
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-      className="bg-gradient-to-br from-background via-background/98 to-primary/5"
-    >
+    <div className="bg-gradient-to-br from-background via-background/98 to-primary/5">
       <div className="max-w-6xl mx-auto p-6 space-y-8">
+        {/* Debug Section */}
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded">
+          <h4 className="font-semibold">Component Debug:</h4>
+          <p>Final Value: ${result.finalValue?.toLocaleString()}</p>
+          <p>Vehicle: {result.vehicle.year} {result.vehicle.make} {result.vehicle.model}</p>
+          <p>Confidence: {result.confidenceScore}%</p>
+        </div>
+        
         {/* Hero Section */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Vehicle Summary - Spans 2 columns */}
-          <div className="xl:col-span-2">
-            <VehicleHeroCard
-              vehicle={{
-                year: result.vehicle.year,
-                make: result.vehicle.make,
-                model: result.vehicle.model,
-                trim: result.vehicle.trim,
-                fuelType: result.vehicle.fuelType,
-                transmission: undefined,
-                mileage: undefined,
-                condition: undefined,
-                zipCode: undefined
-              }}
-              estimatedValue={result.finalValue}
-              confidenceScore={result.confidenceScore}
-              timestamp={new Date().toISOString()}
-              isPremium={isPremium}
-            />
-          </div>
+        <section>
+          <VehicleHeroCard
+            vehicle={{
+              year: result.vehicle.year,
+              make: result.vehicle.make,
+              model: result.vehicle.model,
+              trim: result.vehicle.trim || '',
+              fuelType: result.vehicle.fuelType,
+              transmission: 'Unknown',
+              mileage: result.mileage || 0,
+              condition: 'Good',
+              zipCode: result.zip || ''
+            }}
+            estimatedValue={result.finalValue}
+            confidenceScore={result.confidenceScore}
+            timestamp={result.timestamp?.toString() || new Date().toISOString()}
+            isPremium={isPremium}
+          />
+        </section>
 
-          {/* Confidence Ring - 1 column */}
-          <div className="space-y-6">
-            <ConfidenceRing
-              score={result.confidenceScore}
-              factors={{
-                vinAccuracy: 85,
-                marketData: result.listingCount > 0 ? 80 : 45,
-                fuelCostMatch: 90,
-                msrpQuality: result.sources?.includes('msrp_db_lookup') ? 95 : 65
-              }}
-              recommendations={confidenceRecommendations}
-              onImproveClick={() => {
-                // Scroll to follow-up form or navigate
-                const followUpForm = document.getElementById('follow-up-form');
-                if (followUpForm) {
-                  followUpForm.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}
-            />
+        {/* Value & Confidence Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Value Showcase */}
+          <ValueShowcase
+            estimatedValue={result.finalValue}
+            priceRange={result.listingRange ? {
+              min: result.listingRange.min,
+              max: result.listingRange.max
+            } : undefined}
+            confidenceScore={result.confidenceScore}
+          />
 
-            {/* Value Showcase */}
-            <ValueShowcase
-              estimatedValue={result.finalValue}
-              priceRange={result.listingRange ? {
-                min: result.listingRange.min,
-                max: result.listingRange.max
-              } : undefined}
-              confidenceScore={result.confidenceScore}
-            />
-          </div>
+          {/* Confidence Ring */}
+          <ConfidenceRing
+            score={result.confidenceScore}
+            factors={{
+              vinAccuracy: 85,
+              marketData: result.listingCount > 0 ? 80 : 45,
+              fuelCostMatch: 90,
+              msrpQuality: result.sources?.includes('msrp_db_lookup') ? 95 : 65
+            }}
+            recommendations={confidenceRecommendations}
+            onImproveClick={() => {
+              // Scroll to follow-up form or navigate
+              const followUpForm = document.getElementById('follow-up-form');
+              if (followUpForm) {
+                followUpForm.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+          />
         </div>
 
         {/* Main Content Tabs */}
@@ -156,7 +161,7 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
           onUpgrade={handleUpgrade}
         />
       </div>
-    </motion.div>
+    </div>
   );
 };
 
