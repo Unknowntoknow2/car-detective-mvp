@@ -99,7 +99,7 @@ export async function processValuation(
     const decoded = await decodeVin(vin);
     
     // Step 1: VIN Decoding (10% Progress)
-    await logValuationStep('VIN_DECODE_START', vin, { zipCode, mileage, condition }, userId);
+    await logValuationStep('VIN_DECODE_START', vin, valuationRequest?.id || 'fallback', { zipCode, mileage, condition }, userId, zipCode);
     // Extract vehicle data from decoded response
     const vehicleData = decoded.decoded as DecodedVehicleInfo || {} as DecodedVehicleInfo;
     const vehicleYear = vehicleData.year || 2020;
@@ -109,7 +109,7 @@ export async function processValuation(
     const vehicleFuelType = vehicleData.fuelType || 'gasoline';
     
     tracker.completeStep('vin_decode', { vehicle: vehicleData });
-    await logValuationStep('VIN_DECODE_COMPLETE', vin, { make: vehicleMake, model: vehicleModel, year: vehicleYear }, userId);
+    await logValuationStep('VIN_DECODE_COMPLETE', vin, valuationRequest?.id || 'fallback', { make: vehicleMake, model: vehicleModel, year: vehicleYear }, userId, zipCode);
     console.log('✅ VIN decoded:', { make: vehicleMake, model: vehicleModel, year: vehicleYear });
     
     // Step 2: FIX #4 - Dynamic MSRP Lookup
@@ -130,17 +130,17 @@ export async function processValuation(
     });
     
     // Enhanced audit logging with metadata
-    await logAdjustmentStep(vin, {
+    await logAdjustmentStep(vin, valuationRequest?.id || 'fallback', {
       label: "Depreciation",
       amount: depreciation,
       reason: `${vehicleYear} model year (${new Date().getFullYear() - vehicleYear} years old)`,
       baseValue: finalValue,
       newValue: afterDepreciation
-    }, userId);
+    }, userId, zipCode);
     
     finalValue = afterDepreciation;
     tracker.completeStep('depreciation', { adjustment: depreciation });
-    await logValuationStep('DEPRECIATION_APPLIED', vin, { amount: depreciation, vehicleYear, baseValue: finalValue - depreciation, newValue: finalValue }, userId);
+    await logValuationStep('DEPRECIATION_APPLIED', vin, valuationRequest?.id || 'fallback', { amount: depreciation, vehicleYear, baseValue: finalValue - depreciation, newValue: finalValue }, userId, zipCode);
     
     // Step 3: Apply mileage adjustment (15% Progress)
     tracker.startStep('mileage', { mileage, baseValue: finalValue });
@@ -153,17 +153,17 @@ export async function processValuation(
     });
     
     // Enhanced audit logging with metadata
-    await logAdjustmentStep(vin, {
+    await logAdjustmentStep(vin, valuationRequest?.id || 'fallback', {
       label: "Mileage",
       amount: mileageAdj,
       reason: `${mileage.toLocaleString()} miles`,
       baseValue: finalValue,
       newValue: afterMileage
-    }, userId);
+    }, userId, zipCode);
     
     finalValue = afterMileage;
     tracker.completeStep('mileage', { adjustment: mileageAdj });
-    await logValuationStep('MILEAGE_ADJUSTMENT', vin, { amount: mileageAdj, mileage, baseValue: finalValue - mileageAdj, newValue: finalValue }, userId);
+    await logValuationStep('MILEAGE_ADJUSTMENT', vin, valuationRequest?.id || 'fallback', { amount: mileageAdj, mileage, baseValue: finalValue - mileageAdj, newValue: finalValue }, userId, zipCode);
     
     // Step 4: Apply condition adjustment (15% Progress)  
     tracker.startStep('condition', { condition });
@@ -176,17 +176,17 @@ export async function processValuation(
     });
     
     // Enhanced audit logging with metadata
-    await logAdjustmentStep(vin, {
+    await logAdjustmentStep(vin, valuationRequest?.id || 'fallback', {
       label: "Condition",
       amount: conditionAdj,
       reason: `${condition} condition`,
       baseValue: finalValue,
       newValue: afterCondition
-    }, userId);
+    }, userId, zipCode);
     
     finalValue = afterCondition;
     tracker.completeStep('condition', { adjustment: conditionAdj });
-    await logValuationStep('CONDITION_APPLIED', vin, { amount: conditionAdj, condition, baseValue: finalValue - conditionAdj, newValue: finalValue }, userId);
+    await logValuationStep('CONDITION_APPLIED', vin, valuationRequest?.id || 'fallback', { amount: conditionAdj, condition, baseValue: finalValue - conditionAdj, newValue: finalValue }, userId, zipCode);
     
     // Step 5: Apply fuel cost adjustment (15% Progress)
     tracker.startStep('fuel_cost', { fuelType: vehicleFuelType, zipCode });
@@ -200,18 +200,18 @@ export async function processValuation(
     });
     
     // Enhanced audit logging with metadata
-    await logAdjustmentStep(vin, {
+    await logAdjustmentStep(vin, valuationRequest?.id || 'fallback', {
       label: "Fuel Type Impact",
       amount: fuelAdj,
       reason: `${fuelType} fuel type in ZIP ${zipCode}`,
       baseValue: finalValue,
       newValue: afterFuel
-    }, userId);
+    }, userId, zipCode);
     
     finalValue = afterFuel;
     sources.push("eia_fuel_costs");
     tracker.completeStep('fuel_cost', { adjustment: fuelAdj });
-    await logValuationStep('FUEL_PRICING_FETCHED', vin, { amount: fuelAdj, fuelType: vehicleFuelType, baseValue: finalValue - fuelAdj, newValue: finalValue }, userId);
+    await logValuationStep('FUEL_PRICING_FETCHED', vin, valuationRequest?.id || 'fallback', { amount: fuelAdj, fuelType: vehicleFuelType, baseValue: finalValue - fuelAdj, newValue: finalValue }, userId, zipCode);
     
     // Step 6: Market listings integration (15% Progress)
     tracker.startStep('market_search', { year: vehicleYear, make: vehicleMake, model: vehicleModel });
@@ -263,35 +263,35 @@ export async function processValuation(
           });
           
           // Enhanced audit logging with metadata
-          await logAdjustmentStep(vin, {
+          await logAdjustmentStep(vin, valuationRequest?.id || 'fallback', {
             label: "Market Anchoring",
             amount: marketAdj,
             reason: `Based on ${prices.length} comparable listings (avg: $${avg.toLocaleString()})`,
             baseValue: finalValue,
             newValue: afterMarket
-          }, userId);
+          }, userId, zipCode);
           
           finalValue = afterMarket;
           listingRange = { min, max };
           sources.push("openai_market_search");
           marketSearchStatus = "success";
           tracker.completeStep('market_search', { listingCount: prices.length, avgPrice: avg });
-          await logValuationStep('MARKET_SEARCH_COMPLETE', vin, { status: marketSearchStatus, listingCount: prices.length }, userId);
+          await logValuationStep('MARKET_SEARCH_COMPLETE', vin, valuationRequest?.id || 'fallback', { status: marketSearchStatus, listingCount: prices.length }, userId, zipCode);
         } else {
           marketSearchStatus = "fallback";
           tracker.completeStep('market_search', { error: "No valid prices found" });
-          await logValuationStep('MARKET_SEARCH_COMPLETE', vin, { status: marketSearchStatus, listingCount: 0 }, userId);
+          await logValuationStep('MARKET_SEARCH_COMPLETE', vin, valuationRequest?.id || 'fallback', { status: marketSearchStatus, listingCount: 0 }, userId, zipCode);
         }
       } else {
         marketSearchStatus = "fallback";
         tracker.completeStep('market_search', { error: "No listings found" });
-        await logValuationStep('MARKET_SEARCH_COMPLETE', vin, { status: marketSearchStatus, listingCount: 0 }, userId);
+        await logValuationStep('MARKET_SEARCH_COMPLETE', vin, valuationRequest?.id || 'fallback', { status: marketSearchStatus, listingCount: 0 }, userId, zipCode);
       }
     } catch (e) {
       console.error("Market search error:", e);
       marketSearchStatus = "error";
       tracker.errorStep('market_search', e instanceof Error ? e.message : 'Unknown error');
-      await logValuationStep('MARKET_SEARCH_COMPLETE', vin, { status: marketSearchStatus, error: e instanceof Error ? e.message : 'Unknown error' }, userId);
+      await logValuationStep('MARKET_SEARCH_COMPLETE', vin, valuationRequest?.id || 'fallback', { status: marketSearchStatus, error: e instanceof Error ? e.message : 'Unknown error' }, userId, zipCode);
     }
     
     // Step 7: FIX #5 - Enhanced Confidence Score Calibration v2
@@ -324,7 +324,7 @@ export async function processValuation(
     // Ensure final value is reasonable
     finalValue = Math.max(3000, Math.round(finalValue));
     tracker.completeStep('confidence_calc', { score: confidenceScore, spreadAnalysis: listingRange ? (listingRange.max - listingRange.min) / finalValue : null });
-    await logValuationStep('CONFIDENCE_COMPUTED', vin, { confidenceScore, finalValue, listingCount: listings.length, marketSpread: listingRange }, userId);
+    await logValuationStep('CONFIDENCE_COMPUTED', vin, valuationRequest?.id || 'fallback', { confidenceScore, finalValue, listingCount: listings.length, marketSpread: listingRange }, userId, zipCode);
     
     // Step 8: Generate AI explanation (10% Progress)
     tracker.startStep('ai_explanation', { finalValue, confidenceScore });
@@ -345,7 +345,7 @@ export async function processValuation(
       confidenceScore
     });
     tracker.completeStep('ai_explanation', { explanation });
-    await logValuationStep('AI_EXPLANATION_GENERATED', vin, { explanationLength: explanation.length }, userId);
+    await logValuationStep('AI_EXPLANATION_GENERATED', vin, valuationRequest?.id || 'fallback', { explanationLength: explanation.length }, userId, zipCode);
     
     // Step 9: FIX #1 - Enhanced Audit Trail Logging with Complete Metadata
     tracker.startStep('audit_log', { finalValue, confidenceScore });
@@ -403,7 +403,7 @@ export async function processValuation(
     }
     
     tracker.completeStep('audit_log', { success: true, auditId });
-    await logValuationStep('AUDIT_SAVED', vin, { finalValue, confidenceScore, auditId }, userId);
+    await logValuationStep('AUDIT_SAVED', vin, valuationRequest?.id || 'fallback', { finalValue, confidenceScore, auditId }, userId, zipCode);
     
     // Step 10: Generate PDF for premium users (5% Progress)
     let pdfUrl: string | undefined;
@@ -456,11 +456,11 @@ export async function processValuation(
         }
         
         tracker.completeStep('pdf_generation', { pdfUrl: !!pdfUrl });
-        await logValuationStep('PDF_GENERATED', vin, { pdfUrl: !!pdfUrl, isPremium }, userId);
+        await logValuationStep('PDF_GENERATED', vin, valuationRequest?.id || 'fallback', { pdfUrl: !!pdfUrl, isPremium }, userId, zipCode);
       } catch (error) {
         console.error('❌ Error during PDF generation:', error);
         tracker.completeStep('pdf_generation', { error: (error as Error).message });
-        await logValuationStep('PDF_GENERATION_FAILED', vin, { error: (error as Error).message }, userId);
+        await logValuationStep('PDF_GENERATION_FAILED', vin, valuationRequest?.id || 'fallback', { error: (error as Error).message }, userId, zipCode);
         // Don't fail the entire valuation if PDF generation fails
       }
     }

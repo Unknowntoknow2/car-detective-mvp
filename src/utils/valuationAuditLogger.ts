@@ -1,5 +1,12 @@
 // Enhanced Valuation Audit Logger with Full Metadata Support
 import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@supabase/supabase-js";
+
+// Create supabaseAdmin client for service role access
+const supabaseAdmin = createClient(
+  "https://xltxqqzattxogxtqrggt.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsdHhxcXphdHR4b2d4dHFyZ2d0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTQ1NjEyNiwiZXhwIjoyMDYxMDMyMTI2fQ.aQOWzgaxKLHmI9uDwOJU0sW4yNhLvyHkdJCcQ5ZCr4k"
+);
 
 export interface AuditLogData {
   vin?: string;
@@ -16,12 +23,15 @@ export interface AuditLogData {
 }
 
 export interface ValuationStepMetadata {
-  label: string;
-  amount: number;
+  step: string;
+  value_at_step: number;
+  adjustment_label?: string;
+  adjustment_amount?: number;
   reason: string;
-  timestamp: string;
   vin: string;
-  userId?: string;
+  user_id?: string;
+  zip_code?: string;
+  timestamp: number;
 }
 
 /**
@@ -130,31 +140,36 @@ export async function logValuationAudit(
 export async function logValuationStep(
   step: string,
   vin: string,
+  valuationRequestId: string,
   data: Record<string, any> = {},
-  userId?: string
+  userId?: string,
+  zipCode?: string
 ): Promise<void> {
   try {
-    console.log(`📋 Enhanced Step [${step}]:`, { vin, ...data });
+    console.log(`📋 Enhanced Step [${step}]:`, { vin, valuationRequestId, ...data });
     
-    // Enhanced step data with adjustment metadata
+    // Create step metadata with all required fields
     const stepMetadata: ValuationStepMetadata = {
-      label: data.label || step,
-      amount: data.amount || 0,
-      reason: data.reason || `${step} processing`,
-      timestamp: new Date().toISOString(),
+      step,
+      value_at_step: data.newValue || data.finalValue || 0,
+      adjustment_label: data.label || step.replace(/_/g, ' '),
+      adjustment_amount: data.amount || 0,
+      reason: data.reason || data.condition || data.fuelType || `${step} processing`,
       vin,
-      userId
+      user_id: userId,
+      zip_code: zipCode,
+      timestamp: Date.now()
     };
     
-    const stepEntry = {
-      action: `VALUATION_STEP_${step}`,
-      entity_type: 'valuation_step',
-      entity_id: vin,
-      user_id: userId,
+    // Prepare audit log entry for valuation_audit_logs table
+    const auditEntry = {
+      event: `VALUATION_STEP_${step}`,
+      valuation_request_id: valuationRequestId,
+      action: step,
+      run_by: userId,
       input_data: {
         vin,
         step,
-        stepMetadata,
         timestamp: new Date().toISOString(),
         ...data
       },
@@ -162,25 +177,46 @@ export async function logValuationStep(
         ...data,
         stepMetadata
       },
-      processing_time_ms: Date.now(),
-      compliance_flags: []
+      metadata: stepMetadata,
+      audit_data: {
+        step,
+        vin,
+        valuationRequestId,
+        userId,
+        zipCode,
+        ...data
+      },
+      execution_time_ms: Date.now(),
+      source: 'unified_valuation_engine',
+      created_at: new Date().toISOString()
     };
     
-    // Multi-layered persistence approach
     try {
-      // Primary: Direct database insert
-      const { error: dbError } = await supabase
-        .from('compliance_audit_log')
-        .insert(stepEntry);
+      // Primary: Insert into valuation_audit_logs using admin client
+      const { data: insertedData, error: dbError } = await supabaseAdmin
+        .from('valuation_audit_logs')
+        .insert(auditEntry)
+        .select('id')
+        .single();
       
-      if (dbError) {
-        console.warn('⚠️ Step audit DB failed, using fallback:', dbError.message);
-        // Fallback: Store in localStorage for audit recovery
-        const fallbackKey = `audit_step_${vin}_${step}_${Date.now()}`;
-        localStorage.setItem(fallbackKey, JSON.stringify({ ...stepEntry, logged_at: new Date().toISOString() }));
+      if (!dbError && insertedData) {
+        console.log(`✅ Step audit logged to valuation_audit_logs:`, insertedData.id);
+      } else {
+        console.warn('⚠️ Primary audit failed:', dbError?.message);
+        
+        // Fallback: Try with regular client
+        const { error: fallbackError } = await supabase
+          .from('valuation_audit_logs')
+          .insert(auditEntry);
+        
+        if (fallbackError) {
+          console.warn('⚠️ Fallback audit also failed:', fallbackError.message);
+        } else {
+          console.log('✅ Fallback audit succeeded');
+        }
       }
     } catch (error) {
-      console.warn('⚠️ Step audit completely failed:', error);
+      console.warn('⚠️ Complete step audit failed (non-blocking):', error);
     }
     
   } catch (error) {
@@ -218,6 +254,7 @@ export async function logValuationError(
  */
 export async function logAdjustmentStep(
   vin: string,
+  valuationRequestId: string,
   adjustment: {
     label: string;
     amount: number;
@@ -225,25 +262,16 @@ export async function logAdjustmentStep(
     baseValue: number;
     newValue: number;
   },
-  userId?: string
+  userId?: string,
+  zipCode?: string
 ): Promise<void> {
-  const stepMetadata: ValuationStepMetadata = {
-    label: adjustment.label,
-    amount: adjustment.amount,
-    reason: adjustment.reason,
-    timestamp: new Date().toISOString(),
-    vin,
-    userId
-  };
-
-  await logValuationStep('ADJUSTMENT_APPLIED', vin, {
+  await logValuationStep('ADJUSTMENT_APPLIED', vin, valuationRequestId, {
     label: adjustment.label,
     amount: adjustment.amount,
     reason: adjustment.reason,
     baseValue: adjustment.baseValue,
     newValue: adjustment.newValue,
     valueChange: adjustment.newValue - adjustment.baseValue,
-    percentageChange: ((adjustment.amount / adjustment.baseValue) * 100).toFixed(2),
-    stepMetadata
-  }, userId);
+    percentageChange: ((adjustment.amount / adjustment.baseValue) * 100).toFixed(2)
+  }, userId, zipCode);
 }
