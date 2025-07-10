@@ -157,14 +157,14 @@ function getStateFromZip(zipCode: string): string {
   if (prefixNum >= 970 && prefixNum <= 979) return 'OR';
   if (prefixNum >= 980 && prefixNum <= 994) return 'WA';
   if (prefixNum >= 995 && prefixNum <= 999) return 'AK';
-  if (prefixNum >= 006 && prefixNum <= 009) return 'PR';
-  if (prefixNum >= 010 && prefixNum <= 027) return 'MA';
-  if (prefixNum >= 028 && prefixNum <= 029) return 'RI';
-  if (prefixNum >= 030 && prefixNum <= 038) return 'NH';
-  if (prefixNum >= 039 && prefixNum <= 049) return 'ME';
-  if (prefixNum >= 050 && prefixNum <= 059) return 'VT';
-  if (prefixNum >= 060 && prefixNum <= 069) return 'CT';
-  if (prefixNum >= 070 && prefixNum <= 089) return 'NJ';
+  if (prefixNum >= 6 && prefixNum <= 9) return 'PR';
+  if (prefixNum >= 10 && prefixNum <= 27) return 'MA';
+  if (prefixNum >= 28 && prefixNum <= 29) return 'RI';
+  if (prefixNum >= 30 && prefixNum <= 38) return 'NH';
+  if (prefixNum >= 39 && prefixNum <= 49) return 'ME';
+  if (prefixNum >= 50 && prefixNum <= 59) return 'VT';
+  if (prefixNum >= 60 && prefixNum <= 69) return 'CT';
+  if (prefixNum >= 70 && prefixNum <= 89) return 'NJ';
   
   return 'US'; // Default to US national
 }
