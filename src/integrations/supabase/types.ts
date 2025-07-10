@@ -2349,30 +2349,45 @@ export type Database = {
       regional_fuel_costs: {
         Row: {
           area_name: string
+          cost_per_gallon: number
           created_at: string | null
+          fuel_type: string
           id: string
           period: string
           price: number
           product_name: string
+          source: string | null
+          state_code: string | null
           updated_at: string | null
+          zip_code: string
         }
         Insert: {
           area_name: string
+          cost_per_gallon: number
           created_at?: string | null
+          fuel_type?: string
           id?: string
           period: string
           price: number
           product_name: string
+          source?: string | null
+          state_code?: string | null
           updated_at?: string | null
+          zip_code: string
         }
         Update: {
           area_name?: string
+          cost_per_gallon?: number
           created_at?: string | null
+          fuel_type?: string
           id?: string
           period?: string
           price?: number
           product_name?: string
+          source?: string | null
+          state_code?: string | null
           updated_at?: string | null
+          zip_code?: string
         }
         Relationships: []
       }

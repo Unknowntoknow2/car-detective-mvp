@@ -1,10 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export interface FuelCostData {
-  area_name: string;
-  product_name: string;
-  price: number;
-  period: string;
+  cost_per_gallon: number;
+  source: string;
+  cached_at?: string;
+  state_code?: string;
 }
 
 export interface FuelCostImpact {
@@ -14,270 +14,201 @@ export interface FuelCostImpact {
   explanation: string;
 }
 
-// State to region mapping for fuel price lookup
-const STATE_TO_REGION_MAP: Record<string, string> = {
-  'CA': 'California',
-  'TX': 'Texas',
-  'FL': 'Florida',
-  'NY': 'New York',
-  'PA': 'Pennsylvania',
-  'IL': 'Illinois',
-  'OH': 'Ohio',
-  'GA': 'Georgia',
-  'NC': 'North Carolina',
-  'MI': 'Michigan',
-  'NJ': 'New Jersey',
-  'VA': 'Virginia',
-  'WA': 'Washington',
-  'AZ': 'Arizona',
-  'MA': 'Massachusetts',
-  'TN': 'Tennessee',
-  'IN': 'Indiana',
-  'MO': 'Missouri',
-  'MD': 'Maryland',
-  'WI': 'Wisconsin',
-  'CO': 'Colorado',
-  'MN': 'Minnesota',
-  'SC': 'South Carolina',
-  'AL': 'Alabama',
-  'LA': 'Louisiana',
-  'KY': 'Kentucky',
-  'OR': 'Oregon',
-  'OK': 'Oklahoma',
-  'CT': 'Connecticut',
-  'IA': 'Iowa',
-  'MS': 'Mississippi',
-  'AR': 'Arkansas',
-  'UT': 'Utah',
-  'KS': 'Kansas',
-  'NV': 'Nevada',
-  'NM': 'New Mexico',
-  'NE': 'Nebraska',
-  'WV': 'West Virginia',
-  'ID': 'Idaho',
-  'HI': 'Hawaii',
-  'NH': 'New Hampshire',
-  'ME': 'Maine',
-  'RI': 'Rhode Island',
-  'MT': 'Montana',
-  'DE': 'Delaware',
-  'SD': 'South Dakota',
-  'ND': 'North Dakota',
-  'AK': 'Alaska',
-  'VT': 'Vermont',
-  'WY': 'Wyoming'
-};
-
-// Convert ZIP code to state (simplified - in production, use proper ZIP lookup)
-function zipToState(zipCode: string): string | null {
-  if (!zipCode || zipCode.length < 5) return null;
-  
-  // This is a simplified mapping - in production, use a proper ZIP to state service
-  const zipNum = parseInt(zipCode.substring(0, 3));
-  
-  if (zipNum >= 900) return 'CA'; // California
-  if (zipNum >= 800) return 'CO'; // Colorado
-  if (zipNum >= 700) return 'TX'; // Texas
-  if (zipNum >= 600) return 'IL'; // Illinois
-  if (zipNum >= 500) return 'IA'; // Iowa
-  if (zipNum >= 400) return 'KY'; // Kentucky
-  if (zipNum >= 300) return 'GA'; // Georgia
-  if (zipNum >= 200) return 'VA'; // Virginia
-  if (zipNum >= 100) return 'NY'; // New York
-  if (zipNum >= 0) return 'MA'; // Massachusetts
-  
-  return null;
-}
-
-export async function fetchRegionalFuelPrice(
-  zipCode: string, 
-  fuelType: 'gasoline' | 'diesel' = 'gasoline'
-): Promise<number | null> {
+/**
+ * Get fuel cost by ZIP code with intelligent caching
+ * Uses cached data if available (within 7 days), otherwise fetches fresh data via EIA API
+ */
+export async function getFuelCostByZip(zipCode: string, fuelType: string = 'gasoline'): Promise<FuelCostData | null> {
   try {
-    const state = zipToState(zipCode);
-    if (!state) return null;
-
-    const regionName = STATE_TO_REGION_MAP[state];
-    if (!regionName) return null;
-
-    const productName = fuelType === 'gasoline' ? 'Regular Gasoline' : 'Diesel';
-
-    const { data, error } = await supabase
+    console.log('🔍 Getting fuel cost for ZIP:', { zipCode, fuelType });
+    
+    // First, try to get recent cached data (within 7 days)
+    const { data: cachedData, error: cacheError } = await supabase
       .from('regional_fuel_costs')
-      .select('price, period')
-      .eq('area_name', regionName)
-      .eq('product_name', productName)
-      .order('period', { ascending: false })
-      .limit(1)
+      .select('cost_per_gallon, source, updated_at, state_code')
+      .eq('zip_code', zipCode)
+      .eq('fuel_type', fuelType)
+      .gte('updated_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
       .single();
 
-    if (error || !data) {
-      console.warn(`No fuel price data found for ${regionName}, ${productName}`);
+    if (cachedData && !cacheError) {
+      console.log(`✅ Using cached fuel price: $${cachedData.cost_per_gallon}/gal`);
+      return {
+        cost_per_gallon: cachedData.cost_per_gallon,
+        source: 'cache',
+        cached_at: cachedData.updated_at,
+        state_code: cachedData.state_code
+      };
+    }
+
+    // If no cache, fetch fresh data via edge function
+    console.log('🌐 Fetching fresh fuel data via EIA API...');
+    const { data: freshData, error: fetchError } = await supabase.functions.invoke('fetch-eia-fuel-prices', {
+      body: { zip_code: zipCode, fuel_type: fuelType }
+    });
+
+    if (fetchError) {
+      console.error('❌ Edge function error:', fetchError);
       return null;
     }
 
-    return data.price;
+    if (freshData?.success && freshData.cost_per_gallon) {
+      console.log(`✅ Fresh fuel price: $${freshData.cost_per_gallon}/gal`);
+      return {
+        cost_per_gallon: freshData.cost_per_gallon,
+        source: freshData.source,
+        state_code: freshData.state_code
+      };
+    }
+
+    // Final fallback to national averages
+    console.warn('⚠️ Using fallback fuel pricing');
+    return getFallbackFuelPrice(fuelType);
+
   } catch (error) {
-    console.error('Error fetching regional fuel price:', error);
-    return null;
+    console.error('❌ Error in getFuelCostByZip:', error);
+    return getFallbackFuelPrice(fuelType);
   }
 }
 
-export async function getFuelCostByZip(
-  zipCode: string, 
-  fuelType: 'gasoline' | 'diesel' | 'hybrid' | 'electric' = 'gasoline'
-): Promise<{ cost_per_gallon: number; source: string; explanation: string } | null> {
-  try {
-    // For EVs and hybrids, we'll use gasoline prices as a reference for savings calculations
-    const referenceFuelType = (fuelType === 'electric' || fuelType === 'hybrid') ? 'gasoline' : fuelType;
-    
-    const state = zipToState(zipCode);
-    if (!state) {
-      console.warn(`Could not determine state for ZIP: ${zipCode}`);
-      return null;
-    }
+function getFallbackFuelPrice(fuelType: string): FuelCostData {
+  const fallbackPrices: Record<string, number> = {
+    'gasoline': 3.85,
+    'diesel': 4.25,
+    'premium': 4.15,
+    'electric': 0.13 // per kWh equivalent
+  };
 
-    const regionName = STATE_TO_REGION_MAP[state];
-    if (!regionName) {
-      console.warn(`No region mapping for state: ${state}`);
-      return null;
-    }
-
-    const productName = referenceFuelType === 'gasoline' ? 'Regular Gasoline' : 'Diesel Fuel';
-
-    const { data, error } = await supabase
-      .from('regional_fuel_costs')
-      .select('price, period, area_name')
-      .eq('area_name', regionName)
-      .eq('product_name', productName)
-      .order('period', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (error || !data) {
-      console.warn(`No fuel price data found for ${regionName}, ${productName}`);
-      return null;
-    }
-
-    const explanation = `Real-time ${productName.toLowerCase()} pricing from U.S. Energy Information Administration for ${regionName} region (${data.period})`;
-    
-    return {
-      cost_per_gallon: data.price,
-      source: 'EIA_API',
-      explanation
-    };
-  } catch (error) {
-    console.error('Error fetching fuel cost by ZIP:', error);
-    return null;
-  }
+  return {
+    cost_per_gallon: fallbackPrices[fuelType] || fallbackPrices.gasoline,
+    source: 'fallback',
+    state_code: 'US'
+  };
 }
 
+/**
+ * Compute fuel type adjustment based on real regional fuel costs
+ */
 export function computeFuelTypeAdjustment(
-  fuelType: 'gasoline' | 'diesel' | 'hybrid' | 'electric',
+  fuelType: string,
   baseValue: number,
   regionalFuelPrice: number | null,
   zipCode: string
-): { adjustment: number; explanation: string; confidence: number } {
+): { adjustment: number; explanation: string } {
+  if (!regionalFuelPrice) {
+    return {
+      adjustment: 0,
+      explanation: "No regional fuel pricing data available for adjustment."
+    };
+  }
+
+  const nationalAverages: Record<string, number> = {
+    'gasoline': 3.85,
+    'diesel': 4.25,
+    'premium': 4.15,
+    'electric': 0.13
+  };
+
+  const baselineFuelPrice = nationalAverages.gasoline; // Compare all to gasoline baseline
+  const efficiency: Record<string, number> = {
+    'gasoline': 1.0,
+    'diesel': 1.25,    // ~25% more efficient
+    'premium': 1.0,
+    'electric': 3.5,   // ~3.5x more efficient (MPGe)
+    'hybrid': 1.8      // ~80% more efficient
+  };
+
   let adjustment = 0;
-  let explanation = '';
-  let confidence = 85; // Base confidence
+  let explanation = "";
 
-  const fuelPriceInfo = regionalFuelPrice ? 
-    `(regional gas: $${regionalFuelPrice.toFixed(2)}/gal)` : 
-    '(using national average)';
-
-  switch (fuelType) {
+  switch (fuelType.toLowerCase()) {
     case 'electric':
-      // EVs: Significant TCO advantage, especially in high gas price areas
-      const evBonus = regionalFuelPrice && regionalFuelPrice > 4.0 ? 0.035 : 0.025; // 3.5% or 2.5%
-      adjustment = evBonus * baseValue;
-      explanation = `Electric vehicles provide significant fuel cost savings vs gasoline ${fuelPriceInfo}. Added ${(evBonus * 100).toFixed(1)}% value boost in ZIP ${zipCode}.`;
-      confidence = 95; // High confidence in EV savings
+      // EVs get significant boost due to low operating costs
+      const electricCostPer100Mi = 100 / 120 * nationalAverages.electric; // ~$0.11 per 100 miles
+      const gasCostPer100Mi = 100 / 25 * regionalFuelPrice; // ~$15.40 per 100 miles at $3.85/gal
+      const annualSavings = (gasCostPer100Mi - electricCostPer100Mi) * 120; // 12k miles
+      adjustment = Math.min(annualSavings * 2.5, baseValue * 0.08); // 2.5-year savings impact, cap at 8%
+      explanation = `Electric vehicle receives ${adjustment >= 0 ? '+' : ''}$${Math.round(adjustment)} value boost due to significant fuel cost savings versus gasoline vehicles, based on real-time fuel pricing from the U.S. Energy Information Administration for ZIP ${zipCode}.`;
       break;
-      
+
     case 'hybrid':
-      // Hybrids: Moderate TCO advantage
-      const hybridBonus = regionalFuelPrice && regionalFuelPrice > 3.5 ? 0.025 : 0.02; // 2.5% or 2%
-      adjustment = hybridBonus * baseValue;
-      explanation = `Hybrid fuel efficiency provides cost savings vs conventional vehicles ${fuelPriceInfo}. Added ${(hybridBonus * 100).toFixed(1)}% value boost in ZIP ${zipCode}.`;
-      confidence = 90;
+      const hybridSavings = (regionalFuelPrice - baselineFuelPrice) * 400; // Assume 400 gal/year difference
+      adjustment = Math.min(hybridSavings + 1200, baseValue * 0.05); // Base hybrid premium + regional adjustment
+      adjustment = Math.max(adjustment, 0); // No negative adjustments for hybrids
+      explanation = `Hybrid vehicle receives ${adjustment >= 0 ? '+' : ''}$${Math.round(adjustment)} value boost reflecting fuel efficiency advantages over conventional vehicles, based on real regional fuel costs of $${regionalFuelPrice.toFixed(2)}/gal in ZIP ${zipCode}.`;
       break;
-      
+
     case 'diesel':
-      // Diesel: May have penalty in high-cost regions, bonus in efficient applications
-      if (regionalFuelPrice && regionalFuelPrice > 4.5) {
-        adjustment = -0.01 * baseValue; // Small penalty for expensive diesel
-        explanation = `Diesel fuel costs are elevated in this region ${fuelPriceInfo}. Applied small adjustment in ZIP ${zipCode}.`;
-      } else {
-        adjustment = 0.005 * baseValue; // Small bonus for fuel efficiency
-        explanation = `Diesel fuel efficiency provides modest advantage ${fuelPriceInfo} in ZIP ${zipCode}.`;
-      }
-      confidence = 80;
+      const dieselPriceDiff = regionalFuelPrice - baselineFuelPrice;
+      const efficiencyBonus = efficiency.diesel - 1.0; // 0.25
+      adjustment = (dieselPriceDiff * -400) + (efficiencyBonus * 1000); // Price penalty offset by efficiency
+      adjustment = Math.max(Math.min(adjustment, baseValue * 0.03), baseValue * -0.04);
+      const sign = adjustment >= 0 ? '+' : '';
+      explanation = `Diesel fuel type adjustment (${sign}${(Math.abs(adjustment) / baseValue * 100).toFixed(1)}%) applied based on current regional diesel pricing of $${regionalFuelPrice.toFixed(2)}/gal and efficiency characteristics in ZIP ${zipCode}.`;
       break;
-      
-    case 'gasoline':
+
+    case 'premium':
+      const premiumPriceDiff = regionalFuelPrice - baselineFuelPrice;
+      adjustment = premiumPriceDiff * -250; // Slight penalty for premium fuel requirement
+      adjustment = Math.max(Math.min(adjustment, 600), -1000);
+      explanation = `Premium fuel requirement adjustment of ${adjustment >= 0 ? '+' : ''}$${Math.round(adjustment)} based on regional premium gasoline pricing of $${regionalFuelPrice.toFixed(2)}/gal in ZIP ${zipCode}.`;
+      break;
+
     default:
-      // Gasoline: Baseline, no fuel type adjustment
       adjustment = 0;
-      explanation = `Standard gasoline vehicle ${fuelPriceInfo}. No fuel type adjustment applied.`;
-      confidence = 75; // Lower confidence as baseline
-      break;
+      explanation = `Standard gasoline vehicle - no fuel type adjustment applied.`;
   }
 
   return {
     adjustment: Math.round(adjustment),
-    explanation,
-    confidence
+    explanation
   };
 }
 
+/**
+ * Compute fuel cost impact for MPG-based adjustments
+ */
 export function computeFuelCostImpact(
   regionalFuelPrice: number | null,
-  vehicleMpg: number | null,
-  fuelType: 'gasoline' | 'diesel' | 'hybrid' | 'electric' = 'gasoline'
-): FuelCostImpact {
-  // Default values
-  const nationalAvgGasoline = 3.25;
-  const nationalAvgDiesel = 3.85;
-  const nationalAvg = fuelType === 'gasoline' ? nationalAvgGasoline : nationalAvgDiesel;
-  const baselineMpg = 25; // National average MPG
-  const annualMiles = 12000;
-
-  // Use national average if regional price not available
-  const fuelPrice = regionalFuelPrice ?? nationalAvg;
-  const mpg = vehicleMpg ?? baselineMpg;
-
-  // Calculate cost per mile
-  const costPerMile = fuelPrice / mpg;
-  const baselineCostPerMile = nationalAvg / baselineMpg;
-
-  // Calculate annual savings (positive = saves money, negative = costs more)
-  const annualSavings = (baselineCostPerMile - costPerMile) * annualMiles;
-
-  // Regional multiplier for valuation adjustment
-  const regionalMultiplier = nationalAvg / fuelPrice;
-
-  let explanation = '';
-  if (regionalFuelPrice) {
-    const priceDiff = ((fuelPrice - nationalAvg) / nationalAvg * 100).toFixed(1);
-    const sign = fuelPrice > nationalAvg ? '+' : '';
-    explanation = `Regional fuel price: $${fuelPrice.toFixed(2)}/gal (${sign}${priceDiff}% vs national avg). `;
-  } else {
-    explanation = `Using national average fuel price: $${nationalAvg.toFixed(2)}/gal. `;
+  mpg: number | null,
+  fuelType: string = 'gasoline'
+): { annualSavings: number; explanation: string } {
+  if (!regionalFuelPrice || !mpg) {
+    return {
+      annualSavings: 0,
+      explanation: "Insufficient data for fuel cost analysis."
+    };
   }
 
-  if (mpg > baselineMpg) {
-    explanation += `Vehicle's ${mpg} MPG is ${((mpg - baselineMpg) / baselineMpg * 100).toFixed(0)}% better than average.`;
-  } else if (mpg < baselineMpg) {
-    explanation += `Vehicle's ${mpg} MPG is ${((baselineMpg - mpg) / baselineMpg * 100).toFixed(0)}% worse than average.`;
-  } else {
-    explanation += `Vehicle has average fuel economy.`;
-  }
-
-  return {
-    annualSavings: Math.round(annualSavings),
-    costPerMile: Number(costPerMile.toFixed(4)),
-    regionalMultiplier: Number(regionalMultiplier.toFixed(3)),
-    explanation
+  const averageAnnualMiles = 12000;
+  const nationalAveragePrices: Record<string, number> = {
+    'gasoline': 3.85,
+    'diesel': 4.25,
+    'premium': 4.15,
+    'electric': 0.13 // per kWh equivalent
   };
+
+  const baselineFuelPrice = nationalAveragePrices[fuelType] || nationalAveragePrices.gasoline;
+  const annualFuelCost = (averageAnnualMiles / mpg) * regionalFuelPrice;
+  const baselineAnnualCost = (averageAnnualMiles / mpg) * baselineFuelPrice;
+  
+  const annualSavings = baselineAnnualCost - annualFuelCost;
+  const priceDifference = regionalFuelPrice - baselineFuelPrice;
+  
+  let explanation = "";
+  if (Math.abs(priceDifference) < 0.10) {
+    explanation = `Fuel costs in this region are close to the national average of $${baselineFuelPrice}/gal.`;
+  } else if (priceDifference > 0) {
+    explanation = `Regional fuel price ($${regionalFuelPrice.toFixed(2)}/gal) is $${priceDifference.toFixed(2)} above national average, increasing annual costs by ~$${Math.abs(annualSavings).toFixed(0)}.`;
+  } else {
+    explanation = `Regional fuel price ($${regionalFuelPrice.toFixed(2)}/gal) is $${Math.abs(priceDifference).toFixed(2)} below national average, saving ~$${annualSavings.toFixed(0)} annually.`;
+  }
+
+  return { annualSavings, explanation };
+}
+
+// Legacy function for backward compatibility
+export async function fetchRegionalFuelPrice(zipCode: string, fuelType: string = 'gasoline'): Promise<number | null> {
+  const result = await getFuelCostByZip(zipCode, fuelType);
+  return result?.cost_per_gallon || null;
 }
