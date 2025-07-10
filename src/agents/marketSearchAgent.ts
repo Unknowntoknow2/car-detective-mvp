@@ -66,7 +66,15 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
     const { data: searchResult, error: searchError } = await supabase.functions.invoke('openai-web-search', {
       body: { 
         query,
-        max_tokens: 3000 // Increased for more detailed responses
+        max_tokens: 3000, // Increased for more detailed responses
+        saveToDb: true,
+        vehicleData: {
+          make: input.make,
+          model: input.model,
+          year: input.year,
+          trim: input.trim,
+          zipCode: input.zipCode
+        }
       }
     });
 
@@ -81,11 +89,21 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
     }
 
     const content = searchResult?.content || searchResult?.result || '';
-    const parsedListings = parseVehicleListingsFromWeb(content);
-    const marketListings = parsedListings.map(listing => transformParsedToMarketListing(listing, input));
+    
+    // Use saved listings from database if available
+    let marketListings: MarketListing[] = [];
+    if (searchResult?.listings && searchResult.listings.length > 0) {
+      marketListings = searchResult.listings.map(transformToMarketListing);
+      console.log('✅ Using freshly saved market listings from database:', marketListings.length);
+    } else {
+      // Fallback to parsing from content
+      const parsedListings = parseVehicleListingsFromWeb(content);
+      marketListings = parsedListings.map(listing => transformParsedToMarketListing(listing, input));
+      console.log('⚠️ Fallback to parsed listings from content:', marketListings.length);
+    }
 
     // Calculate trust score based on response quality
-    const trustResult = calculateTrustScore(content, parsedListings, marketListings);
+    const trustResult = calculateTrustScore(content, [], marketListings);
 
     console.log('✅ OpenAI market search completed, got', marketListings.length, 'listings with trust score:', trustResult.trust);
     return {
