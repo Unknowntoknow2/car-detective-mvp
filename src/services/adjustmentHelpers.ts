@@ -4,18 +4,36 @@ import { getFuelCostByZip, computeFuelTypeAdjustment } from "./fuelCostService";
 /**
  * Calculate depreciation adjustment based on vehicle year
  */
-export function getDepreciationAdjustment(year: number): number {
+export function getDepreciationAdjustment(year: number, make?: string, fuelType?: string): number {
   const currentYear = new Date().getFullYear();
   const age = currentYear - year;
   
   if (age <= 0) return 0; // Future model year
-  if (age === 1) return -6000; // 20% depreciation first year
   
-  // 10% per year after first year, diminishing returns after 10 years
-  const baseDepreciation = 6000 + (age - 1) * 3000; // $3k per year after first
-  const maxDepreciation = 18000; // Cap depreciation at $18k
+  // Brand reliability factor (Toyota/Honda depreciate slower)
+  const reliableBrands = ['toyota', 'honda', 'lexus', 'acura'];
+  const brandMultiplier = reliableBrands.includes(make?.toLowerCase() || '') ? 0.8 : 1.0;
   
-  return -Math.min(baseDepreciation, maxDepreciation);
+  // Hybrid/Electric premium retention
+  const fuelMultiplier = fuelType?.toLowerCase().includes('hybrid') ? 0.9 : 
+                        fuelType?.toLowerCase().includes('electric') ? 0.85 : 1.0;
+  
+  // More conservative depreciation curve
+  let depreciationRate;
+  if (age === 1) depreciationRate = 0.15; // 15% first year (reduced from 20%)
+  else if (age <= 3) depreciationRate = 0.08; // 8% per year years 2-3 (reduced from 15%)
+  else if (age <= 7) depreciationRate = 0.06; // 6% per year years 4-7 (reduced from 10%)
+  else depreciationRate = 0.04; // 4% per year after 7 years (reduced from 5%)
+  
+  // Calculate total depreciation with diminishing returns
+  const totalDepreciation = age === 1 ? 0.15 : 
+    0.15 + Math.min(age - 1, 2) * 0.08 + Math.max(0, Math.min(age - 3, 4)) * 0.06 + Math.max(0, age - 7) * 0.04;
+  
+  // Apply brand and fuel type multipliers, cap at 65% instead of 85%
+  const adjustedDepreciation = Math.min(totalDepreciation * brandMultiplier * fuelMultiplier, 0.65);
+  
+  // Return as negative dollar amount (assuming $30k base for calculation)
+  return Math.round(-30000 * adjustedDepreciation);
 }
 
 /**

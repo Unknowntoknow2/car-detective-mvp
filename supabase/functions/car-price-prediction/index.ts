@@ -38,7 +38,7 @@ serve(async (req) => {
     }
 
     const currentYear = new Date().getFullYear();
-    const age = currentYear - input.year;
+    const vehicleAge = currentYear - input.year;
 
     // Get MSRP from model_trims
     let basePrice: number | null = null;
@@ -50,14 +50,41 @@ serve(async (req) => {
       .maybeSingle();
 
     basePrice = modelData?.msrp ?? (() => {
-      if (age <= 1) return 35000;
-      if (age <= 3) return 28000;
-      if (age <= 5) return 22000;
-      if (age <= 10) return 15000;
+      if (vehicleAge <= 1) return 35000;
+      if (vehicleAge <= 3) return 28000;
+      if (vehicleAge <= 5) return 22000;
+      if (vehicleAge <= 10) return 15000;
       return 8000;
     })();
 
     const adjustments = [];
+
+    // Apply improved depreciation logic
+    const reliableBrands = ['Toyota', 'Honda', 'Lexus', 'Acura'];
+    const brandMultiplier = reliableBrands.includes(input.make) ? 0.8 : 1.0;
+    const fuelMultiplier = input.fuelType?.toLowerCase().includes('hybrid') ? 0.9 : 1.0;
+    
+    // More conservative depreciation
+    let depreciationRate;
+    if (vehicleAge <= 1) depreciationRate = 0.15;
+    else if (vehicleAge <= 3) depreciationRate = 0.08;
+    else if (vehicleAge <= 7) depreciationRate = 0.06;
+    else depreciationRate = 0.04;
+    
+    const totalDepreciation = vehicleAge <= 1 ? 0.15 : 
+      0.15 + Math.min(vehicleAge - 1, 2) * 0.08 + Math.max(0, Math.min(vehicleAge - 3, 4)) * 0.06 + Math.max(0, vehicleAge - 7) * 0.04;
+    
+    const adjustedDepreciation = Math.min(totalDepreciation * brandMultiplier * fuelMultiplier, 0.65);
+    const depreciationAdj = -basePrice * adjustedDepreciation;
+    
+    adjustments.push({
+      factor: "Depreciation",
+      impact: depreciationAdj,
+      description: `${vehicleAge} years old - ${Math.round(adjustedDepreciation * 100)}% depreciation ${reliableBrands.includes(input.make) ? '(reliable brand bonus)' : ''}`
+    });
+    
+    // Apply depreciation to base price for subsequent calculations
+    basePrice = basePrice + depreciationAdj;
 
     // Mileage Adjustment
     const expectedMileage = input.year * 12000;
@@ -135,6 +162,32 @@ serve(async (req) => {
         impact: zipAdj,
         description: `${zipData?.city || "ZIP"} market`
       });
+    }
+
+    // Package/Feature Adjustments for trim-based options
+    if (input.trim) {
+      const trimLower = input.trim.toLowerCase();
+      
+      // Toyota-specific packages
+      if (input.make === 'Toyota') {
+        if (trimLower.includes('audio package')) {
+          adjustments.push({ factor: "Audio Package", impact: 1200, description: "Premium audio system upgrade" });
+        }
+        if (trimLower.includes('blind spot') || trimLower.includes('bsm')) {
+          adjustments.push({ factor: "Blind Spot Monitor", impact: 800, description: "Advanced safety feature" });
+        }
+        if (trimLower.includes('convenience') || trimLower.includes('moonroof') || trimLower.includes('sunroof')) {
+          adjustments.push({ factor: "Convenience Package", impact: 850, description: "Moonroof and convenience features" });
+        }
+      }
+      
+      // Universal high-value features
+      if (trimLower.includes('leather')) {
+        adjustments.push({ factor: "Leather Package", impact: 1500, description: "Leather-appointed seating" });
+      }
+      if (trimLower.includes('navigation') || trimLower.includes('nav')) {
+        adjustments.push({ factor: "Navigation System", impact: 600, description: "Built-in GPS navigation" });
+      }
     }
 
     // Fuel Type Bonus
