@@ -33,7 +33,6 @@ port = 54328
 enabled = true
 port = 54329
 
-
 [functions.fetch-auction-data]
 verify_jwt = false
 
@@ -56,4 +55,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.test-email-integration]
+verify_jwt = false
+
+[functions.log-valuation-audit]
+verify_jwt = false
+
+[functions.fetch-eia-fuel-prices]
 verify_jwt = false
