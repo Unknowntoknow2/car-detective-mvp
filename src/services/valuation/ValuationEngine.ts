@@ -1,6 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { runMarketDataDiagnostics, logMarketDataSummary } from '@/utils/diagnostics/marketDataDiagnostics';
+import { fetchMarketComps, type MarketSearchResult } from '@/agents/marketSearchAgent';
+import { ValuationInput } from '@/types/valuation';
 
 export interface ValuationEngineInput {
   vin: string;
@@ -31,6 +33,13 @@ export interface ValuationEngineResult {
   marketAnalysis?: any;
   riskFactors?: any[];
   recommendations?: string[];
+  listingRange?: {
+    min: number;
+    max: number;
+    average: number;
+  };
+  listingCount?: number;
+  marketSearchResult?: MarketSearchResult;
 }
 
 export class ValuationEngine {
@@ -53,15 +62,52 @@ export class ValuationEngine {
         console.log('✅ Found MSRP base price: $' + basePrice.toLocaleString());
       }
 
-      // Calculate adjustments based on follow-up data
-      const adjustments = await this.calculateAdjustments(input, basePrice);
+      // Fetch live market listings via OpenAI
+      console.log('🔍 Fetching live market comps via OpenAI...');
+      const marketSearchInput: ValuationInput = {
+        vin: input.vin,
+        make: input.make,
+        model: input.model,
+        year: input.year,
+        zipCode: input.followUpData.zip_code,
+        mileage: input.followUpData.mileage,
+        trim: input.decodedVehicleData?.trim
+      };
+      
+      const marketSearchResult = await fetchMarketComps(marketSearchInput);
+      console.log(`🎯 Market search completed: ${marketSearchResult.listings.length} listings, trust: ${marketSearchResult.trust}`);
 
-      // Calculate final estimated value
+      // Calculate adjustments based on follow-up data and market listings
+      const adjustments = await this.calculateAdjustments(input, basePrice, marketSearchResult);
+
+      // Calculate final estimated value with market influence
       const totalAdjustment = adjustments.reduce((sum, adj) => sum + adj.impact, 0);
-      const estimatedValue = Math.max(1000, basePrice + totalAdjustment);
+      let estimatedValue = Math.max(1000, basePrice + totalAdjustment);
 
-      // Calculate confidence score
-      const confidenceScore = this.calculateConfidenceScore(input, basePrice, diagnostics);
+      // Apply market listing influence if available and trustworthy
+      if (marketSearchResult.listings.length > 0 && marketSearchResult.trust > 0.5) {
+        const listingPrices = marketSearchResult.listings.map(l => l.price);
+        const avgMarketPrice = listingPrices.reduce((a, b) => a + b, 0) / listingPrices.length;
+        
+        // Blend estimated value with market average based on trust score
+        const marketWeight = marketSearchResult.trust * 0.3; // Max 30% influence
+        estimatedValue = estimatedValue * (1 - marketWeight) + avgMarketPrice * marketWeight;
+        console.log(`🔄 Market-adjusted value: $${Math.round(estimatedValue).toLocaleString()} (${(marketWeight * 100).toFixed(1)}% market influence)`);
+      }
+
+      // Calculate confidence score with market data
+      const confidenceScore = this.calculateConfidenceScore(input, basePrice, diagnostics, marketSearchResult);
+
+      // Calculate listing range if available
+      let listingRange: { min: number; max: number; average: number } | undefined;
+      if (marketSearchResult.listings.length > 0) {
+        const prices = marketSearchResult.listings.map(l => l.price);
+        listingRange = {
+          min: Math.min(...prices),
+          max: Math.max(...prices),
+          average: prices.reduce((a, b) => a + b, 0) / prices.length
+        };
+      }
 
       // Calculate price range
       const priceRange: [number, number] = [
@@ -75,11 +121,16 @@ export class ValuationEngine {
         basePrice,
         adjustments,
         priceRange,
+        listingRange,
+        listingCount: marketSearchResult.listings.length,
+        marketSearchResult,
         marketAnalysis: {
           msrpDataAvailable: diagnostics.msrpData.found,
           auctionDataAvailable: diagnostics.auctionData.hasResults,
           competitorDataAvailable: diagnostics.competitorPrices.hasResults,
-          marketListingsAvailable: diagnostics.marketListings.hasResults
+          marketListingsAvailable: diagnostics.marketListings.hasResults,
+          liveListingsFound: marketSearchResult.listings.length,
+          marketTrustScore: marketSearchResult.trust
         },
         riskFactors: [],
         recommendations: []
@@ -189,7 +240,7 @@ export class ValuationEngine {
     return fallbackPrice;
   }
 
-  private async calculateAdjustments(input: ValuationEngineInput, basePrice: number): Promise<Array<{
+  private async calculateAdjustments(input: ValuationEngineInput, basePrice: number, marketSearchResult?: MarketSearchResult): Promise<Array<{
     factor: string;
     impact: number;
     percentage: number;
@@ -242,10 +293,26 @@ export class ValuationEngine {
       });
     }
 
+    // Market listings adjustment
+    if (marketSearchResult && marketSearchResult.listings.length > 0 && marketSearchResult.trust > 0.6) {
+      const prices = marketSearchResult.listings.map(l => l.price);
+      const avgMarketPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+      const marketDelta = avgMarketPrice - basePrice;
+      
+      if (Math.abs(marketDelta) > basePrice * 0.05) { // Only adjust if >5% difference
+        adjustments.push({
+          factor: 'Market Comps',
+          impact: marketDelta * 0.2, // 20% weight to market findings
+          percentage: (marketDelta / basePrice) * 20,
+          description: `${marketSearchResult.listings.length} similar listings avg $${Math.round(avgMarketPrice).toLocaleString()}`
+        });
+      }
+    }
+
     return adjustments;
   }
 
-  private calculateConfidenceScore(input: ValuationEngineInput, basePrice: number, diagnostics?: any): number {
+  private calculateConfidenceScore(input: ValuationEngineInput, basePrice: number, diagnostics?: any, marketSearchResult?: MarketSearchResult): number {
     let confidence = 70; // Base confidence
 
     // Increase confidence with more data
@@ -261,6 +328,14 @@ export class ValuationEngine {
       if (diagnostics.auctionData.hasResults) confidence += 5;
       if (diagnostics.competitorPrices.hasResults) confidence += 5;
       if (diagnostics.marketListings.hasResults) confidence += 5;
+    }
+
+    // Boost confidence with live market listings
+    if (marketSearchResult) {
+      const listingBoost = Math.min(15, marketSearchResult.listings.length * 2); // Up to 15 points
+      const trustBoost = marketSearchResult.trust * 10; // Up to 10 points for high trust
+      confidence += listingBoost + trustBoost;
+      console.log(`📈 Market boost: +${listingBoost} (listings) +${trustBoost.toFixed(1)} (trust)`);
     }
 
     // Decrease confidence for fallback pricing
