@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getFullyNormalizedMsrp } from '@/utils/valuation/msrpInflationNormalizer';
 import { generateValuationExplanation } from '@/services/confidenceExplainer';
+// Import our new unified valuation engine
+import { processValuation, type ValuationInput, type ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
 
 interface ProcessFreeValuationInput {
   make: string;
@@ -358,231 +360,80 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const processFreeValuation = useCallback(async (input: ProcessFreeValuationInput): Promise<ProcessFreeValuationResult> => {
     setIsLoading(true);
     try {
-      console.log('🚀 Processing valuation with REAL data integrity for:', input.make, input.model, input.year);
+      console.log('🚀 Processing valuation with UNIFIED ENGINE for:', input.make, input.model, input.year);
 
-      // INTEGRITY: Load follow-up data if VIN provided to get real user inputs
-      let actualInput = { ...input };
-      if (input.vin) {
-        console.log('🔍 Loading follow-up data for VIN:', input.vin);
-        try {
-          const { data: followUpData } = await supabase
-            .from('follow_up_answers')
-            .select('*')
-            .eq('vin', input.vin)
-            .order('updated_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          if (followUpData && followUpData.mileage > 0) {
-            console.log('✅ Using follow-up data for calculations:', {
-              mileage: followUpData.mileage,
-              condition: followUpData.condition,
-              zipCode: followUpData.zip_code
-            });
-            
-            actualInput = {
-              ...input,
-              mileage: followUpData.mileage,
-              condition: followUpData.condition || input.condition,
-              zipCode: followUpData.zip_code || input.zipCode
-            };
-          } else {
-            console.log('⚠️ No valid follow-up data found, using input values');
-          }
-        } catch (error) {
-          console.log('❌ Error loading follow-up data:', error);
-        }
-      }
-
-      // INTEGRITY: Fetch real market listings to base confidence on actual data
-      const { data: marketListings } = await supabase
-        .from('market_listings')
-        .select('price, source, confidence_score, mileage, condition')
-        .eq('make', actualInput.make)
-        .eq('model', actualInput.model)
-        .gte('year', actualInput.year - 2)
-        .lte('year', actualInput.year + 2)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      const hasRealMarketData = marketListings && marketListings.length >= 3;
-      console.log(`📊 Market data: ${marketListings?.length || 0} listings found`);
-
-      // Calculate real adjustments with MSRP from database
-      const { adjustments, finalValue, baseMSRP, msrpSource } = await calculateRealAdjustments(actualInput);
-
-      // INTEGRITY: Data-driven confidence score (NO MORE HARDCODED 80%)
-      let confidenceScore = 25; // Start with minimal baseline
-      let confidenceDetails: string[] = [];
-
-      // Market data confidence
-      if (hasRealMarketData) {
-        const marketConfidence = Math.min(40, marketListings.length * 3);
-        confidenceScore += marketConfidence;
-        confidenceDetails.push(`${marketConfidence}pts: ${marketListings.length} market comparables`);
-      } else {
-        confidenceDetails.push(`0pts: No market comparables found`);
-      }
-
-      // MSRP data confidence
-      if (msrpSource === 'trim_id_normalized') {
-        confidenceScore += 25;
-        confidenceDetails.push(`25pts: Real trim-specific MSRP`);
-      } else if (msrpSource === 'database_fallback_normalized') {
-        confidenceScore += 15;
-        confidenceDetails.push(`15pts: Database MSRP fallback`);
-      } else {
-        confidenceScore += 5;
-        confidenceDetails.push(`5pts: Estimated MSRP (${msrpSource})`);
-      }
-
-      // Vehicle-specific data confidence
-      if (actualInput.vin) {
-        confidenceScore += 10;
-        confidenceDetails.push(`10pts: VIN provided`);
-      }
-      if (actualInput.zipCode && /^\d{5}$/.test(actualInput.zipCode)) {
-        confidenceScore += 5;
-        confidenceDetails.push(`5pts: Valid location`);
-      }
-      if (actualInput.mileage > 0) {
-        confidenceScore += 10;
-        confidenceDetails.push(`10pts: Actual mileage`);
-      } else {
-        confidenceDetails.push(`0pts: No mileage data`);
-      }
-
-      confidenceScore = Math.min(95, confidenceScore);
-      console.log(`🎯 Data-driven confidence: ${confidenceScore}% (${confidenceDetails.join(', ')})`);
-
-      // INTEGRITY: Only create price ranges if we have real market data
-      let priceRangeLow = null;
-      let priceRangeHigh = null;
-      if (hasRealMarketData) {
-        const prices = marketListings.map(l => l.price).sort((a, b) => a - b);
-        const median = prices[Math.floor(prices.length / 2)];
-        const variance = Math.sqrt(prices.reduce((sum, p) => sum + Math.pow(p - median, 2), 0) / prices.length);
-        
-        priceRangeLow = Math.max(finalValue - variance, finalValue * 0.85);
-        priceRangeHigh = Math.min(finalValue + variance, finalValue * 1.15);
-        console.log(`📈 Real market-based range: $${priceRangeLow.toLocaleString()} - $${priceRangeHigh.toLocaleString()}`);
-      } else {
-        console.log(`❌ No price range - insufficient market data`);
-      }
-
-      // INTEGRITY: Enhanced data source tracking
-      const dataSources: string[] = [];
-      if (hasRealMarketData) dataSources.push(`market_listings (${marketListings.length})`);
-      if (msrpSource.includes('trim_id')) dataSources.push('trim_database');
-      else if (msrpSource.includes('database')) dataSources.push('vehicle_database');
-      else dataSources.push('estimated_msrp');
-      if (actualInput.vin) dataSources.push('vin_decode');
-      if (actualInput !== input) dataSources.push('user_follow_up');
-
-      // Initialize valuation notes array
-      const valuationNotes: string[] = [];
-      if (!hasRealMarketData) {
-        valuationNotes.push("Used estimated MSRP - no recent market listings available");
-      }
-      if (msrpSource.includes('fallback')) {
-        valuationNotes.push("MSRP based on manufacturer averages");
-      }
-
-      // Create transparent valuation record
-      const valuationData = {
-        vin: actualInput.vin || null,
-        make: actualInput.make,
-        model: actualInput.model,
-        year: actualInput.year,
-        mileage: actualInput.mileage,
-        condition: actualInput.condition,
-        zip_code: actualInput.zipCode || null,
-        estimated_value: finalValue,
-        confidence_score: confidenceScore,
-        adjustments: adjustments.map(adj => ({
-          ...adj,
-          source: 'calculation_based',
-          timestamp: new Date().toISOString()
-        })),
-        price_range_low: priceRangeLow ? Math.round(priceRangeLow) : null,
-        price_range_high: priceRangeHigh ? Math.round(priceRangeHigh) : null,
-        vehicle_data: {
-          baseMSRP: baseMSRP,
-          msrpSource: msrpSource,
-          calculationMethod: hasRealMarketData ? 'market_analysis' : 'msrp_estimation',
-          dataCompleteness: {
-            hasVin: !!actualInput.vin,
-            hasRealLocation: !!(actualInput.zipCode && /^\d{5}$/.test(actualInput.zipCode)),
-            hasActualMileage: actualInput.mileage > 0,
-            usedRealMSRP: !msrpSource.includes('fallback'),
-            trimId: actualInput.trim_id || null,
-            usedFollowUpData: actualInput !== input,
-            marketListingsCount: marketListings?.length || 0,
-            hasMarketRange: !!priceRangeLow
-          }
-        },
-        data_source: {
-          marketListings: marketListings?.length || 0,
-          calculationMethod: hasRealMarketData ? 'market_analysis' : 'msrp_estimation',
-          dataSourcesUsed: dataSources,
-          confidenceBreakdown: confidenceDetails,
-          timestamp: new Date().toISOString()
-        },
-        valuation_notes: valuationNotes,
-        valuation_type: 'free'
+      // Convert to unified engine input format
+      const unifiedInput: ValuationInput = {
+        vin: input.vin || '',
+        zipCode: input.zipCode || '90210', // Default fallback
+        mileage: input.mileage || 50000, // Default fallback
+        condition: input.condition || 'good'
       };
 
-      console.log('💰 INTEGRITY-COMPLIANT valuation completed:', {
-        baseMSRP,
-        msrpSource,
-        marketData: hasRealMarketData,
-        confidenceScore,
-        dataSources: dataSources.length,
-        method: hasRealMarketData ? 'market_analysis' : 'msrp_estimation'
+      // Call the unified valuation engine
+      const engineResult: ValuationResult = await processValuation(unifiedInput);
+      
+      console.log('✅ Unified engine completed:', {
+        finalValue: engineResult.finalValue,
+        confidenceScore: engineResult.confidenceScore,
+        adjustmentCount: engineResult.adjustments.length,
+        marketStatus: engineResult.marketSearchStatus
       });
 
-      // Generate AI explanation before creating valuation
-      try {
-        console.log('🤖 Generating AI explanation for valuation');
-        const aiExplanation = await generateValuationExplanation({
-          vin: actualInput.vin,
-          make: actualInput.make,
-          model: actualInput.model,
-          year: actualInput.year,
-          trim: actualInput.trim,
-          mileage: actualInput.mileage,
-          condition: actualInput.condition,
-          zipCode: actualInput.zipCode,
-          estimated_value: finalValue,
-          confidence_score: confidenceScore,
-          data_sources: dataSources,
-          valuation_notes: valuationNotes,
-          adjustments: adjustments,
-          baseMSRP: baseMSRP,
-          msrpSource: msrpSource,
-          marketListingsCount: marketListings?.length || 0
-        });
-
-        // Add AI explanation to valuation notes
-        if (aiExplanation) {
-          valuationNotes.push(`🔍 ${aiExplanation}`);
-          // Update the valuation data with the new notes
-          valuationData.valuation_notes = valuationNotes;
-        }
-      } catch (error) {
-        console.error('❌ Error generating AI explanation:', error);
-        // Continue without AI explanation - not a breaking error
-      }
-
-      const result = await createValuation(valuationData);
-      
-      return {
-        valuationId: result.id,
-        estimatedValue: finalValue,
-        confidenceScore: confidenceScore
+      // Store valuation in database using the new format
+      const valuationData = {
+        make: engineResult.vehicle.make,
+        model: engineResult.vehicle.model,
+        year: engineResult.vehicle.year,
+        vin: input.vin || null,
+        mileage: engineResult.mileage,
+        condition: input.condition,
+        zip_code: engineResult.zip,
+        estimated_value: engineResult.finalValue,
+        confidence_score: engineResult.confidenceScore,
+        price_range_low: engineResult.listingRange?.min || null,
+        price_range_high: engineResult.listingRange?.max || null,
+        valuation_type: 'free',
+        vehicle_data: {
+          ...engineResult.vehicle,
+          baseMSRP: engineResult.baseValue,
+          msrpSource: engineResult.sources.includes('decoded_msrp') ? 'decoded_msrp' : 'estimated_msrp',
+          calculationMethod: 'unified_engine',
+          trim: engineResult.vehicle.trim,
+          fuelType: engineResult.vehicle.fuelType
+        },
+        adjustments: engineResult.adjustments.map(adj => ({
+          factor: adj.label,
+          impact: adj.amount,
+          description: adj.reason,
+          source: 'unified_engine',
+          timestamp: new Date().toISOString()
+        })),
+        data_sources: engineResult.sources,
+        valuation_notes: [
+          `🔍 ${engineResult.aiExplanation}`,
+          engineResult.marketSearchStatus === 'success' 
+            ? `Market data: ${engineResult.listingCount} comparable listings found`
+            : `Market data: No comparable listings found - valuation based on vehicle specifications and regional adjustments`,
+          engineResult.marketSearchStatus === 'error' 
+            ? 'Market search temporarily unavailable - using base valuation logic'
+            : null
+        ].filter(Boolean)
       };
+
+      // Create valuation record in database
+      const savedValuation = await createValuation(valuationData);
+      
+      console.log('✅ Valuation saved to database:', savedValuation.id);
+
+      return {
+        valuationId: savedValuation.id,
+        estimatedValue: engineResult.finalValue,
+        confidenceScore: engineResult.confidenceScore
+      };
+
     } catch (error) {
-      console.error('❌ Error processing data-integrity valuation:', error);
+      console.error('❌ Unified valuation error:', error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -612,3 +463,4 @@ export const useValuation = () => {
   }
   return context;
 };
+
