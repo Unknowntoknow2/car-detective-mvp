@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.fetch-eia-fuel-prices]
 verify_jwt = false
+
+[functions.safe-audit-logger]
+verify_jwt = false

@@ -44,92 +44,55 @@ export async function logValuationAudit(
   try {
     console.log(`📊 Enhanced Audit Log [${status}]:`, data);
     
-    // First attempt: Use edge function for service role access
+    // FIX #6: Use safe audit logging via edge function
     try {
-      const { data: edgeResponse, error: edgeError } = await supabase.functions.invoke('log-valuation-audit', {
+      const { data: safeResponse, error: safeError } = await supabase.functions.invoke('safe-audit-logger', {
         body: {
-          vin: data.vin,
-          action: status,
-          input_data: {
-            vin: data.vin,
-            zipCode: data.zipCode,
-            userId: data.userId,
-            timestamp: new Date().toISOString()
-          },
-          output_data: {
-            finalValue: data.finalValue,
-            confidenceScore: data.confidenceScore,
-            adjustments: data.adjustments,
-            sources: data.sources,
-            listingCount: data.listingCount,
-            marketSearchStatus: data.marketSearchStatus,
-            status
-          },
-          audit_data: data,
-          confidence_score: data.confidenceScore,
-          sources_used: data.sources || [],
-          processing_time_ms: Date.now(),
-          created_at: new Date().toISOString()
+          logData: {
+            entityId: data.vin || `valuation_${Date.now()}`,
+            action: `VALUATION_${status}`,
+            inputData: {
+              vin: data.vin,
+              zipCode: data.zipCode,
+              timestamp: new Date().toISOString(),
+              ...data
+            },
+            outputData: {
+              finalValue: data.finalValue,
+              confidenceScore: data.confidenceScore,
+              adjustments: data.adjustments,
+              sources: data.sources,
+              listingCount: data.listingCount,
+              marketSearchStatus: data.marketSearchStatus,
+              status
+            },
+            dataSources: data.sources || ['nhtsa', 'vin_enrichment'],
+            processingTimeMs: Date.now(),
+            userId: data.userId || null,
+            sessionId: null,
+            ipAddress: null,
+            userAgent: null,
+            complianceFlags: []
+          }
         }
       });
 
-      if (!edgeError && edgeResponse?.success) {
-        console.log('✅ Audit logged via edge function:', edgeResponse.id);
-        return edgeResponse.id;
+      if (!safeError && safeResponse?.success) {
+        console.log('✅ Safe audit logged:', safeResponse.auditId);
+        return safeResponse.auditId;
       } else {
-        console.warn('⚠️ Edge function audit failed:', edgeError);
+        console.warn('⚠️ Safe audit warning (non-blocking):', safeResponse?.warning || safeError?.message);
       }
     } catch (edgeErr) {
-      console.warn('⚠️ Edge function unavailable:', edgeErr);
+      console.warn('⚠️ Safe audit edge function unavailable (non-blocking):', edgeErr);
     }
 
-    // Fallback 1: Direct database insert (compliance_audit_log)
-    try {
-      const auditEntry = {
-        action: `VALUATION_${status}`,
-        entity_type: 'valuation',
-        entity_id: crypto.randomUUID(), // Always use a proper UUID
-        user_id: data.userId,
-        input_data: {
-          vin: data.vin,
-          zipCode: data.zipCode,
-          timestamp: new Date().toISOString(),
-          ...data
-        },
-        output_data: {
-          finalValue: data.finalValue,
-          confidenceScore: data.confidenceScore,
-          adjustments: data.adjustments,
-          sources: data.sources,
-          status
-        },
-        processing_time_ms: null,
-        data_sources_used: data.sources || [],
-        compliance_flags: []
-      };
-      
-      const { data: insertedData, error: insertError } = await supabase
-        .from('compliance_audit_log')
-        .insert(auditEntry)
-        .select('id')
-        .single();
-      
-      if (!insertError && insertedData) {
-        console.log('✅ Fallback audit logged:', insertedData.id);
-        return insertedData.id;
-      } else {
-        console.warn('⚠️ Fallback audit failed:', insertError);
-      }
-    } catch (fallbackErr) {
-      console.warn('⚠️ Fallback audit error:', fallbackErr);
-    }
-
-    // Fallback 2: Console logging only
+    // Fallback: Console logging only (don't try direct DB inserts that violate RLS)
     console.warn('📝 Using console-only audit logging for:', { status, vin: data.vin, finalValue: data.finalValue });
     return `console_audit_${Date.now()}`;
     
   } catch (error) {
-    console.error('❌ Complete audit logging failure:', error);
+    console.error('❌ Complete audit logging failure (non-blocking):', error);
     return `audit_failed_${Date.now()}`;
   }
 }

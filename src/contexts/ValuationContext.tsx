@@ -365,15 +365,22 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       console.log('🚀 Processing valuation with UNIFIED ENGINE for:', input.make, input.model, input.year);
 
-      // FIX #3: Pass userId and premium status to unified engine
-      const { data: { user } } = await supabase.auth.getUser();
+      // FIX #3: Handle authentication errors gracefully
+      let userId: string | null = null;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        userId = user?.id || null;
+      } catch (authError) {
+        console.warn('⚠️ Authentication check failed, proceeding as anonymous:', authError);
+        userId = null;
+      }
       
       const unifiedInput: ValuationInput = {
         vin: input.vin || '',
         zipCode: input.zipCode || '90210', // Default fallback
         mileage: input.mileage || 50000, // Default fallback
         condition: input.condition || 'good',
-        userId: user?.id,
+        userId: userId || undefined,
         isPremium: hasPremiumAccess
       };
 
