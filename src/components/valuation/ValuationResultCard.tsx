@@ -7,7 +7,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ExternalLink, FileText, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Download, Loader2, QrCode, Share2, Lock, Copy, Twitter, MessageCircle, Mail, ThumbsUp, ThumbsDown, Scale } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ExternalLink, FileText, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Download, Loader2, QrCode, Share2, Lock, Copy, Twitter, MessageCircle, Mail, ThumbsUp, ThumbsDown, Scale, Info, Bot } from 'lucide-react';
 import type { ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
 import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { submitValuationFeedback } from '@/services/supabase/feedbackService';
@@ -127,7 +128,8 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
   };
 
   return (
-    <div className="space-y-6">
+    <TooltipProvider>
+      <div className="space-y-6">
       {/* Main Result Card */}
       <Card className="border-2 border-primary/20">
         <CardHeader>
@@ -153,10 +155,20 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
             )}
           </div>
 
-          {/* Confidence Score */}
+          {/* Confidence Score with Tooltip */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Confidence Score</span>
+              <span className="text-sm font-medium flex items-center gap-2">
+                Confidence Score
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="w-4 h-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Based on VIN data quality, market depth, and price match quality.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </span>
               <span className={`text-sm font-bold ${getConfidenceColor(confidenceScore)}`}>
                 {confidenceScore}%
               </span>
@@ -253,34 +265,73 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
         </CardContent>
       </Card>
 
-      {/* Value Breakdown */}
+      {/* Value Breakdown with Tooltips */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
             Value Breakdown
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="w-4 h-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Each factor that influenced your vehicle's final valuation</p>
+              </TooltipContent>
+            </Tooltip>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {adjustments.map((adjustment, index) => (
-              <div key={index} className="flex items-center justify-between py-2">
-                <div className="flex-1">
-                  <span className="font-medium">{adjustment.label}</span>
-                  <p className="text-sm text-muted-foreground">{adjustment.reason}</p>
+            {adjustments.map((adjustment, index) => {
+              // Define tooltip text for each adjustment type
+              const getTooltipText = (label: string) => {
+                switch (label.toLowerCase()) {
+                  case 'depreciation':
+                    return 'Based on vehicle age and standard depreciation curves.';
+                  case 'fuel type impact':
+                  case 'fuel cost impact':
+                    return 'Adjusts for current fuel prices in your ZIP code.';
+                  case 'market anchoring':
+                    return 'Real-time prices from vehicles like yours, found online.';
+                  case 'mileage':
+                    return 'Higher mileage typically reduces value due to wear and tear.';
+                  case 'condition':
+                    return 'Vehicle condition affects value - better condition = higher value.';
+                  default:
+                    return 'This factor affected your vehicle\'s valuation.';
+                }
+              };
+
+              return (
+                <div key={index} className="flex items-center justify-between py-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{adjustment.label}</span>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="w-3 h-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{getTooltipText(adjustment.label)}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{adjustment.reason}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {adjustment.amount >= 0 ? (
+                      <TrendingUp className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <TrendingDown className="w-4 h-4 text-red-600" />
+                    )}
+                    <span className={`font-bold ${adjustment.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {adjustment.amount >= 0 ? '+' : ''}${adjustment.amount.toLocaleString()}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {adjustment.amount >= 0 ? (
-                    <TrendingUp className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <TrendingDown className="w-4 h-4 text-red-600" />
-                  )}
-                  <span className={`font-bold ${adjustment.amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {adjustment.amount >= 0 ? '+' : ''}${adjustment.amount.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -503,6 +554,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
         </Card>
       )}
     </div>
+    </TooltipProvider>
   );
 }
 
