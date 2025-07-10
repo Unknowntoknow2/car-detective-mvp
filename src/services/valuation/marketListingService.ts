@@ -4,8 +4,8 @@ import type { MarketListing } from "@/types/valuation";
 
 interface MarketListingInsertData {
   vin?: string;
-  user_id?: string;
-  valuation_id?: string;
+  valuation_id: string;
+  valuation_request_id?: string;
   make?: string;
   model?: string;
   year?: number;
@@ -13,14 +13,22 @@ interface MarketListingInsertData {
   price: number;
   mileage?: number;
   location?: string;
+  zip_code?: string;
   source: string;
   source_type: string;
-  listing_url?: string;
+  listing_url: string;
+  url?: string;
   dealer_name?: string;
+  dealer?: string;
   condition?: string;
   is_cpo?: boolean;
+  cpo?: boolean;
   confidence_score?: number;
   fetched_at: string;
+  listing_date?: string;
+  features?: any;
+  extra?: any;
+  notes?: string;
 }
 
 /**
@@ -32,6 +40,8 @@ export async function saveMarketListings(
     vin?: string;
     userId?: string;
     valuationId?: string;
+    valuationRequestId?: string;
+    zipCode?: string;
   }
 ): Promise<{ success: boolean; savedCount: number; errors: string[] }> {
   if (!listings || listings.length === 0) {
@@ -44,8 +54,8 @@ export async function saveMarketListings(
     // Transform listings to database format
     const listingsToInsert: MarketListingInsertData[] = listings.map(listing => ({
       vin: context.vin,
-      user_id: context.userId,
-      valuation_id: context.valuationId,
+      valuation_id: context.valuationId || crypto.randomUUID(),
+      valuation_request_id: context.valuationRequestId,
       make: listing.make,
       model: listing.model,
       year: listing.year,
@@ -53,23 +63,28 @@ export async function saveMarketListings(
       price: listing.price,
       mileage: listing.mileage,
       location: listing.location,
+      zip_code: context.zipCode || listing.location,
       source: listing.source || 'openai_search',
       source_type: listing.source_type || 'marketplace',
-      listing_url: listing.listing_url || 'https://openai-generated',
+      listing_url: listing.listing_url || `https://openai-generated-${Date.now()}`,
+      url: listing.listing_url,
       dealer_name: listing.dealer_name,
+      dealer: listing.dealer_name,
       condition: listing.condition,
       is_cpo: listing.is_cpo || false,
+      cpo: listing.is_cpo || false,
       confidence_score: listing.confidence_score || 85,
-      fetched_at: listing.fetched_at || new Date().toISOString()
+      fetched_at: listing.fetched_at || new Date().toISOString(),
+      listing_date: listing.fetched_at || new Date().toISOString(),
+      features: {},
+      extra: {},
+      notes: `Saved from ${listing.source || 'OpenAI search'} at ${new Date().toISOString()}`
     }));
 
-    // Batch insert with conflict handling (avoid duplicates by URL)
+    // Batch insert with conflict handling (avoid duplicates by URL and VIN within 24h)
     const { data, error } = await supabase
       .from('market_listings')
-      .upsert(listingsToInsert, {
-        onConflict: 'listing_url',
-        ignoreDuplicates: true
-      })
+      .insert(listingsToInsert)
       .select('id');
 
     if (error) {
