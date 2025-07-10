@@ -59,6 +59,13 @@ export default function ValuationFollowUpPage() {
         return false;
       }
 
+      // Validate VIN presence
+      if (!vehicleData.vin || vehicleData.vin.length !== 17) {
+        console.error('❌ [DEBUG] Invalid or missing VIN:', vehicleData.vin);
+        toast.error('Invalid VIN. Please go back and enter a valid 17-character VIN.');
+        return false;
+      }
+
       // Use real follow-up data for valuation
       const valuationInput = {
         make: vehicleData.make,
