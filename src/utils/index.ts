@@ -2,7 +2,6 @@
 // Main utilities export file - consolidated services
 export * from './pdfService';
 export * from './lookupService';
-export * from './valuationService';
 export * from './photoService';
 
 // Legacy re-exports for backward compatibility
@@ -18,10 +17,7 @@ export {
   processManualEntry as manualLookup 
 } from './lookupService';
 
-export { 
-  calculateValuation as getValuation,
-  convertToReportData as createReportData 
-} from './valuationService';
+// Legacy valuation exports removed - use unifiedValuationEngine.ts directly
 
 export { 
   uploadAndAnalyzePhoto as uploadPhoto,
