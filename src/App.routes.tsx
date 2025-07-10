@@ -13,6 +13,7 @@ import ResultsPage from './pages/ResultsPage'; // Use the real ResultsPage
 import MyValuationsPage from './pages/MyValuationsPage';
 import ProfilePage from './pages/ProfilePage';
 import AuditPage from './pages/admin/AuditPage';
+import ValuationInsightsPage from './pages/admin/ValuationInsightsPage';
 import ValuationFollowUpPage from './pages/ValuationFollowUpPage';
 import PlateValuationPage from './pages/valuation/plate/PlateValuationPage';
 
@@ -109,6 +110,14 @@ const routes = [
         element: (
           <AuthenticatedLayout>
             <AuditPage />
+          </AuthenticatedLayout>
+        ),
+      },
+      {
+        path: "admin/valuation-insights",
+        element: (
+          <AuthenticatedLayout>
+            <ValuationInsightsPage />
           </AuthenticatedLayout>
         ),
       },

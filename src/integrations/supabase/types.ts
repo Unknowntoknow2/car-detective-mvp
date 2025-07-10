@@ -3896,6 +3896,20 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_adjustment_breakdown_heatmap: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          zip_code: string
+          fuel_type: string
+          condition: string
+          average_condition_adj: number
+          average_fuel_adj: number
+          average_mileage_adj: number
+          average_market_adj: number
+          final_value_avg: number
+          sample_count: number
+        }[]
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
