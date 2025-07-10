@@ -20,44 +20,52 @@ serve(async (req) => {
   try {
     const payload = await req.json();
     
-    console.log('📝 Service role audit logging:', {
-      source: payload.source,
-      confidence: payload.confidence,
-      listings_count: payload.listings_count,
-      baseValue: payload.baseValue
+    console.log('📝 Enhanced service role audit logging:', {
+      vin: payload.vin,
+      action: payload.action,
+      finalValue: payload.output_data?.finalValue,
+      confidence: payload.confidence_score
     });
+
+    // Extract key data from payload
+    const auditData = {
+      vin: payload.vin || payload.input_data?.vin || 'unknown',
+      action: payload.action || 'valuation_calculated',
+      input_data: {
+        vehicle: {
+          vin: payload.input_data?.vin,
+          make: payload.input_data?.make,
+          model: payload.input_data?.model,
+          year: payload.input_data?.year,
+          mileage: payload.input_data?.mileage,
+          condition: payload.input_data?.condition,
+          zipCode: payload.input_data?.zipCode,
+          userId: payload.input_data?.userId
+        },
+        timestamp: payload.input_data?.timestamp || new Date().toISOString()
+      },
+      output_data: {
+        estimated_value: payload.output_data?.finalValue,
+        confidence_score: payload.confidence_score,
+        base_value: payload.output_data?.baseValue,
+        adjustments: payload.output_data?.adjustments,
+        sources: payload.output_data?.sources,
+        listing_count: payload.output_data?.listingCount,
+        market_search_status: payload.output_data?.marketSearchStatus,
+        status: payload.output_data?.status
+      },
+      audit_data: payload.audit_data || payload,
+      confidence_score: payload.confidence_score,
+      sources_used: payload.sources_used || [],
+      fallback_used: !payload.sources_used?.includes('market_listings'),
+      quality_score: payload.confidence_score,
+      processing_time_ms: payload.processing_time_ms,
+      created_at: payload.created_at || new Date().toISOString()
+    };
 
     const { data, error } = await supabase
       .from('valuation_audit_logs')
-      .insert({
-        vin: payload.input?.vin || 'unknown',
-        action: 'valuation_calculated',
-        input_data: {
-          vehicle: {
-            vin: payload.input?.vin,
-            make: payload.input?.make,
-            model: payload.input?.model,
-            year: payload.input?.year,
-            mileage: payload.input?.mileage,
-            condition: payload.input?.condition,
-            zipCode: payload.input?.zipCode
-          }
-        },
-        output_data: {
-          estimated_value: payload.baseValue + (payload.adjustments?.total_adjustments || 0),
-          confidence_score: payload.confidence,
-          base_value: payload.baseValue,
-          adjustments: payload.adjustments,
-          source: payload.source
-        },
-        audit_data: payload,
-        confidence_score: payload.confidence,
-        sources_used: [payload.source],
-        fallback_used: payload.source !== 'market_listings',
-        quality_score: payload.confidence,
-        processing_time_ms: null,
-        created_at: payload.timestamp || new Date().toISOString()
-      })
+      .insert(auditData)
       .select()
       .single();
 
@@ -66,7 +74,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: error.message 
+          error: error.message,
+          details: error
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -75,12 +84,14 @@ serve(async (req) => {
       );
     }
 
-    console.log('✅ Valuation audit logged with ID:', data.id);
+    console.log('✅ Enhanced valuation audit logged with ID:', data.id);
     
     return new Response(
       JSON.stringify({ 
         success: true, 
-        id: data.id 
+        id: data.id,
+        vin: auditData.vin,
+        timestamp: auditData.created_at
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -89,12 +100,13 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('❌ Critical error in audit logging:', error);
+    console.error('❌ Critical error in enhanced audit logging:', error);
     
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message 
+        error: error.message,
+        stack: error.stack
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
