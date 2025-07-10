@@ -103,7 +103,7 @@ export async function logValuationAudit(
           sources: data.sources,
           status
         },
-        processing_time_ms: Date.now(),
+        processing_time_ms: null,
         data_sources_used: data.sources || [],
         compliance_flags: []
       };
