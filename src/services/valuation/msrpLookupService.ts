@@ -144,4 +144,4 @@ function getYearBasedMSRPEstimate(year: number, make: string): number {
   return Math.round(basePrice * makeMultiplier * yearMultiplier);
 }
 
-export { MSRPResult };
+export type { MSRPResult };

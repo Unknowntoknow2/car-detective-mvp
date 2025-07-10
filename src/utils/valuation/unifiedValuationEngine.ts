@@ -8,7 +8,6 @@ import { logValuationAudit, logValuationError, logValuationStep } from "@/utils/
 import { ValuationProgressTracker } from "@/utils/valuation/progressTracker";
 import { getDynamicMSRP } from "@/services/valuation/msrpLookupService";
 import { calculateAdvancedConfidence, getConfidenceBreakdown } from "@/services/valuation/confidenceEngine";
-import { logValuationAudit as logAudit } from "@/services/valuationAuditLogger";
 import type { DecodedVehicleInfo } from "@/types/vehicle";
 
 // Unified input interface
@@ -301,7 +300,17 @@ export async function processValuation(
       timestamp: new Date().toISOString()
     };
     
-    const auditId = await logAudit(auditPayload);
+    const auditId = await logValuationAudit('VALUATION_COMPLETE', {
+      vin,
+      zipCode, 
+      finalValue,
+      confidenceScore,
+      userId,
+      adjustments: adjustments.map(a => `${a.label}: ${a.amount}`),
+      sources: sources,
+      listingCount: listings.length,
+      timestamp: Date.now()
+    });
     console.log('✅ Enhanced audit logged with ID:', auditId);
     
     // Update valuation request status
