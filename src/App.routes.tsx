@@ -18,6 +18,7 @@ import PlateValuationPage from './pages/valuation/plate/PlateValuationPage';
 
 // Auth pages
 import AuthPage from './pages/AuthPage';
+import AuthCallback from './pages/AuthCallback';
 import DealerSignup from './pages/DealerSignup';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
@@ -130,6 +131,10 @@ const routes = [
       {
         path: "reset-password",
         element: <ResetPasswordPage />,
+      },
+      {
+        path: "auth/callback",
+        element: <AuthCallback />,
       },
       {
         path: "*",
