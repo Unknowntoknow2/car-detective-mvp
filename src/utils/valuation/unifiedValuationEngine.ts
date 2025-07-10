@@ -5,6 +5,7 @@ import { getFuelCostAdjustment, getDepreciationAdjustment, getMileageAdjustment,
 import { generateAIExplanation } from "@/services/aiExplanationService";
 import { fetchMarketComps } from "@/agents/marketSearchAgent";
 import { logValuationAudit, logValuationError, logValuationStep, logAdjustmentStep } from "@/utils/valuationAuditLogger";
+import { createValuationRequest, completeValuationRequest, failValuationRequest } from "@/services/supabase/valuationRequestTracker";
 import { ValuationProgressTracker } from "@/utils/valuation/progressTracker";
 import { getDynamicMSRP } from "@/services/valuation/msrpLookupService";
 import { calculateAdvancedConfidence, getConfidenceBreakdown } from "@/services/valuation/confidenceEngine";
@@ -64,35 +65,22 @@ export async function processValuation(
   input: ValuationInput, 
   progressTracker?: ValuationProgressTracker
 ): Promise<ValuationResult> {
+  const { vin, zipCode, mileage, condition, userId, isPremium } = input;
+  
+  // FIX #1: Create valuation request using dedicated service
+  const valuationRequest = await createValuationRequest({
+    vin,
+    zipCode,
+    mileage,
+    userId,
+    additionalData: { condition, isPremium: isPremium || false }
+  });
+
   try {
     console.log('🚀 Starting unified valuation process:', input);
     
-    const { vin, zipCode, mileage, condition, userId, isPremium } = input;
-    
     // Initialize progress tracking
     const tracker = progressTracker || new ValuationProgressTracker();
-
-    // FIX #1: Save valuation request to database immediately
-    const { data: valuationRequest, error: requestError } = await supabase
-      .from('valuation_requests')
-      .insert({
-        user_id: userId,
-        vin,
-        zip_code: zipCode,
-        mileage,
-        condition,
-        is_premium: isPremium || false,
-        request_timestamp: new Date().toISOString(),
-        status: 'processing'
-      })
-      .select('id')
-      .single();
-
-    if (requestError) {
-      console.error('❌ Error saving valuation request:', requestError);
-    } else {
-      console.log('✅ Valuation request saved with ID:', valuationRequest?.id);
-    }
     
     // Step 1: Decode VIN (5% Progress)
     tracker.startStep('vin_decode', { vin });
@@ -392,16 +380,7 @@ export async function processValuation(
     
     // Update valuation request status
     if (valuationRequest?.id) {
-      await supabase
-        .from('valuation_requests')
-        .update({
-          status: 'completed',
-          final_value: finalValue,
-          confidence_score: confidenceScore,
-          audit_log_id: auditId,
-          completed_at: new Date().toISOString()
-        })
-        .eq('id', valuationRequest.id);
+      await completeValuationRequest(valuationRequest.id, finalValue, confidenceScore, auditId);
     }
     
     tracker.completeStep('audit_log', { success: true, auditId });
@@ -510,6 +489,12 @@ export async function processValuation(
     
   } catch (error) {
     console.error('❌ Valuation engine error:', error);
+    
+    // Mark valuation request as failed if we have one
+    if (valuationRequest?.id) {
+      await failValuationRequest(valuationRequest.id, (error as Error).message);
+    }
+    
     await logValuationError(error as Error, input);
     throw error;
   }
