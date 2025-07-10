@@ -347,7 +347,7 @@ export async function processValuation(
       confidenceScore
     });
     tracker.completeStep('ai_explanation', { explanation });
-    await logValuationStep('AI_EXPLANATION_GENERATED', vin, valuationRequest?.id || 'fallback', { explanationLength: explanation.length }, userId, zipCode);
+    await logValuationStep('AI_EXPLANATION_GENERATED', vin, valuationRequest?.id || 'fallback', { explanationLength: explanation.length, finalValue }, userId, zipCode);
     
     // Step 9: FIX #1 - Enhanced Audit Trail Logging with Complete Metadata
     tracker.startStep('audit_log', { finalValue, confidenceScore });
@@ -458,11 +458,11 @@ export async function processValuation(
         }
         
         tracker.completeStep('pdf_generation', { pdfUrl: !!pdfUrl });
-        await logValuationStep('PDF_GENERATED', vin, valuationRequest?.id || 'fallback', { pdfUrl: !!pdfUrl, isPremium }, userId, zipCode);
+        await logValuationStep('PDF_GENERATED', vin, valuationRequest?.id || 'fallback', { pdfUrl: !!pdfUrl, isPremium: true, finalValue }, userId, zipCode);
       } catch (error) {
         console.error('❌ Error during PDF generation:', error);
         tracker.completeStep('pdf_generation', { error: (error as Error).message });
-        await logValuationStep('PDF_GENERATION_FAILED', vin, valuationRequest?.id || 'fallback', { error: (error as Error).message }, userId, zipCode);
+        await logValuationStep('PDF_GENERATION_FAILED', vin, valuationRequest?.id || 'fallback', { error: (error as Error).message, finalValue }, userId, zipCode);
         // Don't fail the entire valuation if PDF generation fails
       }
     }
@@ -494,6 +494,16 @@ export async function processValuation(
       vin,
       pdfUrl
     };
+    
+    // Final step: Log completion
+    await logValuationStep('COMPLETE', vin, valuationRequest?.id || 'fallback', { 
+      finalValue, 
+      confidenceScore, 
+      adjustmentCount: adjustments.length,
+      sources,
+      listingCount: listings.length,
+      marketSearchStatus
+    }, userId, zipCode);
     
     console.log('✅ Valuation complete:', { finalValue, confidenceScore, adjustmentCount: adjustments.length });
     return result;

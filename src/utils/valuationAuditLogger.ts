@@ -135,64 +135,61 @@ export async function logValuationAudit(
 }
 
 /**
- * Log individual valuation steps with enhanced metadata
+ * Log individual valuation steps to the new valuation_audit_logs table
  */
 export async function logValuationStep(
   step: string,
   vin: string,
   valuationRequestId: string,
-  data: Record<string, any> = {},
+  data: {
+    adjustment?: number;
+    finalValue?: number;
+    baseValue?: number;
+    adjustmentReason?: string;
+    confidenceScore?: number;
+    sources?: string[];
+    [key: string]: any;
+  },
   userId?: string,
   zipCode?: string
 ): Promise<void> {
   try {
-    console.log(`📋 Enhanced Step [${step}]:`, { vin, valuationRequestId, ...data });
+    console.log(`📋 Logging Step [${step}]:`, { vin, valuationRequestId, ...data });
     
-    // Create step metadata with all required fields
-    const stepMetadata: ValuationStepMetadata = {
-      step,
-      value_at_step: data.newValue || data.finalValue || 0,
-      adjustment_label: data.label || step.replace(/_/g, ' '),
-      adjustment_amount: data.amount || 0,
-      reason: data.reason || data.condition || data.fuelType || `${step} processing`,
-      vin,
-      user_id: userId,
-      zip_code: zipCode,
-      timestamp: Date.now()
-    };
+    // Calculate adjustment percentage if we have both values
+    const adjustmentPercentage = data.baseValue && data.baseValue > 0 && data.adjustment
+      ? ((data.adjustment / data.baseValue) * 100)
+      : 0;
     
-    // Prepare audit log entry for valuation_audit_logs table
+    // Prepare audit log entry for the new valuation_audit_logs table
     const auditEntry = {
-      event: `VALUATION_STEP_${step}`,
+      user_id: userId || null,
+      vin,
+      zip_code: zipCode,
+      step,
+      adjustment: data.adjustment || 0,
+      final_value: data.finalValue || 0,
+      confidence_score: data.confidenceScore || 85,
+      status: step === 'COMPLETE' || step === 'VALUATION_COMPLETE' ? 'COMPLETE' : 'IN_PROGRESS',
+      timestamp: new Date().toISOString(),
       valuation_request_id: valuationRequestId,
-      action: step,
-      run_by: userId,
-      input_data: {
-        vin,
-        step,
-        timestamp: new Date().toISOString(),
-        ...data
-      },
-      output_data: {
-        ...data,
-        stepMetadata
-      },
-      metadata: stepMetadata,
-      audit_data: {
+      adjustment_reason: data.adjustmentReason || data.reason || `Applied ${step}`,
+      base_value: data.baseValue,
+      adjustment_percentage: adjustmentPercentage,
+      data_sources: data.sources || [],
+      metadata: {
         step,
         vin,
         valuationRequestId,
         userId,
         zipCode,
+        timestamp: Date.now(),
         ...data
-      },
-      execution_time_ms: Date.now(),
-      source: 'unified_valuation_engine',
-      created_at: new Date().toISOString()
+      }
     };
     
     try {
-      // Primary: Insert into valuation_audit_logs using admin client
+      // Primary: Insert using admin client for service role access
       const { data: insertedData, error: dbError } = await supabaseAdmin
         .from('valuation_audit_logs')
         .insert(auditEntry)
@@ -205,14 +202,16 @@ export async function logValuationStep(
         console.warn('⚠️ Primary audit failed:', dbError?.message);
         
         // Fallback: Try with regular client
-        const { error: fallbackError } = await supabase
+        const { data: fallbackData, error: fallbackError } = await supabase
           .from('valuation_audit_logs')
-          .insert(auditEntry);
+          .insert(auditEntry)
+          .select('id')
+          .single();
         
         if (fallbackError) {
           console.warn('⚠️ Fallback audit also failed:', fallbackError.message);
         } else {
-          console.log('✅ Fallback audit succeeded');
+          console.log('✅ Fallback audit succeeded:', fallbackData?.id);
         }
       }
     } catch (error) {
@@ -265,12 +264,11 @@ export async function logAdjustmentStep(
   userId?: string,
   zipCode?: string
 ): Promise<void> {
-  await logValuationStep('ADJUSTMENT_APPLIED', vin, valuationRequestId, {
-    label: adjustment.label,
-    amount: adjustment.amount,
-    reason: adjustment.reason,
+  await logValuationStep(adjustment.label, vin, valuationRequestId, {
+    adjustment: adjustment.amount,
+    finalValue: adjustment.newValue,
     baseValue: adjustment.baseValue,
-    newValue: adjustment.newValue,
+    adjustmentReason: adjustment.reason,
     valueChange: adjustment.newValue - adjustment.baseValue,
     percentageChange: ((adjustment.amount / adjustment.baseValue) * 100).toFixed(2)
   }, userId, zipCode);
