@@ -54,7 +54,8 @@ export async function generateValuationExplanation(
         dataSources: input.data_sources,
         valuationNotes: input.valuation_notes,
         marketListingsCount: input.marketListingsCount || 0,
-        msrpSource: input.msrpSource || 'unknown'
+        msrpSource: input.msrpSource || 'unknown',
+        marketListings: input.marketListings || []
       }
     });
 

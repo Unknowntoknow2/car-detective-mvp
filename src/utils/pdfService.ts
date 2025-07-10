@@ -394,6 +394,39 @@ export async function generateValuationPdf(data: ReportData, options: PdfOptions
     });
   }
 
+  // Add Market Listing Fallback Note if no listings were retrieved
+  if (!data.marketplaceListings || (Array.isArray(data.marketplaceListings) && data.marketplaceListings.length === 0)) {
+    yPosition -= 10;
+    page.drawText('ℹ️ Market Listing Note', {
+      x: margin,
+      y: yPosition,
+      size: 14,
+      font: boldFont,
+      color: rgb(0.2, 0.4, 0.8),
+    });
+    yPosition -= 20;
+
+    const fallbackText = 'Live vehicle listings could not be retrieved at the time of your valuation.';
+    page.drawText(fallbackText, {
+      x: margin,
+      y: yPosition,
+      size: 10,
+      font: font,
+      color: rgb(0.4, 0.4, 0.4),
+    });
+    yPosition -= 15;
+
+    const msrpText = 'This report uses MSRP estimates and vehicle-specific condition instead.';
+    page.drawText(msrpText, {
+      x: margin,
+      y: yPosition,
+      size: 10,
+      font: font,
+      color: rgb(0.4, 0.4, 0.4),
+    });
+    yPosition -= 20;
+  }
+
   // Add footer with data source information
   const footerY = 60;
   page.drawText('Data Sources: CarPerfector MSRP Database, Market Analysis, Condition Assessment', {
