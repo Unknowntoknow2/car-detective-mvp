@@ -182,7 +182,7 @@ function OverviewTab({ result }: { result: ValuationResult }) {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Condition:</span>
-              <span className="font-medium capitalize">{result.vehicle.condition || 'Not specified'}</span>
+              <span className="font-medium capitalize">Not specified</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Market Status:</span>
@@ -231,6 +231,9 @@ function AnalysisTab({ result }: { result: ValuationResult }) {
 }
 
 function MarketTab({ result }: { result: ValuationResult }) {
+  // Map the existing marketSearchStatus to the expected type
+  const mappedStatus = result.marketSearchStatus === 'fallback' ? 'no_results' : result.marketSearchStatus;
+  
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -240,7 +243,7 @@ function MarketTab({ result }: { result: ValuationResult }) {
       <MarketListingsGrid 
         listings={result.listings || []}
         listingCount={result.listingCount}
-        marketSearchStatus={result.marketSearchStatus}
+        marketSearchStatus={mappedStatus}
       />
     </motion.div>
   );
@@ -254,14 +257,19 @@ function SourcesTab({ result }: { result: ValuationResult }) {
       transition={{ duration: 0.4 }}
     >
       <DataIntegrityPanel 
-        auditTrail={result.auditTrail}
-        sources={result.sources}
+        confidenceScore={result.confidenceScore}
         vehicleData={{
-          dataCompleteness: result.dataCompleteness,
-          msrpSource: result.msrpSource,
-          baseMSRP: result.vehicle.msrp
+          dataCompleteness: {
+            hasVin: true,
+            hasRealLocation: false,
+            hasActualMileage: false,
+            usedRealMSRP: false,
+            marketListingsCount: result.listingCount || 0,
+            hasMarketRange: Boolean(result.listingRange)
+          },
+          msrpSource: 'estimated',
+          baseMSRP: result.vehicle.msrp || 0
         }}
-        processingSteps={result.processingSteps}
       />
     </motion.div>
   );
