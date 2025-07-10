@@ -23,6 +23,7 @@ export interface AuthContextType {
   userRole: string | null;
   signIn: (email: string, password: string) => Promise<{ error?: any }>;
   signUp: (email: string, password: string, options?: { role?: string; dealershipName?: string }) => Promise<{ error?: any }>;
+  signInWithGoogle: () => Promise<{ error?: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error?: any }>;
   refreshUser: () => Promise<void>;
@@ -163,6 +164,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        }
+      });
+
+      if (error) throw error;
+      
+      return { error: null };
+    } catch (error: any) {
+      console.error('Google sign-in error:', error);
+      return { error };
+    }
+  };
+
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -201,6 +224,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       userRole: userDetails?.role || null,
       signIn,
       signUp,
+      signInWithGoogle,
       signOut,
       resetPassword,
       refreshUser,
