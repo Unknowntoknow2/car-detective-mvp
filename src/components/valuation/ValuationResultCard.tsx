@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/components/ui/accordion";
+import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer";
 import { ExternalLink, FileText, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Download, Loader2, QrCode, Share2, Lock, Copy, Twitter, MessageCircle, Mail, ThumbsUp, ThumbsDown, Scale, Info, Bot } from 'lucide-react';
 import type { ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
 import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
@@ -339,12 +346,21 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
       {/* AI Explanation */}
       <Card>
         <CardHeader>
-          <CardTitle>Valuation Explanation</CardTitle>
+          <CardTitle>AI Valuation Explanation</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="prose prose-sm max-w-none">
-            <p className="text-muted-foreground leading-relaxed">{aiExplanation}</p>
-          </div>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="explanation">
+              <AccordionTrigger className="text-left">
+                🔍 See Detailed AI Valuation Breakdown
+              </AccordionTrigger>
+              <AccordionContent>
+                <MarkdownRenderer className="mt-4">
+                  {aiExplanation}
+                </MarkdownRenderer>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </CardContent>
       </Card>
 

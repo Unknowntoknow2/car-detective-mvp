@@ -10,6 +10,7 @@ import { ValuationProgressTracker } from "@/utils/valuation/progressTracker";
 import { getDynamicMSRP } from "@/services/valuation/msrpLookupService";
 import { calculateAdvancedConfidence, getConfidenceBreakdown } from "@/services/valuation/confidenceEngine";
 import { saveMarketListings } from "@/services/valuation/marketListingService";
+import { saveValuationExplanation } from "@/services/supabase/explanationService";
 import { generateQRCode } from "@/utils/qrCodeGenerator";
 import type { DecodedVehicleInfo } from "@/types/vehicle";
 
@@ -359,6 +360,40 @@ export async function processValuation(
     });
     tracker.completeStep('ai_explanation', { explanation });
     await logValuationStep('AI_EXPLANATION_GENERATED', vin, valuationRequest?.id || 'fallback', { explanationLength: explanation.length, finalValue }, userId, zipCode);
+    
+    // Save AI explanation to database
+    if (valuationRequest?.id) {
+      try {
+        await saveValuationExplanation({
+          valuationRequestId: valuationRequest.id,
+          explanationMarkdown: explanation,
+          adjustmentFactors: {
+            depreciation: adjustments.find(a => a.label === 'Depreciation')?.amount || 0,
+            mileage: adjustments.find(a => a.label === 'Mileage')?.amount || 0,
+            condition: adjustments.find(a => a.label === 'Condition')?.amount || 0,
+            fuel: adjustments.find(a => a.label === 'Fuel Type Impact')?.amount || 0,
+            market: adjustments.find(a => a.label === 'Market Anchoring')?.amount || 0
+          },
+          confidenceBreakdown: {
+            vinData: baseValue > 30000 ? 25 : 15,
+            marketData: marketSearchStatus === 'success' ? 25 : 5,
+            fuelData: adjustments.find(a => a.label === 'Fuel Type Impact')?.amount !== 0 ? 15 : 10,
+            overall: confidenceScore
+          },
+          sourceWeights: sources.reduce((acc, source) => {
+            acc[source] = 1;
+            return acc;
+          }, {} as { [key: string]: number }),
+          influentialComps: listings.slice(0, 5),
+          priceRangeExplanation: listingRange ? 
+            `Market range: $${listingRange.min.toLocaleString()} - $${listingRange.max.toLocaleString()}` : 
+            undefined
+        });
+        console.log('✅ AI explanation saved to database');
+      } catch (error) {
+        console.error('❌ Failed to save explanation to database:', error);
+      }
+    }
     
     // Step 9: FIX #1 - Enhanced Audit Trail Logging with Complete Metadata
     tracker.startStep('audit_log', { finalValue, confidenceScore });
