@@ -236,7 +236,9 @@ export async function processValuation(
         const persistResult = await saveMarketListings(listings, {
           vin,
           userId,
-          valuationId: valuationRequest?.id
+          valuationId: valuationRequest?.id,
+          valuationRequestId: valuationRequest?.id,
+          zipCode
         });
         
         if (persistResult.success) {
