@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ExternalLink, FileText, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Download, Loader2, QrCode, Share2, Lock, Copy } from 'lucide-react';
+import { ExternalLink, FileText, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Download, Loader2, QrCode, Share2, Lock, Copy, Twitter, MessageCircle, Mail } from 'lucide-react';
 import type { ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
 import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 
@@ -71,6 +71,31 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
       } catch (err) {
         console.error('Failed to copy:', err);
       }
+    }
+  };
+
+  const shareOnTwitter = () => {
+    if (result.shareLink) {
+      const text = `Check out this ${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model} valuation: $${result.finalValue.toLocaleString()}`;
+      const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(result.shareLink)}`;
+      window.open(url, '_blank', 'width=550,height=420');
+    }
+  };
+
+  const shareOnWhatsApp = () => {
+    if (result.shareLink) {
+      const text = `Check out this ${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model} valuation: $${result.finalValue.toLocaleString()} - ${result.shareLink}`;
+      const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+    }
+  };
+
+  const shareViaEmail = () => {
+    if (result.shareLink) {
+      const subject = `Vehicle Valuation: ${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model}`;
+      const body = `I wanted to share this vehicle valuation with you:\n\n${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model}\nEstimated Value: $${result.finalValue.toLocaleString()}\nConfidence Score: ${result.confidenceScore}%\n\nView the full report: ${result.shareLink}`;
+      const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.open(url);
     }
   };
 
@@ -250,18 +275,68 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
             {copySuccess && (
               <p className="text-xs text-green-600 mt-1">Link copied to clipboard!</p>
             )}
+            
+            {/* Social Share Buttons */}
+            <div className="flex gap-2 mt-3">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={shareOnTwitter}
+                className="flex items-center gap-1"
+              >
+                <Twitter className="w-3 h-3" />
+                X
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={shareOnWhatsApp}
+                className="flex items-center gap-1"
+              >
+                <MessageCircle className="w-3 h-3" />
+                WhatsApp
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={shareViaEmail}
+                className="flex items-center gap-1"
+              >
+                <Mail className="w-3 h-3" />
+                Email
+              </Button>
+            </div>
           </div>
         )}
 
         {/* QR Code Display */}
         {result.qrCode && (
           <div className="mt-4">
-            <Label className="text-sm">📱 QR Code:</Label>
-            <img
-              src={result.qrCode}
-              alt="QR Code to share valuation"
-              className="h-28 mt-2 rounded border"
-            />
+            <Label className="text-sm">📱 Scan to view valuation:</Label>
+            <div className="flex items-start gap-4 mt-2">
+              <img
+                src={result.qrCode}
+                alt="QR Code for sharing valuation"
+                className="h-28 border rounded-lg"
+              />
+              <div className="flex-1 text-xs text-muted-foreground">
+                <p className="mb-2">Scan this QR code with any smartphone camera to instantly access the valuation report.</p>
+                {result.timestamp && (
+                  <p className="text-xs text-muted-foreground">
+                    Generated: {new Date(result.timestamp).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
