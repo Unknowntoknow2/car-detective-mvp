@@ -91,27 +91,19 @@ export async function processValuation(
     }
   }
   
-  // FIX #1: Create valuation request using dedicated service
-  const valuationRequest = await createValuationRequest({
-    vin,
-    zipCode,
-    mileage,
-    userId,
-    additionalData: { condition, isPremium: isPremium || false }
-  });
-
+  // Declare valuationRequest outside try block to access in catch
+  let valuationRequest: any = null;
+  
   try {
     console.log('🚀 Starting unified valuation process:', input);
     
     // Initialize progress tracking
     const tracker = progressTracker || new ValuationProgressTracker();
     
-    // Step 1: Decode VIN (5% Progress)
+    // Step 1: Decode VIN FIRST to get vehicle data (5% Progress)
     tracker.startStep('vin_decode', { vin });
     const decoded = await decodeVin(vin);
     
-    // Step 1: VIN Decoding (10% Progress)
-    await logValuationStep('VIN_DECODE_START', vin, valuationRequest?.id || 'fallback', { zipCode, mileage, condition }, userId, zipCode);
     // Extract vehicle data from decoded response
     const vehicleData = decoded.decoded as DecodedVehicleInfo || {} as DecodedVehicleInfo;
     const vehicleYear = vehicleData.year || 2020;
@@ -120,9 +112,28 @@ export async function processValuation(
     const vehicleTrim = vehicleData.trim || '';
     const vehicleFuelType = vehicleData.fuelType || 'gasoline';
     
+    // FIX #1: Create valuation request AFTER decoding VIN with complete vehicle data
+    valuationRequest = await createValuationRequest({
+      vin,
+      zipCode,
+      mileage,
+      userId,
+      make: vehicleMake,
+      model: vehicleModel,
+      year: vehicleYear,
+      additionalData: { condition, isPremium: isPremium || false }
+    });
+
+    if (!valuationRequest) {
+      throw new Error('Failed to create valuation request - database constraint error');
+    }
+    
+    // Step 1: VIN Decoding (10% Progress)
+    await logValuationStep('VIN_DECODE_START', vin, valuationRequest.id, { zipCode, mileage, condition }, userId, zipCode);
+    
     tracker.completeStep('vin_decode', { vehicle: vehicleData });
-    await logValuationStep('VIN_DECODE_COMPLETE', vin, valuationRequest?.id || 'fallback', { make: vehicleMake, model: vehicleModel, year: vehicleYear }, userId, zipCode);
-    console.log('✅ VIN decoded:', { make: vehicleMake, model: vehicleModel, year: vehicleYear });
+    await logValuationStep('VIN_DECODE_COMPLETE', vin, valuationRequest.id, { make: vehicleMake, model: vehicleModel, year: vehicleYear }, userId, zipCode);
+    console.log('✅ VIN decoded and valuation request created:', { make: vehicleMake, model: vehicleModel, year: vehicleYear, requestId: valuationRequest.id });
     
     // Step 2: FIX #4 - Dynamic MSRP Lookup
     const baseValue = await getDynamicMSRP(vehicleYear, vehicleMake, vehicleModel, vehicleTrim);
@@ -534,7 +545,7 @@ export async function processValuation(
     };
     
     // Final step: Log completion
-    await logValuationStep('COMPLETE', vin, valuationRequest?.id || 'fallback', { 
+    await logValuationStep('COMPLETE', vin, valuationRequest.id, { 
       finalValue, 
       confidenceScore, 
       adjustmentCount: adjustments.length,
@@ -547,14 +558,33 @@ export async function processValuation(
     return result;
     
   } catch (error) {
-    console.error('❌ Valuation engine error:', error);
+    console.error('❌ Valuation processing failed:', error);
     
-    // Mark valuation request as failed if we have one
+    // Mark the valuation request as failed if we created one
     if (valuationRequest?.id) {
-      await failValuationRequest(valuationRequest.id, (error as Error).message);
+      await failValuationRequest(
+        valuationRequest.id, 
+        error instanceof Error ? error.message : 'Unknown valuation error'
+      );
     }
     
-    await logValuationError(error as Error, input);
+    // Log valuation error with details
+    await logValuationError(error instanceof Error ? error : new Error('Unknown valuation error'), {
+      vin,
+      step: 'valuation_processing',
+      userId,
+      zipCode,
+      mileage,
+      condition
+    });
+    
+    // Create a more descriptive error message for database issues
+    const errorMessage = error instanceof Error ? error.message : 'Unknown valuation error';
+    if (errorMessage.includes('null value') || errorMessage.includes('constraint')) {
+      throw new Error('Failed to save valuation data - missing required vehicle information. Please try again.');
+    }
+    
+    // Re-throw the error for the caller to handle
     throw error;
   }
 }
