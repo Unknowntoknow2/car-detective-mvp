@@ -57,41 +57,45 @@ export function UnifiedLookupTabs() {
       return;
     }
 
-    if (!zipCode) {
-      toast.error('Please enter your ZIP code for accurate valuation');
-      return;
-    }
-
-    console.log('🚗 VIN Lookup: Starting unified valuation for VIN:', vin);
+    console.log('🚗 VIN Lookup: Decoding VIN to find vehicle:', vin);
     
     try {
-      // Call the unified valuation engine directly
-      const valuationResult = await processValuation({
-        vin,
-        zipCode,
-        mileage: parseInt(mileage) || 50000, // Default mileage if not provided
-        condition: condition || 'good'
-      });
+      // First decode the VIN to get vehicle information
+      const result = await lookupByVin(vin);
       
-      console.log('✅ VIN Valuation: Successfully completed valuation:', valuationResult);
-      
-      // Store result in valuation context for the results page
-      const contextResult = await processFreeValuation({
-        vin,
-        make: valuationResult.vehicle.make || 'Unknown',
-        model: valuationResult.vehicle.model || 'Unknown', 
-        year: valuationResult.vehicle.year || 2020,
-        mileage: parseInt(mileage) || 50000,
-        condition: condition || 'good',
-        zipCode
-      });
-      
-      toast.success('VIN valuation completed successfully!');
-      navigate(`/results/${contextResult.valuationId}`);
+      if (result && result.success && result.vehicle) {
+        console.log('✅ VIN Lookup: Successfully decoded vehicle:', result.vehicle);
+        
+        // Navigate to follow-up questions with decoded vehicle data (same pattern as plate lookup)
+        const params = new URLSearchParams({
+          year: result.vehicle.year.toString(),
+          make: result.vehicle.make,
+          model: result.vehicle.model,
+          trim: result.vehicle.trim || '',
+          vin: vin,
+          engine: result.vehicle.engine || '',
+          transmission: result.vehicle.transmission || '',
+          bodyType: result.vehicle.bodyType || '',
+          fuelType: result.vehicle.fuelType || '',
+          drivetrain: result.vehicle.drivetrain || '',
+          // Pass pre-filled form data
+          mileage: mileage || '',
+          condition: condition || 'good',
+          zipCode: zipCode || '',
+          source: 'vin'
+        });
+        
+        toast.success('VIN decoded successfully!');
+        navigate(`/valuation/followup?${params.toString()}`);
+        
+      } else {
+        console.error('❌ VIN Lookup: Failed to decode VIN:', result?.error);
+        toast.error('Failed to decode VIN. Please check the VIN and try again.');
+      }
       
     } catch (error) {
-      console.error('❌ VIN valuation error:', error);
-      toast.error('VIN valuation temporarily unavailable. Please try again.');
+      console.error('❌ VIN lookup error:', error);
+      toast.error('VIN lookup service temporarily unavailable. Please try again.');
     }
   };
 
