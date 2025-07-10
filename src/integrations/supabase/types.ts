@@ -2769,77 +2769,66 @@ export type Database = {
       }
       valuation_audit_logs: {
         Row: {
-          action: string | null
-          audit_data: Json | null
+          adjustment: number | null
+          adjustment_percentage: number | null
+          adjustment_reason: string | null
+          base_value: number | null
           confidence_score: number | null
           created_at: string
-          error_message: string | null
-          event: string
-          execution_time_ms: number | null
-          fallback_used: boolean | null
+          data_sources: string[] | null
+          final_value: number
           id: string
-          input_data: Json | null
-          message: string | null
           metadata: Json | null
-          output_data: Json | null
-          quality_score: number | null
-          raw_data: Json | null
-          run_by: string | null
-          source: string | null
-          sources_used: string[] | null
-          valuation_request_id: string
+          status: string | null
+          step: string
+          timestamp: string
+          updated_at: string
+          user_id: string | null
+          valuation_request_id: string | null
+          vin: string
+          zip_code: string | null
         }
         Insert: {
-          action?: string | null
-          audit_data?: Json | null
+          adjustment?: number | null
+          adjustment_percentage?: number | null
+          adjustment_reason?: string | null
+          base_value?: number | null
           confidence_score?: number | null
           created_at?: string
-          error_message?: string | null
-          event: string
-          execution_time_ms?: number | null
-          fallback_used?: boolean | null
+          data_sources?: string[] | null
+          final_value: number
           id?: string
-          input_data?: Json | null
-          message?: string | null
           metadata?: Json | null
-          output_data?: Json | null
-          quality_score?: number | null
-          raw_data?: Json | null
-          run_by?: string | null
-          source?: string | null
-          sources_used?: string[] | null
-          valuation_request_id: string
+          status?: string | null
+          step: string
+          timestamp?: string
+          updated_at?: string
+          user_id?: string | null
+          valuation_request_id?: string | null
+          vin: string
+          zip_code?: string | null
         }
         Update: {
-          action?: string | null
-          audit_data?: Json | null
+          adjustment?: number | null
+          adjustment_percentage?: number | null
+          adjustment_reason?: string | null
+          base_value?: number | null
           confidence_score?: number | null
           created_at?: string
-          error_message?: string | null
-          event?: string
-          execution_time_ms?: number | null
-          fallback_used?: boolean | null
+          data_sources?: string[] | null
+          final_value?: number
           id?: string
-          input_data?: Json | null
-          message?: string | null
           metadata?: Json | null
-          output_data?: Json | null
-          quality_score?: number | null
-          raw_data?: Json | null
-          run_by?: string | null
-          source?: string | null
-          sources_used?: string[] | null
-          valuation_request_id?: string
+          status?: string | null
+          step?: string
+          timestamp?: string
+          updated_at?: string
+          user_id?: string | null
+          valuation_request_id?: string | null
+          vin?: string
+          zip_code?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "valuation_audit_logs_valuation_request_id_fkey"
-            columns: ["valuation_request_id"]
-            isOneToOne: false
-            referencedRelation: "valuation_requests"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       valuation_explanations: {
         Row: {
