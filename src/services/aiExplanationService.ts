@@ -79,25 +79,33 @@ function generateFallbackExplanation(input: ExplanationInput): string {
   const positiveAdjustments = adjustments.filter(adj => adj.amount > 0);
   const negativeAdjustments = adjustments.filter(adj => adj.amount < 0);
   
-  let explanation = `This ${vehicle.year} ${vehicle.make} ${vehicle.model} has been valued at $${finalValue.toLocaleString()}, starting from a base value of $${baseValue.toLocaleString()}.`;
+  // Generate structured markdown explanation
+  let explanation = `## 📊 Valuation Breakdown\n\n`;
   
-  if (positiveAdjustments.length > 0) {
-    explanation += ` Positive factors include: ${positiveAdjustments.map(adj => `${adj.label.toLowerCase()} (+$${Math.abs(adj.amount).toLocaleString()})`).join(', ')}.`;
-  }
+  explanation += `- **Base Value:** $${baseValue.toLocaleString()} (estimated MSRP)\n`;
   
-  if (negativeAdjustments.length > 0) {
-    explanation += ` Value reductions are due to: ${negativeAdjustments.map(adj => `${adj.label.toLowerCase()} (-$${Math.abs(adj.amount).toLocaleString()})`).join(', ')}.`;
-  }
+  // Add each adjustment as a bullet point
+  adjustments.forEach(adj => {
+    const sign = adj.amount >= 0 ? '+' : '';
+    explanation += `- **${adj.label}:** ${sign}$${adj.amount.toLocaleString()} (${adj.reason})\n`;
+  });
   
-  explanation += ` With ${mileage.toLocaleString()} miles, this vehicle's condition and market positioning result in a confidence score of ${confidenceScore}%.`;
+  explanation += `\n### 🎯 Final Value: **$${finalValue.toLocaleString()}**\n\n`;
+  explanation += `### 🤖 Confidence: ${confidenceScore}%\n\n`;
   
   if (confidenceScore >= 80) {
-    explanation += " This is a highly reliable valuation based on comprehensive market data.";
+    explanation += "**Reasoning:** High confidence valuation based on comprehensive data analysis.\n\n";
   } else if (confidenceScore >= 60) {
-    explanation += " This valuation is based on available market data with good confidence.";
+    explanation += "**Reasoning:** Good confidence valuation with available market data.\n\n";
   } else {
-    explanation += " This estimate has limited confidence due to incomplete market data.";
+    explanation += "**Reasoning:** Limited confidence due to incomplete market data availability.\n\n";
   }
+  
+  explanation += `---\n\n**Data Sources:**\n`;
+  explanation += `- VIN Decode (Vehicle Specifications)\n`;
+  explanation += `- Market Analysis (Regional Adjustments)\n`;
+  explanation += `- Condition Assessment\n`;
+  explanation += `- Mileage Impact Analysis\n`;
   
   return explanation;
 }
