@@ -1,61 +1,74 @@
+// Valuation Feedback Service - Handles user feedback on valuations
 import { supabase } from '@/integrations/supabase/client';
 
-export interface ValuationFeedbackData {
-  userId: string;
+export interface ValuationFeedback {
+  valuationId?: string;
+  userId?: string;
   vin: string;
-  zipCode: string;
-  feedback: 'accurate' | 'off' | 'far_off';
+  zipCode?: string;
+  rating?: 'positive' | 'negative' | 'neutral';
+  feedback?: string;
   estimatedValue?: number;
   confidenceScore?: number;
   timestamp: number;
 }
 
-export async function submitValuationFeedback(data: ValuationFeedbackData) {
+export async function saveValuationFeedback(feedback: ValuationFeedback) {
   try {
-    console.log('💬 Submitting valuation feedback...', data);
+    console.log('💬 Saving valuation feedback...', feedback);
     
-    const { data: result, error } = await supabase
+    const { data, error } = await supabase
       .from('valuation_feedback')
       .insert({
-        user_id: data.userId,
-        vin: data.vin,
-        zip_code: data.zipCode,
-        feedback: data.feedback,
-        estimated_value: data.estimatedValue,
-        confidence_score: data.confidenceScore,
-        created_at: new Date(data.timestamp).toISOString(),
-        updated_at: new Date().toISOString()
+        valuation_id: feedback.valuationId || null,
+        user_id: feedback.userId || null,
+        vin: feedback.vin,
+        zip_code: feedback.zipCode || null,
+        rating: feedback.rating || 'neutral',
+        feedback_text: feedback.feedback || null,
+        estimated_value: feedback.estimatedValue || null,
+        confidence_score: feedback.confidenceScore || null,
+        created_at: new Date(feedback.timestamp).toISOString()
       });
 
     if (error) {
-      console.error('❌ Error submitting feedback:', error);
+      console.error('❌ Error saving feedback:', error);
       throw error;
     }
 
-    console.log('✅ Feedback submitted successfully:', result);
-    return result;
+    console.log('✅ Feedback saved successfully');
+    return data;
   } catch (error) {
-    console.error('❌ Failed to submit feedback:', error);
+    console.error('❌ Failed to save feedback:', error);
     throw error;
   }
 }
 
-export async function getUserFeedback(userId: string) {
+// Legacy alias for existing imports
+export const submitValuationFeedback = saveValuationFeedback;
+
+export async function getFeedbackStats(vin?: string) {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('valuation_feedback')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('❌ Error fetching user feedback:', error);
-      throw error;
+      .select('rating, created_at');
+    
+    if (vin) {
+      query = query.eq('vin', vin);
     }
-
-    return data;
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    
+    return {
+      total: data?.length || 0,
+      positive: data?.filter(f => f.rating === 'positive').length || 0,
+      negative: data?.filter(f => f.rating === 'negative').length || 0,
+      neutral: data?.filter(f => f.rating === 'neutral').length || 0
+    };
   } catch (error) {
-    console.error('❌ Failed to fetch user feedback:', error);
-    throw error;
+    console.error('❌ Failed to get feedback stats:', error);
+    return { total: 0, positive: 0, negative: 0, neutral: 0 };
   }
 }

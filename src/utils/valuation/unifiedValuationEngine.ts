@@ -10,6 +10,7 @@ import { ValuationProgressTracker } from "@/utils/valuation/progressTracker";
 import { getDynamicMSRP } from "@/services/valuation/msrpLookupService";
 import { calculateAdvancedConfidence, getConfidenceBreakdown } from "@/services/valuation/confidenceEngine";
 import { saveMarketListings } from "@/services/valuation/marketListingService";
+import { generateQRCode } from "@/utils/qrCodeGenerator";
 import type { DecodedVehicleInfo } from "@/types/vehicle";
 
 // Unified input interface
@@ -65,7 +66,29 @@ export async function processValuation(
   input: ValuationInput, 
   progressTracker?: ValuationProgressTracker
 ): Promise<ValuationResult> {
-  const { vin, zipCode, mileage, condition, userId, isPremium } = input;
+  const { vin, zipCode, mileage, condition, userId, isPremium: inputPremium } = input;
+  
+  // FIX #3: Validate actual user subscription status instead of trusting input
+  let isPremium = inputPremium || false;
+  if (userId) {
+    try {
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('is_premium_dealer, premium_expires_at, role')
+        .eq('id', userId)
+        .single();
+      
+      if (userProfile) {
+        isPremium = Boolean(
+          userProfile.is_premium_dealer ||
+          ['admin', 'dealer'].includes(userProfile.role || '') ||
+          (userProfile.premium_expires_at && new Date(userProfile.premium_expires_at) > new Date())
+        );
+      }
+    } catch (error) {
+      console.error('⚠️ Could not validate premium status, using input:', error);
+    }
+  }
   
   // FIX #1: Create valuation request using dedicated service
   const valuationRequest = await createValuationRequest({
@@ -467,8 +490,9 @@ export async function processValuation(
       listings,
       marketSearchStatus,
       timestamp: Date.now(),
-      shareLink: `https://ain.ai/share/${vin}-${Date.now()}`, // Mock share link
-      qrCode: `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="white"/><text x="50" y="50" text-anchor="middle" dy=".3em" font-size="8">QR:${vin}</text></svg>`)}`, // Mock QR
+      // FIX #4: Generate real share links and QR codes
+      shareLink: `${window.location.origin}/shared-valuation/${vin}?t=${Date.now()}`,
+      qrCode: await generateQRCode(`${window.location.origin}/shared-valuation/${vin}?t=${Date.now()}`),
       isPremium: isPremium || false,
       vin,
       pdfUrl

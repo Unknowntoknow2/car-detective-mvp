@@ -6,6 +6,7 @@ import { getFullyNormalizedMsrp } from '@/utils/valuation/msrpInflationNormalize
 import { generateValuationExplanation } from '@/services/confidenceExplainer';
 // Import our new unified valuation engine
 import { processValuation, type ValuationInput, type ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
+import { usePremiumAccess } from '@/hooks/usePremiumAccess';
 
 interface ProcessFreeValuationInput {
   make: string;
@@ -357,17 +358,23 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, []);
 
+  const { hasPremiumAccess } = usePremiumAccess();
+
   const processFreeValuation = useCallback(async (input: ProcessFreeValuationInput): Promise<ProcessFreeValuationResult> => {
     setIsLoading(true);
     try {
       console.log('🚀 Processing valuation with UNIFIED ENGINE for:', input.make, input.model, input.year);
 
-      // Convert to unified engine input format
+      // FIX #3: Pass userId and premium status to unified engine
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const unifiedInput: ValuationInput = {
         vin: input.vin || '',
         zipCode: input.zipCode || '90210', // Default fallback
         mileage: input.mileage || 50000, // Default fallback
-        condition: input.condition || 'good'
+        condition: input.condition || 'good',
+        userId: user?.id,
+        isPremium: hasPremiumAccess
       };
 
       // Call the unified valuation engine
@@ -438,7 +445,7 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } finally {
       setIsLoading(false);
     }
-  }, [createValuation]);
+  }, [createValuation, hasPremiumAccess]);
 
   const value = {
     isLoading,
