@@ -21,6 +21,12 @@ export interface ValuationExplanationInput {
   baseMSRP?: number;
   msrpSource?: string;
   marketListingsCount?: number;
+  marketListings?: Array<{
+    price: number;
+    title: string;
+    source: string;
+    url?: string;
+  }>;
 }
 
 export async function generateValuationExplanation(
@@ -67,6 +73,7 @@ export async function generateValuationExplanation(
 function generateFallbackExplanation(input: ValuationExplanationInput): string {
   const hasRealMarketData = input.data_sources.includes('market_listings');
   const isFallbackMSRP = input.data_sources.includes('fallback_msrp');
+  const hasOpenAIListings = input.marketListings && input.marketListings.length > 0;
   
   let explanation = `This valuation for your ${input.year} ${input.make} ${input.model}`;
   
@@ -76,8 +83,21 @@ function generateFallbackExplanation(input: ValuationExplanationInput): string {
   
   explanation += ` is estimated at $${input.estimated_value.toLocaleString()}.`;
 
-  // Data source explanation
-  if (hasRealMarketData) {
+  // Market Listing Intelligence Section
+  if (hasOpenAIListings) {
+    const avgPrice = Math.round(input.marketListings!.reduce((sum, listing) => sum + listing.price, 0) / input.marketListings!.length);
+    explanation += ` 🏷️ **Market Listing Intelligence:** We found ${input.marketListings!.length} real-world listings near ZIP ${input.zipCode}, averaging $${avgPrice.toLocaleString()}. These listings replaced our fallback MSRP estimate and include:`;
+    
+    // Show top 3 listings
+    const topListings = input.marketListings!.slice(0, 3);
+    topListings.forEach(listing => {
+      explanation += ` • ${listing.title} — $${listing.price.toLocaleString()}`;
+    });
+    
+    explanation += ` (Source: OpenAI Web Search)`;
+  }
+  // Original data source explanation
+  else if (hasRealMarketData) {
     explanation += ` This estimate is based on real market listings and comparable vehicles currently for sale.`;
   } else if (isFallbackMSRP) {
     explanation += ` This estimate uses adjusted MSRP data as no recent market listings were available for this specific vehicle.`;

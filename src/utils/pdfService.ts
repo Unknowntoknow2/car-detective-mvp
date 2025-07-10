@@ -308,6 +308,62 @@ export async function generateValuationPdf(data: ReportData, options: PdfOptions
     });
   }
 
+  // Add Market Listing Intelligence if available
+  if (data.marketplaceListings && data.marketplaceListings.length > 0) {
+    yPosition -= 20;
+    page.drawText('🏷️ Market Listing Intelligence', {
+      x: margin,
+      y: yPosition,
+      size: 16,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    });
+    yPosition -= 25;
+
+    const avgPrice = Math.round(data.marketplaceListings.reduce((sum: number, listing: any) => sum + (listing.price || 0), 0) / data.marketplaceListings.length);
+    
+    page.drawText(`• Real listings found: ${data.marketplaceListings.length}`, {
+      x: margin,
+      y: yPosition,
+      size: 11,
+      font: font,
+      color: rgb(0, 0, 0),
+    });
+    yPosition -= 15;
+
+    page.drawText(`• Average market price: $${avgPrice.toLocaleString()}`, {
+      x: margin,
+      y: yPosition,
+      size: 11,
+      font: font,
+      color: rgb(0, 0, 0),
+    });
+    yPosition -= 15;
+
+    // Show top 3 listings
+    const topListings = data.marketplaceListings.slice(0, 3);
+    topListings.forEach((listing: any) => {
+      const listingText = `- ${listing.title || 'Listing'} — $${(listing.price || 0).toLocaleString()}`.substring(0, 60);
+      page.drawText(listingText, {
+        x: margin,
+        y: yPosition,
+        size: 9,
+        font: font,
+        color: rgb(0.3, 0.3, 0.3),
+      });
+      yPosition -= 12;
+    });
+
+    page.drawText('• Source: OpenAI Web Search', {
+      x: margin,
+      y: yPosition,
+      size: 9,
+      font: font,
+      color: rgb(0.5, 0.5, 0.5),
+    });
+    yPosition -= 20;
+  }
+
   // Add AI Condition if available
   if (data.aiCondition) {
     yPosition -= 20;
