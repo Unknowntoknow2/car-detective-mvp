@@ -18,36 +18,49 @@ export async function calculateValuationFromListings(
   let baseValue = average(prices);
   let baseValueSource = "market_listings";
   
-  // GPT Market Comps with Fallback Logic
+  // Enhanced GPT Market Comps with Live Listing Integration
   let marketCompsAdjustment = 0;
   let marketCompsUsed = false;
   let usedMarketFallback = false;
   let listingSources: any[] = [];
+  let confidenceBoost = 0;
 
   try {
-    console.log('🔍 Attempting to fetch live market comps via OpenAI...');
+    console.log('🔍 Attempting to fetch live market comps via enhanced OpenAI search...');
     const comps = await fetchMarketComps(input);
 
-    if (comps && comps.length >= 2) {
+    if (comps && comps.length >= 3) {
+      // Filter out outliers (prices more than 2 standard deviations from mean)
       const compPrices = comps.map(c => c.price);
-      const avgCompPrice = average(compPrices);
-      const delta = avgCompPrice - baseValue;
+      const mean = average(compPrices);
+      const stdDev = Math.sqrt(compPrices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / compPrices.length);
+      const filteredComps = comps.filter(comp => Math.abs(comp.price - mean) <= 2 * stdDev);
       
-      // Only use if the adjustment is reasonable (less than 50% of base value)
-      if (Math.abs(delta) < 0.5 * baseValue) {
-        marketCompsAdjustment = delta;
-        baseValue = avgCompPrice;
-        baseValueSource = "real_listings";
-        marketCompsUsed = true;
-        listingSources = comps.slice(0, 5); // Keep top 5 for display
-        console.log(`✅ Market comps applied: ${comps.length} listings, avg: $${avgCompPrice.toLocaleString()}`);
+      if (filteredComps.length >= 2) {
+        const filteredPrices = filteredComps.map(c => c.price);
+        const avgCompPrice = average(filteredPrices);
+        const delta = avgCompPrice - baseValue;
+        
+        // Use more lenient adjustment threshold for live data
+        if (Math.abs(delta) < 0.6 * baseValue) {
+          marketCompsAdjustment = delta;
+          baseValue = avgCompPrice;
+          baseValueSource = "live_market_listings";
+          marketCompsUsed = true;
+          listingSources = filteredComps.slice(0, 6); // Keep top 6 for display
+          confidenceBoost = Math.min(filteredComps.length * 2, 15); // Boost confidence based on listing count
+          console.log(`✅ Live market comps applied: ${filteredComps.length}/${comps.length} listings, avg: $${avgCompPrice.toLocaleString()}`);
+        } else {
+          usedMarketFallback = true;
+          console.warn(`[ValuationEngine] Market comp adjustment too large (${Math.round(delta)}), using fallback.`);
+        }
       } else {
         usedMarketFallback = true;
-        console.warn(`[ValuationEngine] Market comp adjustment too large (${delta}), using fallback.`);
+        console.warn("[ValuationEngine] Too many outliers in market comps, using fallback.");
       }
     } else {
       usedMarketFallback = true;
-      console.warn("[ValuationEngine] Market comp fallback triggered: insufficient listings found.");
+      console.warn(`[ValuationEngine] Insufficient market comps found (${comps?.length || 0}), using fallback.`);
     }
   } catch (err) {
     usedMarketFallback = true;
@@ -106,7 +119,7 @@ export async function calculateValuationFromListings(
     input,
     baseValue,
     adjustments,
-    confidence: computeConfidenceScore(listings.length, marketCompsUsed),
+    confidence: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost),
     listings_count: listings.length,
     market_comps_used: marketCompsUsed,
     fuel_price_used: regionalFuelPrice,
@@ -125,7 +138,7 @@ export async function calculateValuationFromListings(
     mileage_adjustment: adjustments.mileage,
     value_breakdown: breakdown,
     valuation_explanation: generateEnhancedExplanation(input, listings.length, adjustments, marketCompsUsed, fuelCostImpact, usedMarketFallback, listingSources),
-    confidence_score: computeConfidenceScore(listings.length, marketCompsUsed),
+    confidence_score: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost),
     audit_id,
   };
 }
@@ -182,7 +195,7 @@ function computeStdDev(numbers: number[]): number {
   return Math.sqrt(average(squaredDiffs));
 }
 
-function computeConfidenceScore(listingCount: number, marketCompsUsed: boolean = false): number {
+function computeConfidenceScore(listingCount: number, marketCompsUsed: boolean = false, confidenceBoost: number = 0): number {
   let baseConfidence = 40;
   
   if (listingCount >= 10) baseConfidence = 90;
@@ -191,8 +204,11 @@ function computeConfidenceScore(listingCount: number, marketCompsUsed: boolean =
   
   // Boost confidence if real market comps were used
   if (marketCompsUsed) {
-    baseConfidence += 10;
+    baseConfidence += 15; // Increased boost for live market data
   }
+  
+  // Apply additional confidence boost from listing quality
+  baseConfidence += confidenceBoost;
   
   return Math.min(baseConfidence, 95); // Cap at 95%
 }
@@ -209,9 +225,13 @@ function generateEnhancedExplanation(
   let explanation = '';
   
   if (marketCompsUsed) {
-    explanation += `✅ Based on ${listingSources.length} real market listings for ${input.year} ${input.make} ${input.model}`;
+    const priceRange = listingSources.length > 1 ? 
+      `$${Math.min(...listingSources.map(l => l.price)).toLocaleString()} to $${Math.max(...listingSources.map(l => l.price)).toLocaleString()}` : 
+      `around $${listingSources[0]?.price?.toLocaleString() || 'N/A'}`;
+    
+    explanation += `✅ Based on ${listingSources.length} live market listings for ${input.year} ${input.make} ${input.model}`;
     if (input.trim) explanation += ` ${input.trim}`;
-    explanation += ` near ${input.zipCode}. `;
+    explanation += ` near ${input.zipCode}, ranging from ${priceRange}. These prices were sourced from current listings on Cars.com, AutoTrader, and other major marketplaces. `;
   } else if (usedMarketFallback) {
     explanation += `ℹ️ Live market listings were unavailable for ${input.year} ${input.make} ${input.model} near ${input.zipCode}. This estimate uses verified listings from our database with MSRP adjustments. `;
   } else {
