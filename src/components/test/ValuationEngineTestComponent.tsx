@@ -126,29 +126,7 @@ export function ValuationEngineTestComponent() {
 
           {/* Formatted Display */}
           <UnifiedValuationResult
-            vehicleInfo={{
-              year: result.vehicle.year,
-              make: result.vehicle.make,
-              model: result.vehicle.model,
-              trim: result.vehicle.trim,
-              mileage: result.mileage,
-              condition: condition,
-              vin: vin
-            }}
-            estimatedValue={result.finalValue}
-            confidenceScore={result.confidenceScore}
-            priceRange={result.listingRange ? [result.listingRange.min, result.listingRange.max] : undefined}
-            adjustments={result.adjustments.map((adj: any) => ({
-              factor: adj.label,
-              impact: adj.amount,
-              description: adj.reason,
-              source: 'unified_engine',
-              timestamp: new Date().toISOString()
-            }))}
-            zipCode={result.zip}
-            isPremium={false}
-            dataSources={result.sources}
-            valuationNotes={[`🔍 ${result.aiExplanation}`]}
+            result={result}
           />
         </div>
       )}

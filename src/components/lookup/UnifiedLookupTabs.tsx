@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { EnhancedVehicleSelector } from '@/components/lookup/form-parts/EnhancedVehicleSelector';
 import { useMakeModels } from '@/hooks/useMakeModels';
 import { useUnifiedLookup } from '@/hooks/useUnifiedLookup';
+import { processValuation } from '@/utils/valuation/unifiedValuationEngine';
 
 export function UnifiedLookupTabs() {
   const [vin, setVin] = useState('');
@@ -56,40 +57,41 @@ export function UnifiedLookupTabs() {
       return;
     }
 
-    console.log('🚗 VIN Lookup: Starting real NHTSA lookup for VIN:', vin);
+    if (!zipCode) {
+      toast.error('Please enter your ZIP code for accurate valuation');
+      return;
+    }
+
+    console.log('🚗 VIN Lookup: Starting unified valuation for VIN:', vin);
     
     try {
-      const result = await lookupByVin(vin);
+      // Call the unified valuation engine directly
+      const valuationResult = await processValuation({
+        vin,
+        zipCode,
+        mileage: parseInt(mileage) || 50000, // Default mileage if not provided
+        condition: condition || 'good'
+      });
       
-      if (result && result.success && result.vehicle) {
-        console.log('✅ VIN Lookup: Successfully decoded vehicle:', result.vehicle);
-        
-        // Navigate to follow-up questions with vehicle data INCLUDING VIN
-        const params = new URLSearchParams({
-          year: result.vehicle.year.toString(),
-          make: result.vehicle.make,
-          model: result.vehicle.model,
-          trim: result.vehicle.trim || '',
-          vin: result.vehicle.vin || vin, // Ensure VIN is always passed
-          engine: result.vehicle.engine || '',
-          transmission: result.vehicle.transmission || '',
-          bodyType: result.vehicle.bodyType || '',
-          fuelType: result.vehicle.fuelType || '',
-          drivetrain: result.vehicle.drivetrain || '',
-          source: 'vin'
-        });
-        
-        toast.success('VIN decoded successfully with real NHTSA data!');
-        navigate(`/valuation/followup?${params.toString()}`);
-        
-      } else {
-        console.error('❌ VIN Lookup: Failed to decode VIN:', result?.error);
-        toast.error(result?.error || 'Failed to decode VIN. Please check the VIN and try again.');
-      }
+      console.log('✅ VIN Valuation: Successfully completed valuation:', valuationResult);
+      
+      // Store result in valuation context for the results page
+      const contextResult = await processFreeValuation({
+        vin,
+        make: valuationResult.vehicle.make || 'Unknown',
+        model: valuationResult.vehicle.model || 'Unknown', 
+        year: valuationResult.vehicle.year || 2020,
+        mileage: parseInt(mileage) || 50000,
+        condition: condition || 'good',
+        zipCode
+      });
+      
+      toast.success('VIN valuation completed successfully!');
+      navigate(`/results/${contextResult.valuationId}`);
       
     } catch (error) {
-      console.error('❌ VIN lookup error:', error);
-      toast.error('VIN lookup service temporarily unavailable. Please try again.');
+      console.error('❌ VIN valuation error:', error);
+      toast.error('VIN valuation temporarily unavailable. Please try again.');
     }
   };
 
@@ -220,25 +222,66 @@ export function UnifiedLookupTabs() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleVinSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="vin">Vehicle Identification Number (VIN)</Label>
-                  <Input
-                    id="vin"
-                    value={vin}
-                    onChange={(e) => setVin(e.target.value.toUpperCase())}
-                    placeholder="Enter 17-character VIN"
-                    maxLength={17}
-                    className="font-mono"
-                  />
-                  {vin && !validateVin(vin) && (
-                    <p className="text-sm text-red-500 mt-1">
-                      VIN must be 17 characters (no I, O, or Q)
-                    </p>
-                  )}
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="vin">Vehicle Identification Number (VIN)</Label>
+                    <Input
+                      id="vin"
+                      value={vin}
+                      onChange={(e) => setVin(e.target.value.toUpperCase())}
+                      placeholder="Enter 17-character VIN"
+                      maxLength={17}
+                      className="font-mono"
+                    />
+                    {vin && !validateVin(vin) && (
+                      <p className="text-sm text-red-500 mt-1">
+                        VIN must be 17 characters (no I, O, or Q)
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="vin-mileage">Mileage (optional)</Label>
+                      <Input
+                        id="vin-mileage"
+                        type="number"
+                        min="0"
+                        value={mileage}
+                        onChange={(e) => setMileage(e.target.value)}
+                        placeholder="e.g., 50000"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="vin-condition">Condition</Label>
+                      <Select value={condition} onValueChange={setCondition}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="excellent">Excellent</SelectItem>
+                          <SelectItem value="good">Good</SelectItem>
+                          <SelectItem value="fair">Fair</SelectItem>
+                          <SelectItem value="poor">Poor</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="vin-zipCode">Zip Code *</Label>
+                      <Input
+                        id="vin-zipCode"
+                        value={zipCode}
+                        onChange={(e) => setZipCode(e.target.value)}
+                        placeholder="e.g., 12345"
+                        maxLength={5}
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
                 <Button 
                   type="submit" 
-                  disabled={!validateVin(vin) || isUnifiedLoading}
+                  disabled={!validateVin(vin) || !zipCode || isUnifiedLoading}
                   className="w-full"
                 >
                   {isUnifiedLoading ? (
@@ -310,23 +353,24 @@ export function UnifiedLookupTabs() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="zipCode">Zip Code</Label>
+                    <Label htmlFor="zipCode">Zip Code *</Label>
                     <Input
                       id="zipCode"
                       value={zipCode}
                       onChange={(e) => setZipCode(e.target.value)}
                       placeholder="e.g., 12345"
                       maxLength={5}
+                      required
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Optional - affects local market pricing
+                      Required for accurate market pricing
                     </p>
                   </div>
                 </div>
                 
                 <Button 
                   type="submit" 
-                  disabled={!selectedMakeId || !selectedModelId || !selectedYear || isUnifiedLoading}
+                  disabled={!selectedMakeId || !selectedModelId || !selectedYear || !zipCode || isUnifiedLoading}
                   className="w-full"
                 >
                   {isUnifiedLoading ? (
