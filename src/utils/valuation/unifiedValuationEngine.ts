@@ -48,6 +48,7 @@ export interface ValuationResult {
   // Sharing and premium features
   shareLink?: string;
   qrCode?: string;
+  pdfUrl?: string;
   isPremium?: boolean;
   vin?: string;
 }
