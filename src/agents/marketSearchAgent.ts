@@ -17,7 +17,14 @@ interface MarketComps {
   sources: ListingComp[];
 }
 
-export async function fetchMarketComps(input: ValuationInput): Promise<MarketListing[]> {
+export interface MarketSearchResult {
+  listings: MarketListing[];
+  trust: number;
+  notes: string[];
+  source: string;
+}
+
+export async function fetchMarketComps(input: ValuationInput): Promise<MarketSearchResult> {
   try {
     console.log('🔍 Market Search Agent: Fetching real-time listings via OpenAI for:', {
       vin: input.vin,
@@ -43,13 +50,18 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketLis
 
     if (existingListings && existingListings.length > 0) {
       console.log('📊 Found', existingListings.length, 'existing market listings');
-      return existingListings.map(transformToMarketListing);
+      return {
+        listings: existingListings.map(transformToMarketListing),
+        trust: 0.85, // Database listings have high trust
+        notes: ['Using verified database listings'],
+        source: 'database'
+      };
     }
 
-    // Use OpenAI web search to find live listings with enhanced query
+    // Use OpenAI web search to find live listings with enhanced query and trust scoring
     console.log('🤖 Fetching live market listings via OpenAI web search...');
     
-    const query = `Find used ${input.year} ${input.make} ${input.model} ${input.trim || ''} vehicles for sale near ZIP ${input.zipCode}. Include prices, mileage, and source websites like Cars.com, AutoTrader, CarGurus, Edmunds. Focus on listings with ${input.mileage ? `around ${input.mileage.toLocaleString()} miles` : 'similar mileage'}.`;
+    const query = `Find used ${input.year} ${input.make} ${input.model} ${input.trim || ''} vehicles for sale near ZIP ${input.zipCode}. Include exact prices, mileage, and source websites like Cars.com, AutoTrader, CarGurus, Edmunds. Focus on listings with ${input.mileage ? `around ${input.mileage.toLocaleString()} miles` : 'similar mileage'}. Show specific dollar amounts and dealer names.`;
     
     const { data: searchResult, error: searchError } = await supabase.functions.invoke('openai-web-search', {
       body: { 
@@ -60,19 +72,37 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketLis
 
     if (searchError) {
       console.error('❌ Error calling OpenAI web search:', searchError);
-      return [];
+      return {
+        listings: [],
+        trust: 0.0,
+        notes: ['OpenAI search failed'],
+        source: 'error'
+      };
     }
 
     const content = searchResult?.content || searchResult?.result || '';
     const parsedListings = parseVehicleListingsFromWeb(content);
     const marketListings = parsedListings.map(listing => transformParsedToMarketListing(listing, input));
 
-    console.log('✅ OpenAI market search completed, got', marketListings.length, 'listings');
-    return marketListings;
+    // Calculate trust score based on response quality
+    const trustResult = calculateTrustScore(content, parsedListings, marketListings);
+
+    console.log('✅ OpenAI market search completed, got', marketListings.length, 'listings with trust score:', trustResult.trust);
+    return {
+      listings: marketListings,
+      trust: trustResult.trust,
+      notes: trustResult.notes,
+      source: 'openai_web_search'
+    };
 
   } catch (error) {
     console.error('❌ Market Search Agent error:', error);
-    return [];
+    return {
+      listings: [],
+      trust: 0.0,
+      notes: ['Search agent error'],
+      source: 'error'
+    };
   }
 }
 
@@ -117,5 +147,75 @@ function transformToMarketListing(dbListing: any): MarketListing {
     is_cpo: dbListing.is_cpo || false,
     fetched_at: dbListing.fetched_at || new Date().toISOString(),
     confidence_score: dbListing.confidence_score || 85
+  };
+}
+
+function calculateTrustScore(content: string, parsedListings: ParsedListing[], marketListings: MarketListing[]): { trust: number; notes: string[] } {
+  const notes: string[] = [];
+  let trust = 1.0;
+
+  // Check for dollar signs and price patterns
+  if (!content.includes('$') || parsedListings.length < 2) {
+    trust = 0.3;
+    notes.push('Low listing quality or no dollar values detected');
+  }
+
+  // Check for trusted domains
+  const trustedDomains = ['cars.com', 'autotrader.com', 'carfax.com', 'edmunds.com', 'cargurus.com'];
+  const foundDomains = trustedDomains.filter(domain => content.toLowerCase().includes(domain));
+  
+  if (foundDomains.length === 0) {
+    trust -= 0.3;
+    notes.push('Missing high-trust marketplace domains');
+  } else if (foundDomains.length >= 2) {
+    trust += 0.1;
+    notes.push(`Found listings from ${foundDomains.length} trusted sources`);
+  }
+
+  // Check for specific mileage and dealer information
+  const hasMileageInfo = content.includes('mi') || content.includes('mile');
+  const hasDealerInfo = content.includes('dealer') || content.includes('certified');
+  
+  if (!hasMileageInfo) {
+    trust -= 0.15;
+    notes.push('Limited mileage information');
+  }
+
+  if (hasDealerInfo) {
+    trust += 0.05;
+    notes.push('Includes dealer information');
+  }
+
+  // Boost trust for high volume of listings
+  if (marketListings.length > 8) {
+    trust += 0.1;
+    notes.push('High volume of comparable listings');
+  } else if (marketListings.length < 3) {
+    trust -= 0.2;
+    notes.push('Limited comparable listings found');
+  }
+
+  // Check for price consistency (avoid outliers indicating hallucination)
+  if (marketListings.length >= 3) {
+    const prices = marketListings.map(l => l.price);
+    const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
+    const stdDev = Math.sqrt(prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length);
+    const outliers = prices.filter(price => Math.abs(price - mean) > 2 * stdDev);
+    
+    if (outliers.length > prices.length * 0.3) {
+      trust -= 0.2;
+      notes.push('High price variance suggests unreliable data');
+    }
+  }
+
+  // Check for obvious AI hallucination patterns
+  if (content.includes('I cannot') || content.includes('I don\'t have access') || content.includes('I apologize')) {
+    trust = 0.1;
+    notes.push('AI response indicates limited capability');
+  }
+
+  return {
+    trust: Math.max(0.1, Math.min(1.0, trust)),
+    notes
   };
 }
