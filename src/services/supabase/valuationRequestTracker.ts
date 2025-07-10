@@ -38,13 +38,11 @@ export async function createValuationRequest(input: ValuationRequestInput): Prom
         vin: input.vin,
         zip_code: input.zipCode,
         mileage: input.mileage || null,
-        make: input.make,
-        model: input.model,
-        year: input.year,
+        make: input.make || 'UNKNOWN',
+        model: input.model || 'UNKNOWN', 
+        year: input.year || 2020,
         status: 'processing',
-        additional_data: input.additionalData || {},
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        additional_data: input.additionalData || {}
       })
       .select()
       .single();
