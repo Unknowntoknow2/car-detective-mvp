@@ -7,9 +7,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ExternalLink, FileText, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Download, Loader2, QrCode, Share2, Lock, Copy, Twitter, MessageCircle, Mail } from 'lucide-react';
+import { ExternalLink, FileText, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Download, Loader2, QrCode, Share2, Lock, Copy, Twitter, MessageCircle, Mail, ThumbsUp, ThumbsDown, Scale } from 'lucide-react';
 import type { ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
 import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
+import { submitValuationFeedback } from '@/services/supabase/feedbackService';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ValuationResultCardProps {
   result: ValuationResult;
@@ -20,6 +22,9 @@ interface ValuationResultCardProps {
 export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: ValuationResultCardProps) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const { user } = useAuth();
   
   const {
     vehicle,
@@ -96,6 +101,28 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
       const body = `I wanted to share this vehicle valuation with you:\n\n${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model}\nEstimated Value: $${result.finalValue.toLocaleString()}\nConfidence Score: ${result.confidenceScore}%\n\nView the full report: ${result.shareLink}`;
       const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       window.open(url);
+    }
+  };
+
+  const handleFeedbackSubmit = async (feedback: 'accurate' | 'off' | 'far_off') => {
+    if (!user || submittingFeedback || feedbackSubmitted) return;
+    
+    setSubmittingFeedback(true);
+    try {
+      await submitValuationFeedback({
+        userId: user.id,
+        vin: result.vin,
+        zipCode: result.zip,
+        feedback,
+        estimatedValue: result.finalValue,
+        confidenceScore: result.confidenceScore,
+        timestamp: Date.now()
+      });
+      setFeedbackSubmitted(true);
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+    } finally {
+      setSubmittingFeedback(false);
     }
   };
 
@@ -409,6 +436,72 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
           </p>
         </div>
       </Card>
+
+      {/* User Feedback Section */}
+      {user && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              💬 Help Us Improve This Valuation
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!feedbackSubmitted ? (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Was this valuation accurate and fair based on your vehicle's condition and the current market?
+                </p>
+                
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => handleFeedbackSubmit('accurate')}
+                    disabled={submittingFeedback}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <ThumbsUp className="w-4 h-4" />
+                    Yes, seems accurate
+                  </Button>
+                  
+                  <Button
+                    onClick={() => handleFeedbackSubmit('off')}
+                    disabled={submittingFeedback}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <Scale className="w-4 h-4" />
+                    Somewhat off
+                  </Button>
+                  
+                  <Button
+                    onClick={() => handleFeedbackSubmit('far_off')}
+                    disabled={submittingFeedback}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <ThumbsDown className="w-4 h-4" />
+                    No, far off
+                  </Button>
+                </div>
+                
+                {submittingFeedback && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Submitting feedback...
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Alert>
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>
+                  ✅ Thank you! Your feedback helps us improve our valuation accuracy.
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
