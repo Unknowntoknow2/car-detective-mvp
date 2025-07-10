@@ -4,7 +4,7 @@ import { decodeVin } from "@/services/vehicleDecodeService";
 import { getFuelCostAdjustment, getDepreciationAdjustment, getMileageAdjustment, getConditionAdjustment } from "@/services/adjustmentHelpers";
 import { generateAIExplanation } from "@/services/aiExplanationService";
 import { fetchMarketComps } from "@/agents/marketSearchAgent";
-import { logValuationAudit, logValuationError, logValuationStep } from "@/utils/valuationAuditLogger";
+import { logValuationAudit, logValuationError, logValuationStep, logAdjustmentStep } from "@/utils/valuationAuditLogger";
 import { ValuationProgressTracker } from "@/utils/valuation/progressTracker";
 import { getDynamicMSRP } from "@/services/valuation/msrpLookupService";
 import { calculateAdvancedConfidence, getConfidenceBreakdown } from "@/services/valuation/confidenceEngine";
@@ -121,52 +121,96 @@ export async function processValuation(
     // Step 2: Apply depreciation adjustment (10% Progress)
     tracker.startStep('depreciation', { year: vehicleYear, baseValue });
     const depreciation = getDepreciationAdjustment(vehicleYear);
-    finalValue += depreciation;
+    const afterDepreciation = finalValue + depreciation;
     adjustments.push({ 
       label: "Depreciation", 
       amount: depreciation, 
       reason: `${vehicleYear} model year (${new Date().getFullYear() - vehicleYear} years old)` 
     });
+    
+    // Enhanced audit logging with metadata
+    await logAdjustmentStep(vin, {
+      label: "Depreciation",
+      amount: depreciation,
+      reason: `${vehicleYear} model year (${new Date().getFullYear() - vehicleYear} years old)`,
+      baseValue: finalValue,
+      newValue: afterDepreciation
+    }, userId);
+    
+    finalValue = afterDepreciation;
     tracker.completeStep('depreciation', { adjustment: depreciation });
-    await logValuationStep('DEPRECIATION_APPLIED', vin, { amount: depreciation, vehicleYear }, userId);
+    await logValuationStep('DEPRECIATION_APPLIED', vin, { amount: depreciation, vehicleYear, baseValue: finalValue - depreciation, newValue: finalValue }, userId);
     
     // Step 3: Apply mileage adjustment (15% Progress)
-    tracker.startStep('mileage', { mileage, baseValue });
+    tracker.startStep('mileage', { mileage, baseValue: finalValue });
     const mileageAdj = getMileageAdjustment(mileage);
-    finalValue += mileageAdj;
+    const afterMileage = finalValue + mileageAdj;
     adjustments.push({ 
       label: "Mileage", 
       amount: mileageAdj, 
       reason: `${mileage.toLocaleString()} miles` 
     });
+    
+    // Enhanced audit logging with metadata
+    await logAdjustmentStep(vin, {
+      label: "Mileage",
+      amount: mileageAdj,
+      reason: `${mileage.toLocaleString()} miles`,
+      baseValue: finalValue,
+      newValue: afterMileage
+    }, userId);
+    
+    finalValue = afterMileage;
     tracker.completeStep('mileage', { adjustment: mileageAdj });
-    await logValuationStep('MILEAGE_ADJUSTMENT', vin, { amount: mileageAdj, mileage }, userId);
+    await logValuationStep('MILEAGE_ADJUSTMENT', vin, { amount: mileageAdj, mileage, baseValue: finalValue - mileageAdj, newValue: finalValue }, userId);
     
     // Step 4: Apply condition adjustment (15% Progress)  
     tracker.startStep('condition', { condition });
     const conditionAdj = getConditionAdjustment(condition);
-    finalValue += conditionAdj;
+    const afterCondition = finalValue + conditionAdj;
     adjustments.push({ 
       label: "Condition", 
       amount: conditionAdj, 
       reason: `${condition} condition` 
     });
+    
+    // Enhanced audit logging with metadata
+    await logAdjustmentStep(vin, {
+      label: "Condition",
+      amount: conditionAdj,
+      reason: `${condition} condition`,
+      baseValue: finalValue,
+      newValue: afterCondition
+    }, userId);
+    
+    finalValue = afterCondition;
     tracker.completeStep('condition', { adjustment: conditionAdj });
-    await logValuationStep('CONDITION_APPLIED', vin, { amount: conditionAdj, condition }, userId);
+    await logValuationStep('CONDITION_APPLIED', vin, { amount: conditionAdj, condition, baseValue: finalValue - conditionAdj, newValue: finalValue }, userId);
     
     // Step 5: Apply fuel cost adjustment (15% Progress)
     tracker.startStep('fuel_cost', { fuelType: vehicleFuelType, zipCode });
     const fuelType = vehicleFuelType;
     const fuelAdj = await getFuelCostAdjustment(fuelType, zipCode);
-    finalValue += fuelAdj;
+    const afterFuel = finalValue + fuelAdj;
     adjustments.push({ 
       label: "Fuel Type Impact", 
       amount: fuelAdj, 
       reason: `${fuelType} fuel type in ZIP ${zipCode}` 
     });
+    
+    // Enhanced audit logging with metadata
+    await logAdjustmentStep(vin, {
+      label: "Fuel Type Impact",
+      amount: fuelAdj,
+      reason: `${fuelType} fuel type in ZIP ${zipCode}`,
+      baseValue: finalValue,
+      newValue: afterFuel
+    }, userId);
+    
+    finalValue = afterFuel;
     sources.push("eia_fuel_costs");
     tracker.completeStep('fuel_cost', { adjustment: fuelAdj });
-    await logValuationStep('FUEL_PRICING_FETCHED', vin, { amount: fuelAdj, fuelType: vehicleFuelType }, userId);
+    await logValuationStep('FUEL_PRICING_FETCHED', vin, { amount: fuelAdj, fuelType: vehicleFuelType, baseValue: finalValue - fuelAdj, newValue: finalValue }, userId);
     
     // Step 6: Market listings integration (15% Progress)
     tracker.startStep('market_search', { year: vehicleYear, make: vehicleMake, model: vehicleModel });
@@ -194,12 +238,23 @@ export async function processValuation(
           const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
           
           const marketAdj = avg - finalValue;
-          finalValue = avg;
+          const afterMarket = avg;
           adjustments.push({ 
             label: "Market Anchoring", 
             amount: marketAdj, 
             reason: `Based on ${prices.length} comparable listings` 
           });
+          
+          // Enhanced audit logging with metadata
+          await logAdjustmentStep(vin, {
+            label: "Market Anchoring",
+            amount: marketAdj,
+            reason: `Based on ${prices.length} comparable listings (avg: $${avg.toLocaleString()})`,
+            baseValue: finalValue,
+            newValue: afterMarket
+          }, userId);
+          
+          finalValue = afterMarket;
           listingRange = { min, max };
           sources.push("openai_market_search");
           marketSearchStatus = "success";
@@ -275,43 +330,46 @@ export async function processValuation(
     tracker.completeStep('ai_explanation', { explanation });
     await logValuationStep('AI_EXPLANATION_GENERATED', vin, { explanationLength: explanation.length }, userId);
     
-    // Step 9: FIX #1 - Enhanced Audit Trail Logging
+    // Step 9: FIX #1 - Enhanced Audit Trail Logging with Complete Metadata
     tracker.startStep('audit_log', { finalValue, confidenceScore });
     
-    // Log detailed audit with all valuation steps
-    const auditPayload = {
-      source: 'unified_valuation_engine',
-      input: {
-        vin,
-        zipCode,
-        mileage,
-        condition,
-        userId,
-        isPremium,
-        make: vehicleMake,
-        model: vehicleModel,
-        year: vehicleYear
-      },
-      baseValue,
-      adjustments: adjustments.reduce((acc, adj) => ({ ...acc, [adj.label]: adj.amount }), {}),
-      confidence: confidenceScore,
-      listings_count: listings.length,
-      prices: listings.map(l => l.price).filter(p => p > 0),
-      timestamp: new Date().toISOString()
-    };
-    
+    // Log comprehensive audit with all adjustment details and metadata
     const auditId = await logValuationAudit('VALUATION_COMPLETE', {
       vin,
       zipCode, 
       finalValue,
       confidenceScore,
+      baseValue,
       userId,
-      adjustments: adjustments.map(a => `${a.label}: ${a.amount}`),
+      adjustments: adjustments.map(a => ({
+        label: a.label,
+        amount: a.amount,
+        reason: a.reason,
+        timestamp: new Date().toISOString()
+      })),
       sources: sources,
       listingCount: listings.length,
-      timestamp: Date.now()
+      marketSearchStatus,
+      listingRange,
+      timestamp: Date.now(),
+      // Complete valuation request metadata
+      vehicleData: {
+        make: vehicleMake,
+        model: vehicleModel,
+        year: vehicleYear,
+        trim: vehicleTrim,
+        fuelType: vehicleFuelType
+      },
+      processingSteps: {
+        vinDecoded: true,
+        depreciationApplied: adjustments.find(a => a.label === "Depreciation") !== undefined,
+        mileageAdjusted: adjustments.find(a => a.label === "Mileage") !== undefined,
+        conditionFactored: adjustments.find(a => a.label === "Condition") !== undefined,
+        fuelCostApplied: adjustments.find(a => a.label === "Fuel Type Impact") !== undefined,
+        marketDataUsed: marketSearchStatus === "success"
+      }
     });
-    console.log('✅ Enhanced audit logged with ID:', auditId);
+    console.log('✅ Complete audit logged with ID:', auditId);
     
     // Update valuation request status
     if (valuationRequest?.id) {
