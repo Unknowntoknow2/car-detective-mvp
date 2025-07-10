@@ -97,23 +97,23 @@ export const DataIntegrityPanel: React.FC<DataIntegrityPanelProps> = ({
               </div>
               <div className="flex justify-between">
                 <span>Calculation method:</span>
-                <span className="capitalize">{dataSource.calculationMethod.replace('_', ' ')}</span>
+                <span className="capitalize">{(dataSource.calculationMethod || 'unknown').replace('_', ' ')}</span>
               </div>
             </div>
           </div>
         )}
 
         {/* MSRP Transparency */}
-        {vehicleData && (
+        {vehicleData && vehicleData.baseMSRP && (
           <div>
             <h4 className="font-medium text-sm mb-2">Base Value Source</h4>
             <div className="text-xs space-y-1">
               <div className="flex justify-between">
                 <span>MSRP:</span>
-                <span>${vehicleData.baseMSRP.toLocaleString()}</span>
+                <span>${(vehicleData.baseMSRP || 0).toLocaleString()}</span>
               </div>
               <div className="text-xs text-muted-foreground">
-                {getMSRPSourceDescription(vehicleData.msrpSource)}
+                {getMSRPSourceDescription(vehicleData.msrpSource || 'unknown')}
               </div>
               {!vehicleData.dataCompleteness.usedRealMSRP && (
                 <div className="flex items-center gap-1 text-amber-600">
