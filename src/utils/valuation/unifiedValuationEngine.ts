@@ -6,6 +6,9 @@ import { generateAIExplanation } from "@/services/aiExplanationService";
 import { fetchMarketComps } from "@/agents/marketSearchAgent";
 import { logValuationAudit, logValuationError, logValuationStep } from "@/utils/valuationAuditLogger";
 import { ValuationProgressTracker } from "@/utils/valuation/progressTracker";
+import { getDynamicMSRP } from "@/services/valuation/msrpLookupService";
+import { calculateAdvancedConfidence, getConfidenceBreakdown } from "@/services/valuation/confidenceEngine";
+import { logValuationAudit as logAudit } from "@/services/valuationAuditLogger";
 import type { DecodedVehicleInfo } from "@/types/vehicle";
 
 // Unified input interface
@@ -68,6 +71,28 @@ export async function processValuation(
     
     // Initialize progress tracking
     const tracker = progressTracker || new ValuationProgressTracker();
+
+    // FIX #1: Save valuation request to database immediately
+    const { data: valuationRequest, error: requestError } = await supabase
+      .from('valuation_requests')
+      .insert({
+        user_id: userId,
+        vin,
+        zip_code: zipCode,
+        mileage,
+        condition,
+        is_premium: isPremium || false,
+        request_timestamp: new Date().toISOString(),
+        status: 'processing'
+      })
+      .select('id')
+      .single();
+
+    if (requestError) {
+      console.error('❌ Error saving valuation request:', requestError);
+    } else {
+      console.log('✅ Valuation request saved with ID:', valuationRequest?.id);
+    }
     
     // Step 1: Decode VIN (5% Progress)
     tracker.startStep('vin_decode', { vin });
@@ -87,11 +112,11 @@ export async function processValuation(
     await logValuationStep('VIN_DECODE_COMPLETE', vin, { make: vehicleMake, model: vehicleModel, year: vehicleYear }, userId);
     console.log('✅ VIN decoded:', { make: vehicleMake, model: vehicleModel, year: vehicleYear });
     
-    // Step 2: Establish base value
-    const baseValue = 30000; // Use standard base value since MSRP not in decode response
+    // Step 2: FIX #4 - Dynamic MSRP Lookup
+    const baseValue = await getDynamicMSRP(vehicleYear, vehicleMake, vehicleModel, vehicleTrim);
     const adjustments: ValuationResult["adjustments"] = [];
     let finalValue = baseValue;
-    const sources = ["estimated_msrp"];
+    const sources = baseValue > 30000 ? ["msrp_db_lookup"] : ["estimated_msrp"];
     let marketSearchStatus: "success" | "fallback" | "error" = "fallback";
     
     // Step 2: Apply depreciation adjustment (10% Progress)
@@ -198,48 +223,32 @@ export async function processValuation(
       await logValuationStep('MARKET_SEARCH_COMPLETE', vin, { status: marketSearchStatus, error: e instanceof Error ? e.message : 'Unknown error' }, userId);
     }
     
-    // Step 7: Calculate confidence score (10% Progress) - Enhanced Market Confidence Engine v2
+    // Step 7: FIX #5 - Enhanced Confidence Score Calibration v2
     tracker.startStep('confidence_calc', { marketStatus: marketSearchStatus });
     
-    // Start with base confidence
-    let confidenceScore = 40;
+    let confidenceScore = calculateAdvancedConfidence({
+      vehicleMake,
+      vehicleModel,  
+      vehicleYear,
+      mileage,
+      condition,
+      zipCode,
+      marketSearchStatus,
+      listings,
+      listingRange,
+      finalValue,
+      sources,
+      baseValue
+    });
     
-    // Vehicle data quality bonus
-    if (vehicleMake !== 'Unknown' && vehicleModel !== 'Unknown' && vehicleYear > 1900) confidenceScore += 10;
+    console.log(`📊 Advanced confidence calculation: ${confidenceScore}% (based on market spread, source count, ZIP match)`);
     
-    // Market search success bonus
-    if (marketSearchStatus === "success") confidenceScore += 10;
-    
-    // Data completeness bonuses
-    if (mileage > 0) confidenceScore += 5;
-    if (condition && condition !== 'unknown') confidenceScore += 5;
-    
-    // Market listing volume analysis
-    if (listings.length >= 5) confidenceScore += 10;
-    else if (listings.length >= 3) confidenceScore += 5;
-    
-    // Market spread analysis for confidence
-    if (listingRange && finalValue > 0) {
-      const spread = listingRange.max - listingRange.min;
-      const spreadPercent = spread / finalValue;
-      
-      console.log(`📊 Market spread analysis: ${spread} (${(spreadPercent * 100).toFixed(1)}% of final value)`);
-      
-      // Tight spread = higher confidence, wide spread = lower confidence
-      if (spreadPercent < 0.1) {
-        confidenceScore += 10; // Very tight clustering
-        console.log('✅ Very tight market spread detected (+10 confidence)');
-      } else if (spreadPercent < 0.2) {
-        confidenceScore += 5; // Moderate clustering
-        console.log('✅ Moderate market spread detected (+5 confidence)');
-      } else if (spreadPercent > 0.4) {
-        confidenceScore -= 5; // Very wide spread
-        console.log('⚠️ Wide market spread detected (-5 confidence)');
-      }
-    }
-    
-    // Cap confidence score between 30 and 95
-    confidenceScore = Math.max(30, Math.min(95, confidenceScore));
+    // Log confidence formula for debugging
+    const confidenceBreakdown = getConfidenceBreakdown({
+      vehicleMake, vehicleModel, vehicleYear, mileage, condition, zipCode,
+      marketSearchStatus, listings, listingRange, finalValue, sources, baseValue
+    });
+    console.log('🔍 Confidence breakdown:', confidenceBreakdown);
     
     // Ensure final value is reasonable
     finalValue = Math.max(3000, Math.round(finalValue));
@@ -267,19 +276,50 @@ export async function processValuation(
     tracker.completeStep('ai_explanation', { explanation });
     await logValuationStep('AI_EXPLANATION_GENERATED', vin, { explanationLength: explanation.length }, userId);
     
-    // Step 9: Log audit trail (5% Progress)
+    // Step 9: FIX #1 - Enhanced Audit Trail Logging
     tracker.startStep('audit_log', { finalValue, confidenceScore });
-    await logValuationAudit("COMPLETE", { 
-      vin, 
-      zipCode, 
-      finalValue, 
-      confidenceScore, 
-      marketSearchStatus,
-      sources,
-      adjustmentCount: adjustments.length
-    });
-    tracker.completeStep('audit_log', { success: true });
-    await logValuationStep('AUDIT_SAVED', vin, { finalValue, confidenceScore }, userId);
+    
+    // Log detailed audit with all valuation steps
+    const auditPayload = {
+      source: 'unified_valuation_engine',
+      input: {
+        vin,
+        zipCode,
+        mileage,
+        condition,
+        userId,
+        isPremium,
+        make: vehicleMake,
+        model: vehicleModel,
+        year: vehicleYear
+      },
+      baseValue,
+      adjustments: adjustments.reduce((acc, adj) => ({ ...acc, [adj.label]: adj.amount }), {}),
+      confidence: confidenceScore,
+      listings_count: listings.length,
+      prices: listings.map(l => l.price).filter(p => p > 0),
+      timestamp: new Date().toISOString()
+    };
+    
+    const auditId = await logAudit(auditPayload);
+    console.log('✅ Enhanced audit logged with ID:', auditId);
+    
+    // Update valuation request status
+    if (valuationRequest?.id) {
+      await supabase
+        .from('valuation_requests')
+        .update({
+          status: 'completed',
+          final_value: finalValue,
+          confidence_score: confidenceScore,
+          audit_log_id: auditId,
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', valuationRequest.id);
+    }
+    
+    tracker.completeStep('audit_log', { success: true, auditId });
+    await logValuationStep('AUDIT_SAVED', vin, { finalValue, confidenceScore, auditId }, userId);
     
     // Step 10: Generate PDF for premium users (5% Progress)
     let pdfUrl: string | undefined;
