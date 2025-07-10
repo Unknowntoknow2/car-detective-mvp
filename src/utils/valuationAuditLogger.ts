@@ -62,6 +62,51 @@ export async function logValuationAudit(
 }
 
 /**
+ * Log individual valuation steps for detailed tracking
+ */
+export async function logValuationStep(
+  step: string,
+  vin: string,
+  data: Record<string, any> = {},
+  userId?: string
+): Promise<void> {
+  try {
+    console.log(`📋 Valuation Step [${step}]:`, { vin, ...data });
+    
+    const stepEntry = {
+      action: `VALUATION_STEP_${step}`,
+      entity_type: 'valuation_step',
+      entity_id: vin,
+      user_id: userId,
+      input_data: {
+        vin,
+        step,
+        timestamp: new Date().toISOString(),
+        ...data
+      },
+      output_data: data,
+      processing_time_ms: Date.now(),
+      compliance_flags: []
+    };
+    
+    // Only attempt to save if we have a valid session
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user || userId) {
+      const { error } = await supabase
+        .from('compliance_audit_log')
+        .insert(stepEntry);
+      
+      if (error) {
+        console.warn('Failed to save step audit log:', error.message);
+      }
+    }
+    
+  } catch (error) {
+    console.error('Error logging valuation step:', error);
+  }
+}
+
+/**
  * Log valuation error for debugging
  */
 export async function logValuationError(
