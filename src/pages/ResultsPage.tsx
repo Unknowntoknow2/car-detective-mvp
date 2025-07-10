@@ -9,6 +9,7 @@ import { PremiumPdfSection } from '@/components/valuation/PremiumPdfSection';
 import { TabbedFollowUpForm } from '@/components/followup/TabbedFollowUpForm';
 import { ValueBreakdown } from '@/components/valuation/ValueBreakdown';
 import { DataIntegrityPanel } from '@/components/valuation/DataIntegrityPanel';
+import { convertLegacyToUnified } from '@/utils/valuation/legacyConverter';
 
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -191,54 +192,7 @@ export default function ResultsPage() {
       {/* Main Valuation Result */}
       <div className="space-y-2">
         <UnifiedValuationResult
-          vehicleInfo={vehicleInfo}
-          estimatedValue={valuationData.estimated_value}
-          confidenceScore={valuationData.confidence_score || 0}
-          priceRange={
-            valuationData.price_range_low && valuationData.price_range_high
-              ? [valuationData.price_range_low, valuationData.price_range_high]
-              : undefined
-          }
-          adjustments={valuationData.adjustments || []}
-          zipCode={valuationData.zip_code || ''}
-          isPremium={valuationData.valuation_type === 'premium'}
-          dataSources={valuationData.data_sources || []}
-          valuationNotes={valuationData.valuation_notes || []}
-          onEmailReport={async () => {
-            // Prevent duplicate sends
-            if (emailSending) return;
-            
-            if (!user?.email) {
-              toast.error('Please log in to email your report');
-              return;
-            }
-
-            setEmailSending(true);
-            try {
-              const response = await fetch(`${window.location.origin}/functions/v1/email-valuation-pdf`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  valuationId: valuationData.id,
-                  email: user.email,
-                  userName: userDetails?.full_name || user.email?.split('@')[0]
-                })
-              });
-              
-              if (response.ok) {
-                toast.success(`Valuation report sent to ${user.email}!`);
-              } else {
-                const error = await response.json();
-                toast.error(error.error || 'Failed to send email');
-              }
-            } catch (error) {
-              console.error('Email error:', error);
-              toast.error('Failed to send email report');
-            } finally {
-              setEmailSending(false);
-            }
-          }}
-          onUpgrade={() => toast.info('Premium upgrade coming soon')}
+          result={convertLegacyToUnified(vehicleInfo, valuationData)}
         />
         
         {/* Data Integrity Panel - Complete Transparency */}
