@@ -13,6 +13,8 @@ import type { ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
 import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { submitValuationFeedback } from '@/services/supabase/feedbackService';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserPlan } from '@/hooks/useUserPlan';
+import { UpgradeCTA } from '@/components/ui/UpgradeCTA';
 
 interface ValuationResultCardProps {
   result: ValuationResult;
@@ -26,6 +28,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const { user } = useAuth();
+  const { isPremium, hasFeature } = useUserPlan();
   
   const {
     vehicle,
@@ -105,18 +108,15 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
     }
   };
 
-  const handleFeedbackSubmit = async (feedback: 'accurate' | 'off' | 'far_off') => {
+  const handleFeedbackSubmit = async (rating: 1 | 2 | 3 | 4 | 5) => {
     if (!user || submittingFeedback || feedbackSubmitted) return;
     
     setSubmittingFeedback(true);
     try {
       await submitValuationFeedback({
         userId: user.id,
-        vin: result.vin,
-        zipCode: result.zip,
-        feedback,
-        estimatedValue: result.finalValue,
-        confidenceScore: result.confidenceScore,
+        accuracyRating: rating,
+        wouldRecommend: rating >= 4,
         timestamp: Date.now()
       });
       setFeedbackSubmitted(true);
@@ -254,7 +254,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
                 <CheckCircle className="w-3 h-3 text-green-600" />
                 <span>AI Analysis</span>
               </div>
-              {result.isPremium && result.pdfUrl && (
+              {hasFeature('pdf_download') && result.pdfUrl && (
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-3 h-3 text-green-600" />
                   <span>PDF Generated</span>
@@ -446,7 +446,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
           <Separator className="my-4" />
           <p className="text-xs text-muted-foreground">
             Valuation completed at {new Date(result.timestamp).toLocaleString()}
-            {result.isPremium && ' • Premium Analysis'}
+            {isPremium && ' • Premium Analysis'}
           </p>
         </CardContent>
       </Card>
@@ -456,7 +456,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
         <h3 className="text-lg font-semibold mb-2">📊 Valuation Actions</h3>
         
         {/* PDF Download - Premium Gated */}
-        {result.isPremium && result.pdfUrl && (
+        {hasFeature('pdf_download') && result.pdfUrl && (
           <Button asChild className="w-full mt-2">
             <a
               href={result.pdfUrl}
@@ -468,10 +468,8 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
           </Button>
         )}
 
-        {!result.isPremium && (
-          <p className="text-sm text-muted-foreground mt-2">
-            Upgrade to Premium to unlock the full downloadable PDF report.
-          </p>
+        {!hasFeature('pdf_download') && (
+          <UpgradeCTA feature="PDF reports" className="mt-4" />
         )}
 
         {/* Share Link + Copy Button */}
@@ -588,7 +586,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
                 
                 <div className="flex gap-3">
                   <Button
-                    onClick={() => handleFeedbackSubmit('accurate')}
+                    onClick={() => handleFeedbackSubmit(5)}
                     disabled={submittingFeedback}
                     variant="outline"
                     className="flex items-center gap-2"
@@ -598,7 +596,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
                   </Button>
                   
                   <Button
-                    onClick={() => handleFeedbackSubmit('off')}
+                    onClick={() => handleFeedbackSubmit(3)}
                     disabled={submittingFeedback}
                     variant="outline"
                     className="flex items-center gap-2"
@@ -608,7 +606,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
                   </Button>
                   
                   <Button
-                    onClick={() => handleFeedbackSubmit('far_off')}
+                    onClick={() => handleFeedbackSubmit(1)}
                     disabled={submittingFeedback}
                     variant="outline"
                     className="flex items-center gap-2"

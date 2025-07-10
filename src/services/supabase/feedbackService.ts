@@ -2,14 +2,16 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ValuationFeedback {
-  valuationId?: string;
+  valuationRequestId?: string;
   userId?: string;
-  vin: string;
-  zipCode?: string;
-  rating?: 'positive' | 'negative' | 'neutral';
+  vin?: string;
   feedback?: string;
-  estimatedValue?: number;
-  confidenceScore?: number;
+  actualSalePrice?: number;
+  saleDate?: string;
+  saleType?: string;
+  bestOfferReceived?: number;
+  accuracyRating?: number;
+  wouldRecommend?: boolean;
   timestamp: number;
 }
 
@@ -18,16 +20,17 @@ export async function saveValuationFeedback(feedback: ValuationFeedback) {
     console.log('💬 Saving valuation feedback...', feedback);
     
     const { data, error } = await supabase
-      .from('valuation_feedback')
+      .from('user_valuation_feedback')
       .insert({
-        valuation_id: feedback.valuationId || null,
+        valuation_request_id: feedback.valuationRequestId || null,
         user_id: feedback.userId || null,
-        vin: feedback.vin,
-        zip_code: feedback.zipCode || null,
-        rating: feedback.rating || 'neutral',
-        feedback_text: feedback.feedback || null,
-        estimated_value: feedback.estimatedValue || null,
-        confidence_score: feedback.confidenceScore || null,
+        actual_sale_price: feedback.actualSalePrice || null,
+        sale_date: feedback.saleDate || null,
+        sale_type: feedback.saleType || null,
+        best_offer_received: feedback.bestOfferReceived || null,
+        feedback_notes: feedback.feedback || null,
+        accuracy_rating: feedback.accuracyRating || null,
+        would_recommend: feedback.wouldRecommend || null,
         created_at: new Date(feedback.timestamp).toISOString()
       });
 

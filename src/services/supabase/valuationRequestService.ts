@@ -17,16 +17,20 @@ export async function saveValuationRequest(data: ValuationRequestData) {
     console.log('💾 Saving valuation request to Supabase...', data);
     
     const { data: result, error } = await supabase
-      .from('valuations')
+      .from('valuation_requests')
       .insert({
         user_id: data.userId || null,
         vin: data.vin,
-        state: data.zipCode, // Using state field for ZIP code
+        zip_code: data.zipCode,
         mileage: data.mileage,
-        estimated_value: data.finalValue,
-        base_value: data.baseValue,
+        final_value: data.finalValue,
         confidence_score: data.confidenceScore,
-        market_search_status: data.marketSearchStatus,
+        request_params: {
+          baseValue: data.baseValue,
+          marketSearchStatus: data.marketSearchStatus,
+          timestamp: data.timestamp
+        },
+        status: 'completed',
         created_at: new Date(data.timestamp).toISOString(),
         updated_at: new Date().toISOString()
       });
@@ -47,7 +51,7 @@ export async function saveValuationRequest(data: ValuationRequestData) {
 export async function getValuationRequest(id: string) {
   try {
     const { data, error } = await supabase
-      .from('valuations')
+      .from('valuation_requests')
       .select('*')
       .eq('id', id)
       .single();
