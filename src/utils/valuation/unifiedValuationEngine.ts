@@ -20,6 +20,7 @@ export interface ValuationInput {
 
 // Unified result interface
 export interface ValuationResult {
+  vin: string;
   vehicle: {
     year: number;
     make: string;
@@ -50,7 +51,6 @@ export interface ValuationResult {
   qrCode?: string;
   pdfUrl?: string;
   isPremium?: boolean;
-  vin?: string;
   progressStep?: number;
 }
 

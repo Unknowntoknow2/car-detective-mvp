@@ -2915,6 +2915,42 @@ export type Database = {
         }
         Relationships: []
       }
+      valuation_feedback: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          estimated_value: number | null
+          feedback: string
+          id: string
+          updated_at: string
+          user_id: string | null
+          vin: string
+          zip_code: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          estimated_value?: number | null
+          feedback: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+          vin: string
+          zip_code: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          estimated_value?: number | null
+          feedback?: string
+          id?: string
+          updated_at?: string
+          user_id?: string | null
+          vin?: string
+          zip_code?: string
+        }
+        Relationships: []
+      }
       valuation_photos: {
         Row: {
           id: string

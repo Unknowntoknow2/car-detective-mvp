@@ -36,6 +36,7 @@ export function convertLegacyToUnified(
   valuationData: LegacyValuationData
 ): ValuationResult {
   return {
+    vin: vehicleInfo.vin || '',
     vehicle: {
       year: vehicleInfo.year,
       make: vehicleInfo.make,
