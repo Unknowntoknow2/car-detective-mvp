@@ -14,6 +14,8 @@ export interface ValuationInput {
   zipCode: string;
   mileage: number;
   condition: string;
+  userId?: string;
+  isPremium?: boolean;
 }
 
 // Unified result interface
