@@ -166,6 +166,66 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
         </CardContent>
       </Card>
 
+      {/* Valuation Progress Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CheckCircle className="w-5 h-5" />
+            Valuation Process
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Processing Steps</span>
+                <span className="text-sm text-muted-foreground">
+                  {result.confidenceScore}% Complete
+                </span>
+              </div>
+              <Progress value={result.confidenceScore} className="h-2" />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-3 h-3 text-green-600" />
+                <span>VIN Decoded</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-3 h-3 text-green-600" />
+                <span>Depreciation Applied</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-3 h-3 text-green-600" />
+                <span>Mileage Adjusted</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-3 h-3 text-green-600" />
+                <span>Condition Impact</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-3 h-3 text-green-600" />
+                <span>Fuel Cost Applied</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className={`w-3 h-3 ${result.marketSearchStatus === 'success' ? 'text-green-600' : 'text-yellow-600'}`} />
+                <span>Market Search</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-3 h-3 text-green-600" />
+                <span>AI Analysis</span>
+              </div>
+              {result.isPremium && result.pdfUrl && (
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-3 h-3 text-green-600" />
+                  <span>PDF Generated</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Value Breakdown */}
       <Card>
         <CardHeader>
