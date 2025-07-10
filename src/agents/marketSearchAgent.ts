@@ -61,7 +61,22 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
     // Use OpenAI web search to find live listings with enhanced query and trust scoring
     console.log('🤖 Fetching live market listings via OpenAI web search...');
     
-    const query = `Find used ${input.year} ${input.make} ${input.model} ${input.trim || ''} vehicles for sale near ZIP ${input.zipCode}. Include exact prices, mileage, and source websites like Cars.com, AutoTrader, CarGurus, Edmunds. Focus on listings with ${input.mileage ? `around ${input.mileage.toLocaleString()} miles` : 'similar mileage'}. Show specific dollar amounts and dealer names.`;
+    // Enhanced query with VIN-specific search if available
+    let query = `Find used ${input.year} ${input.make} ${input.model} ${input.trim || ''} vehicles for sale near ZIP ${input.zipCode}`;
+    
+    // Add VIN-specific search if available
+    if (input.vin) {
+      query += ` OR VIN ${input.vin}`;
+    }
+    
+    // Add specific dealership networks likely to have this vehicle
+    if (input.make === 'Toyota') {
+      query += ` site:toyota.com OR "Toyota dealer" OR "Roseville Toyota"`;
+    } else if (input.make === 'Honda') {
+      query += ` site:honda.com OR "Honda dealer"`;
+    }
+    
+    query += `. Include exact prices, mileage, and source websites like Cars.com, AutoTrader, CarGurus, Edmunds, CarMax, CarSense, dealer websites. Focus on listings with ${input.mileage ? `around ${input.mileage.toLocaleString()} miles` : 'similar mileage'}. Show specific dollar amounts, dealer names, and package information.`;
     
     const { data: searchResult, error: searchError } = await supabase.functions.invoke('openai-web-search', {
       body: { 

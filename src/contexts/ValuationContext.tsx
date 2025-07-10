@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getFullyNormalizedMsrp } from '@/utils/valuation/msrpInflationNormalizer';
 import { generateValuationExplanation } from '@/services/confidenceExplainer';
+import { getTrimAdjustment } from '@/utils/adjustments/trimAdjustments';
+import { getPackageAdjustments } from '@/utils/adjustments/packageAdjustments';
 // Import our new unified valuation engine
 import { processValuation, type ValuationInput, type ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
 import { usePremiumAccess } from '@/hooks/usePremiumAccess';
@@ -18,6 +20,7 @@ interface ProcessFreeValuationInput {
   vin?: string;
   trim_id?: string;
   trim?: string;
+  fuel_type?: string;
 }
 
 interface ProcessFreeValuationResult {
@@ -239,24 +242,30 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const currentYear = new Date().getFullYear();
     const vehicleAge = currentYear - input.year;
     if (vehicleAge > 0) {
-      // More sophisticated depreciation curve
-      let depreciationRate;
-      if (vehicleAge <= 1) depreciationRate = 0.20; // 20% first year
-      else if (vehicleAge <= 3) depreciationRate = 0.15; // 15% per year years 2-3
-      else if (vehicleAge <= 7) depreciationRate = 0.10; // 10% per year years 4-7
-      else depreciationRate = 0.05; // 5% per year after 7 years
-
-      const totalDepreciation = vehicleAge <= 1 ? 0.20 : 
-        0.20 + Math.min(vehicleAge - 1, 2) * 0.15 + Math.max(0, Math.min(vehicleAge - 3, 4)) * 0.10 + Math.max(0, vehicleAge - 7) * 0.05;
+      // More conservative depreciation curve for reliable brands
+      const reliableBrands = ['toyota', 'honda', 'lexus', 'acura'];
+      const brandMultiplier = reliableBrands.includes(input.make?.toLowerCase()) ? 0.8 : 1.0;
+      const fuelMultiplier = input.fuel_type?.toLowerCase().includes('hybrid') ? 0.9 : 1.0;
       
-      const depreciatedValue = baseMSRP * (1 - Math.min(totalDepreciation, 0.85)); // Max 85% depreciation
+      let depreciationRate;
+      if (vehicleAge <= 1) depreciationRate = 0.15; // 15% first year (reduced from 20%)
+      else if (vehicleAge <= 3) depreciationRate = 0.08; // 8% per year years 2-3 (reduced from 15%)
+      else if (vehicleAge <= 7) depreciationRate = 0.06; // 6% per year years 4-7 (reduced from 10%)
+      else depreciationRate = 0.04; // 4% per year after 7 years (reduced from 5%)
+
+      const totalDepreciation = vehicleAge <= 1 ? 0.15 : 
+        0.15 + Math.min(vehicleAge - 1, 2) * 0.08 + Math.max(0, Math.min(vehicleAge - 3, 4)) * 0.06 + Math.max(0, vehicleAge - 7) * 0.04;
+      
+      // Apply brand and fuel multipliers, cap at 65% instead of 85%
+      const adjustedDepreciation = Math.min(totalDepreciation * brandMultiplier * fuelMultiplier, 0.65);
+      const depreciatedValue = baseMSRP * (1 - adjustedDepreciation);
       const depreciationImpact = depreciatedValue - baseMSRP;
       
       adjustments.push({
         factor: 'Age/Depreciation',
         impact: Math.round(depreciationImpact),
         percentage: (depreciationImpact / baseMSRP) * 100,
-        description: `${vehicleAge} year${vehicleAge > 1 ? 's' : ''} old - ${Math.round(totalDepreciation * 100)}% depreciation`
+        description: `${vehicleAge} year${vehicleAge > 1 ? 's' : ''} old - ${Math.round(adjustedDepreciation * 100)}% depreciation (${reliableBrands.includes(input.make?.toLowerCase()) ? 'reliable brand bonus' : 'standard rate'})`
       });
       
       finalValue = depreciatedValue;
@@ -297,6 +306,34 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         description: conditionAdjustment.description
       });
       finalValue *= conditionAdjustment.multiplier;
+    }
+
+    // Trim adjustment using existing logic
+    if (input.trim) {
+      const trimAdjustment = getTrimAdjustment(input.make, input.model, input.trim, finalValue);
+      if (trimAdjustment !== 0) {
+        adjustments.push({
+          factor: 'Trim Level',
+          impact: Math.round(trimAdjustment),
+          percentage: (trimAdjustment / baseMSRP) * 100,
+          description: `${input.trim} trim adjustment`
+        });
+        finalValue += trimAdjustment;
+      }
+    }
+
+    // Package and feature adjustments
+    if (input.trim) {
+      const packageAdjustments = getPackageAdjustments(input.make, input.model, input.trim);
+      packageAdjustments.forEach(pkg => {
+        adjustments.push({
+          factor: 'Package/Option',
+          impact: pkg.value,
+          percentage: (pkg.value / baseMSRP) * 100,
+          description: `${pkg.name}: ${pkg.description}`
+        });
+        finalValue += pkg.value;
+      });
     }
 
     // Geographic adjustment (only for valid ZIP codes)
