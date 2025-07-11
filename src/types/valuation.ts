@@ -255,6 +255,7 @@ export interface EnhancedValuationResult {
   audit_id?: string;
   sources?: string[]; // Array of data sources used (e.g., 'exact_vin_match')
   exactVinMatch?: MarketListing; // Exact VIN match listing if found
+  explanation?: string; // 🎯 REQUIREMENT 3: AI-generated confidence explanation
 }
 
 // Value breakdown for transparency

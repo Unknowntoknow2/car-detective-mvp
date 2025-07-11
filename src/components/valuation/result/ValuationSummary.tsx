@@ -4,6 +4,7 @@ import { formatCurrency } from '@/utils/formatters';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { generateConfidenceExplanation } from '@/utils/valuation/calculateUnifiedConfidence';
+import { Bot } from 'lucide-react';
 
 export interface ValuationSummaryProps {
   estimatedValue: number;
@@ -21,6 +22,7 @@ export interface ValuationSummaryProps {
     trustScore?: number;
   };
   sources?: string[];
+  explanation?: string; // 🎯 REQUIREMENT 4: AI explanation prop
 }
 
 export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
@@ -28,7 +30,8 @@ export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
   confidenceScore,
   vehicleInfo,
   marketAnchors,
-  sources = []
+  sources = [],
+  explanation // 🎯 REQUIREMENT 4: Extract AI explanation prop
 }) => {
   const confidenceLevel = confidenceScore >= 85 ? 'High' :
                           confidenceScore >= 70 ? 'Medium' : 'Low';
@@ -120,6 +123,19 @@ export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
         <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
           <h4 className="text-sm font-medium text-amber-800 mb-1">Confidence Note</h4>
           <p className="text-xs text-amber-700">{confidenceExplanation}</p>
+        </div>
+      )}
+      
+      {/* 🎯 REQUIREMENT 4: AI Explanation Display */}
+      {explanation && (
+        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <Bot className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h4 className="text-sm font-medium text-blue-800 mb-2">AI Valuation Insight</h4>
+              <p className="text-sm text-blue-700 leading-relaxed">{explanation}</p>
+            </div>
+          </div>
         </div>
       )}
     </div>

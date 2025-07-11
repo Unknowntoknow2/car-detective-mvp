@@ -4,6 +4,7 @@ import { fetchRegionalFuelPrice, computeFuelCostImpact, getFuelCostByZip, comput
 import { fetchMarketComps, type MarketSearchResult } from "@/agents/marketSearchAgent";
 import { calculateUnifiedConfidence } from "@/utils/valuation/calculateUnifiedConfidence";
 import { generateConfidenceScore, extractTrustedSources } from "@/services/generateConfidenceScore";
+import { generateAIConfidenceExplanation, ValuationExplanationInput } from "@/services/generateAIConfidenceExplanation";
 
 // Helper: Compute average from numeric field
 function average(numbers: number[]): number {
@@ -180,6 +181,40 @@ export async function calculateValuationFromListings(
 
   const audit_id = await logValuationAudit(auditPayload);
 
+  // 🎯 REQUIREMENT 2: Generate AI confidence explanation
+  let aiExplanation = '';
+  try {
+    const explanationInput: ValuationExplanationInput = {
+      result: {
+        estimated_value: Math.round(estimatedValue),
+        base_value_source: baseValueSource,
+        price_range_low: Math.min(...prices),
+        price_range_high: Math.max(...prices),
+        depreciation: adjustments.depreciation,
+        mileage_adjustment: adjustments.mileage,
+        value_breakdown: breakdown,
+        confidence_score: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost, exactVinMatch !== undefined, trustScore, listings, listingSources.map(s => s.source || s.listing_url || 'unknown').filter(Boolean)),
+        valuation_explanation: generateEnhancedExplanation(input, listings.length, adjustments, marketCompsUsed, fuelCostImpact, usedMarketFallback, listingSources, trustScore, trustNotes),
+        audit_id,
+        sources: exactVinMatch ? ['exact_vin_match'] : [],
+        exactVinMatch: exactVinMatch || undefined
+      },
+      input,
+      marketListings: listings,
+      adjustments: Object.entries(adjustments).map(([type, amount]) => ({
+        type,
+        label: type.charAt(0).toUpperCase() + type.slice(1),
+        amount: amount as number
+      }))
+    };
+    
+    aiExplanation = await generateAIConfidenceExplanation(explanationInput);
+    console.log('✅ AI explanation generated successfully');
+  } catch (error) {
+    console.error('❌ Failed to generate AI explanation:', error);
+    aiExplanation = 'Explanation unavailable'; // Fallback
+  }
+
   return {
     estimated_value: Math.round(estimatedValue),
     base_value_source: baseValueSource,
@@ -192,7 +227,8 @@ export async function calculateValuationFromListings(
     confidence_score: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost, exactVinMatch !== undefined, trustScore, listings, listingSources.map(s => s.source || s.listing_url || 'unknown').filter(Boolean)),
     audit_id,
     sources: exactVinMatch ? ['exact_vin_match'] : [],
-    exactVinMatch: exactVinMatch || undefined
+    exactVinMatch: exactVinMatch || undefined,
+    explanation: aiExplanation // 🎯 REQUIREMENT 3: Add AI explanation to result
   };
 }
 
