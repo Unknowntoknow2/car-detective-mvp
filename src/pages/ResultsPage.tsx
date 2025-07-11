@@ -143,32 +143,29 @@ export default function ResultsPage() {
   };
 
   const handleRerunValuation = async () => {
-    if (!valuationData || !followUpData) {
+    if (!valuationData) {
       toast.error('Missing vehicle data for rerun');
       return;
     }
 
     setLoading(true);
     try {
-      console.log('🔄 Rerunning valuation with unified engine...');
+      console.log('🔄 FORCE RERUNNING valuation with enhanced unified engine...');
       
       const result = await processFreeValuation({
         vin: valuationData.vin,
         make: valuationData.make,
         model: valuationData.model,
         year: valuationData.year,
-        mileage: followUpData.mileage || valuationData.mileage,
-        condition: followUpData.condition || valuationData.condition,
-        zipCode: followUpData.zip_code || valuationData.zip_code
-      });
+        mileage: followUpData?.mileage || valuationData.mileage,
+        condition: followUpData?.condition || valuationData.condition,
+        zipCode: followUpData?.zip_code || valuationData.zip_code
+      }, true); // FORCE NEW = true
 
       if (result && result.valuationId) {
-        toast.success('Valuation updated with latest engine!');
+        toast.success('Valuation updated with enhanced engine!');
         // Reload the page with new valuation data
-        const data = await getValuationById(result.valuationId);
-        if (data) {
-          setValuationData(data);
-        }
+        window.location.reload();
       } else {
         toast.error('Failed to rerun valuation');
       }
@@ -318,7 +315,7 @@ export default function ResultsPage() {
         )}
         
         {/* Debug: Rerun Valuation Button */}
-        {followUpData && (
+        {valuationData.vin && (
           <Button 
             variant="secondary" 
             onClick={handleRerunValuation}
