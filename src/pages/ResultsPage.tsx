@@ -243,13 +243,7 @@ export default function ResultsPage() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      {/* Debug info */}
-      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <h4 className="font-semibold">Debug Information:</h4>
-        <p>Vehicle Info: {JSON.stringify(vehicleInfo, null, 2)}</p>
-        <p>Final Value: {valuationData.estimated_value}</p>
-        <p>Converted Result Final Value: {convertedResult?.finalValue}</p>
-      </div>
+      {/* Main Valuation Display */}
       
       {/* Main Valuation Result */}
       <div className="space-y-2">
