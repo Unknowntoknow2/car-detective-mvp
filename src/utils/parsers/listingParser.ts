@@ -12,42 +12,75 @@ export interface ParsedListing {
 export function parseVehicleListingsFromWeb(text: string): ParsedListing[] {
   const listings: ParsedListing[] = [];
   
-  // Enhanced regex patterns for better extraction
+  // Enhanced patterns for better real-world listing extraction
   const patterns = [
-    // Pattern 1: $XX,XXX - XXXX Make Model - XX,XXX mi
-    /\$([0-9]{1,3}(?:,[0-9]{3})*)\s*[-–—]\s*([^-\n]+?)\s*[-–—]\s*([0-9]{1,3}(?:,[0-9]{3})*)\s*(?:mi|miles|k)/gi,
+    // Pattern 1: Direct price-mileage extraction from dealer listings
+    /\$([0-9]{1,3}(?:,[0-9]{3})*)\s*.*?([0-9]{1,3}(?:,[0-9]{3})*)\s*(?:mi|miles|k)/gi,
     
-    // Pattern 2: $XX,XXX XXXX Make Model XX,XXX miles
-    /\$([0-9]{1,3}(?:,[0-9]{3})*)\s+([^$\n]+?)\s+([0-9]{1,3}(?:,[0-9]{3})*)\s*(?:mi|miles|k)/gi,
+    // Pattern 2: Price in title format
+    /(\d{4})\s+([A-Za-z]+)\s+([A-Za-z]+).*?\$([0-9]{1,3}(?:,[0-9]{3})*)\s*.*?([0-9]{1,3}(?:,[0-9]{3})*)\s*(?:mi|miles)/gi,
     
-    // Pattern 3: XXXX Make Model - $XX,XXX - XX,XXX miles
-    /([^$\n]+?)\s*[-–—]\s*\$([0-9]{1,3}(?:,[0-9]{3})*)\s*[-–—]\s*([0-9]{1,3}(?:,[0-9]{3})*)\s*(?:mi|miles|k)/gi,
+    // Pattern 3: Standard dealer format (Year Make Model - Price - Mileage)
+    /(\d{4})\s+([A-Za-z]+)\s+([A-Za-z]+)\s*[^\d]*\$([0-9]{1,3}(?:,[0-9]{3})*)[^\d]*([0-9]{1,3}(?:,[0-9]{3})*)\s*(?:mi|miles)/gi,
     
-    // Pattern 4: Simple price extraction for fallback
-    /\$([0-9]{1,3}(?:,[0-9]{3})*).*?([0-9]{1,3}(?:,[0-9]{3})*)\s*(?:mi|miles|k)/gi
+    // Pattern 4: CarMax/Carvana style listings
+    /([A-Za-z]+)\s+([A-Za-z]+)\s+.*?\$([0-9]{1,3}(?:,[0-9]{3})*)\s*.*?([0-9]{1,3}(?:,[0-9]{3})*)\s*(?:mi|miles)/gi
+  ];
+
+  // Also check for known listing structures
+  const knownSources = [
+    { name: 'CarMax', pattern: /carmax/i },
+    { name: 'Carvana', pattern: /carvana/i },
+    { name: 'AutoTrader', pattern: /autotrader/i },
+    { name: 'Cars.com', pattern: /cars\.com/i },
+    { name: 'Dealer', pattern: /dealer|dealership/i }
   ];
 
   for (const pattern of patterns) {
     let match;
-    while ((match = pattern.exec(text)) !== null && listings.length < 15) {
-      let price: number, mileage: number, title: string;
+    pattern.lastIndex = 0; // Reset regex state
+    
+    while ((match = pattern.exec(text)) !== null && listings.length < 20) {
+      let price: number, mileage: number, title: string, year: number | undefined;
       
-      if (pattern === patterns[2]) {
-        // Pattern 3: title first, then price, then mileage
-        title = match[1].trim();
-        price = parseInt(match[2].replace(/,/g, ''), 10);
-        mileage = parseInt(match[3].replace(/,/g, ''), 10);
+      // Extract based on pattern structure
+      if (match.length >= 6) {
+        // Full format with year, make, model
+        year = parseInt(match[1], 10);
+        const make = match[2];
+        const model = match[3];
+        price = parseInt(match[4].replace(/,/g, ''), 10);
+        mileage = parseInt(match[5].replace(/,/g, ''), 10);
+        title = `${year} ${make} ${model}`;
+      } else if (match.length >= 5) {
+        // Make Model format
+        const make = match[1];
+        const model = match[2];
+        price = parseInt(match[3].replace(/,/g, ''), 10);
+        mileage = parseInt(match[4].replace(/,/g, ''), 10);
+        title = `${make} ${model}`;
       } else {
-        // Patterns 1, 2, 4: price first
+        // Basic price-mileage format
         price = parseInt(match[1].replace(/,/g, ''), 10);
-        title = match[2]?.trim() || `Vehicle for $${match[1]}`;
-        mileage = parseInt(match[3]?.replace(/,/g, '') || '0', 10);
+        mileage = parseInt(match[2].replace(/,/g, ''), 10);
+        title = `Vehicle for $${match[1]}`;
       }
       
-      // Validate extracted data
+      // Validate extracted data with enhanced rules
       if (isValidListing(price, mileage, title)) {
-        // Extract ZIP code if present
-        const zipMatch = title.match(/\b(\d{5})\b/);
+        // Determine source from surrounding text
+        let source = 'Web Search';
+        const surroundingText = text.slice(Math.max(0, match.index! - 200), match.index! + 200);
+        
+        for (const knownSource of knownSources) {
+          if (knownSource.pattern.test(surroundingText)) {
+            source = knownSource.name;
+            break;
+          }
+        }
+        
+        // Extract ZIP code from surrounding context
+        const zipMatch = surroundingText.match(/\b(\d{5})\b/);
         const zipCode = zipMatch ? zipMatch[1] : undefined;
         
         listings.push({
@@ -55,13 +88,36 @@ export function parseVehicleListingsFromWeb(text: string): ParsedListing[] {
           price,
           mileage: mileage > 0 ? mileage : undefined,
           zipCode,
-          source: 'Web Search'
+          source
         });
       }
     }
   }
 
-  // Remove duplicates based on price and similar title
+  // Check for database listings format (from our test data)
+  const dbPattern = /(\d{4})\s+([A-Z]+)\s+([A-Za-z]+).*?(\d{1,3}(?:,\d{3})*)\s*miles.*?\$(\d{1,3}(?:,\d{3})*)/gi;
+  let dbMatch;
+  while ((dbMatch = dbPattern.exec(text)) !== null && listings.length < 20) {
+    const year = parseInt(dbMatch[1], 10);
+    const make = dbMatch[2];
+    const model = dbMatch[3];
+    const mileage = parseInt(dbMatch[4].replace(/,/g, ''), 10);
+    const price = parseInt(dbMatch[5].replace(/,/g, ''), 10);
+    
+    if (isValidListing(price, mileage, `${year} ${make} ${model}`)) {
+      listings.push({
+        title: cleanTitle(`${year} ${make} ${model}`),
+        price,
+        mileage,
+        source: 'Market Database',
+        zipCode: undefined
+      });
+    }
+  }
+
+  console.log(`🔍 Parsed ${listings.length} listings from text (${text.length} chars)`);
+  
+  // Remove duplicates and return
   return deduplicateListings(listings);
 }
 
