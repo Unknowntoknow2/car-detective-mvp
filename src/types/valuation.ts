@@ -253,6 +253,8 @@ export interface EnhancedValuationResult {
   confidence_score: number;
   valuation_explanation: string;
   audit_id?: string;
+  sources?: string[]; // Array of data sources used (e.g., 'exact_vin_match')
+  exactVinMatch?: MarketListing; // Exact VIN match listing if found
 }
 
 // Value breakdown for transparency

@@ -22,6 +22,7 @@ export interface MarketSearchResult {
   trust: number;
   notes: string[];
   source: string;
+  exactVinMatch?: MarketListing | null;
 }
 
 export async function fetchMarketComps(input: ValuationInput): Promise<MarketSearchResult> {
@@ -157,7 +158,8 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
       listings: marketListings,
       trust: trustResult.trust,
       notes: trustResult.notes,
-      source: 'openai_web_search'
+      source: exactVinMatch ? 'exact_vin_match' : 'openai_web_search',
+      exactVinMatch: exactVinMatch || null
     };
 
   } catch (error) {
