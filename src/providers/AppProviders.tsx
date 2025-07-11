@@ -2,7 +2,6 @@
 import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
-import { AuthProvider } from '@/hooks/useAuth';
 
 export const AppProviders = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -13,15 +12,13 @@ export const AppProviders = ({ children }: { children: React.ReactNode }) => {
         enableSystem
         disableTransitionOnChange={false}
       >
-        <AuthProvider>
-          {children}
-          <Toaster 
-            position="top-right" 
-            richColors 
-            closeButton
-            theme="system"
-          />
-        </AuthProvider>
+        {children}
+        <Toaster 
+          position="top-right" 
+          richColors 
+          closeButton
+          theme="system"
+        />
       </ThemeProvider>
     </HelmetProvider>
   );
