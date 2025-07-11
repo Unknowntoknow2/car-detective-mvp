@@ -34,29 +34,8 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
       zipCode: input.zipCode
     });
 
-    // First, try to get existing market listings from database
-    const { data: existingListings, error } = await supabase
-      .from('market_listings')
-      .select('*')
-      .eq('make', input.make)
-      .eq('model', input.model)
-      .eq('year', input.year)
-      .order('fetched_at', { ascending: false })
-      .limit(10);
-
-    if (error) {
-      console.error('❌ Error fetching market listings:', error);
-    }
-
-    if (existingListings && existingListings.length > 0) {
-      console.log('📊 Found', existingListings.length, 'existing market listings');
-      return {
-        listings: existingListings.map(transformToMarketListing),
-        trust: 0.85, // Database listings have high trust
-        notes: ['Using verified database listings'],
-        source: 'database'
-      };
-    }
+    // ALWAYS fetch fresh data for better accuracy
+    console.log('🚀 Skipping database cache, fetching fresh market data...');
 
     // Use OpenAI web search to find live listings with enhanced query and trust scoring
     console.log('🤖 Fetching live market listings via OpenAI web search...');
@@ -92,10 +71,11 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
     
     query += `. Include exact prices, mileage, VIN numbers, and source websites like rosevilletoyota.com, Cars.com, AutoTrader, CarGurus, Edmunds, CarMax, CarSense, dealer websites. Focus on listings with ${input.mileage ? `around ${input.mileage.toLocaleString()} miles` : 'similar mileage'}. Show specific dollar amounts like $16,977, dealer names like Roseville Toyota, and package information like Audio Package, Blind Spot Monitor. Format: Price: $XX,XXX Source: website.com Mileage: XXX,XXX miles.`;
     
+    console.log('🔍 Calling openai-web-search Edge Function with query:', query);
     const { data: searchResult, error: searchError } = await supabase.functions.invoke('openai-web-search', {
       body: { 
         query,
-        max_tokens: 4000, // Increased for more detailed responses
+        max_tokens: 4000,
         saveToDb: true,
         vehicleData: {
           make: input.make,
@@ -108,34 +88,76 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
       }
     });
 
+    console.log('📡 Edge Function response:', { searchResult, searchError });
+
     if (searchError) {
       console.error('❌ Error calling OpenAI web search:', searchError);
       return {
         listings: [],
         trust: 0.0,
-        notes: ['OpenAI search failed'],
+        notes: [`OpenAI search failed: ${searchError.message || searchError}`],
+        source: 'error'
+      };
+    }
+
+    if (!searchResult) {
+      console.error('❌ No data returned from Edge Function');
+      return {
+        listings: [],
+        trust: 0.0,
+        notes: ['No data returned from search service'],
         source: 'error'
       };
     }
 
     const content = searchResult?.content || searchResult?.result || '';
+    console.log('📄 Search content length:', content.length, 'chars');
     
-    // Use saved listings from database if available
+    // Use saved listings from Edge Function database response
     let marketListings: MarketListing[] = [];
     if (searchResult?.listings && searchResult.listings.length > 0) {
       marketListings = searchResult.listings.map(transformToMarketListing);
-      console.log('✅ Using freshly saved market listings from database:', marketListings.length);
+      console.log('✅ Using freshly saved market listings from Edge Function:', marketListings.length);
+      
+      // Debug each listing
+      marketListings.forEach((listing, i) => {
+        console.log(`📋 Listing ${i + 1}:`, {
+          price: listing.price,
+          source: listing.source,
+          vin: listing.vin,
+          dealer: listing.dealer_name
+        });
+      });
     } else {
+      console.log('⚠️ No listings returned from Edge Function, attempting content parsing...');
       // Fallback to parsing from content
       const parsedListings = parseVehicleListingsFromWeb(content);
       marketListings = parsedListings.map(listing => transformParsedToMarketListing(listing, input));
-      console.log('⚠️ Fallback to parsed listings from content:', marketListings.length);
+      console.log('📋 Parsed listings from content:', marketListings.length);
     }
 
     // Calculate trust score based on response quality
     const trustResult = calculateTrustScore(content, [], marketListings);
 
-    console.log('✅ OpenAI market search completed, got', marketListings.length, 'listings with trust score:', trustResult.trust);
+    // Check for exact VIN match and add special handling
+    const exactVinMatch = marketListings.find(listing => listing.vin === input.vin);
+    if (exactVinMatch) {
+      console.log('🎯 EXACT VIN MATCH DETECTED:', {
+        vin: exactVinMatch.vin,
+        price: exactVinMatch.price,
+        source: exactVinMatch.source
+      });
+      trustResult.trust = Math.max(trustResult.trust, 0.95); // Boost trust for exact match
+      trustResult.notes.push('Exact VIN match found - highest confidence');
+    }
+
+    console.log('✅ Market search completed:', {
+      listingsCount: marketListings.length,
+      trustScore: trustResult.trust,
+      exactVinMatch: !!exactVinMatch,
+      notes: trustResult.notes
+    });
+
     return {
       listings: marketListings,
       trust: trustResult.trust,
