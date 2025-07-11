@@ -3,6 +3,7 @@ import { logValuationAudit } from "@/services/valuationAuditLogger";
 import { fetchRegionalFuelPrice, computeFuelCostImpact, getFuelCostByZip, computeFuelTypeAdjustment } from "@/services/fuelCostService";
 import { fetchMarketComps, type MarketSearchResult } from "@/agents/marketSearchAgent";
 import { calculateUnifiedConfidence } from "@/utils/valuation/calculateUnifiedConfidence";
+import { generateConfidenceScore, extractTrustedSources } from "@/services/generateConfidenceScore";
 
 // Helper: Compute average from numeric field
 function average(numbers: number[]): number {
@@ -167,7 +168,7 @@ export async function calculateValuationFromListings(
     input,
     baseValue,
     adjustments,
-    confidence: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost, exactVinMatch !== undefined, trustScore),
+    confidence: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost, exactVinMatch !== undefined, trustScore, listings, listingSources.map(s => s.source || s.listing_url || 'unknown').filter(Boolean)),
     listings_count: listings.length,
     market_comps_used: marketCompsUsed,
     trust_score: trustScore,
@@ -188,7 +189,7 @@ export async function calculateValuationFromListings(
     mileage_adjustment: adjustments.mileage,
     value_breakdown: breakdown,
     valuation_explanation: generateEnhancedExplanation(input, listings.length, adjustments, marketCompsUsed, fuelCostImpact, usedMarketFallback, listingSources, trustScore, trustNotes),
-    confidence_score: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost, exactVinMatch !== undefined, trustScore),
+    confidence_score: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost, exactVinMatch !== undefined, trustScore, listings, listingSources.map(s => s.source || s.listing_url || 'unknown').filter(Boolean)),
     audit_id,
     sources: exactVinMatch ? ['exact_vin_match'] : [],
     exactVinMatch: exactVinMatch || undefined
@@ -247,31 +248,42 @@ function computeStdDev(numbers: number[]): number {
   return Math.sqrt(average(squaredDiffs));
 }
 
-function computeConfidenceScore(listingCount: number, marketCompsUsed: boolean = false, confidenceBoost: number = 0, exactVinMatch: boolean = false, trustScore: number = 0.5): number {
-  // Use unified confidence calculation
-  const confidenceContext = {
-    exactVinMatch,
-    marketListings: Array(listingCount).fill({}), // Mock array for count
-    sources: marketCompsUsed ? ['openai_market_search'] : [],
-    trustScore,
-    mileagePenalty: 0.02,
-    zipCode: '95678' // Default for calculation
-  };
-  
-  // Add exact VIN match source if detected
-  if (exactVinMatch) {
-    confidenceContext.sources.push('exact_vin_match');
-  }
-  
-  const unifiedResult = calculateUnifiedConfidence(confidenceContext);
-  
-  console.log('🧮 Unified Confidence Result:', {
-    score: unifiedResult.confidenceScore,
-    breakdown: unifiedResult.breakdown,
-    reasoning: unifiedResult.reasoning.substring(0, 100) + '...'
+function computeConfidenceScore(
+  listingCount: number, 
+  marketCompsUsed: boolean = false, 
+  confidenceBoost: number = 0, 
+  exactVinMatch: boolean = false, 
+  trustScore: number = 0.5,
+  listings: MarketListing[] = [],
+  sources: string[] = []
+): number {
+  // Extract certified listing count
+  const certifiedListingCount = listings.filter(listing => 
+    listing.is_cpo === true || 
+    listing.condition?.toLowerCase().includes('certified') ||
+    listing.dealer_name?.toLowerCase().includes('certified')
+  ).length;
+
+  // Extract trusted sources from actual source URLs/domains
+  const trustedSources = extractTrustedSources(sources);
+
+  // Use new centralized confidence scoring
+  const confidenceResult = generateConfidenceScore({
+    base: 45, // Start at 45% base
+    hasExactVinMatch: exactVinMatch,
+    listingCount,
+    certifiedListingCount,
+    trustedSources,
+    trustScore
   });
-  
-  return unifiedResult.confidenceScore;
+
+  console.log('🎯 Centralized Confidence Calculation:', {
+    score: `${confidenceResult.score}%`,
+    breakdown: confidenceResult.breakdown,
+    explanations: confidenceResult.explanation
+  });
+
+  return confidenceResult.score;
 }
 
 function generateEnhancedExplanation(
