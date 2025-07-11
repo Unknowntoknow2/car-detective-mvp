@@ -34,7 +34,7 @@ interface ValuationContextType {
   createValuation: (data: any) => Promise<any>;
   getValuationById: (id: string) => Promise<any>;
   updateValuation: (id: string, data: any) => Promise<any>;
-  processFreeValuation: (input: ProcessFreeValuationInput) => Promise<ProcessFreeValuationResult>;
+  processFreeValuation: (input: ProcessFreeValuationInput, forceNew?: boolean) => Promise<ProcessFreeValuationResult>;
   triggerMarketOrchestration: (vehicleParams: any) => Promise<any>;
 }
 
@@ -397,10 +397,10 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const { hasPremiumAccess } = usePremiumAccess();
 
-  const processFreeValuation = useCallback(async (input: ProcessFreeValuationInput): Promise<ProcessFreeValuationResult> => {
+  const processFreeValuation = useCallback(async (input: ProcessFreeValuationInput, forceNew: boolean = false): Promise<ProcessFreeValuationResult> => {
     setIsLoading(true);
     try {
-      console.log('🚀 Processing valuation with UNIFIED ENGINE for:', input.make, input.model, input.year);
+      console.log('🚀 Processing valuation with UNIFIED ENGINE for:', input.make, input.model, input.year, forceNew ? '(FORCE NEW)' : '');
 
       // FIX #3: Handle authentication errors gracefully
       let userId: string | null = null;
@@ -418,7 +418,8 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         mileage: input.mileage || 136940, // Use the actual mileage
         condition: input.condition || 'good',
         userId: userId || undefined,
-        isPremium: hasPremiumAccess
+        isPremium: hasPremiumAccess,
+        forceNew: forceNew // Pass the force flag to the engine
       };
 
       // Call the unified valuation engine
@@ -428,7 +429,8 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         finalValue: engineResult.finalValue,
         confidenceScore: engineResult.confidenceScore,
         adjustmentCount: engineResult.adjustments.length,
-        marketStatus: engineResult.marketSearchStatus
+        marketStatus: engineResult.marketSearchStatus,
+        forced: forceNew
       });
 
       // Store valuation in database using the new format

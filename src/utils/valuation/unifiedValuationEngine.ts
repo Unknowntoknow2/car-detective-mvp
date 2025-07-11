@@ -24,6 +24,7 @@ export interface ValuationInput {
   condition: string;
   userId?: string;
   isPremium?: boolean;
+  forceNew?: boolean;
 }
 
 // Unified result interface
