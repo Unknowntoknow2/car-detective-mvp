@@ -1,85 +1,41 @@
-// Confidence Failure Analysis Script
-import { supabase } from "../src/integrations/supabase/client";
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+dotenv.config();
 
-interface ConfidenceFailure {
-  vin: string;
-  confidence_score: number;
-  estimated_value: number;
-  created_at: string;
-  exact_vin_match: boolean;
-  market_listings_count: number;
-  sources: string[];
-  notes: string;
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-/**
- * Analyze valuations with confidence scores below target thresholds
- */
-export async function analyzeConfidenceFailures(threshold: number = 90): Promise<ConfidenceFailure[]> {
-  console.log(`🔍 Analyzing valuations with confidence < ${threshold}%...`);
+async function analyzeFailures() {
+  const { data, error } = await supabase
+    .from('valuations')
+    .select('*')
+    .gt('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()) // Last 7 days
+    .lt('confidence_score', 90); // Filter <90%
 
-  try {
-    // Query recent valuations with low confidence
-    const { data: lowConfidenceValuations, error } = await supabase
-      .from('valuations')
-      .select(`
-        id,
-        vin,
-        confidence_score,
-        estimated_value,
-        created_at,
-        sources,
-        market_listings_count,
-        value_breakdown
-      `)
-      .lt('confidence_score', threshold)
-      .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()) // Last 7 days
-      .order('created_at', { ascending: false })
-      .limit(50);
-
-    if (error) {
-      console.error('❌ Database query error:', error);
-      return [];
-    }
-
-    if (!lowConfidenceValuations || lowConfidenceValuations.length === 0) {
-      console.log('✅ No low-confidence valuations found in the last 7 days');
-      return [];
-    }
-
-    console.log(`📊 Found ${lowConfidenceValuations.length} low-confidence valuations`);
-
-    // Analyze each valuation for failure reasons
-    const failures: ConfidenceFailure[] = lowConfidenceValuations.map(valuation => {
-      const sources = Array.isArray(valuation.sources) ? valuation.sources : [];
-      const exactVinMatch = sources.includes('exact_vin_match');
-      const marketListingsCount = valuation.market_listings_count || 0;
-      
-      // Determine likely failure reasons
-      const reasons: string[] = [];
-      if (!exactVinMatch) reasons.push('No exact VIN match detected');
-      if (marketListingsCount < 3) reasons.push(`Only ${marketListingsCount} market listings found`);
-      if (!sources.includes('msrp_db_lookup')) reasons.push('Missing MSRP database lookup');
-      if (!sources.includes('openai_market_search')) reasons.push('Market search failed');
-      if (valuation.confidence_score < 50) reasons.push('Critical confidence failure');
-
-      return {
-        vin: valuation.vin || 'Unknown',
-        confidence_score: valuation.confidence_score || 0,
-        estimated_value: valuation.estimated_value || 0,
-        created_at: valuation.created_at,
-        exact_vin_match: exactVinMatch,
-        market_listings_count: marketListingsCount,
-        sources: sources,
-        notes: reasons.join('; ')
-      };
-    });
-
-    return failures;
-  } catch (error) {
-    console.error('❌ Analysis error:', error);
-    return [];
+  if (error) {
+    console.error('❌ Error fetching valuations:', error);
+    return;
   }
+
+  if (!data || data.length === 0) {
+    console.log('✅ All recent valuations >= 90% confidence.');
+    return;
+  }
+
+  console.log(`🔍 Found ${data.length} low-confidence valuations:\n`);
+
+  data.forEach((v: any, i: number) => {
+    console.log(`#${i + 1}: VIN ${v.vin}`);
+    console.log(`   Value: $${v.estimated_value} | Confidence: ${v.confidence_score}%`);
+    console.log(`   Source(s): ${v.sources?.join(', ') || 'None'}`);
+    if (!v.sources?.includes('exact_vin_match')) {
+      console.log(`   ⚠️  Exact VIN match NOT used.`);
+    }
+    console.log(`   Created: ${v.created_at}`);
+    console.log('---');
+  });
 }
 
 /**
@@ -123,7 +79,13 @@ export async function getConfidenceStats(): Promise<{
 export async function generateConfidenceAuditReport(): Promise<string> {
   console.log('📊 Generating confidence audit report...');
   
-  const failures = await analyzeConfidenceFailures(90);
+  // For the report, we'll reuse the query logic from analyzeFailures
+  const { data: failures, error } = await supabase
+    .from('valuations')
+    .select('*')
+    .gt('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    .lt('confidence_score', 90);
+  
   const stats = await getConfidenceStats();
   
   let report = `
@@ -186,19 +148,4 @@ CURRENT: ${((stats.above90/stats.total)*100).toFixed(1)}% of valuations achieve 
   return report;
 }
 
-// Main execution function for command line usage
-if (require.main === module) {
-  (async () => {
-    console.log('🚀 Starting confidence failure analysis...');
-    
-    const report = await generateConfidenceAuditReport();
-    console.log(report);
-    
-    // Also export individual failures for debugging
-    const failures = await analyzeConfidenceFailures(90);
-    console.log('\n📄 Individual failure details:');
-    failures.forEach(failure => {
-      console.log(`🚨 VIN: ${failure.vin}, Score: ${failure.confidence_score}% - ${failure.notes}`);
-    });
-  })();
-}
+analyzeFailures();
