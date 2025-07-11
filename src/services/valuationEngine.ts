@@ -2,6 +2,7 @@ import { MarketListing, ValuationInput, EnhancedValuationResult, ValueBreakdown 
 import { logValuationAudit } from "@/services/valuationAuditLogger";
 import { fetchRegionalFuelPrice, computeFuelCostImpact, getFuelCostByZip, computeFuelTypeAdjustment } from "@/services/fuelCostService";
 import { fetchMarketComps, type MarketSearchResult } from "@/agents/marketSearchAgent";
+import { calculateUnifiedConfidence } from "@/utils/valuation/calculateUnifiedConfidence";
 
 // Helper: Compute average from numeric field
 function average(numbers: number[]): number {
@@ -26,6 +27,7 @@ export async function calculateValuationFromListings(
   let confidenceBoost = 0;
   let trustScore = 0;
   let trustNotes: string[] = [];
+  let exactVinMatch: MarketListing | undefined;
 
   try {
     console.log('🔍 Attempting to fetch live market comps with trust scoring...');
@@ -37,7 +39,7 @@ export async function calculateValuationFromListings(
 
     if (comps && comps.length >= 2 && trustScore >= 0.3) {
       // 🎯 CRITICAL: Check for exact VIN match first (highest priority)
-      const exactVinMatch = comps.find(listing => listing.vin === input.vin);
+      exactVinMatch = comps.find(listing => listing.vin === input.vin);
       if (exactVinMatch) {
         console.log('🎯 EXACT VIN MATCH DETECTED - APPLYING 80% MARKET ANCHORING:', {
           vin: exactVinMatch.vin,
@@ -154,7 +156,7 @@ export async function calculateValuationFromListings(
     input,
     baseValue,
     adjustments,
-    confidence: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost),
+    confidence: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost, exactVinMatch !== undefined, trustScore),
     listings_count: listings.length,
     market_comps_used: marketCompsUsed,
     trust_score: trustScore,
@@ -175,7 +177,7 @@ export async function calculateValuationFromListings(
     mileage_adjustment: adjustments.mileage,
     value_breakdown: breakdown,
     valuation_explanation: generateEnhancedExplanation(input, listings.length, adjustments, marketCompsUsed, fuelCostImpact, usedMarketFallback, listingSources, trustScore, trustNotes),
-    confidence_score: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost),
+    confidence_score: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost, exactVinMatch !== undefined, trustScore),
     audit_id,
   };
 }
@@ -232,27 +234,31 @@ function computeStdDev(numbers: number[]): number {
   return Math.sqrt(average(squaredDiffs));
 }
 
-function computeConfidenceScore(listingCount: number, marketCompsUsed: boolean = false, confidenceBoost: number = 0): number {
-  let baseConfidence = 40;
+function computeConfidenceScore(listingCount: number, marketCompsUsed: boolean = false, confidenceBoost: number = 0, exactVinMatch: boolean = false, trustScore: number = 0.5): number {
+  // Use unified confidence calculation
+  const confidenceContext = {
+    exactVinMatch,
+    marketListings: Array(listingCount).fill({}), // Mock array for count
+    sources: marketCompsUsed ? ['openai_market_search'] : [],
+    trustScore,
+    mileagePenalty: 0.02,
+    zipCode: '95678' // Default for calculation
+  };
   
-  if (listingCount >= 10) baseConfidence = 90;
-  else if (listingCount >= 5) baseConfidence = 75;
-  else if (listingCount >= 2) baseConfidence = 60;
-  
-  // Boost confidence if real market comps were used
-  if (marketCompsUsed) {
-    baseConfidence += 15; // Increased boost for live market data
+  // Add exact VIN match source if detected
+  if (exactVinMatch) {
+    confidenceContext.sources.push('exact_vin_match');
   }
   
-  // Apply additional confidence boost from listing quality
-  baseConfidence += confidenceBoost;
+  const unifiedResult = calculateUnifiedConfidence(confidenceContext);
   
-  // 🎯 EXACT VIN MATCH BOOST - Push to 92-95% if conditions are met
-  if (confidenceBoost >= 20 && marketCompsUsed && listingCount >= 3) {
-    baseConfidence = Math.max(baseConfidence, 95); // Push to 95% for exact VIN match
-  }
+  console.log('🧮 Unified Confidence Result:', {
+    score: unifiedResult.confidenceScore,
+    breakdown: unifiedResult.breakdown,
+    reasoning: unifiedResult.reasoning.substring(0, 100) + '...'
+  });
   
-  return Math.min(baseConfidence, 95); // Cap at 95%
+  return unifiedResult.confidenceScore;
 }
 
 function generateEnhancedExplanation(
