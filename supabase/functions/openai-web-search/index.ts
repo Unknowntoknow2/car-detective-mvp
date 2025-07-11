@@ -22,7 +22,21 @@ serve(async (req) => {
   }
 
   try {
-    const { make, model, year, zipCode, vin, saveToDb = true } = await req.json();
+    const body = await req.json();
+    console.log('Raw request body:', body);
+    
+    // Handle both direct parameters and nested vehicleData structure
+    let { make, model, year, zipCode, vin, saveToDb = true } = body;
+    
+    // If parameters are in vehicleData object (from marketSearchAgent), extract them
+    if (body.vehicleData) {
+      const vehicleData = body.vehicleData;
+      make = vehicleData.make;
+      model = vehicleData.model;
+      year = vehicleData.year;
+      zipCode = vehicleData.zipCode;
+      vin = vehicleData.vin;
+    }
     
     console.log('Search params:', { make, model, year, zipCode, vin });
 
