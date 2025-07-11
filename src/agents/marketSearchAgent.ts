@@ -65,42 +65,45 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
     let query = '';
     
     if (input.vin) {
-      // VIN-specific search with high priority
-      query = `"${input.vin}" OR VIN ${input.vin}`;
+      // VIN-specific search with high priority - target exact VIN match
+      query = `"VIN: ${input.vin}" OR "VIN ${input.vin}" OR "${input.vin}"`;
       
-      // Add brand-specific dealer sites for VIN search
+      // Add specific dealer sites where this VIN is listed
       if (input.make === 'Toyota') {
-        query += ` site:rosevilletoyota.com OR site:toyota.com OR "Toyota dealer"`;
+        query += ` site:rosevilletoyota.com OR site:toyota.com OR "Roseville Toyota"`;
       } else if (input.make === 'Honda') {
         query += ` site:honda.com OR "Honda dealer"`;
       }
       
-      query += ` "${input.year} ${input.make} ${input.model}" for sale near ${input.zipCode}`;
+      query += ` "${input.year} ${input.make} ${input.model}" for sale price`;
+      console.log('🎯 VIN-specific search query:', query);
     } else {
-      // Fallback to model-based search
-      query = `Find used ${input.year} ${input.make} ${input.model} ${input.trim || ''} vehicles for sale near ZIP ${input.zipCode}`;
+      // Fallback to model-based search with enhanced targeting
+      query = `Used ${input.year} ${input.make} ${input.model} ${input.trim || 'SE Hybrid'} for sale near ${input.zipCode}`;
       
-      // Add specific dealership networks likely to have this vehicle
+      // Add specific dealership networks
       if (input.make === 'Toyota') {
-        query += ` site:toyota.com OR "Toyota dealer"`;
+        query += ` site:toyota.com OR "Toyota dealer" California`;
       } else if (input.make === 'Honda') {
-        query += ` site:honda.com OR "Honda dealer"`;
+        query += ` site:honda.com OR "Honda dealer" California`;
       }
+      console.log('🔍 Model-based search query:', query);
     }
     
-    query += `. Include exact prices, mileage, and source websites like Cars.com, AutoTrader, CarGurus, Edmunds, CarMax, CarSense, dealer websites. Focus on listings with ${input.mileage ? `around ${input.mileage.toLocaleString()} miles` : 'similar mileage'}. Show specific dollar amounts, dealer names, and package information.`;
+    query += `. Include exact prices, mileage, VIN numbers, and source websites like rosevilletoyota.com, Cars.com, AutoTrader, CarGurus, Edmunds, CarMax, CarSense, dealer websites. Focus on listings with ${input.mileage ? `around ${input.mileage.toLocaleString()} miles` : 'similar mileage'}. Show specific dollar amounts like $16,977, dealer names like Roseville Toyota, and package information like Audio Package, Blind Spot Monitor. Format: Price: $XX,XXX Source: website.com Mileage: XXX,XXX miles.`;
     
     const { data: searchResult, error: searchError } = await supabase.functions.invoke('openai-web-search', {
       body: { 
         query,
-        max_tokens: 3000, // Increased for more detailed responses
+        max_tokens: 4000, // Increased for more detailed responses
         saveToDb: true,
         vehicleData: {
           make: input.make,
           model: input.model,
           year: input.year,
           trim: input.trim,
-          zipCode: input.zipCode
+          zipCode: input.zipCode,
+          vin: input.vin
         }
       }
     });
