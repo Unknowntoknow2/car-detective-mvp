@@ -38,7 +38,7 @@ export function convertLegacyToUnified(
 ): ValuationResult {
   console.log('🔄 Converting legacy data:', { vehicleInfo, valuationData });
   return {
-    id: valuationData.id, // Pass through the valuation ID for forecast integration
+    id: valuationData.id || undefined, // ✅ FIX #2: Ensure ID is included for forecast integration
     vin: vehicleInfo.vin || '',
     vehicle: {
       year: vehicleInfo.year,
