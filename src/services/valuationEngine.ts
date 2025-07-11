@@ -39,25 +39,36 @@ export async function calculateValuationFromListings(
 
     if (comps && comps.length >= 2 && trustScore >= 0.3) {
       // 🎯 CRITICAL: Check for exact VIN match first (highest priority)
-      exactVinMatch = comps.find(listing => listing.vin === input.vin);
+      exactVinMatch = comps.find(listing => {
+        const listingVin = listing.vin?.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const inputVin = input.vin?.toLowerCase().replace(/[^a-z0-9]/g, '');
+        return listingVin === inputVin;
+      });
+      
       if (exactVinMatch) {
-        console.log('🎯 EXACT VIN MATCH DETECTED - APPLYING 80% MARKET ANCHORING:', {
+        console.log('🎯 EXACT VIN MATCH DETECTED - APPLYING MARKET ANCHORING:', {
           vin: exactVinMatch.vin,
           price: exactVinMatch.price,
+          dealer: exactVinMatch.dealer_name,
           source: exactVinMatch.source,
           baseValue: baseValue
         });
         
-        // Apply strong 80% anchoring adjustment toward exact VIN match price
-        const strongAnchorAdj = (exactVinMatch.price - baseValue) * 0.8;
-        marketCompsAdjustment = strongAnchorAdj;
-        baseValue = baseValue + strongAnchorAdj; // Apply exact VIN anchoring
+        // Apply market anchor logic as specified in prompt
+        const adjustment = (exactVinMatch.price - baseValue) * 0.8;
+        marketCompsAdjustment = adjustment;
+        baseValue = baseValue + adjustment; // Apply exact VIN anchoring
         baseValueSource = "exact_vin_match";
         marketCompsUsed = true;
         listingSources = [exactVinMatch, ...comps.filter(c => c.vin !== input.vin).slice(0, 5)];
         confidenceBoost = 20; // +20 confidence bonus for exact VIN match
         
-        console.log(`✅ EXACT VIN MATCH ANCHORING: $${baseValue.toLocaleString()} (anchored to $${exactVinMatch.price.toLocaleString()} with 80% weight)`);
+        console.log('✅ EXACT VIN MATCH ANCHOR APPLIED:', {
+          adjustment: `${adjustment >= 0 ? '+' : ''}$${adjustment.toLocaleString()}`,
+          finalValue: `$${baseValue.toLocaleString()}`,
+          anchorPrice: `$${exactVinMatch.price.toLocaleString()}`,
+          source: 'exact_vin_match'
+        });
       } else {
         // Regular market comps logic when no exact VIN match
         // Filter out outliers (prices more than 2 standard deviations from mean)
@@ -139,7 +150,7 @@ export async function calculateValuationFromListings(
     marketSignal: computeMarketAdjustment(listings),
     fuelCost: Math.round(fuelCostImpact.annualSavings * 0.3), // Traditional MPG-based adjustment
     fuelType: fuelTypeAdjustment.adjustment, // NEW: EV/Hybrid/Diesel premium based on real fuel costs
-    marketComps: marketCompsAdjustment, // Real market data adjustment
+    marketComps: marketCompsAdjustment, // Real market data adjustment - includes exact VIN match anchor
   };
 
   const totalAdjustments = Object.values(adjustments).reduce((sum, val) => sum + val, 0);
@@ -179,6 +190,8 @@ export async function calculateValuationFromListings(
     valuation_explanation: generateEnhancedExplanation(input, listings.length, adjustments, marketCompsUsed, fuelCostImpact, usedMarketFallback, listingSources, trustScore, trustNotes),
     confidence_score: computeConfidenceScore(listings.length, marketCompsUsed, confidenceBoost, exactVinMatch !== undefined, trustScore),
     audit_id,
+    sources: exactVinMatch ? ['exact_vin_match'] : [],
+    exactVinMatch: exactVinMatch || undefined
   };
 }
 
