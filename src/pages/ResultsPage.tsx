@@ -244,18 +244,16 @@ export default function ResultsPage() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      {/* Market Data Warning - Show transparency about data quality */}
-      {valuationData?.market_listings && (
-        <MarketDataWarning
-          marketListingsCount={valuationData.market_listings.length || 0}
-          realListingsCount={valuationData.market_listings?.filter((l: any) => 
-            l.source_type !== 'estimated' && l.source !== 'Market Estimate'
-          ).length || 0}
-          confidenceScore={valuationData.confidence_score || 0}
-          dataSource={valuationData.market_search_status || 'unknown'}
-          notes={valuationData.market_search_notes || []}
-        />
-      )}
+      {/* Market Data Warning - ALWAYS show transparency about data quality */}
+      <MarketDataWarning
+        marketListingsCount={valuationData?.market_listings?.length || 0}
+        realListingsCount={valuationData?.market_listings?.filter((l: any) => 
+          l.source_type !== 'estimated' && l.source !== 'Market Estimate'
+        ).length || 0}
+        confidenceScore={valuationData?.confidence_score || 0}
+        dataSource={valuationData?.market_search_status || 'msrp_fallback'}
+        notes={valuationData?.market_search_notes || []}
+      />
 
       {/* Main Valuation Result */}
       <div className="space-y-2">

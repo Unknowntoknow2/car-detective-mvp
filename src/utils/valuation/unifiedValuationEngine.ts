@@ -355,13 +355,24 @@ export async function processValuation(
         
         const prices = listings.map(l => l.price).filter(p => p > 0);
         
-        if (prices.length > 0) {
-          const min = Math.min(...prices);
-          const max = Math.max(...prices);
-          const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+        // PHASE 1 FIX: Only process real market data
+        const realListings = listings.filter(l => l.source_type !== 'estimated' && l.source !== 'Market Estimate');
+        const realPrices = realListings.map(l => l.price).filter(p => p > 0);
+        
+        console.log('📊 Market Data Analysis:', {
+          totalListings: listings.length,
+          realListings: realListings.length,
+          syntheticListings: listings.length - realListings.length,
+          realPrices: realPrices.length
+        });
+        
+        if (realPrices.length > 0) {
+          const min = Math.min(...realPrices);
+          const max = Math.max(...realPrices);
+          const avg = realPrices.reduce((a, b) => a + b, 0) / realPrices.length;
           
-          // Check if we found the exact VIN match (highest confidence)
-          const exactVinMatch = listings.find(l => l.vin === vin);
+          // Check if we found the exact VIN match (highest confidence) - ONLY IN REAL DATA
+          const exactVinMatch = realListings.find(l => l.vin === vin);
           
           if (exactVinMatch) {
             console.log(`🎯 EXACT VIN MATCH FOUND: $${exactVinMatch.price} from ${exactVinMatch.source}`);
@@ -389,8 +400,8 @@ export async function processValuation(
               newValue: finalValue
             }, userId, zipCode);
             
-          } else {
-            // Regular market anchoring with trust-based weighting
+          } else if (realPrices.length >= 3) {
+            // Only apply market anchoring if we have 3+ REAL listings
             const marketWeight = Math.min(0.4, marketResult.trust); // Cap at 40% influence for non-exact matches
             const marketAdj = (avg - finalValue) * marketWeight;
             const afterMarket = finalValue + marketAdj;
@@ -398,29 +409,33 @@ export async function processValuation(
             adjustments.push({ 
               label: "Market Anchor", 
               amount: marketAdj, 
-              reason: `Adjusted toward ${prices.length} comparable listings (avg: $${avg.toLocaleString()}, trust: ${Math.round(marketResult.trust * 100)}%)` 
+              reason: `Adjusted toward ${realPrices.length} comparable listings (avg: $${avg.toLocaleString()}, trust: ${Math.round(marketResult.trust * 100)}%)` 
             });
             
             // Enhanced audit logging with metadata
             await logAdjustmentStep(vin, valuationRequest?.id || 'fallback', {
               label: "Market Anchoring",
               amount: marketAdj,
-              reason: `Based on ${prices.length} comparable listings (avg: $${avg.toLocaleString()})`,
+              reason: `Based on ${realPrices.length} comparable listings (avg: $${avg.toLocaleString()})`,
               baseValue: finalValue,
               newValue: afterMarket
             }, userId, zipCode);
             
             finalValue = afterMarket;
+            console.log(`✅ Applied market anchor based on ${realPrices.length} real listings`);
+          } else {
+            console.log(`⚠️ Only ${realPrices.length} real listing(s) found - insufficient for market anchoring`);
           }
           
           listingRange = { min, max };
           sources.push("openai_market_search");
           marketSearchStatus = "success";
-          tracker.completeStep('market_search', { listingCount: prices.length, avgPrice: avg });
-          await logValuationStep('MARKET_SEARCH_COMPLETE', vin, valuationRequest?.id || 'fallback', { status: marketSearchStatus, listingCount: prices.length }, userId, zipCode);
+          tracker.completeStep('market_search', { listingCount: realPrices.length, avgPrice: avg });
+          await logValuationStep('MARKET_SEARCH_COMPLETE', vin, valuationRequest?.id || 'fallback', { status: marketSearchStatus, listingCount: realPrices.length }, userId, zipCode);
         } else {
+          console.log('❌ NO REAL MARKET LISTINGS FOUND - using MSRP-only calculation');
           marketSearchStatus = "fallback";
-          tracker.completeStep('market_search', { error: "No valid prices found" });
+          tracker.completeStep('market_search', { error: "No real market data available" });
           await logValuationStep('MARKET_SEARCH_COMPLETE', vin, valuationRequest?.id || 'fallback', { status: marketSearchStatus, listingCount: 0 }, userId, zipCode);
         }
       } else {
