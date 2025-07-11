@@ -22,9 +22,12 @@ import { MarketTrendSection } from '../MarketTrendSection';
 
 interface TabbedResultsPanelsProps {
   result: ValuationResult;
+  onUpgrade: () => void;
+  isPremium: boolean;
+  valuationId: string;
 }
 
-export function TabbedResultsPanels({ result }: TabbedResultsPanelsProps) {
+export function TabbedResultsPanels({ result, onUpgrade, isPremium, valuationId }: TabbedResultsPanelsProps) {
   // Add defensive checks
   if (!result) {
     return (
@@ -51,6 +54,12 @@ export function TabbedResultsPanels({ result }: TabbedResultsPanelsProps) {
       label: 'Market Data',
       icon: MapPin,
       description: 'Live listings and comparisons'
+    },
+    {
+      id: 'forecast',
+      label: 'Forecast',
+      icon: TrendingUp,
+      description: 'Price trends and predictions'
     },
     {
       id: 'sources',
@@ -90,7 +99,7 @@ export function TabbedResultsPanels({ result }: TabbedResultsPanelsProps) {
           <Tabs defaultValue="overview" className="w-full">
             {/* Modern Tab List */}
             <div className="border-b bg-muted/30 px-6 py-4">
-              <TabsList className="grid w-full grid-cols-4 bg-background/50 backdrop-blur-sm">
+              <TabsList className="grid w-full grid-cols-5 bg-background/50 backdrop-blur-sm">
                 {tabs.map((tab) => {
                   const IconComponent = tab.icon;
                   return (
@@ -125,6 +134,15 @@ export function TabbedResultsPanels({ result }: TabbedResultsPanelsProps) {
 
               <TabsContent value="market" className="space-y-6 mt-0">
                 <MarketTab result={result} />
+              </TabsContent>
+
+              <TabsContent value="forecast" className="space-y-6 mt-0">
+                <ForecastTab 
+                  result={result} 
+                  valuationId={valuationId}
+                  isPremium={isPremium}
+                  onUpgrade={onUpgrade}
+                />
               </TabsContent>
 
               <TabsContent value="sources" className="space-y-6 mt-0">
@@ -298,6 +316,37 @@ function SourcesTab({ result }: { result: ValuationResult }) {
           msrpSource: 'estimated',
           baseMSRP: result.vehicle.msrp || 0
         }}
+      />
+    </motion.div>
+  );
+}
+
+// Forecast Tab Component
+function ForecastTab({ 
+  result, 
+  valuationId, 
+  isPremium, 
+  onUpgrade 
+}: { 
+  result: ValuationResult; 
+  valuationId: string; 
+  isPremium: boolean; 
+  onUpgrade: () => void; 
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
+      <MarketTrendSection
+        valuationId={valuationId}
+        make={result.vehicle.make}
+        model={result.vehicle.model}
+        year={result.vehicle.year}
+        estimatedValue={result.finalValue}
+        isPremium={isPremium}
+        onUpgrade={onUpgrade}
       />
     </motion.div>
   );
