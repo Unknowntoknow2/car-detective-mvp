@@ -148,6 +148,17 @@ export default function ResultsPage() {
       return;
     }
 
+    console.log('🔥 RERUN BUTTON CLICKED - Starting enhanced rerun process');
+    console.log('📋 Input data:', {
+      vin: valuationData.vin,
+      make: valuationData.make,
+      model: valuationData.model,
+      year: valuationData.year,
+      mileage: followUpData?.mileage || valuationData.mileage,
+      condition: followUpData?.condition || valuationData.condition,
+      zipCode: followUpData?.zip_code || valuationData.zip_code
+    });
+
     setLoading(true);
     try {
       console.log('🔄 FORCE RERUNNING valuation with enhanced unified engine...');
@@ -162,16 +173,19 @@ export default function ResultsPage() {
         zipCode: followUpData?.zip_code || valuationData.zip_code
       }, true); // FORCE NEW = true
 
+      console.log('✅ Enhanced rerun result:', result);
+
       if (result && result.valuationId) {
         toast.success('Valuation updated with enhanced engine!');
         // Reload the page with new valuation data
         window.location.reload();
       } else {
+        console.error('❌ No result returned from enhanced engine');
         toast.error('Failed to rerun valuation');
       }
     } catch (error) {
-      console.error('Error rerunning valuation:', error);
-      toast.error('Failed to rerun valuation');
+      console.error('❌ Error rerunning valuation:', error);
+      toast.error('Failed to rerun valuation: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
