@@ -16,7 +16,7 @@ serve(async (req: Request) => {
   try {
     const supabase = createClient(
       (globalThis as any).Deno.env.get("SUPABASE_URL") ?? "",
-      (globalThis as any).Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      (globalThis as any).Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
     const { valuationId } = await req.json();
@@ -69,11 +69,11 @@ serve(async (req: Request) => {
 
     const { months, values } = runLinearForecast(
       monthlyAverages.map((h) => h.avg_price),
-      monthlyAverages.map((h) => h.month)
+      monthlyAverages.map((h) => h.month),
     );
 
-    const priceRange = values.length > 0 ? Math.max(...values) - Math.min(...values) : 0;
-    const volatility = val.estimated_value ? priceRange / val.estimated_value : 1;
+    const priceRange = Math.max(...values) - Math.min(...values);
+    const volatility = priceRange / (val.estimated_value || 1);
     const confidenceScore = Math.max(0, Math.min(100, Math.round(100 * (1 - volatility))));
 
     const trend = values[values.length - 1] > values[0]
@@ -82,25 +82,19 @@ serve(async (req: Request) => {
       ? "decreasing"
       : "stable";
 
-    return new Response(
-      JSON.stringify({
-        months,
-        values,
-        trend,
-        confidenceScore,
-        percentageChange:
-          values.length > 1
-            ? ((values[values.length - 1] - values[0]) / values[0] * 100).toFixed(1)
-            : "0.0",
-        bestTimeToSell:
-          trend === "decreasing"
-            ? "As soon as possible"
-            : trend === "increasing"
-            ? months[months.length - 1]
-            : "Current market is stable",
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({
+      months,
+      values,
+      trend,
+      confidenceScore,
+      percentageChange: ((values[values.length - 1] - values[0]) / values[0] * 100).toFixed(1),
+      bestTimeToSell: trend === "decreasing"
+        ? "As soon as possible"
+        : trend === "increasing"
+        ? months[months.length - 1]
+        : "Current market is stable",
+    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
   } catch (error: unknown) {
     return new Response(JSON.stringify({ error: (error as any)?.message || "Unknown error" }), {
       status: 500,
@@ -109,6 +103,7 @@ serve(async (req: Request) => {
   }
 });
 
+// ✅ MISSING FUNCTION
 function runLinearForecast(prices: number[], months: string[]) {
   const x = months.map((_, i) => i);
   const y = prices;
