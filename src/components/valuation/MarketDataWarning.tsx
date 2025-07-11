@@ -22,13 +22,16 @@ export const MarketDataWarning: React.FC<MarketDataWarningProps> = ({
   const getWarningLevel = () => {
     if (realListingsCount === 0) return 'critical';
     if (realListingsCount < 3) return 'warning';
-    return 'info';
+    if (realListingsCount < 5) return 'info';
+    return 'none';
   };
 
   const warningLevel = getWarningLevel();
 
   // Don't show warning if we have adequate real data
-  if (realListingsCount >= 3) return null;
+  if (warningLevel === 'none' || (warningLevel === 'info' && confidenceScore >= 70)) {
+    return null; // Don't show warning for good data
+  }
 
   const getIcon = () => {
     switch (warningLevel) {
@@ -53,23 +56,36 @@ export const MarketDataWarning: React.FC<MarketDataWarningProps> = ({
   };
 
   const getTitle = () => {
-    if (realListingsCount === 0) return 'Limited Market Data';
-    if (realListingsCount < 3) return 'Insufficient Market Data';
-    return 'Market Data Notice';
+    if (realListingsCount === 0) return 'No Real Market Data Found';
+    if (realListingsCount === 1) return 'Very Limited Market Data';
+    if (realListingsCount < 3) return 'Limited Market Coverage';
+    if (realListingsCount < 5) return 'Moderate Market Coverage';
+    return 'Good Market Coverage';
   };
 
   const getDescription = () => {
     if (realListingsCount === 0) {
-      return `This valuation is based on estimated values rather than actual market listings. 
-              Confidence is limited to ${confidenceScore}% due to lack of comparable sales data.`;
+      return `⚠️ FALLBACK MODE: This valuation is based purely on MSRP depreciation models. 
+              No current market listings were found. The actual market value may differ significantly. 
+              Consider manually checking AutoNation, CarMax, or local dealers for current pricing.`;
+    }
+    
+    if (realListingsCount === 1) {
+      return `⚠️ LIMITED DATA: Only 1 real market listing was found. This valuation has reduced accuracy. 
+              Consider checking additional sources like major dealer websites or expanding your search radius.`;
     }
     
     if (realListingsCount < 3) {
-      return `Only ${realListingsCount} real market listing(s) found. 
-              More comparable listings would improve accuracy.`;
+      return `⚠️ INSUFFICIENT DATA: Only ${realListingsCount} real market listing(s) found. 
+              Reliable valuations typically require 3+ comparable listings. Current estimate may not reflect actual market conditions.`;
     }
     
-    return 'Market data quality affects valuation confidence.';
+    if (realListingsCount < 5) {
+      return `✓ MODERATE DATA: Found ${realListingsCount} real market listings. 
+              Valuation accuracy is good but could be improved with additional market data.`;
+    }
+    
+    return `✅ GOOD DATA: Found ${realListingsCount} real market listings with reliable data quality.`;
   };
 
   return (

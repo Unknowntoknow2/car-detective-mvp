@@ -161,13 +161,19 @@ export function calculateAdvancedConfidence(inputs: ConfidenceInputs): number {
   // ENHANCED: Cap confidence based on data quality
   let maxConfidence = 98;
   
-  // Limit confidence for fallback scenarios
+  // PHASE 1 FIX: Stricter confidence caps for limited data
   if (realListingsCount === 0) {
-    maxConfidence = 60; // Maximum 60% confidence without real market data
-    console.log('🚨 No real market data - capping confidence at 60%');
-  } else if (realListingsCount < 3) {
-    maxConfidence = 75; // Maximum 75% confidence with limited market data
-    console.log('⚠️ Limited market data - capping confidence at 75%');
+    maxConfidence = 40; // Maximum 40% confidence without real market data
+    console.log('🚨 No real market data - capping confidence at 40%');
+  } else if (realListingsCount === 1) {
+    maxConfidence = 55; // Maximum 55% confidence with 1 real listing
+    console.log('⚠️ Very limited market data (1 listing) - capping confidence at 55%');
+  } else if (realListingsCount === 2) {
+    maxConfidence = 65; // Maximum 65% confidence with 2 real listings
+    console.log('⚠️ Limited market data (2 listings) - capping confidence at 65%');
+  } else if (realListingsCount < 5) {
+    maxConfidence = 75; // Maximum 75% confidence with 3-4 real listings
+    console.log('⚠️ Moderate market data (3-4 listings) - capping confidence at 75%');
   }
   
   const finalConfidence = Math.max(25, Math.min(maxConfidence, confidence));
