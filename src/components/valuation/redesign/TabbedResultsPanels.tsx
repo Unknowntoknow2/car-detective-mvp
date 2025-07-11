@@ -18,6 +18,7 @@ import type { ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
 import { InteractiveValueBreakdown } from './InteractiveValueBreakdown';
 import { MarketListingsGrid } from './MarketListingsGrid';
 import { DataIntegrityPanel } from '../DataIntegrityPanel';
+import { MarketTrendSection } from '../MarketTrendSection';
 
 interface TabbedResultsPanelsProps {
   result: ValuationResult;
@@ -242,12 +243,31 @@ function MarketTab({ result }: { result: ValuationResult }) {
   // Map the existing marketSearchStatus to the expected type
   const mappedStatus = result.marketSearchStatus === 'fallback' ? 'no_results' : result.marketSearchStatus;
   
+  // Extract valuation ID from result
+  const valuationId = (result as any).id || 
+                     (result as any).valuationId || 
+                     (result as any).vin || 
+                     'unknown';
+  
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
+      className="space-y-6"
     >
+      {/* Market Forecast Section */}
+      <MarketTrendSection
+        valuationId={valuationId}
+        make={result.vehicle.make}
+        model={result.vehicle.model}
+        year={result.vehicle.year}
+        estimatedValue={result.finalValue}
+        isPremium={true} // Always show for now - TODO: Get real premium status from user context
+        onUpgrade={() => window.location.href = '/premium'}
+      />
+      
+      {/* Market Listings Grid */}
       <MarketListingsGrid 
         listings={result.listings || []}
         listingCount={result.listingCount}

@@ -11,10 +11,20 @@ import { ConfidenceRing } from './redesign/ConfidenceRing';
 import { TabbedResultsPanels } from './redesign/TabbedResultsPanels';
 import { PremiumFeatureOverlay } from './redesign/PremiumFeatureOverlay';
 import { ConfidenceExplanationBadge } from './ConfidenceExplanationBadge';
+import { MarketTrendSection } from './MarketTrendSection';
 
 interface UnifiedValuationResultProps {
   result: ValuationResult;
 }
+
+// Helper function to extract valuation ID from result
+const getValuationId = (result: ValuationResult): string => {
+  // Try different possible ID fields
+  return (result as any).id || 
+         (result as any).valuationId || 
+         (result as any).vin || 
+         'unknown';
+};
 
 export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
   result
