@@ -1,40 +1,41 @@
 import { supabase } from '@/integrations/supabase/client';
+import { EnhancedValuationResult, ValuationInput, MarketListing } from '@/types/valuation';
 
-export interface ValuationExplanationContext {
-  vin: string;
-  confidenceScore: number;
-  marketListings: any[];
-  exactVinMatch: boolean;
-  photoCondition?: {
-    score: number;
-    issues: string[];
-  };
-  adjustments: Array<{
+export interface ValuationExplanationInput {
+  result: EnhancedValuationResult;
+  input: ValuationInput;
+  marketListings?: MarketListing[];
+  adjustments?: Array<{
     type: string;
     label: string;
     amount: number;
   }>;
-  sources: string[];
-  finalValue: number;
-  originalMsrp?: number;
 }
 
 /**
- * Generate AI-powered explanation of valuation confidence and methodology
+ * 🎯 REQUIREMENT 1: Generate AI-powered confidence explanation
+ * Takes a full valuation result and generates natural-language rationale
  */
 export async function generateAIConfidenceExplanation(
-  context: ValuationExplanationContext
+  data: ValuationExplanationInput
 ): Promise<string> {
   try {
-    console.log('🤖 Generating AI confidence explanation for VIN:', context.vin);
-
-    const prompt = buildExplanationPrompt(context);
+    const { result, input, marketListings = [], adjustments = [] } = data;
     
-    const { data, error } = await supabase.functions.invoke('openai-web-search', {
+    console.log('🤖 Generating AI confidence explanation for valuation:', {
+      vin: input.vin,
+      confidence: result.confidence_score,
+      estimatedValue: result.estimated_value
+    });
+
+    const prompt = buildExplanationPrompt(result, input, marketListings, adjustments);
+    
+    // Use OpenAI through Supabase Edge Function
+    const { data: aiResponse, error } = await supabase.functions.invoke('openai-web-search', {
       body: {
         query: prompt,
-        model: 'gpt-4o-mini',
-        max_tokens: 500,
+        model: 'gpt-4.1-2025-04-14', // Use latest GPT model
+        max_tokens: 400,
         saveToDb: false,
         vehicleData: null
       }
@@ -42,78 +43,87 @@ export async function generateAIConfidenceExplanation(
 
     if (error) {
       console.error('❌ Error generating AI explanation:', error);
-      return generateFallbackExplanation(context);
+      return generateFallbackExplanation(result, input, marketListings);
     }
 
-    return data?.content || generateFallbackExplanation(context);
+    const explanation = aiResponse?.content?.trim() || generateFallbackExplanation(result, input, marketListings);
+    
+    console.log('✅ AI explanation generated:', explanation.substring(0, 100) + '...');
+    return explanation;
+
   } catch (error) {
     console.error('❌ AI explanation generation failed:', error);
-    return generateFallbackExplanation(context);
+    return generateFallbackExplanation(data.result, data.input, data.marketListings);
   }
 }
 
 /**
- * Build the prompt for AI explanation generation
+ * Build the detailed prompt for AI explanation generation
  */
-function buildExplanationPrompt(context: ValuationExplanationContext): string {
-  const {
-    vin,
-    confidenceScore,
-    marketListings,
-    exactVinMatch,
-    photoCondition,
-    adjustments,
-    sources,
-    finalValue,
-    originalMsrp
-  } = context;
+function buildExplanationPrompt(
+  result: EnhancedValuationResult, 
+  input: ValuationInput, 
+  marketListings: MarketListing[], 
+  adjustments: Array<{type: string; label: string; amount: number}>
+): string {
+  const adjustmentsText = adjustments.map(adj => 
+    `- ${adj.label}: ${adj.amount >= 0 ? '+' : ''}$${adj.amount.toLocaleString()}`
+  ).join('\n') || 'No adjustments applied';
 
-  return `As a vehicle valuation expert, explain this valuation in 2-3 sentences for a consumer:
+  const exactVinMatch = result.sources?.includes('exact_vin_match') || false;
+  const marketListingsCount = marketListings?.length || 0;
 
-VIN: ${vin}
-Final Value: $${finalValue.toLocaleString()}
-Confidence: ${confidenceScore}%
-${originalMsrp ? `Original MSRP: $${originalMsrp.toLocaleString()}` : ''}
+  return `You are an expert vehicle pricing analyst. Explain to a consumer why this valuation is accurate and trustworthy.
 
-Data Sources:
-- Market Listings: ${marketListings.length} found
-- Exact VIN Match: ${exactVinMatch ? 'YES' : 'NO'}
-- Photo Analysis: ${photoCondition ? `${photoCondition.score}% condition` : 'Not available'}
-- Sources Used: ${sources.join(', ')}
+Vehicle: ${input.year} ${input.make} ${input.model} ${input.vin ? `(VIN: ${input.vin})` : ''}
+Price: $${result.estimated_value?.toLocaleString() || 'N/A'}
+Confidence Score: ${result.confidence_score}%
+Exact VIN Match: ${exactVinMatch ? 'Yes' : 'No'}
+Market Listings Found: ${marketListingsCount}
+Mileage: ${input.mileage?.toLocaleString() || 'Unknown'} miles
+ZIP Code: ${input.zipCode || 'Unknown'}
 
-Key Adjustments:
-${adjustments.map(adj => `- ${adj.label}: ${adj.amount >= 0 ? '+' : ''}$${adj.amount.toLocaleString()}`).join('\n')}
+Price Breakdown:
+${adjustmentsText}
 
-Explain:
-1. Why this confidence level is justified
-2. What data anchored the valuation
-3. How trustworthy this estimate is
-Keep it professional but accessible to consumers.`;
+Data Sources Used: ${result.sources?.join(', ') || 'Standard valuation'}
+
+Provide a clear, 2–3 sentence explanation of why this price is trustworthy. Mention confidence factors, exact VIN match if present, and whether live market data supports it. Be professional but accessible to consumers.`;
 }
 
 /**
  * Generate fallback explanation when AI is unavailable
  */
-function generateFallbackExplanation(context: ValuationExplanationContext): string {
-  const {
-    confidenceScore,
-    marketListings,
-    exactVinMatch,
-    sources,
-    finalValue
-  } = context;
+function generateFallbackExplanation(
+  result: EnhancedValuationResult, 
+  input: ValuationInput, 
+  marketListings?: MarketListing[]
+): string {
+  const confidence = result.confidence_score || 0;
+  const estimatedValue = result.estimated_value || 0;
+  const exactVinMatch = result.sources?.includes('exact_vin_match') || false;
+  const marketListingsCount = marketListings?.length || 0;
 
-  if (confidenceScore >= 92 && exactVinMatch) {
-    return `This ${confidenceScore}% confidence valuation of $${finalValue.toLocaleString()} is anchored to an exact VIN match from a verified dealer listing. With ${marketListings.length} market listings and comprehensive vehicle data, this represents a highly reliable market-based estimate.`;
+  // High confidence with exact VIN match
+  if (confidence >= 92 && exactVinMatch) {
+    return `This ${confidence}% confidence valuation of $${estimatedValue.toLocaleString()} is highly trustworthy due to an exact VIN match with a verified dealer listing. The confidence score reflects strong market support with ${marketListingsCount} comparable listings and comprehensive vehicle data validation.`;
   }
   
-  if (confidenceScore >= 85) {
-    return `This ${confidenceScore}% confidence valuation of $${finalValue.toLocaleString()} is based on ${marketListings.length} comparable listings and verified vehicle specifications. The estimate reflects current market conditions with strong data support.`;
+  // High confidence without exact VIN match
+  if (confidence >= 85) {
+    return `This ${confidence}% confidence valuation of $${estimatedValue.toLocaleString()} is based on comprehensive market analysis including ${marketListingsCount} comparable listings and verified vehicle specifications. The estimate reflects current market conditions with strong data support from multiple trusted sources.`;
   }
   
-  if (confidenceScore >= 70) {
-    return `This ${confidenceScore}% confidence valuation of $${finalValue.toLocaleString()} draws from available market data and vehicle specifications. While reliable for general guidance, additional market research is recommended for critical decisions.`;
+  // Moderate confidence
+  if (confidence >= 70) {
+    return `This ${confidence}% confidence valuation of $${estimatedValue.toLocaleString()} draws from available market data and vehicle specifications across ${marketListingsCount} listings. While reliable for general guidance, the confidence level indicates some data limitations that may affect precision.`;
   }
 
-  return `This ${confidenceScore}% confidence valuation of $${finalValue.toLocaleString()} is based on limited data availability. The estimate provides directional guidance but should be supplemented with additional market research for important financial decisions.`;
+  // Low confidence
+  if (confidence >= 50) {
+    return `This ${confidence}% confidence valuation of $${estimatedValue.toLocaleString()} is based on limited but relevant market data. The moderate confidence score suggests additional market research would be beneficial for critical financial decisions.`;
+  }
+
+  // Very low confidence
+  return `This ${confidence}% confidence valuation of $${estimatedValue.toLocaleString()} provides directional guidance based on available data. The lower confidence score indicates significant data limitations, and supplemental market research is strongly recommended for important decisions.`;
 }
