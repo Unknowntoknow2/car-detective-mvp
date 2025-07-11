@@ -29,6 +29,7 @@ export interface ValuationInput {
 
 // Unified result interface
 export interface ValuationResult {
+  id?: string; // Add valuation ID for forecast integration
   vin: string;
   vehicle: {
     year: number;
@@ -570,54 +571,66 @@ export async function processValuation(
     tracker.completeStep('audit_log', { success: true, auditId });
     await logValuationStep('AUDIT_SAVED', vin, valuationRequest?.id || 'fallback', { finalValue, confidenceScore, auditId }, userId, zipCode);
     
-    // Step 10: Generate PDF for premium users (5% Progress)
+    // Step 10: Save valuation to database and generate PDF for premium users (5% Progress)
     let pdfUrl: string | undefined;
-    if (isPremium) {
+    let savedValuation: any = null; // Declare savedValuation outside the premium block
+    
+    // Always save the valuation to database for forecast integration
+    try {
+      const { data: saveData, error: saveError } = await supabase
+        .from('valuations')
+        .insert({
+          user_id: userId,
+          vin,
+          make: vehicleMake,
+          model: vehicleModel,
+          year: vehicleYear,
+          mileage,
+          condition,
+          state: zipCode,
+          estimated_value: finalValue,
+          confidence_score: confidenceScore,
+          base_value: baseValue,
+          created_at: new Date().toISOString()
+        })
+        .select('id')
+        .single();
+
+      if (!saveError && saveData) {
+        savedValuation = saveData;
+        console.log('✅ Valuation saved to database with ID:', savedValuation.id);
+      } else {
+        console.error('❌ Failed to save valuation to database:', saveError);
+      }
+    } catch (error) {
+      console.error('❌ Error saving valuation to database:', error);
+    }
+    
+    // Generate PDF only for premium users
+    if (isPremium && savedValuation?.id) {
       try {
         tracker.startStep('pdf_generation', { isPremium: true });
         
-        // Save valuation to database first to get an ID for PDF generation
-        const { data: savedValuation, error: saveError } = await supabase
-          .from('valuations')
-          .insert({
-            user_id: userId,
-            vin,
-            make: vehicleMake,
-            model: vehicleModel,
-            year: vehicleYear,
-            mileage,
-            condition,
-            state: zipCode,
-            estimated_value: finalValue,
-            confidence_score: confidenceScore,
-            base_value: baseValue,
-            created_at: new Date().toISOString()
-          })
-          .select('id')
-          .single();
+        // Call the PDF generation edge function
+        const { data: pdfData, error: pdfError } = await supabase.functions.invoke('generate-valuation-pdf', {
+          body: { valuationId: savedValuation.id }
+        });
 
-        if (!saveError && savedValuation) {
-          // Call the PDF generation edge function
-          const { data: pdfData, error: pdfError } = await supabase.functions.invoke('generate-valuation-pdf', {
-            body: { valuationId: savedValuation.id }
-          });
-
-          if (!pdfError && pdfData?.url) {
-            pdfUrl = pdfData.url;
+        if (!pdfError && pdfData?.url) {
+          pdfUrl = pdfData.url;
+          
+          // Update the valuation record with PDF URL for traceability
+          await supabase
+            .from('valuations')
+            .update({ 
+              pdf_url: pdfUrl,
+              pdf_generated_at: new Date().toISOString()
+            })
+            .eq('id', savedValuation.id);
             
-            // Update the valuation record with PDF URL for traceability
-            await supabase
-              .from('valuations')
-              .update({ 
-                pdf_url: pdfUrl,
-                pdf_generated_at: new Date().toISOString()
-              })
-              .eq('id', savedValuation.id);
-              
-            console.log('✅ PDF generated successfully:', pdfUrl);
-          } else {
-            console.error('❌ PDF generation failed:', pdfError);
-          }
+          console.log('✅ PDF generated successfully:', pdfUrl);
+        } else {
+          console.error('❌ PDF generation failed:', pdfError);
         }
         
         tracker.completeStep('pdf_generation', { pdfUrl: !!pdfUrl });
@@ -631,6 +644,7 @@ export async function processValuation(
     }
     
     const result: ValuationResult = {
+      id: savedValuation?.id, // Include the saved valuation ID for forecast integration
       vehicle: {
         year: vehicleYear,
         make: vehicleMake,

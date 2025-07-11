@@ -43,33 +43,8 @@ export function generateForecast(data: any[]): ForecastData {
 }
 
 export async function generateValuationForecast(valuationId: string): Promise<ForecastResult> {
-  console.warn('⚠️ DEPRECATED: Use useForecastData hook instead of this mock function');
+  console.error('❌ DEPRECATED: This mock function has been replaced by the valuation-forecast Edge Function');
+  console.log('✅ Use MarketTrendSection component with useForecastData hook instead');
   
-  // Fallback mock for components that haven't been updated yet
-  const currentValue = 25000;
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  
-  const forecast = months.map((month, index) => ({
-    month,
-    value: currentValue + (Math.random() - 0.5) * 2000 + (index * 100)
-  }));
-
-  const percentageChange = ((forecast[forecast.length - 1].value - forecast[0].value) / forecast[0].value * 100).toFixed(1);
-  
-  const values = forecast.map(f => f.value);
-  const lowestValue = Math.min(...values);
-  const highestValue = Math.max(...values);
-  
-  const valueTrend = parseFloat(percentageChange) > 0 ? 'up' : parseFloat(percentageChange) < 0 ? 'down' : 'stable';
-
-  return {
-    forecast,
-    percentageChange: `${percentageChange}%`,
-    bestTimeToSell: 'Use real forecast instead',
-    confidenceScore: 0.50, // Low confidence to indicate this is mock data
-    analysis: 'This is mock data. Use useForecastData hook for real forecasts.',
-    valueTrend,
-    lowestValue,
-    highestValue
-  };
+  throw new Error('This mock forecast function is deprecated. Use the real valuation-forecast Edge Function instead.');
 }

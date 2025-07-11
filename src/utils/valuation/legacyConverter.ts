@@ -2,6 +2,7 @@
 import type { ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
 
 interface LegacyValuationData {
+  id?: string; // Add ID field for forecast integration
   estimated_value: number;
   confidence_score?: number;
   price_range_low?: number;
@@ -37,6 +38,7 @@ export function convertLegacyToUnified(
 ): ValuationResult {
   console.log('🔄 Converting legacy data:', { vehicleInfo, valuationData });
   return {
+    id: valuationData.id, // Pass through the valuation ID for forecast integration
     vin: vehicleInfo.vin || '',
     vehicle: {
       year: vehicleInfo.year,
