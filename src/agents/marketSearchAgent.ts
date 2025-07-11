@@ -167,17 +167,26 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
       trustResult.notes.push('Exact VIN match found - highest confidence');
     }
 
-    // Fallback for when no listings are found - create synthetic market data
-    if (finalListings.length === 0) {
-      console.log('⚠️ No market listings found, using synthetic fallback data');
+    // Enhanced fallback handling with transparency
+    const realListingsCount = finalListings.filter(l => l.source_type !== 'estimated').length;
+    
+    if (realListingsCount === 0) {
+      console.log('⚠️ No real market listings found, using synthetic fallback data');
       const syntheticListings = createFallbackListings(input);
       return {
         listings: syntheticListings,
-        trust: 0.3, // Low trust for synthetic data
-        notes: ['No real market data found', 'Using estimated market range based on vehicle specs'],
+        trust: 0.15, // Very low trust for synthetic data
+        notes: [
+          'FALLBACK MODE: No real market data found',
+          'Using estimated values based on depreciation models',
+          'Consider checking manually for recent listings'
+        ],
         source: 'synthetic_fallback',
         exactVinMatch: null
       };
+    } else if (realListingsCount < 3) {
+      trustResult.notes.push(`LIMITED DATA: Only ${realListingsCount} real market listing(s) found`);
+      trustResult.trust = Math.min(trustResult.trust, 0.6); // Cap trust for limited data
     }
 
     console.log('✅ Market search completed:', {
