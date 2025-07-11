@@ -43,8 +43,10 @@ export function generateForecast(data: any[]): ForecastData {
 }
 
 export async function generateValuationForecast(valuationId: string): Promise<ForecastResult> {
-  // Mock implementation for now
-  const currentValue = 25000; // This would come from the actual valuation
+  console.warn('⚠️ DEPRECATED: Use useForecastData hook instead of this mock function');
+  
+  // Fallback mock for components that haven't been updated yet
+  const currentValue = 25000;
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
   const forecast = months.map((month, index) => ({
@@ -54,20 +56,18 @@ export async function generateValuationForecast(valuationId: string): Promise<Fo
 
   const percentageChange = ((forecast[forecast.length - 1].value - forecast[0].value) / forecast[0].value * 100).toFixed(1);
   
-  // Calculate min and max values
   const values = forecast.map(f => f.value);
   const lowestValue = Math.min(...values);
   const highestValue = Math.max(...values);
   
-  // Determine trend
   const valueTrend = parseFloat(percentageChange) > 0 ? 'up' : parseFloat(percentageChange) < 0 ? 'down' : 'stable';
 
   return {
     forecast,
     percentageChange: `${percentageChange}%`,
-    bestTimeToSell: 'Spring (March-May)',
-    confidenceScore: 0.85,
-    analysis: `Market analysis suggests ${percentageChange.includes('-') ? 'depreciation' : 'appreciation'} over the next 12 months.`,
+    bestTimeToSell: 'Use real forecast instead',
+    confidenceScore: 0.50, // Low confidence to indicate this is mock data
+    analysis: 'This is mock data. Use useForecastData hook for real forecasts.',
     valueTrend,
     lowestValue,
     highestValue
