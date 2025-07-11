@@ -49,10 +49,16 @@ export function calculateAdvancedConfidence(inputs: ConfidenceInputs): number {
   confidence += vehicleDataBonus;
   breakdown.vehicleData = vehicleDataBonus;
 
-  // 2. Market Data Quality (up to +25 points)
+  // 2. Market Data Quality (up to +30 points for exact VIN match)
   let marketDataBonus = 0;
   if (marketSearchStatus === 'success') {
     marketDataBonus += 10;
+    
+    // HUGE bonus for exact VIN match
+    if (sources.includes('exact_vin_match')) {
+      marketDataBonus += 20; // Major confidence boost for exact VIN
+      console.log('🎯 EXACT VIN MATCH CONFIDENCE BOOST: +20 points');
+    }
     
     // Listing count bonus
     if (listings.length >= 8) marketDataBonus += 8;

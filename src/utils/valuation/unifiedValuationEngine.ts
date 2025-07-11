@@ -359,26 +359,59 @@ export async function processValuation(
           const max = Math.max(...prices);
           const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
           
-          // Enhanced market anchoring with trust-based weighting
-          const marketWeight = Math.min(0.5, marketResult.trust); // Cap at 50% influence
-          const marketAdj = (avg - finalValue) * marketWeight;
-          const afterMarket = finalValue + marketAdj;
-          adjustments.push({ 
-            label: "Market Anchor", 
-            amount: marketAdj, 
-            reason: `Adjusted toward ${prices.length} real listings (avg: $${avg.toLocaleString()}, trust: ${Math.round(marketResult.trust * 100)}%)` 
-          });
+          // Check if we found the exact VIN match (highest confidence)
+          const exactVinMatch = listings.find(l => l.vin === vin);
           
-          // Enhanced audit logging with metadata
-          await logAdjustmentStep(vin, valuationRequest?.id || 'fallback', {
-            label: "Market Anchoring",
-            amount: marketAdj,
-            reason: `Based on ${prices.length} comparable listings (avg: $${avg.toLocaleString()})`,
-            baseValue: finalValue,
-            newValue: afterMarket
-          }, userId, zipCode);
+          if (exactVinMatch) {
+            console.log(`🎯 EXACT VIN MATCH FOUND: $${exactVinMatch.price} from ${exactVinMatch.source}`);
+            
+            // For exact VIN matches, anchor strongly to the listing price
+            const exactPrice = exactVinMatch.price;
+            const strongAnchorAdj = (exactPrice - finalValue) * 0.8; // 80% weight to exact match
+            
+            adjustments.push({ 
+              label: "Exact VIN Match", 
+              amount: strongAnchorAdj, 
+              reason: `Found exact VIN listing at $${exactPrice.toLocaleString()} on ${exactVinMatch.source}` 
+            });
+            
+            finalValue = finalValue + strongAnchorAdj;
+            
+            // Also add confidence boost for exact match (handled in confidence engine)
+            sources.push("exact_vin_match");
+            
+            await logAdjustmentStep(vin, valuationRequest?.id || 'fallback', {
+              label: "Exact VIN Match Anchor",
+              amount: strongAnchorAdj,
+              reason: `Exact VIN found on ${exactVinMatch.source} at $${exactPrice.toLocaleString()}`,
+              baseValue: finalValue - strongAnchorAdj,
+              newValue: finalValue
+            }, userId, zipCode);
+            
+          } else {
+            // Regular market anchoring with trust-based weighting
+            const marketWeight = Math.min(0.4, marketResult.trust); // Cap at 40% influence for non-exact matches
+            const marketAdj = (avg - finalValue) * marketWeight;
+            const afterMarket = finalValue + marketAdj;
+            
+            adjustments.push({ 
+              label: "Market Anchor", 
+              amount: marketAdj, 
+              reason: `Adjusted toward ${prices.length} comparable listings (avg: $${avg.toLocaleString()}, trust: ${Math.round(marketResult.trust * 100)}%)` 
+            });
+            
+            // Enhanced audit logging with metadata
+            await logAdjustmentStep(vin, valuationRequest?.id || 'fallback', {
+              label: "Market Anchoring",
+              amount: marketAdj,
+              reason: `Based on ${prices.length} comparable listings (avg: $${avg.toLocaleString()})`,
+              baseValue: finalValue,
+              newValue: afterMarket
+            }, userId, zipCode);
+            
+            finalValue = afterMarket;
+          }
           
-          finalValue = afterMarket;
           listingRange = { min, max };
           sources.push("openai_market_search");
           marketSearchStatus = "success";
