@@ -139,7 +139,12 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
         </div>
 
         {/* Main Content Tabs */}
-        <TabbedResultsPanels result={result} />
+        <TabbedResultsPanels 
+          result={result}
+          onUpgrade={handleUpgrade}
+          isPremium={isPremium}
+          valuationId={getValuationId(result)}
+        />
 
         {/* Premium Features Section */}
         <PremiumFeatureOverlay
