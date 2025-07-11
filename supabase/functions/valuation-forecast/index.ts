@@ -1,3 +1,6 @@
+/// <reference types="https://esm.sh/simple-statistics@7.8.8" />
+/// <reference types="https://esm.sh/@supabase/supabase-js@2.39.7" />
+// @ts-ignore: Deno runtime globals
 // @ts-ignore Deno global
 /// <reference lib="deno.ns" />
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -9,7 +12,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -69,8 +72,8 @@ serve(async (req) => {
     }));
 
     const { months, values } = runLinearForecast(
-      monthlyAverages.map((h) => h.avg_price),
-      monthlyAverages.map((h) => h.month),
+      monthlyAverages.map((h) => h.avg_price as number),
+      monthlyAverages.map((h) => h.month as string),
     );
 
     const priceRange = Math.max(...values) - Math.min(...values);
