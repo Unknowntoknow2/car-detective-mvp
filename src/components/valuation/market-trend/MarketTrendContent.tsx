@@ -21,6 +21,28 @@ interface MarketTrendContentProps {
 export function MarketTrendContent(
   { trend, forecastData, year, make, model }: MarketTrendContentProps,
 ) {
+  // Handle case where forecast data is insufficient
+  if (!forecastData?.forecast || forecastData.forecast.length === 0) {
+    return (
+      <Card>
+        <CardHeader className="bg-muted/20">
+          <CardTitle className="text-lg">Market Trends & Future Value</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="text-center py-8">
+            <div className="text-muted-foreground mb-4">
+              📊 Insufficient market data available
+            </div>
+            <p className="text-sm text-muted-foreground">
+              We don't have enough recent market listings for the {year} {make} {model} to generate an accurate forecast. 
+              This typically happens with rare vehicles or those with limited market activity.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="bg-muted/20">

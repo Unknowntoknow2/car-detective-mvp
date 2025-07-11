@@ -53,22 +53,34 @@ export function useForecastData({
       }
 
       setLoading(true);
+      setError(null);
+      
       try {
+        console.log(`🚀 Fetching forecast for valuationId: ${valuationId}`);
+        
         const { data, error } = await supabase.functions.invoke(
           "valuation-forecast",
           {
-            body: {
-              make,
-              model,
-              year,
-              currentValue: estimatedValue,
-              months: 12,
-              valuationId,
-            },
+            body: { valuationId },
           },
         );
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Edge function error:', error);
+          throw error;
+        }
+
+        if (!data) {
+          throw new Error('No forecast data returned');
+        }
+
+        console.log('✅ Forecast data received:', data);
+
+        // Handle the case where no market data exists
+        if (!data.months || !data.values || data.values.length === 0) {
+          setError("Insufficient market data available for forecasting");
+          return;
+        }
 
         // Transform the data into a more structured format
         const formattedData: ForecastData = {
@@ -83,15 +95,15 @@ export function useForecastData({
 
         setForecastData(formattedData);
       } catch (err) {
-        console.error("Error fetching forecast data:", err);
-        setError("Failed to load market trend data");
+        console.error("❌ Error fetching forecast data:", err);
+        setError("Failed to load market trend data. This may be due to insufficient historical market data for this vehicle.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchForecastData();
-  }, [valuationId, make, model, year, estimatedValue, isPremium]);
+  }, [valuationId, isPremium]);
 
   // Calculate market trend direction and percentage
   const calculatedTrend = () => {
