@@ -162,34 +162,52 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
             )}
           </div>
 
-          {/* Confidence Score with Tooltip */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium flex items-center gap-2">
-                Confidence Score
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="w-4 h-4 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Based on VIN data quality, market depth, and price match quality.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </span>
-              <span className={`text-sm font-bold ${getConfidenceColor(confidenceScore)}`}>
-                {confidenceScore}%
-              </span>
+          {/* Enhanced Confidence Score with Progress Bar */}
+          {confidenceScore && (
+            <div className="mt-2">
+              <div className="text-sm font-medium text-muted-foreground mb-1">
+                Confidence: {confidenceScore}%
+              </div>
+              <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-green-500 transition-all duration-500 ease-in-out"
+                  style={{ width: `${confidenceScore}%` }}
+                />
+              </div>
             </div>
-            <Progress value={confidenceScore} className="h-2" />
-            {confidenceScore < 65 && (
-              <Alert className="mt-2">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  This valuation has lower confidence due to limited data availability. Consider providing more vehicle details for improved accuracy.
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
+          )}
+
+          {/* Exact VIN Match Badge */}
+          {sources?.includes('exact_vin_match') && (
+            <div className="mt-2 inline-flex items-center text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full">
+              🎯 Exact VIN Match Anchored
+            </div>
+          )}
+
+          {/* Market Listing Preview */}
+          {(() => {
+            const exactVinMatch = result.listings?.find(listing => listing.vin === result.vin);
+            return exactVinMatch && (
+              <div className="mt-4 border rounded-lg p-3 bg-muted">
+                <div className="text-sm font-semibold text-primary mb-1">
+                  Verified Listing:
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <div>Dealer: {exactVinMatch.dealer_name}</div>
+                  <div>Price: ${exactVinMatch.price?.toLocaleString()}</div>
+                  <div className="text-xs italic text-muted">Source: {exactVinMatch.source}</div>
+                </div>
+              </div>
+            );
+          })()}
+          {confidenceScore < 65 && (
+            <Alert className="mt-2">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                This valuation has lower confidence due to limited data availability. Consider providing more vehicle details for improved accuracy.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {/* Market Data Status */}
           {marketSearchStatus !== 'success' && (
