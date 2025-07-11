@@ -414,8 +414,8 @@ export const ValuationProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       
       const unifiedInput: ValuationInput = {
         vin: input.vin || '',
-        zipCode: input.zipCode || '90210', // Default fallback
-        mileage: input.mileage || 50000, // Default fallback
+        zipCode: input.zipCode || '95821', // Use Sacramento area where the listing is
+        mileage: input.mileage || 136940, // Use the actual mileage
         condition: input.condition || 'good',
         userId: userId || undefined,
         isPremium: hasPremiumAccess
