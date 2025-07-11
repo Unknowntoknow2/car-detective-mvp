@@ -96,10 +96,26 @@ serve(async (req) => {
     console.log(`📊 Forecast Results - Months:`, months);
     console.log(`💰 Forecast Results - Values:`, values);
 
-    // Calculate confidence metrics
-    const priceRange = Math.max(...values) - Math.min(...values);
-    const volatility = priceRange / val.estimated_value;
-    const confidenceScore = Math.round(100 * (1 - volatility));
+    // Calculate confidence metrics with improved logic
+    let confidenceScore = 60; // Default fallback confidence
+    
+    if (values.length > 0) {
+      const priceRange = Math.max(...values) - Math.min(...values);
+      
+      // Skip volatility calculation if prices are flat or estimated value is zero
+      if (priceRange > 0 && val.estimated_value > 0) {
+        const volatility = priceRange / val.estimated_value;
+        confidenceScore = Math.round(100 * (1 - Math.min(volatility, 0.4))); // Cap volatility impact
+      } else {
+        // Flat prices indicate stable market
+        confidenceScore = 80;
+      }
+      
+      // Ensure confidence is within reasonable bounds
+      confidenceScore = Math.max(30, Math.min(95, confidenceScore));
+    }
+    
+    console.log(`🎯 Confidence Score: ${confidenceScore}% (based on volatility analysis)`);
 
     const trend = values[values.length - 1] > values[0]
       ? "increasing"
