@@ -49,40 +49,53 @@ export function calculateAdvancedConfidence(inputs: ConfidenceInputs): number {
   confidence += vehicleDataBonus;
   breakdown.vehicleData = vehicleDataBonus;
 
-  // 2. Market Data Quality (up to +35 points for exact VIN match)
+  // 2. Market Data Quality - ENHANCED TRANSPARENCY AND FALLBACK HANDLING
   let marketDataBonus = 0;
+  const realListingsCount = listings.filter(l => l.source_type !== 'estimated' && l.source !== 'Market Estimate').length;
+  const syntheticListingsCount = listings.length - realListingsCount;
   
-  // Base market data availability
-  if (marketSearchStatus === 'success') {
-    marketDataBonus += 15; // Increased base bonus for successful market search
+  console.log('📊 Market Data Analysis:', {
+    totalListings: listings.length,
+    realListings: realListingsCount,
+    syntheticListings: syntheticListingsCount,
+    marketSearchStatus,
+    sources
+  });
+
+  // Check for exact VIN match from REAL data only
+  if (sources.includes('exact_vin_match') && realListingsCount > 0) {
+    marketDataBonus += 25; // Major confidence boost for exact VIN
+    console.log('🎯 EXACT VIN MATCH CONFIDENCE BOOST: +25 points');
+  }
+  
+  // Base market data availability - only for real listings
+  if (marketSearchStatus === 'success' && realListingsCount > 0) {
+    marketDataBonus += 15; // Base bonus for successful market search
     
-    // HUGE bonus for exact VIN match - this is the most reliable data possible
-    if (sources.includes('exact_vin_match')) {
-      marketDataBonus += 25; // Major confidence boost for exact VIN
-      console.log('🎯 EXACT VIN MATCH CONFIDENCE BOOST: +25 points');
-    }
-    
-    // Listing count bonus - more listings = better confidence
-    if (listings.length >= 8) marketDataBonus += 10; // High volume market data
-    else if (listings.length >= 5) marketDataBonus += 7; // Good market coverage
-    else if (listings.length >= 3) marketDataBonus += 5; // Adequate market data
-    else if (listings.length >= 1) marketDataBonus += 2; // Some market data
+    // Real listing count bonus - more listings = better confidence
+    if (realListingsCount >= 8) marketDataBonus += 10; // High volume market data
+    else if (realListingsCount >= 5) marketDataBonus += 7; // Good market coverage
+    else if (realListingsCount >= 3) marketDataBonus += 5; // Adequate market data
+    else if (realListingsCount >= 1) marketDataBonus += 2; // Some market data
     
     // Data source quality bonus
-    if (sources.includes('database_listings')) marketDataBonus += 3; // Our own database is reliable
-    if (sources.includes('market_listings_database')) marketDataBonus += 2; // Saved market data
+    if (sources.includes('database_listings')) marketDataBonus += 3;
+    if (sources.includes('web_search')) marketDataBonus += 2;
     
-  } else if (marketSearchStatus === 'fallback') {
-    // Database listings only
-    if (listings.length >= 3) {
+  } else if (marketSearchStatus === 'fallback' || realListingsCount === 0) {
+    console.log('⚠️ FALLBACK MODE DETECTED - Limited confidence');
+    
+    // Severe penalty for synthetic/estimated data
+    if (syntheticListingsCount > 0 && realListingsCount === 0) {
+      marketDataBonus -= 20; // Major penalty for synthetic-only data
+      console.log('❌ Using synthetic data only, applying -20 confidence penalty');
+    } else if (realListingsCount >= 3) {
       marketDataBonus += 8; // Good database coverage
-    } else if (listings.length >= 1) {
+    } else if (realListingsCount >= 1) {
       marketDataBonus += 4; // Some database coverage
     } else {
-      marketDataBonus -= 8; // No market data found
+      marketDataBonus -= 15; // No real market data at all
     }
-  } else {
-    marketDataBonus -= 15; // No market data at all
   }
   
   confidence += marketDataBonus;
@@ -145,8 +158,19 @@ export function calculateAdvancedConfidence(inputs: ConfidenceInputs): number {
   confidence += fuelDataBonus;
   breakdown.fuelDataTrust = fuelDataBonus;
 
-  // Cap confidence between 25 and 98
-  const finalConfidence = Math.max(25, Math.min(98, confidence));
+  // ENHANCED: Cap confidence based on data quality
+  let maxConfidence = 98;
+  
+  // Limit confidence for fallback scenarios
+  if (realListingsCount === 0) {
+    maxConfidence = 60; // Maximum 60% confidence without real market data
+    console.log('🚨 No real market data - capping confidence at 60%');
+  } else if (realListingsCount < 3) {
+    maxConfidence = 75; // Maximum 75% confidence with limited market data
+    console.log('⚠️ Limited market data - capping confidence at 75%');
+  }
+  
+  const finalConfidence = Math.max(25, Math.min(maxConfidence, confidence));
   
   breakdown.total = finalConfidence;
   breakdown.formula = `Base(${breakdown.base}) + Vehicle(${vehicleDataBonus}) + Market(${marketDataBonus}) + Spread(${spreadAnalysis}) + Sources(${sourceBonus}) + ZIP(${zipMatchBonus}) + MSRP(${msrpBonus}) + Fuel(${fuelDataBonus}) = ${finalConfidence}`;
