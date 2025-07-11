@@ -247,6 +247,11 @@ function computeConfidenceScore(listingCount: number, marketCompsUsed: boolean =
   // Apply additional confidence boost from listing quality
   baseConfidence += confidenceBoost;
   
+  // 🎯 EXACT VIN MATCH BOOST - Push to 92-95% if conditions are met
+  if (confidenceBoost >= 20 && marketCompsUsed && listingCount >= 3) {
+    baseConfidence = Math.max(baseConfidence, 95); // Push to 95% for exact VIN match
+  }
+  
   return Math.min(baseConfidence, 95); // Cap at 95%
 }
 
