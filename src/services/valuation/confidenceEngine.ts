@@ -49,28 +49,40 @@ export function calculateAdvancedConfidence(inputs: ConfidenceInputs): number {
   confidence += vehicleDataBonus;
   breakdown.vehicleData = vehicleDataBonus;
 
-  // 2. Market Data Quality (up to +30 points for exact VIN match)
+  // 2. Market Data Quality (up to +35 points for exact VIN match)
   let marketDataBonus = 0;
+  
+  // Base market data availability
   if (marketSearchStatus === 'success') {
-    marketDataBonus += 10;
+    marketDataBonus += 15; // Increased base bonus for successful market search
     
-    // HUGE bonus for exact VIN match
+    // HUGE bonus for exact VIN match - this is the most reliable data possible
     if (sources.includes('exact_vin_match')) {
-      marketDataBonus += 20; // Major confidence boost for exact VIN
-      console.log('🎯 EXACT VIN MATCH CONFIDENCE BOOST: +20 points');
+      marketDataBonus += 25; // Major confidence boost for exact VIN
+      console.log('🎯 EXACT VIN MATCH CONFIDENCE BOOST: +25 points');
     }
     
-    // Listing count bonus
-    if (listings.length >= 8) marketDataBonus += 8;
-    else if (listings.length >= 5) marketDataBonus += 5;
-    else if (listings.length >= 3) marketDataBonus += 3;
+    // Listing count bonus - more listings = better confidence
+    if (listings.length >= 8) marketDataBonus += 10; // High volume market data
+    else if (listings.length >= 5) marketDataBonus += 7; // Good market coverage
+    else if (listings.length >= 3) marketDataBonus += 5; // Adequate market data
+    else if (listings.length >= 1) marketDataBonus += 2; // Some market data
     
-    // Market depth bonus
-    if (listings.length >= 10) marketDataBonus += 2;
+    // Data source quality bonus
+    if (sources.includes('database_listings')) marketDataBonus += 3; // Our own database is reliable
+    if (sources.includes('market_listings_database')) marketDataBonus += 2; // Saved market data
+    
   } else if (marketSearchStatus === 'fallback') {
-    marketDataBonus -= 5;
+    // Database listings only
+    if (listings.length >= 3) {
+      marketDataBonus += 8; // Good database coverage
+    } else if (listings.length >= 1) {
+      marketDataBonus += 4; // Some database coverage
+    } else {
+      marketDataBonus -= 8; // No market data found
+    }
   } else {
-    marketDataBonus -= 10;
+    marketDataBonus -= 15; // No market data at all
   }
   
   confidence += marketDataBonus;

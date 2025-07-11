@@ -27,7 +27,7 @@ export interface MarketSearchResult {
 
 export async function fetchMarketComps(input: ValuationInput): Promise<MarketSearchResult> {
   try {
-    console.log('🔍 Market Search Agent: Fetching real-time listings via OpenAI for:', {
+    console.log('🔍 Market Search Agent: Starting market search for:', {
       vin: input.vin,
       make: input.make,
       model: input.model,
@@ -35,108 +35,128 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
       zipCode: input.zipCode
     });
 
-    // ALWAYS fetch fresh data for better accuracy
-    console.log('🚀 Skipping database cache, fetching fresh market data...');
+    // Step 1: Check existing database listings first for faster results
+    console.log('📊 Checking database for existing market listings...');
+    let marketListings: MarketListing[] = [];
+    
+    try {
+      const { data: dbListings, error: dbError } = await supabase
+        .from('market_listings')
+        .select('*')
+        .eq('make', input.make)
+        .eq('model', input.model)
+        .eq('year', input.year)
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-    // Use OpenAI web search to find live listings with enhanced query and trust scoring
-    console.log('🤖 Fetching live market listings via OpenAI web search...');
-    
-    // Enhanced query with VIN-specific search if available - prioritize VIN matches
-    let query = '';
-    
-    if (input.vin) {
-      // VIN-specific search with high priority - target exact VIN match
-      query = `"VIN: ${input.vin}" OR "VIN ${input.vin}" OR "${input.vin}"`;
-      
-      // Add specific dealer sites where this VIN is listed
-      if (input.make === 'Toyota') {
-        query += ` site:rosevilletoyota.com OR site:toyota.com OR "Roseville Toyota"`;
-      } else if (input.make === 'Honda') {
-        query += ` site:honda.com OR "Honda dealer"`;
-      }
-      
-      query += ` "${input.year} ${input.make} ${input.model}" for sale price`;
-      console.log('🎯 VIN-specific search query:', query);
-    } else {
-      // Fallback to model-based search with enhanced targeting
-      query = `Used ${input.year} ${input.make} ${input.model} ${input.trim || 'SE Hybrid'} for sale near ${input.zipCode}`;
-      
-      // Add specific dealership networks
-      if (input.make === 'Toyota') {
-        query += ` site:toyota.com OR "Toyota dealer" California`;
-      } else if (input.make === 'Honda') {
-        query += ` site:honda.com OR "Honda dealer" California`;
-      }
-      console.log('🔍 Model-based search query:', query);
-    }
-    
-    query += `. Include exact prices, mileage, VIN numbers, and source websites like rosevilletoyota.com, Cars.com, AutoTrader, CarGurus, Edmunds, CarMax, CarSense, dealer websites. Focus on listings with ${input.mileage ? `around ${input.mileage.toLocaleString()} miles` : 'similar mileage'}. Show specific dollar amounts like $16,977, dealer names like Roseville Toyota, and package information like Audio Package, Blind Spot Monitor. Format: Price: $XX,XXX Source: website.com Mileage: XXX,XXX miles.`;
-    
-    console.log('🔍 Calling openai-web-search Edge Function with query:', query);
-    const { data: searchResult, error: searchError } = await supabase.functions.invoke('openai-web-search', {
-      body: { 
-        query,
-        max_tokens: 4000,
-        saveToDb: true,
-        vehicleData: {
-          make: input.make,
-          model: input.model,
-          year: input.year,
-          trim: input.trim,
-          zipCode: input.zipCode,
-          vin: input.vin
+      if (dbListings && dbListings.length > 0) {
+        marketListings = dbListings.map(transformToMarketListing);
+        console.log(`✅ Found ${marketListings.length} existing listings in database`);
+        
+        // If we have good database listings, use them with high confidence
+        if (marketListings.length >= 3) {
+          const exactVinMatch = marketListings.find(listing => listing.vin === input.vin);
+          
+          return {
+            listings: marketListings,
+            trust: exactVinMatch ? 0.95 : 0.85, // High trust for database listings
+            notes: exactVinMatch ? 
+              ['Exact VIN match found in database', `Using ${marketListings.length} comparable listings`] :
+              [`Using ${marketListings.length} comparable listings from database`],
+            source: exactVinMatch ? 'exact_vin_match' : 'database_listings',
+            exactVinMatch: exactVinMatch || null
+          };
         }
       }
-    });
-
-    console.log('📡 Edge Function response:', { searchResult, searchError });
-
-    if (searchError) {
-      console.error('❌ OpenAI Edge Function error:', searchError);
-      throw new Error(`OpenAI search failed: ${searchError.message || 'Unknown search error'}`);
+    } catch (dbError) {
+      console.warn('⚠️ Database listing check failed, continuing with web search:', dbError);
     }
 
-    if (!searchResult) {
-      console.error('❌ No data returned from Edge Function');
-      return {
-        listings: [],
-        trust: 0.0,
-        notes: ['No data returned from search service'],
-        source: 'error'
-      };
-    }
-
-    const content = searchResult?.content || searchResult?.result || '';
-    console.log('📄 Search content length:', content.length, 'chars');
+    // Step 2: If no sufficient database listings, try web search
+    console.log('🌐 Insufficient database listings, attempting web search...');
     
-    // Use saved listings from Edge Function database response
-    let marketListings: MarketListing[] = [];
-    if (searchResult?.listings && searchResult.listings.length > 0) {
-      marketListings = searchResult.listings.map(transformToMarketListing);
-      console.log('✅ Using freshly saved market listings from Edge Function:', marketListings.length);
-      
-      // Debug each listing
-      marketListings.forEach((listing, i) => {
-        console.log(`📋 Listing ${i + 1}:`, {
-          price: listing.price,
-          source: listing.source,
-          vin: listing.vin,
-          dealer: listing.dealer_name
-        });
+    let query = `Used ${input.year} ${input.make} ${input.model} for sale`;
+    
+    if (input.vin) {
+      query = `"${input.vin}" OR "${input.year} ${input.make} ${input.model}" for sale price mileage`;
+    }
+    
+    if (input.zipCode) {
+      query += ` near ${input.zipCode}`;
+    }
+    
+    // Add common dealer and marketplace terms
+    query += ` CarMax AutoTrader Cars.com dealer price mileage`;
+    
+    console.log('🔍 Web search query:', query);
+    
+    // Try OpenAI web search if available
+    let webSearchResult: any = null;
+    try {
+      const { data: searchResult, error: searchError } = await supabase.functions.invoke('openai-web-search', {
+        body: { 
+          query,
+          max_tokens: 3000,
+          saveToDb: true,
+          vehicleData: {
+            make: input.make,
+            model: input.model,
+            year: input.year,
+            trim: input.trim,
+            zipCode: input.zipCode,
+            vin: input.vin
+          }
+        }
       });
-    } else {
-      console.log('⚠️ No listings returned from Edge Function, attempting content parsing...');
-      // Fallback to parsing from content
-      const parsedListings = parseVehicleListingsFromWeb(content);
-      marketListings = parsedListings.map(listing => transformParsedToMarketListing(listing, input));
-      console.log('📋 Parsed listings from content:', marketListings.length);
+      
+      if (!searchError && searchResult) {
+        webSearchResult = searchResult;
+        console.log('✅ Web search completed successfully');
+      }
+    } catch (searchError) {
+      console.warn('⚠️ Web search failed, will use fallback approach:', searchError);
     }
 
-    // Calculate trust score based on response quality
-    const trustResult = calculateTrustScore(content, [], marketListings);
+    // Step 3: Process web search results if available
+    let webListings: MarketListing[] = [];
+    let content = '';
+    
+    if (webSearchResult) {
+      content = webSearchResult.content || webSearchResult.result || '';
+      console.log('📄 Search content length:', content.length, 'chars');
+      
+      // Use saved listings from Edge Function database response
+      if (webSearchResult.listings && webSearchResult.listings.length > 0) {
+        webListings = webSearchResult.listings.map(transformToMarketListing);
+        console.log('✅ Using freshly saved market listings from Edge Function:', webListings.length);
+        
+        // Debug each listing
+        webListings.forEach((listing, i) => {
+          console.log(`📋 Listing ${i + 1}:`, {
+            price: listing.price,
+            source: listing.source,
+            vin: listing.vin,
+            dealer: listing.dealer_name
+          });
+        });
+      } else {
+        console.log('⚠️ No listings returned from Edge Function, attempting content parsing...');
+        // Fallback to parsing from content
+        const parsedListings = parseVehicleListingsFromWeb(content);
+        webListings = parsedListings.map(listing => transformParsedToMarketListing(listing, input));
+        console.log('📋 Parsed listings from content:', webListings.length);
+      }
+    }
+    
+    // Combine database and web listings, prioritizing web listings for freshness
+    const combinedListings = [...webListings, ...marketListings];
+    const finalListings = removeDuplicateListings(combinedListings).slice(0, 15); // Limit to 15 best listings
 
-    // Check for exact VIN match and add special handling
-    const exactVinMatch = marketListings.find(listing => listing.vin === input.vin);
+    // Calculate trust score based on all available data
+    const trustResult = calculateTrustScore(content, [], finalListings);
+
+    // Check for exact VIN match across all listings
+    const exactVinMatch = finalListings.find(listing => listing.vin === input.vin);
     if (exactVinMatch) {
       console.log('🎯 EXACT VIN MATCH DETECTED:', {
         vin: exactVinMatch.vin,
@@ -147,18 +167,31 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
       trustResult.notes.push('Exact VIN match found - highest confidence');
     }
 
+    // Fallback for when no listings are found - create synthetic market data
+    if (finalListings.length === 0) {
+      console.log('⚠️ No market listings found, using synthetic fallback data');
+      const syntheticListings = createFallbackListings(input);
+      return {
+        listings: syntheticListings,
+        trust: 0.3, // Low trust for synthetic data
+        notes: ['No real market data found', 'Using estimated market range based on vehicle specs'],
+        source: 'synthetic_fallback',
+        exactVinMatch: null
+      };
+    }
+
     console.log('✅ Market search completed:', {
-      listingsCount: marketListings.length,
+      listingsCount: finalListings.length,
       trustScore: trustResult.trust,
       exactVinMatch: !!exactVinMatch,
       notes: trustResult.notes
     });
 
     return {
-      listings: marketListings,
+      listings: finalListings,
       trust: trustResult.trust,
       notes: trustResult.notes,
-      source: exactVinMatch ? 'exact_vin_match' : 'openai_web_search',
+      source: exactVinMatch ? 'exact_vin_match' : (webListings.length > 0 ? 'web_search' : 'database_listings'),
       exactVinMatch: exactVinMatch || null
     };
 
@@ -285,4 +318,128 @@ function calculateTrustScore(content: string, parsedListings: ParsedListing[], m
     trust: Math.max(0.1, Math.min(1.0, trust)),
     notes
   };
+}
+
+// Utility function to remove duplicate listings
+function removeDuplicateListings(listings: MarketListing[]): MarketListing[] {
+  const seen = new Set<string>();
+  return listings.filter(listing => {
+    // Create a unique key based on price, mileage, and source
+    const key = `${listing.price}-${listing.mileage || 0}-${listing.source}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
+// Fallback function to create synthetic market data when no real listings found
+function createFallbackListings(input: ValuationInput): MarketListing[] {
+  // Create estimated price ranges based on vehicle specs
+  const basePrice = getEstimatedBasePrice(input);
+  const mileageVariance = input.mileage || 100000;
+  
+  const syntheticListings: MarketListing[] = [
+    {
+      id: `synthetic-low-${Date.now()}`,
+      source: 'Market Estimate',
+      source_type: 'estimated',
+      price: Math.round(basePrice * 0.85), // 15% below base
+      year: input.year || 2020,
+      make: input.make || 'Unknown',
+      model: input.model || 'Unknown',
+      trim: input.trim,
+      vin: undefined,
+      mileage: mileageVariance + 10000, // Higher mileage = lower price
+      condition: 'good',
+      dealer_name: 'Market Analysis',
+      location: input.zipCode,
+      listing_url: '#synthetic-estimate',
+      is_cpo: false,
+      fetched_at: new Date().toISOString(),
+      confidence_score: 30 // Low confidence for synthetic data
+    },
+    {
+      id: `synthetic-mid-${Date.now()}`,
+      source: 'Market Estimate',
+      source_type: 'estimated', 
+      price: basePrice, // Base price
+      year: input.year || 2020,
+      make: input.make || 'Unknown',
+      model: input.model || 'Unknown',
+      trim: input.trim,
+      vin: undefined,
+      mileage: mileageVariance,
+      condition: 'good',
+      dealer_name: 'Market Analysis',
+      location: input.zipCode,
+      listing_url: '#synthetic-estimate',
+      is_cpo: false,
+      fetched_at: new Date().toISOString(),
+      confidence_score: 30
+    },
+    {
+      id: `synthetic-high-${Date.now()}`,
+      source: 'Market Estimate',
+      source_type: 'estimated',
+      price: Math.round(basePrice * 1.15), // 15% above base
+      year: input.year || 2020,
+      make: input.make || 'Unknown',
+      model: input.model || 'Unknown',
+      trim: input.trim,
+      vin: undefined,
+      mileage: Math.max(0, mileageVariance - 20000), // Lower mileage = higher price
+      condition: 'excellent',
+      dealer_name: 'Market Analysis',
+      location: input.zipCode,
+      listing_url: '#synthetic-estimate',
+      is_cpo: true, // CPO for premium price
+      fetched_at: new Date().toISOString(),
+      confidence_score: 30
+    }
+  ];
+  
+  return syntheticListings;
+}
+
+// Estimate base price for a vehicle when no market data is available
+function getEstimatedBasePrice(input: ValuationInput): number {
+  const currentYear = new Date().getFullYear();
+  const vehicleAge = currentYear - (input.year || currentYear);
+  
+  // Base MSRP estimates by make (rough averages)
+  const msrpEstimates: Record<string, number> = {
+    'TOYOTA': 28000,
+    'HONDA': 26000,
+    'LEXUS': 45000,
+    'BMW': 50000,
+    'MERCEDES-BENZ': 55000,
+    'AUDI': 48000,
+    'NISSAN': 25000,
+    'FORD': 30000,
+    'CHEVROLET': 28000,
+    'HYUNDAI': 24000,
+    'KIA': 23000,
+    'MAZDA': 25000,
+    'SUBARU': 27000,
+    'VOLKSWAGEN': 29000
+  };
+  
+  const baseMsrp = msrpEstimates[input.make?.toUpperCase() || 'TOYOTA'] || 26000;
+  
+  // Apply depreciation
+  const depreciationRate = vehicleAge <= 1 ? 0.20 : 
+                          vehicleAge <= 3 ? 0.15 : 
+                          vehicleAge <= 5 ? 0.10 : 0.08;
+  
+  const totalDepreciation = Math.min(0.70, vehicleAge * depreciationRate);
+  const deprecatedValue = baseMsrp * (1 - totalDepreciation);
+  
+  // Apply mileage adjustment
+  const expectedMileage = vehicleAge * 12000;
+  const mileageDiff = (input.mileage || expectedMileage) - expectedMileage;
+  const mileageAdjustment = (mileageDiff / 1000) * -100; // $100 per 1000 miles difference
+  
+  return Math.max(5000, deprecatedValue + mileageAdjustment);
 }
