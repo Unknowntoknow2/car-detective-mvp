@@ -65,3 +65,6 @@ verify_jwt = false
 
 [functions.safe-audit-logger]
 verify_jwt = false
+
+[functions.openai-web-search]
+verify_jwt = false
