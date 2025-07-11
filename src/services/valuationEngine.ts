@@ -36,36 +36,59 @@ export async function calculateValuationFromListings(
     const comps = searchResult.listings;
 
     if (comps && comps.length >= 2 && trustScore >= 0.3) {
-      // Filter out outliers (prices more than 2 standard deviations from mean)
-      const compPrices = comps.map(c => c.price);
-      const mean = average(compPrices);
-      const stdDev = Math.sqrt(compPrices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / compPrices.length);
-      const filteredComps = comps.filter(comp => Math.abs(comp.price - mean) <= 2 * stdDev);
-      
-      if (filteredComps.length >= 2) {
-        const filteredPrices = filteredComps.map(c => c.price);
-        const avgCompPrice = average(filteredPrices);
-        const delta = avgCompPrice - baseValue;
+      // 🎯 CRITICAL: Check for exact VIN match first (highest priority)
+      const exactVinMatch = comps.find(listing => listing.vin === input.vin);
+      if (exactVinMatch) {
+        console.log('🎯 EXACT VIN MATCH DETECTED - APPLYING 80% MARKET ANCHORING:', {
+          vin: exactVinMatch.vin,
+          price: exactVinMatch.price,
+          source: exactVinMatch.source,
+          baseValue: baseValue
+        });
         
-        // Apply trust scaling to the adjustment
-        const trustedDelta = delta * trustScore;
+        // Apply strong 80% anchoring adjustment toward exact VIN match price
+        const strongAnchorAdj = (exactVinMatch.price - baseValue) * 0.8;
+        marketCompsAdjustment = strongAnchorAdj;
+        baseValue = baseValue + strongAnchorAdj; // Apply exact VIN anchoring
+        baseValueSource = "exact_vin_match";
+        marketCompsUsed = true;
+        listingSources = [exactVinMatch, ...comps.filter(c => c.vin !== input.vin).slice(0, 5)];
+        confidenceBoost = 20; // +20 confidence bonus for exact VIN match
         
-        // Use more lenient adjustment threshold for live data but scale by trust
-        if (Math.abs(trustedDelta) < 0.6 * baseValue) {
-          marketCompsAdjustment = trustedDelta;
-          baseValue = baseValue + trustedDelta; // Apply trusted adjustment
-          baseValueSource = trustScore >= 0.7 ? "verified_web_listings" : "web_listings_low_confidence";
-          marketCompsUsed = true;
-          listingSources = filteredComps.slice(0, 6);
-          confidenceBoost = Math.min(filteredComps.length * 2 * trustScore, 15); // Scale confidence by trust
-          console.log(`✅ Trust-scaled market comps applied: ${filteredComps.length}/${comps.length} listings, trust: ${Math.round(trustScore * 100)}%, avg: $${avgCompPrice.toLocaleString()}, adjusted: $${(avgCompPrice + trustedDelta).toLocaleString()}`);
+        console.log(`✅ EXACT VIN MATCH ANCHORING: $${baseValue.toLocaleString()} (anchored to $${exactVinMatch.price.toLocaleString()} with 80% weight)`);
+      } else {
+        // Regular market comps logic when no exact VIN match
+        // Filter out outliers (prices more than 2 standard deviations from mean)
+        const compPrices = comps.map(c => c.price);
+        const mean = average(compPrices);
+        const stdDev = Math.sqrt(compPrices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / compPrices.length);
+        const filteredComps = comps.filter(comp => Math.abs(comp.price - mean) <= 2 * stdDev);
+        
+        if (filteredComps.length >= 2) {
+          const filteredPrices = filteredComps.map(c => c.price);
+          const avgCompPrice = average(filteredPrices);
+          const delta = avgCompPrice - baseValue;
+          
+          // Apply trust scaling to the adjustment
+          const trustedDelta = delta * trustScore;
+          
+          // Use more lenient adjustment threshold for live data but scale by trust
+          if (Math.abs(trustedDelta) < 0.6 * baseValue) {
+            marketCompsAdjustment = trustedDelta;
+            baseValue = baseValue + trustedDelta; // Apply trusted adjustment
+            baseValueSource = trustScore >= 0.7 ? "verified_web_listings" : "web_listings_low_confidence";
+            marketCompsUsed = true;
+            listingSources = filteredComps.slice(0, 6);
+            confidenceBoost = Math.min(filteredComps.length * 2 * trustScore, 15); // Scale confidence by trust
+            console.log(`✅ Trust-scaled market comps applied: ${filteredComps.length}/${comps.length} listings, trust: ${Math.round(trustScore * 100)}%, avg: $${avgCompPrice.toLocaleString()}, adjusted: $${(avgCompPrice + trustedDelta).toLocaleString()}`);
+          } else {
+            usedMarketFallback = true;
+            console.warn(`[ValuationEngine] Trust-adjusted market comp too large (${Math.round(trustedDelta)}), using fallback.`);
+          }
         } else {
           usedMarketFallback = true;
-          console.warn(`[ValuationEngine] Trust-adjusted market comp too large (${Math.round(trustedDelta)}), using fallback.`);
+          console.warn("[ValuationEngine] Too many outliers in market comps after trust filtering, using fallback.");
         }
-      } else {
-        usedMarketFallback = true;
-        console.warn("[ValuationEngine] Too many outliers in market comps after trust filtering, using fallback.");
       }
     } else if (comps && comps.length >= 1 && trustScore < 0.3) {
       usedMarketFallback = true;

@@ -370,22 +370,52 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
           <CardTitle>Data Sources & Audit Trail</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Live Market Listings Display */}
+          {/* Live Market Listings Display with VIN Match Detection */}
           {result.listings && result.listings.length > 0 ? (
             <div className="space-y-2">
-              <h4 className="font-medium text-sm">Market Listings ({result.listingCount})</h4>
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-sm">Market Listings ({result.listingCount})</h4>
+                {/* Check for exact VIN match indicator */}
+                {result.listings.some(listing => listing.vin === result.vin) && (
+                  <Badge variant="default" className="text-xs bg-green-600 hover:bg-green-700">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Exact VIN Match
+                  </Badge>
+                )}
+              </div>
               <div className="grid gap-2 max-h-48 overflow-y-auto">
-                {result.listings.slice(0, 5).map((listing, index) => (
-                  <div key={index} className="flex justify-between items-center p-2 bg-muted/50 rounded text-sm">
-                    <div>
-                      <span className="font-medium">${listing.price?.toLocaleString() || 'N/A'}</span>
-                      <span className="text-muted-foreground ml-2">
-                        {listing.mileage ? `${listing.mileage.toLocaleString()} mi` : 'Unknown mi'}
-                      </span>
+                {result.listings.slice(0, 5).map((listing, index) => {
+                  const isExactVinMatch = listing.vin === result.vin;
+                  return (
+                    <div key={index} className={`flex justify-between items-center p-2 rounded text-sm ${
+                      isExactVinMatch ? 'bg-green-50 border border-green-200' : 'bg-muted/50'
+                    }`}>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">${listing.price?.toLocaleString() || 'N/A'}</span>
+                          <span className="text-muted-foreground">
+                            {listing.mileage ? `${listing.mileage.toLocaleString()} mi` : 'Unknown mi'}
+                          </span>
+                          {isExactVinMatch && (
+                            <Badge variant="default" className="text-xs bg-green-600 hover:bg-green-700">
+                              <Scale className="w-3 h-3 mr-1" />
+                              Price Anchor
+                            </Badge>
+                          )}
+                        </div>
+                        {listing.dealer_name && (
+                          <div className="text-xs text-muted-foreground">{listing.dealer_name}</div>
+                        )}
+                        {isExactVinMatch && (
+                          <div className="text-xs text-green-700 font-medium">
+                            VIN: {listing.vin} • Anchored with 80% weight
+                          </div>
+                        )}
+                      </div>
+                      <Badge variant="outline" className="text-xs">{listing.source || 'Web'}</Badge>
                     </div>
-                    <Badge variant="outline" className="text-xs">{listing.source || 'Web'}</Badge>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : (
@@ -402,15 +432,16 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
             <h4 className="font-medium text-sm">Source Traceability</h4>
             <div className="flex flex-wrap gap-2">
               {sources.map((source, index) => {
-                const getSourceTooltip = (src: string) => {
-                  switch (src) {
-                    case 'eia_fuel_costs': return 'Fuel pricing from U.S. Energy Information Administration';
-                    case 'openai_market_search': return 'Live market listings via AI web search';
-                    case 'msrp_db_lookup': return 'MSRP from verified database';
-                    case 'estimated_msrp': return 'Estimated MSRP based on vehicle class';
-                    default: return `Data source: ${src.replace(/_/g, ' ')}`;
-                  }
-                };
+                 const getSourceTooltip = (src: string) => {
+                   switch (src) {
+                     case 'eia_fuel_costs': return 'Fuel pricing from U.S. Energy Information Administration';
+                     case 'openai_market_search': return 'Live market listings via AI web search';
+                     case 'msrp_db_lookup': return 'MSRP from verified database';
+                     case 'estimated_msrp': return 'Estimated MSRP based on vehicle class';
+                     case 'exact_vin_match': return 'Exact VIN match found - price anchored with 80% weight for maximum accuracy';
+                     default: return `Data source: ${src.replace(/_/g, ' ')}`;
+                   }
+                 };
 
                 return (
                   <Tooltip key={index}>

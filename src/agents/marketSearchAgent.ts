@@ -91,13 +91,8 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
     console.log('📡 Edge Function response:', { searchResult, searchError });
 
     if (searchError) {
-      console.error('❌ Error calling OpenAI web search:', searchError);
-      return {
-        listings: [],
-        trust: 0.0,
-        notes: [`OpenAI search failed: ${searchError.message || searchError}`],
-        source: 'error'
-      };
+      console.error('❌ OpenAI Edge Function error:', searchError);
+      throw new Error(`OpenAI search failed: ${searchError.message || 'Unknown search error'}`);
     }
 
     if (!searchResult) {

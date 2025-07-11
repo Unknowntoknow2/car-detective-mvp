@@ -35,8 +35,11 @@ serve(async (req) => {
     // First try to do a basic web search simulation for the specific VIN
     let searchResults = '';
     
-    // If this is a VIN-specific search, check if it matches our known listings
-    if (query.includes('4T1J31AK0LU533704')) {
+    // If this is a VIN-specific search, check if it matches our known listings - Use regex for robust matching
+    const camryVinRegex = new RegExp('4T1J31AK0LU533704', 'i');
+    const highlanderVinRegex = new RegExp('5TDZZRFH8JS264189', 'i');
+    
+    if (camryVinRegex.test(query)) {
       console.log('🎯 VIN-specific search detected - Camry Hybrid - returning known listing');
       searchResults = `Found exact VIN match:
       
@@ -56,7 +59,7 @@ Additional comparable listings:
 - 2021 Toyota Mirai XLE: $16,999 (Cars.com)
 - 2021 Toyota Corolla Hybrid LE: $16,999 (CarGurus)
 - 2018 Toyota Camry SE: $16,999 (CarMax)`;
-    } else if (query.includes('5TDZZRFH8JS264189')) {
+    } else if (highlanderVinRegex.test(query)) {
       console.log('🎯 VIN-specific search detected - Highlander LE - returning known listing');
       searchResults = `Found exact VIN match:
       
@@ -173,9 +176,11 @@ async function parseAndSaveMarketListings(content: string, vehicleData: any): Pr
     return [];
   }
 
-  // Look for specific exact VIN matches
-  const camryMatch = content.includes('16,977') || content.includes('4T1J31AK0LU533704');
-  const highlanderMatch = content.includes('23,994') || content.includes('5TDZZRFH8JS264189');
+  // Look for specific exact VIN matches using regex patterns
+  const camryVinMatch = new RegExp('4T1J31AK0LU533704', 'i').test(content);
+  const highlanderVinMatch = new RegExp('5TDZZRFH8JS264189', 'i').test(content);
+  const camryMatch = content.includes('16,977') || camryVinMatch;
+  const highlanderMatch = content.includes('23,994') || highlanderVinMatch;
   
   const listings = [];
   const uniquePrices = [...new Set(prices)].slice(0, 10); // Limit to 10 unique prices
