@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle } from 'lucide-react';
@@ -171,7 +171,7 @@ const conditionCategories = [
 ];
 
 export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
-  const { watch, setValue } = useForm({
+  const { watch, setValue, reset } = useForm({
     defaultValues: {
       tire_condition: formData.tire_condition || 'good',
       exterior_condition: formData.exterior_condition || 'good',
@@ -180,15 +180,36 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
     }
   });
 
+  // Sync form state with prop changes
+  useEffect(() => {
+    console.log('🔄 ConditionTab: Syncing form with formData:', {
+      tire_condition: formData.tire_condition,
+      exterior_condition: formData.exterior_condition,
+      interior_condition: formData.interior_condition,
+      brake_condition: formData.brake_condition
+    });
+    
+    reset({
+      tire_condition: formData.tire_condition || 'good',
+      exterior_condition: formData.exterior_condition || 'good',
+      interior_condition: formData.interior_condition || 'good',
+      brake_condition: formData.brake_condition || 'good'
+    });
+  }, [formData.tire_condition, formData.exterior_condition, formData.interior_condition, formData.brake_condition, reset]);
+
   const handleConditionChange = (key: keyof FollowUpAnswers, value: string) => {
-    console.log(`Condition change: ${String(key)} = ${value}`);
-    // Type assertion to handle the specific field names
+    console.log(`🎯 Condition change: ${String(key)} = ${value}`);
     setValue(key as any, value);
     updateFormData({ [key]: value });
   };
 
   const getConditionValue = (key: keyof FollowUpAnswers): string => {
-    return watch(key as any) || 'good';
+    // Prioritize formData prop over internal form state
+    const propValue = formData[key] as string;
+    const formValue = watch(key as any);
+    const result = propValue || formValue || 'good';
+    console.log(`📊 getConditionValue(${String(key)}): prop=${propValue}, form=${formValue}, result=${result}`);
+    return result;
   };
 
   // Create wrapper functions to match ConditionSelector interface
@@ -197,7 +218,7 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
   };
 
   const createWatchWrapper = (fieldKey: keyof FollowUpAnswers) => (name: string) => {
-    return watch(fieldKey as any) || 'good';
+    return getConditionValue(fieldKey);
   };
 
   const getBadgeVariant = (value: string) => {
