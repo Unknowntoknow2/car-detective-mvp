@@ -1685,6 +1685,51 @@ export type Database = {
         }
         Relationships: []
       }
+      model_trims: {
+        Row: {
+          created_at: string | null
+          engine_type: string | null
+          fuel_type: string | null
+          id: string
+          image_url: string | null
+          make: string
+          model: string
+          msrp: number
+          transmission: string | null
+          trim_name: string | null
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          created_at?: string | null
+          engine_type?: string | null
+          fuel_type?: string | null
+          id?: string
+          image_url?: string | null
+          make: string
+          model: string
+          msrp: number
+          transmission?: string | null
+          trim_name?: string | null
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          created_at?: string | null
+          engine_type?: string | null
+          fuel_type?: string | null
+          id?: string
+          image_url?: string | null
+          make?: string
+          model?: string
+          msrp?: number
+          transmission?: string | null
+          trim_name?: string | null
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
       models: {
         Row: {
           created_at: string | null

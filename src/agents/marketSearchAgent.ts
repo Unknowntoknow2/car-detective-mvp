@@ -93,6 +93,20 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
     // Try OpenAI web search if available
     let webSearchResult: any = null;
     try {
+      console.log('🚀 Invoking openai-web-search edge function with payload:', {
+        query,
+        max_tokens: 3000,
+        saveToDb: true,
+        vehicleData: {
+          make: input.make,
+          model: input.model,
+          year: input.year,
+          trim: input.trim,
+          zipCode: input.zipCode,
+          vin: input.vin
+        }
+      });
+
       const { data: searchResult, error: searchError } = await supabase.functions.invoke('openai-web-search', {
         body: { 
           query,
@@ -109,12 +123,24 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
         }
       });
       
-      if (!searchError && searchResult) {
+      if (searchError) {
+        console.error('❌ Edge function invocation error:', searchError);
+        console.error('❌ Error details:', JSON.stringify(searchError, null, 2));
+      } else if (searchResult) {
         webSearchResult = searchResult;
         console.log('✅ Web search completed successfully');
+        console.log('📊 Search result data structure:', {
+          hasContent: !!searchResult.content,
+          hasListings: !!searchResult.listings,
+          listingsCount: searchResult.listings?.length || 0,
+          searchQuery: searchResult.searchQuery
+        });
+      } else {
+        console.warn('⚠️ Edge function returned empty result');
       }
     } catch (searchError) {
-      console.warn('⚠️ Web search failed, will use fallback approach:', searchError);
+      console.error('💥 Web search exception:', searchError);
+      console.error('💥 Exception details:', JSON.stringify(searchError, null, 2));
     }
 
     // Step 3: Process web search results if available

@@ -51,27 +51,57 @@ async function lookupMSRPFromDatabase(
   trim?: string
 ): Promise<MSRPResult> {
   try {
-    // Check if we have an MSRP table or model trims table
-    const { data: trimData, error } = await supabase
+    console.log(`🔍 Looking up MSRP in model_trims for: ${year} ${make} ${model} ${trim || 'no trim'}`);
+    
+    let query = supabase
       .from('model_trims')
-      .select('msrp')
+      .select('msrp, trim_name')
+      .eq('year', year)
+      .ilike('make', `%${make}%`)
+      .ilike('model', `%${model}%`);
+
+    // If trim is provided, try exact match first
+    if (trim) {
+      console.log(`🎯 Searching for exact trim match: "${trim}"`);
+      const { data: exactTrimData, error: exactError } = await query
+        .ilike('trim_name', `%${trim}%`)
+        .order('msrp', { ascending: false })
+        .limit(1);
+
+      if (!exactError && exactTrimData && exactTrimData.length > 0 && exactTrimData[0].msrp) {
+        console.log(`✅ Found exact trim match: ${exactTrimData[0].trim_name} - $${exactTrimData[0].msrp}`);
+        return {
+          msrp: exactTrimData[0].msrp,
+          source: 'model_trims_exact',
+          confidence: 95
+        };
+      }
+    }
+
+    // If no exact trim match, get the highest MSRP for that make/model/year
+    console.log(`🔄 No exact trim match, getting highest MSRP for ${year} ${make} ${model}`);
+    const { data: generalData, error: generalError } = await supabase
+      .from('model_trims')
+      .select('msrp, trim_name')
       .eq('year', year)
       .ilike('make', `%${make}%`)
       .ilike('model', `%${model}%`)
       .order('msrp', { ascending: false })
       .limit(1);
 
-    if (!error && trimData && trimData.length > 0 && trimData[0].msrp) {
+    if (!generalError && generalData && generalData.length > 0 && generalData[0].msrp) {
+      console.log(`✅ Found general match: ${generalData[0].trim_name} - $${generalData[0].msrp}`);
       return {
-        msrp: trimData[0].msrp,
-        source: 'database_exact',
-        confidence: 0.95
+        msrp: generalData[0].msrp,
+        source: 'model_trims_general',
+        confidence: 75
       };
     }
 
-    return { msrp: 0, source: 'database_miss', confidence: 0 };
+    console.log(`❌ No MSRP found in model_trims table`);
+    return { msrp: 0, source: 'model_trims_miss', confidence: 0 };
   } catch (error) {
-    console.error('Database MSRP lookup error:', error);
+    console.error('❌ Database MSRP lookup error:', error);
     return { msrp: 0, source: 'database_error', confidence: 0 };
   }
 }
