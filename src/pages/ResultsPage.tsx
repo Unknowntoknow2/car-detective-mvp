@@ -84,8 +84,8 @@ function ResultsContent() {
       aiExplanation: engineResult.aiExplanation || engineResult.explanation || 'Valuation complete',
       sources: engineResult.sourcesUsed,
       listingRange: {
-        _type: "defined" as const,
-        value: `$${engineResult.priceRange[0].toLocaleString()} - $${engineResult.priceRange[1].toLocaleString()}` as const
+        min: engineResult.priceRange[0],
+        max: engineResult.priceRange[1]
       },
       listingCount: engineResult.marketListings.length,
       listings: engineResult.marketListings.map(listing => ({
