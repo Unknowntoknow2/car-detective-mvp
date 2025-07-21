@@ -50,6 +50,12 @@ export function TabbedResultsPanels({ result, onUpgrade, isPremium, valuationId 
       description: 'Value breakdown and AI insights'
     },
     {
+      id: 'enhanced-listings',
+      label: 'Live Market',
+      icon: Search,
+      description: 'Facebook & Craigslist listings'
+    },
+    {
       id: 'market',
       label: 'Market Data',
       icon: MapPin,
@@ -99,7 +105,7 @@ export function TabbedResultsPanels({ result, onUpgrade, isPremium, valuationId 
           <Tabs defaultValue="overview" className="w-full">
             {/* Modern Tab List */}
             <div className="border-b bg-muted/30 px-6 py-4">
-              <TabsList className="grid w-full grid-cols-5 bg-background/50 backdrop-blur-sm">
+              <TabsList className="grid w-full grid-cols-6 bg-background/50 backdrop-blur-sm">
                 {tabs.map((tab) => {
                   const IconComponent = tab.icon;
                   return (
@@ -130,6 +136,10 @@ export function TabbedResultsPanels({ result, onUpgrade, isPremium, valuationId 
 
               <TabsContent value="analysis" className="space-y-6 mt-0">
                 <AnalysisTab result={result} />
+              </TabsContent>
+
+              <TabsContent value="enhanced-listings" className="space-y-6 mt-0">
+                <EnhancedListingsTab result={result} />
               </TabsContent>
 
               <TabsContent value="market" className="space-y-6 mt-0">
@@ -350,6 +360,109 @@ function ForecastTab({
         isPremium={isPremium}
         onUpgrade={onUpgrade}
       />
+    </motion.div>
+  );
+}
+
+// Enhanced Listings Tab Component
+function EnhancedListingsTab({ result }: { result: UnifiedValuationResult }) {
+  const enhancedListings = result.listings?.filter(listing => 
+    ['facebook', 'craigslist'].includes(listing.source?.toLowerCase() || '')
+  ) || [];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-4"
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Search className="h-5 w-5 text-primary" />
+            Live Market Listings
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Real-time listings from Facebook Marketplace and Craigslist for enhanced price validation.
+          </p>
+        </div>
+        <Badge variant="secondary" className="bg-green-100 text-green-800">
+          {enhancedListings.length} Enhanced
+        </Badge>
+      </div>
+
+      {enhancedListings.length > 0 ? (
+        <div className="space-y-3">
+          {enhancedListings.slice(0, 8).map((listing, index) => (
+            <Card key={index} className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {listing.source}
+                    </Badge>
+                    {listing.dealer_name && (
+                      <Badge variant="secondary" className="text-xs">
+                        {listing.dealer_name}
+                      </Badge>
+                    )}
+                    {listing.is_cpo && (
+                      <Badge variant="default" className="text-xs">
+                        CPO
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="font-medium">
+                    {result.vehicle.year} {result.vehicle.make} {result.vehicle.model}
+                    {listing.trim && ` ${listing.trim}`}
+                  </p>
+                  <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                    {listing.mileage && (
+                      <span>{listing.mileage.toLocaleString()} miles</span>
+                    )}
+                    {listing.location && (
+                      <span>{listing.location}</span>
+                    )}
+                    {listing.condition && (
+                      <span className="capitalize">{listing.condition}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xl font-bold text-primary">
+                    ${listing.price.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {listing.fetched_at ? new Date(listing.fetched_at).toLocaleDateString() : 'Recent'}
+                  </p>
+                  {listing.listing_url && listing.listing_url !== '#' && (
+                    <a 
+                      href={listing.listing_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline"
+                    >
+                      View Listing →
+                    </a>
+                  )}
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card className="p-8">
+          <div className="text-center">
+            <Search className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+            <h4 className="font-medium mb-2">No Enhanced Listings Found</h4>
+            <p className="text-sm text-muted-foreground">
+              No Facebook Marketplace or Craigslist listings were found for this vehicle.
+              The valuation is based on standard market data sources.
+            </p>
+          </div>
+        </Card>
+      )}
     </motion.div>
   );
 }

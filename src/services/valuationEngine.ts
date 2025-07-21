@@ -6,6 +6,7 @@ import { getMarketMultiplier } from "@/utils/valuation/marketData";
 import { fetchMarketComps, fetchCachedMarketComps } from "./valuation/marketSearchService";
 import { saveMarketListings } from "./valuation/marketListingService";
 import { lookupTitleStatus, lookupOpenRecalls } from "./historyCheckService";
+import { fetchFacebookCraigslistEnrichment, transformToMarketListings } from "./valuation/enhancedMarketSearchAgent";
 import type { UnifiedValuationResult, ValuationAdjustment, TitleStatus, RecallEntry } from "@/types/valuation";
 
 export interface ValuationInput {
@@ -62,63 +63,88 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     unresolvedRecalls: recallCheck?.unresolvedCount || 0
   });
 
+  // Step 2: Enhanced Market Search (Facebook & Craigslist)
+  console.log('📱 [ENHANCED_MARKET] Starting Facebook & Craigslist enrichment...');
+  let enhancedSearchResults;
+  let enhancedListings: any[] = [];
+  
   try {
-    console.log('🔍 [UNIFIED_VALUATION] Starting market data collection...');
-    
-    const searchResult = await fetchMarketComps(make, model, year, zipCode, vin);
-    
-    console.log('📊 [UNIFIED_VALUATION] Search result received:', {
-      listingsCount: searchResult.listings?.length || 0,
-      source: searchResult.source,
-      trust: searchResult.trust,
-      notes: searchResult.notes
+    enhancedSearchResults = await fetchFacebookCraigslistEnrichment({
+      vin,
+      year,
+      make,
+      model,
+      trim,
+      zipCode,
+      mileage
     });
     
-    if (!searchResult.listings || searchResult.listings.length === 0) {
-      throw new Error(`No real-time market data found: ${searchResult.notes}`);
-    }
-
-    marketListings = searchResult.listings;
-    marketSearchStatus = 'success';
-    confidenceScore = Math.max(searchResult.trust * 100, 75);
-    trustNotes = `Found ${marketListings.length} real listings via OpenAI web search`;
-
-    // Calculate base value from REAL market data
-    const prices = marketListings.map(listing => listing.price).filter(p => p > 0);
-    if (prices.length === 0) {
-      throw new Error('No valid prices found in real market listings');
-    }
-
-    // Use median price from real listings as base value
-    prices.sort((a, b) => a - b);
-    const medianIndex = Math.floor(prices.length / 2);
-    baseValue = prices.length % 2 === 0 
-      ? (prices[medianIndex - 1] + prices[medianIndex]) / 2 
-      : prices[medianIndex];
-
-    console.log(`💰 [UNIFIED_VALUATION] Real market base value: $${baseValue.toLocaleString()} from ${prices.length} listings`);
-
-    // Save real market listings
-    try {
-      await saveMarketListings(marketListings, {
-        vin,
-        valuationId: crypto.randomUUID(),
-        zipCode
+    if (enhancedSearchResults.listingCount > 0) {
+      enhancedListings = transformToMarketListings(enhancedSearchResults.enrichedListings, {
+        vin, year, make, model, trim, zipCode, mileage
       });
-      console.log('✅ [UNIFIED_VALUATION] Real market listings saved to database');
-    } catch (saveError) {
-      console.warn('⚠️ [UNIFIED_VALUATION] Failed to save market listings:', saveError);
+      
+      // Use enhanced listings as primary market data
+      marketListings = enhancedListings;
+      marketSearchStatus = 'success';
+      
+      // Apply confidence boost from enhanced search
+      confidenceScore = Math.max(75 + enhancedSearchResults.confidenceBoost, 90);
+      trustNotes = `Found ${enhancedListings.length} enhanced listings from Facebook & Craigslist`;
+      
+      console.log(`✅ [ENHANCED_MARKET] Found ${enhancedListings.length} enhanced listings`);
+      console.log(`📊 [ENHANCED_MARKET] Confidence boost: +${enhancedSearchResults.confidenceBoost} points`);
+    } else {
+      console.log('⚠️ [ENHANCED_MARKET] No enhanced listings found, falling back to standard search');
+      
+      // Fallback to standard market search
+      const searchResult = await fetchMarketComps(make, model, year, zipCode, vin);
+      
+      if (searchResult?.listings && searchResult.listings.length > 0) {
+        marketListings = searchResult.listings;
+        marketSearchStatus = 'success';
+        confidenceScore = Math.max(searchResult.trust * 100, 75);
+        trustNotes = `Found ${marketListings.length} standard market listings`;
+        console.log(`✅ [MARKET_SEARCH] Found ${marketListings.length} standard market listings`);
+      } else {
+        console.log('⚠️ [MARKET_SEARCH] No market listings found in fallback search');
+        marketSearchStatus = 'fallback';
+        throw new Error('No market data available from standard or enhanced search');
+      }
     }
-
-  } catch (marketError: unknown) {
-    console.error('❌ [UNIFIED_VALUATION] Market data collection failed:', marketError);
-    
-    // Provide detailed error information
-    const errorMessage = marketError instanceof Error ? marketError.message : 'Unknown error';
-    throw new Error(`Valuation failed: ${errorMessage}`);
+  } catch (marketError) {
+    console.error('❌ [ENHANCED_MARKET] Market search failed:', marketError);
+    marketSearchStatus = 'error';
+    throw new Error(`Market search failed: ${marketError instanceof Error ? marketError.message : 'Unknown error'}`);
   }
 
-  // Apply condition adjustments to real market median
+  
+  // Calculate base value from market data
+  const prices = marketListings.map((listing: any) => listing.price).filter((p: number) => p > 0);
+  if (prices.length === 0) {
+    throw new Error('No valid prices found in market listings');
+  }
+
+  // Use median price from listings as base value
+  prices.sort((a: number, b: number) => a - b);
+  const medianIndex = Math.floor(prices.length / 2);
+  baseValue = prices.length % 2 === 0 
+    ? (prices[medianIndex - 1] + prices[medianIndex]) / 2 
+    : prices[medianIndex];
+
+  console.log(`💰 [UNIFIED_VALUATION] Market base value: $${baseValue.toLocaleString()} from ${prices.length} listings`);
+
+  // Save market listings if available
+  if (enhancedListings.length > 0) {
+    try {
+      // Enhanced listings are already stored in the database by the enhanced search agent
+      console.log('✅ [UNIFIED_VALUATION] Enhanced listings already saved to database');
+    } catch (saveError) {
+      console.warn('⚠️ [UNIFIED_VALUATION] Failed to save enhanced listings:', saveError);
+    }
+  }
+
+  // Apply condition adjustments to market median
   const adjustments: ValuationAdjustment[] = [];
   
   // Apply title-based value penalties
