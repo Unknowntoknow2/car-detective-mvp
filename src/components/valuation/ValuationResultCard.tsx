@@ -46,7 +46,9 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
     listingRange,
     listingCount,
     marketSearchStatus,
-    sources
+    sources,
+    titleStatus,
+    recalls
   } = result;
 
   const handleDownloadPdf = async () => {
@@ -230,6 +232,34 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
                 Valuation enhanced with {listingCount} live market listings for improved accuracy.
               </AlertDescription>
             </Alert>
+          )}
+
+          {/* Title Status Section */}
+          {titleStatus && (
+            <div className="rounded-xl border p-4 mt-4 bg-muted/50">
+              <h3 className="font-semibold mb-2 flex items-center gap-2">
+                🔍 Title Status
+              </h3>
+              <p className="text-sm text-muted-foreground capitalize">
+                {titleStatus === 'clean'
+                  ? '✅ Clean title — no penalties applied.'
+                  : `⚠️ ${titleStatus} title — value reduced due to risk.`}
+              </p>
+            </div>
+          )}
+
+          {/* Open Recalls Section */}
+          {recalls && recalls.length > 0 && (
+            <div className="rounded-xl border p-4 mt-4 bg-muted/50">
+              <h3 className="font-semibold mb-2 flex items-center gap-2">
+                🚨 Open Recalls
+              </h3>
+              <ul className="list-disc pl-5 space-y-1">
+                {recalls.map((recall, idx) => (
+                  <li key={idx} className="text-sm text-muted-foreground">{recall}</li>
+                ))}
+              </ul>
+            </div>
           )}
         </CardContent>
       </Card>

@@ -266,10 +266,11 @@ export interface UnifiedValuationResult {
   marketSearchStatus?: string;
   timestamp: number;
   // Title and Recall Intelligence
-  titleStatus?: TitleStatus | null;
+  titleStatus?: 'clean' | 'salvage' | 'rebuilt' | 'flood' | 'lemon' | 'theft_recovery' | 'unknown';
   titleHistory?: TitleHistoryResult | null;
   openRecalls?: RecallEntry[];
   recallCheck?: RecallCheckResult | null;
+  recalls?: string[]; // Simple string array for easy UI display
   notes: string[];
 }
 
