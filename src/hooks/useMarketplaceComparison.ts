@@ -35,26 +35,56 @@ export function useMarketplaceComparison({
 }: UseMarketplaceComparisonProps) {
   const [ainRecommendation, setAinRecommendation] = useState<string>('');
 
-  // Fetch marketplace listings
+  // Fetch marketplace listings using enhanced market data
   const { data: listings = [], isLoading } = useQuery({
     queryKey: ['marketplace-listings', vin, make, model, year],
     queryFn: async (): Promise<MarketplaceListing[]> => {
       try {
-        let query = supabase
-          .from('scraped_listings')
+        console.log('Fetching marketplace listings for comparison:', { vin, make, model, year });
+
+        // First try enhanced market listings
+        const { data: enhancedListings, error: enhancedError } = await supabase
+          .from('enhanced_market_listings')
           .select('*')
-          .order('created_at', { ascending: false })
+          .or(
+            vin 
+              ? `vin.eq.${vin},and(make.eq.${make},model.eq.${model},year.eq.${year})`
+              : `and(make.eq.${make},model.eq.${model},year.eq.${year})`
+          )
+          .order('fetched_at', { ascending: false })
           .limit(20);
 
-        // First try to match by VIN if available
+        if (!enhancedError && enhancedListings && enhancedListings.length > 0) {
+          console.log(`Found ${enhancedListings.length} enhanced market listings`);
+          return enhancedListings.map(listing => ({
+            id: listing.id,
+            title: `${listing.year} ${listing.make} ${listing.model}${listing.trim ? ` ${listing.trim}` : ''}`,
+            price: listing.price,
+            url: listing.listing_url,
+            platform: listing.source,
+            location: listing.location || zipCode || '',
+            mileage: listing.mileage,
+            created_at: listing.fetched_at || listing.created_at,
+            vin: listing.vin
+          }));
+        }
+
+        // Fallback to original scraped_listings
         if (vin && vin.length === 17) {
-          const { data: vinData, error: vinError } = await query.eq('vin', vin);
+          const { data: vinData, error: vinError } = await supabase
+            .from('scraped_listings')
+            .select('*')
+            .eq('vin', vin)
+            .order('created_at', { ascending: false })
+            .limit(20);
+          
           if (!vinError && vinData && vinData.length > 0) {
+            console.log(`Found ${vinData.length} VIN-based scraped listings`);
             return vinData as MarketplaceListing[];
           }
         }
 
-        // Fallback to make/model/year matching
+        // Final fallback to make/model/year matching in scraped_listings
         if (make && model && year) {
           const searchQuery = `${year} ${make} ${model}`;
           const { data, error } = await supabase
@@ -65,9 +95,11 @@ export function useMarketplaceComparison({
             .limit(20);
 
           if (error) throw error;
+          console.log(`Found ${data?.length || 0} make/model/year scraped listings`);
           return data as MarketplaceListing[] || [];
         }
 
+        console.log('No marketplace listings found');
         return [];
       } catch (error) {
         console.error('Error fetching marketplace listings:', error);
@@ -76,7 +108,7 @@ export function useMarketplaceComparison({
       }
     },
     enabled: !!(vin || (make && model && year)),
-    staleTime: 1000 * 60 * 15, // 15 minutes
+    staleTime: 1000 * 60 * 5, // 5 minutes for more frequent updates
   });
 
   // Generate AIN recommendation
