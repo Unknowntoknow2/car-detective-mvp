@@ -1047,6 +1047,105 @@ export type Database = {
         }
         Relationships: []
       }
+      enhanced_market_listings: {
+        Row: {
+          condition: string | null
+          confidence_score: number | null
+          created_at: string | null
+          days_listed: number | null
+          dealer_name: string | null
+          features: Json | null
+          fetched_at: string | null
+          geo_distance_miles: number | null
+          id: string
+          is_cpo: boolean | null
+          is_validated: boolean | null
+          listing_date: string | null
+          listing_url: string
+          location: string | null
+          make: string | null
+          mileage: number | null
+          model: string | null
+          photos: Json | null
+          price: number
+          raw_data: Json | null
+          source: string
+          source_type: string
+          title_status: string | null
+          trim: string | null
+          updated_at: string | null
+          validation_errors: Json | null
+          valuation_request_id: string | null
+          vin: string | null
+          year: number | null
+          zip_code: string | null
+        }
+        Insert: {
+          condition?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          days_listed?: number | null
+          dealer_name?: string | null
+          features?: Json | null
+          fetched_at?: string | null
+          geo_distance_miles?: number | null
+          id?: string
+          is_cpo?: boolean | null
+          is_validated?: boolean | null
+          listing_date?: string | null
+          listing_url: string
+          location?: string | null
+          make?: string | null
+          mileage?: number | null
+          model?: string | null
+          photos?: Json | null
+          price: number
+          raw_data?: Json | null
+          source: string
+          source_type?: string
+          title_status?: string | null
+          trim?: string | null
+          updated_at?: string | null
+          validation_errors?: Json | null
+          valuation_request_id?: string | null
+          vin?: string | null
+          year?: number | null
+          zip_code?: string | null
+        }
+        Update: {
+          condition?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          days_listed?: number | null
+          dealer_name?: string | null
+          features?: Json | null
+          fetched_at?: string | null
+          geo_distance_miles?: number | null
+          id?: string
+          is_cpo?: boolean | null
+          is_validated?: boolean | null
+          listing_date?: string | null
+          listing_url?: string
+          location?: string | null
+          make?: string | null
+          mileage?: number | null
+          model?: string | null
+          photos?: Json | null
+          price?: number
+          raw_data?: Json | null
+          source?: string
+          source_type?: string
+          title_status?: string | null
+          trim?: string | null
+          updated_at?: string | null
+          validation_errors?: Json | null
+          valuation_request_id?: string | null
+          vin?: string | null
+          year?: number | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       equipment_options: {
         Row: {
           created_at: string | null
@@ -1645,6 +1744,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      market_search_audit: {
+        Row: {
+          created_at: string | null
+          data_sources_used: Json | null
+          error_message: string | null
+          id: string
+          listings_found: number | null
+          listings_validated: number | null
+          search_duration_ms: number | null
+          search_params: Json
+          search_status: string | null
+          search_type: string
+          valuation_request_id: string | null
+          vin: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_sources_used?: Json | null
+          error_message?: string | null
+          id?: string
+          listings_found?: number | null
+          listings_validated?: number | null
+          search_duration_ms?: number | null
+          search_params: Json
+          search_status?: string | null
+          search_type: string
+          valuation_request_id?: string | null
+          vin?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_sources_used?: Json | null
+          error_message?: string | null
+          id?: string
+          listings_found?: number | null
+          listings_validated?: number | null
+          search_duration_ms?: number | null
+          search_params?: Json
+          search_status?: string | null
+          search_type?: string
+          valuation_request_id?: string | null
+          vin?: string | null
+        }
+        Relationships: []
       }
       model_training_runs: {
         Row: {
@@ -2693,6 +2837,36 @@ export type Database = {
           description?: string | null
           multiplier?: number
           status?: string
+        }
+        Relationships: []
+      }
+      title_status_adjustments: {
+        Row: {
+          adjustment_percentage: number
+          adjustment_type: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          severity_level: number | null
+          title_status: string
+        }
+        Insert: {
+          adjustment_percentage: number
+          adjustment_type?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          severity_level?: number | null
+          title_status: string
+        }
+        Update: {
+          adjustment_percentage?: number
+          adjustment_type?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          severity_level?: number | null
+          title_status?: string
         }
         Relationships: []
       }
@@ -3960,6 +4134,10 @@ export type Database = {
           table_name: string
         }[]
       }
+      get_title_adjustment: {
+        Args: { title_status: string; base_value: number }
+        Returns: number
+      }
       get_trims_by_make_model_year: {
         Args: { input_make: string; input_model: string; input_year: number }
         Returns: {
@@ -4074,6 +4252,10 @@ export type Database = {
       }
       use_premium_credit: {
         Args: { p_user_id: string; p_valuation_id: string }
+        Returns: boolean
+      }
+      validate_market_listing: {
+        Args: { listing_id: string }
         Returns: boolean
       }
     }

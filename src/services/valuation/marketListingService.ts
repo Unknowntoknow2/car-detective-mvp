@@ -1,6 +1,7 @@
 // Market Listing Database Service - Persists OpenAI market search results
 import { supabase } from "@/integrations/supabase/client";
 import type { MarketListing } from "@/types/valuation";
+import { toast } from "sonner";
 
 interface MarketListingInsertData {
   vin?: string;
