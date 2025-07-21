@@ -240,9 +240,27 @@ function estimateVehicleMSRP(year: number, make: string, model: string): number 
   const baseMSRP = (() => {
     const makeModel = `${make.toLowerCase()}_${model.toLowerCase()}`;
     
+    // High-performance and luxury trucks/SUVs
+    if (makeModel.includes('raptor')) {
+      return year >= 2023 ? 95000 : year >= 2020 ? 85000 : 75000;
+    }
+    if (makeModel.includes('f-150') && makeModel.includes('lightning')) {
+      return 85000; // Electric F-150
+    }
+    if (makeModel.includes('f-150')) {
+      // Regular F-150 variants by trim level
+      return year >= 2023 ? 55000 : year >= 2020 ? 50000 : 45000;
+    }
+    
     // Luxury brands
     if (['bmw', 'mercedes', 'audi', 'lexus', 'infiniti', 'acura'].includes(make.toLowerCase())) {
-      return 45000;
+      return year >= 2020 ? 55000 : 45000;
+    }
+    
+    // Luxury SUVs and trucks
+    const luxuryModels = ['escalade', 'navigator', 'tahoe', 'suburban', 'expedition', 'sequoia', 'armada'];
+    if (luxuryModels.some(luxury => model.toLowerCase().includes(luxury))) {
+      return year >= 2020 ? 75000 : 65000;
     }
     
     // Popular models with known ranges
@@ -255,28 +273,46 @@ function estimateVehicleMSRP(year: number, make: string, model: string): number 
       'ford_fusion': 24120,
       'chevrolet_malibu': 24095,
       'hyundai_elantra': 20650,
+      'chevrolet_silverado': 45000,
+      'ram_1500': 45000,
+      'toyota_tundra': 48000,
+      'nissan_titan': 42000,
     };
     
     if (modelMap[makeModel]) {
       return modelMap[makeModel];
     }
     
-    // Default by make
+    // Truck defaults by make
+    const truckModels = ['f-150', 'silverado', 'ram', 'tundra', 'titan', 'ranger', 'colorado', 'tacoma'];
+    if (truckModels.some(truck => model.toLowerCase().includes(truck))) {
+      const truckDefaults: Record<string, number> = {
+        'ford': 50000,
+        'chevrolet': 45000,
+        'ram': 45000,
+        'toyota': 48000,
+        'nissan': 42000,
+        'gmc': 47000
+      };
+      return truckDefaults[make.toLowerCase()] || 45000;
+    }
+    
+    // Default by make for non-trucks
     const makeDefaults: Record<string, number> = {
       'toyota': 28000,
       'honda': 26000,
       'nissan': 25000,
-      'ford': 26000,
-      'chevrolet': 25000,
+      'ford': 30000,
+      'chevrolet': 28000,
       'hyundai': 23000,
       'kia': 22000
     };
     
-    return makeDefaults[make.toLowerCase()] || 26000;
+    return makeDefaults[make.toLowerCase()] || 28000;
   })();
   
   // Adjust for year (newer cars worth more)
-  const yearMultiplier = Math.max(0.7, 1 - (age * 0.05));
+  const yearMultiplier = Math.max(0.8, 1 - (age * 0.03));
   
   return Math.round(baseMSRP * yearMultiplier);
 }
