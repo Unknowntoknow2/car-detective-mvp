@@ -39,6 +39,16 @@ export async function calculateValuationFromListings(
     trustNotes = searchResult.notes;
     const comps = searchResult.listings;
 
+    // ✅ DEBUG: Add listing count fallback warning for debugging visibility
+    if (!comps?.length || comps.length < 3) {
+      console.warn('[VALUATION DEBUG] Warning: marketListings is empty or too small — falling back.', {
+        listingsCount: comps?.length || 0,
+        trustScore: searchResult.trust,
+        source: searchResult.source,
+        notes: searchResult.notes
+      });
+    }
+
     if (comps && comps.length >= 2 && trustScore >= 0.3) {
       // 🎯 CRITICAL: Check for exact VIN match first (highest priority)
       exactVinMatch = comps.find(listing => {
