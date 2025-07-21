@@ -47,7 +47,8 @@ export default function PlateValuationPage() {
   const handleFollowUpSubmit = async (followUpAnswers: FollowUpAnswers) => {
     console.log('✅ Plate follow-up submitted:', followUpAnswers);
     toast.success('Plate valuation completed successfully!');
-    // Handle final valuation submission here
+    // Navigate to results page
+    window.location.href = `/results/${followUpAnswers.vin}`;
   };
 
   return (
