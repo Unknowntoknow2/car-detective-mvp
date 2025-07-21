@@ -210,7 +210,7 @@ export class EnhancedMarketListingService {
     const averagePrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
     const sortedPrices = prices.sort((a, b) => a - b);
     const medianPrice = sortedPrices[Math.floor(sortedPrices.length / 2)];
-    const averageMileage = mileages.reduce((sum, mileage) => sum + mileage!, 0) / mileages.length;
+    const averageMileage = mileages.filter(m => m != null).reduce((sum, mileage) => sum + mileage, 0) / mileages.filter(m => m != null).length || 0;
     
     // Find most common condition
     const conditionCounts = conditions.reduce((acc, condition) => {

@@ -1,6 +1,6 @@
-import { calculateMileageAdjustment } from './mileageAdjustment';
-import { calculateConditionAdjustment } from './conditionAdjustment';
-import { calculateTitleAdjustment } from './titleAdjustment';
+import { calculateMileageAdjustment } from '@/utils/valuation/mileageAdjustment';
+import { calculateConditionAdjustment } from '@/utils/valuation/conditionAdjustment';
+import { calculateTitleAdjustment } from '@/utils/valuation/titleAdjustment';
 import { getMarketMultiplier } from '@/utils/valuation/marketData';
 import { MarketDataService } from './marketDataService';
 import { supabase } from '@/integrations/supabase/client';
