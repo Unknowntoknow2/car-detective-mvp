@@ -145,27 +145,40 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
       console.log('✅ Real-time valuation completed:', result);
       setValuationData(result);
 
-      // Save the updated result to database
+      // Save the valuation result to database
       try {
-        const { error: saveError } = await supabase
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        // First insert the new valuation record
+        const { data: savedValuation, error: insertError } = await supabase
           .from('valuations')
-          .update({
+          .insert({
+            id: result.id,
+            user_id: user?.id || null,  // Allow anonymous valuations
+            vin: input.vin,
+            make: input.make,
+            model: input.model,
+            year: input.year,
+            mileage: input.mileage,
+            condition: input.condition,
+            zip_code: input.zipCode,  // Use zip_code not state
+            fuel_type: input.fuelType,
             estimated_value: result.finalValue,
             confidence_score: result.confidenceScore,
-            explanation: result.aiExplanation,
-            market_search_status: result.marketSearchStatus,
-            listing_count: result.listingCount,
+            created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
-          .eq('vin', input.vin);
+          .select()
+          .single();
 
-        if (saveError) {
-          console.warn('⚠️ Failed to save updated valuation:', saveError);
+        if (insertError) {
+          console.warn('⚠️ Failed to save valuation to database:', insertError);
         } else {
-          console.log('✅ Updated valuation saved to database');
+          console.log('✅ Valuation saved to database successfully');
         }
       } catch (saveErr) {
-        console.warn('⚠️ Error saving updated valuation:', saveErr);
+        console.warn('⚠️ Error saving valuation to database:', saveErr);
       }
 
       toast.success(`New estimate: $${result.finalValue.toLocaleString()} (${result.confidenceScore}% confidence)`);
