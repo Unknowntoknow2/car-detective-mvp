@@ -22,7 +22,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Loader2, Info, Bot } from "lucide-react";
-import { useValuation } from "@/contexts/ValuationContext";
+import { useValuationContext } from '@/contexts/ValuationContext';
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ZipCodeInput } from "@/components/common/ZipCodeInput";
@@ -49,7 +49,7 @@ type ValuationFormData = z.infer<typeof valuationSchema>;
 export const FreeValuationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { processFreeValuation } = useValuation();
+  const { rerunValuation } = useValuationContext();
   const navigate = useNavigate();
 
   const {
@@ -75,27 +75,20 @@ export const FreeValuationForm = () => {
     setError(null);
 
     try {
-      const result = await processFreeValuation(data);
+      await rerunValuation({
+        vin: `MANUAL_${data.make}_${data.model}_${data.year}`,
+        make: data.make,
+        model: data.model,
+        year: data.year,
+        mileage: data.mileage,
+        condition: data.condition,
+        zipCode: data.zipCode,
+        trim: '',
+        fuelType: 'gasoline'
+      });
 
-      if (result && result.valuationId) {
-        localStorage.setItem(
-          `valuation_${result.valuationId}`,
-          JSON.stringify({
-            ...data,
-            valuationId: result.valuationId,
-            estimatedValue: result.estimatedValue || 20000,
-            confidenceScore: result.confidenceScore || 85,
-            timestamp: new Date().toISOString(),
-          }),
-        );
-
-        localStorage.setItem("latest_valuation_id", result.valuationId);
-        navigate(`/result?id=${result.valuationId}`);
-        toast.success("Valuation completed successfully!");
-      } else {
-        setError("Failed to generate valuation. Please try again.");
-        toast.error("Failed to generate valuation");
-      }
+      toast.success("Valuation completed successfully!");
+      navigate('/valuation');
     } catch (err) {
       console.error("Valuation error:", err);
       setError("An unexpected error occurred. Please try again later.");

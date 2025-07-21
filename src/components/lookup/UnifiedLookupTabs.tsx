@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Car, FileText, Loader2 } from 'lucide-react';
-import { useValuation } from '@/contexts/ValuationContext';
+import { useValuationContext } from '@/contexts/ValuationContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { EnhancedVehicleSelector } from '@/components/lookup/form-parts/EnhancedVehicleSelector';
@@ -33,7 +33,7 @@ export function UnifiedLookupTabs() {
     state: ''
   });
   
-  const { processFreeValuation } = useValuation();
+  const { rerunValuation } = useValuationContext();
   const navigate = useNavigate();
   const { findMakeById, findModelById } = useMakeModels();
   
@@ -117,21 +117,20 @@ export function UnifiedLookupTabs() {
 
       // For manual entry, go directly to results since user provided all details
       // FIXED: Pass actual zipCode instead of defaulting to '90210'
-      const valuationResult = await processFreeValuation({
+      await rerunValuation({
+        vin: `MANUAL_${selectedMake.make_name}_${selectedModel.model_name}_${selectedYear}`,
         make: selectedMake.make_name,
         model: selectedModel.model_name,
         year: selectedYear,
         mileage: parseInt(mileage) || 0,
         condition: condition,
         zipCode: zipCode || '', // FIXED: Use empty string instead of '90210'
-        vin: undefined // Manual entry doesn't have VIN
+        trim: '',
+        fuelType: 'gasoline'
       });
       
-      console.log('✅ Manual Entry: Valuation completed:', valuationResult);
+      console.log('✅ Manual Entry: Valuation completed');
       toast.success('Manual valuation completed!');
-      
-      // Navigate to results using unified route
-      navigate(`/results/${valuationResult.valuationId}`);
       
     } catch (error) {
       console.error('❌ Manual valuation error:', error);

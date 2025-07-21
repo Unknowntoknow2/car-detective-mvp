@@ -3,31 +3,34 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ManualEntryForm } from '@/components/lookup/manual/ManualEntryForm';
 import { ManualEntryFormData } from '@/types/manual-entry';
-import { useValuation } from '@/contexts/ValuationContext';
+import { useValuationContext } from '@/contexts/ValuationContext';
 import { toast } from 'sonner';
 
 const ManualValuationPage: React.FC = () => {
   const navigate = useNavigate();
-  const { processFreeValuation } = useValuation();
+  const { rerunValuation } = useValuationContext();
 
   const handleSubmit = async (data: ManualEntryFormData) => {
     console.log('🏗️ ManualValuationPage: Processing standardized submission:', data);
     
     try {
-      const valuationResult = await processFreeValuation({
+      await rerunValuation({
+        vin: `MANUAL_${data.make}_${data.model}_${data.year}`,
         make: data.make,
         model: data.model,
         year: parseInt(data.year),
         mileage: parseInt(data.mileage),
         condition: data.condition,
-        zipCode: data.zipCode
+        zipCode: data.zipCode,
+        trim: '',
+        fuelType: 'gasoline'
       });
       
-      console.log('✅ ManualValuationPage: Valuation completed:', valuationResult);
+      console.log('✅ ManualValuationPage: Valuation completed');
       toast.success('Manual valuation completed successfully!');
       
       // Navigate to results using unified route
-      navigate(`/results/${valuationResult.valuationId}`);
+      navigate('/valuation');
       
     } catch (error) {
       console.error('❌ ManualValuationPage: Valuation failed:', error);
