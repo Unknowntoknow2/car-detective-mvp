@@ -1631,6 +1631,57 @@ export type Database = {
         }
         Relationships: []
       }
+      market_listing_aggregations: {
+        Row: {
+          aggregation_notes: string[] | null
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          listings_found: number | null
+          market_multiplier: number | null
+          market_velocity_score: number | null
+          median_price: number | null
+          price_range_high: number | null
+          price_range_low: number | null
+          search_criteria: Json
+          sources_used: string[] | null
+          supply_density_score: number | null
+          valuation_request_id: string | null
+        }
+        Insert: {
+          aggregation_notes?: string[] | null
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          listings_found?: number | null
+          market_multiplier?: number | null
+          market_velocity_score?: number | null
+          median_price?: number | null
+          price_range_high?: number | null
+          price_range_low?: number | null
+          search_criteria: Json
+          sources_used?: string[] | null
+          supply_density_score?: number | null
+          valuation_request_id?: string | null
+        }
+        Update: {
+          aggregation_notes?: string[] | null
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          listings_found?: number | null
+          market_multiplier?: number | null
+          market_velocity_score?: number | null
+          median_price?: number | null
+          price_range_high?: number | null
+          price_range_low?: number | null
+          search_criteria?: Json
+          sources_used?: string[] | null
+          supply_density_score?: number | null
+          valuation_request_id?: string | null
+        }
+        Relationships: []
+      }
       market_listings: {
         Row: {
           condition: string | null
