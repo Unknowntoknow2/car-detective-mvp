@@ -63,9 +63,9 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     unresolvedRecalls: recallCheck?.unresolvedCount || 0
   });
 
-  // Step 2: Enhanced Market Search (Facebook & Craigslist)
-  console.log('📱 [ENHANCED_MARKET] Starting Facebook & Craigslist enrichment...');
-  let enhancedSearchResults;
+  // Step 2: Enhanced Market Search (OfferUp, eBay, Amazon, Facebook & Craigslist)
+  console.log('📱 [ENHANCED_MARKET] Starting multi-platform enrichment...');
+  let enhancedSearchResults: any;
   let enhancedListings: any[] = [];
   
   try {
@@ -90,7 +90,15 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
       
       // Apply confidence boost from enhanced search
       confidenceScore = Math.max(75 + enhancedSearchResults.confidenceBoost, 90);
-      trustNotes = `Found ${enhancedListings.length} enhanced listings from Facebook & Craigslist`;
+      trustNotes = `Found ${enhancedListings.length} enhanced listings from ${Object.keys(enhancedSearchResults.platformBreakdown).filter(k => enhancedSearchResults.platformBreakdown[k] > 0).join(', ')}`;
+      
+      // Enhanced AI explanation with platform breakdown
+      const platformCounts = Object.entries(enhancedSearchResults.platformBreakdown)
+        .filter(([_, count]) => (count as number) > 0)
+        .map(([platform, count]) => `${count} ${platform}`)
+        .join(', ');
+      
+      notes.push(`Anchored valuation to ${enhancedListings.length} matching listings from ${platformCounts} between $${Math.min(...enhancedListings.map(l => l.price)).toLocaleString()}–$${Math.max(...enhancedListings.map(l => l.price)).toLocaleString()} in ZIP ${zipCode}. Data verified by OpenAI Web Intelligence.`);
       
       console.log(`✅ [ENHANCED_MARKET] Found ${enhancedListings.length} enhanced listings`);
       console.log(`📊 [ENHANCED_MARKET] Confidence boost: +${enhancedSearchResults.confidenceBoost} points`);

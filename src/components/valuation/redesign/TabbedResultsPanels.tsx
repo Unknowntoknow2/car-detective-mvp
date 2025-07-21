@@ -367,8 +367,16 @@ function ForecastTab({
 // Enhanced Listings Tab Component
 function EnhancedListingsTab({ result }: { result: UnifiedValuationResult }) {
   const enhancedListings = result.listings?.filter(listing => 
-    ['facebook', 'craigslist'].includes(listing.source?.toLowerCase() || '')
+    ['facebook', 'craigslist', 'offerup', 'ebay', 'amazon'].includes(listing.source?.toLowerCase() || '')
   ) || [];
+
+  // Group listings by platform for better display
+  const platformGroups = enhancedListings.reduce((groups, listing) => {
+    const platform = listing.source?.toLowerCase() || 'other';
+    if (!groups[platform]) groups[platform] = [];
+    groups[platform].push(listing);
+    return groups;
+  }, {} as Record<string, typeof enhancedListings>);
 
   return (
     <motion.div
@@ -381,74 +389,92 @@ function EnhancedListingsTab({ result }: { result: UnifiedValuationResult }) {
         <div>
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Search className="h-5 w-5 text-primary" />
-            Live Market Listings
+            Multi-Platform Market Listings
           </h3>
           <p className="text-sm text-muted-foreground">
-            Real-time listings from Facebook Marketplace and Craigslist for enhanced price validation.
+            Real-time listings from Facebook, Craigslist, OfferUp, eBay Motors, and Amazon Autos for comprehensive price validation.
           </p>
         </div>
-        <Badge variant="secondary" className="bg-green-100 text-green-800">
-          {enhancedListings.length} Enhanced
-        </Badge>
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(platformGroups).map(([platform, listings]) => (
+            <Badge key={platform} variant="secondary" className="capitalize">
+              {listings.length} {platform}
+            </Badge>
+          ))}
+          <Badge variant="outline" className="bg-green-100 text-green-800">
+            {enhancedListings.length} Total Enhanced
+          </Badge>
+        </div>
       </div>
 
       {enhancedListings.length > 0 ? (
-        <div className="space-y-3">
-          {enhancedListings.slice(0, 8).map((listing, index) => (
-            <Card key={index} className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="outline" className="text-xs capitalize">
-                      {listing.source}
-                    </Badge>
-                    {listing.dealer_name && (
-                      <Badge variant="secondary" className="text-xs">
-                        {listing.dealer_name}
-                      </Badge>
-                    )}
-                    {listing.is_cpo && (
-                      <Badge variant="default" className="text-xs">
-                        CPO
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="font-medium">
-                    {result.vehicle.year} {result.vehicle.make} {result.vehicle.model}
-                    {listing.trim && ` ${listing.trim}`}
-                  </p>
-                  <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                    {listing.mileage && (
-                      <span>{listing.mileage.toLocaleString()} miles</span>
-                    )}
-                    {listing.location && (
-                      <span>{listing.location}</span>
-                    )}
-                    {listing.condition && (
-                      <span className="capitalize">{listing.condition}</span>
-                    )}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-xl font-bold text-primary">
-                    ${listing.price.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {listing.fetched_at ? new Date(listing.fetched_at).toLocaleDateString() : 'Recent'}
-                  </p>
-                  {listing.listing_url && listing.listing_url !== '#' && (
-                    <a 
-                      href={listing.listing_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline"
-                    >
-                      View Listing →
-                    </a>
-                  )}
-                </div>
+        <div className="space-y-6">
+          {/* Platform-grouped listings */}
+          {Object.entries(platformGroups).map(([platform, listings]) => (
+            <div key={platform} className="space-y-3">
+              <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
+                <span className="h-2 w-2 bg-primary rounded-full"></span>
+                {platform.charAt(0).toUpperCase() + platform.slice(1)} ({listings.length})
+              </h4>
+              <div className="grid gap-3">
+                {listings.slice(0, 4).map((listing, index) => (
+                  <Card key={index} className="p-4">
+                    <div className="flex items-center justify-between">
+                       <div className="flex-1">
+                         <div className="flex items-center gap-2 mb-2">
+                           <Badge variant="outline" className="text-xs capitalize">
+                             {listing.source}
+                           </Badge>
+                          {listing.dealer_name && (
+                            <Badge variant="secondary" className="text-xs">
+                              {listing.dealer_name}
+                            </Badge>
+                          )}
+                          {listing.is_cpo && (
+                            <Badge variant="default" className="text-xs">
+                              CPO
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="font-medium">
+                          {result.vehicle.year} {result.vehicle.make} {result.vehicle.model}
+                          {listing.trim && ` ${listing.trim}`}
+                        </p>
+                        <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                          {listing.mileage && (
+                            <span>{listing.mileage.toLocaleString()} miles</span>
+                          )}
+                          {listing.location && (
+                            <span>{listing.location}</span>
+                          )}
+                          {listing.condition && (
+                            <span className="capitalize">{listing.condition}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-bold text-primary">
+                          ${listing.price.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {listing.fetched_at ? new Date(listing.fetched_at).toLocaleDateString() : 'Recent'}
+                        </p>
+                        {listing.listing_url && listing.listing_url !== '#' && (
+                          <a 
+                            href={listing.listing_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline"
+                          >
+                            View Listing →
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       ) : (
@@ -457,7 +483,7 @@ function EnhancedListingsTab({ result }: { result: UnifiedValuationResult }) {
             <Search className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
             <h4 className="font-medium mb-2">No Enhanced Listings Found</h4>
             <p className="text-sm text-muted-foreground">
-              No Facebook Marketplace or Craigslist listings were found for this vehicle.
+              No Facebook, Craigslist, OfferUp, eBay Motors, or Amazon Autos listings were found for this vehicle.
               The valuation is based on standard market data sources.
             </p>
           </div>
