@@ -95,7 +95,8 @@ export default function ValuationFollowUpPage() {
       
       console.log('✅ Valuation created successfully');
       toast.success('Valuation completed successfully!');
-      navigate('/valuation', { replace: true });
+      // Navigate to results page with the vehicle's VIN
+      navigate(`/results/${vehicleData.vin}`, { replace: true });
       return true;
     } catch (error) {
       console.error('❌ [DEBUG] Error in handleSubmitAnswers:', error);
