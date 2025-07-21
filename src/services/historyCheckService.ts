@@ -13,7 +13,6 @@ export async function lookupTitleStatus(vin: string): Promise<TitleHistoryResult
   try {
     console.log('🔍 [TITLE_CHECK] Checking title status for VIN:', vin);
 
-    // Call NICB VINCheck service
     const response = await fetch('https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/fetch_nicb_vincheck', {
       method: 'POST',
       headers: {
@@ -40,21 +39,17 @@ export async function lookupTitleStatus(vin: string): Promise<TitleHistoryResult
       status = 'theft_recovery';
       confidence = 0.9;
       details.damageTypes = ['theft'];
-    } else if (data.flood_record) {
-      status = 'flood';
-      confidence = 0.85;
-      details.damageTypes = ['flood'];
-    } else if (data.salvage_record) {
+    } else if (data.total_loss_record) {
       status = 'salvage';
       confidence = 0.9;
       details.damageTypes = ['collision', 'total_loss'];
-    }
-
-    // Check for additional title brand indicators
-    if (data.title_brands?.includes('REBUILT')) {
-      status = 'rebuilt';
+    } else if (data.status === 'salvage') {
+      status = 'salvage';
       confidence = 0.85;
-      details.rebuildDate = data.rebuild_date;
+      details.damageTypes = ['collision'];
+    } else {
+      status = 'clean';
+      confidence = 0.95;
     }
 
     return {
@@ -84,9 +79,17 @@ export async function lookupOpenRecalls(vin: string): Promise<RecallCheckResult 
   try {
     console.log('🔍 [RECALL_CHECK] Checking recalls for VIN:', vin);
 
-    // NHTSA VPIC API for recalls by VIN
+    // Call NHTSA recalls edge function
     const response = await fetch(
-      `https://vpic.nhtsa.dot.gov/api/vehicles/GetVehicleVariableValuesByVIN/${vin}?format=json`
+      'https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/fetch_nhtsa_recalls',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsdHhxcXphdHR4b2d4dHFyZ2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NTYxMjYsImV4cCI6MjA2MTAzMjEyNn0.kUPmsyUdpcpnPLHWlnP7vODQiRgzCrWjOBfLib3lpvY'
+        },
+        body: JSON.stringify({ vin })
+      }
     );
 
     if (!response.ok) {
@@ -96,42 +99,22 @@ export async function lookupOpenRecalls(vin: string): Promise<RecallCheckResult 
 
     const data = await response.json();
     
-    // Extract vehicle details for recall lookup
-    const results = data.Results || [];
-    const makeResult = results.find((r: any) => r.Variable === 'Make');
-    const modelResult = results.find((r: any) => r.Variable === 'Model');
-    const yearResult = results.find((r: any) => r.Variable === 'Model Year');
-
-    if (!makeResult?.Value || !modelResult?.Value || !yearResult?.Value) {
-      console.warn('🚨 [RECALL_CHECK] Insufficient vehicle data from NHTSA');
+    if (data.error) {
+      console.warn('🚨 [RECALL_CHECK] NHTSA service error:', data.error);
       return null;
     }
 
-    // Query NHTSA recalls by make/model/year
-    const recallResponse = await fetch(
-      `https://vpic.nhtsa.dot.gov/api/vehicles/GetVehicleVariableValuesByVIN/${vin}?format=json&variable=recalls`
-    );
-
-    let recalls: RecallEntry[] = [];
-    
-    if (recallResponse.ok) {
-      const recallData = await recallResponse.json();
-      
-      // Parse recall data (NHTSA format varies)
-      recalls = parseNHTSARecalls(recallData, vin);
-    }
-
-    // Filter unresolved recalls
+    const recalls: RecallEntry[] = data.recalls || [];
     const unresolved = recalls.filter(recall => !recall.isResolved);
 
-    console.log(`📊 [RECALL_CHECK] Found ${recalls.length} total recalls, ${unresolved.length} unresolved`);
+    console.log(`📊 [RECALL_CHECK] Found ${recalls.length} total recalls, ${unresolved.length} unresolved for ${data.year} ${data.make} ${data.model}`);
 
     return {
       recalls,
       unresolved,
       totalRecalls: recalls.length,
       unresolvedCount: unresolved.length,
-      lastChecked: new Date().toISOString(),
+      lastChecked: data.lastChecked || new Date().toISOString(),
       source: 'nhtsa'
     };
 
