@@ -10,6 +10,7 @@ import { fetchFacebookCraigslistEnrichment, transformToMarketListings } from "./
 import { fetchVehicleTitlesAndRecalls, type TitleRecallInfo } from "./valuation/titleRecallAgent";
 import { marketIntelligenceEngine, type SearchCriteria, type MarketIntelligence } from "./valuation/marketIntelligenceEngine";
 import { fetchTieredListings, type EnrichedMarketListing } from "../agents/marketSearchAgent";
+import { type DealerSourceResult } from "../utils/dealerSources";
 import type { UnifiedValuationResult, ValuationAdjustment, TitleStatus, RecallEntry } from "@/types/valuation";
 
 export interface ValuationInput {
@@ -411,6 +412,8 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     marketAnchoredPrice,
     marketListings: finalListings,
     sourceBreakdown,
+    // ENHANCED: Dealer Source Contributions for Transparency
+    sourceContributions: (enrichedListings as any).sourceContributions || [],
     // Title and Recall Intelligence
     titleStatus: titleHistory?.status || titleRecallInfo.titleStatus.toLowerCase() as any,
     titleHistory,
