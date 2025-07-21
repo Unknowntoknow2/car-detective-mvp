@@ -1,4 +1,3 @@
-
 import { calculateDepreciation } from "@/utils/valuation/depreciation";
 import { calculateMileageAdjustment } from "@/utils/valuation/mileageAdjustment";
 import { calculateConditionAdjustment } from "@/utils/valuation/conditionAdjustment";
@@ -36,7 +35,7 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     fuelType = 'gasoline'
   } = input;
 
-  console.log('🌐 [UNIFIED_VALUATION] Forcing OpenAI web search - NO STATIC DATA ALLOWED');
+  console.log('🌐 [UNIFIED_VALUATION] Using real-time OpenAI web search - NO STATIC DATA');
   
   let marketListings: any[] = [];
   let marketSearchStatus: 'success' | 'fallback' | 'error' = 'error';
@@ -45,7 +44,6 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
   let trustNotes = 'Searching real-time market data...';
 
   try {
-    // FORCE real-time web search - no fallbacks
     console.log('🔍 [UNIFIED_VALUATION] Calling OpenAI web search directly...');
     
     const searchResult = await fetchMarketComps(make, model, year, zipCode, vin);
@@ -63,7 +61,7 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
 
     marketListings = searchResult.listings;
     marketSearchStatus = 'success';
-    confidenceScore = Math.max(searchResult.trust * 100, 75); // High confidence for real data
+    confidenceScore = Math.max(searchResult.trust * 100, 75);
     trustNotes = `Found ${marketListings.length} real listings via OpenAI web search`;
 
     // Calculate base value from REAL market data
@@ -96,15 +94,14 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
   } catch (marketError: unknown) {
     console.error('❌ [UNIFIED_VALUATION] Real-time market search failed:', marketError);
     
-    // REFUSE to fall back to static data
+    // Provide detailed error information
     const errorMessage = marketError instanceof Error ? marketError.message : 'Unknown error';
-    throw new Error(`Real-time valuation failed: ${errorMessage}. System configured to reject static data.`);
+    throw new Error(`Real-time valuation failed: ${errorMessage}`);
   }
 
-  // Apply MINIMAL adjustments based on real market data
+  // Apply condition adjustments to real market median
   const adjustments: ValuationAdjustment[] = [];
 
-  // Only apply condition adjustments to real market median
   if (condition && condition !== 'unknown') {
     let conditionMultiplier = 1.0;
     switch (condition.toLowerCase()) {
