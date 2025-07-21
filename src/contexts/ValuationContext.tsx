@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { calculateUnifiedValuation, type UnifiedValuationResult as EngineResult } from '@/services/valuation/valuationEngine';
+import { calculateUnifiedValuation, type UnifiedValuationResult as EngineResult, type ValuationEngineInput } from '@/services/valuation/valuationEngine';
 import type { ValuationInput } from '@/types/valuation';
 import { toast } from 'sonner';
 
@@ -88,27 +88,53 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
 
       console.log('✅ Loaded valuation data:', data);
 
-      // Transform legacy valuation data to EngineResult format
-      const legacyResult: EngineResult = {
-        finalValue: data.estimated_value,
-        priceRange: [
-          Math.round(data.estimated_value * 0.9),
-          Math.round(data.estimated_value * 1.1)
-        ],
-        confidenceScore: data.confidence_score || 40,
-        marketListings: [],
-        zipAdjustment: 0,
-        mileagePenalty: 0,
-        conditionDelta: 0,
-        titlePenalty: 0,
-        aiExplanation: data.explanation || 'Legacy valuation data',
-        sourcesUsed: ['legacy_database'],
-        adjustments: [],
-        baseValue: data.estimated_value,
-        explanation: 'Legacy valuation data from database'
+      // Run fresh valuation with the new engine using the stored vehicle data
+      console.log('🔄 Running fresh valuation with new engine...');
+      
+      const engineInput: ValuationEngineInput = {
+        vin: data.vin || id,
+        zipCode: data.zip_code || '95821',
+        mileage: data.mileage || 100000, // Default mileage if not available
+        condition: data.condition || 'good',
+        decodedVehicle: {
+          year: data.year,
+          make: data.make,
+          model: data.model,
+          trim: data.body_type || undefined,
+          bodyType: data.body_style || undefined
+        },
+        fuelType: data.fuel_type || 'gasoline'
       };
 
-      setValuationData(legacyResult);
+      try {
+        const freshResult = await calculateUnifiedValuation(engineInput);
+        console.log('✅ Fresh valuation result:', freshResult);
+        setValuationData(freshResult);
+      } catch (engineError) {
+        console.error('❌ Failed to run fresh valuation, falling back to legacy data:', engineError);
+        
+        // Fallback to legacy data if engine fails
+        const legacyResult: EngineResult = {
+          finalValue: data.estimated_value,
+          priceRange: [
+            Math.round(data.estimated_value * 0.9),
+            Math.round(data.estimated_value * 1.1)
+          ],
+          confidenceScore: data.confidence_score || 40,
+          marketListings: [],
+          zipAdjustment: 0,
+          mileagePenalty: 0,
+          conditionDelta: 0,
+          titlePenalty: 0,
+          aiExplanation: data.explanation || 'Legacy valuation data (engine failed)',
+          sourcesUsed: ['legacy_database'],
+          adjustments: [],
+          baseValue: data.estimated_value,
+          explanation: 'Legacy valuation data from database'
+        };
+
+        setValuationData(legacyResult);
+      }
       setIsPremium(data.premium_unlocked || false);
 
     } catch (err) {
