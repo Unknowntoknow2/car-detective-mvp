@@ -47,11 +47,32 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
     setError(null);
 
     try {
-      const { data, error: fetchError } = await supabase
-        .from('valuations')
-        .select('*')
-        .eq('id', id)
-        .single();
+      let data, fetchError;
+      
+      // Check if ID is a UUID (valuation ID) or a VIN
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      
+      if (isUuid) {
+        // Query by valuation ID
+        const response = await supabase
+          .from('valuations')
+          .select('*')
+          .eq('id', id)
+          .single();
+        data = response.data;
+        fetchError = response.error;
+      } else {
+        // Query by VIN (get most recent valuation for this VIN)
+        const response = await supabase
+          .from('valuations')
+          .select('*')
+          .eq('vin', id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        data = response.data;
+        fetchError = response.error;
+      }
 
       if (fetchError) {
         console.error('❌ Failed to fetch valuation:', fetchError);
