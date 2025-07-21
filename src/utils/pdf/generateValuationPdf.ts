@@ -116,6 +116,56 @@ export async function generateValuationPdf(result: UnifiedValuationResult): Prom
 
   addDivider();
 
+  // Title & Safety Information (if available)
+  if (result.titleStatus || (result.recalls && result.recalls.length > 0)) {
+    addText('TITLE & SAFETY INFORMATION', { font: boldFont, size: 16, color: primaryColor });
+    yPosition -= 5;
+
+    if (result.titleStatus) {
+      const titleColor = result.titleStatus === 'clean' ? successColor : rgb(0.8, 0.2, 0.2);
+      addText('Title Status:', { size: 10, font: boldFont });
+      addText(result.titleStatus.charAt(0).toUpperCase() + result.titleStatus.slice(1), { 
+        x: margin + 100, 
+        y: yPosition + 10 + 8, 
+        size: 10, 
+        color: titleColor 
+      });
+    }
+
+    if (result.recalls && result.recalls.length > 0) {
+      addText('Open Recalls:', { size: 10, font: boldFont });
+      addText(`${result.recalls.length} active recall(s)`, { 
+        x: margin + 100, 
+        y: yPosition + 10 + 8, 
+        size: 10, 
+        color: rgb(0.8, 0.2, 0.2) 
+      });
+      
+      // List first 3 recalls
+      result.recalls.slice(0, 3).forEach((recall, index) => {
+        const truncatedRecall = recall.length > 60 ? recall.substring(0, 57) + '...' : recall;
+        addText(`• ${truncatedRecall}`, { 
+          x: margin + 20, 
+          y: yPosition + 10 + 8 - ((index + 1) * 12), 
+          size: 9 
+        });
+      });
+      
+      if (result.recalls.length > 3) {
+        yPosition -= (3 * 12);
+        addText(`... and ${result.recalls.length - 3} more recall(s)`, { 
+          x: margin + 20, 
+          size: 9, 
+          color: rgb(0.5, 0.5, 0.5) 
+        });
+      } else {
+        yPosition -= ((result.recalls.length - 1) * 12);
+      }
+    }
+
+    addDivider();
+  }
+
   // Valuation Summary
   addText('VALUATION SUMMARY', { font: boldFont, size: 16, color: primaryColor });
   yPosition -= 5;

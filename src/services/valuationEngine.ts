@@ -239,10 +239,11 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     marketSearchStatus,
     timestamp: Date.now(),
     // Title and Recall Intelligence
-    titleStatus: titleHistory?.status || null,
+    titleStatus: titleHistory?.status || undefined,
     titleHistory,
     openRecalls: recallCheck?.unresolved || [],
     recallCheck,
+    recalls: recallCheck?.unresolved?.map(r => r.description) || [],
     notes
   };
 
