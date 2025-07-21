@@ -1,5 +1,5 @@
 // Legacy data converter for backward compatibility
-import type { ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
+import type { UnifiedValuationResult } from '@/types/valuation';
 
 interface LegacyValuationData {
   id?: string; // Add ID field for forecast integration
@@ -35,10 +35,10 @@ interface LegacyVehicleInfo {
 export function convertLegacyToUnified(
   vehicleInfo: LegacyVehicleInfo,
   valuationData: LegacyValuationData
-): ValuationResult {
+): UnifiedValuationResult {
   console.log('🔄 Converting legacy data:', { vehicleInfo, valuationData });
   return {
-    id: valuationData.id || undefined, // ✅ FIX #2: Ensure ID is included for forecast integration
+    id: valuationData.id || crypto.randomUUID(), // ✅ FIX #2: Ensure ID is included for forecast integration
     vin: vehicleInfo.vin || '',
     vehicle: {
       year: vehicleInfo.year,
@@ -66,6 +66,7 @@ export function convertLegacyToUnified(
     listingCount: 0,
     listings: [],
     marketSearchStatus: 'fallback' as const,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    notes: valuationData.valuation_notes || []
   };
 }

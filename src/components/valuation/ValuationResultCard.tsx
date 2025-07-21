@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/accordion";
 import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer";
 import { ExternalLink, FileText, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Download, Loader2, QrCode, Share2, Lock, Copy, Twitter, MessageCircle, Mail, ThumbsUp, ThumbsDown, Scale, Info, Bot } from 'lucide-react';
-import type { ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
+import type { UnifiedValuationResult } from '@/types/valuation';
 import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { submitValuationFeedback } from '@/services/supabase/feedbackService';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,7 +24,7 @@ import { useUserPlan } from '@/hooks/useUserPlan';
 import { UpgradeCTA } from '@/components/ui/UpgradeCTA';
 
 interface ValuationResultCardProps {
-  result: ValuationResult;
+  result: UnifiedValuationResult;
   onDownloadPdf?: () => void;
   onShareReport?: () => void;
 }
@@ -79,9 +79,10 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
   };
 
   const copyToClipboard = async () => {
-    if (result.shareLink) {
+    const shareLink = (result as any).shareLink; // Handle optional property
+    if (shareLink) {
       try {
-        await navigator.clipboard.writeText(result.shareLink);
+        await navigator.clipboard.writeText(shareLink);
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000);
       } catch (err) {
@@ -91,25 +92,28 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
   };
 
   const shareOnTwitter = () => {
-    if (result.shareLink) {
+    const shareLink = (result as any).shareLink; // Handle optional property
+    if (shareLink) {
       const text = `Check out this ${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model} valuation: $${result.finalValue.toLocaleString()}`;
-      const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(result.shareLink)}`;
+      const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareLink)}`;
       window.open(url, '_blank', 'width=550,height=420');
     }
   };
 
   const shareOnWhatsApp = () => {
-    if (result.shareLink) {
-      const text = `Check out this ${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model} valuation: $${result.finalValue.toLocaleString()} - ${result.shareLink}`;
+    const shareLink = (result as any).shareLink; // Handle optional property
+    if (shareLink) {
+      const text = `Check out this ${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model} valuation: $${result.finalValue.toLocaleString()} - ${shareLink}`;
       const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
       window.open(url, '_blank');
     }
   };
 
   const shareViaEmail = () => {
-    if (result.shareLink) {
+    const shareLink = (result as any).shareLink; // Handle optional property
+    if (shareLink) {
       const subject = `Vehicle Valuation: ${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model}`;
-      const body = `I wanted to share this vehicle valuation with you:\n\n${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model}\nEstimated Value: $${result.finalValue.toLocaleString()}\nConfidence Score: ${result.confidenceScore}%\n\nView the full report: ${result.shareLink}`;
+      const body = `I wanted to share this vehicle valuation with you:\n\n${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model}\nEstimated Value: $${result.finalValue.toLocaleString()}\nConfidence Score: ${result.confidenceScore}%\n\nView the full report: ${shareLink}`;
       const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       window.open(url);
     }
@@ -279,7 +283,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
                 <CheckCircle className="w-3 h-3 text-green-600" />
                 <span>AI Analysis</span>
               </div>
-              {hasFeature('pdf_download') && result.pdfUrl && (
+              {hasFeature('pdf_download') && (result as any).pdfUrl && (
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-3 h-3 text-green-600" />
                   <span>PDF Generated</span>
@@ -374,7 +378,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
               </AccordionTrigger>
               <AccordionContent>
                 <MarkdownRenderer className="mt-4">
-                  {aiExplanation}
+                  {aiExplanation || 'No explanation available'}
                 </MarkdownRenderer>
               </AccordionContent>
             </AccordionItem>
@@ -521,10 +525,10 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
         <h3 className="text-lg font-semibold mb-2">📊 Valuation Actions</h3>
         
         {/* PDF Download - Premium Gated */}
-        {hasFeature('pdf_download') && result.pdfUrl && (
+        {hasFeature('pdf_download') && (result as any).pdfUrl && (
           <Button asChild className="w-full mt-2">
             <a
-              href={result.pdfUrl}
+              href={(result as any).pdfUrl}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -538,12 +542,12 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
         )}
 
         {/* Share Link + Copy Button */}
-        {result.shareLink && (
+        {(result as any).shareLink && (
           <div className="mt-4">
             <Label className="text-sm">🔗 Share this valuation:</Label>
             <div className="flex items-center gap-2 mt-1">
               <Input
-                value={result.shareLink}
+                value={(result as any).shareLink}
                 readOnly
                 className="text-xs flex-grow"
               />
@@ -597,12 +601,12 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
         )}
 
         {/* QR Code Display */}
-        {result.qrCode && (
+        {(result as any).qrCode && (
           <div className="mt-4">
             <Label className="text-sm">📱 Scan to view valuation:</Label>
             <div className="flex items-start gap-4 mt-2">
               <img
-                src={result.qrCode}
+                src={(result as any).qrCode}
                 alt="QR Code for sharing valuation"
                 className="h-28 border rounded-lg"
               />

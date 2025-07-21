@@ -1,9 +1,9 @@
 import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
 import { formatCurrency } from '@/utils/formatters/formatCurrency';
 import { formatDate } from '@/utils/formatters/formatDate';
-import { ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
+import type { UnifiedValuationResult } from '@/types/valuation';
 
-export async function generateValuationPdf(result: ValuationResult): Promise<Blob> {
+export async function generateValuationPdf(result: UnifiedValuationResult): Promise<Blob> {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([612, 792]); // US Letter size
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -103,7 +103,7 @@ export async function generateValuationPdf(result: ValuationResult): Promise<Blo
 
   const vehicleInfo = [
     ['Vehicle:', `${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model} ${result.vehicle.trim || ''}`],
-    ['Mileage:', `${result.mileage.toLocaleString()} miles`],
+    ['Mileage:', `${result.mileage?.toLocaleString() || 'N/A'} miles`],
     ['Location:', `ZIP ${result.zip}`],
     ['Fuel Type:', result.vehicle.fuelType || 'N/A'],
     ['Report Date:', formatDate(new Date(result.timestamp))]
@@ -203,7 +203,7 @@ export async function generateValuationPdf(result: ValuationResult): Promise<Blo
   yPosition -= 5;
 
   // Split explanation into lines that fit
-  const explanationLines = splitTextIntoLines(result.aiExplanation, width - 2 * margin, font, 10);
+  const explanationLines = splitTextIntoLines(result.aiExplanation || 'No explanation available', width - 2 * margin, font, 10);
   explanationLines.forEach((line) => {
     if (yPosition < 100) {
       // Add new page if needed
@@ -276,7 +276,7 @@ function splitTextIntoLines(text: string, maxWidth: number, font: any, fontSize:
   return lines;
 }
 
-export async function downloadValuationPdf(result: ValuationResult): Promise<void> {
+export async function downloadValuationPdf(result: UnifiedValuationResult): Promise<void> {
   const pdfBlob = await generateValuationPdf(result);
   const url = URL.createObjectURL(pdfBlob);
   

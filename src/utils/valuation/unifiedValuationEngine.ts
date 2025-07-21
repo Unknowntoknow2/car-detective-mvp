@@ -1,3 +1,6 @@
+// ⚠️ DEPRECATED: DO NOT USE IN PRODUCTION
+// This file is retained for test/development purposes only
+// Use src/services/valuationEngine.ts for all production valuation logic
 // Unified Valuation Engine with Real-Time Progress Tracking
 import { supabase } from "@/integrations/supabase/client";
 import { decodeVin } from "@/services/vehicleDecodeService";
