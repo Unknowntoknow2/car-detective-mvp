@@ -27,12 +27,20 @@ export interface MarketSearchResult {
 
 export async function fetchMarketComps(input: ValuationInput): Promise<MarketSearchResult> {
   try {
-    console.log('🔍 Market Search Agent: Starting market search for:', {
+    console.log('[MARKET_SEARCH DEBUG] Starting market search for:', {
       vin: input.vin,
       make: input.make,
       model: input.model,
       year: input.year,
       zipCode: input.zipCode
+    });
+    
+    console.log('[MARKET_SEARCH DEBUG] Input values:', {
+      year: input.year,
+      make: input.make,
+      model: input.model,
+      zip: input.zipCode,
+      vin: input.vin
     });
 
     // Step 1: Check existing database listings first for faster results
@@ -90,10 +98,12 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
     
     console.log('🔍 Web search query:', query);
     
+    console.log('[MARKET_SEARCH DEBUG] Final query string:', query);
+    
     // Try OpenAI web search if available
     let webSearchResult: any = null;
     try {
-      console.log('🚀 Invoking openai-web-search edge function with payload:', {
+      const payload = { 
         query,
         max_tokens: 3000,
         saveToDb: true,
@@ -105,42 +115,42 @@ export async function fetchMarketComps(input: ValuationInput): Promise<MarketSea
           zipCode: input.zipCode,
           vin: input.vin
         }
-      });
+      };
+      
+      console.log('[MARKET_SEARCH DEBUG] Invoking openai-web-search edge function with payload:', payload);
 
       const { data: searchResult, error: searchError } = await supabase.functions.invoke('openai-web-search', {
-        body: { 
-          query,
-          max_tokens: 3000,
-          saveToDb: true,
-          vehicleData: {
-            make: input.make,
-            model: input.model,
-            year: input.year,
-            trim: input.trim,
-            zipCode: input.zipCode,
-            vin: input.vin
-          }
-        }
+        body: payload
+      });
+      
+      console.log('[MARKET_SEARCH DEBUG] Edge function result:', {
+        searchResult: searchResult,
+        searchError: searchError
       });
       
       if (searchError) {
-        console.error('❌ Edge function invocation error:', searchError);
-        console.error('❌ Error details:', JSON.stringify(searchError, null, 2));
+        console.error('[MARKET_SEARCH DEBUG] ❌ Edge function invocation error:', searchError);
+        console.error('[MARKET_SEARCH DEBUG] ❌ Error details:', JSON.stringify(searchError, null, 2));
       } else if (searchResult) {
         webSearchResult = searchResult;
-        console.log('✅ Web search completed successfully');
-        console.log('📊 Search result data structure:', {
+        console.log('[MARKET_SEARCH DEBUG] ✅ Web search completed successfully');
+        console.log('[MARKET_SEARCH DEBUG] 📊 Search result data structure:', {
           hasContent: !!searchResult.content,
           hasListings: !!searchResult.listings,
           listingsCount: searchResult.listings?.length || 0,
           searchQuery: searchResult.searchQuery
         });
       } else {
-        console.warn('⚠️ Edge function returned empty result');
+        console.log('[MARKET_SEARCH DEBUG] ⚠️ Edge function returned empty result');
       }
     } catch (searchError) {
-      console.error('💥 Web search exception:', searchError);
-      console.error('💥 Exception details:', JSON.stringify(searchError, null, 2));
+      console.error('[MARKET_SEARCH DEBUG] 💥 Web search exception:', searchError);
+      console.error('[MARKET_SEARCH DEBUG] 💥 Exception details:', JSON.stringify(searchError, null, 2));
+    }
+    
+    console.log('[MARKET_SEARCH DEBUG] webSearchResult after edge function call:', webSearchResult);
+    if (webSearchResult && webSearchResult.listings && webSearchResult.listings.length === 0) {
+      console.warn('[MARKET_SEARCH DEBUG] ⚠️ Edge function returned zero listings');
     }
 
     // Step 3: Process web search results if available

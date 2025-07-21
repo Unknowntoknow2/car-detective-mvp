@@ -187,12 +187,20 @@ export async function processValuation(
     await logValuationStep('VIN_DECODE_COMPLETE', vin, valuationRequest.id, { make: vehicleMake, model: vehicleModel, year: vehicleYear }, userId, zipCode);
     console.log('✅ VIN decoded and valuation request created:', { make: vehicleMake, model: vehicleModel, year: vehicleYear, requestId: valuationRequest.id });
     
-    // Step 2: FIX #4 - Dynamic MSRP Lookup
+    // Step 2: FIX #4 - Dynamic MSRP Lookup with PROPER INTEGRATION
+    console.log(`🔍 [MSRP DEBUG] Calling getDynamicMSRP for: ${vehicleYear} ${vehicleMake} ${vehicleModel} ${vehicleTrim || 'no trim'}`);
     const baseValue = await getDynamicMSRP(vehicleYear, vehicleMake, vehicleModel, vehicleTrim);
+    console.log(`🔍 [MSRP DEBUG] Result from getDynamicMSRP: $${baseValue.toLocaleString()}`);
+    
     const adjustments: ValuationResult["adjustments"] = [];
-    let finalValue = baseValue;
+    let finalValue = baseValue; // CRITICAL FIX: Use the actual MSRP result as starting value
     const sources = baseValue > 30000 ? ["msrp_db_lookup"] : ["estimated_msrp"];
     let marketSearchStatus: "success" | "fallback" | "error" = "fallback";
+    
+    console.log(`🎯 [PIPELINE DEBUG] Starting valuation with baseValue: $${baseValue.toLocaleString()}, source: ${sources[0]}`);
+    
+    // Track if we're using database MSRP vs estimate for confidence
+    const usingDatabaseMSRP = baseValue > 30000;
     
     // Step 2: Apply depreciation adjustment (10% Progress)
     tracker.startStep('depreciation', { year: vehicleYear, baseValue });
@@ -317,10 +325,20 @@ export async function processValuation(
     tracker.completeStep('package_adjustments', { totalValue: totalPackageValue, packageCount: packageAdjustments.length });
     await logValuationStep('PACKAGE_ADJUSTMENTS', vin, valuationRequest?.id || 'fallback', { totalValue: totalPackageValue, packages: packageAdjustments.length }, userId, zipCode);
     
-    // Step 6: Market listings integration (15% Progress)
+    // Step 6: Market listings integration (15% Progress) - CRITICAL FIX
     tracker.startStep('market_search', { year: vehicleYear, make: vehicleMake, model: vehicleModel });
     let listings: any[] = [];
     let listingRange: { min: number; max: number } | undefined;
+    
+    console.log(`🔍 [MARKET DEBUG] Starting market search with parameters:`, {
+      year: vehicleYear,
+      make: vehicleMake,
+      model: vehicleModel,
+      trim: vehicleTrim,
+      zipCode,
+      mileage,
+      vin
+    });
     
     try {
       const marketResult = await fetchMarketComps({
@@ -331,6 +349,13 @@ export async function processValuation(
         zipCode,
         mileage,
         vin
+      });
+      
+      console.log(`🔍 [MARKET DEBUG] Market search completed:`, {
+        listingsCount: marketResult.listings?.length || 0,
+        trust: marketResult.trust,
+        source: marketResult.source,
+        notes: marketResult.notes
       });
       
       if (marketResult.listings && marketResult.listings.length > 0) {
@@ -371,11 +396,18 @@ export async function processValuation(
           const max = Math.max(...realPrices);
           const avg = realPrices.reduce((a, b) => a + b, 0) / realPrices.length;
           
+          console.log(`🔍 [MARKET DEBUG] Real market data analysis:`, {
+            realListings: realPrices.length,
+            priceRange: `$${min.toLocaleString()} - $${max.toLocaleString()}`,
+            avgPrice: `$${avg.toLocaleString()}`,
+            currentFinalValue: `$${finalValue.toLocaleString()}`
+          });
+          
           // Check if we found the exact VIN match (highest confidence) - ONLY IN REAL DATA
           const exactVinMatch = realListings.find(l => l.vin === vin);
           
           if (exactVinMatch) {
-            console.log(`🎯 EXACT VIN MATCH FOUND: $${exactVinMatch.price} from ${exactVinMatch.source}`);
+            console.log(`🎯 [MARKET DEBUG] EXACT VIN MATCH FOUND: $${exactVinMatch.price} from ${exactVinMatch.source}`);
             
             // For exact VIN matches, anchor strongly to the listing price
             const exactPrice = exactVinMatch.price;
@@ -388,6 +420,9 @@ export async function processValuation(
             });
             
             finalValue = finalValue + strongAnchorAdj;
+            marketSearchStatus = "success";
+            
+            console.log(`✅ [MARKET DEBUG] Applied exact VIN match adjustment: ${strongAnchorAdj >= 0 ? '+' : ''}$${strongAnchorAdj.toLocaleString()}`);
             
             // Also add confidence boost for exact match (handled in confidence engine)
             sources.push("exact_vin_match");
@@ -412,17 +447,19 @@ export async function processValuation(
               reason: `Adjusted toward ${realPrices.length} comparable listings (avg: $${avg.toLocaleString()}, trust: ${Math.round(marketResult.trust * 100)}%)` 
             });
             
+            finalValue = afterMarket;
+            marketSearchStatus = "success";
+            
+            console.log(`✅ [MARKET DEBUG] Applied market anchor based on ${realPrices.length} real listings: ${marketAdj >= 0 ? '+' : ''}$${marketAdj.toLocaleString()}`);
+            
             // Enhanced audit logging with metadata
             await logAdjustmentStep(vin, valuationRequest?.id || 'fallback', {
               label: "Market Anchoring",
               amount: marketAdj,
               reason: `Based on ${realPrices.length} comparable listings (avg: $${avg.toLocaleString()})`,
-              baseValue: finalValue,
-              newValue: afterMarket
+              baseValue: finalValue - marketAdj,
+              newValue: finalValue
             }, userId, zipCode);
-            
-            finalValue = afterMarket;
-            console.log(`✅ Applied market anchor based on ${realPrices.length} real listings`);
           } else {
             console.log(`⚠️ Only ${realPrices.length} real listing(s) found - insufficient for market anchoring`);
           }
@@ -450,8 +487,16 @@ export async function processValuation(
       await logValuationStep('MARKET_SEARCH_COMPLETE', vin, valuationRequest?.id || 'fallback', { status: marketSearchStatus, error: e instanceof Error ? e.message : 'Unknown error' }, userId, zipCode);
     }
     
-    // Step 7: FIX #5 - Enhanced Confidence Score Calibration v2
+    // Step 7: FIX #5 - Enhanced Confidence Score Calibration v2 - WITH PROPER INPUTS
     tracker.startStep('confidence_calc', { marketStatus: marketSearchStatus });
+    
+    console.log(`🔍 [CONFIDENCE DEBUG] Calculating confidence with inputs:`, {
+      marketSearchStatus,
+      listingsCount: listings.length,
+      realListingsCount: listings.filter(l => l.source_type !== 'estimated').length,
+      usingDatabaseMSRP,
+      sources
+    });
     
     let confidenceScore = calculateAdvancedConfidence({
       vehicleMake,
@@ -467,6 +512,8 @@ export async function processValuation(
       sources,
       baseValue
     });
+    
+    console.log(`🔍 [CONFIDENCE DEBUG] Final confidence score: ${confidenceScore}%`);
     
     console.log(`📊 Advanced confidence calculation: ${confidenceScore}% (based on market spread, source count, ZIP match)`);
     
