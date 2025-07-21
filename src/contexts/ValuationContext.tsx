@@ -114,7 +114,8 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
         listingCount: 0,
         listings: [],
         marketSearchStatus: 'legacy_data',
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        notes: []
       };
 
       setValuationData(unifiedResult);
