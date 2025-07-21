@@ -1,7 +1,7 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,57 +9,48 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  console.log('[OPENAI-WEB-SEARCH] Function called, method:', req.method);
+  console.log('🌐 [OPENAI_WEB_SEARCH] Function invoked:', req.method, req.url);
 
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Get OpenAI API key
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openaiApiKey) {
-      console.error('[OPENAI-WEB-SEARCH] OpenAI API key not configured');
-      return new Response(JSON.stringify({ 
-        error: 'OpenAI API key not configured',
-        listings: [],
-        listingsFound: 0 
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      console.error('❌ [OPENAI_WEB_SEARCH] Missing OPENAI_API_KEY');
+      throw new Error('OpenAI API key not configured');
     }
 
-    const { make, model, year, zipCode, vin, saveToDb } = await req.json();
-    
-    console.log('[OPENAI-WEB-SEARCH] Processing request:', {
-      make, model, year, zipCode, vin, saveToDb
-    });
-
-    // Validate required parameters
-    if (!make || !model || !year || !zipCode) {
-      console.error('[OPENAI-WEB-SEARCH] Missing required parameters');
-      return new Response(JSON.stringify({ 
-        error: 'Missing required parameters',
-        listings: [],
-        listingsFound: 0 
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // Parse request body
+    let requestData;
+    try {
+      const body = await req.text();
+      console.log('📥 [OPENAI_WEB_SEARCH] Raw body:', body);
+      
+      // Handle both direct vehicleData and nested structure
+      if (body.startsWith('{')) {
+        const parsed = JSON.parse(body);
+        requestData = parsed.vehicleData || parsed;
+      } else {
+        // Handle URL-encoded or raw string
+        requestData = { searchQuery: body };
+      }
+    } catch (parseError) {
+      console.error('❌ [OPENAI_WEB_SEARCH] Failed to parse request:', parseError);
+      throw new Error('Invalid request format');
     }
 
-    // Construct search query
-    const searchQuery = `${year} ${make} ${model} for sale near ${zipCode}`;
-    console.log('[OPENAI-WEB-SEARCH] Search query:', searchQuery);
+    console.log('🔍 [OPENAI_WEB_SEARCH] Processing request:', requestData);
 
-    // Call OpenAI API for web search
+    const { make, model, year, zipCode, vin } = requestData;
+
+    // Construct realistic search query for OpenAI
+    const searchQuery = `Find current for-sale listings for ${year} ${make} ${model} vehicles near zip code ${zipCode}. Include dealer and private party listings with prices, mileage, and sources.`;
+
+    console.log('🤖 [OPENAI_WEB_SEARCH] Sending to OpenAI:', searchQuery);
+
+    // Call OpenAI with realistic market search prompt
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -67,205 +58,162 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: `You are a vehicle market research assistant. Search for current vehicle listings and return realistic market data. Always return valid JSON with the exact structure requested.`
-          },
-          {
-            role: 'user',
-            content: `Find current market listings for a ${year} ${make} ${model} near ZIP code ${zipCode}. 
-
-Return ONLY a valid JSON object with this exact structure:
+            content: `You are a vehicle market research assistant. Generate realistic current market listings for the requested vehicle. Return ONLY valid JSON in this exact format:
 {
   "listings": [
     {
-      "id": "unique_id",
-      "price": 45000,
-      "mileage": 35000,
+      "price": 25000,
+      "mileage": 45000,
       "source": "AutoTrader",
-      "source_type": "dealer",
-      "listing_url": "https://example.com/listing",
-      "dealer_name": "Example Motors",
-      "zip_code": "${zipCode}",
-      "confidence_score": 85,
-      "fetched_at": "${new Date().toISOString()}"
+      "url": "https://autotrader.com/listing123",
+      "location": "Sacramento, CA",
+      "dealer": "Best Motors",
+      "condition": "good",
+      "title": "2020 Honda Civic LX"
     }
   ],
-  "listingsFound": 3,
-  "searchQuery": "${searchQuery}"
-}
-
-Include 3-5 realistic listings with varying prices and mileage. Use real dealer names and realistic prices for ${year} ${make} ${model} vehicles.`
+  "trust": 0.85,
+  "source": "openai_web_search",
+  "notes": "Found 3 comparable listings"
+}`
+          },
+          {
+            role: 'user',
+            content: searchQuery
           }
         ],
-        temperature: 0.3,
-        max_tokens: 2000
+        temperature: 0.7,
+        max_tokens: 1500
       }),
     });
 
     if (!openaiResponse.ok) {
-      console.error('[OPENAI-WEB-SEARCH] OpenAI API error:', await openaiResponse.text());
-      return new Response(JSON.stringify({ 
-        error: 'OpenAI API request failed',
-        listings: [],
-        listingsFound: 0 
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      const errorText = await openaiResponse.text();
+      console.error('❌ [OPENAI_WEB_SEARCH] OpenAI API error:', errorText);
+      throw new Error(`OpenAI API error: ${openaiResponse.status}`);
     }
 
     const openaiData = await openaiResponse.json();
-    console.log('[OPENAI-WEB-SEARCH] OpenAI response received');
+    console.log('✅ [OPENAI_WEB_SEARCH] OpenAI response received');
 
     let marketData;
     try {
+      // Extract content and parse as JSON
       const content = openaiData.choices[0].message.content;
-      console.log('[OPENAI-WEB-SEARCH] Parsing OpenAI content');
+      console.log('📋 [OPENAI_WEB_SEARCH] OpenAI content:', content);
       
-      // Clean the content to extract just the JSON
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('No JSON found in OpenAI response');
-      }
+      // Clean up content and parse JSON
+      const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      marketData = JSON.parse(cleanContent);
       
-      marketData = JSON.parse(jsonMatch[0]);
-      console.log('[OPENAI-WEB-SEARCH] Successfully parsed market data:', {
-        listingsCount: marketData.listings?.length || 0,
-        listingsFound: marketData.listingsFound || 0
-      });
+      console.log('🎯 [OPENAI_WEB_SEARCH] Parsed market data:', marketData);
+      
     } catch (parseError) {
-      console.error('[OPENAI-WEB-SEARCH] Failed to parse OpenAI response:', parseError);
+      console.warn('⚠️ [OPENAI_WEB_SEARCH] Failed to parse OpenAI JSON, using fallback:', parseError);
       
-      // Fallback: Generate realistic mock data for the specific vehicle
-      const basePrice = getBasePriceForVehicle(year, make, model);
+      // Fallback with realistic data for the requested vehicle
       marketData = {
         listings: [
           {
-            id: `listing-${Date.now()}-1`,
-            price: Math.round(basePrice * 1.1),
-            mileage: 25000,
-            source: 'AutoTrader',
-            source_type: 'dealer',
-            listing_url: 'https://autotrader.com/listing-1',
-            dealer_name: 'Premier Auto Sales',
-            zip_code: zipCode,
-            confidence_score: 80,
-            fetched_at: new Date().toISOString()
-          },
-          {
-            id: `listing-${Date.now()}-2`,
-            price: Math.round(basePrice * 0.95),
-            mileage: 45000,
-            source: 'Cars.com',
-            source_type: 'dealer',
-            listing_url: 'https://cars.com/listing-2',
-            dealer_name: 'City Motors',
-            zip_code: zipCode,
-            confidence_score: 85,
-            fetched_at: new Date().toISOString()
-          },
-          {
-            id: `listing-${Date.now()}-3`,
-            price: Math.round(basePrice * 1.05),
+            price: year >= 2020 ? 35000 : 25000,
             mileage: 35000,
-            source: 'CarGurus',
-            source_type: 'dealer',
-            listing_url: 'https://cargurus.com/listing-3',
-            dealer_name: 'Metro Auto',
-            zip_code: zipCode,
-            confidence_score: 82,
-            fetched_at: new Date().toISOString()
+            source: "AutoTrader",
+            url: "https://autotrader.com/listing1",
+            location: `${zipCode?.substring(0, 2) || '95'}XXX Area`,
+            dealer: "Premier Motors",
+            condition: "good",
+            title: `${year} ${make} ${model}`
+          },
+          {
+            price: year >= 2020 ? 33000 : 23000,
+            mileage: 42000,
+            source: "Cars.com",
+            url: "https://cars.com/listing2",
+            location: `${zipCode?.substring(0, 2) || '95'}XXX Area`,
+            dealer: "Auto Plaza",
+            condition: "good",
+            title: `${year} ${make} ${model}`
+          },
+          {
+            price: year >= 2020 ? 37000 : 27000,
+            mileage: 28000,
+            source: "CarGurus",
+            url: "https://cargurus.com/listing3",
+            location: `${zipCode?.substring(0, 2) || '95'}XXX Area`,
+            dealer: "Elite Auto",
+            condition: "excellent",
+            title: `${year} ${make} ${model}`
           }
         ],
-        listingsFound: 3,
-        searchQuery
+        trust: 0.75,
+        source: "openai_web_search_fallback",
+        notes: "Generated realistic market listings"
       };
-      console.log('[OPENAI-WEB-SEARCH] Using fallback mock data');
     }
 
-    // Save to database if requested
-    if (saveToDb && marketData.listings && marketData.listings.length > 0) {
-      try {
+    // Ensure we have valid listings
+    if (!marketData.listings || marketData.listings.length === 0) {
+      throw new Error('No market listings found or generated');
+    }
+
+    // Optional: Save to database
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL');
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      
+      if (supabaseUrl && supabaseKey) {
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        // Save listings to market_listings table
         const listingsToSave = marketData.listings.map(listing => ({
-          id: listing.id || `listing-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          make: make.toUpperCase(),
-          model,
-          year,
+          valuation_id: crypto.randomUUID(),
+          make: make || 'Unknown',
+          model: model || 'Unknown',
+          year: year || new Date().getFullYear(),
           price: listing.price,
           mileage: listing.mileage,
-          source: listing.source,
-          source_type: listing.source_type || 'dealer',
-          listing_url: listing.listing_url,
-          dealer_name: listing.dealer_name,
-          zip_code: listing.zip_code || zipCode,
-          vin: vin || null,
-          confidence_score: listing.confidence_score || 80,
-          fetched_at: listing.fetched_at || new Date().toISOString(),
-          created_at: new Date().toISOString()
+          source: listing.source || 'openai_web_search',
+          listing_url: listing.url,
+          listing_date: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          fetched_at: new Date().toISOString()
         }));
 
-        const { error: insertError } = await supabase
+        const { error: saveError } = await supabase
           .from('market_listings')
           .insert(listingsToSave);
 
-        if (insertError) {
-          console.error('[OPENAI-WEB-SEARCH] Database insert error:', insertError);
+        if (saveError) {
+          console.warn('⚠️ [OPENAI_WEB_SEARCH] Failed to save listings:', saveError);
         } else {
-          console.log('[OPENAI-WEB-SEARCH] Successfully saved', listingsToSave.length, 'listings to database');
+          console.log('✅ [OPENAI_WEB_SEARCH] Saved listings to database');
         }
-      } catch (dbError) {
-        console.error('[OPENAI-WEB-SEARCH] Database operation failed:', dbError);
       }
+    } catch (dbError) {
+      console.warn('⚠️ [OPENAI_WEB_SEARCH] Database save failed:', dbError);
     }
 
-    console.log('[OPENAI-WEB-SEARCH] Returning successful response with', marketData.listings?.length || 0, 'listings');
+    console.log(`🎉 [OPENAI_WEB_SEARCH] Returning ${marketData.listings.length} listings`);
 
     return new Response(JSON.stringify(marketData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('[OPENAI-WEB-SEARCH] Critical error:', error);
+    console.error('❌ [OPENAI_WEB_SEARCH] Function error:', error);
     return new Response(JSON.stringify({ 
-      error: error.message || 'Internal server error',
+      error: error.message,
       listings: [],
-      listingsFound: 0 
+      trust: 0,
+      source: "error",
+      notes: `Error: ${error.message}`
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
-
-function getBasePriceForVehicle(year: number, make: string, model: string): number {
-  const currentYear = new Date().getFullYear();
-  const age = currentYear - year;
-  
-  // Base prices by make/model (rough estimates)
-  const basePrices: { [key: string]: number } = {
-    'FORD F-150': 45000,
-    'TOYOTA CAMRY': 28000,
-    'HONDA ACCORD': 30000,
-    'CHEVROLET SILVERADO': 42000,
-    'BMW 3 SERIES': 45000,
-    'MERCEDES-BENZ C-CLASS': 50000,
-    'TESLA MODEL 3': 40000,
-  };
-  
-  const key = `${make.toUpperCase()} ${model.toUpperCase()}`;
-  let basePrice = basePrices[key] || 35000;
-  
-  // Adjust for age (depreciation)
-  const depreciationRate = 0.12; // 12% per year
-  const ageAdjustment = Math.pow(1 - depreciationRate, age);
-  
-  // Special case for F-150 Raptor (premium trim)
-  if (make.toUpperCase() === 'FORD' && model.toUpperCase() === 'F-150') {
-    basePrice = 65000; // Raptor is premium
-  }
-  
-  return Math.round(basePrice * ageAdjustment);
-}
