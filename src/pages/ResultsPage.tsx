@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { ValuationProvider } from '@/contexts/ValuationContext';
+import { ValuationProvider, useValuationContext } from '@/contexts/ValuationContext';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 import { RerunValuationButton } from '@/components/valuation/RerunValuationButton';
 

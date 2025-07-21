@@ -66,7 +66,7 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
         <div className="flex justify-center mb-4">
           <ConfidenceExplanationBadge
             confidenceScore={result.confidenceScore}
-            marketSearchStatus={result.marketSearchStatus}
+            marketSearchStatus={result.marketSearchStatus as "success" | "fallback" | "error" || 'success'}
             listingCount={result.listingCount}
             sources={result.sources}
             onRetrySearch={() => {
@@ -129,7 +129,13 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
 
         {/* Main Content Tabs */}
         <TabbedResultsPanels 
-          result={result}
+          result={{
+            ...result,
+            vin: result.vin || '',
+            mileage: result.mileage || 0,
+            aiExplanation: result.aiExplanation || 'Valuation explanation',
+            marketSearchStatus: (result.marketSearchStatus as "success" | "fallback" | "error") || 'success'
+          }}
           onUpgrade={onUpgrade}
           isPremium={isPremium}
           valuationId={result.id}

@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { calculateUnifiedValuation } from '@/services/valuationEngine';
 import type { UnifiedValuationResult, ValuationInput } from '@/types/valuation';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 interface ValuationContextType {
   valuationData?: UnifiedValuationResult | null;
@@ -16,7 +16,7 @@ interface ValuationContextType {
   isEmailSending: boolean;
   onDownloadPdf: () => Promise<void>;
   onEmailPdf: () => Promise<void>;
-  rerunValuation: (input: ValuationInput) => Promise<void>;
+  rerunValuation: (input: ValuationInput) => Promise<UnifiedValuationResult>;
 }
 
 const ValuationContext = createContext<ValuationContextType | undefined>(undefined);
@@ -33,7 +33,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
   const [isDownloading, setIsDownloading] = useState(false);
   const [isEmailSending, setIsEmailSending] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
-  const { toast } = useToast();
+  
 
   useEffect(() => {
     if (valuationId) {
@@ -114,7 +114,12 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
 
     try {
       // Call the NEW real-time valuation engine
-      const result = await calculateUnifiedValuation(input);
+      const validatedInput = {
+        ...input,
+        mileage: input.mileage || 0,
+        condition: input.condition || 'good'
+      };
+      const result = await calculateUnifiedValuation(validatedInput);
       
       console.log('✅ Real-time valuation completed:', result);
       setValuationData(result);
@@ -142,21 +147,17 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
         console.warn('⚠️ Error saving updated valuation:', saveErr);
       }
 
-      toast({
-        title: 'Valuation Updated',
-        description: `New estimate: $${result.finalValue.toLocaleString()} (${result.confidenceScore}% confidence)`,
-      });
+      toast.success(`New estimate: $${result.finalValue.toLocaleString()} (${result.confidenceScore}% confidence)`);
+      
+      return result;
 
     } catch (err) {
       console.error('❌ Real-time valuation failed:', err);
       const errorMessage = err instanceof Error ? err.message : 'Real-time valuation failed';
       setError(errorMessage);
       
-      toast({
-        title: 'Valuation Failed',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+      toast.error(errorMessage);
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -170,16 +171,9 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
     setIsDownloading(true);
     try {
       // PDF download logic here
-      toast({
-        title: 'PDF Downloaded',
-        description: 'Your valuation report has been downloaded',
-      });
+      toast.success('Your valuation report has been downloaded');
     } catch (err) {
-      toast({
-        title: 'Download Failed',
-        description: 'Failed to download PDF report',
-        variant: 'destructive',
-      });
+      toast.error('Failed to download PDF report');
     } finally {
       setIsDownloading(false);
     }
@@ -189,16 +183,9 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
     setIsEmailSending(true);
     try {
       // Email logic here
-      toast({
-        title: 'Email Sent',
-        description: 'Your valuation report has been emailed',
-      });
+      toast.success('Your valuation report has been emailed');
     } catch (err) {
-      toast({
-        title: 'Email Failed',
-        description: 'Failed to send email',
-        variant: 'destructive',
-      });
+      toast.error('Failed to send email');
     } finally {
       setIsEmailSending(false);
     }

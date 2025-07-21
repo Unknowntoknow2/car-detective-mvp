@@ -6,14 +6,14 @@ import { CarFinderQaherCard } from '@/components/valuation/CarFinderQaherCard';
 import { TabbedFollowUpForm } from '@/components/followup/TabbedFollowUpForm';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
-import { useValuation } from '@/contexts/ValuationContext';
+import { useValuationContext } from '@/contexts/ValuationContext';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function ValuationFollowUpPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { processFreeValuation } = useValuation();
+  const { rerunValuation } = useValuationContext();
 
   // Extract vehicle data from URL params
   const vehicleData = {
@@ -77,32 +77,26 @@ export default function ValuationFollowUpPage() {
 
       // FIX #5: Use real follow-up data for valuation with robust fallbacks
       const valuationInput = {
+        vin: vehicleData.vin,
         make: vehicleData.make || 'Unknown',
         model: vehicleData.model || 'Unknown',
         year: vehicleData.year || 2020,
-        vin: vehicleData.vin,
         trim: vehicleData.trim || '',
         mileage: followUpData.mileage,
         condition: followUpData.condition || 'good',
         zipCode: followUpData.zip_code,
+        fuelType: (vehicleData.fuelType as 'gasoline' | 'diesel' | 'hybrid' | 'electric') || 'gasoline'
       };
 
       console.log('🚀 [DEBUG] Processing valuation with REAL user data:', valuationInput);
       console.log('🔍 [DEBUG] User ID being passed:', userId || 'anonymous');
-      console.log('🚀 [DEBUG] About to call processFreeValuation...');
-      const valuationResult = await processFreeValuation(valuationInput);
+      console.log('🚀 [DEBUG] About to call rerunValuation...');
+      await rerunValuation(valuationInput);
       
-      console.log('🔍 [DEBUG] Valuation result:', valuationResult);
-      if (valuationResult?.valuationId) {
-        console.log('✅ Valuation created successfully:', valuationResult.valuationId);
-        toast.success('Valuation completed successfully!');
-        navigate(`/results/${valuationResult.valuationId}`, { replace: true });
-        return true;
-      } else {
-        console.error('❌ Valuation creation failed');
-        toast.error('Failed to create valuation - please try again');
-        return false;
-      }
+      console.log('✅ Valuation created successfully');
+      toast.success('Valuation completed successfully!');
+      navigate('/valuation', { replace: true });
+      return true;
     } catch (error) {
       console.error('❌ [DEBUG] Error in handleSubmitAnswers:', error);
       console.error('❌ [DEBUG] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
