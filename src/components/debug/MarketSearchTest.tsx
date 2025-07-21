@@ -16,15 +16,15 @@ export function MarketSearchTest() {
     setResult(null);
 
     try {
-      console.log('🧪 Testing direct edge function call...');
+      console.log('🧪 Testing direct edge function call with Ford F-150 Raptor...');
       
       const { data, error } = await supabase.functions.invoke('openai-web-search', {
         body: {
-          make: 'TOYOTA',
-          model: 'Camry',
-          year: 2018,
+          make: 'FORD',
+          model: 'F-150',
+          year: 2023,
           zipCode: '95821',
-          vin: '4T1B21HK7JU507742',
+          vin: '1FTFW1RJ3PFC59616',
           saveToDb: true
         }
       });
@@ -50,14 +50,14 @@ export function MarketSearchTest() {
     setResult(null);
 
     try {
-      console.log('🧪 Testing market search service...');
+      console.log('🧪 Testing market search service with Ford F-150 Raptor...');
       
       const searchResult = await fetchMarketComps(
-        'TOYOTA',
-        'Camry',
-        2018,
+        'FORD',
+        'F-150',
+        2023,
         '95821',
-        '4T1B21HK7JU507742'
+        '1FTFW1RJ3PFC59616'
       );
 
       console.log('🧪 Market search service result:', searchResult);
@@ -116,10 +116,10 @@ export function MarketSearchTest() {
         )}
 
         <div className="text-sm text-gray-600">
-          <p><strong>Test Parameters:</strong></p>
+          <p><strong>Test Parameters (Real Ford F-150 Raptor):</strong></p>
           <ul className="list-disc list-inside ml-4">
-            <li>VIN: 4T1B21HK7JU507742</li>
-            <li>Vehicle: 2018 Toyota Camry</li>
+            <li>VIN: 1FTFW1RJ3PFC59616</li>
+            <li>Vehicle: 2023 Ford F-150</li>
             <li>ZIP: 95821</li>
           </ul>
         </div>
