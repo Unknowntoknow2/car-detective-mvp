@@ -73,6 +73,12 @@ verify_jwt = true
 [functions.test-email-integration]
 verify_jwt = false
 
+[functions.fetch_nicb_vincheck]
+verify_jwt = false
+
+[functions.fetch_nhtsa_recalls]
+verify_jwt = false
+
 [edge_runtime]
 policy = "per_worker"
 
