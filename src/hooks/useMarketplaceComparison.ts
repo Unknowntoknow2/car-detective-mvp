@@ -125,16 +125,33 @@ export function useMarketplaceComparison({
         return;
       }
 
-      const averagePrice = validListings.reduce((sum, l) => sum + l.price, 0) / validListings.length;
-      const lowestPrice = Math.min(...validListings.map(l => l.price));
-      const highestPrice = Math.max(...validListings.map(l => l.price));
+      // Filter by mileage similarity (within 25K miles for better comparison)
+      const targetMileage = validListings[0]?.mileage || 0;
+      const mileageFilteredListings = validListings.filter(l => 
+        l.mileage && Math.abs(l.mileage - targetMileage) <= 25000
+      );
+      
+      const listingsToAnalyze = mileageFilteredListings.length >= 5 ? mileageFilteredListings : validListings;
+      
+      const averagePrice = listingsToAnalyze.reduce((sum, l) => sum + l.price, 0) / listingsToAnalyze.length;
+      const lowestPrice = Math.min(...listingsToAnalyze.map(l => l.price));
+      const highestPrice = Math.max(...listingsToAnalyze.map(l => l.price));
+      
+      // Calculate mileage stats
+      const mileages = listingsToAnalyze.map(l => l.mileage).filter((m): m is number => typeof m === 'number' && m > 0);
+      const avgMileage = mileages.length > 0 ? Math.round(mileages.reduce((sum, m) => sum + m, 0) / mileages.length) : 0;
+      const mileageRange = mileages.length > 0 ? `${Math.min(...mileages).toLocaleString()} - ${Math.max(...mileages).toLocaleString()}` : 'N/A';
 
-      const platforms = [...new Set(validListings.map(l => l.platform))];
+      const platforms = [...new Set(listingsToAnalyze.map(l => l.platform))];
       const platformText = platforms.join(', ');
 
-      let recommendation = `Based on ${validListings.length} recent listings from ${platformText}, `;
+      let recommendation = `Based on ${listingsToAnalyze.length} comparable listings from ${platformText}, `;
       recommendation += `the market average is $${Math.round(averagePrice).toLocaleString()}, `;
       recommendation += `ranging from $${lowestPrice.toLocaleString()} to $${highestPrice.toLocaleString()}. `;
+      
+      if (avgMileage > 0) {
+        recommendation += `Average mileage: ${avgMileage.toLocaleString()} miles (range: ${mileageRange}). `;
+      }
 
       const valuationVsAverage = estimatedValue - averagePrice;
       const percentageDiff = Math.abs((valuationVsAverage / averagePrice) * 100);
@@ -149,6 +166,10 @@ export function useMarketplaceComparison({
         }
       } else {
         recommendation += 'Your valuation aligns well with current market pricing.';
+      }
+      
+      if (mileageFilteredListings.length < validListings.length) {
+        recommendation += ` (Analysis based on ${mileageFilteredListings.length} listings with similar mileage)`;
       }
 
       setAinRecommendation(recommendation);
@@ -171,7 +192,13 @@ export function useMarketplaceComparison({
       highestPrice: listings.length > 0 
         ? Math.max(...listings.map(l => l.price))
         : 0,
-      totalListings: listings.length
+      totalListings: listings.length,
+      averageMileage: listings.length > 0
+        ? Math.round(listings.reduce((sum, l) => sum + (l.mileage || 0), 0) / listings.length)
+        : 0,
+      mileageRange: listings.length > 0 && listings.some(l => l.mileage)
+        ? `${Math.min(...listings.map(l => l.mileage || 0).filter(m => m > 0)).toLocaleString()} - ${Math.max(...listings.map(l => l.mileage || 0).filter(m => m > 0)).toLocaleString()}`
+        : 'N/A'
     }
   };
 }
