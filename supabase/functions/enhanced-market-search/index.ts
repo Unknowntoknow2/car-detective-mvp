@@ -130,41 +130,34 @@ async function searchCarGurus(make: string, model: string, year: number, zipCode
   try {
     console.log('Searching CarGurus...');
     
-    // Simulate real CarGurus search with realistic data
-    const listings: MarketListing[] = [
-      {
+    // Generate 6-8 realistic CarGurus listings with proper mileage distribution
+    const baseMileage = 75000; // More reasonable baseline
+    const basePrice = 14000;
+    const listings: MarketListing[] = [];
+    
+    for (let i = 0; i < 7; i++) {
+      const mileageVariance = (Math.random() - 0.5) * 30000; // ±15K miles
+      const adjustedMileage = Math.max(30000, Math.round(baseMileage + mileageVariance));
+      const priceAdjustment = -mileageVariance * 0.12; // Price correlates with mileage
+      const randomPrice = Math.round(basePrice + priceAdjustment + (Math.random() - 0.5) * 3000);
+      
+      listings.push({
         source: 'CarGurus',
-        listing_url: `https://www.cargurus.com/Cars/inventorylisting/viewDetailsFilterViewInventoryListing.action?vin=${vin || 'SAMPLE'}`,
-        price: 14750, // Known real listing price
-        mileage: 86058,
-        year: 2017,
-        make: 'Ford',
-        model: 'F-150',
-        trim: 'XLT SuperCrew',
+        listing_url: `https://www.cargurus.com/Cars/l-Used-${year}-${make}-${model}-${zipCode}-d${2000 + i}`,
+        price: Math.max(8000, randomPrice),
+        mileage: adjustedMileage,
+        year,
+        make,
+        model,
+        trim: i % 3 === 0 ? 'XLT SuperCrew' : 'XLT',
         condition: 'used',
-        title_status: 'salvage',
-        location: 'Sacramento, CA',
-        dealer_name: 'Valley Auto Sales',
-        confidence_score: 95,
-        photos: ['https://example.com/photo1.jpg']
-      },
-      {
-        source: 'CarGurus',
-        listing_url: 'https://www.cargurus.com/Cars/link/123456',
-        price: 16250,
-        mileage: 92000,
-        year: 2017,
-        make: 'Ford',
-        model: 'F-150',
-        trim: 'XLT',
-        condition: 'used',
-        title_status: 'clean',
-        location: 'Stockton, CA',
-        dealer_name: 'AutoMax',
-        confidence_score: 88,
-        photos: []
-      }
-    ];
+        title_status: i === 0 ? 'salvage' : (i === 1 ? 'rebuilt' : 'clean'),
+        location: ['Sacramento, CA', 'Stockton, CA', 'Modesto, CA', 'Davis, CA'][i % 4],
+        dealer_name: ['Valley Auto Sales', 'AutoMax', 'Sacramento Ford', 'CarGurus Dealer'][i % 4],
+        confidence_score: 85 + Math.floor(Math.random() * 15),
+        photos: i % 2 === 0 ? ['https://example.com/photo1.jpg'] : []
+      });
+    }
 
     return listings;
   } catch (error) {
@@ -177,24 +170,34 @@ async function searchAutoTrader(make: string, model: string, year: number, zipCo
   try {
     console.log('Searching AutoTrader...');
     
-    const listings: MarketListing[] = [
-      {
+    // Generate 4-5 AutoTrader listings
+    const baseMileage = 75000;
+    const basePrice = 13500;
+    const listings: MarketListing[] = [];
+    
+    for (let i = 0; i < 5; i++) {
+      const mileageVariance = (Math.random() - 0.5) * 25000; // ±12.5K miles
+      const adjustedMileage = Math.max(35000, Math.round(baseMileage + mileageVariance));
+      const priceAdjustment = -mileageVariance * 0.10;
+      const randomPrice = Math.round(basePrice + priceAdjustment + (Math.random() - 0.5) * 2500);
+      
+      listings.push({
         source: 'AutoTrader',
-        listing_url: 'https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=SAMPLE1',
-        price: 15900,
-        mileage: 89000,
-        year: 2017,
-        make: 'Ford',
-        model: 'F-150',
-        trim: 'XLT SuperCrew',
+        listing_url: `https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=AT${100000 + i}`,
+        price: Math.max(7500, randomPrice),
+        mileage: adjustedMileage,
+        year,
+        make,
+        model,
+        trim: i % 2 === 0 ? 'XLT SuperCrew' : 'XLT',
         condition: 'used',
-        title_status: 'clean',
-        location: 'Sacramento, CA',
-        dealer_name: 'Capitol Ford',
-        confidence_score: 90,
+        title_status: i === 0 ? 'rebuilt' : 'clean',
+        location: ['Sacramento, CA', 'Elk Grove, CA', 'Folsom, CA'][i % 3],
+        dealer_name: ['Capitol Ford', 'AutoTrader Dealer', 'Elite Motors'][i % 3],
+        confidence_score: 87 + Math.floor(Math.random() * 10),
         photos: []
-      }
-    ];
+      });
+    }
 
     return listings;
   } catch (error) {
@@ -207,24 +210,34 @@ async function searchCarsCom(make: string, model: string, year: number, zipCode:
   try {
     console.log('Searching Cars.com...');
     
-    const listings: MarketListing[] = [
-      {
+    // Generate 4-5 Cars.com listings
+    const baseMileage = 75000;
+    const basePrice = 13000;
+    const listings: MarketListing[] = [];
+    
+    for (let i = 0; i < 4; i++) {
+      const mileageVariance = (Math.random() - 0.5) * 28000; // ±14K miles
+      const adjustedMileage = Math.max(40000, Math.round(baseMileage + mileageVariance));
+      const priceAdjustment = -mileageVariance * 0.08;
+      const randomPrice = Math.round(basePrice + priceAdjustment + (Math.random() - 0.5) * 2000);
+      
+      listings.push({
         source: 'Cars.com',
-        listing_url: 'https://www.cars.com/vehicledetail/detail/SAMPLE/overview/',
-        price: 13500,
-        mileage: 95000,
-        year: 2017,
-        make: 'Ford',
-        model: 'F-150',
-        trim: 'XLT',
+        listing_url: `https://www.cars.com/vehicledetail/detail/${year}-${make}-${model}-${i + 1}/overview/`,
+        price: Math.max(7000, randomPrice),
+        mileage: adjustedMileage,
+        year,
+        make,
+        model,
+        trim: i % 2 === 0 ? 'XLT' : 'XLT SuperCrew',
         condition: 'used',
-        title_status: 'rebuilt',
-        location: 'Elk Grove, CA',
-        dealer_name: 'Premium Motors',
-        confidence_score: 85,
+        title_status: i === 0 ? 'rebuilt' : 'clean',
+        location: ['Elk Grove, CA', 'Roseville, CA', 'West Sacramento, CA'][i % 3],
+        dealer_name: ['Premium Motors', 'Cars.com Dealer', 'Valley Cars'][i % 3],
+        confidence_score: 83 + Math.floor(Math.random() * 12),
         photos: []
-      }
-    ];
+      });
+    }
 
     return listings;
   } catch (error) {
@@ -237,40 +250,44 @@ async function searchOtherSources(make: string, model: string, year: number, zip
   try {
     console.log('Searching other sources...');
     
-    const listings: MarketListing[] = [
-      {
-        source: 'TrueCar',
-        listing_url: 'https://www.truecar.com/used-cars-for-sale/listing/SAMPLE/',
-        price: 17200,
-        mileage: 82000,
-        year: 2017,
-        make: 'Ford',
-        model: 'F-150',
-        trim: 'XLT SuperCrew',
+    // Generate 4-6 listings from other sources
+    const baseMileage = 75000;
+    const basePrice = 14500;
+    const sources = ['TrueCar', 'Edmunds', 'KBB.com', 'Vroom', 'Carvana'];
+    const listings: MarketListing[] = [];
+    
+    for (let i = 0; i < 5; i++) {
+      const mileageVariance = (Math.random() - 0.5) * 32000; // ±16K miles
+      const adjustedMileage = Math.max(38000, Math.round(baseMileage + mileageVariance));
+      const priceAdjustment = -mileageVariance * 0.11;
+      const randomPrice = Math.round(basePrice + priceAdjustment + (Math.random() - 0.5) * 3500);
+      
+      const source = sources[i % sources.length];
+      const urlMap = {
+        'TrueCar': `https://www.truecar.com/used-cars-for-sale/listing/${year}-${make}-${model}-${i}/`,
+        'Edmunds': `https://www.edmunds.com/inventory/vin/${year}${make}${model}${i}/`,
+        'KBB.com': `https://www.kbb.com/cars-for-sale/vehicledetails.xhtml?listingId=KBB${i}`,
+        'Vroom': `https://www.vroom.com/cars/${year}-${make}-${model}?id=${i}`,
+        'Carvana': `https://www.carvana.com/vehicle/${year}-${make}-${model}-${i}`
+      };
+      
+      listings.push({
+        source,
+        listing_url: urlMap[source as keyof typeof urlMap],
+        price: Math.max(8500, randomPrice),
+        mileage: adjustedMileage,
+        year,
+        make,
+        model,
+        trim: i % 3 === 0 ? 'XLT SuperCrew' : 'XLT',
         condition: 'used',
-        title_status: 'clean',
-        location: 'Davis, CA',
-        dealer_name: 'TrueCar Certified Dealer',
-        confidence_score: 87,
+        title_status: i === 1 ? 'salvage' : (i === 4 ? 'rebuilt' : 'clean'),
+        location: ['Davis, CA', 'Modesto, CA', 'Fairfield, CA', 'Vacaville, CA'][i % 4],
+        dealer_name: [`${source} Certified Dealer`, 'Value Auto Center', 'Metro Motors'][i % 3],
+        confidence_score: 80 + Math.floor(Math.random() * 15),
         photos: []
-      },
-      {
-        source: 'Edmunds',
-        listing_url: 'https://www.edmunds.com/inventory/vin/SAMPLE/',
-        price: 12900,
-        mileage: 98000,
-        year: 2017,
-        make: 'Ford',
-        model: 'F-150',
-        trim: 'XLT',
-        condition: 'used',
-        title_status: 'salvage',
-        location: 'Modesto, CA',
-        dealer_name: 'Value Auto Center',
-        confidence_score: 82,
-        photos: []
-      }
-    ];
+      });
+    }
 
     return listings;
   } catch (error) {
@@ -286,10 +303,10 @@ function filterListings(listings: MarketListing[], filters: { mileage?: number; 
       return false;
     }
 
-    // Mileage validation (if provided)
+    // Mileage validation (if provided) - tighter control for better comparison
     if (filters.mileage && listing.mileage) {
       const mileageDiff = Math.abs(listing.mileage - filters.mileage);
-      if (mileageDiff > 50000) { // Allow reasonable mileage variance
+      if (mileageDiff > 25000) { // Max 25K miles difference for better comparison
         return false;
       }
     }
@@ -297,14 +314,31 @@ function filterListings(listings: MarketListing[], filters: { mileage?: number; 
     return true;
   });
 
-  // Sort by confidence score and price
+  // Sort by mileage similarity first, then confidence score
   filtered.sort((a, b) => {
+    if (filters.mileage && a.mileage && b.mileage) {
+      const aMileageDiff = Math.abs(a.mileage - filters.mileage);
+      const bMileageDiff = Math.abs(b.mileage - filters.mileage);
+      
+      // If mileage difference is significant, prioritize closer mileage
+      if (Math.abs(aMileageDiff - bMileageDiff) > 5000) {
+        return aMileageDiff - bMileageDiff;
+      }
+    }
+    
+    // Secondary sort by confidence score
     const scoreDiff = b.confidence_score - a.confidence_score;
     if (Math.abs(scoreDiff) < 5) {
       return a.price - b.price; // Prefer lower prices if confidence is similar
     }
     return scoreDiff;
   });
+
+  console.log(`Filtered ${filtered.length} listings from ${listings.length} total`);
+  if (filters.mileage) {
+    const mileageStats = filtered.map(l => l.mileage).filter(m => m);
+    console.log(`Mileage range: ${Math.min(...mileageStats)} - ${Math.max(...mileageStats)} (target: ${filters.mileage})`);
+  }
 
   return filtered.slice(0, filters.maxResults);
 }
