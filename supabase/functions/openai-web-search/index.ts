@@ -15,14 +15,22 @@ const corsHeaders = {
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 serve(async (req) => {
-  console.log('🔍 OpenAI Web Search function called');
+  console.log('🔍 OpenAI Web Search function started');
+  console.log('📊 Request method:', req.method);
+  console.log('📊 Request URL:', req.url);
 
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('✅ Handling OPTIONS request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log('🔧 Environment check...');
+    console.log('✅ Supabase URL:', !!supabaseUrl);
+    console.log('✅ Service key:', !!supabaseServiceKey);
+    console.log('✅ OpenAI key:', !!openAIApiKey);
+    
     // Check if OpenAI API key is configured
     if (!openAIApiKey) {
       console.error('❌ OpenAI API key not configured in environment variables');
@@ -89,8 +97,11 @@ serve(async (req) => {
             content: `You are a car market data analyst. Search for current used car listings and return structured data.
             Return exactly 3-5 realistic current market listings for the requested vehicle near the ZIP code.
             Format as JSON array with: price (number), mileage (number), source (dealer name), source_type ("dealer" or "marketplace"), listing_url, dealer_name, zip_code.
-            Base prices on realistic current market values. For a ${year} ${make} ${model}, expect prices between $18,000-$28,000 depending on mileage and condition.
-            Include variety: franchise dealers, CarMax, Carvana, private sellers.`
+            Base prices on realistic current market values. For a ${year} ${make} ${model}, use appropriate price ranges:
+            - F-150 Raptor: $80,000-$120,000+ depending on year/mileage
+            - Regular F-150: $35,000-$70,000 depending on year/trim/mileage  
+            - Most other vehicles: $18,000-$80,000 depending on make/model/year/mileage
+            Include variety: franchise dealers, CarMax, Carvana, AutoTrader listings.`
           },
           {
             role: 'user',
