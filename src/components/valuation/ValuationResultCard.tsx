@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/accordion";
 import { MarkdownRenderer } from "@/components/ui/MarkdownRenderer";
 import { ExternalLink, FileText, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Download, Loader2, QrCode, Share2, Lock, Copy, Twitter, MessageCircle, Mail, ThumbsUp, ThumbsDown, Scale, Info, Bot } from 'lucide-react';
+import { MarketBreakdownPanel } from './MarketBreakdownPanel';
 import type { UnifiedValuationResult } from '@/types/valuation';
 import { downloadValuationPdf } from '@/utils/pdf/generateValuationPdf';
 import { submitValuationFeedback } from '@/services/supabase/feedbackService';
@@ -394,6 +395,10 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
           </div>
         </CardContent>
       </Card>
+
+      {/* Market Data Trace Panel - Google-Grade Transparency */}
+      <MarketBreakdownPanel result={result} />
+
 
       {/* AI Explanation */}
       <Card>
