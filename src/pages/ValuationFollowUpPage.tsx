@@ -91,12 +91,12 @@ export default function ValuationFollowUpPage() {
       console.log('🚀 [DEBUG] Processing valuation with REAL user data:', valuationInput);
       console.log('🔍 [DEBUG] User ID being passed:', userId || 'anonymous');
       console.log('🚀 [DEBUG] About to call rerunValuation...');
-      const result = await rerunValuation(valuationInput);
+      await rerunValuation(valuationInput);
       
       console.log('✅ Valuation created successfully');
       toast.success('Valuation completed successfully!');
-      // Navigate to results page with the valuation ID from the result
-      navigate(`/results/${result.id}`, { replace: true });
+      // Navigate to results page with the VIN since the engine result doesn't have an ID
+      navigate(`/results/${valuationInput.vin}`, { replace: true });
       return true;
     } catch (error) {
       console.error('❌ [DEBUG] Error in handleSubmitAnswers:', error);
