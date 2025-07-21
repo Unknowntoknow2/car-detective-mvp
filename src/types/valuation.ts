@@ -241,6 +241,38 @@ export interface ValuationInput {
   mpg?: number; // Vehicle fuel economy
 }
 
+// Unified valuation result interface
+export interface UnifiedValuationResult {
+  id: string;
+  vin?: string;
+  vehicle: {
+    year: number;
+    make: string;
+    model: string;
+    trim?: string;
+    fuelType?: string;
+  };
+  zip: string;
+  mileage?: number;
+  baseValue: number;
+  adjustments: ValuationAdjustment[];
+  finalValue: number;
+  confidenceScore: number;
+  aiExplanation?: string;
+  sources: string[];
+  listingRange?: any;
+  listingCount: number;
+  listings: MarketListing[];
+  marketSearchStatus?: string;
+  timestamp: number;
+}
+
+export interface ValuationAdjustment {
+  label: string;
+  amount: number;
+  reason: string;
+}
+
 // Enhanced valuation result interface
 export interface EnhancedValuationResult {
   estimated_value: number;

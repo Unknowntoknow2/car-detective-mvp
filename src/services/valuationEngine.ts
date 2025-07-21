@@ -122,7 +122,7 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
   const adjustments: ValuationAdjustment[] = [];
 
   // Depreciation
-  const depreciationAmount = calculateDepreciation(estimatedMSRP, year);
+  const depreciationAmount = calculateDepreciation(year, input.make, input.model) * estimatedMSRP;
   adjustments.push({
     label: 'Depreciation',
     amount: depreciationAmount,
@@ -138,7 +138,7 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
   });
 
   // Condition adjustment
-  const conditionAdjustment = calculateConditionAdjustment(estimatedMSRP, condition);
+  const conditionAdjustment = calculateConditionAdjustment(condition, estimatedMSRP);
   adjustments.push({
     label: 'Condition',
     amount: conditionAdjustment,
@@ -146,12 +146,7 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
   });
 
   // Fuel type adjustment
-  let fuelAdjustment = 0;
-  try {
-    fuelAdjustment = await calculateFuelTypeAdjustment(fuelType, zipCode);
-  } catch (error) {
-    console.warn('Failed to calculate fuel adjustment:', error);
-  }
+  const fuelAdjustment = calculateFuelTypeAdjustment(fuelType, zipCode);
 
   adjustments.push({
     label: 'Fuel Type Impact',
