@@ -32,6 +32,22 @@ export interface ValuationData {
   isPremium?: boolean;
   createdAt: string;
   updatedAt?: string;
+  titleRecallInfo?: TitleRecallInfo;
+}
+
+export interface TitleRecallInfo {
+  titleStatus: 'Clean' | 'Salvage' | 'Rebuilt' | 'Lemon' | 'Flood' | 'Stolen' | 'Unknown';
+  brandedDetails?: string;
+  recalls: {
+    id: string;
+    component: string;
+    summary: string;
+    riskLevel: 'Critical' | 'Important' | 'Informational';
+    recallDate: string;
+    resolved?: boolean;
+  }[];
+  oemRepairLinks?: string[];
+  lastChecked: string;
 }
 
 export interface UserProfile {

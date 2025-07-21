@@ -13,6 +13,7 @@ import { TabbedResultsPanels } from './redesign/TabbedResultsPanels';
 import { PremiumFeatureOverlay } from './redesign/PremiumFeatureOverlay';
 import { ConfidenceExplanationBadge } from './ConfidenceExplanationBadge';
 import { MarketTrendSection } from './MarketTrendSection';
+import { TitleRecallPanel } from './TitleRecallPanel';
 
 interface UnifiedValuationResultProps {
   result: ValuationResultType;
@@ -126,6 +127,11 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
             }}
           />
         </div>
+
+        {/* Title & Recall Intelligence Panel */}
+        {result.titleRecallInfo && (
+          <TitleRecallPanel titleRecallInfo={result.titleRecallInfo} />
+        )}
 
         {/* Main Content Tabs */}
         <TabbedResultsPanels 

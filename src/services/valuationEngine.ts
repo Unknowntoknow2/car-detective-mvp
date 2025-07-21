@@ -7,6 +7,7 @@ import { fetchMarketComps, fetchCachedMarketComps } from "./valuation/marketSear
 import { saveMarketListings } from "./valuation/marketListingService";
 import { lookupTitleStatus, lookupOpenRecalls } from "./historyCheckService";
 import { fetchFacebookCraigslistEnrichment, transformToMarketListings } from "./valuation/enhancedMarketSearchAgent";
+import { fetchVehicleTitlesAndRecalls, type TitleRecallInfo } from "./valuation/titleRecallAgent";
 import type { UnifiedValuationResult, ValuationAdjustment, TitleStatus, RecallEntry } from "@/types/valuation";
 
 export interface ValuationInput {
@@ -48,10 +49,11 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
   // Initialize valuation context with history intelligence
   const notes: string[] = [];
   
-  console.log('🔍 [UNIFIED_VALUATION] Starting title and recall intelligence checks...');
+  console.log('🔍 [UNIFIED_VALUATION] Starting enhanced title and recall intelligence...');
   
-  // Perform title status and recall lookups in parallel
-  const [titleHistory, recallCheck] = await Promise.all([
+  // Perform enhanced title status and recall lookups in parallel
+  const [titleRecallInfo, titleHistory, recallCheck] = await Promise.all([
+    fetchVehicleTitlesAndRecalls(vin, year, make, model),
     lookupTitleStatus(vin),
     lookupOpenRecalls(vin)
   ]);
@@ -273,12 +275,13 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     marketSearchStatus,
     timestamp: Date.now(),
     // Title and Recall Intelligence
-    titleStatus: titleHistory?.status || undefined,
+    titleStatus: titleHistory?.status || titleRecallInfo.titleStatus.toLowerCase() as any,
     titleHistory,
     openRecalls: recallCheck?.unresolved || [],
     recallCheck,
-    recalls: recallCheck?.unresolved?.map(r => r.description) || [],
-    notes
+    recalls: recallCheck?.unresolved?.map(r => r.description) || titleRecallInfo.recalls.map(r => r.summary),
+    notes,
+    titleRecallInfo
   };
 
   console.log('✅ [UNIFIED_VALUATION] Real-time valuation completed:', {
