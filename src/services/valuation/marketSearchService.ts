@@ -256,7 +256,8 @@ export async function fetchCachedMarketComps(
       year: listing.year,
       vin: listing.vin,
       fetched_at: listing.fetched_at,
-      confidence_score: listing.confidence_score || 75
+      confidence_score: listing.confidence_score || 75,
+      is_cpo: listing.is_cpo || false
     }));
 
     const trust = calculateTrustScore(cachedListings) * 0.8; // Reduce trust for cached data
