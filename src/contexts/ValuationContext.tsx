@@ -99,7 +99,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
           trim: data.trim,
           fuelType: data.fuel_type
         },
-        zip: data.state || '',
+        zip: data.zip_code || data.state || '',
         mileage: data.mileage,
         baseValue: data.estimated_value,
         adjustments: [],
@@ -149,8 +149,17 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
       try {
         // Get current user
         const { data: { user } } = await supabase.auth.getUser();
+        console.log('💾 [DEBUG] Saving valuation with user:', user?.id || 'anonymous');
+        console.log('💾 [DEBUG] Valuation data to save:', {
+          id: result.id,
+          vin: input.vin,
+          make: input.make,
+          model: input.model,
+          year: input.year,
+          estimated_value: result.finalValue
+        });
         
-        // First insert the new valuation record
+        // First insert the new valuation record with all required fields
         const { data: savedValuation, error: insertError } = await supabase
           .from('valuations')
           .insert({
@@ -162,10 +171,11 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
             year: input.year,
             mileage: input.mileage,
             condition: input.condition,
-            zip_code: input.zipCode,  // Use zip_code not state
+            zip_code: input.zipCode,
             fuel_type: input.fuelType,
             estimated_value: result.finalValue,
             confidence_score: result.confidenceScore,
+            is_vin_lookup: true,  // Required field with default
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
@@ -173,12 +183,14 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
           .single();
 
         if (insertError) {
-          console.warn('⚠️ Failed to save valuation to database:', insertError);
+          console.error('❌ Failed to save valuation to database:', insertError);
+          console.error('❌ Insert error details:', JSON.stringify(insertError, null, 2));
         } else {
-          console.log('✅ Valuation saved to database successfully');
+          console.log('✅ Valuation saved to database successfully:', savedValuation);
         }
       } catch (saveErr) {
-        console.warn('⚠️ Error saving valuation to database:', saveErr);
+        console.error('❌ Error saving valuation to database:', saveErr);
+        console.error('❌ Save error details:', JSON.stringify(saveErr, null, 2));
       }
 
       toast.success(`New estimate: $${result.finalValue.toLocaleString()} (${result.confidenceScore}% confidence)`);
