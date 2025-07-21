@@ -4,12 +4,26 @@ import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UnifiedLookupTabs } from '@/components/lookup/UnifiedLookupTabs';
 import { ValuationEngineTestComponent } from '@/components/test/ValuationEngineTestComponent';
+import { MarketSearchTest } from '@/components/debug/MarketSearchTest';
 
 export default function ValuationPage() {
   const { vin } = useParams<{ vin?: string }>();
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
+      {/* Market Search Debug Test - TEMPORARY */}
+      <Card className="border-dashed border-2 border-red-300 bg-red-50">
+        <CardHeader>
+          <CardTitle className="text-red-700">🧪 Market Search Debug</CardTitle>
+          <p className="text-red-600 text-sm">
+            Debugging market search functionality. Remove this after fixing the issue.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <MarketSearchTest />
+        </CardContent>
+      </Card>
+
       {/* Test Component for Phase 1B - Remove this after testing */}
       <Card className="border-dashed border-2 border-orange-300 bg-orange-50">
         <CardHeader>

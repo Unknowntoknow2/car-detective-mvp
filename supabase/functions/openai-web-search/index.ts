@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
@@ -14,7 +15,7 @@ const corsHeaders = {
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 serve(async (req) => {
-  console.log('OpenAI Web Search function called');
+  console.log('🔍 OpenAI Web Search function called');
 
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -22,8 +23,22 @@ serve(async (req) => {
   }
 
   try {
+    // Check if OpenAI API key is configured
+    if (!openAIApiKey) {
+      console.error('❌ OpenAI API key not configured in environment variables');
+      return new Response(JSON.stringify({ 
+        error: 'OpenAI API key not configured',
+        listings: [],
+        listingsFound: 0,
+        configurationIssue: true
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const body = await req.json();
-    console.log('Raw request body:', body);
+    console.log('📥 Raw request body:', body);
     
     // Handle both direct parameters and nested vehicleData structure
     let { make, model, year, zipCode, vin, saveToDb = true } = body;
@@ -38,18 +53,28 @@ serve(async (req) => {
       vin = vehicleData.vin;
     }
     
-    console.log('Search params:', { make, model, year, zipCode, vin });
+    console.log('🎯 Search params:', { make, model, year, zipCode, vin });
 
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    // Validate required parameters
+    if (!make || !model || !year || !zipCode) {
+      console.error('❌ Missing required parameters:', { make, model, year, zipCode });
+      return new Response(JSON.stringify({ 
+        error: 'Missing required parameters: make, model, year, zipCode',
+        listings: [],
+        listingsFound: 0 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Build search query for current market listings
     const searchQuery = `${year} ${make} ${model} for sale near ${zipCode} used car listings dealer prices`;
     
-    console.log('Searching for:', searchQuery);
+    console.log('🔍 Searching for:', searchQuery);
 
     // Use OpenAI to search for current market listings
+    console.log('📡 Calling OpenAI API...');
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -78,17 +103,26 @@ serve(async (req) => {
     });
 
     if (!openAIResponse.ok) {
-      throw new Error(`OpenAI API error: ${openAIResponse.status}`);
+      const errorText = await openAIResponse.text();
+      console.error(`❌ OpenAI API error: ${openAIResponse.status} - ${errorText}`);
+      throw new Error(`OpenAI API error: ${openAIResponse.status} - ${errorText}`);
     }
 
     const openAIData = await openAIResponse.json();
+    console.log('📊 OpenAI response received:', {
+      hasChoices: !!openAIData.choices,
+      choicesLength: openAIData.choices?.length,
+      hasContent: !!openAIData.choices?.[0]?.message?.content
+    });
+
     const content = openAIData.choices[0]?.message?.content;
 
     if (!content) {
+      console.error('❌ No content returned from OpenAI');
       throw new Error('No content returned from OpenAI');
     }
 
-    console.log('OpenAI response content:', content);
+    console.log('📝 OpenAI response content:', content);
 
     // Parse the JSON response
     let listings;
@@ -97,12 +131,15 @@ serve(async (req) => {
       const jsonMatch = content.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         listings = JSON.parse(jsonMatch[0]);
+        console.log('✅ Successfully parsed JSON from OpenAI response');
       } else {
         // Fallback: try parsing the entire content
         listings = JSON.parse(content);
+        console.log('✅ Successfully parsed entire content as JSON');
       }
     } catch (parseError) {
-      console.error('Failed to parse OpenAI response:', parseError);
+      console.error('❌ Failed to parse OpenAI response:', parseError);
+      console.log('📝 Raw content that failed to parse:', content);
       
       // Generate fallback realistic listings
       listings = [
@@ -134,6 +171,7 @@ serve(async (req) => {
           zip_code: zipCode
         }
       ];
+      console.log('🔄 Using fallback listings due to parse error');
     }
 
     // Ensure listings is an array
@@ -141,7 +179,10 @@ serve(async (req) => {
       listings = [listings];
     }
 
-    console.log('Parsed listings:', listings);
+    console.log('📋 Final parsed listings:', {
+      count: listings.length,
+      listings: listings
+    });
 
     // Save to database if requested
     if (saveToDb && listings.length > 0) {
@@ -162,35 +203,49 @@ serve(async (req) => {
         created_at: new Date().toISOString()
       }));
 
-      console.log('Inserting listings to database:', listingsToInsert);
+      console.log('💾 Inserting listings to database:', {
+        count: listingsToInsert.length,
+        sample: listingsToInsert[0]
+      });
 
       const { error: insertError } = await supabase
         .from('market_listings')
         .insert(listingsToInsert);
 
       if (insertError) {
-        console.error('Database insert error:', insertError);
+        console.error('❌ Database insert error:', insertError);
         // Don't throw - still return the listings even if DB save fails
       } else {
-        console.log('Successfully saved listings to database');
+        console.log('✅ Successfully saved listings to database');
       }
     }
 
-    return new Response(JSON.stringify({ 
+    const response = { 
       listings,
       searchQuery,
-      listingsFound: listings.length 
-    }), {
+      listingsFound: listings.length,
+      success: true,
+      timestamp: new Date().toISOString()
+    };
+
+    console.log('🎉 Function completed successfully:', response);
+
+    return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in openai-web-search function:', error);
-    return new Response(JSON.stringify({ 
+    console.error('💥 Error in openai-web-search function:', error);
+    
+    const errorResponse = { 
       error: error.message,
       listings: [],
-      listingsFound: 0 
-    }), {
+      listingsFound: 0,
+      success: false,
+      timestamp: new Date().toISOString()
+    };
+
+    return new Response(JSON.stringify(errorResponse), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
