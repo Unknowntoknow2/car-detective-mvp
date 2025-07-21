@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import type { ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
+import type { UnifiedValuationResult as ValuationResultType } from '@/types/valuation';
 import { useUserPlan } from '@/hooks/useUserPlan';
+import { useValuationContext } from '@/contexts/ValuationContext';
 
 // Import new redesigned components
 import { VehicleHeroCard } from './redesign/VehicleHeroCard';
@@ -14,27 +15,17 @@ import { ConfidenceExplanationBadge } from './ConfidenceExplanationBadge';
 import { MarketTrendSection } from './MarketTrendSection';
 
 interface UnifiedValuationResultProps {
-  result: ValuationResult;
+  result: ValuationResultType;
 }
-
-// Helper function to extract valuation ID from result
-const getValuationId = (result: ValuationResult): string => {
-  // Try different possible ID fields
-  return (result as any).id || 
-         (result as any).valuationId || 
-         (result as any).vin || 
-         'unknown';
-};
 
 export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
   result
 }) => {
-  const { isPremium } = useUserPlan();
-
-  const handleUpgrade = () => {
-    // Navigate to upgrade page
-    window.location.href = '/premium';
-  };
+  const { isPremium: userIsPremium } = useUserPlan();
+  const { isPremium: contextIsPremium, onUpgrade } = useValuationContext();
+  
+  // Use context premium status if available, otherwise fall back to user plan
+  const isPremium = contextIsPremium || userIsPremium;
 
   const confidenceRecommendations = result.confidenceScore < 70 ? [
     'Complete additional vehicle details in the follow-up form',
@@ -79,7 +70,6 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
             listingCount={result.listingCount}
             sources={result.sources}
             onRetrySearch={() => {
-              // Could trigger a re-fetch of market data
               console.log('Retry market search requested');
             }}
           />
@@ -129,7 +119,6 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
             }}
             recommendations={confidenceRecommendations}
             onImproveClick={() => {
-              // Scroll to follow-up form or navigate
               const followUpForm = document.getElementById('follow-up-form');
               if (followUpForm) {
                 followUpForm.scrollIntoView({ behavior: 'smooth' });
@@ -141,9 +130,9 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
         {/* Main Content Tabs */}
         <TabbedResultsPanels 
           result={result}
-          onUpgrade={handleUpgrade}
+          onUpgrade={onUpgrade}
           isPremium={isPremium}
-          valuationId={getValuationId(result)}
+          valuationId={result.id}
         />
 
         {/* Premium Features Section */}
@@ -180,7 +169,7 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
               preview: 'Direct offers from our certified dealer partners'
             }
           ]}
-          onUpgrade={handleUpgrade}
+          onUpgrade={onUpgrade}
         />
       </div>
     </div>
