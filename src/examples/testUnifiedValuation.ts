@@ -1,3 +1,6 @@
+// ⚠️ DEPRECATED TEST FILE - USE PRODUCTION ENGINE
+// This file is retained for testing purposes only
+// Use src/services/valuationEngine.ts calculateUnifiedValuation() for production
 // Test file for the unified valuation engine
 import { processValuation, type ValuationInput } from "@/utils/valuation/unifiedValuationEngine";
 

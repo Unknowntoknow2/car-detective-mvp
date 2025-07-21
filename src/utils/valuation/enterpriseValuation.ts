@@ -9,5 +9,5 @@
 export * from "./marketData";
 export * from "./featureAdjustments";
 
-// Legacy redirect to unified engine
-export { processValuation as calculateFinalValuation } from "./unifiedValuationEngine";
+// ⚠️ DEPRECATED: Use calculateUnifiedValuation from src/services/valuationEngine.ts instead
+export { calculateUnifiedValuation as calculateFinalValuation } from "../../services/valuationEngine";

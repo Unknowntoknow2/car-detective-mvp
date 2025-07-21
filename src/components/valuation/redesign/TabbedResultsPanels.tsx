@@ -12,7 +12,7 @@ import {
   Search
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import type { ValuationResult } from '@/utils/valuation/unifiedValuationEngine';
+import type { UnifiedValuationResult } from '@/types/valuation';
 
 // Import existing components to reuse logic
 import { InteractiveValueBreakdown } from './InteractiveValueBreakdown';
@@ -21,7 +21,7 @@ import { DataIntegrityPanel } from '../DataIntegrityPanel';
 import { MarketTrendSection } from '../MarketTrendSection';
 
 interface TabbedResultsPanelsProps {
-  result: ValuationResult;
+  result: UnifiedValuationResult;
   onUpgrade: () => void;
   isPremium: boolean;
   valuationId: string;
@@ -157,7 +157,7 @@ export function TabbedResultsPanels({ result, onUpgrade, isPremium, valuationId 
 }
 
 // Individual Tab Components
-function OverviewTab({ result }: { result: ValuationResult }) {
+function OverviewTab({ result }: { result: UnifiedValuationResult }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -224,7 +224,7 @@ function OverviewTab({ result }: { result: ValuationResult }) {
   );
 }
 
-function AnalysisTab({ result }: { result: ValuationResult }) {
+function AnalysisTab({ result }: { result: UnifiedValuationResult }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -257,9 +257,11 @@ function AnalysisTab({ result }: { result: ValuationResult }) {
   );
 }
 
-function MarketTab({ result }: { result: ValuationResult }) {
+function MarketTab({ result }: { result: UnifiedValuationResult }) {
   // Map the existing marketSearchStatus to the expected type
-  const mappedStatus = result.marketSearchStatus === 'fallback' ? 'no_results' : result.marketSearchStatus;
+  const mappedStatus = result.marketSearchStatus === 'fallback' ? 'no_results' as const : 
+                      result.marketSearchStatus === 'success' ? 'success' as const :
+                      result.marketSearchStatus === 'error' ? 'error' as const : 'no_results' as const;
   
   // Extract valuation ID from result
   const valuationId = (result as any).id || 
@@ -295,7 +297,7 @@ function MarketTab({ result }: { result: ValuationResult }) {
   );
 }
 
-function SourcesTab({ result }: { result: ValuationResult }) {
+function SourcesTab({ result }: { result: UnifiedValuationResult }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -314,7 +316,7 @@ function SourcesTab({ result }: { result: ValuationResult }) {
             hasMarketRange: Boolean(result.listingRange)
           },
           msrpSource: 'estimated',
-          baseMSRP: result.vehicle.msrp || 0
+          baseMSRP: (result.vehicle as any).msrp || 0
         }}
       />
     </motion.div>
@@ -328,7 +330,7 @@ function ForecastTab({
   isPremium, 
   onUpgrade 
 }: { 
-  result: ValuationResult; 
+  result: UnifiedValuationResult; 
   valuationId: string; 
   isPremium: boolean; 
   onUpgrade: () => void; 

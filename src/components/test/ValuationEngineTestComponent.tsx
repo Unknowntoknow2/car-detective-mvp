@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { processValuation } from '@/utils/valuation/unifiedValuationEngine';
+import { calculateUnifiedValuation } from '@/services/valuationEngine';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 import { ValuationProgressDisplay } from '@/components/valuation/ValuationProgressDisplay';
 import { ValuationProgressTracker } from '@/utils/valuation/progressTracker';
@@ -45,12 +45,15 @@ export function ValuationEngineTestComponent() {
     try {
       console.log('🧪 Starting valuation engine test...');
       
-      const valuationResult = await processValuation({
+      const valuationResult = await calculateUnifiedValuation({
         vin,
-        zipCode,
+        year: 2020, // Add required year field
+        make: 'BMW', // Add required make field  
+        model: 'X5', // Add required model field
         mileage,
-        condition
-      }, tracker);
+        condition,
+        zipCode
+      });
       
       console.log('✅ Valuation test completed:', valuationResult);
       setResult(valuationResult);
