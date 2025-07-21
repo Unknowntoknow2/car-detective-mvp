@@ -206,8 +206,19 @@ export async function calculateUnifiedValuation(
 
     console.log(`🔍 [VALUATION_ENGINE] After advanced filtering: ${filteredListings.length} quality listings`);
 
+    // If no listings pass filtering, use fallback approach instead of throwing error
     if (filteredListings.length === 0) {
-      throw new Error('No quality market listings found after filtering');
+      console.log('⚠️ [VALUATION_ENGINE] No quality listings found, using fallback calculation');
+      return await calculateFallbackValuation({
+        make,
+        model,
+        year,
+        mileage,
+        condition,
+        zipCode,
+        titleStatus: titleStatus || 'clean',
+        allListings: marketData.allListings
+      });
     }
 
     // PHASE 4: Enhanced Valuation Calculation Logic
@@ -569,6 +580,115 @@ async function generateEnhancedExplanation(params: {
   const explanation = `This valuation is based on ${marketData.allListings.length} active listings within 50 miles of ZIP ${zipCode}, adjusted for ${vehicle.mileage.toLocaleString()} miles and ${condition} condition. Comparable ${vehicle.year} ${vehicle.make} ${vehicle.model} models range from $${Math.min(...marketData.allListings.map((l: any) => l.price)).toLocaleString()} to $${Math.max(...marketData.allListings.map((l: any) => l.price)).toLocaleString()}. A final value of $${valuationResult.adjustedValue.toLocaleString()} was computed based on market demand and vehicle-specific factors.`;
 
   return explanation;
+}
+
+// FALLBACK VALUATION: When no quality market listings are found
+async function calculateFallbackValuation(params: {
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  zipCode: string;
+  titleStatus: string;
+  allListings: any[];
+}): Promise<UnifiedValuationResult> {
+  console.log('🔄 [FALLBACK_VALUATION] Using model-based estimation');
+  
+  const { make, model, year, mileage, condition, zipCode, titleStatus, allListings } = params;
+  
+  // Use depreciation-based baseline calculation
+  const currentYear = new Date().getFullYear();
+  const vehicleAge = currentYear - year;
+  const msrpEstimate = 35000; // Default MSRP estimate for unknown vehicles
+  
+  // Apply standard depreciation curve
+  let baseValue = msrpEstimate;
+  baseValue *= Math.pow(0.85, vehicleAge); // 15% per year depreciation
+  
+  // Apply mileage adjustment
+  const avgMileagePerYear = 12000;
+  const expectedMileage = vehicleAge * avgMileagePerYear;
+  const mileageDifference = mileage - expectedMileage;
+  const mileageAdjustment = -Math.max(0, mileageDifference * 0.15); // $0.15 per excess mile
+  
+  // Apply condition adjustment
+  const conditionMultipliers: Record<string, number> = {
+    excellent: 1.1,
+    'very good': 1.05,
+    good: 1.0,
+    fair: 0.9,
+    poor: 0.75
+  };
+  const conditionMultiplier = conditionMultipliers[condition.toLowerCase()] || 1.0;
+  
+  // Apply title penalty
+  const titlePenalties: Record<string, number> = {
+    clean: 0,
+    rebuilt: -3000,
+    salvage: -5000,
+    flood: -4000,
+    lemon: -3500
+  };
+  const titlePenalty = titlePenalties[titleStatus.toLowerCase()] || 0;
+  
+  // Calculate final value
+  const adjustedValue = (baseValue + mileageAdjustment) * conditionMultiplier + titlePenalty;
+  const finalValue = Math.max(1000, Math.round(adjustedValue)); // Minimum $1000
+  
+  // Create conservative price range
+  const priceRange: [number, number] = [
+    Math.round(finalValue * 0.85),
+    Math.round(finalValue * 1.15)
+  ];
+  
+  // Generate basic market listings from any available data
+  const marketListings = allListings.slice(0, 5).map(listing => ({
+    price: listing.price || finalValue,
+    mileage: listing.mileage || mileage,
+    source: listing.source || 'market data',
+    tier: 'Tier3',
+    trustWeight: 0.5,
+    location: listing.location || zipCode,
+    url: listing.url || undefined
+  }));
+  
+  return {
+    finalValue,
+    priceRange,
+    confidenceScore: 45, // Lower confidence for fallback
+    marketListings,
+    zipAdjustment: 0,
+    mileagePenalty: mileageAdjustment,
+    conditionDelta: (conditionMultiplier - 1) * baseValue,
+    titlePenalty,
+    aiExplanation: `This valuation uses our depreciation model due to limited market data. The estimate is based on standard depreciation rates, mileage adjustments, and condition factors. Consider this a conservative baseline estimate.`,
+    sourcesUsed: ['depreciation_model', 'baseline_calculation'],
+    adjustments: [
+      {
+        factor: 'Vehicle Age',
+        impact: baseValue - msrpEstimate,
+        description: `${vehicleAge} years of depreciation applied`
+      },
+      {
+        factor: 'Mileage',
+        impact: mileageAdjustment,
+        description: `${mileage.toLocaleString()} miles vs ${expectedMileage.toLocaleString()} expected`
+      },
+      {
+        factor: 'Condition',
+        impact: (conditionMultiplier - 1) * baseValue,
+        description: `${condition} condition adjustment`
+      },
+      {
+        factor: 'Title Status',
+        impact: titlePenalty,
+        description: `${titleStatus} title impact`
+      }
+    ],
+    baseValue: msrpEstimate,
+    explanation: 'Valuation based on depreciation model with limited market data available.'
+  };
 }
 
 // Helper functions

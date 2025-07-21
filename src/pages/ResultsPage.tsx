@@ -2,7 +2,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { ValuationProvider, useValuationContext } from '@/contexts/ValuationContext';
-import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
+import { ValuationResultCard } from '@/components/valuation/ValuationResultCard';
 import { RerunValuationButton } from '@/components/valuation/RerunValuationButton';
 
 export default function ResultsPage() {
@@ -27,7 +27,7 @@ export default function ResultsPage() {
 }
 
 function ResultsContent() {
-  const { valuationData, isLoading, error } = useValuationContext();
+  const { valuationData, isLoading, error, rerunValuation } = useValuationContext();
 
   if (isLoading) {
     return (
@@ -57,5 +57,13 @@ function ResultsContent() {
     );
   }
 
-  return <UnifiedValuationResult result={valuationData} />;
+  return (
+    <div className="container mx-auto py-8">
+      <ValuationResultCard 
+        result={valuationData as any} 
+        onDownloadPdf={() => console.log('Download PDF')}
+        onShareReport={() => console.log('Share Report')}
+      />
+    </div>
+  );
 }
