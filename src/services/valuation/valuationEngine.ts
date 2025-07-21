@@ -1,5 +1,6 @@
 import { fetchMarketplaceListings } from "@/services/valuation/fetchMarketplaceListings";
-import { AllDealerSources, AllP2PSources, DealerSourceResult, getDealerDomain, getDealerTier, getDealerTrustWeight, RetailDealerSources } from "@/utils/dealerSources";
+import { AllDealerSources, DealerSourceResult, getDealerDomain, getDealerTier, getDealerTrustWeight, RetailDealerSources } from "@/utils/dealerSources";
+import { AllP2PSources } from "@/utils/p2pSources";
 import { getMarketMultiplier } from "@/utils/valuation/marketData";
 import { getTitleStatusAdjustmentFromDB, getTitleStatusAdjustment } from "@/utils/adjustments/titleStatusAdjustments";
 import { P2PSourceResult, getP2PDomain, getP2PTier, getP2PTrustWeight, PrivateMarketplaces } from "@/utils/p2pSources";
@@ -565,7 +566,7 @@ async function generateEnhancedExplanation(params: {
 }): Promise<string> {
   const { valuationResult, marketData, vehicle, condition, zipCode, titleStatus } = params;
   
-  const explanation = `This valuation is based on ${marketData.allListings.length} active listings within 50 miles of ZIP ${zipCode}, adjusted for ${vehicle.mileage.toLocaleString()} miles and ${condition} condition. Comparable ${vehicle.year} ${vehicle.make} ${vehicle.model} models range from $${Math.min(...marketData.allListings.map(l => l.price)).toLocaleString()} to $${Math.max(...marketData.allListings.map(l => l.price)).toLocaleString()}. A final value of $${valuationResult.adjustedValue.toLocaleString()} was computed based on market demand and vehicle-specific factors.`;
+  const explanation = `This valuation is based on ${marketData.allListings.length} active listings within 50 miles of ZIP ${zipCode}, adjusted for ${vehicle.mileage.toLocaleString()} miles and ${condition} condition. Comparable ${vehicle.year} ${vehicle.make} ${vehicle.model} models range from $${Math.min(...marketData.allListings.map((l: any) => l.price)).toLocaleString()} to $${Math.max(...marketData.allListings.map((l: any) => l.price)).toLocaleString()}. A final value of $${valuationResult.adjustedValue.toLocaleString()} was computed based on market demand and vehicle-specific factors.`;
 
   return explanation;
 }
@@ -619,7 +620,7 @@ function calculateMileageAdjustment(mileage: number, make: string, year: number,
 }
 
 function calculateConditionAdjustment(condition: string, baseValue: number): number {
-  const conditionMultipliers = {
+  const conditionMultipliers: Record<string, number> = {
     'excellent': 1.05,
     'very good': 1.02,
     'good': 1.0,
@@ -632,7 +633,7 @@ function calculateConditionAdjustment(condition: string, baseValue: number): num
 }
 
 function calculateTitlePenalty(titleStatus: string, baseValue: number): number {
-  const titlePenalties = {
+  const titlePenalties: Record<string, number> = {
     'clean': 0,
     'rebuilt': -0.25,
     'salvage': -0.45,
@@ -651,7 +652,7 @@ function calculateVariance(numbers: number[]): number {
 }
 
 function getAdjustmentDescription(factor: string, impact: number | any): string {
-  const descriptions = {
+  const descriptions: Record<string, string> = {
     zipAdjustment: impact > 0 ? 'High demand area premium' : 'Average market area',
     mileageAdjustment: impact < 0 ? 'Higher mileage depreciation' : 'Lower mileage premium',
     conditionAdjustment: impact > 0 ? 'Above average condition' : 'Below average condition',
