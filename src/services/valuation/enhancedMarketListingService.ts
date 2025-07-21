@@ -1,390 +1,305 @@
+
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface EnhancedMarketListing {
-  id?: string;
+  id: string;
   vin?: string;
-  valuation_request_id?: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  trim?: string;
+  price: number;
+  mileage?: number;
+  location?: string;
+  condition?: string;
   source: string;
   source_type: string;
   listing_url: string;
-  price: number;
-  mileage?: number;
-  year?: number;
-  make?: string;
-  model?: string;
-  trim?: string;
-  condition?: string;
-  title_status?: string;
-  location?: string;
-  zip_code?: string;
   dealer_name?: string;
   is_cpo?: boolean;
-  days_listed?: number;
   confidence_score?: number;
-  geo_distance_miles?: number;
-  listing_date?: string;
-  fetched_at?: string;
-  features?: Record<string, any>;
+  fetched_at: string;
+  title_status?: string;
+  zip_code?: string;
+  raw_data?: any;
   photos?: string[];
-  raw_data?: Record<string, any>;
+  features?: any;
+  geo_distance_miles?: number;
+  days_listed?: number;
   is_validated?: boolean;
   validation_errors?: string[];
 }
 
-export interface MarketSearchParams {
-  vin?: string;
-  make: string;
-  model: string;
-  year: number;
-  mileage?: number;
-  zipCode: string;
-  radius?: number;
-  maxResults?: number;
-}
-
-export interface VinEnrichmentData {
-  vin: string;
-  year?: number;
+export interface EnhancedMarketListingFilters {
   make?: string;
   model?: string;
-  trim?: string;
-  engine?: string;
-  transmission?: string;
-  drivetrain?: string;
-  fuel_type?: string;
-  body_type?: string;
-  msrp?: number;
-  title_status?: string;
-  title_history?: any[];
-  accident_history?: any[];
-  confidence_score?: number;
-  data_sources?: string[];
+  year?: number;
+  zipCode?: string;
+  maxDistance?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  condition?: string;
+  maxResults?: number;
+  vin?: string;
 }
 
 export class EnhancedMarketListingService {
   /**
-   * Fetch real market listings using multiple sources
+   * Fetch real market listings from the market_listings table
    */
-  static async fetchRealMarketListings(params: MarketSearchParams): Promise<EnhancedMarketListing[]> {
+  static async fetchRealMarketListings(filters: EnhancedMarketListingFilters): Promise<EnhancedMarketListing[]> {
     try {
-      console.log('Fetching real market listings with params:', params);
-      
-      // First, try VIN-specific search if VIN is provided
-      if (params.vin) {
-        const vinListings = await this.searchByVin(params.vin);
-        if (vinListings.length > 0) {
-          console.log(`Found ${vinListings.length} VIN-specific listings`);
-          return vinListings;
-        }
-      }
+      console.log('🔍 Fetching real market listings with filters:', filters);
 
-      // Fallback to make/model/year search
-      const generalListings = await this.searchByMakeModelYear(params);
-      console.log(`Found ${generalListings.length} general listings`);
-      
-      return generalListings;
-    } catch (error) {
-      console.error('Error fetching real market listings:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Search for listings by VIN using multiple sources
-   */
-  private static async searchByVin(vin: string): Promise<EnhancedMarketListing[]> {
-    const listings: EnhancedMarketListing[] = [];
-
-    try {
-      // Search existing listings first
-      const { data: existingListings } = await supabase
-        .from('enhanced_market_listings')
+      let query = supabase
+        .from('market_listings')
         .select('*')
-        .eq('vin', vin)
-        .gte('fetched_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()) // Last 7 days
         .order('fetched_at', { ascending: false });
 
-      if (existingListings && existingListings.length > 0) {
-        console.log(`Found ${existingListings.length} cached VIN listings`);
-        return existingListings as EnhancedMarketListing[];
+      // Apply filters
+      if (filters.make) {
+        query = query.ilike('make', `%${filters.make}%`);
+      }
+      if (filters.model) {
+        query = query.ilike('model', `%${filters.model}%`);
+      }
+      if (filters.year) {
+        query = query.eq('year', filters.year);
+      }
+      if (filters.zipCode) {
+        query = query.eq('zip_code', filters.zipCode);
+      }
+      if (filters.condition) {
+        query = query.eq('condition', filters.condition);
+      }
+      if (filters.vin) {
+        query = query.eq('vin', filters.vin);
+      }
+      if (filters.minPrice) {
+        query = query.gte('price', filters.minPrice);
+      }
+      if (filters.maxPrice) {
+        query = query.lte('price', filters.maxPrice);
       }
 
-      // Call edge functions to fetch fresh data
-      const sources = ['fetch-marketplace-data', 'openai-web-search'];
-      
-      for (const source of sources) {
-        try {
-          const { data, error } = await supabase.functions.invoke(source, {
-            body: { 
-              searchType: 'vin',
-              vin: vin,
-              includeUrl: true 
-            }
-          });
+      // Limit results
+      const limit = filters.maxResults || 20;
+      query = query.limit(limit);
 
-          if (error) {
-            console.error(`Error from ${source}:`, error);
-            continue;
-          }
-
-          if (data?.listings) {
-            const sourceListings = this.parseListings(data.listings, source);
-            listings.push(...sourceListings);
-          }
-        } catch (error) {
-          console.error(`Failed to call ${source}:`, error);
-        }
-      }
-
-      // Save new listings to database
-      if (listings.length > 0) {
-        await this.saveListings(listings);
-      }
-
-      return listings;
-    } catch (error) {
-      console.error('Error in VIN search:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Search for listings by make/model/year
-   */
-  private static async searchByMakeModelYear(params: MarketSearchParams): Promise<EnhancedMarketListing[]> {
-    const listings: EnhancedMarketListing[] = [];
-
-    try {
-      // Check for recent cached results first
-      const { data: cachedListings } = await supabase
-        .from('enhanced_market_listings')
-        .select('*')
-        .eq('make', params.make)
-        .eq('model', params.model)
-        .eq('year', params.year)
-        .gte('fetched_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
-        .order('confidence_score', { ascending: false })
-        .limit(params.maxResults || 20);
-
-      if (cachedListings && cachedListings.length >= 5) {
-        console.log(`Using ${cachedListings.length} cached listings`);
-        return cachedListings as EnhancedMarketListing[];
-      }
-
-      // Fetch fresh data from multiple sources
-      const searchQueries = [
-        `${params.year} ${params.make} ${params.model} for sale near ${params.zipCode}`,
-        `${params.year} ${params.make} ${params.model} used cars ${params.zipCode}`,
-        `${params.make} ${params.model} ${params.year} CarGurus AutoTrader Cars.com`
-      ];
-
-      for (const query of searchQueries) {
-        try {
-          const { data, error } = await supabase.functions.invoke('openai-web-search', {
-            body: { 
-              query,
-              zipCode: params.zipCode,
-              make: params.make,
-              model: params.model,
-              year: params.year,
-              includeListings: true
-            }
-          });
-
-          if (error) {
-            console.error('Error from openai-web-search:', error);
-            continue;
-          }
-
-          if (data?.listings) {
-            const sourceListings = this.parseListings(data.listings, 'web-search');
-            listings.push(...sourceListings);
-          }
-        } catch (error) {
-          console.error('Failed to call openai-web-search:', error);
-        }
-      }
-
-      // Filter and validate listings
-      const validListings = this.filterAndValidateListings(listings, params);
-      
-      // Save new listings
-      if (validListings.length > 0) {
-        await this.saveListings(validListings);
-      }
-
-      return validListings.slice(0, params.maxResults || 20);
-    } catch (error) {
-      console.error('Error in make/model/year search:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Parse listings from API response
-   */
-  private static parseListings(listings: any[], source: string): EnhancedMarketListing[] {
-    return listings.map(listing => ({
-      source: listing.source || source,
-      source_type: 'marketplace',
-      listing_url: listing.url || listing.listing_url || `https://example.com/listing-${Date.now()}`,
-      price: parseFloat(listing.price?.toString().replace(/[^0-9.]/g, '') || '0'),
-      mileage: listing.mileage ? parseInt(listing.mileage.toString().replace(/[^0-9]/g, '')) : undefined,
-      year: listing.year || undefined,
-      make: listing.make || undefined,
-      model: listing.model || undefined,
-      trim: listing.trim || undefined,
-      condition: listing.condition || 'used',
-      title_status: listing.title_status || 'unknown',
-      location: listing.location || undefined,
-      zip_code: listing.zip_code || undefined,
-      dealer_name: listing.dealer_name || listing.dealer || undefined,
-      confidence_score: listing.confidence_score || 75,
-      geo_distance_miles: listing.distance || undefined,
-      listing_date: listing.listing_date || undefined,
-      features: listing.features || {},
-      photos: listing.photos || [],
-      raw_data: listing,
-      vin: listing.vin || undefined
-    }));
-  }
-
-  /**
-   * Filter and validate listings for quality
-   */
-  private static filterAndValidateListings(
-    listings: EnhancedMarketListing[], 
-    params: MarketSearchParams
-  ): EnhancedMarketListing[] {
-    return listings.filter(listing => {
-      // Price validation
-      if (!listing.price || listing.price < 1000 || listing.price > 200000) {
-        return false;
-      }
-
-      // Mileage validation (if provided)
-      if (params.mileage && listing.mileage) {
-        const mileageDiff = Math.abs(listing.mileage - params.mileage);
-        const mileageRange = params.mileage * 0.3; // 30% range
-        if (mileageDiff > mileageRange && mileageDiff > 20000) {
-          return false;
-        }
-      }
-
-      // URL validation
-      if (!listing.listing_url || !listing.listing_url.startsWith('http')) {
-        return false;
-      }
-
-      return true;
-    }).sort((a, b) => (b.confidence_score || 0) - (a.confidence_score || 0));
-  }
-
-  /**
-   * Save listings to database
-   */
-  private static async saveListings(listings: EnhancedMarketListing[]): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('enhanced_market_listings')
-        .insert(listings);
+      const { data, error } = await query;
 
       if (error) {
-        console.error('Error saving listings:', error);
-      } else {
-        console.log(`Saved ${listings.length} listings to database`);
+        console.error('❌ Error fetching market listings:', error);
+        toast.error('Failed to fetch market listings');
+        return [];
       }
+
+      if (!data || data.length === 0) {
+        console.log('📭 No market listings found with current filters');
+        return [];
+      }
+
+      // Transform data to EnhancedMarketListing format
+      const transformedListings: EnhancedMarketListing[] = data.map(listing => ({
+        id: listing.id,
+        vin: listing.vin,
+        make: listing.make,
+        model: listing.model,
+        year: listing.year,
+        trim: listing.trim,
+        price: listing.price,
+        mileage: listing.mileage,
+        location: listing.location,
+        condition: listing.condition || 'used',
+        source: listing.source,
+        source_type: listing.source_type,
+        listing_url: listing.listing_url,
+        dealer_name: listing.dealer_name,
+        is_cpo: listing.is_cpo || false,
+        confidence_score: listing.confidence_score || 85,
+        fetched_at: listing.fetched_at,
+        title_status: listing.title_status || 'clean',
+        zip_code: listing.zip_code,
+        raw_data: listing.raw_data,
+        photos: listing.photos || [],
+        features: listing.features || {},
+        geo_distance_miles: listing.geo_distance_miles,
+        days_listed: listing.days_listed,
+        is_validated: listing.is_validated || false,
+        validation_errors: listing.validation_errors || []
+      }));
+
+      console.log(`✅ Successfully fetched ${transformedListings.length} real market listings`);
+      return transformedListings;
+
     } catch (error) {
-      console.error('Error in saveListings:', error);
+      console.error('❌ Critical error fetching real market listings:', error);
+      toast.error('Failed to fetch market data');
+      return [];
     }
   }
 
   /**
-   * Get VIN enrichment data
+   * Search for similar vehicles in the market
    */
-  static async getVinEnrichment(vin: string): Promise<VinEnrichmentData | null> {
-    try {
-      // Check cache first
-      const { data: cached } = await supabase
-        .from('vin_enrichment_data')
-        .select('*')
-        .eq('vin', vin)
-        .gte('last_updated', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()) // 30 days
-        .single();
+  static async searchSimilarVehicles(filters: EnhancedMarketListingFilters): Promise<EnhancedMarketListing[]> {
+    console.log('🔍 Searching for similar vehicles...');
+    
+    // First try exact match
+    const exactMatch = await this.fetchRealMarketListings(filters);
+    if (exactMatch.length > 0) {
+      console.log(`✅ Found ${exactMatch.length} exact matches`);
+      return exactMatch;
+    }
 
-      if (cached) {
-        return cached as VinEnrichmentData;
-      }
+    // If no exact match, try broader search
+    const broaderFilters = {
+      ...filters,
+      year: undefined, // Remove year filter for broader search
+      maxResults: filters.maxResults || 50
+    };
 
-      // Fetch fresh enrichment data
-      const { data, error } = await supabase.functions.invoke('vin-enrichment-processor', {
-        body: { vin }
-      });
+    const broaderResults = await this.fetchRealMarketListings(broaderFilters);
+    
+    // Filter by year range if original year was specified
+    if (filters.year && broaderResults.length > 0) {
+      const yearRange = 2; // +/- 2 years
+      const filteredByYear = broaderResults.filter(listing => 
+        listing.year && 
+        Math.abs(listing.year - filters.year!) <= yearRange
+      );
+      
+      console.log(`✅ Found ${filteredByYear.length} similar vehicles within ${yearRange} years`);
+      return filteredByYear;
+    }
 
-      if (error || !data) {
-        console.error('Error fetching VIN enrichment:', error);
-        return null;
-      }
+    console.log(`✅ Found ${broaderResults.length} similar vehicles`);
+    return broaderResults;
+  }
 
-      // Save to cache
-      const enrichmentData: VinEnrichmentData = {
-        vin,
-        ...data,
-        data_sources: ['vin-enrichment-processor']
+  /**
+   * Get market summary statistics
+   */
+  static async getMarketSummary(filters: EnhancedMarketListingFilters): Promise<{
+    averagePrice: number;
+    medianPrice: number;
+    priceRange: { min: number; max: number };
+    totalListings: number;
+    averageMileage: number;
+    mostCommonCondition: string;
+  }> {
+    const listings = await this.fetchRealMarketListings(filters);
+    
+    if (listings.length === 0) {
+      return {
+        averagePrice: 0,
+        medianPrice: 0,
+        priceRange: { min: 0, max: 0 },
+        totalListings: 0,
+        averageMileage: 0,
+        mostCommonCondition: 'unknown'
       };
-
-      await supabase
-        .from('vin_enrichment_data')
-        .upsert(enrichmentData);
-
-      return enrichmentData;
-    } catch (error) {
-      console.error('Error in getVinEnrichment:', error);
-      return null;
     }
+
+    const prices = listings.map(l => l.price).filter(p => p > 0);
+    const mileages = listings.map(l => l.mileage).filter(m => m && m > 0);
+    const conditions = listings.map(l => l.condition).filter(c => c);
+
+    // Calculate statistics
+    const averagePrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+    const sortedPrices = prices.sort((a, b) => a - b);
+    const medianPrice = sortedPrices[Math.floor(sortedPrices.length / 2)];
+    const averageMileage = mileages.reduce((sum, mileage) => sum + mileage!, 0) / mileages.length;
+    
+    // Find most common condition
+    const conditionCounts = conditions.reduce((acc, condition) => {
+      acc[condition!] = (acc[condition!] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const mostCommonCondition = Object.entries(conditionCounts)
+      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'unknown';
+
+    return {
+      averagePrice: Math.round(averagePrice),
+      medianPrice: Math.round(medianPrice),
+      priceRange: {
+        min: Math.min(...prices),
+        max: Math.max(...prices)
+      },
+      totalListings: listings.length,
+      averageMileage: Math.round(averageMileage),
+      mostCommonCondition
+    };
   }
 
   /**
-   * Calculate title adjustment
+   * Validate and clean market listing data
    */
-  static async getTitleAdjustment(titleStatus: string, baseValue: number): Promise<number> {
-    try {
-      const { data } = await supabase.rpc('get_title_adjustment', {
-        title_status: titleStatus.toLowerCase(),
-        base_value: baseValue
-      });
+  static validateListing(listing: any): boolean {
+    const requiredFields = ['price', 'source', 'listing_url'];
+    const hasRequiredFields = requiredFields.every(field => 
+      listing[field] !== null && listing[field] !== undefined && listing[field] !== ''
+    );
 
-      return data || 0;
-    } catch (error) {
-      console.error('Error calculating title adjustment:', error);
-      return 0;
+    if (!hasRequiredFields) {
+      console.warn('⚠️ Listing missing required fields:', listing);
+      return false;
     }
+
+    // Validate price range
+    if (listing.price < 1000 || listing.price > 200000) {
+      console.warn('⚠️ Listing price out of range:', listing.price);
+      return false;
+    }
+
+    // Validate mileage if present
+    if (listing.mileage && (listing.mileage < 0 || listing.mileage > 500000)) {
+      console.warn('⚠️ Listing mileage out of range:', listing.mileage);
+      return false;
+    }
+
+    return true;
   }
 
   /**
-   * Audit market search for compliance
+   * Get cached listings for performance
    */
-  static async auditMarketSearch(params: {
-    valuation_request_id?: string;
-    vin?: string;
-    search_type: string;
-    search_params: Record<string, any>;
-    listings_found: number;
-    listings_validated: number;
-    data_sources_used: string[];
-    search_status: string;
-    error_message?: string;
-  }): Promise<void> {
-    try {
-      await supabase
-        .from('market_search_audit')
-        .insert({
-          ...params,
-          search_params: params.search_params,
-          data_sources_used: params.data_sources_used
-        });
-    } catch (error) {
-      console.error('Error auditing market search:', error);
+  static async getCachedListings(filters: EnhancedMarketListingFilters): Promise<EnhancedMarketListing[]> {
+    const cacheKey = JSON.stringify(filters);
+    const cachedData = sessionStorage.getItem(`market_listings_${cacheKey}`);
+    
+    if (cachedData) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        const cacheTime = new Date(parsed.timestamp);
+        const now = new Date();
+        const cacheAgeMinutes = (now.getTime() - cacheTime.getTime()) / (1000 * 60);
+        
+        // Cache for 5 minutes
+        if (cacheAgeMinutes < 5) {
+          console.log('📦 Using cached market listings');
+          return parsed.data;
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to parse cached listings:', error);
+      }
     }
+
+    // Fetch fresh data
+    const freshData = await this.fetchRealMarketListings(filters);
+    
+    // Cache the result
+    try {
+      sessionStorage.setItem(`market_listings_${cacheKey}`, JSON.stringify({
+        data: freshData,
+        timestamp: new Date().toISOString()
+      }));
+    } catch (error) {
+      console.warn('⚠️ Failed to cache listings:', error);
+    }
+    
+    return freshData;
   }
 }
