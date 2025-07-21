@@ -12,6 +12,16 @@ import {
   type WeightedListing,
   type DealerSourceResult
 } from "../utils/dealerSources";
+import {
+  PrivateMarketplaces,
+  p2pTierWeights,
+  AllP2PSources,
+  getP2PTier,
+  getP2PTrustWeight,
+  getP2PDomain,
+  type P2PListing,
+  type P2PSourceResult
+} from "../utils/p2pSources";
 
 // ENHANCED TIER-BASED MARKET SOURCE ARCHITECTURE (25+ DEALER SOURCES)
 const MARKET_SOURCE_TIERS = {
@@ -40,21 +50,21 @@ const MARKET_SOURCE_TIERS = {
   // CATEGORY 2: Private-Party Marketplaces (P2P)
   P2P_MARKETPLACES: {
     TIER_1: {
-      sources: ['Facebook Marketplace', 'Craigslist', 'OfferUp'],
-      domains: ['facebook.com/marketplace', 'craigslist.org', 'offerup.com'],
-      trustWeight: 0.75,
+      sources: PrivateMarketplaces.Tier1,
+      domains: PrivateMarketplaces.Tier1.map(source => getP2PDomain(source)),
+      trustWeight: p2pTierWeights.Tier1,
       type: 'p2p' as const
     },
     TIER_2: {
-      sources: ['eBay Motors', 'Nextdoor', 'KSL Classifieds'],
-      domains: ['ebay.com/motors', 'nextdoor.com', 'ksl.com'],
-      trustWeight: 0.65,
+      sources: PrivateMarketplaces.Tier2,
+      domains: PrivateMarketplaces.Tier2.map(source => getP2PDomain(source)),
+      trustWeight: p2pTierWeights.Tier2,
       type: 'p2p' as const
     },
     TIER_3: {
-      sources: ['Oodle', 'Recycler', 'CarSoup'],
-      domains: ['oodle.com', 'recycler.com', 'carsoup.com'],
-      trustWeight: 0.55,
+      sources: PrivateMarketplaces.Tier3,
+      domains: PrivateMarketplaces.Tier3.map(source => getP2PDomain(source)),
+      trustWeight: p2pTierWeights.Tier3,
       type: 'p2p' as const
     }
   },
@@ -105,6 +115,8 @@ export type EnrichedMarketListing = {
   location?: string;
   url?: string;
   trustWeight: number;
+  sellerType?: 'dealer' | 'private';
+  askingPrice?: number; // For P2P listings
 };
 
 interface ListingComp {
@@ -596,10 +608,10 @@ function getEstimatedBasePrice(input: ValuationInput): number {
 // ===== ENHANCED 25+ DEALER SOURCE MARKET SEARCH =====
 
 export async function fetchTieredListings(input: MarketQueryInput): Promise<EnrichedMarketListing[]> {
-  console.log('🚀 [ENHANCED-DEALER-SEARCH] Starting 25+ dealer source market search for:', input);
+  console.log('🚀 [ENHANCED-MARKET-SEARCH] Starting dealer + P2P marketplace search for:', input);
   
   const allListings: EnrichedMarketListing[] = [];
-  const sourceContributions: DealerSourceResult[] = [];
+  const sourceContributions: (DealerSourceResult | P2PSourceResult)[] = [];
   
   // ENHANCED: Search each individual dealer source for maximum coverage
   const dealerSearchPromises: Promise<void>[] = [];
@@ -674,7 +686,7 @@ export async function fetchTieredListings(input: MarketQueryInput): Promise<Enri
             listingsUsed: dealerListings.length,
             avgPrice,
             domain
-          });
+          } as DealerSourceResult);
           
           console.log(`✅ [DEALER-SEARCH] ${dealerName}: Found ${dealerListings.length} listings, avg $${Math.round(avgPrice).toLocaleString()}`);
         }
@@ -719,6 +731,127 @@ export async function fetchTieredListings(input: MarketQueryInput): Promise<Enri
     }
   }
 
+  // ===== P2P PRIVATE-PARTY MARKETPLACE SEARCH =====
+  console.log('🏠 [P2P-SEARCH] Starting private-party marketplace searches...');
+  
+  const p2pSearchPromises: Promise<void>[] = [];
+  
+  // Helper function to search specific P2P marketplaces
+  const searchSpecificP2PMarketplace = async (marketplaceName: string, tier: 'Tier1' | 'Tier2' | 'Tier3') => {
+    try {
+      const trustWeight = p2pTierWeights[tier];
+      const domain = getP2PDomain(marketplaceName);
+      
+      // Create P2P-specific query for private listings
+      const p2pQuery = `site:${domain} "${input.year} ${input.make} ${input.model}" ${input.trim || ''} for sale private owner by owner ${input.zipCode ? `near ${input.zipCode}` : ''} ${input.mileage ? `under ${Math.round(input.mileage * 1.2)} miles` : ''}`.trim();
+      
+      console.log(`🔍 [P2P-SEARCH] ${marketplaceName} (${tier}): ${p2pQuery}`);
+      
+      const searchPayload = {
+        query: p2pQuery,
+        max_tokens: 1500,
+        saveToDb: true,
+        vehicleData: {
+          make: input.make,
+          model: input.model,
+          year: input.year,
+          trim: input.trim,
+          zipCode: input.zipCode,
+          vin: input.vin
+        },
+        p2pInfo: {
+          marketplace: marketplaceName,
+          tier,
+          trustWeight,
+          domain,
+          sellerType: 'private'
+        }
+      };
+
+      const { data: searchResult, error } = await supabase.functions.invoke('openai-web-search', {
+        body: searchPayload
+      });
+
+      if (error) {
+        console.warn(`⚠️ [P2P-SEARCH] ${marketplaceName} search failed:`, error);
+        return;
+      }
+
+      if (searchResult?.listings && Array.isArray(searchResult.listings)) {
+        const p2pListings: EnrichedMarketListing[] = searchResult.listings.map((listing: any) => ({
+          source: marketplaceName,
+          tier: tier === 'Tier1' ? 1 : tier === 'Tier2' ? 2 : 3,
+          type: 'p2p' as const,
+          vin: listing.vin || undefined,
+          year: listing.year || input.year,
+          make: listing.make || input.make,
+          model: listing.model || input.model,
+          mileage: listing.mileage || 0,
+          price: listing.price || 0,
+          location: listing.location || input.zipCode,
+          url: listing.listing_url,
+          trustWeight,
+          sellerType: 'private',
+          askingPrice: listing.price // P2P asking prices often higher than final sale
+        })).filter((listing: EnrichedMarketListing) => 
+          listing.price > 500 && listing.price < 500000 // P2P can have lower minimums
+        );
+
+        if (p2pListings.length > 0) {
+          allListings.push(...p2pListings);
+          
+          // Track P2P source contribution for transparency
+          const avgPrice = p2pListings.reduce((sum, l) => sum + l.price, 0) / p2pListings.length;
+          sourceContributions.push({
+            source: marketplaceName,
+            tier,
+            trustWeight,
+            listingsUsed: p2pListings.length,
+            avgPrice,
+            domain,
+            sellerType: 'private'
+          } as P2PSourceResult);
+          
+          console.log(`✅ [P2P-SEARCH] ${marketplaceName}: Found ${p2pListings.length} private listings, avg $${Math.round(avgPrice).toLocaleString()}`);
+        }
+      } else {
+        console.log(`⚠️ [P2P-SEARCH] ${marketplaceName}: No private listings returned`);
+      }
+    } catch (error) {
+      console.error(`💥 [P2P-SEARCH] ${marketplaceName} exception:`, error);
+    }
+  };
+
+  // Launch searches for all P2P marketplaces
+  // Search Tier 1 P2P (Major platforms)
+  for (const marketplace of PrivateMarketplaces.Tier1) {
+    p2pSearchPromises.push(searchSpecificP2PMarketplace(marketplace, 'Tier1'));
+  }
+  
+  // Search Tier 2 P2P (Secondary platforms)
+  for (const marketplace of PrivateMarketplaces.Tier2) {
+    p2pSearchPromises.push(searchSpecificP2PMarketplace(marketplace, 'Tier2'));
+  }
+  
+  // Search Tier 3 P2P (Regional platforms)
+  for (const marketplace of PrivateMarketplaces.Tier3) {
+    p2pSearchPromises.push(searchSpecificP2PMarketplace(marketplace, 'Tier3'));
+  }
+
+  // Execute P2P searches in batches
+  for (let i = 0; i < p2pSearchPromises.length; i += batchSize) {
+    const batch = p2pSearchPromises.slice(i, i + batchSize);
+    await Promise.allSettled(batch);
+    
+    const batchNum = Math.floor(i / batchSize) + 1;
+    console.log(`📊 [P2P-SEARCH] Completed batch ${batchNum}/${Math.ceil(p2pSearchPromises.length / batchSize)}`);
+    
+    // Small delay between batches
+    if (i + batchSize < p2pSearchPromises.length) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+
   // Deduplicate and enhance with weighted logic
   const deduplicatedListings = deduplicateEnrichedListings(allListings);
   
@@ -732,12 +865,33 @@ export async function fetchTieredListings(input: MarketQueryInput): Promise<Enri
     return a.price - b.price;
   });
 
-  // Calculate weighted market metrics for transparency
+  // Calculate weighted market metrics for transparency including P2P breakdown
   const tierBreakdown = {
     tier1: prioritizedListings.filter(l => l.tier === 1).length,
     tier2: prioritizedListings.filter(l => l.tier === 2).length,
     tier3: prioritizedListings.filter(l => l.tier === 3).length
   };
+
+  const typeBreakdown = {
+    retail: prioritizedListings.filter(l => l.type === 'retail').length,
+    p2p: prioritizedListings.filter(l => l.type === 'p2p').length,
+    auction: prioritizedListings.filter(l => l.type === 'auction').length
+  };
+
+  // Calculate retail vs P2P price comparison
+  const retailListings = prioritizedListings.filter(l => l.type === 'retail');
+  const p2pListings = prioritizedListings.filter(l => l.type === 'p2p');
+  
+  const retailAvgPrice = retailListings.length > 0 
+    ? retailListings.reduce((sum, l) => sum + l.price, 0) / retailListings.length 
+    : 0;
+  const p2pAvgPrice = p2pListings.length > 0 
+    ? p2pListings.reduce((sum, l) => sum + l.price, 0) / p2pListings.length 
+    : 0;
+  
+  const buyerSavingsPotential = retailAvgPrice > 0 && p2pAvgPrice > 0 && retailAvgPrice > p2pAvgPrice
+    ? Math.round(((retailAvgPrice - p2pAvgPrice) / retailAvgPrice) * 100)
+    : 0;
 
   const totalListings = prioritizedListings.length;
   const totalSources = sourceContributions.length;
@@ -745,13 +899,17 @@ export async function fetchTieredListings(input: MarketQueryInput): Promise<Enri
     ? prioritizedListings.reduce((sum, l) => sum + l.trustWeight, 0) / totalListings 
     : 0;
 
-  console.log('🎯 [ENHANCED-DEALER-SEARCH] Final results:', {
+  console.log('🎯 [ENHANCED-MARKET-SEARCH] Final results:', {
     totalFound: allListings.length,
     afterDeduplication: totalListings,
     totalSources,
     avgTrustWeight: Math.round(avgTrustWeight * 100) / 100,
     tierBreakdown,
-    sourceContributions: sourceContributions.slice(0, 5) // Top 5 sources
+    typeBreakdown,
+    retailAvgPrice: Math.round(retailAvgPrice),
+    p2pAvgPrice: Math.round(p2pAvgPrice),
+    buyerSavingsPotential: `${buyerSavingsPotential}%`,
+    sourceContributions: sourceContributions.slice(0, 8) // Top 8 sources
   });
 
   // Store source contributions for explainability

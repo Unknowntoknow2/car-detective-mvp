@@ -272,6 +272,9 @@ export interface UnifiedValuationResult {
     tier1: number;
     tier2: number;
     tier3: number;
+    retail: number;
+    p2p: number;
+    auction: number;
     urls: string[];
   };
   // ENHANCED: Dealer Source Contributions for Transparency  

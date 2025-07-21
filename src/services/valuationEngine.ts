@@ -79,6 +79,9 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     tier1: 0,
     tier2: 0,
     tier3: 0,
+    retail: 0,
+    p2p: 0,
+    auction: 0,
     urls: [] as string[]
   };
   
@@ -119,11 +122,14 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
           marketAnchoredPrice = totalWeightedPrice / totalWeight;
           marketConfidenceScore = totalWeight >= 5 ? 85 : 70;
           
-          // Create source breakdown
+          // Create source breakdown including P2P data
           sourceBreakdown = {
             tier1: filteredListings.filter(l => l.tier === 1).length,
             tier2: filteredListings.filter(l => l.tier === 2).length,
             tier3: filteredListings.filter(l => l.tier === 3).length,
+            retail: filteredListings.filter(l => l.type === 'retail').length,
+            p2p: filteredListings.filter(l => l.type === 'p2p').length,
+            auction: filteredListings.filter(l => l.type === 'auction').length,
             urls: filteredListings.map(l => l.url).filter(Boolean) as string[]
           };
           
@@ -144,7 +150,8 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
             model: listing.model,
             trim,
             trustWeight: listing.trustWeight,
-            listingType: listing.type
+            listingType: listing.type,
+            sellerType: listing.sellerType
           }));
           
           marketSearchStatus = 'success';
@@ -152,7 +159,7 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
           confidenceScore = marketConfidenceScore;
           trustNotes = `Google-grade tier analysis: ${filteredListings.length} listings with weighted trust score ${totalWeight.toFixed(1)}`;
           
-          notes.push(`Tier-anchored valuation using ${filteredListings.length} listings across ${sourceBreakdown.tier1} Tier-1, ${sourceBreakdown.tier2} Tier-2, ${sourceBreakdown.tier3} Tier-3 sources`);
+          notes.push(`Market intelligence: ${filteredListings.length} listings across ${sourceBreakdown.tier1} Tier-1, ${sourceBreakdown.tier2} Tier-2, ${sourceBreakdown.tier3} Tier-3 sources (${sourceBreakdown.retail} retail, ${sourceBreakdown.p2p} private-party)`);
           notes.push(`Trust-weighted median: $${Math.round(marketAnchoredPrice).toLocaleString()} (confidence: ${marketConfidenceScore}%)`);
           
           console.log(`✅ [TIER_MARKET] Tier-weighted market value: $${marketAnchoredPrice.toLocaleString()} (confidence: ${marketConfidenceScore}%)`);
