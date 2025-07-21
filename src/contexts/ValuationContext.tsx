@@ -2,11 +2,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { calculateUnifiedValuation, type UnifiedValuationResult as EngineResult } from '@/services/valuation/valuationEngine';
-import type { UnifiedValuationResult, ValuationInput } from '@/types/valuation';
+import type { ValuationInput } from '@/types/valuation';
 import { toast } from 'sonner';
 
 interface ValuationContextType {
-  valuationData?: UnifiedValuationResult | null;
+  valuationData?: EngineResult | null;
   isPremium: boolean;
   isLoading: boolean;
   error?: string | null;
@@ -27,7 +27,7 @@ interface ValuationProviderProps {
 }
 
 export function ValuationProvider({ children, valuationId }: ValuationProviderProps) {
-  const [valuationData, setValuationData] = useState<UnifiedValuationResult | null>(null);
+  const [valuationData, setValuationData] = useState<EngineResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -88,37 +88,27 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
 
       console.log('✅ Loaded valuation data:', data);
 
-      // Transform legacy valuation data to UnifiedValuationResult format
-      const unifiedResult: UnifiedValuationResult = {
-        id: data.id,
-        vin: data.vin || undefined,
-        vehicle: {
-          year: data.year,
-          make: data.make,
-          model: data.model,
-          trim: data.trim,
-          fuelType: data.fuel_type
-        },
-        zip: data.zip_code || data.state || '',
-        mileage: data.mileage,
-        baseValue: data.estimated_value,
-        adjustments: [],
+      // Transform legacy valuation data to EngineResult format
+      const legacyResult: EngineResult = {
         finalValue: data.estimated_value,
+        priceRange: [
+          Math.round(data.estimated_value * 0.9),
+          Math.round(data.estimated_value * 1.1)
+        ],
         confidenceScore: data.confidence_score || 40,
+        marketListings: [],
+        zipAdjustment: 0,
+        mileagePenalty: 0,
+        conditionDelta: 0,
+        titlePenalty: 0,
         aiExplanation: data.explanation || 'Legacy valuation data',
-        sources: ['legacy_database'],
-        listingRange: {
-          _type: "defined" as const,
-          value: `$${(data.estimated_value * 0.9).toLocaleString()} - $${(data.estimated_value * 1.1).toLocaleString()}` as const
-        },
-        listingCount: 0,
-        listings: [],
-        marketSearchStatus: 'legacy_data',
-        timestamp: Date.now(),
-        notes: []
+        sourcesUsed: ['legacy_database'],
+        adjustments: [],
+        baseValue: data.estimated_value,
+        explanation: 'Legacy valuation data from database'
       };
 
-      setValuationData(unifiedResult);
+      setValuationData(legacyResult);
       setIsPremium(data.premium_unlocked || false);
 
     } catch (err) {
@@ -152,45 +142,18 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
       
       console.log('✅ Real-time valuation completed:', result);
       
-      // Convert engine result to UI format
-      const uiResult: UnifiedValuationResult = {
-        id: crypto.randomUUID(),
-        vin: input.vin,
-        vehicle: {
-          year: input.year,
-          make: input.make,
-          model: input.model,
-          trim: input.trim,
-          fuelType: input.fuelType
-        },
-        zip: input.zipCode,
-        mileage: input.mileage,
-        baseValue: result.finalValue,
-        adjustments: [],
-        finalValue: result.finalValue,
-        confidenceScore: result.confidenceScore,
-        aiExplanation: result.aiExplanation || 'Real-time market analysis complete',
-        sources: result.sourcesUsed || [],
-        listingRange: {
-          _type: "defined" as const,
-          value: `$${result.priceRange[0].toLocaleString()} - $${result.priceRange[1].toLocaleString()}` as const
-        },
-        listingCount: result.marketListings?.length || 0,
-        listings: [],
-        marketSearchStatus: 'success',
-        timestamp: Date.now(),
-        notes: []
-      };
-      
-      setValuationData(uiResult);
+      // Set the engine result directly - no conversion needed
+      setValuationData(result);
 
       // Save the valuation result to database
       try {
         // Get current user
         const { data: { user } } = await supabase.auth.getUser();
         console.log('💾 [DEBUG] Saving valuation with user:', user?.id || 'anonymous');
+        
+        const valuationId = crypto.randomUUID();
         console.log('💾 [DEBUG] Valuation data to save:', {
-          id: uiResult.id,
+          id: valuationId,
           vin: input.vin,
           make: input.make,
           model: input.model,
@@ -202,7 +165,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
         const { data: savedValuation, error: insertError } = await supabase
           .from('valuations')
           .insert({
-            id: uiResult.id,
+            id: valuationId,
             user_id: user?.id || null,  // Allow anonymous valuations
             vin: input.vin,
             make: input.make,
