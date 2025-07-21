@@ -5,7 +5,8 @@ import { calculateFuelTypeAdjustment } from "@/utils/valuation/fuelAdjustment";
 import { getMarketMultiplier } from "@/utils/valuation/marketData";
 import { fetchMarketComps, fetchCachedMarketComps } from "./valuation/marketSearchService";
 import { saveMarketListings } from "./valuation/marketListingService";
-import type { UnifiedValuationResult, ValuationAdjustment } from "@/types/valuation";
+import { lookupTitleStatus, lookupOpenRecalls } from "./historyCheckService";
+import type { UnifiedValuationResult, ValuationAdjustment, TitleStatus, RecallEntry } from "@/types/valuation";
 
 export interface ValuationInput {
   vin: string;
@@ -42,6 +43,24 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
   let baseValue = 0;
   let confidenceScore = 0;
   let trustNotes = 'Searching real-time market data...';
+  
+  // Initialize valuation context with history intelligence
+  const notes: string[] = [];
+  
+  console.log('🔍 [UNIFIED_VALUATION] Starting title and recall intelligence checks...');
+  
+  // Perform title status and recall lookups in parallel
+  const [titleHistory, recallCheck] = await Promise.all([
+    lookupTitleStatus(vin),
+    lookupOpenRecalls(vin)
+  ]);
+  
+  console.log('📊 [UNIFIED_VALUATION] History intelligence results:', {
+    titleStatus: titleHistory?.status || 'unknown',
+    titleConfidence: titleHistory?.confidence || 0,
+    recallCount: recallCheck?.totalRecalls || 0,
+    unresolvedRecalls: recallCheck?.unresolvedCount || 0
+  });
 
   try {
     console.log('🔍 [UNIFIED_VALUATION] Starting market data collection...');
@@ -101,6 +120,38 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
 
   // Apply condition adjustments to real market median
   const adjustments: ValuationAdjustment[] = [];
+  
+  // Apply title-based value penalties
+  let titleAdjustedValue = baseValue;
+  if (titleHistory?.status && titleHistory.status !== 'clean') {
+    const titlePenalties: Record<TitleStatus, number> = {
+      salvage: 0.5,      // 50% penalty
+      rebuilt: 0.3,      // 30% penalty
+      flood: 0.5,        // 50% penalty
+      lemon: 0.2,        // 20% penalty
+      theft_recovery: 0.15, // 15% penalty
+      clean: 0           // No penalty
+    };
+    
+    const penalty = titlePenalties[titleHistory.status] || 0;
+    if (penalty > 0) {
+      const penaltyAmount = baseValue * penalty;
+      titleAdjustedValue = baseValue - penaltyAmount;
+      
+      adjustments.push({
+        label: `${titleHistory.status.charAt(0).toUpperCase() + titleHistory.status.slice(1)} Title`,
+        amount: -penaltyAmount,
+        reason: `${Math.round(penalty * 100)}% value reduction for ${titleHistory.status} title brand`
+      });
+      
+      notes.push(`Title status "${titleHistory.status}" detected: -${Math.round(penalty * 100)}% value adjustment (${titleHistory.source} source, ${Math.round(titleHistory.confidence * 100)}% confidence).`);
+      
+      console.log(`💰 [UNIFIED_VALUATION] Title penalty applied: ${titleHistory.status} = -$${penaltyAmount.toLocaleString()} (${Math.round(penalty * 100)}%)`);
+    }
+  }
+  
+  // Update base value after title adjustment
+  baseValue = titleAdjustedValue;
 
   if (condition && condition !== 'unknown') {
     let conditionMultiplier = 1.0;
@@ -122,6 +173,30 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     }
   }
 
+  // Apply recall-based confidence adjustments
+  if (recallCheck && recallCheck.unresolvedCount > 0) {
+    const recallPenalty = Math.min(recallCheck.unresolvedCount * 0.05, 0.15); // Max 15% penalty
+    const originalConfidence = confidenceScore;
+    confidenceScore = Math.max(0, confidenceScore - (recallPenalty * 100));
+    
+    notes.push(`${recallCheck.unresolvedCount} unresolved recall(s) found. Confidence score adjusted -${Math.round((originalConfidence - confidenceScore))}%.`);
+    
+    // Add critical recalls as separate adjustment items
+    const criticalRecalls = recallCheck.unresolved.filter(r => r.riskLevel === 'critical' || r.riskLevel === 'high');
+    if (criticalRecalls.length > 0) {
+      const criticalRecallPenalty = criticalRecalls.length * 200; // $200 per critical recall
+      adjustments.push({
+        label: 'Safety Recalls',
+        amount: -criticalRecallPenalty,
+        reason: `${criticalRecalls.length} unresolved high-risk recall(s) affecting safety systems`
+      });
+      
+      console.log(`⚠️ [UNIFIED_VALUATION] Critical recall penalty: -$${criticalRecallPenalty} for ${criticalRecalls.length} safety recall(s)`);
+    }
+    
+    console.log(`📉 [UNIFIED_VALUATION] Recall confidence penalty: ${recallCheck.unresolvedCount} recalls = -${Math.round((originalConfidence - confidenceScore))}% confidence`);
+  }
+
   // Calculate final value
   const totalAdjustments = adjustments.reduce((sum, adj) => sum + adj.amount, 0);
   const finalValue = Math.round(baseValue + totalAdjustments);
@@ -131,14 +206,16 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
   const minPrice = Math.min(...allPrices);
   const maxPrice = Math.max(...allPrices);
 
-  // Generate AI explanation focused on real data
+  // Generate AI explanation focused on real data including history intelligence
   const aiExplanation = generateRealTimeAIExplanation({
-    baseValue,
+    baseValue: titleAdjustedValue, // Use title-adjusted base value
     adjustments,
     finalValue,
     confidenceScore,
     marketListings,
-    priceRange: [minPrice, maxPrice]
+    priceRange: [minPrice, maxPrice],
+    titleHistory,
+    recallCheck
   });
 
   const result: UnifiedValuationResult = {
@@ -160,7 +237,13 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     listingCount: marketListings.length,
     listings: marketListings,
     marketSearchStatus,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    // Title and Recall Intelligence
+    titleStatus: titleHistory?.status || null,
+    titleHistory,
+    openRecalls: recallCheck?.unresolved || [],
+    recallCheck,
+    notes
   };
 
   console.log('✅ [UNIFIED_VALUATION] Real-time valuation completed:', {
@@ -183,8 +266,10 @@ function generateRealTimeAIExplanation(params: {
   confidenceScore: number;
   marketListings: any[];
   priceRange: [number, number];
+  titleHistory?: any;
+  recallCheck?: any;
 }): string {
-  const { baseValue, adjustments, finalValue, confidenceScore, marketListings, priceRange } = params;
+  const { baseValue, adjustments, finalValue, confidenceScore, marketListings, priceRange, titleHistory, recallCheck } = params;
   
   let explanation = "🌐 ## 🔍 Real-Time Market Analysis\n\n";
   
@@ -203,9 +288,34 @@ function generateRealTimeAIExplanation(params: {
   explanation += `### 📊 Market Range: $${priceRange[0].toLocaleString()} - $${priceRange[1].toLocaleString()}\n\n`;
   explanation += `### 🤖 Confidence: ${confidenceScore}%\n\n`;
   
+  // Add title history information
+  if (titleHistory && titleHistory.status !== 'clean') {
+    explanation += `### 🚨 Title Status: **${titleHistory.status.toUpperCase()}**\n\n`;
+    explanation += `This vehicle has a **${titleHistory.status}** title brand (${Math.round(titleHistory.confidence * 100)}% confidence from ${titleHistory.source}).\n`;
+    explanation += "This significantly impacts resale value and insurability.\n\n";
+  }
+  
+  // Add recall information
+  if (recallCheck && recallCheck.unresolvedCount > 0) {
+    explanation += `### ⚠️ Safety Recalls: **${recallCheck.unresolvedCount} Unresolved**\n\n`;
+    
+    const criticalRecalls = recallCheck.unresolved.filter((r: any) => r.riskLevel === 'critical' || r.riskLevel === 'high');
+    if (criticalRecalls.length > 0) {
+      explanation += `**High-Risk Recalls (${criticalRecalls.length}):**\n`;
+      criticalRecalls.slice(0, 2).forEach((recall: any, index: number) => {
+        explanation += `${index + 1}. ${recall.description} (${recall.component || 'Safety System'})\n`;
+      });
+      explanation += "\n";
+    }
+    
+    explanation += "Vehicle should be inspected and recalls completed before purchase.\n\n";
+  }
+
   explanation += "**Real-Time Data Sources:**\n";
   explanation += `- ${marketListings.length} current market listings found via OpenAI web search\n`;
   explanation += "- Live dealer inventories and marketplace data\n";
+  explanation += "- NICB title history verification\n";
+  explanation += "- NHTSA safety recall database\n";
   explanation += "- No static or estimated values used\n\n";
   
   if (marketListings.length > 0) {

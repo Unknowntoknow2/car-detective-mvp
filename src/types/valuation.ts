@@ -265,6 +265,12 @@ export interface UnifiedValuationResult {
   listings: MarketListing[];
   marketSearchStatus?: string;
   timestamp: number;
+  // Title and Recall Intelligence
+  titleStatus?: TitleStatus | null;
+  titleHistory?: TitleHistoryResult | null;
+  openRecalls?: RecallEntry[];
+  recallCheck?: RecallCheckResult | null;
+  notes: string[];
 }
 
 export interface ValuationAdjustment {
@@ -348,4 +354,38 @@ export interface ModificationDetails {
   hasModifications: boolean;
   types: string[];
   reversible?: boolean;
+}
+
+// Title and Recall Intelligence Types
+export type TitleStatus = 'clean' | 'salvage' | 'rebuilt' | 'flood' | 'lemon' | 'theft_recovery';
+
+export interface RecallEntry {
+  id: string;
+  description: string;
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  issuedDate: string;
+  isResolved: boolean;
+  component?: string;
+  consequence?: string;
+}
+
+export interface TitleHistoryResult {
+  status: TitleStatus;
+  confidence: number;
+  source: 'nicb' | 'dmv' | 'insurance_auction' | 'carfax';
+  lastChecked: string;
+  details?: {
+    damageTypes?: string[];
+    totalLossDate?: string;
+    rebuildDate?: string;
+  };
+}
+
+export interface RecallCheckResult {
+  recalls: RecallEntry[];
+  unresolved: RecallEntry[];
+  totalRecalls: number;
+  unresolvedCount: number;
+  lastChecked: string;
+  source: 'nhtsa' | 'manufacturer';
 }
