@@ -143,6 +143,32 @@ export function MarketBreakdownPanel({ result }: MarketBreakdownPanelProps) {
             </div>
           </div>
 
+          {/* Market Type Breakdown - P2P vs Retail Insights */}
+          {sourceBreakdown && (sourceBreakdown.retail > 0 || sourceBreakdown.p2p > 0) && (
+            <div className="bg-secondary/50 rounded-lg p-4">
+              <h4 className="font-semibold mb-3 text-center">🏪 Market Type Analysis</h4>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-lg font-bold text-blue-600">{sourceBreakdown.retail}</div>
+                  <div className="text-sm text-muted-foreground">Retail Dealers</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-orange-600">{sourceBreakdown.p2p}</div>
+                  <div className="text-sm text-muted-foreground">Private Party</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-gray-600">{sourceBreakdown.auction || 0}</div>
+                  <div className="text-sm text-muted-foreground">Auctions</div>
+                </div>
+              </div>
+              {sourceBreakdown.p2p > 0 && (
+                <div className="mt-3 text-center text-sm text-muted-foreground">
+                  💡 Private-party listings often reflect negotiable asking prices 10-20% below retail
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Summary Description */}
           <div className="text-sm text-muted-foreground">
             <p>
@@ -227,6 +253,9 @@ export function MarketBreakdownPanel({ result }: MarketBreakdownPanelProps) {
                           <div className="text-xs text-muted-foreground">
                             {listing.mileage > 0 && `${listing.mileage.toLocaleString()} mi • `}
                             {listing.source}
+                            {marketListings.find(ml => ml.source === listing.source)?.sellerType === 'private' && (
+                              <span className="ml-1 px-1 text-xs bg-orange-100 text-orange-700 rounded">Private</span>
+                            )}
                           </div>
                           <div className="flex items-center gap-2 mt-1">
                             <Progress 
@@ -270,12 +299,12 @@ export function MarketBreakdownPanel({ result }: MarketBreakdownPanelProps) {
             })}
           </div>
 
-          {/* Enhanced Source Contributions (25+ Dealer Sources) */}
+          {/* Enhanced Source Contributions (25+ Dealer + P2P Sources) */}
           {sourceContributions && sourceContributions.length > 0 && (
             <div>
-              <h4 className="font-semibold mb-3">🏪 Dealer Source Contributions</h4>
+              <h4 className="font-semibold mb-3">🏪 Market Source Contributions</h4>
               <div className="text-sm text-muted-foreground mb-3">
-                AIN searched <strong>{sourceContributions.length}</strong> individual dealer sources for maximum market coverage.
+                AIN searched <strong>{sourceContributions.length}</strong> individual dealer and P2P sources for maximum market coverage.
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -294,7 +323,14 @@ export function MarketBreakdownPanel({ result }: MarketBreakdownPanelProps) {
                       </span>
                     </div>
                     
-                    <div className="font-medium text-sm">{contribution.source}</div>
+                    <div className="font-medium text-sm flex items-center gap-1">
+                      {contribution.source}
+                      {(contribution as any).sellerType === 'private' && (
+                        <Badge variant="outline" className="text-orange-600 border-orange-200 text-xs">
+                          P2P
+                        </Badge>
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground">{contribution.domain}</div>
                     
                     <div className="mt-2 flex justify-between items-center">
