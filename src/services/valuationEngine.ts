@@ -9,6 +9,7 @@ import { lookupTitleStatus, lookupOpenRecalls } from "./historyCheckService";
 import { fetchFacebookCraigslistEnrichment, transformToMarketListings } from "./valuation/enhancedMarketSearchAgent";
 import { fetchVehicleTitlesAndRecalls, type TitleRecallInfo } from "./valuation/titleRecallAgent";
 import { marketIntelligenceEngine, type SearchCriteria, type MarketIntelligence } from "./valuation/marketIntelligenceEngine";
+import { fetchTieredListings, type EnrichedMarketListing } from "../agents/marketSearchAgent";
 import type { UnifiedValuationResult, ValuationAdjustment, TitleStatus, RecallEntry } from "@/types/valuation";
 
 export interface ValuationInput {
@@ -66,110 +67,188 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     unresolvedRecalls: recallCheck?.unresolvedCount || 0
   });
 
-  // Step 2: FANG-Grade Market Intelligence (Multi-platform Real-time Listings)
-  console.log('🚀 [FANG_MARKET] Starting comprehensive market intelligence search...');
+  // Step 2: GOOGLE-GRADE TIER-AWARE MARKET INTELLIGENCE
+  console.log('🚀 [TIER_MARKET] Starting Google-grade tier-aware market intelligence...');
   
-  let marketIntelligence: MarketIntelligence | null = null;
+  let enrichedListings: EnrichedMarketListing[] = [];
   let finalListings: any[] = [];
+  let marketAnchoredPrice: number | null = null;
+  let marketConfidenceScore = 0;
+  let sourceBreakdown = {
+    tier1: 0,
+    tier2: 0,
+    tier3: 0,
+    urls: [] as string[]
+  };
   
   try {
-    // Use FANG-grade market intelligence engine
-    marketIntelligence = await marketIntelligenceEngine.searchMarketListings({
+    // Call tier-aware market search
+    enrichedListings = await fetchTieredListings({
       vin,
+      year,
       make,
       model,
-      year,
       trim,
-      zipCode,
       mileage,
-      radiusMiles: 150
+      zipCode
     });
     
-    if (marketIntelligence.listings.length > 0) {
-      finalListings = marketIntelligence.listings.map(listing => ({
-        id: listing.id || crypto.randomUUID(),
-        price: listing.price,
-        mileage: listing.mileage,
-        source: listing.source,
-        url: listing.url,
-        location: listing.location,
-        dealer_name: listing.dealer_name,
-        confidence_score: listing.confidence_score,
-        source_tier: listing.source_tier,
-        vin: listing.vin,
-        year: listing.year,
-        make: listing.make,
-        model: listing.model,
-        trim: listing.trim
-      }));
-      
-      marketSearchStatus = 'success';
-      baseValue = marketIntelligence.aggregation.medianPrice;
-      confidenceScore = Math.max(85, marketIntelligence.aggregation.confidenceScore * 100);
-      trustNotes = `FANG-grade market intelligence: ${marketIntelligence.aggregation.listingCount} listings from ${marketIntelligence.aggregation.sources.length} sources`;
-      
-      // Enhanced AI explanation with market intelligence
-      notes.push(`Market-perfect valuation using ${marketIntelligence.aggregation.listingCount} real listings from ${marketIntelligence.aggregation.sources.join(', ')}`);
-      notes.push(`Supply density: ${Math.round(marketIntelligence.aggregation.supplyDensityScore * 100)}% (${marketIntelligence.aggregation.supplyDensityScore > 0.8 ? 'Scarcity premium' : 'Competitive market'})`);
-      notes.push(...marketIntelligence.explanation);
-      
-      console.log(`✅ [FANG_MARKET] Market intelligence complete: $${baseValue.toLocaleString()} median from ${finalListings.length} listings`);
-    } else {
-      console.log('⚠️ [FANG_MARKET] No listings found via market intelligence, falling back to enhanced search');
-      throw new Error('No market intelligence listings found');
-    }
-  } catch (marketIntelligenceError) {
-    console.log('⚠️ [FANG_MARKET] Market intelligence failed, falling back to enhanced search:', marketIntelligenceError);
+    console.log(`🎯 [TIER_MARKET] Found ${enrichedListings.length} tier-aware listings`);
     
-    // Fallback to enhanced search agent
-    try {
-      const enhancedSearchResults = await fetchFacebookCraigslistEnrichment({
-        vin,
-        year,
-        make,
-        model,
-        trim,
-        zipCode,
-        mileage
+    if (enrichedListings.length > 0) {
+      // Filter listings with realistic mileage (+/- 20%) and clean price values
+      const targetMileage = mileage;
+      const mileageRange = targetMileage * 0.2; // 20% tolerance
+      
+      const filteredListings = enrichedListings.filter(listing => {
+        const isValidPrice = listing.price > 1000 && listing.price < 500000;
+        const isReasonableMileage = !targetMileage || 
+          Math.abs(listing.mileage - targetMileage) <= mileageRange;
+        return isValidPrice && isReasonableMileage;
       });
       
-      if (enhancedSearchResults.listingCount > 0) {
-        const enhancedListings = transformToMarketListings(enhancedSearchResults.enrichedListings, {
+      console.log(`🔍 [TIER_MARKET] Filtered to ${filteredListings.length} listings with realistic mileage and pricing`);
+      
+      if (filteredListings.length > 0) {
+        // Compute tier-weighted average price
+        const totalWeightedPrice = filteredListings.reduce((sum, l) => sum + l.price * l.trustWeight, 0);
+        const totalWeight = filteredListings.reduce((sum, l) => sum + l.trustWeight, 0);
+        
+        if (totalWeight > 0) {
+          marketAnchoredPrice = totalWeightedPrice / totalWeight;
+          marketConfidenceScore = totalWeight >= 5 ? 85 : 70;
+          
+          // Create source breakdown
+          sourceBreakdown = {
+            tier1: filteredListings.filter(l => l.tier === 1).length,
+            tier2: filteredListings.filter(l => l.tier === 2).length,
+            tier3: filteredListings.filter(l => l.tier === 3).length,
+            urls: filteredListings.map(l => l.url).filter(Boolean) as string[]
+          };
+          
+          // Convert enriched listings to market listings format
+          finalListings = filteredListings.map(listing => ({
+            id: crypto.randomUUID(),
+            price: listing.price,
+            mileage: listing.mileage,
+            source: listing.source,
+            url: listing.url,
+            location: listing.location,
+            dealer_name: listing.source,
+            confidence_score: Math.round(listing.trustWeight * 100),
+            source_tier: listing.tier,
+            vin: listing.vin,
+            year: listing.year,
+            make: listing.make,
+            model: listing.model,
+            trim,
+            trustWeight: listing.trustWeight,
+            listingType: listing.type
+          }));
+          
+          marketSearchStatus = 'success';
+          baseValue = marketAnchoredPrice;
+          confidenceScore = marketConfidenceScore;
+          trustNotes = `Google-grade tier analysis: ${filteredListings.length} listings with weighted trust score ${totalWeight.toFixed(1)}`;
+          
+          notes.push(`Tier-anchored valuation using ${filteredListings.length} listings across ${sourceBreakdown.tier1} Tier-1, ${sourceBreakdown.tier2} Tier-2, ${sourceBreakdown.tier3} Tier-3 sources`);
+          notes.push(`Trust-weighted median: $${Math.round(marketAnchoredPrice).toLocaleString()} (confidence: ${marketConfidenceScore}%)`);
+          
+          console.log(`✅ [TIER_MARKET] Tier-weighted market value: $${marketAnchoredPrice.toLocaleString()} (confidence: ${marketConfidenceScore}%)`);
+        } else {
+          throw new Error('No weighted price calculable from tier listings');
+        }
+      } else {
+        throw new Error('No listings passed mileage and price filtering');
+      }
+    } else {
+      throw new Error('No tier listings found');
+    }
+  } catch (tierMarketError) {
+    console.log('⚠️ [TIER_MARKET] Tier-aware search failed, falling back to FANG intelligence:', tierMarketError);
+    
+    // Fallback to existing FANG-grade market intelligence
+    try {
+      const marketIntelligence = await marketIntelligenceEngine.searchMarketListings({
+        vin,
+        make,
+        model,
+        year,
+        trim,
+        zipCode,
+        mileage,
+        radiusMiles: 150
+      });
+      
+      if (marketIntelligence.listings.length > 0) {
+        finalListings = marketIntelligence.listings.map(listing => ({
+          id: listing.id || crypto.randomUUID(),
+          price: listing.price,
+          mileage: listing.mileage,
+          source: listing.source,
+          url: listing.url,
+          location: listing.location,
+          dealer_name: listing.dealer_name,
+          confidence_score: listing.confidence_score,
+          source_tier: listing.source_tier,
+          vin: listing.vin,
+          year: listing.year,
+          make: listing.make,
+          model: listing.model,
+          trim: listing.trim
+        }));
+        
+        marketSearchStatus = 'success';
+        baseValue = marketIntelligence.aggregation.medianPrice;
+        confidenceScore = Math.max(85, marketIntelligence.aggregation.confidenceScore * 100);
+        trustNotes = `FANG-grade fallback: ${marketIntelligence.aggregation.listingCount} listings from ${marketIntelligence.aggregation.sources.length} sources`;
+        
+        notes.push(`Fallback to FANG intelligence: ${marketIntelligence.aggregation.listingCount} real listings from ${marketIntelligence.aggregation.sources.join(', ')}`);
+        
+        console.log(`✅ [FANG_FALLBACK] Market intelligence fallback: $${baseValue.toLocaleString()} median from ${finalListings.length} listings`);
+      } else {
+        throw new Error('No market intelligence listings found');
+      }
+    } catch (fangFallbackError) {
+      console.log('⚠️ [FANG_FALLBACK] FANG intelligence also failed, using enhanced search fallback:', fangFallbackError);
+      
+      // Final fallback to enhanced search
+      try {
+        const enhancedSearchResults = await fetchFacebookCraigslistEnrichment({
           vin, year, make, model, trim, zipCode, mileage
         });
         
-        finalListings = enhancedListings;
-        marketSearchStatus = 'success';
-        confidenceScore = Math.max(75 + enhancedSearchResults.confidenceBoost, 85);
-        trustNotes = `Enhanced search: ${enhancedListings.length} listings from ${Object.keys(enhancedSearchResults.platformBreakdown).filter(k => enhancedSearchResults.platformBreakdown[k] > 0).join(', ')}`;
+        if (enhancedSearchResults.listingCount > 0) {
+          const enhancedListings = transformToMarketListings(enhancedSearchResults.enrichedListings, {
+            vin, year, make, model, trim, zipCode, mileage
+          });
+          
+          finalListings = enhancedListings;
+          marketSearchStatus = 'fallback';
+          confidenceScore = Math.max(75 + enhancedSearchResults.confidenceBoost, 70);
+          trustNotes = `Enhanced search fallback: ${enhancedListings.length} listings`;
+          
+          console.log(`✅ [ENHANCED_FALLBACK] Found ${enhancedListings.length} enhanced listings as final fallback`);
+        } else {
+          throw new Error('No enhanced listings found either');
+        }
+      } catch (finalFallbackError) {
+        console.error('❌ [FINAL_FALLBACK] All search methods failed:', finalFallbackError);
         
-        const platformCounts = Object.entries(enhancedSearchResults.platformBreakdown)
-          .filter(([_, count]) => (count as number) > 0)
-          .map(([platform, count]) => `${count} ${platform}`)
-          .join(', ');
+        // Ultimate fallback to standard market search
+        const searchResult = await fetchMarketComps(make, model, year, zipCode, vin);
         
-        notes.push(`Fallback valuation anchored to ${enhancedListings.length} listings from ${platformCounts} between $${Math.min(...enhancedListings.map((l: any) => l.price)).toLocaleString()}–$${Math.max(...enhancedListings.map((l: any) => l.price)).toLocaleString()} in ZIP ${zipCode}`);
-        
-        console.log(`✅ [ENHANCED_SEARCH] Found ${enhancedListings.length} enhanced listings as fallback`);
-      } else {
-        throw new Error('No enhanced listings found either');
-      }
-    } catch (fallbackError) {
-      console.error('❌ [ENHANCED_SEARCH] Enhanced search also failed:', fallbackError);
-      
-      // Final fallback to standard market search
-      const searchResult = await fetchMarketComps(make, model, year, zipCode, vin);
-      
-      if (searchResult?.listings && searchResult.listings.length > 0) {
-        finalListings = searchResult.listings;
-        marketSearchStatus = 'fallback';
-        confidenceScore = Math.max(searchResult.trust * 100, 65);
-        trustNotes = `Standard search: ${finalListings.length} market listings`;
-        console.log(`✅ [STANDARD_SEARCH] Found ${finalListings.length} standard listings as final fallback`);
-      } else {
-        console.log('❌ [ALL_SEARCH] All search methods failed');
-        marketSearchStatus = 'error';
-        throw new Error('No market data available from any source');
+        if (searchResult?.listings && searchResult.listings.length > 0) {
+          finalListings = searchResult.listings;
+          marketSearchStatus = 'error';
+          confidenceScore = Math.max(searchResult.trust * 100, 50);
+          trustNotes = `Standard search: ${finalListings.length} market listings`;
+          console.log(`✅ [STANDARD_FALLBACK] Found ${finalListings.length} standard listings as ultimate fallback`);
+        } else {
+          console.log('❌ [ALL_SEARCH] All search methods failed');
+          marketSearchStatus = 'error';
+          throw new Error('No market data available from any source');
+        }
       }
     }
   }
@@ -177,21 +256,26 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
   // Use finalListings as marketListings for the rest of the valuation
   marketListings = finalListings;
 
-  
-  // Calculate base value from market data
-  const prices = marketListings.map((listing: any) => listing.price).filter((p: number) => p > 0);
-  if (prices.length === 0) {
-    throw new Error('No valid prices found in market listings');
+  // Prefer marketAnchoredPrice as primary finalValue if tier confidence is high
+  if (marketAnchoredPrice && marketConfidenceScore >= 70) {
+    baseValue = marketAnchoredPrice;
+    console.log(`💰 [UNIFIED_VALUATION] Using tier-weighted market price: $${baseValue.toLocaleString()}`);
+  } else {
+    // Calculate base value from market data (fallback method)
+    const prices = marketListings.map((listing: any) => listing.price).filter((p: number) => p > 0);
+    if (prices.length === 0) {
+      throw new Error('No valid prices found in market listings');
+    }
+
+    // Use median price from listings as base value
+    prices.sort((a: number, b: number) => a - b);
+    const medianIndex = Math.floor(prices.length / 2);
+    baseValue = prices.length % 2 === 0 
+      ? (prices[medianIndex - 1] + prices[medianIndex]) / 2 
+      : prices[medianIndex];
+    
+    console.log(`💰 [UNIFIED_VALUATION] Using median market value: $${baseValue.toLocaleString()} from ${prices.length} listings`);
   }
-
-  // Use median price from listings as base value
-  prices.sort((a: number, b: number) => a - b);
-  const medianIndex = Math.floor(prices.length / 2);
-  baseValue = prices.length % 2 === 0 
-    ? (prices[medianIndex - 1] + prices[medianIndex]) / 2 
-    : prices[medianIndex];
-
-  console.log(`💰 [UNIFIED_VALUATION] Market base value: $${baseValue.toLocaleString()} from ${prices.length} listings`);
 
   // Save market listings if available
   if (finalListings.length > 0) {
@@ -314,7 +398,7 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     finalValue,
     confidenceScore,
     aiExplanation,
-    sources: ['openai_web_search'],
+    sources: ['tier_aware_search'],
     listingRange: {
       _type: "defined" as const,
       value: `$${minPrice.toLocaleString()} - $${maxPrice.toLocaleString()}` as const
@@ -323,6 +407,10 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     listings: marketListings,
     marketSearchStatus,
     timestamp: Date.now(),
+    // TIER-AWARE MARKET INTELLIGENCE FIELDS
+    marketAnchoredPrice,
+    marketListings: finalListings,
+    sourceBreakdown,
     // Title and Recall Intelligence
     titleStatus: titleHistory?.status || titleRecallInfo.titleStatus.toLowerCase() as any,
     titleHistory,

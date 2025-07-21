@@ -265,6 +265,15 @@ export interface UnifiedValuationResult {
   listings: MarketListing[];
   marketSearchStatus?: string;
   timestamp: number;
+  // TIER-AWARE MARKET INTELLIGENCE FIELDS
+  marketAnchoredPrice?: number | null;
+  marketListings?: any[];
+  sourceBreakdown?: {
+    tier1: number;
+    tier2: number;
+    tier3: number;
+    urls: string[];
+  };
   // Title and Recall Intelligence
   titleStatus?: 'clean' | 'salvage' | 'rebuilt' | 'flood' | 'lemon' | 'theft_recovery' | 'unknown';
   titleHistory?: TitleHistoryResult | null;
