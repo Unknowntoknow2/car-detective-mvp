@@ -73,71 +73,9 @@ export async function fetchMarketComps(
 
   } catch (err) {
     console.error('❌ [MARKET_SEARCH] Failed to fetch market comps:', err);
-    console.log('⚠️ [MARKET_SEARCH] Using realistic fallback data for demonstration');
     
-    // Provide realistic fallback market data for this specific vehicle
-    const fallbackListings = [
-      {
-        price: 28500,
-        mileage: 89000,
-        source: 'AutoTrader (fallback)',
-        url: 'https://autotrader.com',
-        location: zipCode,
-        dealer: 'Local Ford Dealer',
-        condition: 'good',
-        title: `${year} ${make} ${model} SuperCrew`
-      },
-      {
-        price: 31200,
-        mileage: 76000,
-        source: 'Cars.com (fallback)',
-        url: 'https://cars.com',
-        location: zipCode,
-        dealer: 'Certified Pre-Owned',
-        condition: 'very good',
-        title: `${year} ${make} ${model} XLT`
-      },
-      {
-        price: 26800,
-        mileage: 102000,
-        source: 'CarGurus (fallback)',
-        url: 'https://cargurus.com',
-        location: zipCode,
-        dealer: 'Used Car Center',
-        condition: 'fair',
-        title: `${year} ${make} ${model} Regular Cab`
-      },
-      {
-        price: 33500,
-        mileage: 65000,
-        source: 'Edmunds (fallback)',
-        url: 'https://edmunds.com',
-        location: zipCode,
-        dealer: 'Premium Auto',
-        condition: 'excellent',
-        title: `${year} ${make} ${model} Lariat`
-      },
-      {
-        price: 29900,
-        mileage: 88500,
-        source: 'CarMax (fallback)',
-        url: 'https://carmax.com',
-        location: zipCode,
-        dealer: 'CarMax',
-        condition: 'good',
-        title: `${year} ${make} ${model} SuperCrew Cab`
-      }
-    ];
-
-    const result: MarketSearchResult = {
-      listings: fallbackListings,
-      trust: 0.85,
-      source: 'realistic_fallback',
-      notes: `Using realistic market data - Edge function deployment pending. Found ${fallbackListings.length} representative listings for ${year} ${make} ${model} in ${zipCode}`
-    };
-
-    console.log(`📊 [MARKET_SEARCH] Fallback data provided: ${fallbackListings.length} realistic listings`);
-    return result;
+    // Re-throw the error to be handled by the valuation engine
+    throw new Error(`Market search failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
   }
 }
 
