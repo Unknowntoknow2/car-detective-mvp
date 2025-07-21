@@ -49,7 +49,17 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
     marketSearchStatus,
     sources,
     titleStatus,
-    recalls
+    recalls,
+    // NEW ENGINE FEATURES
+    sourceBreakdown,
+    zipAdjustment,
+    mileageAdjustment,
+    mileagePenalty,
+    conditionAdjustment,
+    conditionDelta,
+    titlePenalty,
+    marketAnchoredPrice,
+    priceRange
   } = result;
 
   const handleDownloadPdf = async () => {
@@ -172,15 +182,29 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
           {/* Enhanced Confidence Score with Progress Bar */}
           {confidenceScore && (
             <div className="mt-2">
-              <div className="text-sm font-medium text-muted-foreground mb-1">
-                Confidence: {confidenceScore}%
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-sm font-medium text-muted-foreground">
+                  Confidence: {confidenceScore}%
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {confidenceScore > 75 ? '✅ Excellent' : 
+                   confidenceScore > 60 ? '⚠️ Moderate' : '❌ Use Caution'}
+                </div>
               </div>
               <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-green-500 transition-all duration-500 ease-in-out"
+                  className={`h-full transition-all duration-500 ease-in-out ${
+                    confidenceScore > 75 ? 'bg-green-500' :
+                    confidenceScore > 60 ? 'bg-yellow-500' : 'bg-red-500'
+                  }`}
                   style={{ width: `${confidenceScore}%` }}
                 />
               </div>
+              {priceRange && priceRange.length === 2 && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  Range: ${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}
+                </div>
+              )}
             </div>
           )}
 
@@ -325,25 +349,158 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
         </CardContent>
       </Card>
 
-      {/* Value Breakdown with Tooltips */}
+      {/* Enhanced Value Breakdown with Real-Time Engine Data */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
-            Value Breakdown
+            Enhanced Value Breakdown
             <Tooltip>
               <TooltipTrigger>
                 <Info className="w-4 h-4 text-muted-foreground" />
               </TooltipTrigger>
               <TooltipContent>
-                <p>Each factor that influenced your vehicle's final valuation</p>
+                <p>Advanced factors from our real-time valuation engine</p>
               </TooltipContent>
             </Tooltip>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {/* NEW: Show specific engine adjustments first */}
+            {zipAdjustment !== undefined && (
+              <div className="flex items-center justify-between py-2 border-l-4 border-blue-500 pl-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">ZIP Code Market Adjustment</span>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="w-3 h-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Local market demand and supply factors in your area</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {zipAdjustment > 0 ? 'High demand area premium' : 
+                     zipAdjustment < 0 ? 'Low demand area discount' : 'Average market conditions'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {zipAdjustment >= 0 ? (
+                    <TrendingUp className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4 text-red-600" />
+                  )}
+                  <span className={`font-bold ${zipAdjustment >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {zipAdjustment >= 0 ? '+' : ''}${zipAdjustment.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {(mileageAdjustment !== undefined || mileagePenalty !== undefined) && (
+              <div className="flex items-center justify-between py-2 border-l-4 border-orange-500 pl-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Mileage Impact</span>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="w-3 h-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Value adjustment based on vehicle mileage vs. average</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Mileage-based depreciation curve applied
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {(mileageAdjustment || mileagePenalty || 0) >= 0 ? (
+                    <TrendingUp className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4 text-red-600" />
+                  )}
+                  <span className={`font-bold ${(mileageAdjustment || mileagePenalty || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {(mileageAdjustment || mileagePenalty || 0) >= 0 ? '+' : ''}${(mileageAdjustment || mileagePenalty || 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {(conditionAdjustment !== undefined || conditionDelta !== undefined) && (
+              <div className="flex items-center justify-between py-2 border-l-4 border-purple-500 pl-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Condition Assessment</span>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="w-3 h-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>AI-powered condition analysis and valuation impact</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {(conditionAdjustment || conditionDelta || 0) > 0 ? 'Above average condition bonus' : 
+                     (conditionAdjustment || conditionDelta || 0) < 0 ? 'Below average condition penalty' : 'Average condition'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {(conditionAdjustment || conditionDelta || 0) >= 0 ? (
+                    <TrendingUp className="w-4 h-4 text-green-600" />
+                  ) : (
+                    <TrendingDown className="w-4 h-4 text-red-600" />
+                  )}
+                  <span className={`font-bold ${(conditionAdjustment || conditionDelta || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {(conditionAdjustment || conditionDelta || 0) >= 0 ? '+' : ''}${(conditionAdjustment || conditionDelta || 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {titlePenalty !== undefined && titlePenalty !== 0 && (
+              <div className="flex items-center justify-between py-2 border-l-4 border-red-500 pl-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Title History Impact</span>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="w-3 h-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Value reduction due to title issues (salvage, rebuilt, etc.)</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {titleStatus && titleStatus !== 'clean' ? `${titleStatus} title penalty` : 'Title risk adjustment'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <TrendingDown className="w-4 h-4 text-red-600" />
+                  <span className="font-bold text-red-600">
+                    -${Math.abs(titlePenalty).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Original adjustments for backward compatibility */}
             {adjustments.map((adjustment, index) => {
+              // Skip if this adjustment is already shown above
+              const isAlreadyShown = 
+                (adjustment.label.toLowerCase().includes('mileage') && (mileageAdjustment !== undefined || mileagePenalty !== undefined)) ||
+                (adjustment.label.toLowerCase().includes('condition') && (conditionAdjustment !== undefined || conditionDelta !== undefined)) ||
+                (adjustment.label.toLowerCase().includes('title') && titlePenalty !== undefined) ||
+                (adjustment.label.toLowerCase().includes('zip') && zipAdjustment !== undefined);
+
+              if (isAlreadyShown) return null;
+
               // Define tooltip text for each adjustment type
               const getTooltipText = (label: string) => {
                 switch (label.toLowerCase()) {
@@ -395,6 +552,80 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
           </div>
         </CardContent>
       </Card>
+
+      {/* NEW: Source Traceability & Tier Breakdown */}
+      {sourceBreakdown && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              🎯 Source Intelligence & Trust Score
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Tier Breakdown */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
+                <div className="text-2xl font-bold text-green-700">{sourceBreakdown.tier1}</div>
+                <div className="text-xs text-green-600">Tier 1 Sources</div>
+                <div className="text-xs text-muted-foreground">Premium Dealers</div>
+              </div>
+              <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="text-2xl font-bold text-blue-700">{sourceBreakdown.tier2}</div>
+                <div className="text-xs text-blue-600">Tier 2 Sources</div>
+                <div className="text-xs text-muted-foreground">Verified Platforms</div>
+              </div>
+              <div className="text-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div className="text-2xl font-bold text-yellow-700">{sourceBreakdown.tier3}</div>
+                <div className="text-xs text-yellow-600">Tier 3 Sources</div>
+                <div className="text-xs text-muted-foreground">Marketplace</div>
+              </div>
+            </div>
+
+            {/* Market Type Breakdown */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-3 bg-slate-50 rounded-lg">
+                <div className="text-lg font-bold">{sourceBreakdown.retail}</div>
+                <div className="text-xs text-muted-foreground">Retail Dealers</div>
+              </div>
+              <div className="text-center p-3 bg-slate-50 rounded-lg">
+                <div className="text-lg font-bold">{sourceBreakdown.p2p}</div>
+                <div className="text-xs text-muted-foreground">P2P/Private</div>
+              </div>
+              <div className="text-center p-3 bg-slate-50 rounded-lg">
+                <div className="text-lg font-bold">{sourceBreakdown.auction}</div>
+                <div className="text-xs text-muted-foreground">Auction Data</div>
+              </div>
+            </div>
+
+            {/* Trusted URLs */}
+            {sourceBreakdown.urls && sourceBreakdown.urls.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">Verified Source URLs</h4>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                  {sourceBreakdown.urls.slice(0, 5).map((url, index) => (
+                    <div key={index} className="flex items-center gap-2 text-xs">
+                      <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                      <a 
+                        href={url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline truncate flex-1"
+                      >
+                        {url}
+                      </a>
+                    </div>
+                  ))}
+                  {sourceBreakdown.urls.length > 5 && (
+                    <div className="text-xs text-muted-foreground">
+                      ... and {sourceBreakdown.urls.length - 5} more verified sources
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Market Data Trace Panel - Google-Grade Transparency */}
       <MarketBreakdownPanel result={result} />
@@ -555,22 +786,81 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
         </CardContent>
       </Card>
 
-      {/* Valuation Actions */}
+      {/* Enhanced Dealer/User Actions Panel */}
       <Card className="mt-6 p-4 border shadow-sm">
-        <h3 className="text-lg font-semibold mb-2">📊 Valuation Actions</h3>
+        <h3 className="text-lg font-semibold mb-4">🚀 Valuation Actions & Confidence</h3>
         
-        {/* PDF Download - Premium Gated */}
-        {hasFeature('pdf_download') && (result as any).pdfUrl && (
-          <Button asChild className="w-full mt-2">
-            <a
-              href={(result as any).pdfUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              📄 Download Full PDF Report
-            </a>
+        {/* Confidence Action Badges */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {confidenceScore > 75 ? (
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center">
+              <div className="text-green-600 font-bold">✅ Market Confidence: Excellent</div>
+              <div className="text-xs text-green-700 mt-1">High data quality & multiple sources</div>
+            </div>
+          ) : confidenceScore > 60 ? (
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+              <div className="text-yellow-600 font-bold">⚠️ Moderate Confidence: Use Caution</div>
+              <div className="text-xs text-yellow-700 mt-1">Limited data - verify with inspection</div>
+            </div>
+          ) : (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-center">
+              <div className="text-red-600 font-bold">❌ Low Confidence: Additional inspection recommended</div>
+              <div className="text-xs text-red-700 mt-1">Insufficient market data available</div>
+            </div>
+          )}
+          
+          {/* Market Anchor Status */}
+          {marketAnchoredPrice && (
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
+              <div className="text-blue-600 font-bold">🎯 Market Anchored</div>
+              <div className="text-xs text-blue-700 mt-1">
+                Real-time pricing: ${marketAnchoredPrice.toLocaleString()}
+              </div>
+            </div>
+          )}
+          
+          {/* Adjustment Summary */}
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-center">
+            <div className="text-slate-600 font-bold">📊 Smart Adjustments</div>
+            <div className="text-xs text-slate-700 mt-1">
+              {adjustments.length} factors applied
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced PDF Download */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Button 
+            onClick={handleDownloadPdf}
+            disabled={isGeneratingPdf}
+            className="w-full flex items-center gap-2"
+            size="lg"
+          >
+            {isGeneratingPdf ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Generating PDF...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                📥 Download PDF Report
+              </>
+            )}
           </Button>
-        )}
+
+          {onShareReport && (
+            <Button 
+              onClick={onShareReport}
+              variant="outline"
+              className="w-full flex items-center gap-2"
+              size="lg"
+            >
+              <Share2 className="w-4 h-4" />
+              🔗 Share This Valuation
+            </Button>
+          )}
+        </div>
 
         {!hasFeature('pdf_download') && (
           <UpgradeCTA feature="PDF reports" className="mt-4" />

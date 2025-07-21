@@ -265,9 +265,27 @@ export interface UnifiedValuationResult {
   listings: MarketListing[];
   marketSearchStatus?: string;
   timestamp: number;
+  // NEW ENGINE FEATURES FROM valuationEngine.ts
+  priceRange?: [number, number];
+  zipAdjustment?: number;
+  mileageAdjustment?: number;
+  mileagePenalty?: number;
+  conditionAdjustment?: number;
+  conditionDelta?: number;
+  titlePenalty?: number;
+  sourcesUsed?: string[];
   // TIER-AWARE MARKET INTELLIGENCE FIELDS
   marketAnchoredPrice?: number | null;
-  marketListings?: any[];
+  marketListings?: {
+    price: number;
+    mileage: number;
+    source: string;
+    tier: string;
+    trustWeight: number;
+    location?: string;
+    url?: string;
+    sellerType?: string;
+  }[];
   sourceBreakdown?: {
     tier1: number;
     tier2: number;
