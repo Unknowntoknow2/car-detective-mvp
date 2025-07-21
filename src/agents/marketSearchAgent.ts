@@ -1,7 +1,101 @@
-// Market Search Agent - Fetches real-time market data via OpenAI Web Search
+// Market Search Agent - Google-Grade Tier-Based Market Intelligence 
 import { supabase } from "@/integrations/supabase/client";
 import { ValuationInput, MarketListing } from "@/types/valuation";
 import { parseVehicleListingsFromWeb, type ParsedListing } from "@/utils/parsers/listingParser";
+
+// TIER-BASED MARKET SOURCE ARCHITECTURE (FANG-GRADE)
+const MARKET_SOURCE_TIERS = {
+  // CATEGORY 1: Retail Dealership Aggregators
+  RETAIL_AGGREGATORS: {
+    TIER_1: {
+      sources: ['AutoTrader', 'Cars.com', 'Edmunds', 'CarGurus', 'KBB Used', 'Carfax Listings'],
+      domains: ['autotrader.com', 'cars.com', 'edmunds.com', 'cargurus.com', 'kbb.com', 'carfax.com'],
+      trustWeight: 1.0,
+      type: 'retail' as const
+    },
+    TIER_2: {
+      sources: ['AutoNation', 'Enterprise Car Sales', 'EchoPark', 'Hertz Car Sales', 'Sonic Automotive'],
+      domains: ['autonation.com', 'enterprisecarsales.com', 'echopark.com', 'hertzcarsales.com', 'sonicautomotive.com'],
+      trustWeight: 0.85,
+      type: 'retail' as const
+    },
+    TIER_3: {
+      sources: ['Fred Beans', 'Lithia Motors', 'Koons', 'Napleton', 'Penske', 'Priority Auto Group'],
+      domains: ['fredbeans.com', 'lithia.com', 'koons.com', 'napleton.com', 'penske.com', 'priorityauto.com'],
+      trustWeight: 0.7,
+      type: 'retail' as const
+    }
+  },
+  
+  // CATEGORY 2: Private-Party Marketplaces (P2P)
+  P2P_MARKETPLACES: {
+    TIER_1: {
+      sources: ['Facebook Marketplace', 'Craigslist', 'OfferUp'],
+      domains: ['facebook.com/marketplace', 'craigslist.org', 'offerup.com'],
+      trustWeight: 0.75,
+      type: 'p2p' as const
+    },
+    TIER_2: {
+      sources: ['eBay Motors', 'Nextdoor', 'KSL Classifieds'],
+      domains: ['ebay.com/motors', 'nextdoor.com', 'ksl.com'],
+      trustWeight: 0.65,
+      type: 'p2p' as const
+    },
+    TIER_3: {
+      sources: ['Oodle', 'Recycler', 'CarSoup'],
+      domains: ['oodle.com', 'recycler.com', 'carsoup.com'],
+      trustWeight: 0.55,
+      type: 'p2p' as const
+    }
+  },
+  
+  // CATEGORY 3: Wholesale + Dealer Auctions
+  AUCTIONS: {
+    TIER_1: {
+      sources: ['Manheim', 'ADESA', 'ACV Auctions', 'BacklotCars'],
+      domains: ['manheim.com', 'adesa.com', 'acvauctions.com', 'backlotcars.com'],
+      trustWeight: 0.8,
+      type: 'auction' as const
+    },
+    TIER_2: {
+      sources: ['IAA', 'Copart', 'Westlake Auctions'],
+      domains: ['iaai.com', 'copart.com', 'westlakeauctions.com'],
+      trustWeight: 0.6,
+      type: 'auction' as const
+    },
+    TIER_3: {
+      sources: ['GovDeals', 'GovPlanet', 'Purple Wave'],
+      domains: ['govdeals.com', 'govplanet.com', 'purplewave.com'],
+      trustWeight: 0.5,
+      type: 'auction' as const
+    }
+  }
+} as const;
+
+type MarketQueryInput = {
+  vin?: string;
+  year: number;
+  make: string;
+  model: string;
+  trim?: string;
+  mileage?: number;
+  zipCode?: string;
+};
+
+export type EnrichedMarketListing = {
+  source: string;
+  tier: 1 | 2 | 3;
+  type: 'retail' | 'p2p' | 'auction';
+  vin?: string;
+  year: number;
+  make: string;
+  model: string;
+  mileage: number;
+  price: number;
+  location?: string;
+  url?: string;
+  trustWeight: number;
+};
 
 interface ListingComp {
   price: number;
@@ -487,4 +581,220 @@ function getEstimatedBasePrice(input: ValuationInput): number {
   const mileageAdjustment = (mileageDiff / 1000) * -100; // $100 per 1000 miles difference
   
   return Math.max(5000, deprecatedValue + mileageAdjustment);
+}
+
+// ===== GOOGLE-GRADE TIER-AWARE MARKET SEARCH =====
+
+export async function fetchTieredListings(input: MarketQueryInput): Promise<EnrichedMarketListing[]> {
+  console.log('🚀 [TIER-SEARCH] Starting Google-grade tiered market search for:', input);
+  
+  const allListings: EnrichedMarketListing[] = [];
+  const searchPromises: Promise<void>[] = [];
+  
+  // Helper function to build tier-specific search queries
+  const buildTierQuery = (category: string, tier: any, input: MarketQueryInput): string => {
+    const baseQuery = `${input.year} ${input.make} ${input.model}`;
+    const locationQuery = input.zipCode ? ` near ${input.zipCode}` : '';
+    const vinQuery = input.vin ? ` VIN "${input.vin}"` : '';
+    const mileageQuery = input.mileage ? ` ${input.mileage} miles` : '';
+    
+    // Build tier-specific site queries
+    const siteQueries = tier.domains.map((domain: string) => `site:${domain}`).join(' OR ');
+    
+    return `(${siteQueries}) "${baseQuery}" for sale price mileage${vinQuery}${mileageQuery}${locationQuery}`;
+  };
+
+  // Helper function to extract tier info from source/domain
+  const getTierInfo = (source: string, url?: string): { tier: 1 | 2 | 3; type: 'retail' | 'p2p' | 'auction'; trustWeight: number } => {
+    const sourceKey = source.toLowerCase();
+    const urlDomain = url ? new URL(url).hostname.toLowerCase() : '';
+
+    // Check each category and tier
+    for (const [categoryKey, category] of Object.entries(MARKET_SOURCE_TIERS)) {
+      for (const [tierKey, tierData] of Object.entries(category)) {
+        const tierNum = parseInt(tierKey.split('_')[1]) as 1 | 2 | 3;
+        
+        const matchesSource = tierData.sources.some((s: string) => 
+          sourceKey.includes(s.toLowerCase()) || s.toLowerCase().includes(sourceKey)
+        );
+        const matchesDomain = tierData.domains.some((d: string) => 
+          urlDomain.includes(d.toLowerCase()) || d.toLowerCase().includes(urlDomain)
+        );
+        
+        if (matchesSource || matchesDomain) {
+          return {
+            tier: tierNum,
+            type: tierData.type,
+            trustWeight: tierData.trustWeight
+          };
+        }
+      }
+    }
+    
+    // Default to Tier 3 P2P if unmatched
+    return { tier: 3, type: 'p2p', trustWeight: 0.55 };
+  };
+
+  // Process each tier category with retry logic
+  const searchTier = async (categoryName: string, tierKey: string, tierData: any) => {
+    try {
+      const query = buildTierQuery(categoryName, tierData, input);
+      console.log(`🔍 [TIER-SEARCH] ${categoryName} ${tierKey} query:`, query);
+      
+      const searchPayload = {
+        query,
+        max_tokens: 2000,
+        saveToDb: true,
+        vehicleData: {
+          make: input.make,
+          model: input.model,
+          year: input.year,
+          trim: input.trim,
+          zipCode: input.zipCode,
+          vin: input.vin
+        },
+        tierInfo: {
+          category: categoryName,
+          tier: parseInt(tierKey.split('_')[1]),
+          type: tierData.type,
+          trustWeight: tierData.trustWeight
+        }
+      };
+
+      const { data: searchResult, error } = await supabase.functions.invoke('openai-web-search', {
+        body: searchPayload
+      });
+
+      if (error) {
+        console.error(`❌ [TIER-SEARCH] ${categoryName} ${tierKey} search failed:`, error);
+        return;
+      }
+
+      if (searchResult?.listings && Array.isArray(searchResult.listings)) {
+        const tierListings: EnrichedMarketListing[] = searchResult.listings.map((listing: any) => {
+          const tierInfo = getTierInfo(listing.source || 'Unknown', listing.listing_url);
+          
+          return {
+            source: listing.source || `${categoryName} ${tierKey}`,
+            tier: tierInfo.tier,
+            type: tierInfo.type,
+            vin: listing.vin || undefined,
+            year: listing.year || input.year,
+            make: listing.make || input.make,
+            model: listing.model || input.model,
+            mileage: listing.mileage || 0,
+            price: listing.price || 0,
+            location: listing.location || input.zipCode,
+            url: listing.listing_url,
+            trustWeight: tierInfo.trustWeight
+          };
+        }).filter((listing: EnrichedMarketListing) => 
+          listing.price > 1000 && listing.price < 500000 // Sanity check
+        );
+
+        allListings.push(...tierListings);
+        console.log(`✅ [TIER-SEARCH] ${categoryName} ${tierKey}: Found ${tierListings.length} listings`);
+      } else {
+        console.log(`⚠️ [TIER-SEARCH] ${categoryName} ${tierKey}: No listings returned`);
+      }
+    } catch (error) {
+      console.error(`💥 [TIER-SEARCH] ${categoryName} ${tierKey} exception:`, error);
+    }
+  };
+
+  // Launch parallel searches across all tiers (with rate limiting)
+  const batchSize = 3; // Limit concurrent searches to avoid rate limits
+  let currentBatch = 0;
+
+  for (const [categoryName, category] of Object.entries(MARKET_SOURCE_TIERS)) {
+    for (const [tierKey, tierData] of Object.entries(category)) {
+      searchPromises.push(searchTier(categoryName, tierKey, tierData));
+      
+      // Process in batches to avoid overwhelming the API
+      if (searchPromises.length >= batchSize) {
+        await Promise.allSettled(searchPromises.splice(0, batchSize));
+        currentBatch++;
+        console.log(`📊 [TIER-SEARCH] Completed batch ${currentBatch}`);
+        
+        // Small delay between batches
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+  }
+
+  // Process remaining searches
+  if (searchPromises.length > 0) {
+    await Promise.allSettled(searchPromises);
+    console.log(`📊 [TIER-SEARCH] Completed final batch`);
+  }
+
+  // Deduplicate and prioritize by tier
+  const deduplicatedListings = deduplicateEnrichedListings(allListings);
+  
+  // Sort by tier priority (Tier 1 first) and trust weight
+  const prioritizedListings = deduplicatedListings.sort((a, b) => {
+    if (a.tier !== b.tier) return a.tier - b.tier; // Tier 1 before Tier 2, etc.
+    return b.trustWeight - a.trustWeight; // Higher trust weight first within tier
+  });
+
+  // Limit to top 20 results
+  const finalListings = prioritizedListings.slice(0, 20);
+
+  console.log('🎯 [TIER-SEARCH] Final results:', {
+    totalFound: allListings.length,
+    afterDeduplication: deduplicatedListings.length,
+    finalCount: finalListings.length,
+    tierBreakdown: {
+      tier1: finalListings.filter(l => l.tier === 1).length,
+      tier2: finalListings.filter(l => l.tier === 2).length,
+      tier3: finalListings.filter(l => l.tier === 3).length
+    },
+    typeBreakdown: {
+      retail: finalListings.filter(l => l.type === 'retail').length,
+      p2p: finalListings.filter(l => l.type === 'p2p').length,
+      auction: finalListings.filter(l => l.type === 'auction').length
+    }
+  });
+
+  return finalListings;
+}
+
+// Enhanced deduplication for enriched listings
+function deduplicateEnrichedListings(listings: EnrichedMarketListing[]): EnrichedMarketListing[] {
+  const seen = new Map<string, EnrichedMarketListing>();
+  
+  listings.forEach(listing => {
+    // Create multiple deduplication keys
+    const priceKey = `price_${listing.price}_${listing.mileage}`;
+    const vinKey = listing.vin ? `vin_${listing.vin}` : null;
+    const urlKey = listing.url ? `url_${listing.url}` : null;
+    
+    const keys = [priceKey, vinKey, urlKey].filter(Boolean) as string[];
+    
+    let isDuplicate = false;
+    for (const key of keys) {
+      if (seen.has(key)) {
+        const existingListing = seen.get(key)!;
+        // Keep the listing with higher trust weight
+        if (listing.trustWeight > existingListing.trustWeight) {
+          // Remove the old entry and update with new one
+          for (const oldKey of keys) {
+            if (seen.get(oldKey) === existingListing) {
+              seen.delete(oldKey);
+            }
+          }
+          break; // Will add new listing below
+        } else {
+          isDuplicate = true;
+          break;
+        }
+      }
+    }
+    
+    if (!isDuplicate) {
+      keys.forEach(key => seen.set(key, listing));
+    }
+  });
+  
+  return Array.from(new Set(seen.values()));
 }
