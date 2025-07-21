@@ -22,7 +22,7 @@ export interface ValuationInput {
 }
 
 export async function calculateUnifiedValuation(input: ValuationInput): Promise<UnifiedValuationResult> {
-  console.log('🔍 Starting REAL-TIME web search valuation for:', input);
+  console.log('🔍 [UNIFIED_VALUATION] Starting real-time web search valuation for:', input);
 
   const {
     vin,
@@ -36,22 +36,29 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     fuelType = 'gasoline'
   } = input;
 
-  console.log('🌐 [REAL-TIME] Forcing OpenAI web search - NO STATIC DATA ALLOWED');
+  console.log('🌐 [UNIFIED_VALUATION] Forcing OpenAI web search - NO STATIC DATA ALLOWED');
   
   let marketListings: any[] = [];
-  let marketSearchStatus = 'searching';
+  let marketSearchStatus: 'success' | 'fallback' | 'error' = 'error';
   let baseValue = 0;
   let confidenceScore = 0;
   let trustNotes = 'Searching real-time market data...';
 
   try {
     // FORCE real-time web search - no fallbacks
-    console.log('🔍 [REAL-TIME] Calling OpenAI web search directly...');
+    console.log('🔍 [UNIFIED_VALUATION] Calling OpenAI web search directly...');
     
     const searchResult = await fetchMarketComps(make, model, year, zipCode, vin);
     
+    console.log('📊 [UNIFIED_VALUATION] Search result received:', {
+      listingsCount: searchResult.listings?.length || 0,
+      source: searchResult.source,
+      trust: searchResult.trust,
+      notes: searchResult.notes
+    });
+    
     if (!searchResult.listings || searchResult.listings.length === 0) {
-      throw new Error('No real-time market data found - refusing to use static data');
+      throw new Error(`No real-time market data found: ${searchResult.notes}`);
     }
 
     marketListings = searchResult.listings;
@@ -72,7 +79,7 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
       ? (prices[medianIndex - 1] + prices[medianIndex]) / 2 
       : prices[medianIndex];
 
-    console.log(`💰 Real market base value: $${baseValue.toLocaleString()} from ${prices.length} listings`);
+    console.log(`💰 [UNIFIED_VALUATION] Real market base value: $${baseValue.toLocaleString()} from ${prices.length} listings`);
 
     // Save real market listings
     try {
@@ -81,13 +88,13 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
         valuationId: crypto.randomUUID(),
         zipCode
       });
-      console.log('✅ Real market listings saved to database');
+      console.log('✅ [UNIFIED_VALUATION] Real market listings saved to database');
     } catch (saveError) {
-      console.warn('⚠️ Failed to save market listings:', saveError);
+      console.warn('⚠️ [UNIFIED_VALUATION] Failed to save market listings:', saveError);
     }
 
   } catch (marketError: unknown) {
-    console.error('❌ [REAL-TIME] Real-time market search failed:', marketError);
+    console.error('❌ [UNIFIED_VALUATION] Real-time market search failed:', marketError);
     
     // REFUSE to fall back to static data
     const errorMessage = marketError instanceof Error ? marketError.message : 'Unknown error';
@@ -159,12 +166,14 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     timestamp: Date.now()
   };
 
-  console.log('✅ Real-time valuation completed:', {
+  console.log('✅ [UNIFIED_VALUATION] Real-time valuation completed:', {
     finalValue,
     confidenceScore,
     listingCount: marketListings.length,
     marketSearchStatus,
-    priceRange: [minPrice, maxPrice]
+    priceRange: [minPrice, maxPrice],
+    vehicle: `${year} ${make} ${model}`,
+    vin
   });
 
   return result;

@@ -8,63 +8,73 @@ schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
+[auth]
+enabled = true
+port = 54324
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://localhost:3000"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
 [db]
 port = 54322
 
-[studio]
+[db.pooler]
+enabled = false
+port = 54329
+pool_mode = "transaction"
+default_pool_size = 20
+max_client_conn = 100
+
+[realtime]
 enabled = true
 port = 54323
-
-[inbucket]
-enabled = true
-port = 54324
-smtp_port = 54325
-pop3_port = 54326
+tenant_id = "realtime-dev"
 
 [storage]
 enabled = true
-port = 54327
+port = 54324
+file_size_limit = "50MiB"
+image_transformation = { enabled = true }
 
-[auth]
-enabled = true
-port = 54328
-
-[edge_runtime]
-enabled = true
-port = 54329
-
-[functions.fetch-auction-data]
+[functions.openai-web-search]
 verify_jwt = false
 
-[functions.fetch-bidcars-data]
+[functions.email-valuation-pdf]
 verify_jwt = false
 
-[functions.fetch-autoauctions-data]
-verify_jwt = false
+[functions.generate-valuation-pdf]
+verify_jwt = true
 
-[functions.fetch-marketplace-data]
-verify_jwt = false
-
-[functions.generate-auction-intelligence]
-verify_jwt = false
-
-[functions.fetch-competitor-prices]
-verify_jwt = false
+[functions.create-public-token]
+verify_jwt = true
 
 [functions.export-valuation-json]
 verify_jwt = false
 
+[functions.unified-decode]
+verify_jwt = true
+
+[functions.analyze-photos]
+verify_jwt = true
+
+[functions.create-checkout]
+verify_jwt = true
+
+[functions.create-billing-portal]
+verify_jwt = true
+
 [functions.test-email-integration]
 verify_jwt = false
 
-[functions.log-valuation-audit]
-verify_jwt = false
+[edge_runtime]
+policy = "per_worker"
 
-[functions.fetch-eia-fuel-prices]
-verify_jwt = false
-
-[functions.safe-audit-logger]
-verify_jwt = false
-
-[functions.openai-web-search]
-verify_jwt = false
+[analytics]
+enabled = false
