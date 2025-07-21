@@ -21,7 +21,7 @@ export interface ValuationInput {
 }
 
 export async function calculateUnifiedValuation(input: ValuationInput): Promise<UnifiedValuationResult> {
-  console.log('🔍 [UNIFIED_VALUATION] Starting real-time web search valuation for:', input);
+  console.log('🔍 [UNIFIED_VALUATION] Starting valuation for:', input);
 
   const {
     vin,
@@ -35,7 +35,7 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     fuelType = 'gasoline'
   } = input;
 
-  console.log('🌐 [UNIFIED_VALUATION] Using real-time OpenAI web search - NO STATIC DATA');
+  console.log('🌐 [UNIFIED_VALUATION] Using market data analysis');
   
   let marketListings: any[] = [];
   let marketSearchStatus: 'success' | 'fallback' | 'error' = 'error';
@@ -44,7 +44,7 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
   let trustNotes = 'Searching real-time market data...';
 
   try {
-    console.log('🔍 [UNIFIED_VALUATION] Calling OpenAI web search directly...');
+    console.log('🔍 [UNIFIED_VALUATION] Starting market data collection...');
     
     const searchResult = await fetchMarketComps(make, model, year, zipCode, vin);
     
@@ -92,11 +92,11 @@ export async function calculateUnifiedValuation(input: ValuationInput): Promise<
     }
 
   } catch (marketError: unknown) {
-    console.error('❌ [UNIFIED_VALUATION] Real-time market search failed:', marketError);
+    console.error('❌ [UNIFIED_VALUATION] Market data collection failed:', marketError);
     
     // Provide detailed error information
     const errorMessage = marketError instanceof Error ? marketError.message : 'Unknown error';
-    throw new Error(`Real-time valuation failed: ${errorMessage}`);
+    throw new Error(`Valuation failed: ${errorMessage}`);
   }
 
   // Apply condition adjustments to real market median
