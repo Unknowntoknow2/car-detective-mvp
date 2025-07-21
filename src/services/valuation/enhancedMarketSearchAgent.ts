@@ -12,7 +12,8 @@ export interface EnhancedMarketListing {
   url: string;
   vin?: string;
   dealer?: boolean;
-  source: 'facebook' | 'craigslist' | 'autotrader' | 'cars' | 'other';
+  source: 'facebook' | 'craigslist' | 'offerup' | 'ebay' | 'amazon' | 'autotrader' | 'cars' | 'other';
+  sellerType?: 'dealer' | 'private';
 }
 
 export interface FacebookCraigslistSearchInput {
@@ -28,6 +29,7 @@ export interface FacebookCraigslistSearchInput {
 export interface EnhancedMarketSearchResult {
   enrichedListings: EnhancedMarketListing[];
   listingSources: string[];
+  platformBreakdown: Record<string, number>;
   listingCount: number;
   anchoredValue?: number;
   confidenceBoost: number;
@@ -43,27 +45,39 @@ export async function fetchFacebookCraigslistEnrichment(
   const searchQueries: string[] = [];
   const notes: string[] = [];
   let enrichedListings: EnhancedMarketListing[] = [];
+  const platformBreakdown: Record<string, number> = {};
 
   try {
-    // Generate Facebook Marketplace search query
+    // Generate search queries for all platforms
     const facebookQuery = generateFacebookMarketplaceQuery(input);
-    searchQueries.push(facebookQuery);
-
-    // Generate Craigslist search query  
     const craigslistQuery = generateCraigslistQuery(input);
-    searchQueries.push(craigslistQuery);
+    const offerUpQuery = generateOfferUpQuery(input);
+    const ebayQuery = generateEbayMotorsQuery(input);
+    const amazonQuery = generateAmazonAutosQuery(input);
 
-    // Execute Facebook Marketplace search
-    console.log('📱 Searching Facebook Marketplace...');
-    const facebookListings = await executeOpenAIWebSearch(facebookQuery, 'facebook');
-    enrichedListings.push(...facebookListings);
-    notes.push(`Found ${facebookListings.length} Facebook Marketplace listings`);
+    searchQueries.push(facebookQuery, craigslistQuery, offerUpQuery, ebayQuery, amazonQuery);
 
-    // Execute Craigslist search
-    console.log('📋 Searching Craigslist...');
-    const craigslistListings = await executeOpenAIWebSearch(craigslistQuery, 'craigslist');
-    enrichedListings.push(...craigslistListings);
-    notes.push(`Found ${craigslistListings.length} Craigslist listings`);
+    // Execute searches in parallel for maximum efficiency
+    console.log('🔍 Executing multi-platform enhanced search...');
+    const [facebookListings, craigslistListings, offerUpListings, ebayListings, amazonListings] = await Promise.all([
+      executeOpenAIWebSearch(facebookQuery, 'facebook'),
+      executeOpenAIWebSearch(craigslistQuery, 'craigslist'),
+      executeOpenAIWebSearch(offerUpQuery, 'offerup'),
+      executeOpenAIWebSearch(ebayQuery, 'ebay'),
+      executeOpenAIWebSearch(amazonQuery, 'amazon')
+    ]);
+
+    // Combine all listings
+    enrichedListings.push(...facebookListings, ...craigslistListings, ...offerUpListings, ...ebayListings, ...amazonListings);
+
+    // Track platform breakdown
+    platformBreakdown.facebook = facebookListings.length;
+    platformBreakdown.craigslist = craigslistListings.length;
+    platformBreakdown.offerup = offerUpListings.length;
+    platformBreakdown.ebay = ebayListings.length;
+    platformBreakdown.amazon = amazonListings.length;
+
+    notes.push(`Found ${facebookListings.length} Facebook, ${craigslistListings.length} Craigslist, ${offerUpListings.length} OfferUp, ${ebayListings.length} eBay, ${amazonListings.length} Amazon listings`);
 
     // Filter and validate listings
     enrichedListings = filterAndValidateListings(enrichedListings, input);
@@ -86,7 +100,8 @@ export async function fetchFacebookCraigslistEnrichment(
 
     const result: EnhancedMarketSearchResult = {
       enrichedListings,
-      listingSources: ['Facebook', 'Craigslist'],
+      listingSources: ['Facebook', 'Craigslist', 'OfferUp', 'eBay', 'Amazon'],
+      platformBreakdown,
       listingCount: enrichedListings.length,
       anchoredValue,
       confidenceBoost,
@@ -108,6 +123,7 @@ export async function fetchFacebookCraigslistEnrichment(
     return {
       enrichedListings: [],
       listingSources: [],
+      platformBreakdown: {},
       listingCount: 0,
       confidenceBoost: 0,
       searchQueries,
@@ -166,6 +182,58 @@ Avoid spam posts. Prioritize dealer/private clarity.
 Use site:${craigslistRegion}.craigslist.org search syntax.`;
 }
 
+function generateOfferUpQuery(input: FacebookCraigslistSearchInput): string {
+  const mileageRange = `${Math.round(input.mileage * 0.8)}-${Math.round(input.mileage * 1.2)}`;
+  
+  return `Search OfferUp for used ${input.year} ${input.make} ${input.model} listings near ZIP code ${input.zipCode}, with mileage around ${input.mileage} miles.
+
+Return a JSON array with:
+- title
+- price (USD, numbers only)
+- mileage (numbers only) 
+- location (city/state)
+- post date
+- listing URL
+- seller type (dealer/private)
+${input.trim ? `- trim: ${input.trim}` : ''}
+
+Filter out irrelevant or vague results. Focus on accurate, detailed vehicle listings with mileage range ${mileageRange}.
+Use site:offerup.com search syntax.`;
+}
+
+function generateEbayMotorsQuery(input: FacebookCraigslistSearchInput): string {
+  const mileageRange = `${Math.round(input.mileage * 0.8)}-${Math.round(input.mileage * 1.2)}`;
+  
+  return `Search eBay Motors for used ${input.year} ${input.make} ${input.model} listings with mileage around ${input.mileage}, located near ZIP ${input.zipCode} (within 100 miles).
+
+Return a structured JSON list with:
+- title
+- BIN price or current bid (USD, numbers only)
+- mileage (numbers only)
+- city/state
+- post/sale date
+- listing URL
+- seller type (dealer/private)
+${input.trim ? `- trim: ${input.trim}` : ''}
+
+Only return clearly identified vehicle listings, no parts/accessories. Mileage range ${mileageRange} preferred.
+Use site:ebay.com/motors search syntax.`;
+}
+
+function generateAmazonAutosQuery(input: FacebookCraigslistSearchInput): string {
+  return `Search Amazon for listings under "Amazon Autos" for a ${input.year} ${input.make} ${input.model}, ZIP ${input.zipCode}.
+
+Return any vehicle matches with:
+- title
+- price (USD, numbers only)
+- mileage (if available, numbers only)
+- location or delivery region
+- URL
+${input.trim ? `- trim: ${input.trim}` : ''}
+
+If no listings found, return empty array. Use site:amazon.com search syntax.`;
+}
+
 function getCraigslistRegion(zipCode: string): string {
   // Simplified ZIP to Craigslist region mapping
   const zip = parseInt(zipCode);
@@ -187,7 +255,7 @@ function getCraigslistRegion(zipCode: string): string {
 
 async function executeOpenAIWebSearch(
   query: string, 
-  source: 'facebook' | 'craigslist'
+  source: 'facebook' | 'craigslist' | 'offerup' | 'ebay' | 'amazon'
 ): Promise<EnhancedMarketListing[]> {
   try {
     console.log(`🔍 Executing ${source} search with OpenAI...`);
@@ -240,6 +308,7 @@ async function executeOpenAIWebSearch(
         url: listing.url || '#',
         vin: listing.vin,
         dealer: listing.dealer === true || listing.dealer === 'true',
+        sellerType: listing.dealer === true || listing.dealer === 'true' ? 'dealer' : 'private',
         source: source
       }))
       .filter((listing: EnhancedMarketListing) => listing.price > 0); // Final price validation

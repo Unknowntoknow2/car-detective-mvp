@@ -166,6 +166,55 @@ export async function generateValuationPdf(result: UnifiedValuationResult): Prom
     addDivider();
   }
 
+  // Enhanced Market Listings section (if available)
+  const enhancedListings = result.listings?.filter(listing => 
+    ['facebook', 'craigslist', 'offerup', 'ebay', 'amazon'].includes(listing.source?.toLowerCase() || '')
+  ) || [];
+
+  if (enhancedListings.length > 0) {
+    addText('ENHANCED MARKET ANALYSIS', { font: boldFont, size: 16, color: primaryColor });
+    yPosition -= 5;
+
+    // Platform breakdown
+    const platformCounts: Record<string, number> = {};
+    enhancedListings.forEach(listing => {
+      const platform = listing.source?.toLowerCase() || 'other';
+      platformCounts[platform] = (platformCounts[platform] || 0) + 1;
+    });
+
+    const platformSummary = Object.entries(platformCounts)
+      .map(([platform, count]) => `${count} ${platform.charAt(0).toUpperCase() + platform.slice(1)}`)
+      .join(', ');
+
+    addText('Enhanced Listings:', { size: 10, font: boldFont });
+    addText(platformSummary, { 
+      x: margin + 100, 
+      y: yPosition + 10 + 8, 
+      size: 10 
+    });
+
+    // Price range from enhanced listings
+    if (enhancedListings.length > 1) {
+      const prices = enhancedListings.map(l => l.price).sort((a, b) => a - b);
+      addText('Price Range:', { size: 10, font: boldFont });
+      addText(`$${prices[0].toLocaleString()} - $${prices[prices.length - 1].toLocaleString()}`, { 
+        x: margin + 100, 
+        y: yPosition + 10 + 8, 
+        size: 10 
+      });
+    }
+
+    addText('Data Verified by:', { size: 10, font: boldFont });
+    addText('OpenAI Web Intelligence', { 
+      x: margin + 100, 
+      y: yPosition + 10 + 8, 
+      size: 10, 
+      color: primaryColor 
+    });
+
+    addDivider();
+  }
+
   // Valuation Summary
   addText('VALUATION SUMMARY', { font: boldFont, size: 16, color: primaryColor });
   yPosition -= 5;
