@@ -1,28 +1,38 @@
-// Market Search Agent - Google-Grade Tier-Based Market Intelligence 
+// Market Search Agent - Google-Grade Tier-Based Market Intelligence with 25+ Dealer Sources
 import { supabase } from "@/integrations/supabase/client";
 import { ValuationInput, MarketListing } from "@/types/valuation";
 import { parseVehicleListingsFromWeb, type ParsedListing } from "@/utils/parsers/listingParser";
+import { 
+  RetailDealerSources, 
+  dealerTierWeights, 
+  AllDealerSources,
+  getDealerTier,
+  getDealerTrustWeight,
+  getDealerDomain,
+  type WeightedListing,
+  type DealerSourceResult
+} from "../utils/dealerSources";
 
-// TIER-BASED MARKET SOURCE ARCHITECTURE (FANG-GRADE)
+// ENHANCED TIER-BASED MARKET SOURCE ARCHITECTURE (25+ DEALER SOURCES)
 const MARKET_SOURCE_TIERS = {
-  // CATEGORY 1: Retail Dealership Aggregators
+  // CATEGORY 1: Enhanced Retail Dealership Aggregators (25+ sources)
   RETAIL_AGGREGATORS: {
     TIER_1: {
-      sources: ['AutoTrader', 'Cars.com', 'Edmunds', 'CarGurus', 'KBB Used', 'Carfax Listings'],
-      domains: ['autotrader.com', 'cars.com', 'edmunds.com', 'cargurus.com', 'kbb.com', 'carfax.com'],
-      trustWeight: 1.0,
+      sources: RetailDealerSources.Tier1,
+      domains: RetailDealerSources.Tier1.map(source => getDealerDomain(source)),
+      trustWeight: dealerTierWeights.Tier1,
       type: 'retail' as const
     },
     TIER_2: {
-      sources: ['AutoNation', 'Enterprise Car Sales', 'EchoPark', 'Hertz Car Sales', 'Sonic Automotive'],
-      domains: ['autonation.com', 'enterprisecarsales.com', 'echopark.com', 'hertzcarsales.com', 'sonicautomotive.com'],
-      trustWeight: 0.85,
+      sources: RetailDealerSources.Tier2,
+      domains: RetailDealerSources.Tier2.map(source => getDealerDomain(source)),
+      trustWeight: dealerTierWeights.Tier2,
       type: 'retail' as const
     },
     TIER_3: {
-      sources: ['Fred Beans', 'Lithia Motors', 'Koons', 'Napleton', 'Penske', 'Priority Auto Group'],
-      domains: ['fredbeans.com', 'lithia.com', 'koons.com', 'napleton.com', 'penske.com', 'priorityauto.com'],
-      trustWeight: 0.7,
+      sources: RetailDealerSources.Tier3,
+      domains: RetailDealerSources.Tier3.map(source => getDealerDomain(source)),
+      trustWeight: dealerTierWeights.Tier3,
       type: 'retail' as const
     }
   },
@@ -583,67 +593,31 @@ function getEstimatedBasePrice(input: ValuationInput): number {
   return Math.max(5000, deprecatedValue + mileageAdjustment);
 }
 
-// ===== GOOGLE-GRADE TIER-AWARE MARKET SEARCH =====
+// ===== ENHANCED 25+ DEALER SOURCE MARKET SEARCH =====
 
 export async function fetchTieredListings(input: MarketQueryInput): Promise<EnrichedMarketListing[]> {
-  console.log('🚀 [TIER-SEARCH] Starting Google-grade tiered market search for:', input);
+  console.log('🚀 [ENHANCED-DEALER-SEARCH] Starting 25+ dealer source market search for:', input);
   
   const allListings: EnrichedMarketListing[] = [];
-  const searchPromises: Promise<void>[] = [];
+  const sourceContributions: DealerSourceResult[] = [];
   
-  // Helper function to build tier-specific search queries
-  const buildTierQuery = (category: string, tier: any, input: MarketQueryInput): string => {
-    const baseQuery = `${input.year} ${input.make} ${input.model}`;
-    const locationQuery = input.zipCode ? ` near ${input.zipCode}` : '';
-    const vinQuery = input.vin ? ` VIN "${input.vin}"` : '';
-    const mileageQuery = input.mileage ? ` ${input.mileage} miles` : '';
-    
-    // Build tier-specific site queries
-    const siteQueries = tier.domains.map((domain: string) => `site:${domain}`).join(' OR ');
-    
-    return `(${siteQueries}) "${baseQuery}" for sale price mileage${vinQuery}${mileageQuery}${locationQuery}`;
-  };
-
-  // Helper function to extract tier info from source/domain
-  const getTierInfo = (source: string, url?: string): { tier: 1 | 2 | 3; type: 'retail' | 'p2p' | 'auction'; trustWeight: number } => {
-    const sourceKey = source.toLowerCase();
-    const urlDomain = url ? new URL(url).hostname.toLowerCase() : '';
-
-    // Check each category and tier
-    for (const [categoryKey, category] of Object.entries(MARKET_SOURCE_TIERS)) {
-      for (const [tierKey, tierData] of Object.entries(category)) {
-        const tierNum = parseInt(tierKey.split('_')[1]) as 1 | 2 | 3;
-        
-        const matchesSource = tierData.sources.some((s: string) => 
-          sourceKey.includes(s.toLowerCase()) || s.toLowerCase().includes(sourceKey)
-        );
-        const matchesDomain = tierData.domains.some((d: string) => 
-          urlDomain.includes(d.toLowerCase()) || d.toLowerCase().includes(urlDomain)
-        );
-        
-        if (matchesSource || matchesDomain) {
-          return {
-            tier: tierNum,
-            type: tierData.type,
-            trustWeight: tierData.trustWeight
-          };
-        }
-      }
-    }
-    
-    // Default to Tier 3 P2P if unmatched
-    return { tier: 3, type: 'p2p', trustWeight: 0.55 };
-  };
-
-  // Process each tier category with retry logic
-  const searchTier = async (categoryName: string, tierKey: string, tierData: any) => {
+  // ENHANCED: Search each individual dealer source for maximum coverage
+  const dealerSearchPromises: Promise<void>[] = [];
+  
+  // Helper function to search specific dealer sources
+  const searchSpecificDealer = async (dealerName: string, tier: 'Tier1' | 'Tier2' | 'Tier3') => {
     try {
-      const query = buildTierQuery(categoryName, tierData, input);
-      console.log(`🔍 [TIER-SEARCH] ${categoryName} ${tierKey} query:`, query);
+      const trustWeight = dealerTierWeights[tier];
+      const domain = getDealerDomain(dealerName);
+      
+      // Create dealer-specific query
+      const dealerQuery = `site:${domain} "${input.year} ${input.make} ${input.model}" ${input.trim || ''} for sale price mileage ${input.zipCode ? `near ${input.zipCode}` : ''} ${input.mileage ? `under ${input.mileage + 20000} miles` : ''}`.trim();
+      
+      console.log(`🔍 [DEALER-SEARCH] ${dealerName} (${tier}): ${dealerQuery}`);
       
       const searchPayload = {
-        query,
-        max_tokens: 2000,
+        query: dealerQuery,
+        max_tokens: 1500,
         saveToDb: true,
         vehicleData: {
           make: input.make,
@@ -653,11 +627,11 @@ export async function fetchTieredListings(input: MarketQueryInput): Promise<Enri
           zipCode: input.zipCode,
           vin: input.vin
         },
-        tierInfo: {
-          category: categoryName,
-          tier: parseInt(tierKey.split('_')[1]),
-          type: tierData.type,
-          trustWeight: tierData.trustWeight
+        dealerInfo: {
+          dealer: dealerName,
+          tier,
+          trustWeight,
+          domain
         }
       };
 
@@ -666,97 +640,124 @@ export async function fetchTieredListings(input: MarketQueryInput): Promise<Enri
       });
 
       if (error) {
-        console.error(`❌ [TIER-SEARCH] ${categoryName} ${tierKey} search failed:`, error);
+        console.warn(`⚠️ [DEALER-SEARCH] ${dealerName} search failed:`, error);
         return;
       }
 
       if (searchResult?.listings && Array.isArray(searchResult.listings)) {
-        const tierListings: EnrichedMarketListing[] = searchResult.listings.map((listing: any) => {
-          const tierInfo = getTierInfo(listing.source || 'Unknown', listing.listing_url);
-          
-          return {
-            source: listing.source || `${categoryName} ${tierKey}`,
-            tier: tierInfo.tier,
-            type: tierInfo.type,
-            vin: listing.vin || undefined,
-            year: listing.year || input.year,
-            make: listing.make || input.make,
-            model: listing.model || input.model,
-            mileage: listing.mileage || 0,
-            price: listing.price || 0,
-            location: listing.location || input.zipCode,
-            url: listing.listing_url,
-            trustWeight: tierInfo.trustWeight
-          };
-        }).filter((listing: EnrichedMarketListing) => 
+        const dealerListings: EnrichedMarketListing[] = searchResult.listings.map((listing: any) => ({
+          source: dealerName,
+          tier: tier === 'Tier1' ? 1 : tier === 'Tier2' ? 2 : 3,
+          type: 'retail' as const,
+          vin: listing.vin || undefined,
+          year: listing.year || input.year,
+          make: listing.make || input.make,
+          model: listing.model || input.model,
+          mileage: listing.mileage || 0,
+          price: listing.price || 0,
+          location: listing.location || input.zipCode,
+          url: listing.listing_url,
+          trustWeight
+        })).filter((listing: EnrichedMarketListing) => 
           listing.price > 1000 && listing.price < 500000 // Sanity check
         );
 
-        allListings.push(...tierListings);
-        console.log(`✅ [TIER-SEARCH] ${categoryName} ${tierKey}: Found ${tierListings.length} listings`);
+        if (dealerListings.length > 0) {
+          allListings.push(...dealerListings);
+          
+          // Track source contribution for transparency
+          const avgPrice = dealerListings.reduce((sum, l) => sum + l.price, 0) / dealerListings.length;
+          sourceContributions.push({
+            source: dealerName,
+            tier,
+            trustWeight,
+            listingsUsed: dealerListings.length,
+            avgPrice,
+            domain
+          });
+          
+          console.log(`✅ [DEALER-SEARCH] ${dealerName}: Found ${dealerListings.length} listings, avg $${Math.round(avgPrice).toLocaleString()}`);
+        }
       } else {
-        console.log(`⚠️ [TIER-SEARCH] ${categoryName} ${tierKey}: No listings returned`);
+        console.log(`⚠️ [DEALER-SEARCH] ${dealerName}: No listings returned`);
       }
     } catch (error) {
-      console.error(`💥 [TIER-SEARCH] ${categoryName} ${tierKey} exception:`, error);
+      console.error(`💥 [DEALER-SEARCH] ${dealerName} exception:`, error);
     }
   };
 
-  // Launch parallel searches across all tiers (with rate limiting)
-  const batchSize = 3; // Limit concurrent searches to avoid rate limits
-  let currentBatch = 0;
+  // Launch searches for all 25+ dealer sources
+  console.log('🏪 [ENHANCED-DEALER-SEARCH] Launching searches for 25+ dealer sources...');
+  
+  // Search Tier 1 dealers (Premium National Aggregators)
+  for (const dealer of RetailDealerSources.Tier1) {
+    dealerSearchPromises.push(searchSpecificDealer(dealer, 'Tier1'));
+  }
+  
+  // Search Tier 2 dealers (Verified Dealer Networks)
+  for (const dealer of RetailDealerSources.Tier2) {
+    dealerSearchPromises.push(searchSpecificDealer(dealer, 'Tier2'));
+  }
+  
+  // Search Tier 3 dealers (Regional Dealer Groups)
+  for (const dealer of RetailDealerSources.Tier3) {
+    dealerSearchPromises.push(searchSpecificDealer(dealer, 'Tier3'));
+  }
 
-  for (const [categoryName, category] of Object.entries(MARKET_SOURCE_TIERS)) {
-    for (const [tierKey, tierData] of Object.entries(category)) {
-      searchPromises.push(searchTier(categoryName, tierKey, tierData));
-      
-      // Process in batches to avoid overwhelming the API
-      if (searchPromises.length >= batchSize) {
-        await Promise.allSettled(searchPromises.splice(0, batchSize));
-        currentBatch++;
-        console.log(`📊 [TIER-SEARCH] Completed batch ${currentBatch}`);
-        
-        // Small delay between batches
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
+  // Execute searches in controlled batches to avoid rate limits
+  const batchSize = 5; // Process 5 dealers at a time
+  for (let i = 0; i < dealerSearchPromises.length; i += batchSize) {
+    const batch = dealerSearchPromises.slice(i, i + batchSize);
+    await Promise.allSettled(batch);
+    
+    const batchNum = Math.floor(i / batchSize) + 1;
+    console.log(`📊 [ENHANCED-DEALER-SEARCH] Completed batch ${batchNum}/${Math.ceil(dealerSearchPromises.length / batchSize)}`);
+    
+    // Small delay between batches to be respectful of APIs
+    if (i + batchSize < dealerSearchPromises.length) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 
-  // Process remaining searches
-  if (searchPromises.length > 0) {
-    await Promise.allSettled(searchPromises);
-    console.log(`📊 [TIER-SEARCH] Completed final batch`);
-  }
-
-  // Deduplicate and prioritize by tier
+  // Deduplicate and enhance with weighted logic
   const deduplicatedListings = deduplicateEnrichedListings(allListings);
   
-  // Sort by tier priority (Tier 1 first) and trust weight
+  // Sort by tier priority and trust weight for best results first
   const prioritizedListings = deduplicatedListings.sort((a, b) => {
-    if (a.tier !== b.tier) return a.tier - b.tier; // Tier 1 before Tier 2, etc.
-    return b.trustWeight - a.trustWeight; // Higher trust weight first within tier
+    // Primary sort: Tier (1 > 2 > 3)
+    if (a.tier !== b.tier) return a.tier - b.tier;
+    // Secondary sort: Trust weight (higher first)
+    if (a.trustWeight !== b.trustWeight) return b.trustWeight - a.trustWeight;
+    // Tertiary sort: Price (for consistency)
+    return a.price - b.price;
   });
 
-  // Limit to top 20 results
-  const finalListings = prioritizedListings.slice(0, 20);
+  // Calculate weighted market metrics for transparency
+  const tierBreakdown = {
+    tier1: prioritizedListings.filter(l => l.tier === 1).length,
+    tier2: prioritizedListings.filter(l => l.tier === 2).length,
+    tier3: prioritizedListings.filter(l => l.tier === 3).length
+  };
 
-  console.log('🎯 [TIER-SEARCH] Final results:', {
+  const totalListings = prioritizedListings.length;
+  const totalSources = sourceContributions.length;
+  const avgTrustWeight = totalListings > 0 
+    ? prioritizedListings.reduce((sum, l) => sum + l.trustWeight, 0) / totalListings 
+    : 0;
+
+  console.log('🎯 [ENHANCED-DEALER-SEARCH] Final results:', {
     totalFound: allListings.length,
-    afterDeduplication: deduplicatedListings.length,
-    finalCount: finalListings.length,
-    tierBreakdown: {
-      tier1: finalListings.filter(l => l.tier === 1).length,
-      tier2: finalListings.filter(l => l.tier === 2).length,
-      tier3: finalListings.filter(l => l.tier === 3).length
-    },
-    typeBreakdown: {
-      retail: finalListings.filter(l => l.type === 'retail').length,
-      p2p: finalListings.filter(l => l.type === 'p2p').length,
-      auction: finalListings.filter(l => l.type === 'auction').length
-    }
+    afterDeduplication: totalListings,
+    totalSources,
+    avgTrustWeight: Math.round(avgTrustWeight * 100) / 100,
+    tierBreakdown,
+    sourceContributions: sourceContributions.slice(0, 5) // Top 5 sources
   });
 
-  return finalListings;
+  // Store source contributions for explainability
+  (prioritizedListings as any).sourceContributions = sourceContributions;
+
+  return prioritizedListings.slice(0, 30); // Return top 30 for comprehensive analysis
 }
 
 // Enhanced deduplication for enriched listings

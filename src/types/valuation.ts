@@ -274,6 +274,15 @@ export interface UnifiedValuationResult {
     tier3: number;
     urls: string[];
   };
+  // ENHANCED: Dealer Source Contributions for Transparency  
+  sourceContributions?: Array<{
+    source: string;
+    tier: 'Tier1' | 'Tier2' | 'Tier3';
+    trustWeight: number;
+    listingsUsed: number;
+    avgPrice: number;
+    domain: string;
+  }>;
   // Title and Recall Intelligence
   titleStatus?: 'clean' | 'salvage' | 'rebuilt' | 'flood' | 'lemon' | 'theft_recovery' | 'unknown';
   titleHistory?: TitleHistoryResult | null;

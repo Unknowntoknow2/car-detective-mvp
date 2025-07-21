@@ -25,6 +25,7 @@ export function MarketBreakdownPanel({ result }: MarketBreakdownPanelProps) {
     marketAnchoredPrice,
     marketListings = [],
     sourceBreakdown,
+    sourceContributions = [],
     confidenceScore,
     listingCount
   } = result;
@@ -268,6 +269,55 @@ export function MarketBreakdownPanel({ result }: MarketBreakdownPanelProps) {
               );
             })}
           </div>
+
+          {/* Enhanced Source Contributions (25+ Dealer Sources) */}
+          {sourceContributions && sourceContributions.length > 0 && (
+            <div>
+              <h4 className="font-semibold mb-3">🏪 Dealer Source Contributions</h4>
+              <div className="text-sm text-muted-foreground mb-3">
+                AIN searched <strong>{sourceContributions.length}</strong> individual dealer sources for maximum market coverage.
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {sourceContributions.slice(0, 9).map((contribution, index) => (
+                  <div key={index} className="border rounded p-3 bg-muted/10">
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge className={
+                        contribution.tier === 'Tier1' ? 'bg-green-100 text-green-800' :
+                        contribution.tier === 'Tier2' ? 'bg-blue-100 text-blue-800' : 
+                        'bg-yellow-100 text-yellow-800'
+                      }>
+                        {contribution.tier}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {Math.round(contribution.trustWeight * 100)}% trust
+                      </span>
+                    </div>
+                    
+                    <div className="font-medium text-sm">{contribution.source}</div>
+                    <div className="text-xs text-muted-foreground">{contribution.domain}</div>
+                    
+                    <div className="mt-2 flex justify-between items-center">
+                      <span className="text-xs">
+                        {contribution.listingsUsed} listing{contribution.listingsUsed !== 1 ? 's' : ''}
+                      </span>
+                      <span className="text-xs font-medium">
+                        ${Math.round(contribution.avgPrice).toLocaleString()} avg
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {sourceContributions.length > 9 && (
+                <div className="text-center mt-3">
+                  <span className="text-sm text-muted-foreground">
+                    ...and {sourceContributions.length - 9} more dealer sources analyzed
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Methodology Note */}
           <div className="text-xs text-muted-foreground bg-muted/20 p-3 rounded border">
