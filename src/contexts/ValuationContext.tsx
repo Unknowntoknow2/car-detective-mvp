@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { calculateUnifiedValuation } from '@/services/valuationEngine';
+import { calculateUnifiedValuation, type UnifiedValuationResult as EngineResult } from '@/services/valuation/valuationEngine';
 import type { UnifiedValuationResult, ValuationInput } from '@/types/valuation';
 import { toast } from 'sonner';
 
@@ -16,7 +16,7 @@ interface ValuationContextType {
   isEmailSending: boolean;
   onDownloadPdf: () => Promise<void>;
   onEmailPdf: () => Promise<void>;
-  rerunValuation: (input: ValuationInput) => Promise<UnifiedValuationResult>;
+  rerunValuation: (input: ValuationInput) => Promise<EngineResult>;
 }
 
 const ValuationContext = createContext<ValuationContextType | undefined>(undefined);
@@ -137,14 +137,52 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
     try {
       // Call the NEW real-time valuation engine
       const validatedInput = {
-        ...input,
+        vin: input.vin,
+        zipCode: input.zipCode,
         mileage: input.mileage || 0,
-        condition: input.condition || 'good'
+        condition: input.condition || 'good',
+        decodedVehicle: {
+          year: input.year,
+          make: input.make,
+          model: input.model,
+          trim: input.trim
+        }
       };
       const result = await calculateUnifiedValuation(validatedInput);
       
       console.log('✅ Real-time valuation completed:', result);
-      setValuationData(result);
+      
+      // Convert engine result to UI format
+      const uiResult: UnifiedValuationResult = {
+        id: crypto.randomUUID(),
+        vin: input.vin,
+        vehicle: {
+          year: input.year,
+          make: input.make,
+          model: input.model,
+          trim: input.trim,
+          fuelType: input.fuelType
+        },
+        zip: input.zipCode,
+        mileage: input.mileage,
+        baseValue: result.finalValue,
+        adjustments: [],
+        finalValue: result.finalValue,
+        confidenceScore: result.confidenceScore,
+        aiExplanation: result.aiExplanation || 'Real-time market analysis complete',
+        sources: result.sourcesUsed || [],
+        listingRange: {
+          _type: "defined" as const,
+          value: `$${result.priceRange[0].toLocaleString()} - $${result.priceRange[1].toLocaleString()}` as const
+        },
+        listingCount: result.marketListings?.length || 0,
+        listings: [],
+        marketSearchStatus: 'success',
+        timestamp: Date.now(),
+        notes: []
+      };
+      
+      setValuationData(uiResult);
 
       // Save the valuation result to database
       try {
@@ -152,7 +190,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
         const { data: { user } } = await supabase.auth.getUser();
         console.log('💾 [DEBUG] Saving valuation with user:', user?.id || 'anonymous');
         console.log('💾 [DEBUG] Valuation data to save:', {
-          id: result.id,
+          id: uiResult.id,
           vin: input.vin,
           make: input.make,
           model: input.model,
@@ -164,7 +202,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
         const { data: savedValuation, error: insertError } = await supabase
           .from('valuations')
           .insert({
-            id: result.id,
+            id: uiResult.id,
             user_id: user?.id || null,  // Allow anonymous valuations
             vin: input.vin,
             make: input.make,

@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { EnhancedVehicleSelector } from '@/components/lookup/form-parts/EnhancedVehicleSelector';
 import { useMakeModels } from '@/hooks/useMakeModels';
 import { useUnifiedLookup } from '@/hooks/useUnifiedLookup';
-import { calculateUnifiedValuation } from '@/services/valuationEngine';
+import { calculateUnifiedValuation } from '@/services/valuation/valuationEngine';
 
 export function UnifiedLookupTabs() {
   const [vin, setVin] = useState('');
