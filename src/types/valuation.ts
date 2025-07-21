@@ -272,6 +272,20 @@ export interface UnifiedValuationResult {
   recallCheck?: RecallCheckResult | null;
   recalls?: string[]; // Simple string array for easy UI display
   notes: string[];
+  titleRecallInfo?: {
+    titleStatus: 'Clean' | 'Salvage' | 'Rebuilt' | 'Lemon' | 'Flood' | 'Stolen' | 'Unknown';
+    brandedDetails?: string;
+    recalls: {
+      id: string;
+      component: string;
+      summary: string;
+      riskLevel: 'Critical' | 'Important' | 'Informational';
+      recallDate: string;
+      resolved?: boolean;
+    }[];
+    oemRepairLinks?: string[];
+    lastChecked: string;
+  };
 }
 
 export interface ValuationAdjustment {
