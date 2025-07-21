@@ -112,20 +112,20 @@ export function ValueShowcase({
               <div className="flex items-center justify-center">
                 <DollarSign className="w-8 h-8 md:w-12 md:h-12 text-primary/80" />
                 <span className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/80 bg-clip-text text-transparent">
-                  {displayValue.toLocaleString()}
+                  {(displayValue || 0).toLocaleString()}
                 </span>
               </div>
               
               {/* Price Range */}
               {priceRange && (
-                <motion.p 
-                  className="text-sm text-muted-foreground"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1 }}
-                >
-                  Range: ${priceRange.min.toLocaleString()} - ${priceRange.max.toLocaleString()}
-                </motion.p>
+                  <motion.p 
+                    className="text-sm text-muted-foreground"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1 }}
+                  >
+                    Range: ${(priceRange.min || 0).toLocaleString()} - ${(priceRange.max || 0).toLocaleString()}
+                  </motion.p>
               )}
             </motion.div>
 
@@ -146,14 +146,14 @@ export function ValueShowcase({
 
             {/* Market Average Reference */}
             {marketComparison?.averagePrice && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.4 }}
-                className="text-xs text-muted-foreground"
-              >
-                Market average: ${marketComparison.averagePrice.toLocaleString()}
-              </motion.div>
+               <motion.div
+                 initial={{ opacity: 0 }}
+                 animate={{ opacity: 1 }}
+                 transition={{ delay: 1.4 }}
+                 className="text-xs text-muted-foreground"
+               >
+                 Market average: ${(marketComparison.averagePrice || 0).toLocaleString()}
+               </motion.div>
             )}
 
             {/* Confidence Indicator */}
