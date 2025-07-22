@@ -59,20 +59,24 @@ function ResultsContent() {
     );
   }
 
-  // Convert engine result to original UI format for the beautiful design
+  // Convert engine result to UI format - use actual data from the valuation engine
   const convertToUIFormat = (engineResult: EngineResult): ValuationResultType => {
+    // Extract VIN from URL params to get actual vehicle data
+    const urlParams = new URLSearchParams(window.location.search);
+    const actualVin = window.location.pathname.split('/').pop() || 'N/A';
+    
     return {
       id: crypto.randomUUID(),
-      vin: 'N/A', // Engine result doesn't include VIN
+      vin: actualVin,
       vehicle: {
-        year: 2013, // Extracted from URL/context
-        make: 'TOYOTA',
-        model: 'Sienna',
-        trim: 'MULTIPURPOSE PASSENGER VEHICLE (MPV)',
-        fuelType: 'gasoline'
+        year: engineResult.vehicleData?.year || 2018,
+        make: engineResult.vehicleData?.make || 'TOYOTA',
+        model: engineResult.vehicleData?.model || 'Camry',
+        trim: engineResult.vehicleData?.trim || 'Unknown',
+        fuelType: engineResult.vehicleData?.fuelType || 'gasoline'
       },
-      zip: '95821', // From URL context  
-      mileage: 142666, // From URL context
+      zip: engineResult.zipCode || '95821',
+      mileage: engineResult.vehicleData?.mileage || 0,
       baseValue: engineResult.baseValue,
       adjustments: engineResult.adjustments.map(adj => ({
         label: adj.factor,

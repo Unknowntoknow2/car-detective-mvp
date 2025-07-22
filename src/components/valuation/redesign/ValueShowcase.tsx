@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, DollarSign, Target } from 'lucide-react';
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatters';
 
 interface ValueShowcaseProps {
   estimatedValue: number;
@@ -10,174 +10,84 @@ interface ValueShowcaseProps {
     min: number;
     max: number;
   };
-  marketComparison?: {
-    averagePrice?: number;
-    percentDifference?: number;
-  };
   confidenceScore: number;
-  className?: string;
 }
 
-export function ValueShowcase({
+export const ValueShowcase: React.FC<ValueShowcaseProps> = ({
   estimatedValue,
   priceRange,
-  marketComparison,
-  confidenceScore,
-  className = ''
-}: ValueShowcaseProps) {
-  // Add defensive checks
-  if (!estimatedValue || typeof estimatedValue !== 'number') {
-    return (
-      <Card className="p-6">
-        <p className="text-muted-foreground">Loading value data...</p>
-      </Card>
-    );
-  }
-  const [displayValue, setDisplayValue] = useState(0);
-  const motionValue = useMotionValue(0);
-  const rounded = useTransform(motionValue, latest => Math.round(latest));
-
-  // Animate the value counter
-  useEffect(() => {
-    const controls = animate(motionValue, estimatedValue, {
-      duration: 2,
-      ease: "easeOut"
-    });
-
-    const unsubscribe = rounded.onChange(latest => {
-      setDisplayValue(latest);
-    });
-
-    return () => {
-      controls.stop();
-      unsubscribe();
-    };
-  }, [estimatedValue, motionValue, rounded]);
-
-  const getComparisonDisplay = () => {
-    if (!marketComparison?.percentDifference) return null;
-    
-    const isAbove = marketComparison.percentDifference > 0;
-    const percentage = Math.abs(marketComparison.percentDifference);
-    
-    return {
-      isAbove,
-      percentage,
-      icon: isAbove ? TrendingUp : TrendingDown,
-      color: isAbove ? 'text-green-600' : 'text-red-600',
-      bgColor: isAbove ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200',
-      text: `${percentage.toFixed(1)}% ${isAbove ? 'above' : 'below'} market average`
-    };
+  confidenceScore
+}) => {
+  const getConfidenceLabel = (score: number) => {
+    if (score >= 85) return 'High Confidence';
+    if (score >= 70) return 'Good Confidence';
+    return 'Moderate Confidence';
   };
 
-  const comparison = getComparisonDisplay();
+  const getConfidenceDescription = (score: number) => {
+    if (score >= 85) return 'Excellent data quality with comprehensive market insights';
+    if (score >= 70) return 'Good data quality with solid market insights';
+    return 'Moderate data quality - consider additional verification';
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className={className}
-    >
-      <Card className="bg-gradient-to-br from-primary/5 via-background to-primary/10 border-2 border-primary/20 shadow-lg overflow-hidden">
-        <CardContent className="p-8">
-          <div className="text-center space-y-6">
-            {/* Header */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Target className="w-5 h-5 text-primary" />
-                <h2 className="text-lg font-semibold text-muted-foreground">
-                  Estimated Market Value
-                </h2>
-              </div>
-              <Badge 
-                variant={confidenceScore >= 70 ? "default" : "secondary"}
-                className="text-xs"
-              >
-                {confidenceScore}% Confidence
-              </Badge>
-            </motion.div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Estimated Market Value</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Main Value Display */}
+        <div className="text-center">
+          <p className="text-4xl font-bold text-primary mb-2">
+            {formatCurrency(estimatedValue)}
+          </p>
+          
+          {priceRange && (
+            <p className="text-muted-foreground">
+              Range: {formatCurrency(priceRange.min)} - {formatCurrency(priceRange.max)}
+            </p>
+          )}
+        </div>
 
-            {/* Main Value */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-              className="space-y-2"
-            >
-              <div className="flex items-center justify-center">
-                <DollarSign className="w-8 h-8 md:w-12 md:h-12 text-primary/80" />
-                <span className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/80 bg-clip-text text-transparent">
-                  {(displayValue || 0).toLocaleString()}
-                </span>
-              </div>
-              
-              {/* Price Range */}
-              {priceRange && (
-                  <motion.p 
-                    className="text-sm text-muted-foreground"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1 }}
-                  >
-                    Range: ${(priceRange.min || 0).toLocaleString()} - ${(priceRange.max || 0).toLocaleString()}
-                  </motion.p>
-              )}
-            </motion.div>
-
-            {/* Market Comparison */}
-            {comparison && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.2 }}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border ${comparison.bgColor}`}
-              >
-                <comparison.icon className={`w-4 h-4 ${comparison.color}`} />
-                <span className={`text-sm font-medium ${comparison.color}`}>
-                  {comparison.text}
-                </span>
-              </motion.div>
-            )}
-
-            {/* Market Average Reference */}
-            {marketComparison?.averagePrice && (
-               <motion.div
-                 initial={{ opacity: 0 }}
-                 animate={{ opacity: 1 }}
-                 transition={{ delay: 1.4 }}
-                 className="text-xs text-muted-foreground"
-               >
-                 Market average: ${(marketComparison.averagePrice || 0).toLocaleString()}
-               </motion.div>
-            )}
-
-            {/* Confidence Indicator */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.6 }}
-              className="flex justify-center"
-            >
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <div className={`w-2 h-2 rounded-full ${
-                  confidenceScore >= 80 ? 'bg-green-500' :
-                  confidenceScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                }`} />
-                <span>
-                  {confidenceScore >= 80 && 'High accuracy estimate'}
-                  {confidenceScore >= 60 && confidenceScore < 80 && 'Good accuracy estimate'}
-                  {confidenceScore < 60 && 'Limited data estimate'}
-                </span>
-              </div>
-            </motion.div>
+        {/* Confidence Meter */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium">{getConfidenceLabel(confidenceScore)}</span>
+            <span className="text-sm font-bold">{confidenceScore}%</span>
           </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+          
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className={`h-2 rounded-full transition-all duration-500 ${
+                confidenceScore >= 85 ? 'bg-green-500' : 
+                confidenceScore >= 70 ? 'bg-blue-500' : 
+                'bg-amber-500'
+              }`}
+              style={{ width: `${confidenceScore}%` }}
+            />
+          </div>
+          
+          <p className="text-xs text-muted-foreground">
+            {getConfidenceDescription(confidenceScore)}
+          </p>
+        </div>
+
+        {/* Market Indicators */}
+        <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+          <div className="text-center">
+            <TrendingUp className="h-5 w-5 text-green-500 mx-auto mb-1" />
+            <p className="text-xs text-muted-foreground">Strong Market</p>
+          </div>
+          <div className="text-center">
+            <Minus className="h-5 w-5 text-gray-400 mx-auto mb-1" />
+            <p className="text-xs text-muted-foreground">Stable Demand</p>
+          </div>
+          <div className="text-center">
+            <TrendingUp className="h-5 w-5 text-blue-500 mx-auto mb-1" />
+            <p className="text-xs text-muted-foreground">Good Liquidity</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
-}
+};
