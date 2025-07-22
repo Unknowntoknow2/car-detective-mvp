@@ -1,11 +1,15 @@
-
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { ValuationProvider, useValuationContext } from '@/contexts/ValuationContext';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 import { RerunValuationButton } from '@/components/valuation/RerunValuationButton';
 import { useMarketListings } from '@/hooks/useMarketListings';
-import type { UnifiedValuationResult as ValuationResultType } from '@/types/valuation';
+import type { 
+  UnifiedValuationResult as ValuationResultType, 
+  LegacyValuationResult, 
+  MarketListing as ValuationMarketListing,
+  ValuationAdjustment
+} from '@/types/valuation';
 import { toast } from 'sonner';
 
 export default function ResultsPage() {
@@ -42,20 +46,63 @@ function ResultsContent() {
   useEffect(() => {
     console.log('ValuationContext data received:', valuationData);
     
-    // Check for missing critical data
-    if (valuationData && !valuationData.estimated_value) {
-      console.error('Missing estimated_value in valuation data:', valuationData);
+    // Check for missing critical value data
+    if (valuationData && !hasValueData(valuationData)) {
+      console.error('Missing value data in valuation result:', valuationData);
     }
   }, [valuationData]);
+
+  // Type guard function to check for any valid value property
+  function hasValueData(data: any): boolean {
+    return !!(
+      data.finalValue || 
+      data.baseValue || 
+      data.estimatedValue || 
+      data.estimated_value ||
+      (typeof data === 'object' && data !== null && 
+        ((data.vehicle && typeof data.vehicle === 'object') || 
+         'make' in data || 
+         'model' in data)
+      )
+    );
+  }
   
   // Extract data from the valuation response with strict validation
-  const vehicleData = valuationData || {};
-  const actualMileage = parseInt(String(vehicleData?.mileage || '0'), 10);
-  const actualEstimatedValue = parseInt(String(vehicleData?.estimated_value || '0'), 10);
-  const actualYear = parseInt(String(vehicleData?.year || '2018'), 10);
-  const actualMake = String(vehicleData?.make || 'TOYOTA').toUpperCase();
-  const actualModel = String(vehicleData?.model || 'Camry');
-  const actualZipCode = String(vehicleData?.zip_code || '95821');
+  const vehicleData: Record<string, any> = valuationData || {};
+  
+  // Handle different data formats - the API might return nested vehicle data or flat data
+  const actualMileage = parseInt(String(
+    vehicleData.mileage || 
+    (vehicleData.vehicle && vehicleData.vehicle.mileage) || 
+    '0'), 10);
+    
+  const actualEstimatedValue = parseInt(String(
+    vehicleData.estimated_value || 
+    vehicleData.estimatedValue || 
+    vehicleData.finalValue || 
+    vehicleData.baseValue || 
+    '0'), 10);
+    
+  const actualYear = parseInt(String(
+    vehicleData.year || 
+    (vehicleData.vehicle && vehicleData.vehicle.year) || 
+    '2018'), 10);
+    
+  const actualMake = String(
+    vehicleData.make || 
+    (vehicleData.vehicle && vehicleData.vehicle.make) || 
+    'TOYOTA').toUpperCase();
+    
+  const actualModel = String(
+    vehicleData.model || 
+    (vehicleData.vehicle && vehicleData.vehicle.model) || 
+    'Camry');
+    
+  const actualZipCode = String(
+    vehicleData.zip_code || 
+    vehicleData.zip || 
+    vehicleData.zipCode || 
+    '95821');
   
   // Log the processed data
   useEffect(() => {
@@ -141,25 +188,59 @@ function ResultsContent() {
     console.error('Invalid estimated value detected:', actualEstimatedValue);
   }
   
-  // Ensure we have a valid ID
-  const resultId = vehicleData.id || urlId || crypto.randomUUID();
+  // Get ID safely
+  const resultId = String(
+    vehicleData.id || 
+    vehicleData.request_id || 
+    urlId || 
+    crypto.randomUUID()
+  );
+  
+  // Safely get trim value
+  const vehicleTrim = String(
+    vehicleData.trim || 
+    (vehicleData.vehicle && vehicleData.vehicle.trim) || 
+    'Standard'
+  );
+  
+  // Safely get fuel type
+  const vehicleFuelType = String(
+    vehicleData.fuel_type || 
+    vehicleData.fuelType || 
+    (vehicleData.vehicle && vehicleData.vehicle.fuelType) || 
+    'gasoline'
+  );
+  
+  // Safely get confidence score
+  const confidenceScore = Number(
+    vehicleData.confidence_score || 
+    vehicleData.confidenceScore || 
+    (marketListings.length > 3 ? 85 : 70)
+  );
+  
+  // Safely process adjustments
+  const adjustments: ValuationAdjustment[] = (vehicleData.adjustments || []).map((adj: any) => ({
+    label: adj.factor || adj.label || 'Market Adjustment',
+    amount: adj.impact || adj.amount || 0,
+    reason: adj.description || adj.reason || 'Market-based value adjustment'
+  }));
   
   // Create result using ACTUAL database values
   const result: ValuationResultType = {
     id: resultId,
-    vin: vehicleData.vin || urlId || '',
+    vin: String(vehicleData.vin || urlId || ''),
     vehicle: {
       year: actualYear,
       make: actualMake,
       model: actualModel,
-      trim: vehicleData.trim || 'Standard',
-      fuelType: vehicleData.fuel_type || 'gasoline'
+      trim: vehicleTrim,
+      fuelType: vehicleFuelType
     },
     zip: actualZipCode,
     mileage: actualMileage, // Use ACTUAL mileage from database
     baseValue: actualEstimatedValue,
     finalValue: actualEstimatedValue, // Use ACTUAL estimated value
-    confidenceScore: vehicleData.confidence_score || (marketListings.length > 3 ? 85 : 70),
+    confidenceScore: confidenceScore,
     sources: ['database_valuation', 'market_analysis'],
     listings: marketListings.map(listing => ({
       id: listing.id,
@@ -178,11 +259,7 @@ function ResultsContent() {
       min: Math.min(...marketListings.map(l => l.price)),
       max: Math.max(...marketListings.map(l => l.price))
     } : undefined,
-    adjustments: vehicleData.adjustments?.map((adj: any) => ({
-      label: adj.factor || 'Market Adjustment',
-      amount: adj.impact || 0,
-      reason: adj.description || 'Market-based value adjustment'
-    })) || [],
+    adjustments: adjustments,
     notes: [
       `Market search strategy: ${searchStrategy}`,
       `Found ${marketListings.length} comparable listings`,
