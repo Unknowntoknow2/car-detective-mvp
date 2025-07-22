@@ -1,405 +1,272 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { ArrowLeft, Download, Share2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { ValuationSummary } from '@/components/valuation/result/ValuationSummary';
-import { MarketDataStatus } from '@/components/valuation/result/MarketDataStatus';
 import { ValuationTransparency } from '@/components/valuation/result/ValuationTransparency';
+import { MarketDataStatus } from '@/components/valuation/result/MarketDataStatus';
 import { GoogleStyleListings } from '@/components/market/GoogleStyleListings';
-import { EnhancedValuationEngine } from '@/services/enhancedValuationEngine';
-import { calculateUnifiedConfidence } from '@/utils/valuation/calculateUnifiedConfidence';
+import { calculateEnhancedValuation, EnhancedValuationResult } from '@/services/enhancedValuationEngine';
+import { generateValuationPdf } from '@/utils/generateValuationPdf';
+import { FallbackMethodDisclosure } from '@/components/valuation/result/FallbackMethodDisclosure';
 
-interface ValuationData {
-  id: string;
-  vin: string;
-  year: number;
-  make: string;
-  model: string;
-  mileage: number;
-  estimated_value: number;
-  confidence_score: number;
-  data_sources: string[];
-  zip_code: string;
-}
-
-interface MarketListing {
-  id: string;
-  price: number;
-  mileage?: number;
-  location?: string;
-  source: string;
-  source_type: string;
-  listing_url?: string;
-  dealer_name?: string;
-  year?: number;
-  make?: string;
-  model?: string;
-  trim?: string;
-  condition?: string;
-  is_cpo?: boolean;
-  days_on_market?: number;
-  dealer_rating?: number;
-  exterior_color?: string;
-  interior_color?: string;
-  fuel_economy_city?: number;
-  fuel_economy_highway?: number;
-  drivetrain?: string;
-  transmission_type?: string;
-  engine_description?: string;
-  photos?: string[];
-  features?: string[];
-  stock_number?: string;
-  created_at?: string;
-  updated_at?: string;
-  confidence_score?: number;
-  fetched_at?: string;
-}
-
-interface FollowUpData {
-  year: number;
-  make: string;
-  model: string;
-  mileage: number;
-  condition: string;
-  zip_code: string;
-}
-
-const ResultsPage = () => {
-  const { id } = useParams();
+export default function ResultsPage() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [valuationData, setValuationData] = useState<ValuationData | null>(null);
-  const [marketListings, setMarketListings] = useState<MarketListing[]>([]);
-  const [followUpData, setFollowUpData] = useState<FollowUpData | null>(null);
+  
+  const [valuation, setValuation] = useState<any>(null);
+  const [enhancedResult, setEnhancedResult] = useState<EnhancedValuationResult | null>(null);
   const [loading, setLoading] = useState(true);
-  const [confidenceScore, setConfidenceScore] = useState(0);
-  const [confidenceExplanation, setConfidenceExplanation] = useState('');
-  const [enhancedValuation, setEnhancedValuation] = useState<any>(null);
-  const [showAllListings, setShowAllListings] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) {
-      fetchData();
+    if (!id) {
+      setError('No valuation ID provided');
+      setLoading(false);
+      return;
     }
-  }, [id, navigate]);
+    fetchValuation();
+  }, [id]);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchValuation = async () => {
     try {
-      let valuation;
+      console.log('🔍 Fetching valuation with ID:', id);
       
-      // Check if id is a UUID or VIN
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id || '');
-      
-      if (isUUID) {
-        // Fetch by UUID
-        const { data, error } = await supabase
-          .from('valuations')
-          .select('*')
-          .eq('id', id)
-          .single();
-        
-        if (error) throw error;
-        valuation = data;
-      } else {
-        // Fetch by VIN (most recent valuation for this VIN)
-        const { data, error } = await supabase
-          .from('valuations')
-          .select('*')
-          .eq('vin', id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-        
-        if (error) throw error;
-        valuation = data;
-      }
+      // Fetch the original valuation
+      const { data: valuationData, error: valuationError } = await supabase
+        .from('valuations')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-      if (!valuation) {
-        navigate('/');
+      if (valuationError) {
+        console.error('❌ Error fetching valuation:', valuationError);
+        setError('Valuation not found');
         return;
       }
 
-      setValuationData(valuation);
+      console.log('✅ Valuation found:', valuationData);
+      setValuation(valuationData);
 
-      // Fetch market listings for this valuation using enhanced engine
-      const valuationEngine = new EnhancedValuationEngine();
-      
-      // Get comprehensive market listings
-      const allMarketListings = await valuationEngine.getMarketListings({
-        year: valuation.year,
-        make: valuation.make, 
-        model: valuation.model,
-        mileage: valuation.mileage || 50000,
-        condition: 'good',
-        zip_code: valuation.zip_code || '75201'
-      });
-
-      // Simple mapping to avoid interface conflicts
-      const typedListings: MarketListing[] = (allMarketListings || []).map(listing => ({
-        id: listing.id,
-        price: listing.price,
-        mileage: listing.mileage,
-        source: listing.source,
-        source_type: 'dealer', // Simplified
-        year: listing.year,
-        make: listing.make,
-        model: listing.model
-      }));
-      
-      setMarketListings(typedListings);
-
-      // Perform enhanced valuation
-      let enhancedResult = null;
-      try {
-        enhancedResult = await valuationEngine.performValuation({
-          vin: valuation.vin,
-          year: valuation.year,
-          make: valuation.make,
-          model: valuation.model,
-          mileage: valuation.mileage || 50000,
-          condition: 'good',
-          zip_code: valuation.zip_code || '75201'
-        });
-        
-        setEnhancedValuation(enhancedResult);
-        setConfidenceScore(enhancedResult.confidenceScore);
-        setConfidenceExplanation(enhancedResult.methodology);
-        
-        console.log('🚀 Enhanced Valuation Result:', enhancedResult);
-      } catch (error) {
-        console.error('Enhanced valuation failed:', error);
-      }
-
-      // Fetch follow-up data
-      const { data: followUp, error: followUpError } = await supabase
-        .from('follow_up_data')
-        .select('*')
-        .eq('valuation_id', valuation.id)
-        .single();
-
-      if (followUpError && followUpError.message.indexOf('No rows found') === -1) {
-        console.error('Error fetching follow-up data:', followUpError);
-      } else if (followUp) {
-        setFollowUpData(followUp);
-      }
-
-      // Calculate HONEST confidence score using market listings count
-      const confidenceContext = {
-        exactVinMatch: valuation.vin ? true : false,
-        marketListings: [], // Use empty array for now to avoid interface conflicts
-        sources: valuation.data_sources || [],
-        trustScore: 0.7,
-        mileagePenalty: 0.02,
-        zipCode: valuation.zip_code || followUp?.zip_code || ''
+      // Run enhanced valuation calculation
+      const enhancedInput = {
+        make: valuationData.make,
+        model: valuationData.model,
+        year: valuationData.year,
+        mileage: valuationData.mileage,
+        zipCode: valuationData.state, // Using state as zipCode for now
+        vin: valuationData.vin,
+        condition: 'good' // Default condition
       };
 
-      const confidenceResult = calculateUnifiedConfidence(confidenceContext);
+      console.log('🚀 Running enhanced valuation with input:', enhancedInput);
+      const enhancedResults = await calculateEnhancedValuation(enhancedInput);
+      console.log('✅ Enhanced valuation complete:', enhancedResults);
       
-      console.log('🎯 Confidence Calculation Result:', {
-        inputListings: allMarketListings?.length || 0,
-        calculatedScore: confidenceResult.confidenceScore,
-        storedScore: valuation.confidence_score,
-        reasoning: confidenceResult.reasoning
-      });
-
-      // Use the HONEST calculated confidence, not the stored one (if not enhanced)
-      if (!enhancedResult) {
-        setConfidenceScore(confidenceResult.confidenceScore);
-        setConfidenceExplanation(confidenceResult.reasoning);
-      }
-
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      navigate('/');
+      setEnhancedResult(enhancedResults);
+      
+    } catch (err) {
+      console.error('❌ Error in fetchValuation:', err);
+      setError('Failed to load valuation');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoBack = () => {
-    navigate(-1);
+  const handleDownloadPdf = async () => {
+    if (!valuation || !enhancedResult) return;
+    
+    try {
+      await generateValuationPdf({
+        id: valuation.id,
+        vehicleInfo: {
+          year: valuation.year,
+          make: valuation.make,
+          model: valuation.model,
+          vin: valuation.vin,
+          mileage: valuation.mileage
+        },
+        estimatedValue: enhancedResult.estimatedValue,
+        confidenceScore: enhancedResult.confidenceScore,
+        marketListings: enhancedResult.marketListings,
+        explanation: enhancedResult.explanation,
+        isFallbackMethod: enhancedResult.isFallbackMethod
+      });
+      toast.success('PDF downloaded successfully');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Failed to generate PDF');
+    }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading valuation report...</p>
+      <div className="container mx-auto py-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
         </div>
       </div>
     );
   }
 
-  if (!valuationData) {
+  if (error || !valuation || !enhancedResult) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Valuation not found</h1>
-          <Button onClick={() => navigate('/')}>Return Home</Button>
-        </div>
+      <div className="container mx-auto py-8 text-center">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">
+          {error || 'Valuation not found'}
+        </h1>
+        <Button onClick={() => navigate('/')} variant="outline">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Home
+        </Button>
       </div>
     );
   }
 
   const vehicleInfo = {
-    year: followUpData?.year || valuationData.year || 0,
-    make: followUpData?.make || valuationData.make || 'Unknown',
-    model: followUpData?.model || valuationData.model || 'Unknown',
-    mileage: followUpData?.mileage || valuationData.mileage || 0,
-    condition: followUpData?.condition || 'Good'
+    year: valuation.year,
+    make: valuation.make,
+    model: valuation.model,
+    mileage: valuation.mileage,
+    condition: 'good' // Default for now
   };
 
-  // HONEST market data assessment
-  const realMarketListings = marketListings.filter(listing => 
-    listing.source_type !== 'estimated' && 
-    listing.source !== 'Market Estimate'
-  );
-
-  // Create HONEST adjustments or mark as synthetic
-  const valuationAdjustments = [
-    {
-      factor: "Mileage Adjustment",
-      amount: -2500,
-      description: `${vehicleInfo.mileage?.toLocaleString() || 0} miles vs. average for age`
-    },
-    {
-      factor: "Condition Factor", 
-      amount: 500,
-      description: `"${vehicleInfo.condition}" condition assessment`
-    },
-    {
-      factor: "Regional Market",
-      amount: 300,
-      description: `ZIP ${valuationData.zip_code || followUpData?.zip_code || 'code not available'} market demand factor`
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between max-w-6xl">
-          <Button variant="ghost" onClick={handleGoBack}>
-            ← Back
+    <div className="container mx-auto py-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <Button 
+          onClick={() => navigate('/')} 
+          variant="ghost" 
+          className="mb-4"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Search
+        </Button>
+        
+        <div className="flex gap-2">
+          <Button onClick={handleDownloadPdf} variant="outline">
+            <Download className="w-4 h-4 mr-2" />
+            Download PDF
           </Button>
-          <h1 className="text-xl font-semibold">Valuation Report</h1>
-          <div></div> {/* Placeholder for potential future content */}
+          <Button variant="outline">
+            <Share2 className="w-4 h-4 mr-2" />
+            Share
+          </Button>
         </div>
-      </header>
+      </div>
 
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
-            {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
-          </h2>
-          <p className="text-gray-600">
-            Review the detailed valuation report below.
-          </p>
+      {/* CRITICAL: Fallback Method Disclosure - Must be prominent */}
+      <FallbackMethodDisclosure
+        isFallbackMethod={enhancedResult.isFallbackMethod}
+        confidenceScore={enhancedResult.confidenceScore}
+        marketListingsCount={enhancedResult.marketListings.length}
+        estimatedValue={enhancedResult.estimatedValue}
+      />
+
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Main Results */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Valuation Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Vehicle Valuation</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ValuationSummary
+                estimatedValue={enhancedResult.estimatedValue}
+                confidenceScore={enhancedResult.confidenceScore}
+                vehicleInfo={vehicleInfo}
+                sources={enhancedResult.sources}
+                explanation={enhancedResult.explanation}
+                zipCode={enhancedResult.zipCode}
+                marketAnchors={{
+                  exactVinMatch: false,
+                  listingsCount: enhancedResult.marketListings.length,
+                  trustScore: enhancedResult.isFallbackMethod ? 0.3 : 0.8
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Market Data Status */}
+          <MarketDataStatus
+            marketListings={enhancedResult.marketListings}
+            vehicleInfo={vehicleInfo}
+            searchRadius={100}
+          />
+
+          {/* Market Listings Display - Only show if we have real data */}
+          {enhancedResult.marketListings.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Market Listings ({enhancedResult.marketListings.length})
+                  <Badge className="ml-2 text-xs">Live Data</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <GoogleStyleListings
+                  listings={enhancedResult.marketListings}
+                  searchQuery={`${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}`}
+                  estimatedValue={enhancedResult.estimatedValue}
+                />
+              </CardContent>
+            </Card>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <ValuationSummary
-              estimatedValue={enhancedValuation?.estimatedValue || valuationData.estimated_value}
-              confidenceScore={confidenceScore}
-              vehicleInfo={vehicleInfo}
-              marketAnchors={{
-                exactVinMatch: realMarketListings.length > 0,
-                listingsCount: realMarketListings.length,
-                trustScore: enhancedValuation?.dataQuality?.priceReliability || 0.7
-              }}
-              sources={valuationData.data_sources || []}
-              explanation={confidenceExplanation}
-              zipCode={valuationData.zip_code || followUpData?.zip_code}
-              priceRange={enhancedValuation?.priceRange}
-              marketIntelligence={enhancedValuation?.marketIntelligence}
-            />
+        {/* Right Column - Transparency & Details */}
+        <div className="space-y-6">
+          {/* Valuation Transparency */}
+          <ValuationTransparency
+            marketListingsCount={enhancedResult.marketListings.length}
+            confidenceScore={enhancedResult.confidenceScore}
+            basePriceAnchor={enhancedResult.basePriceAnchor}
+            adjustments={enhancedResult.adjustments}
+            estimatedValue={enhancedResult.estimatedValue}
+            sources={enhancedResult.sources}
+            isFallbackMethod={enhancedResult.isFallbackMethod}
+            zipCode={enhancedResult.zipCode}
+            vin={enhancedResult.vin}
+          />
 
-            <MarketDataStatus
-              marketListings={realMarketListings}
-              vehicleInfo={{
-                year: vehicleInfo.year,
-                make: vehicleInfo.make,
-                model: vehicleInfo.model,
-                zipCode: valuationData.zip_code || followUpData?.zip_code
-              }}
-            />
-
-            <ValuationTransparency
-              marketListingsCount={realMarketListings.length}
-              confidenceScore={confidenceScore}
-              basePriceAnchor={{
-                source: enhancedValuation ? "Enhanced Market Analysis" : "Standard Model",
-                amount: enhancedValuation?.estimatedValue || valuationData.estimated_value,
-                method: enhancedValuation?.methodology || "Standard valuation methodology"
-              }}
-              adjustments={enhancedValuation?.adjustments || valuationAdjustments}
-              estimatedValue={enhancedValuation?.estimatedValue || valuationData.estimated_value}
-              sources={valuationData.data_sources || []}
-              isFallbackMethod={!enhancedValuation || realMarketListings.length === 0}
-              zipCode={valuationData.zip_code || followUpData?.zip_code}
-              vin={valuationData.vin}
-            />
-
-            {/* Google-Style Market Listings */}
-            <GoogleStyleListings
-              listings={marketListings}
-              vehicleInfo={{
-                year: vehicleInfo.year,
-                make: vehicleInfo.make,
-                model: vehicleInfo.model,
-                zipCode: valuationData.zip_code || followUpData?.zip_code
-              }}
-              onListingClick={(listing) => {
-                console.log('Listing clicked:', listing);
-                // Could open modal with more details
-              }}
-            />
-          </div>
-
-          <div className="space-y-6">
-            <div className="rounded-md bg-white shadow-md p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Refine Your Valuation
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Provide more details to improve valuation accuracy.
-              </p>
-              <Button variant="secondary" className="mt-4 w-full">
-                Edit Vehicle Details
-              </Button>
-            </div>
-
-            <div className="rounded-md bg-white shadow-md p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Market Intelligence
-              </h3>
-              {enhancedValuation?.marketIntelligence ? (
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Market Sample:</span>
-                    <span className="font-medium">{enhancedValuation.marketIntelligence.sampleSize} vehicles</span>
+          {/* Market Intelligence - Only show with real data */}
+          {enhancedResult.marketIntelligence.sampleSize > 0 && !enhancedResult.isFallbackMethod && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Market Intelligence</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Sample Size</p>
+                    <p className="font-medium">{enhancedResult.marketIntelligence.sampleSize}</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Inventory Level:</span>
-                    <span className="font-medium capitalize">{enhancedValuation.marketIntelligence.inventoryLevel}</span>
+                  <div>
+                    <p className="text-muted-foreground">Inventory Level</p>
+                    <p className="font-medium capitalize">{enhancedResult.marketIntelligence.inventoryLevel}</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Demand Score:</span>
-                    <span className="font-medium">{Math.round(enhancedValuation.marketIntelligence.demandIndicator * 100)}%</span>
+                  <div>
+                    <p className="text-muted-foreground">Market Median</p>
+                    <p className="font-medium">${enhancedResult.marketIntelligence.medianPrice.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Demand Score</p>
+                    <p className="font-medium">{Math.round(enhancedResult.marketIntelligence.demandIndicator * 100)}%</p>
                   </div>
                 </div>
-              ) : (
-                <p className="text-gray-600 text-sm">
-                  Enhanced market data will appear here with more vehicle details.
-                </p>
-              )}
-            </div>
-          </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
-      </main>
+      </div>
     </div>
   );
-};
-
-export default ResultsPage;
+}
