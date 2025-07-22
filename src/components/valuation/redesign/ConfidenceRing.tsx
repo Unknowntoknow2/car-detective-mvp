@@ -23,12 +23,23 @@ export const ConfidenceRing: React.FC<ConfidenceRingProps> = ({
   recommendations,
   onImproveClick
 }) => {
+  // Create a factors list with all required data
   const factorList = [
     { name: 'VIN Accuracy', score: factors.vinAccuracy, icon: CheckCircle },
     { name: 'Market Data', score: factors.marketData, icon: TrendingUp },
     { name: 'Fuel Economy', score: factors.fuelCostMatch, icon: CheckCircle },
     { name: 'MSRP Quality', score: factors.msrpQuality, icon: CheckCircle }
   ];
+
+  // Determine confidence level color and text
+  const getConfidenceColor = (score: number) => {
+    if (score >= 85) return 'text-green-500 bg-green-500';
+    if (score >= 70) return 'text-blue-500 bg-blue-500';
+    if (score >= 50) return 'text-amber-500 bg-amber-500';
+    return 'text-red-500 bg-red-500';
+  };
+
+  const confidenceColor = getConfidenceColor(score);
 
   return (
     <Card>
