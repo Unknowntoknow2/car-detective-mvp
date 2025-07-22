@@ -1,38 +1,21 @@
 
 import React from 'react';
+import { MarketListing } from '@/types/marketListing';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, ExternalLink, MapPin, Calendar } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 
-interface MarketListing {
-  id: string;
-  price: number;
-  mileage?: number;
-  location?: string;
-  source: string;
-  listing_url?: string;
-  dealer_name?: string;
-  year?: number;
-  make?: string;
-  model?: string;
-}
-
 interface MarketDataStatusProps {
   marketListings: MarketListing[];
-  vehicleInfo: {
-    year: number;
-    make: string;
-    model: string;
-    zipCode?: string;
-  };
-  searchRadius?: number;
+  confidenceScore: number;
+  zipCode?: string;
 }
 
 export const MarketDataStatus: React.FC<MarketDataStatusProps> = ({
   marketListings,
-  vehicleInfo,
-  searchRadius = 100
+  confidenceScore,
+  zipCode
 }) => {
   const hasListings = marketListings.length > 0;
   const avgPrice = hasListings ? marketListings.reduce((sum, l) => sum + l.price, 0) / marketListings.length : 0;
@@ -57,7 +40,7 @@ export const MarketDataStatus: React.FC<MarketDataStatusProps> = ({
                 0 Listings Found
               </Badge>
               <span className="text-sm text-amber-700">
-                No current market listings for {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
+                No current market listings found for this vehicle
               </span>
             </div>
             
@@ -66,7 +49,7 @@ export const MarketDataStatus: React.FC<MarketDataStatusProps> = ({
               <div className="space-y-1 text-xs text-amber-700">
                 <div className="flex items-center gap-1">
                   <MapPin className="w-3 h-3" />
-                  <span>Within {searchRadius} miles of {vehicleInfo.zipCode || 'your location'}</span>
+                  <span>Within 100 miles of {zipCode || 'your location'}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" />

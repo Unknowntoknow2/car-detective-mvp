@@ -30,6 +30,19 @@ export interface MarketListing {
   dealerName?: string;
   dealer_name?: string; // Database version
   
+  // Extended properties for Google-style listings
+  days_on_market?: number;
+  dealer_rating?: number;
+  exterior_color?: string;
+  interior_color?: string;
+  fuel_economy_city?: number;
+  fuel_economy_highway?: number;
+  drivetrain?: string;
+  transmission_type?: string;
+  engine_description?: string;
+  features?: string[];
+  stock_number?: string;
+  
   // Timestamps
   fetchedAt?: string;
   fetched_at?: string;  // Database version
