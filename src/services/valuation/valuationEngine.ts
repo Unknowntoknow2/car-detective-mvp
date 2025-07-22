@@ -4,6 +4,7 @@ import { calculateTitleAdjustment } from '@/utils/valuation/titleAdjustment';
 import { getMarketMultiplier } from '@/utils/valuation/marketData';
 import { MarketDataService } from './marketDataService';
 import { searchMarketListings } from '@/agents/marketSearchAgent';
+import { estimateMarketPrice } from '@/agents/marketPriceEstimator';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ValuationEngineInput {
@@ -58,7 +59,11 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
       zip: input.zipCode,
     });
 
-    // 2. Fetch traditional market data as fallback
+    // 2. Analyze market listings with price estimator
+    console.log('📊 Analyzing market listings...');
+    const marketEstimate = estimateMarketPrice(marketListings);
+    
+    // 3. Fetch traditional market data as fallback
     console.log('📊 Fetching traditional market data...');
     const marketData = await MarketDataService.fetchMarketData({
       make: input.decodedVehicle.make,
@@ -69,24 +74,25 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
       condition: input.condition
     });
 
-    // 3. Calculate base value from live listings or fallback to market data
+    // 4. Calculate base value from live listings or fallback to market data
     let baseValue = 0;
     let listingsSource = 'fallback';
+    let marketConfidence = 0;
     
-    if (marketListings.length > 0) {
-      // Calculate average from live listings
-      const validPrices = marketListings.filter(l => l.price > 0).map(l => l.price);
-      if (validPrices.length > 0) {
-        baseValue = Math.round(validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length);
-        listingsSource = 'live_listings';
-        console.log(`✅ ${validPrices.length} live listings found, average: $${baseValue}`);
-      }
+    if (marketEstimate.estimatedPrice && marketEstimate.usedListings.length > 0) {
+      // Use market estimator's robust price calculation
+      baseValue = marketEstimate.estimatedPrice;
+      marketConfidence = marketEstimate.confidence;
+      listingsSource = 'live_market_analysis';
+      console.log(`✅ ${marketEstimate.usedListings.length} valid listings analyzed`);
+      console.log(`📊 Market stats: Min: $${marketEstimate.min}, Max: $${marketEstimate.max}, Median: $${marketEstimate.median}, StdDev: $${marketEstimate.stdDev}`);
     }
     
     // Fallback to traditional market data
     if (baseValue === 0) {
       baseValue = marketData.averagePrice;
       listingsSource = 'market_data';
+      marketConfidence = marketData.confidenceScore;
     }
     
     // Final fallback estimation
@@ -96,9 +102,9 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
       listingsSource = 'estimation';
     }
 
-    console.log(`💰 Base value: $${baseValue} (source: ${listingsSource})`);
+    console.log(`💰 Base value: $${baseValue} (source: ${listingsSource}, confidence: ${marketConfidence}%)`);
 
-    // 3. Calculate adjustments
+    // 5. Calculate adjustments
     const mileagePenalty = calculateMileageAdjustment(input.mileage, input.decodedVehicle.year);
     const conditionDelta = calculateConditionAdjustment(input.condition, baseValue);
     const titlePenalty = calculateTitleAdjustment(input.titleStatus || 'clean', baseValue);
@@ -111,38 +117,40 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
       zipAdjustment
     });
 
-    // 4. Calculate final value
+    // 6. Calculate final value
     const zipMultiplier = 1 + (zipAdjustment / 100);
     const finalValue = Math.round(
       (baseValue + conditionDelta + titlePenalty + mileagePenalty) * zipMultiplier
     );
 
-    // 5. Calculate confidence score based on live listings
-    let confidenceScore = marketData.confidenceScore;
+    // 7. Calculate confidence score based on market analysis
+    let confidenceScore = marketConfidence || marketData.confidenceScore;
     
-    // Boost confidence significantly for live listings
-    if (marketListings.length === 0 && marketData.listings.length === 0) {
+    // Boost confidence significantly for live market analysis
+    if (marketEstimate.usedListings.length === 0 && marketData.listings.length === 0) {
       confidenceScore = 45; // Minimum for no data
-    } else if (marketListings.length >= 5) {
-      confidenceScore = Math.min(85, confidenceScore + 25); // Major boost for live data
-    } else if (marketListings.length > 0) {
-      confidenceScore = Math.min(75, confidenceScore + 15); // Good boost for some live data
+    } else if (marketEstimate.usedListings.length >= 5) {
+      confidenceScore = Math.min(95, marketEstimate.confidence + 10); // Major boost for robust live data
+    } else if (marketEstimate.usedListings.length > 0) {
+      confidenceScore = Math.min(85, marketEstimate.confidence); // Good boost for some live data
     } else if (marketData.listings.length >= 5) {
       confidenceScore = Math.min(confidenceScore + 10, 70); // Moderate boost for traditional data
     }
 
-    // 6. Calculate price range
+    // 8. Calculate price range
     const priceRange: [number, number] = [
       Math.round(finalValue * 0.9),
       Math.round(finalValue * 1.1)
     ];
 
-    // 7. Create adjustments array
+    // 9. Create adjustments array
     const adjustments = [
       {
         factor: 'Market Base Value',
         impact: baseValue,
-        description: `Base market value from ${marketListings.length > 0 ? marketListings.length + ' live' : marketData.listings.length + ' traditional'} listings`
+        description: marketEstimate.usedListings.length > 0 
+          ? `Market analysis from ${marketEstimate.usedListings.length} live listings (confidence: ${marketEstimate.confidence}%)`
+          : `Base market value from ${marketData.listings.length > 0 ? marketData.listings.length + ' traditional' : 'estimated'} listings`
       },
       {
         factor: 'Mileage Adjustment',
@@ -166,13 +174,13 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
       }
     ];
 
-    // 8. Generate AI explanation
-    const aiExplanation = generateAIExplanation(input, marketData, finalValue, confidenceScore);
+    // 10. Generate AI explanation with market insights
+    const aiExplanation = generateAIExplanation(input, marketData, finalValue, confidenceScore, marketEstimate);
 
-    // 9. Transform listings to expected format (prioritize live listings)
-    const transformedListings = marketListings.length > 0
-      ? marketListings.map((listing, index) => ({
-          id: `live_${index}`,
+    // 11. Transform listings to expected format (prioritize market analysis results)
+    const transformedListings = marketEstimate.usedListings.length > 0
+      ? marketEstimate.usedListings.map((listing, index) => ({
+          id: `market_${index}`,
           price: listing.price,
           mileage: listing.mileage,
           location: listing.location || listing.zip,
@@ -181,7 +189,7 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
           dealer: listing.source,
           condition: listing.condition,
           is_cpo: false,
-          confidence_score: 85, // High confidence for live data
+          confidence_score: marketEstimate.confidence, // Use market analysis confidence
           fetched_at: new Date().toISOString()
         }))
       : marketData.listings.map(listing => ({
@@ -199,6 +207,9 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
         }));
 
     console.log(`✅ Valuation complete: $${finalValue} (confidence: ${confidenceScore}%)`);
+    if (marketEstimate.usedListings.length > 0) {
+      console.log(`📊 Market analysis: ${marketEstimate.usedListings.length} listings, price range: $${marketEstimate.min}-$${marketEstimate.max}`);
+    }
 
     return {
       finalValue,
@@ -278,18 +289,20 @@ function generateAIExplanation(
   input: ValuationEngineInput,
   marketData: any,
   finalValue: number,
-  confidenceScore: number
+  confidenceScore: number,
+  marketEstimate?: any
 ): string {
   const vehicleDescription = `${input.decodedVehicle.year} ${input.decodedVehicle.make} ${input.decodedVehicle.model}`;
   
   let explanation = `Your ${vehicleDescription} has an estimated market value of $${finalValue.toLocaleString()}. `;
   
-  // Check if we have live listings data in the global scope
-  const hasLiveListings = typeof window !== 'undefined' && (window as any).currentMarketListings?.length > 0;
-  
-  if (hasLiveListings) {
-    const liveCount = (window as any).currentMarketListings.length;
-    explanation += `✅ This valuation is based on ${liveCount} live listings found through real-time market search. `;
+  // Check for live market analysis
+  if (marketEstimate?.usedListings?.length > 0) {
+    const { usedListings, median, confidence, min, max } = marketEstimate;
+    explanation += `✅ This valuation is based on real-time analysis of ${usedListings.length} live market listings `;
+    explanation += `with prices ranging from $${min?.toLocaleString()} to $${max?.toLocaleString()}. `;
+    explanation += `The market median price is $${median?.toLocaleString()}. `;
+    explanation += `Our analysis confidence is ${confidence}% based on listing quality and price consistency. `;
   } else if (marketData.listings.length > 0) {
     explanation += `This valuation is based on ${marketData.listings.length} similar vehicles from our database, `;
     explanation += `with an average price of $${marketData.averagePrice.toLocaleString()}. `;
