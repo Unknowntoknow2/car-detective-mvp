@@ -10,8 +10,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { formatCurrency } from '@/utils/formatters';
 import { ValuationSummary } from '@/components/valuation/result/ValuationSummary';
 import VehicleDetailsCard from '@/components/result/VehicleDetailsCard';
-import { fetchMarketData } from '@/services/valuation/marketDataService';
-import { generateUnifiedConfidence } from '@/utils/unifiedConfidenceCalculator';
+import { MarketDataService } from '@/services/valuation/marketDataService';
+import { calculateUnifiedConfidence, generateConfidenceExplanation } from '@/utils/unifiedConfidenceCalculator';
 
 interface ValuationData {
   id: string;
@@ -130,7 +130,7 @@ export default function ResultsPage() {
 
         // Fetch market data for confidence calculation and display
         try {
-          const marketData = await fetchMarketData({
+          const marketData = await MarketDataService.fetchMarketData({
             make: valuationById.make,
             model: valuationById.model,
             year: valuationById.year,
@@ -182,17 +182,29 @@ export default function ResultsPage() {
 
   // Calculate unified confidence score
   const confidenceInput = {
+    vin: valuationData.vin,
+    make: valuationData.make,
+    model: valuationData.model,
+    year: valuationData.year,
+    mileage: followUpData?.mileage || valuationData.mileage,
     exactVinMatch: !!valuationData.vin,
+    marketListingsCount: marketListings.length,
     marketListings: marketListings,
     sources: ['database_valuation'],
-    trustScore: 0.8,
-    mileagePenalty: 0.02,
     zipCode: valuationData.state || ''
   };
 
-  const confidenceResult = generateUnifiedConfidence(
-    valuationData.confidence_score || 45,
-    confidenceInput
+  const confidenceBreakdown = calculateUnifiedConfidence(confidenceInput);
+  const confidenceExplanation = generateConfidenceExplanation(
+    confidenceBreakdown.overall,
+    {
+      exactVinMatch: !!valuationData.vin,
+      marketListings: marketListings,
+      sources: ['database_valuation'],
+      trustScore: 0.8,
+      mileagePenalty: 0.02,
+      zipCode: valuationData.state || ''
+    }
   );
 
   // Prepare vehicle info for display
@@ -214,7 +226,7 @@ export default function ResultsPage() {
   const marketAnchors = {
     exactVinMatch: !!valuationData.vin,
     listingsCount: marketListings.length,
-    trustScore: confidenceInput.trustScore
+    trustScore: 0.8
   };
 
   return (
@@ -238,11 +250,11 @@ export default function ResultsPage() {
         <CardContent>
           <ValuationSummary
             estimatedValue={valuationData.estimated_value}
-            confidenceScore={confidenceResult.score}
+            confidenceScore={confidenceBreakdown.overall}
             vehicleInfo={vehicleInfo}
             marketAnchors={marketAnchors}
             sources={confidenceInput.sources}
-            explanation={confidenceResult.explanation}
+            explanation={confidenceExplanation}
           />
         </CardContent>
       </Card>
@@ -329,7 +341,7 @@ export default function ResultsPage() {
             <p>• Market analysis from {marketListings.length} similar vehicle listings</p>
             <p>• Condition assessment from user-provided information</p>
             <p>• Regional market adjustments for {vehicleInfo.zipCode}</p>
-            <p>• Confidence score: {confidenceResult.score}% based on data quality and completeness</p>
+            <p>• Confidence score: {confidenceBreakdown.overall}% based on data quality and completeness</p>
           </div>
         </CardContent>
       </Card>
