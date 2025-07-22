@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UnifiedLookupTabs } from '@/components/lookup/UnifiedLookupTabs';
 import { ValuationEngineTestComponent } from '@/components/test/ValuationEngineTestComponent';
 import { OpenAIMarketSearchTestComponent } from '@/components/test/OpenAIMarketSearchTestComponent';
+import { ListingAnchoringValidationComponent } from '@/components/test/ListingAnchoringValidationComponent';
 import { MarketSearchTest } from '@/components/debug/MarketSearchTest';
 
 
@@ -27,12 +28,25 @@ export default function ValuationPage() {
         </CardContent>
       </Card>
 
+      {/* Listing Anchoring Validation Test */}
+      <Card className="border-dashed border-2 border-green-300 bg-green-50">
+        <CardHeader>
+          <CardTitle className="text-green-700">🎯 Listing Anchoring + Confidence Logic Validation (Prompt 2.3)</CardTitle>
+          <p className="text-green-600 text-sm">
+            SECOND: Validate that the valuation engine correctly uses real listings for price anchoring and confidence scoring.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <ListingAnchoringValidationComponent />
+        </CardContent>
+      </Card>
+
       {/* Market Search Debug Test */}
       <Card className="border-dashed border-2 border-red-300 bg-red-50">
         <CardHeader>
           <CardTitle className="text-red-700">🧪 Market Search Debug</CardTitle>
           <p className="text-red-600 text-sm">
-            SECOND: If OpenAI validation passes, test the full market search flow.
+            THIRD: If listing anchoring validation passes, test the full market search flow.
           </p>
         </CardHeader>
         <CardContent>
