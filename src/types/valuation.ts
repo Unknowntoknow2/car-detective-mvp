@@ -314,21 +314,39 @@ export interface ValuationAdjustment {
   reason: string;
 }
 
+import { MarketListing } from '@/types/marketListing';
+
 // Enhanced valuation result interface
 export interface EnhancedValuationResult {
-  estimated_value: number;
-  base_value_source: string;
+  estimatedValue: number;
+  estimated_value?: number;
+  base_value_source?: string;
   price_range_low?: number;
   price_range_high?: number;
   depreciation?: number;
   mileage_adjustment?: number;
-  value_breakdown: ValueBreakdown;
-  confidence_score: number;
-  valuation_explanation: string;
+  value_breakdown?: ValueBreakdown;
+  confidenceScore: number;
+  confidence_score?: number;
+  valuation_explanation?: string;
   audit_id?: string;
-  sources?: string[]; // Array of data sources used (e.g., 'exact_vin_match')
-  exactVinMatch?: MarketListing; // Exact VIN match listing if found
-  explanation?: string; // 🎯 REQUIREMENT 3: AI-generated confidence explanation
+  sources?: string[];
+  exactVinMatch?: MarketListing;
+  explanation?: string;
+  zipCode?: string;
+  vin?: string;
+  basePriceAnchor?: number;
+  isFallbackMethod?: boolean;
+  marketListings: MarketListing[];
+  market_listings?: MarketListing[];
+  marketIntelligence?: {
+    medianPrice: number;
+    priceRange: [number, number];
+    confidence: number;
+    outlierCount: number;
+    adjustedPrice: number;
+    sources: string[];
+  };
 }
 
 // Value breakdown for transparency

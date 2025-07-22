@@ -11,7 +11,8 @@ import { ValuationSummary } from '@/components/valuation/result/ValuationSummary
 import { ValuationTransparency } from '@/components/valuation/result/ValuationTransparency';
 import { MarketDataStatus } from '@/components/valuation/result/MarketDataStatus';
 import { GoogleStyleListings } from '@/components/market/GoogleStyleListings';
-import { calculateEnhancedValuation, EnhancedValuationResult } from '@/services/enhancedValuationEngine';
+import { calculateEnhancedValuation } from '@/services/enhancedValuationEngine';
+import { EnhancedValuationResult } from '@/types/valuation';
 import { FallbackMethodDisclosure } from '@/components/valuation/result/FallbackMethodDisclosure';
 
 export default function ResultsPage() {
@@ -149,9 +150,9 @@ export default function ResultsPage() {
 
       {/* CRITICAL: Fallback Method Disclosure - Must be prominent */}
       <FallbackMethodDisclosure
-        isFallbackMethod={enhancedResult.isFallbackMethod}
+        isFallbackMethod={enhancedResult.isFallbackMethod || false}
         confidenceScore={enhancedResult.confidenceScore}
-        marketListingsCount={enhancedResult.marketListings.length}
+        marketListingsCount={enhancedResult.marketListings?.length || 0}
         estimatedValue={enhancedResult.estimatedValue}
       />
 
@@ -169,13 +170,13 @@ export default function ResultsPage() {
                 estimatedValue={enhancedResult.estimatedValue}
                 confidenceScore={enhancedResult.confidenceScore}
                 vehicleInfo={vehicleInfo}
-                sources={enhancedResult.sources}
+                sources={enhancedResult.sources || []}
                 explanation={enhancedResult.explanation}
-                zipCode={enhancedResult.zipCode}
+                zipCode={enhancedResult.zipCode || valuation.state}
                 marketAnchors={{
                   exactVinMatch: false,
-                  listingsCount: enhancedResult.marketListings.length,
-                  trustScore: enhancedResult.isFallbackMethod ? 0.3 : 0.8
+                  listingsCount: enhancedResult.marketListings?.length || 0,
+                  trustScore: (enhancedResult.isFallbackMethod || false) ? 0.3 : 0.8
                 }}
               />
             </CardContent>
@@ -189,7 +190,7 @@ export default function ResultsPage() {
           />
 
           {/* Market Listings Display - Only show if we have real data */}
-          {enhancedResult.marketListings.length > 0 && (
+          {enhancedResult.marketListings && enhancedResult.marketListings.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>
@@ -204,7 +205,7 @@ export default function ResultsPage() {
                     year: vehicleInfo.year,
                     make: vehicleInfo.make,
                     model: vehicleInfo.model,
-                    zipCode: enhancedResult.zipCode
+                    zipCode: enhancedResult.zipCode || valuation.state
                   }}
                 />
               </CardContent>
@@ -216,68 +217,37 @@ export default function ResultsPage() {
         <div className="space-y-6">
           {/* Valuation Transparency */}
           <ValuationTransparency
-            marketListingsCount={enhancedResult.marketListings.length}
+            marketListingsCount={enhancedResult.marketListings?.length || 0}
             confidenceScore={enhancedResult.confidenceScore}
-            basePriceAnchor={enhancedResult.basePriceAnchor}
-            adjustments={enhancedResult.adjustments}
+            basePriceAnchor={enhancedResult.basePriceAnchor || 0}
+            adjustments={[]}
             estimatedValue={enhancedResult.estimatedValue}
-            sources={enhancedResult.sources}
-            isFallbackMethod={enhancedResult.isFallbackMethod}
-            zipCode={enhancedResult.zipCode}
-            vin={enhancedResult.vin}
+            sources={enhancedResult.sources || []}
+            isFallbackMethod={enhancedResult.isFallbackMethod || false}
+            zipCode={enhancedResult.zipCode || valuation.state}
+            vin={enhancedResult.vin || valuation.vin}
           />
 
           {/* Market Intelligence - Only show with real data */}
-          {enhancedResult.marketIntelligence.sampleSize > 0 && !enhancedResult.isFallbackMethod && (
+          {enhancedResult.marketIntelligence && enhancedResult.marketIntelligence.medianPrice > 0 && !(enhancedResult.isFallbackMethod || false) && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Market Intelligence</CardTitle>
-                {enhancedResult.marketIntelligence.debugInfo && (
-                  <Badge variant="outline" className="text-xs">
-                    Debug: {enhancedResult.marketIntelligence.debugInfo.afterTrimFilter} filtered
-                    {enhancedResult.marketIntelligence.debugInfo.trimFallbackUsed && ' (fuzzy match)'}
-                  </Badge>
-                )}
+                <Badge variant="outline" className="text-xs">
+                  Market Data Available
+                </Badge>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Sample Size</p>
-                    <p className="font-medium">{enhancedResult.marketIntelligence.sampleSize}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Inventory Level</p>
-                    <p className="font-medium capitalize">{enhancedResult.marketIntelligence.inventoryLevel}</p>
-                  </div>
                   <div>
                     <p className="text-muted-foreground">Market Median</p>
                     <p className="font-medium">${enhancedResult.marketIntelligence.medianPrice.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Demand Score</p>
-                    <p className="font-medium">{Math.round(enhancedResult.marketIntelligence.demandIndicator * 100)}%</p>
+                    <p className="text-muted-foreground">Confidence</p>
+                    <p className="font-medium">{Math.round(enhancedResult.marketIntelligence.confidence)}%</p>
                   </div>
                 </div>
-                
-                {/* Debug Information */}
-                {enhancedResult.marketIntelligence.debugInfo && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                    <h5 className="text-xs font-medium text-gray-700 mb-2">Search Debug Info</h5>
-                    <div className="text-xs text-gray-600 space-y-1">
-                      <p>Total Found: {enhancedResult.marketIntelligence.debugInfo.totalFound}</p>
-                      <p>After Filters: {enhancedResult.marketIntelligence.debugInfo.afterTrimFilter}</p>
-                      <p>Trim Fallback: {enhancedResult.marketIntelligence.debugInfo.trimFallbackUsed ? 'Yes' : 'No'}</p>
-                      <div className="mt-2">
-                        <p className="font-medium">Applied Filters:</p>
-                        <div className="ml-2">
-                          {Object.entries(enhancedResult.marketIntelligence.debugInfo.filters).map(([key, value]) => (
-                            <p key={key}>{key}: {value || 'N/A'}</p>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
           )}

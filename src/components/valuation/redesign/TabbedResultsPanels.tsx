@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { UnifiedValuationResult } from '@/types/valuation';
+import { MarketListing } from '@/types/marketListing';
 
 // Import existing components to reuse logic
 import { InteractiveValueBreakdown } from './InteractiveValueBreakdown';
@@ -406,7 +407,7 @@ function EnhancedListingsTab({ result }: { result: UnifiedValuationResult }) {
         <div className="flex flex-wrap gap-2">
           {Object.entries(platformGroups).map(([platform, listings]) => (
             <Badge key={platform} variant="secondary" className="capitalize">
-              {listings.length} {platform}
+              {(listings as MarketListing[]).length} {platform}
             </Badge>
           ))}
           <Badge variant="outline" className="bg-green-100 text-green-800">
@@ -422,10 +423,10 @@ function EnhancedListingsTab({ result }: { result: UnifiedValuationResult }) {
             <div key={platform} className="space-y-3">
               <h4 className="font-medium text-sm text-muted-foreground flex items-center gap-2">
                 <span className="h-2 w-2 bg-primary rounded-full"></span>
-                {platform.charAt(0).toUpperCase() + platform.slice(1)} ({listings.length})
+                {platform.charAt(0).toUpperCase() + platform.slice(1)} ({(listings as MarketListing[]).length})
               </h4>
               <div className="grid gap-3">
-                {listings.slice(0, 4).map((listing, index) => (
+                {(listings as MarketListing[]).slice(0, 4).map((listing: MarketListing, index: number) => (
                   <Card key={index} className="p-4">
                     <div className="flex items-center justify-between">
                        <div className="flex-1">
