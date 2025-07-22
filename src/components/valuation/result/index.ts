@@ -1,5 +1,6 @@
 
 export { default as UnifiedValuationResult } from '../UnifiedValuationResult';
-export { ValuationSummary } from './ValuationSummary';
-export { MarketComparison } from './MarketComparison';
-export { PremiumFeatures } from './PremiumFeatures';
+export { ValuationActions } from './ValuationActions';
+export { MarketDataStatus } from './MarketDataStatus';
+export { FallbackMethodDisclosure } from './FallbackMethodDisclosure';
+export { EnhancedConfidenceScore } from './EnhancedConfidenceScore';

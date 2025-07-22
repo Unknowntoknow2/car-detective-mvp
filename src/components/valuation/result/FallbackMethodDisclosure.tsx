@@ -1,60 +1,31 @@
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface FallbackMethodDisclosureProps {
-  isFallbackMethod: boolean;
   confidenceScore: number;
-  marketListingsCount: number;
-  estimatedValue: number;
-  className?: string;
+  explanation: string;
 }
 
-export const FallbackMethodDisclosure: React.FC<FallbackMethodDisclosureProps> = ({
-  isFallbackMethod,
-  confidenceScore,
-  marketListingsCount,
-  estimatedValue,
-  className
-}) => {
-  // Only show the warning if we're using fallback method
-  if (!isFallbackMethod || marketListingsCount > 0) {
-    return null;
-  }
-
+export function FallbackMethodDisclosure({ confidenceScore, explanation }: FallbackMethodDisclosureProps) {
   return (
-    <div 
-      className={cn(
-        "relative w-full rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800",
-        "[&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4",
-        className
-      )}
-      role="alert"
-    >
-      <AlertTriangle className="h-4 w-4 text-amber-600" />
-      <div>
-        <h5 className="mb-1 font-medium leading-none tracking-tight text-amber-800">
-          Synthetic Valuation Method Used
-        </h5>
-        <div className="text-sm text-amber-700">
-          <p className="mb-2">
-            ⚠️ <strong>Due to a lack of active market listings for this vehicle</strong>, this valuation uses synthetic pricing 
-            based on general industry data, manufacturer suggested retail pricing (MSRP), and standard depreciation curves.
-          </p>
-          <p className="mb-2">
-            <strong>Confidence Impact:</strong> Maximum confidence capped at {confidenceScore}% (vs. up to 95% for 
-            market-data backed valuations). This affects the accuracy and reliability of the estimated value.
-          </p>
-          <p>
-            For high-value transactions (${(estimatedValue/1000).toFixed(0)}k+), we strongly recommend:
-          </p>
-          <ul className="list-disc list-inside ml-2 mt-1">
-            <li>Getting multiple valuation opinions</li>
-            <li>Consulting with a professional appraiser</li>
-            <li>Checking physical dealerships in your area</li>
-          </ul>
+    <Card className="border-orange-200 bg-orange-50">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-orange-800">
+          <AlertTriangle className="h-5 w-5" />
+          Fallback Pricing Method
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="text-sm text-orange-700">
+          <p>{explanation}</p>
         </div>
-      </div>
-    </div>
+        
+        <div className="text-xs text-orange-600 space-y-1">
+          <p><strong>Note:</strong> Confidence is limited to {Math.min(confidenceScore, 60)}% when using fallback pricing.</p>
+          <p>This valuation is based on MSRP-adjusted depreciation modeling rather than current market data.</p>
+        </div>
+      </CardContent>
+    </Card>
   );
-};
+}
