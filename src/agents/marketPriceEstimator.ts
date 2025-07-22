@@ -1,6 +1,6 @@
 // src/agents/marketPriceEstimator.ts
 
-import { MarketListing, MarketPriceEstimate } from "@/types/valuationTypes";
+import type { MarketListing, MarketPriceEstimate } from "@/types/valuationTypes";
 
 export function estimateMarketPrice(listings: MarketListing[]): MarketPriceEstimate {
   if (!listings || listings.length === 0) {
