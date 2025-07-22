@@ -24,6 +24,17 @@ export interface ValuationSummaryProps {
   sources?: string[];
   explanation?: string;
   zipCode?: string;
+  priceRange?: {
+    low: number;
+    high: number;
+  };
+  marketIntelligence?: {
+    medianPrice: number;
+    averagePrice: number;
+    sampleSize: number;
+    inventoryLevel: string;
+    demandIndicator: number;
+  };
 }
 
 export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
@@ -33,7 +44,9 @@ export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
   marketAnchors,
   sources = [],
   explanation,
-  zipCode
+  zipCode,
+  priceRange,
+  marketIntelligence
 }) => {
   const listingsCount = marketAnchors?.listingsCount || 0;
   
@@ -68,6 +81,11 @@ export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
         <div>
           <h3 className="text-sm font-medium text-muted-foreground">Estimated Value</h3>
           <p className="text-3xl font-bold">{formatCurrency(estimatedValue)}</p>
+          {priceRange && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Range: {formatCurrency(priceRange.low)} - {formatCurrency(priceRange.high)}
+            </p>
+          )}
         </div>
         
         <div className="mt-2 sm:mt-0">
