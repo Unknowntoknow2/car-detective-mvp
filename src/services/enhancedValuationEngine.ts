@@ -1,282 +1,326 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { searchMarketListings } from '@/agents/marketSearchAgent';
-import { MarketListing, normalizeListing, getNormalizedUrl, getNormalizedSourceType } from '@/types/marketListing';
-import { calculateUnifiedConfidence, type ConfidenceContext } from '@/utils/valuation/calculateUnifiedConfidence';
+import { MarketListing, normalizeListing } from '@/types/marketListing';
+import { calculateUnifiedConfidence } from '@/utils/valuation/calculateUnifiedConfidence';
+import { BasePriceService } from '@/services/basePriceService';
+import { searchMarketListings } from '@/services/valuation/marketSearchAgent';
 
-// Define input and output types
 export interface EnhancedValuationInput {
-  vin?: string;
-  make?: string;
-  model?: string;
-  year?: number;
-  mileage?: number;
-  condition?: string;
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
   zipCode: string;
-  features?: string[];
-}
-
-export interface ValuationAdjustment {
-  factor: string;
-  impact: number;
-  description: string;
-  percentAdjustment?: number;
+  trim?: string;
+  bodyType?: string;
+  fuelType?: string;
+  transmission?: string;
 }
 
 export interface EnhancedValuationResult {
+  id: string;
   estimatedValue: number;
-  baseMarketValue: number;
-  adjustedValue: number;
   confidenceScore: number;
-  priceRange: [number, number];
-  adjustments: ValuationAdjustment[];
-  marketListings: {
-    id: string;
+  valuationMethod: 'marketListings' | 'fallbackMSRP';
+  isUsingFallbackMethod: boolean;
+  basePriceAnchor: {
     price: number;
-    mileage: number;
     source: string;
-    sourceType: string;
-    url: string;
-    listingUrl: string;
-    dealerName: string;
-    location: string;
-    condition: string;
-    isCpo: boolean;
-    fetchedAt: string;
-  }[];
-  valuationMethod: string;
-  trustScore: number;
-  sources: string[];
-  meta: {
-    listingsFound: number;
-    realListingsCount: number;
-    exactVinMatch: boolean;
-    fallbackUsed: boolean;
-    processingTime: number;
-    marketDataQuality: 'excellent' | 'good' | 'limited' | 'none';
+    confidence: number;
+    listingsUsed: number;
   };
+  adjustments: Array<{
+    factor: string;
+    impact: number;
+    description: string;
+  }>;
+  marketListings: MarketListing[];
+  confidenceBreakdown: {
+    vinAccuracy: number;
+    marketData: number;
+    fuelCostMatch: number;
+    msrpQuality: number;
+    overall: number;
+    recommendations: string[];
+  };
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  zipCode: string;
 }
 
-export async function calculateEnhancedValuation(input: EnhancedValuationInput): Promise<EnhancedValuationResult> {
-  console.log('🚀 Enhanced Valuation Engine v3.1 - Starting calculation');
-  console.log('Input:', { vin: input.vin, make: input.make, model: input.model, year: input.year, zipCode: input.zipCode });
-
+export async function calculateEnhancedValuation(
+  input: EnhancedValuationInput
+): Promise<EnhancedValuationResult> {
+  console.log('🚀 Starting enhanced valuation calculation for:', input);
+  
+  const startTime = Date.now();
+  
   try {
-    // Step 1: Unified Market Listings Search via Agent
-    console.log('📊 Fetching market listings via unified search agent...');
+    // Step 1: Search for market listings using the unified market search agent
+    console.log('📊 Searching for market listings...');
     const marketListings = await searchMarketListings({
       vin: input.vin,
-      make: input.make || '',
-      model: input.model || '',
-      year: input.year || new Date().getFullYear(),
-      zipCode: input.zipCode,
-      mileage: input.mileage,
-      condition: input.condition
+      make: input.make,
+      model: input.model,
+      year: input.year,
+      zipCode: input.zipCode
     });
-
-    // Normalize all listings to ensure consistent field access
-    const normalizedListings = marketListings.map(normalizeListing);
     
-    console.log(`📈 Market listings found: ${normalizedListings.length}`);
-    normalizedListings.forEach((listing, index) => {
-      console.log(`  ${index + 1}. ${listing.source}: $${listing.price?.toLocaleString() || 'N/A'} (${getNormalizedSourceType(listing)})`);
+    console.log(`✅ Found ${marketListings.length} market listings`);
+    console.log('📋 Listings breakdown:', {
+      totalListings: marketListings.length,
+      sources: [...new Set(marketListings.map(l => l.source))],
+      priceRange: marketListings.length > 0 ? {
+        min: Math.min(...marketListings.map(l => l.price)),
+        max: Math.max(...marketListings.map(l => l.price))
+      } : null
     });
-
-    // Check for exact VIN match
-    const exactVinMatch = normalizedListings.some(l => l.vin === input.vin);
-    const realListingsCount = normalizedListings.filter(l => getNormalizedSourceType(l) !== 'estimated' && l.source !== 'Market Estimate').length;
-
-    // Step 2: Calculate base market value
-    let baseMarketValue: number;
-    let valuationMethod: string;
-    let trustScore = 0.5;
     
-    if (normalizedListings.length >= 3) {
-      // Use market-based valuation
-      const prices = normalizedListings.map(l => l.price).filter(p => p && p > 0);
-      baseMarketValue = calculateMedianPrice(prices);
-      valuationMethod = `market_median_${normalizedListings.length}_listings`;
-      trustScore = Math.min(0.95, 0.7 + (realListingsCount * 0.05));
-      console.log(`💰 Market-based valuation: $${baseMarketValue.toLocaleString()} (${prices.length} valid prices)`);
+    // Step 2: Process market listings to determine price anchor
+    let basePriceAnchor: EnhancedValuationResult['basePriceAnchor'];
+    let isUsingFallbackMethod = false;
+    let valuationMethod: 'marketListings' | 'fallbackMSRP' = 'marketListings';
+    
+    if (marketListings.length >= 2) {
+      // Use market listings for price anchor
+      console.log('💰 Using market listings for price anchor');
+      
+      // Filter out extreme outliers (more than 2 standard deviations from mean)
+      const prices = marketListings.map(l => l.price);
+      const mean = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+      const stdDev = Math.sqrt(prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length);
+      
+      const filteredPrices = prices.filter(price => 
+        Math.abs(price - mean) <= 2 * stdDev
+      );
+      
+      // Calculate median from filtered prices
+      const sortedPrices = filteredPrices.sort((a, b) => a - b);
+      const medianPrice = sortedPrices.length % 2 === 0
+        ? (sortedPrices[sortedPrices.length / 2 - 1] + sortedPrices[sortedPrices.length / 2]) / 2
+        : sortedPrices[Math.floor(sortedPrices.length / 2)];
+      
+      basePriceAnchor = {
+        price: Math.round(medianPrice),
+        source: 'market_listings',
+        confidence: Math.min(95, 60 + (marketListings.length * 5)), // Max 95% confidence
+        listingsUsed: marketListings.length
+      };
+      
+      console.log('📍 Market-based price anchor:', basePriceAnchor);
+      
     } else {
-      // Fallback to MSRP-based estimation
-      console.log('⚠️ Insufficient market data - using MSRP fallback method');
-      const year = input.year || new Date().getFullYear();
-      const currentYear = new Date().getFullYear();
-      const vehicleAge = Math.max(0, currentYear - year);
+      // Use fallback MSRP-based pricing
+      console.log('🔄 Using fallback MSRP-based pricing');
+      isUsingFallbackMethod = true;
+      valuationMethod = 'fallbackMSRP';
       
-      // Enhanced MSRP estimation based on vehicle class
-      let estimatedMSRP: number;
-      const make = (input.make || '').toLowerCase();
-      const model = (input.model || '').toLowerCase();
+      const fallbackPrice = BasePriceService.getBasePrice({
+        make: input.make,
+        model: input.model,
+        year: input.year,
+        mileage: input.mileage
+      });
       
-      // Vehicle class-based MSRP estimation
-      if (model.includes('f-150') || model.includes('f150')) {
-        estimatedMSRP = 45000 - (vehicleAge * 3000);
-      } else if (model.includes('civic')) {
-        estimatedMSRP = 28000 - (vehicleAge * 2000);
-      } else if (model.includes('accord') || model.includes('camry')) {
-        estimatedMSRP = 32000 - (vehicleAge * 2500);
-      } else if (model.includes('altima') || model.includes('sentra')) {
-        estimatedMSRP = 30000 - (vehicleAge * 2200);
-      } else if (make.includes('luxury') || make.includes('bmw') || make.includes('mercedes') || make.includes('audi')) {
-        estimatedMSRP = 55000 - (vehicleAge * 4000);
-      } else {
-        // Generic sedan/compact estimation
-        estimatedMSRP = 28000 - (vehicleAge * 2000);
-      }
+      basePriceAnchor = {
+        price: fallbackPrice,
+        source: 'msrp_depreciation',
+        confidence: 60, // Lower confidence for fallback
+        listingsUsed: 0
+      };
       
-      baseMarketValue = Math.max(estimatedMSRP * 0.4, 8000); // Floor at $8k
-      valuationMethod = 'msrp_depreciation_fallback';
-      trustScore = 0.35;
-      console.log(`📉 MSRP-based estimation: $${baseMarketValue.toLocaleString()}`);
+      console.log('📍 Fallback price anchor:', basePriceAnchor);
     }
-
-    // Step 3: Apply condition and mileage adjustments
-    let adjustedValue = baseMarketValue;
-    const adjustments: ValuationAdjustment[] = [];
     
-    // Mileage adjustment
-    let mileagePenalty = 0;
-    if (input.mileage && input.mileage > 0) {
-      const year = input.year || new Date().getFullYear();
-      const expectedMileage = (new Date().getFullYear() - year) * 12000;
-      const mileageDiff = input.mileage - expectedMileage;
-      
-      if (mileageDiff > 10000) {
-        mileagePenalty = Math.min(mileageDiff * 0.12, baseMarketValue * 0.15);
-        adjustedValue -= mileagePenalty;
-        adjustments.push({
-          factor: 'High Mileage',
-          impact: -mileagePenalty,
-          description: `${input.mileage.toLocaleString()} miles (${(mileageDiff/1000).toFixed(0)}k over expected)`,
-          percentAdjustment: -(mileagePenalty / baseMarketValue) * 100
-        });
-      } else if (mileageDiff < -5000) {
-        const lowMileageBonus = Math.min(Math.abs(mileageDiff) * 0.08, baseMarketValue * 0.08);
-        adjustedValue += lowMileageBonus;
-        adjustments.push({
-          factor: 'Low Mileage',
-          impact: lowMileageBonus,
-          description: `${input.mileage.toLocaleString()} miles (${Math.abs(mileageDiff/1000).toFixed(0)}k under expected)`,
-          percentAdjustment: (lowMileageBonus / baseMarketValue) * 100
-        });
-      }
-    }
-
-    // Condition adjustment
-    if (input.condition) {
-      let conditionMultiplier = 1.0;
-      let conditionDescription = '';
-      
-      switch (input.condition.toLowerCase()) {
-        case 'excellent':
-          conditionMultiplier = 1.12;
-          conditionDescription = 'Excellent condition premium';
-          break;
-        case 'very good':
-          conditionMultiplier = 1.06;
-          conditionDescription = 'Very good condition adjustment';
-          break;
-        case 'good':
-          conditionMultiplier = 1.0;
-          conditionDescription = 'Good condition (baseline)';
-          break;
-        case 'fair':
-          conditionMultiplier = 0.85;
-          conditionDescription = 'Fair condition discount';
-          break;
-        case 'poor':
-          conditionMultiplier = 0.65;
-          conditionDescription = 'Poor condition significant discount';
-          break;
-      }
-      
-      if (conditionMultiplier !== 1.0) {
-        const conditionAdjustment = (adjustedValue * conditionMultiplier) - adjustedValue;
-        adjustedValue *= conditionMultiplier;
-        adjustments.push({
-          factor: 'Vehicle Condition',
-          impact: conditionAdjustment,
-          description: conditionDescription,
-          percentAdjustment: (conditionMultiplier - 1) * 100
-        });
-      }
-    }
-
-    // Step 4: Calculate confidence score using unified engine
-    const confidenceContext: ConfidenceContext = {
-      exactVinMatch,
-      marketListings: normalizedListings,
-      sources: ['enhanced_valuation_engine', ...normalizedListings.map(l => l.source)],
-      trustScore,
-      mileagePenalty,
-      zipCode: input.zipCode || ''
-    };
+    // Step 3: Apply adjustments to base price
+    console.log('⚙️ Applying valuation adjustments...');
+    const adjustments = calculateAdjustments(input, basePriceAnchor.price);
     
-    const confidenceScore = calculateUnifiedConfidence(confidenceContext);
-
-    // Step 5: Build comprehensive result
-    const result: EnhancedValuationResult = {
-      estimatedValue: Math.round(adjustedValue),
-      baseMarketValue: Math.round(baseMarketValue),
-      adjustedValue: Math.round(adjustedValue),
-      confidenceScore,
-      priceRange: [
-        Math.round(adjustedValue * 0.85),
-        Math.round(adjustedValue * 1.15)
-      ],
-      adjustments,
-      marketListings: normalizedListings.map(listing => ({
-        id: listing.id || `listing-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        price: listing.price,
-        mileage: listing.mileage || 0,
-        source: listing.source,
-        sourceType: getNormalizedSourceType(listing),
-        url: getNormalizedUrl(listing) || '#',
-        listingUrl: getNormalizedUrl(listing) || '#',
-        dealerName: listing.dealerName || listing.dealer_name || '',
-        location: listing.location || input.zipCode || '',
-        condition: listing.condition || 'used',
-        isCpo: listing.isCpo || listing.is_cpo || false,
-        fetchedAt: listing.fetchedAt || listing.fetched_at || new Date().toISOString()
-      })),
-      valuationMethod,
-      trustScore,
-      sources: ['enhanced_valuation_engine'],
-      meta: {
-        listingsFound: normalizedListings.length,
-        realListingsCount,
-        exactVinMatch,
-        fallbackUsed: normalizedListings.length < 3,
-        processingTime: Date.now(),
-        marketDataQuality: realListingsCount >= 5 ? 'excellent' : realListingsCount >= 3 ? 'good' : realListingsCount >= 1 ? 'limited' : 'none'
-      }
-    };
-
-    console.log('✅ Enhanced valuation completed:', {
-      estimatedValue: result.estimatedValue,
-      confidence: result.confidenceScore,
-      method: result.valuationMethod,
-      listingsUsed: result.marketListings.length,
-      realListings: realListingsCount
+    // Calculate final estimated value
+    const totalAdjustment = adjustments.reduce((sum, adj) => sum + adj.impact, 0);
+    const finalEstimatedValue = Math.max(1000, basePriceAnchor.price + totalAdjustment);
+    
+    console.log('💵 Final valuation calculation:', {
+      basePrice: basePriceAnchor.price,
+      totalAdjustment,
+      finalEstimatedValue
     });
-
-    return result;
-
+    
+    // Step 4: Calculate confidence score
+    const confidenceScore = calculateUnifiedConfidence({
+      exactVinMatch: marketListings.some(l => l.vin === input.vin),
+      marketListings: marketListings,
+      sources: marketListings.map(l => l.source),
+      trustScore: basePriceAnchor.confidence / 100,
+      mileagePenalty: calculateMileagePenalty(input.mileage, input.year),
+      zipCode: input.zipCode
+    });
+    
+    // Step 5: Generate confidence breakdown
+    const confidenceBreakdown = {
+      vinAccuracy: marketListings.some(l => l.vin === input.vin) ? 95 : 70,
+      marketData: Math.min(95, 30 + (marketListings.length * 10)),
+      fuelCostMatch: 85, // Placeholder
+      msrpQuality: isUsingFallbackMethod ? 60 : 90,
+      overall: confidenceScore,
+      recommendations: generateRecommendations(marketListings.length, isUsingFallbackMethod)
+    };
+    
+    const processingTime = Date.now() - startTime;
+    console.log(`✅ Enhanced valuation completed in ${processingTime}ms`);
+    
+    return {
+      id: crypto.randomUUID(),
+      estimatedValue: finalEstimatedValue,
+      confidenceScore,
+      valuationMethod,
+      isUsingFallbackMethod,
+      basePriceAnchor,
+      adjustments,
+      marketListings: marketListings.map(normalizeListing),
+      confidenceBreakdown,
+      make: input.make,
+      model: input.model,
+      year: input.year,
+      mileage: input.mileage,
+      condition: input.condition,
+      zipCode: input.zipCode
+    };
+    
   } catch (error) {
-    console.error('❌ Enhanced valuation engine error:', error);
-    throw new Error(`Valuation calculation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('❌ Enhanced valuation calculation failed:', error);
+    
+    // Return fallback result
+    const fallbackPrice = BasePriceService.getBasePrice({
+      make: input.make,
+      model: input.model,
+      year: input.year,
+      mileage: input.mileage
+    });
+    
+    return {
+      id: crypto.randomUUID(),
+      estimatedValue: fallbackPrice,
+      confidenceScore: 50,
+      valuationMethod: 'fallbackMSRP',
+      isUsingFallbackMethod: true,
+      basePriceAnchor: {
+        price: fallbackPrice,
+        source: 'emergency_fallback',
+        confidence: 50,
+        listingsUsed: 0
+      },
+      adjustments: [],
+      marketListings: [],
+      confidenceBreakdown: {
+        vinAccuracy: 50,
+        marketData: 0,
+        fuelCostMatch: 50,
+        msrpQuality: 50,
+        overall: 50,
+        recommendations: ['Unable to fetch market data', 'Consider running valuation again']
+      },
+      make: input.make,
+      model: input.model,
+      year: input.year,
+      mileage: input.mileage,
+      condition: input.condition,
+      zipCode: input.zipCode
+    };
   }
 }
 
-// Helper function to calculate median price
-function calculateMedianPrice(prices: number[]): number {
-  const sortedPrices = [...prices].sort((a, b) => a - b);
-  const mid = Math.floor(sortedPrices.length / 2);
+function calculateAdjustments(input: EnhancedValuationInput, basePrice: number): Array<{
+  factor: string;
+  impact: number;
+  description: string;
+}> {
+  const adjustments: Array<{
+    factor: string;
+    impact: number;
+    description: string;
+  }> = [];
   
-  if (sortedPrices.length % 2 === 0) {
-    return (sortedPrices[mid - 1] + sortedPrices[mid]) / 2;
-  } else {
-    return sortedPrices[mid];
+  // Mileage adjustment
+  const currentYear = new Date().getFullYear();
+  const vehicleAge = currentYear - input.year;
+  const expectedMileage = vehicleAge * 12000; // 12k miles per year
+  const mileageDifference = input.mileage - expectedMileage;
+  
+  if (Math.abs(mileageDifference) > 5000) {
+    const mileageAdjustment = -Math.round(mileageDifference * 0.08); // $0.08 per mile difference
+    adjustments.push({
+      factor: 'Mileage',
+      impact: mileageAdjustment,
+      description: `${mileageDifference > 0 ? 'Higher' : 'Lower'} than expected mileage (${expectedMileage.toLocaleString()} mi)`
+    });
   }
+  
+  // Condition adjustment
+  const conditionMultipliers = {
+    'excellent': 0.15,
+    'good': 0,
+    'fair': -0.15,
+    'poor': -0.30
+  };
+  
+  const conditionMultiplier = conditionMultipliers[input.condition as keyof typeof conditionMultipliers] || 0;
+  if (conditionMultiplier !== 0) {
+    const conditionAdjustment = Math.round(basePrice * conditionMultiplier);
+    adjustments.push({
+      factor: 'Condition',
+      impact: conditionAdjustment,
+      description: `Vehicle condition: ${input.condition}`
+    });
+  }
+  
+  // Market demand adjustment (simplified)
+  const popularModels = ['f-150', 'camry', 'accord', 'civic', 'corolla', 'silverado'];
+  const isPopularModel = popularModels.some(model => 
+    input.model.toLowerCase().includes(model.toLowerCase())
+  );
+  
+  if (isPopularModel) {
+    const demandAdjustment = Math.round(basePrice * 0.05);
+    adjustments.push({
+      factor: 'Market Demand',
+      impact: demandAdjustment,
+      description: 'High demand model with strong resale value'
+    });
+  }
+  
+  return adjustments;
+}
+
+function calculateMileagePenalty(mileage: number, year: number): number {
+  const currentYear = new Date().getFullYear();
+  const vehicleAge = currentYear - year;
+  const expectedMileage = vehicleAge * 12000;
+  const excessMileage = Math.max(0, mileage - expectedMileage);
+  
+  return Math.min(0.15, excessMileage / 100000 * 0.10); // Max 15% penalty
+}
+
+function generateRecommendations(listingsCount: number, isUsingFallback: boolean): string[] {
+  const recommendations: string[] = [];
+  
+  if (isUsingFallback) {
+    recommendations.push('Limited market data available - consider checking again in a few days');
+    recommendations.push('Valuation based on MSRP depreciation model');
+  }
+  
+  if (listingsCount < 3) {
+    recommendations.push('Few comparable listings found - expand search radius for better accuracy');
+  }
+  
+  if (listingsCount === 0) {
+    recommendations.push('No market listings found - consider manual market research');
+  }
+  
+  return recommendations;
 }
