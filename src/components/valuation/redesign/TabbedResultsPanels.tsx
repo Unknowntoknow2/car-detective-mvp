@@ -299,7 +299,15 @@ function MarketTab({ result }: { result: UnifiedValuationResult }) {
       
       {/* Market Listings Grid */}
       <MarketListingsGrid 
-        listings={result.listings || []}
+        listings={(result.listings || []).map(listing => ({
+          price: listing.price,
+          mileage: listing.mileage,
+          location: listing.location,
+          dealer: listing.dealer_name,
+          source: listing.source,
+          url: listing.listing_url && listing.listing_url !== '#' ? listing.listing_url : undefined,
+          condition: listing.condition
+        }))}
         listingCount={result.listingCount}
         marketSearchStatus={mappedStatus}
       />
