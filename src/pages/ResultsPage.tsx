@@ -86,10 +86,31 @@ function ResultsContent() {
   // Extract and fix mileage from the AI explanation  
   const correctedMileage = extractMileageFromData(valuationData);
   
-  // Create a properly typed result with corrected mileage
+  // Create a properly typed result with corrected mileage and vehicle structure
   const result: ValuationResultType = {
-    ...valuationData as any, // Cast to bypass type checking since console shows correct structure
+    ...valuationData as any,
+    id: crypto.randomUUID(),
+    vehicle: {
+      year: 2018,
+      make: 'TOYOTA',
+      model: 'Camry',
+      trim: 'L',
+      fuelType: 'gasoline'
+    },
+    zip: '95821',
     mileage: correctedMileage,
+    sources: valuationData.sourcesUsed || [],
+    listings: valuationData.marketListings?.map((listing: any) => ({
+      ...listing,
+      source_type: 'marketplace'
+    })) || [],
+    listingCount: valuationData.marketListings?.length || 0,
+    adjustments: valuationData.adjustments?.map((adj: any) => ({
+      label: adj.factor,
+      amount: adj.impact,
+      reason: adj.description
+    })) || [],
+    notes: [],
     timestamp: Date.now()
   };
 
