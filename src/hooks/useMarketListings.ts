@@ -92,7 +92,7 @@ export function useMarketListings({
           console.log('No listings found, trying broader search...');
           
           // Try a broader search without year exact match
-          const broadQuery = supabase
+          let broadQuery = supabase
             .from('market_listings')
             .select('*')
             .order('fetched_at', { ascending: false });
