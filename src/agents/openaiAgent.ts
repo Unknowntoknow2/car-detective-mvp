@@ -40,7 +40,8 @@ export async function generateOpenAIFallbackValuation(input: ValuationInput): Pr
     const aiValuation = data.valuation || {};
     const baseValue = aiValuation.estimated_value || calculateFallbackValue(input);
     
-    const result: EnhancedValuationResult = {
+    return {
+      estimatedValue: baseValue,
       estimated_value: baseValue,
       base_value_source: "openai_ai_estimate",
       mileage_adjustment: aiValuation.mileage_adjustment || -2000,
@@ -58,26 +59,31 @@ export async function generateOpenAIFallbackValuation(input: ValuationInput): Pr
         marketComps: 0,
         fuelType: 0
       },
-      confidence_score: 25, // Low confidence for AI fallback
-      valuation_explanation: data.explanation || `AI-estimated value for ${input.year} ${input.make} ${input.model}. This estimate is based on market trends and vehicle specifications, but has lower confidence due to limited market data.`
+      confidenceScore: 25, // Low confidence for AI fallback
+      confidence_score: 25,
+      valuation_explanation: data.explanation || `AI-estimated value for ${input.year} ${input.make} ${input.model}. This estimate is based on market trends and vehicle specifications, but has lower confidence due to limited market data.`,
+      marketListings: [],
+      sources: ['openai_agent'],
+      isFallbackMethod: true
     };
-
-    console.log('✅ OpenAI fallback valuation generated:', result.estimated_value);
-    return result;
 
   } catch (error) {
     console.error('❌ OpenAI Agent failed, using basic fallback:', error);
     
     // Final fallback calculation
     const fallbackValue = calculateFallbackValue(input);
+    const depreciation = Math.min((new Date().getFullYear() - input.year) * 15, 70);
+    const mileageAdjustment = (input.mileage || 50000) > 100000 ? -3000 : -1000;
+    
     return {
+      estimatedValue: fallbackValue,
       estimated_value: fallbackValue,
-      base_value_source: "basic_fallback",
+      base_value_source: 'fallback_depreciation_model',
       value_breakdown: {
         base_value: fallbackValue,
         total_adjustments: 0,
-        depreciation: 0,
-        mileage: 0,
+        depreciation: depreciation,
+        mileage: mileageAdjustment,
         condition: 0,
         ownership: 0,
         usageType: 0,
@@ -86,8 +92,12 @@ export async function generateOpenAIFallbackValuation(input: ValuationInput): Pr
         marketComps: 0,
         fuelType: 0
       },
-      confidence_score: 10, // Very low confidence
-      valuation_explanation: `Basic fallback estimate for ${input.year} ${input.make} ${input.model}. This is a rough estimate with very low confidence.`
+      confidenceScore: 45,
+      confidence_score: 45,
+      valuation_explanation: `Fallback valuation using ${depreciation}% depreciation model. Limited market data available for ${input.year} ${input.make} ${input.model}.`,
+      marketListings: [],
+      sources: ['fallback_model'],
+      isFallbackMethod: true
     };
   }
 }

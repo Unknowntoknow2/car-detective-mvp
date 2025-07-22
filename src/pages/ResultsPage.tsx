@@ -184,9 +184,9 @@ export default function ResultsPage() {
 
           {/* Market Data Status */}
           <MarketDataStatus
-            marketListings={enhancedResult.marketListings}
-            vehicleInfo={vehicleInfo}
-            searchRadius={100}
+            marketListings={enhancedResult.marketListings || []}
+            confidenceScore={enhancedResult.confidenceScore}
+            zipCode={enhancedResult.zipCode || valuation.state}
           />
 
           {/* Market Listings Display - Only show if we have real data */}
@@ -219,7 +219,11 @@ export default function ResultsPage() {
           <ValuationTransparency
             marketListingsCount={enhancedResult.marketListings?.length || 0}
             confidenceScore={enhancedResult.confidenceScore}
-            basePriceAnchor={enhancedResult.basePriceAnchor || 0}
+            basePriceAnchor={typeof enhancedResult.basePriceAnchor === 'number' ? {
+              source: 'market_median',
+              amount: enhancedResult.basePriceAnchor,
+              method: 'statistical_analysis'
+            } : enhancedResult.basePriceAnchor}
             adjustments={[]}
             estimatedValue={enhancedResult.estimatedValue}
             sources={enhancedResult.sources || []}
