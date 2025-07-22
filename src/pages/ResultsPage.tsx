@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, Share2, Car, MapPin, Calendar, Gauge } from 'lucide-react';
 import { ValuationSummary } from '@/components/valuation/result/ValuationSummary';
 import { EnhancedConfidenceScore } from '@/components/valuation/result/EnhancedConfidenceScore';
-import { GoogleStyleListings } from '@/components/valuation/result/GoogleStyleListings';
+import { GoogleStyleListings } from '@/components/market/GoogleStyleListings';
 import { MarketDataStatus } from '@/components/valuation/result/MarketDataStatus';
 import { calculateEnhancedValuation } from '@/services/enhancedValuationEngine';
 import { MarketListing, normalizeListing } from '@/types/marketListing';
@@ -206,9 +206,7 @@ export default function ResultsPage() {
         setValuation(valuationData);
         
         // Show success toast only after data is loaded
-        toast({
-          title: "Valuation Complete",
-          description: `Estimated value: $${valuationData.estimatedValue.toLocaleString()} (${valuationData.confidenceScore}% confidence)`,
+        toast.success(`Valuation Complete: $${valuationData.estimatedValue.toLocaleString()} (${valuationData.confidenceScore}% confidence)`, {
           duration: 5000,
         });
       } else {
@@ -218,11 +216,7 @@ export default function ResultsPage() {
     } catch (err) {
       console.error('❌ Error fetching valuation data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load valuation data');
-      toast({
-        title: "Error",
-        description: err instanceof Error ? err.message : 'Failed to load valuation data',
-        variant: "destructive",
-      });
+      toast.error(err instanceof Error ? err.message : 'Failed to load valuation data');
     } finally {
       setLoading(false);
     }
@@ -246,7 +240,31 @@ export default function ResultsPage() {
     if (!valuation) return;
     
     try {
-      const pdfBlob = await generateValuationPdf(valuation);
+      // Convert ValuationData to UnifiedValuationResult format for PDF
+      const unifiedResult: any = {
+        id: valuation.id,
+        vin: valuation.vin,
+        vehicle: {
+          year: valuation.year,
+          make: valuation.make,
+          model: valuation.model,
+          trim: '',
+          fuelType: ''
+        },
+        zip: valuation.zipCode || '90210',
+        mileage: valuation.mileage,
+        baseValue: valuation.estimatedValue,
+        adjustments: valuation.adjustments,
+        finalValue: valuation.estimatedValue,
+        confidenceScore: valuation.confidenceScore,
+        aiExplanation: `Valuation based on ${valuation.marketListings.length} market listings`,
+        sources: valuation.marketListings.map(l => l.source).filter(Boolean),
+        listingCount: valuation.marketListings.length,
+        listings: valuation.marketListings,
+        timestamp: Date.now(),
+        notes: 'Generated from enhanced valuation engine'
+      };
+      const pdfBlob = await generateValuationPdf(unifiedResult);
       const url = URL.createObjectURL(pdfBlob);
       const a = document.createElement('a');
       a.href = url;
@@ -257,11 +275,7 @@ export default function ResultsPage() {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      toast({
-        title: "PDF Generation Failed",
-        description: "Could not generate PDF report",
-        variant: "destructive",
-      });
+      toast.error("Could not generate PDF report");
     }
   };
 
@@ -284,10 +298,7 @@ export default function ResultsPage() {
       // Fallback: copy to clipboard
       try {
         await navigator.clipboard.writeText(shareUrl);
-        toast({
-          title: "Link Copied",
-          description: "Valuation link copied to clipboard",
-        });
+        toast.success("Valuation link copied to clipboard");
       } catch (err) {
         console.error('Failed to copy link:', err);
       }
@@ -408,17 +419,21 @@ export default function ResultsPage() {
 
           {/* Market Data Status */}
           <MarketDataStatus 
-            listings={valuation.marketListings} 
-            isUsingFallbackMethod={valuation.isUsingFallbackMethod || false}
+            marketListings={valuation.marketListings} 
+            confidenceScore={valuation.confidenceScore}
+            zipCode={valuation.zipCode}
           />
 
           {/* Market Listings */}
           {valuation.marketListings.length > 0 && (
             <GoogleStyleListings 
               listings={valuation.marketListings}
-              vehicleYear={valuation.year}
-              vehicleMake={valuation.make}
-              vehicleModel={valuation.model}
+              vehicleInfo={{
+                year: valuation.year,
+                make: valuation.make,
+                model: valuation.model,
+                zipCode: valuation.zipCode
+              }}
             />
           )}
 
