@@ -7,6 +7,7 @@ import { ValuationEngineTestComponent } from '@/components/test/ValuationEngineT
 import { OpenAIMarketSearchTestComponent } from '@/components/test/OpenAIMarketSearchTestComponent';
 import { ListingAnchoringValidationComponent } from '@/components/test/ListingAnchoringValidationComponent';
 import { UIResultsDisplayValidationComponent } from '@/components/test/UIResultsDisplayValidationComponent';
+import { PDFShareValidationComponent } from '@/components/test/PDFShareValidationComponent';
 import { MarketSearchTest } from '@/components/debug/MarketSearchTest';
 
 
@@ -55,12 +56,25 @@ export default function ValuationPage() {
         </CardContent>
       </Card>
 
+      {/* PDF Export & Share Validation Test */}
+      <Card className="border-dashed border-2 border-indigo-300 bg-indigo-50">
+        <CardHeader>
+          <CardTitle className="text-indigo-700">📄 PDF Export & Share Link Verification (Prompt 2.5)</CardTitle>
+          <p className="text-indigo-600 text-sm">
+            FOURTH: Validate PDF generation, sharing logic, QR code routing, and fallback handling.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <PDFShareValidationComponent />
+        </CardContent>
+      </Card>
+
       {/* Market Search Debug Test */}
       <Card className="border-dashed border-2 border-red-300 bg-red-50">
         <CardHeader>
           <CardTitle className="text-red-700">🧪 Market Search Debug</CardTitle>
           <p className="text-red-600 text-sm">
-            THIRD: If listing anchoring validation passes, test the full market search flow.
+            FIFTH: If previous validations pass, test the full market search flow.
           </p>
         </CardHeader>
         <CardContent>
@@ -73,7 +87,7 @@ export default function ValuationPage() {
         <CardHeader>
           <CardTitle className="text-orange-700">🚧 Complete Valuation Test</CardTitle>
           <p className="text-orange-600 text-sm">
-            THIRD: If market search works, test the complete valuation engine.
+            SIXTH: If all validations pass, test the complete valuation engine.
           </p>
         </CardHeader>
         <CardContent>
