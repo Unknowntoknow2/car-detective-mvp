@@ -187,11 +187,15 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
       mileage: listing.mileage,
       location: listing.location,
       source: listing.source,
-      listing_url: listing.listing_url,
+      source_type: listing.source_type || 'dealer',
+      listing_url: listing.listing_url || '',
       dealer_name: listing.dealer_name,
       year: listing.year,
       make: listing.make,
-      model: listing.model
+      model: listing.model,
+      is_cpo: listing.is_cpo || false,
+      fetched_at: listing.updated_at || listing.created_at || new Date().toISOString(),
+      confidence_score: 0.8
     })),
     adjustments,
     basePriceAnchor,
