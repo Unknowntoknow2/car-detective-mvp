@@ -1,253 +1,236 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { MarketListing, normalizeListing } from '@/types/marketListing';
+import { MarketListing } from '@/types/marketListing';
+import { toast } from 'sonner';
 
-export interface MarketSearchInput {
-  vin?: string;
+export interface MarketSearchParams {
   make: string;
   model: string;
   year: number;
-  zipCode?: string;
   trim?: string;
   mileage?: number;
+  zipCode: string;
   radius?: number;
 }
 
-export async function searchMarketListings(input: MarketSearchInput): Promise<MarketListing[]> {
-  console.log('🔍 Market search agent starting search:', input);
-  
-  const allListings: MarketListing[] = [];
+export interface MarketSearchResult {
+  listings: MarketListing[];
+  trust: number;
+  source: string;
+  notes: string;
+  totalFound: number;
+  searchMethod: 'openai' | 'database' | 'fallback';
+}
+
+/**
+ * Enhanced market search agent using OpenAI web search + database fallback
+ */
+export async function searchMarketListings(params: MarketSearchParams): Promise<MarketSearchResult> {
+  console.log('🔍 [MARKET_SEARCH_AGENT] Starting search with params:', params);
   
   try {
-    // Step 1: Try exact VIN match first (highest confidence)
-    if (input.vin) {
-      console.log('🎯 Searching for exact VIN matches...');
-      const { data: vinMatches, error: vinError } = await supabase
-        .from('enhanced_market_listings')
-        .select('*')
-        .eq('vin', input.vin)
-        .eq('listing_status', 'active')
-        .order('fetched_at', { ascending: false })
-        .limit(10);
-      
-      if (!vinError && vinMatches && vinMatches.length > 0) {
-        console.log(`✅ Found ${vinMatches.length} exact VIN matches`);
-        allListings.push(...vinMatches.map(item => ({
-          id: item.id,
-          price: item.price,
-          mileage: item.mileage,
-          year: item.year,
-          make: item.make,
-          model: item.model,
-          trim: item.trim,
-          condition: item.condition,
-          vin: item.vin,
-          source: item.source,
-          listing_url: item.listing_url,
-          dealer_name: item.dealer_name,
-          location: item.location,
-          zip_code: item.zip_code,
-          source_type: item.source_type,
-          is_cpo: item.is_cpo,
-          days_on_market: item.days_on_market,
-          confidence_score: item.confidence_score,
-          fetched_at: item.fetched_at,
-          exterior_color: item.exterior_color,
-          interior_color: item.interior_color,
-          fuel_economy_city: item.fuel_economy_city,
-          fuel_economy_highway: item.fuel_economy_highway,
-          drivetrain: item.drivetrain,
-          transmission_type: item.transmission_type,
-          engine_description: item.engine_description,
-          features: item.features,
-          stock_number: item.stock_number
-        })));
-      }
+    // First, try OpenAI web search for real-time listings
+    const openaiResult = await searchWithOpenAI(params);
+    if (openaiResult.listings.length > 0) {
+      console.log(`✅ [MARKET_SEARCH_AGENT] Found ${openaiResult.listings.length} listings via OpenAI`);
+      return openaiResult;
     }
     
-    // Step 2: Search for similar make/model/year listings
-    console.log('🔄 Searching for similar make/model/year listings...');
-    let query = supabase
-      .from('enhanced_market_listings')
-      .select('*')
-      .eq('listing_status', 'active')
-      .order('fetched_at', { ascending: false });
-    
-    // Apply filters
-    if (input.make) query = query.ilike('make', `%${input.make}%`);
-    if (input.model) query = query.ilike('model', `%${input.model}%`);
-    if (input.year) {
-      // Allow +/- 2 years for broader search
-      query = query
-        .gte('year', input.year - 2)
-        .lte('year', input.year + 2);
+    // Fallback to database search
+    console.log('🔄 [MARKET_SEARCH_AGENT] OpenAI search returned no results, trying database...');
+    const dbResult = await searchDatabase(params);
+    if (dbResult.listings.length > 0) {
+      console.log(`✅ [MARKET_SEARCH_AGENT] Found ${dbResult.listings.length} listings in database`);
+      return dbResult;
     }
     
-    // Add location filter if zipCode provided
-    if (input.zipCode) {
-      query = query.or(`zip_code.eq.${input.zipCode},geo_distance_miles.lte.${input.radius || 100}`);
-    }
-    
-    // Limit results to prevent overwhelming response
-    const { data: similarListings, error: similarError } = await query.limit(20);
-    
-    if (!similarError && similarListings && similarListings.length > 0) {
-      console.log(`✅ Found ${similarListings.length} similar listings`);
-      
-      // Add similar listings, avoiding duplicates
-      const existingVins = new Set(allListings.map(l => l.vin).filter(Boolean));
-      const newListings = similarListings
-        .filter(item => !item.vin || !existingVins.has(item.vin))
-        .map(item => ({
-          id: item.id,
-          price: item.price,
-          mileage: item.mileage,
-          year: item.year,
-          make: item.make,
-          model: item.model,
-          trim: item.trim,
-          condition: item.condition,
-          vin: item.vin,
-          source: item.source,
-          listing_url: item.listing_url,
-          dealer_name: item.dealer_name,
-          location: item.location,
-          zip_code: item.zip_code,
-          source_type: item.source_type,
-          is_cpo: item.is_cpo,
-          days_on_market: item.days_on_market,
-          confidence_score: item.confidence_score,
-          fetched_at: item.fetched_at,
-          exterior_color: item.exterior_color,
-          interior_color: item.interior_color,
-          fuel_economy_city: item.fuel_economy_city,
-          fuel_economy_highway: item.fuel_economy_highway,
-          drivetrain: item.drivetrain,
-          transmission_type: item.transmission_type,
-          engine_description: item.engine_description,
-          features: item.features,
-          stock_number: item.stock_number
-        }));
-      
-      allListings.push(...newListings);
-    }
-    
-    // Step 3: Try to fetch live listings via OpenAI web search if we have few results
-    if (allListings.length < 5) {
-      console.log('🌐 Attempting to fetch live OpenAI listings...');
-      try {
-        const { data: liveData, error: liveError } = await supabase.functions.invoke(
-          'openai-market-search',
-          {
-            body: {
-              make: input.make,
-              model: input.model,
-              year: input.year,
-              trim: input.trim,
-              zip: input.zipCode || '90210',
-              mileage: input.mileage,
-              radius: input.radius || 100
-            }
-          }
-        );
-        
-        if (!liveError && liveData?.success && liveData?.data && Array.isArray(liveData.data)) {
-          console.log(`✅ Found ${liveData.data.length} live OpenAI listings`);
-          console.log('🔍 OpenAI Search Results:', {
-            sources: liveData.meta?.sources || [],
-            confidence: liveData.meta?.confidence || 0,
-            rawResponse: liveData.meta?.openAIRawResponse ? 'Available' : 'Not Available'
-          });
-          
-          // Transform OpenAI listings to match our MarketListing interface
-          const transformedListings = liveData.data.map((listing: any) => ({
-            id: listing.id || crypto.randomUUID(),
-            price: listing.price,
-            mileage: listing.mileage,
-            year: listing.year,
-            make: listing.make,
-            model: listing.model,
-            trim: listing.trim,
-            condition: listing.condition || 'used',
-            vin: listing.vin,
-            source: listing.source,
-            link: listing.link,
-            dealerName: listing.dealerName,
-            location: listing.location,
-            zipCode: listing.zipCode || input.zipCode,
-            sourceType: 'live',
-            isCpo: listing.isCpo || false,
-            confidenceScore: listing.confidenceScore || 75,
-            fetchedAt: listing.fetchedAt || new Date().toISOString()
-          }));
-          
-          allListings.push(...transformedListings);
-        } else {
-          console.warn('⚠️ OpenAI live listings fetch failed:', liveError);
-          
-          // Fallback to enhanced-market-search if OpenAI fails
-          const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke(
-            'enhanced-market-search',
-            {
-              body: {
-                make: input.make,
-                model: input.model,
-                year: input.year,
-                zip: input.zipCode,
-                exact: false
-              }
-            }
-          );
-          
-          if (!fallbackError && fallbackData?.data && Array.isArray(fallbackData.data)) {
-            console.log(`✅ Found ${fallbackData.data.length} fallback listings`);
-            allListings.push(...fallbackData.data);
-          }
-        }
-      } catch (searchError) {
-        console.warn('⚠️ Live listings search failed:', searchError);
-      }
-    }
-    
-    // Step 4: Normalize and filter results
-    const normalizedListings = allListings
-      .map(normalizeListing)
-      .filter(listing => 
-        listing.price > 1000 && 
-        listing.price < 200000 &&
-        listing.source !== 'unknown'
-      )
-      .sort((a, b) => {
-        // Prioritize exact VIN matches and recent listings
-        const aVinMatch = a.vin === input.vin ? 1 : 0;
-        const bVinMatch = b.vin === input.vin ? 1 : 0;
-        
-        if (aVinMatch !== bVinMatch) {
-          return bVinMatch - aVinMatch;
-        }
-        
-        // Then sort by recency
-        const aTime = new Date(a.fetched_at || a.fetchedAt || 0).getTime();
-        const bTime = new Date(b.fetched_at || b.fetchedAt || 0).getTime();
-        return bTime - aTime;
-      })
-      .slice(0, 15); // Limit to top 15 results
-    
-    console.log('🎯 Market search completed:', {
-      totalListings: normalizedListings.length,
-      exactVinMatches: normalizedListings.filter(l => l.vin === input.vin).length,
-      sources: [...new Set(normalizedListings.map(l => l.source))],
-      priceRange: normalizedListings.length > 0 ? {
-        min: Math.min(...normalizedListings.map(l => l.price)),
-        max: Math.max(...normalizedListings.map(l => l.price)),
-        median: normalizedListings.map(l => l.price).sort((a, b) => a - b)[Math.floor(normalizedListings.length / 2)]
-      } : null
-    });
-    
-    return normalizedListings;
+    // Final fallback - return empty with clear indication
+    console.log('❌ [MARKET_SEARCH_AGENT] No listings found via any method');
+    return {
+      listings: [],
+      trust: 0.2,
+      source: 'fallback',
+      notes: 'No current market listings found via OpenAI search or database. Using synthetic pricing model.',
+      totalFound: 0,
+      searchMethod: 'fallback'
+    };
     
   } catch (error) {
-    console.error('❌ Market search agent failed:', error);
-    return [];
+    console.error('❌ [MARKET_SEARCH_AGENT] Search failed:', error);
+    return {
+      listings: [],
+      trust: 0.1,
+      source: 'error',
+      notes: `Market search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      totalFound: 0,
+      searchMethod: 'fallback'
+    };
   }
+}
+
+/**
+ * Search using OpenAI web browsing for real-time listings
+ */
+async function searchWithOpenAI(params: MarketSearchParams): Promise<MarketSearchResult> {
+  try {
+    console.log('🤖 [OPENAI_SEARCH] Calling OpenAI market search function...');
+    
+    const { data, error } = await supabase.functions.invoke('openai-market-search', {
+      body: {
+        make: params.make,
+        model: params.model,
+        year: params.year,
+        trim: params.trim,
+        zip: params.zipCode,
+        mileage: params.mileage,
+        radius: params.radius || 100
+      }
+    });
+    
+    if (error) {
+      console.error('❌ [OPENAI_SEARCH] Function call failed:', error);
+      throw new Error(`OpenAI search failed: ${error.message}`);
+    }
+    
+    if (!data || !data.success) {
+      console.warn('⚠️ [OPENAI_SEARCH] No successful response from OpenAI');
+      return {
+        listings: [],
+        trust: 0.3,
+        source: 'openai_no_results',
+        notes: 'OpenAI search completed but found no listings',
+        totalFound: 0,
+        searchMethod: 'openai'
+      };
+    }
+    
+    // Transform OpenAI results to MarketListing format
+    const listings: MarketListing[] = (data.data || []).map((item: any) => ({
+      id: item.id || `openai-${Date.now()}-${Math.random()}`,
+      source: item.source || 'OpenAI Search',
+      source_type: 'marketplace',
+      price: item.price || 0,
+      year: item.year || params.year,
+      make: item.make || params.make,
+      model: item.model || params.model,
+      trim: item.trim,
+      vin: item.vin,
+      mileage: item.mileage,
+      condition: item.condition || 'used',
+      dealer_name: item.dealerName || item.dealer_name,
+      location: item.location || params.zipCode,
+      listing_url: item.link || item.listing_url || '#',
+      is_cpo: item.isCpo || false,
+      fetched_at: new Date().toISOString(),
+      confidence_score: item.confidenceScore || 85
+    }));
+    
+    console.log(`✅ [OPENAI_SEARCH] Processed ${listings.length} listings from OpenAI`);
+    
+    return {
+      listings,
+      trust: data.meta?.confidence / 100 || 0.8,
+      source: 'openai_web_search',
+      notes: `Found ${listings.length} listings via OpenAI web search`,
+      totalFound: listings.length,
+      searchMethod: 'openai'
+    };
+    
+  } catch (error) {
+    console.error('❌ [OPENAI_SEARCH] Error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Search database for existing market listings
+ */
+async function searchDatabase(params: MarketSearchParams): Promise<MarketSearchResult> {
+  try {
+    console.log('🗃️ [DB_SEARCH] Searching database for market listings...');
+    
+    let query = supabase
+      .from('market_listings')
+      .select('*')
+      .eq('make', params.make)
+      .eq('model', params.model)
+      .eq('year', params.year)
+      .order('fetched_at', { ascending: false });
+    
+    // Add optional filters
+    if (params.zipCode) {
+      query = query.eq('zip_code', params.zipCode);
+    }
+    
+    const { data, error } = await query.limit(20);
+    
+    if (error) {
+      console.error('❌ [DB_SEARCH] Database query failed:', error);
+      throw new Error(`Database search failed: ${error.message}`);
+    }
+    
+    if (!data || data.length === 0) {
+      console.log('📭 [DB_SEARCH] No listings found in database');
+      return {
+        listings: [],
+        trust: 0.4,
+        source: 'database_empty',
+        notes: 'No listings found in database',
+        totalFound: 0,
+        searchMethod: 'database'
+      };
+    }
+    
+    // Transform database results to MarketListing format
+    const listings: MarketListing[] = data.map(item => ({
+      id: item.id || `db-${Date.now()}-${Math.random()}`,
+      source: item.source || 'Database',
+      source_type: item.source_type || 'marketplace',
+      price: item.price || 0,
+      year: item.year || params.year,
+      make: item.make || params.make,
+      model: item.model || params.model,
+      trim: item.trim,
+      vin: item.vin,
+      mileage: item.mileage,
+      condition: item.condition || 'used',
+      dealer_name: item.dealer_name,
+      location: item.location || params.zipCode,
+      listing_url: item.listing_url || '#',
+      is_cpo: item.is_cpo || false,
+      fetched_at: item.fetched_at || new Date().toISOString(),
+      confidence_score: item.confidence_score || 75
+    }));
+    
+    console.log(`✅ [DB_SEARCH] Found ${listings.length} listings in database`);
+    
+    return {
+      listings,
+      trust: 0.7,
+      source: 'database',
+      notes: `Found ${listings.length} listings in database`,
+      totalFound: listings.length,
+      searchMethod: 'database'
+    };
+    
+  } catch (error) {
+    console.error('❌ [DB_SEARCH] Error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generate search query prompt for OpenAI
+ */
+export function buildSearchQuery(params: MarketSearchParams): string {
+  const { make, model, year, trim, mileage, zipCode, radius = 100 } = params;
+  
+  let query = `Find real used car listings for a ${year} ${make} ${model}`;
+  if (trim) query += ` ${trim}`;
+  if (mileage) query += ` with approximately ${mileage.toLocaleString()} miles`;
+  query += ` near ZIP code ${zipCode} within ${radius} miles`;
+  
+  query += `. Search popular automotive marketplaces like AutoTrader, CarGurus, Cars.com, CarMax, Carvana, Facebook Marketplace, and Craigslist.`;
+  
+  return query;
 }
