@@ -84,7 +84,7 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
               make: result.vehicle.make,
               model: result.vehicle.model,
               trim: result.vehicle.trim || '',
-              fuelType: result.vehicle.fuelType,
+              fuelType: result.vehicle.fuelType || 'gasoline',
               transmission: 'Unknown',
               mileage: result.mileage || 0,
               condition: 'Good',
