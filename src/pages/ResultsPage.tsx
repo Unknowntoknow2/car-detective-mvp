@@ -1,454 +1,338 @@
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Download, Mail, RefreshCw, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { ValuationSummary } from '@/components/valuation/result/ValuationSummary';
-import { VehicleDetailsCard } from '@/components/result/VehicleDetailsCard';
-import { useValuationData } from '@/components/valuation/hooks/useValuationData';
-import { useMarketListings } from '@/hooks/useMarketListings';
-import { calculateUnifiedConfidence } from '@/utils/unifiedConfidenceCalculator';
-import { formatCurrency } from '@/utils/formatters';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { AlertCircle, Car, DollarSign, TrendingUp } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { formatCurrency } from '@/utils/formatters';
+import { ValuationSummary } from '@/components/valuation/result/ValuationSummary';
+import VehicleDetailsCard from '@/components/result/VehicleDetailsCard';
+import { fetchMarketData } from '@/services/valuation/marketDataService';
+import { generateUnifiedConfidence } from '@/utils/unifiedConfidenceCalculator';
+
+interface ValuationData {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  mileage: number;
+  condition: string;
+  estimated_value: number;
+  confidence_score: number;
+  vin: string;
+  state: string;
+  color?: string;
+  body_type?: string;
+  fuel_type?: string;
+  transmission?: string;
+  trim?: string;
+  user_id?: string;
+  created_at: string;
+}
+
+interface DecodedVehicle {
+  make: string;
+  model: string;
+  year: number;
+  trim?: string;
+  bodyType?: string;
+  fueltype?: string;
+  transmission?: string;
+}
+
+interface FollowUpData {
+  mileage?: number;
+  condition?: string;
+  features?: any[];
+  accidents?: any;
+  modifications?: any;
+  serviceHistory?: any;
+}
 
 export default function ResultsPage() {
-  const { vin } = useParams<{ vin: string }>();
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
-  const [actualVehicleData, setActualVehicleData] = useState<any>(null);
-  const [marketData, setMarketData] = useState<any>(null);
-  const [confidenceBreakdown, setConfidenceBreakdown] = useState<any>(null);
+  const { id: vinOrId } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
-
-  // Get valuation data
-  const { valuationData, isLoading: valuationLoading, error: valuationError } = useValuationData(vin || '');
+  const [error, setError] = useState<string | null>(null);
+  const [valuationData, setValuationData] = useState<ValuationData | null>(null);
+  const [decodedVehicle, setDecodedVehicle] = useState<DecodedVehicle | null>(null);
+  const [followUpData, setFollowUpData] = useState<FollowUpData | null>(null);
+  const [marketListings, setMarketListings] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchActualVehicleData = async () => {
-      if (!vin) return;
+    if (vinOrId) {
+      fetchActualVehicleData(vinOrId);
+    }
+  }, [vinOrId]);
+
+  const fetchActualVehicleData = async (identifier: string) => {
+    try {
+      setLoading(true);
+      setError(null);
       
-      try {
-        setLoading(true);
-        
-        // First, try to get the valuation request data
-        const { data: valuationRequest, error: reqError } = await supabase
-          .from('valuation_requests')
+      console.log('🔍 Fetching valuation data for identifier:', identifier);
+
+      // First, try to fetch by valuation ID
+      let { data: valuationById, error: valuationByIdError } = await supabase
+        .from('valuations')
+        .select('*')
+        .eq('id', identifier)
+        .single();
+
+      // If not found by ID, try by VIN
+      if (valuationByIdError || !valuationById) {
+        console.log('📍 Not found by ID, trying VIN lookup...');
+        const { data: valuationByVin, error: valuationByVinError } = await supabase
+          .from('valuations')
           .select('*')
-          .eq('vin', vin)
+          .eq('vin', identifier)
           .order('created_at', { ascending: false })
           .limit(1)
           .single();
 
-        if (reqError) {
-          console.error('Error fetching valuation request:', reqError);
+        if (valuationByVinError || !valuationByVin) {
+          console.error('❌ No valuation found for VIN or ID:', identifier);
+          throw new Error('No valuation found for this vehicle');
         }
 
-        // Get decoded vehicle data
-        const { data: decodedVehicle, error: decodeError } = await supabase
+        valuationById = valuationByVin;
+      }
+
+      console.log('✅ Found valuation data:', valuationById);
+      setValuationData(valuationById);
+
+      // Fetch decoded vehicle data
+      if (valuationById.vin) {
+        const { data: decodedData, error: decodedError } = await supabase
           .from('decoded_vehicles')
           .select('*')
-          .eq('vin', vin)
+          .eq('vin', valuationById.vin)
           .single();
 
-        if (decodeError) {
-          console.error('Error fetching decoded vehicle:', decodeError);
+        if (!decodedError && decodedData) {
+          console.log('✅ Found decoded vehicle data:', decodedData);
+          setDecodedVehicle(decodedData);
         }
 
-        // Get follow-up answers for additional details
-        const { data: followUpData, error: followUpError } = await supabase
+        // Fetch follow-up answers
+        const { data: followUpAnswers, error: followUpError } = await supabase
           .from('follow_up_answers')
           .select('*')
-          .eq('vin', vin)
-          .order('created_at', { ascending: false })
-          .limit(1)
+          .eq('vin', valuationById.vin)
           .single();
 
-        if (followUpError) {
-          console.error('Error fetching follow-up data:', followUpError);
+        if (!followUpError && followUpAnswers) {
+          console.log('✅ Found follow-up data:', followUpAnswers);
+          setFollowUpData(followUpAnswers);
         }
 
-        // Combine all data sources to get the most complete picture
-        const vehicleData = {
-          vin: vin,
-          make: followUpData?.make || decodedVehicle?.make || valuationRequest?.make || 'Ford',
-          model: followUpData?.model || decodedVehicle?.model || valuationRequest?.model || 'F-150',
-          year: followUpData?.year || decodedVehicle?.year || valuationRequest?.year || 2023,
-          mileage: followUpData?.mileage || valuationRequest?.mileage || 48727,
-          condition: followUpData?.condition || 'good',
-          trim: followUpData?.trim || decodedVehicle?.trim || 'XLT',
-          fuelType: decodedVehicle?.fueltype || 'gasoline',
-          transmission: followUpData?.transmission || decodedVehicle?.transmission || 'automatic',
-          bodyType: decodedVehicle?.bodytype || 'Pickup Truck',
-          zipCode: followUpData?.zip_code || valuationRequest?.zip_code || '95821',
-          features: followUpData?.features || []
-        };
-
-        setActualVehicleData(vehicleData);
-
-        // Now fetch market listings for the correct vehicle
-        const { data: marketListings, error: marketError } = await supabase
-          .from('market_listings')
-          .select('*')
-          .or(`make.ilike.%${vehicleData.make}%,model.ilike.%${vehicleData.model}%`)
-          .gte('year', vehicleData.year - 2)
-          .lte('year', vehicleData.year + 2)
-          .order('fetched_at', { ascending: false })
-          .limit(10);
-
-        if (marketError) {
-          console.error('Error fetching market listings:', marketError);
+        // Fetch market data for confidence calculation and display
+        try {
+          const marketData = await fetchMarketData({
+            make: valuationById.make,
+            model: valuationById.model,
+            year: valuationById.year,
+            vin: valuationById.vin,
+            zipCode: valuationById.state || '95821'
+          });
+          
+          console.log('✅ Market data fetched:', marketData);
+          setMarketListings(marketData.listings || []);
+        } catch (marketError) {
+          console.warn('⚠️ Market data fetch failed:', marketError);
+          setMarketListings([]);
         }
-
-        // If no exact matches, try broader Ford search
-        let finalListings = marketListings || [];
-        if (!finalListings.length) {
-          const { data: broadListings, error: broadError } = await supabase
-            .from('market_listings')
-            .select('*')
-            .ilike('make', '%Ford%')
-            .order('fetched_at', { ascending: false })
-            .limit(20);
-
-          if (!broadError) {
-            finalListings = broadListings || [];
-          }
-        }
-
-        setMarketData({
-          listings: finalListings,
-          averagePrice: finalListings.length > 0 
-            ? Math.round(finalListings.reduce((sum: number, listing: any) => sum + (listing.price || 0), 0) / finalListings.length)
-            : 33297, // Use the EchoPark price as baseline
-          count: finalListings.length
-        });
-
-        // Calculate confidence based on actual data
-        const confidence = calculateUnifiedConfidence({
-          exactVinMatch: finalListings.some((l: any) => l.vin === vin),
-          marketListings: finalListings,
-          sources: ['vin_decode', 'market_search'],
-          trustScore: finalListings.length > 0 ? 0.8 : 0.4,
-          mileagePenalty: 0,
-          zipCode: vehicleData.zipCode
-        });
-
-        setConfidenceBreakdown(confidence);
-
-      } catch (error) {
-        console.error('Error fetching vehicle data:', error);
-        toast.error('Failed to load vehicle data');
-      } finally {
-        setLoading(false);
       }
-    };
 
-    fetchActualVehicleData();
-  }, [vin]);
+    } catch (err) {
+      console.error('❌ Error fetching vehicle data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load vehicle data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (loading || valuationLoading) {
+  if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto py-8">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p>Loading valuation results...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading valuation results...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  if (!actualVehicleData && !valuationData) {
+  if (error || !valuationData) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <p className="text-red-600">No valuation data found for this VIN.</p>
-          <Button onClick={() => navigate('/valuation')} className="mt-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Start New Valuation
-          </Button>
-        </div>
+      <div className="container mx-auto py-8">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {error || 'No valuation data found'}
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
 
-  // Use actual vehicle data or fallback to valuation data
-  const vehicleInfo = actualVehicleData || {
-    make: valuationData?.make || 'Unknown',
-    model: valuationData?.model || 'Unknown',
-    year: valuationData?.year || new Date().getFullYear(),
-    mileage: valuationData?.mileage || 0,
-    condition: valuationData?.condition || 'unknown',
-    vin: vin
+  // Calculate unified confidence score
+  const confidenceInput = {
+    exactVinMatch: !!valuationData.vin,
+    marketListings: marketListings,
+    sources: ['database_valuation'],
+    trustScore: 0.8,
+    mileagePenalty: 0.02,
+    zipCode: valuationData.state || ''
   };
 
-  // Calculate estimated value based on market data
-  const estimatedValue = marketData?.averagePrice || valuationData?.estimatedValue || 33297;
-  const confidenceScore = confidenceBreakdown?.overall || 65;
+  const confidenceResult = generateUnifiedConfidence(
+    valuationData.confidence_score || 45,
+    confidenceInput
+  );
+
+  // Prepare vehicle info for display
+  const vehicleInfo = {
+    year: valuationData.year,
+    make: valuationData.make,
+    model: valuationData.model,
+    mileage: followUpData?.mileage || valuationData.mileage,
+    condition: followUpData?.condition || valuationData.condition || 'Good',
+    vin: valuationData.vin,
+    trim: decodedVehicle?.trim || valuationData.trim,
+    bodyType: decodedVehicle?.bodyType || valuationData.body_type,
+    fuelType: decodedVehicle?.fueltype || valuationData.fuel_type,
+    transmission: decodedVehicle?.transmission || valuationData.transmission,
+    color: valuationData.color,
+    zipCode: valuationData.state
+  };
+
+  const marketAnchors = {
+    exactVinMatch: !!valuationData.vin,
+    listingsCount: marketListings.length,
+    trustScore: confidenceInput.trustScore
+  };
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto py-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={() => navigate('/valuation')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Valuation
-        </Button>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Download Report
-          </Button>
-          <Button variant="outline" size="sm">
-            <Mail className="mr-2 h-4 w-4" />
-            Email Report
-          </Button>
-          <Button size="sm">
-            Update Details
-          </Button>
-        </div>
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold mb-2">Vehicle Valuation Report</h1>
+        <p className="text-muted-foreground">
+          Complete valuation analysis for your {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}
+        </p>
       </div>
 
-      {/* Main Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="market">Market Data</TabsTrigger>
-          <TabsTrigger value="details">Details</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
+      {/* Main Valuation Summary */}
+      <Card className="border-primary/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5" />
+            Valuation Summary
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <ValuationSummary
-            estimatedValue={estimatedValue}
-            confidenceScore={confidenceScore}
-            vehicleInfo={{
-              year: vehicleInfo.year,
-              make: vehicleInfo.make,
-              model: vehicleInfo.model,
-              mileage: vehicleInfo.mileage,
-              condition: vehicleInfo.condition
-            }}
-            marketAnchors={{
-              exactVinMatch: marketData?.listings?.some((l: any) => l.vin === vin) || false,
-              listingsCount: marketData?.count || 0,
-              trustScore: 0.75
-            }}
-            sources={['market_analysis', 'vin_decode']}
-            explanation={confidenceBreakdown?.recommendations?.join(' ')}
+            estimatedValue={valuationData.estimated_value}
+            confidenceScore={confidenceResult.score}
+            vehicleInfo={vehicleInfo}
+            marketAnchors={marketAnchors}
+            sources={confidenceInput.sources}
+            explanation={confidenceResult.explanation}
           />
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Price Range</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-red-500">
-                    {formatCurrency(Math.floor(estimatedValue * 0.9))}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Low</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-primary">
-                    {formatCurrency(estimatedValue)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Estimated</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-green-500">
-                    {formatCurrency(Math.ceil(estimatedValue * 1.1))}
-                  </p>
-                  <p className="text-sm text-muted-foreground">High</p>
-                </div>
+        </CardContent>
+      </Card>
+
+      {/* Vehicle Details */}
+      <VehicleDetailsCard
+        make={vehicleInfo.make}
+        model={vehicleInfo.model}
+        year={vehicleInfo.year}
+        mileage={vehicleInfo.mileage}
+        condition={vehicleInfo.condition}
+        vin={vehicleInfo.vin}
+        trim={vehicleInfo.trim}
+        bodyType={vehicleInfo.bodyType}
+        fuelType={vehicleInfo.fuelType}
+        color={vehicleInfo.color}
+        transmission={vehicleInfo.transmission}
+        zipCode={vehicleInfo.zipCode}
+      />
+
+      {/* Market Analysis */}
+      {marketListings.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Market Analysis
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Similar Listings Found</span>
+                <Badge variant="secondary">{marketListings.length} listings</Badge>
               </div>
-              <div className="relative">
-                <div className="h-2 bg-gradient-to-r from-red-200 via-yellow-200 to-green-200 rounded-full"></div>
-                <div 
-                  className="absolute top-0 h-2 w-1 bg-primary rounded-full transform -translate-x-1/2"
-                  style={{ left: '50%' }}
-                ></div>
-              </div>
-              <p className="text-sm text-muted-foreground mt-4">
-                This price range represents what similar vehicles are selling for in your area. 
-                Your specific vehicle's value may vary based on its condition, options, and local market demand.
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Confidence Breakdown */}
-          {confidenceBreakdown && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Confidence Breakdown</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary mb-1">
-                      {confidenceBreakdown.overall}%
-                    </div>
-                    <p className="text-sm text-muted-foreground">Overall</p>
+              
+              {marketListings.slice(0, 3).map((listing, index) => (
+                <div key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                  <div>
+                    <p className="font-medium">{listing.title || `${listing.year} ${listing.make} ${listing.model}`}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {listing.mileage ? `${listing.mileage.toLocaleString()} miles` : 'Mileage not specified'} • {listing.source}
+                    </p>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold mb-1">
-                      {confidenceBreakdown.vinAccuracy}%
-                    </div>
-                    <p className="text-sm text-muted-foreground">VIN Accuracy</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold mb-1">
-                      {confidenceBreakdown.marketData}%
-                    </div>
-                    <p className="text-sm text-muted-foreground">Market Data</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold mb-1">
-                      {confidenceBreakdown.msrpQuality}%
-                    </div>
-                    <p className="text-sm text-muted-foreground">MSRP Quality</p>
+                  <div className="text-right">
+                    <p className="font-semibold">{formatCurrency(listing.price)}</p>
                   </div>
                 </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-                {confidenceBreakdown.recommendations?.length > 0 && (
-                  <div className="bg-amber-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-amber-800 mb-2">Ways to Improve</h4>
-                    <ul className="text-amber-700 text-sm space-y-1">
-                      {confidenceBreakdown.recommendations.map((rec: string, index: number) => (
-                        <li key={index}>• {rec}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+      {/* Additional Features */}
+      {followUpData?.features && followUpData.features.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Car className="h-5 w-5" />
+              Vehicle Features
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {followUpData.features.map((feature, index) => (
+                <Badge key={index} variant="outline">
+                  {feature}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-        <TabsContent value="market" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Market Analysis</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <TrendingUp className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                  <h3 className="font-medium text-green-800">Strong Market</h3>
-                  <p className="text-sm text-green-600">High demand for this vehicle</p>
-                </div>
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <Minus className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                  <h3 className="font-medium text-blue-800">Stable Demand</h3>
-                  <p className="text-sm text-blue-600">Consistent pricing trends</p>
-                </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <TrendingUp className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                  <h3 className="font-medium text-purple-800">Good Liquidity</h3>
-                  <p className="text-sm text-purple-600">Easy to sell quickly</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Similar Listings ({marketData?.count || 0})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {marketData?.listings?.length > 0 ? (
-                <div className="space-y-4">
-                  {marketData.listings.slice(0, 5).map((listing: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">
-                          {listing.year} {listing.make?.toUpperCase()} {listing.model}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {listing.mileage?.toLocaleString()} miles
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-primary">
-                          {formatCurrency(listing.price)}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{listing.source}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">
-                    No similar listings found in our database for {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model}.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Our valuation is based on industry data and comparable vehicles.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="details" className="space-y-6">
-          <VehicleDetailsCard
-            make={vehicleInfo.make}
-            model={vehicleInfo.model}
-            year={vehicleInfo.year}
-            mileage={vehicleInfo.mileage}
-            condition={vehicleInfo.condition}
-            vin={vehicleInfo.vin}
-            trim={actualVehicleData?.trim}
-            bodyType={actualVehicleData?.bodyType}
-            fuelType={actualVehicleData?.fuelType}
-            transmission={actualVehicleData?.transmission}
-            zipCode={actualVehicleData?.zipCode}
-          />
-
-          {/* Vehicle Features */}
-          {actualVehicleData?.features?.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Vehicle Features</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {actualVehicleData.features.map((feature: string, index: number) => (
-                    <Badge key={index} variant="secondary" className="justify-center py-2">
-                      {feature}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Valuation Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Your {vehicleInfo.year} {vehicleInfo.make} {vehicleInfo.model} 
-                {vehicleInfo.mileage ? ` with ${vehicleInfo.mileage.toLocaleString()} miles` : ''} 
-                is valued at {formatCurrency(estimatedValue)} based on our comprehensive market analysis.
-              </p>
-
-              {confidenceBreakdown && (
-                <div className="mt-4 bg-blue-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-blue-800 mb-2">Confidence Explanation</h4>
-                  <p className="text-blue-700 text-sm">{confidenceBreakdown.recommendations?.join('. ')}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Data Sources */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Data Sources & Methodology</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>• Vehicle data from NHTSA VIN decoder and manufacturer specifications</p>
+            <p>• Market analysis from {marketListings.length} similar vehicle listings</p>
+            <p>• Condition assessment from user-provided information</p>
+            <p>• Regional market adjustments for {vehicleInfo.zipCode}</p>
+            <p>• Confidence score: {confidenceResult.score}% based on data quality and completeness</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
