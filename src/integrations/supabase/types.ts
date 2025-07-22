@@ -1841,6 +1841,33 @@ export type Database = {
         }
         Relationships: []
       }
+      market_search_cache: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          results: Json
+          search_params: Json
+          search_query: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          results: Json
+          search_params: Json
+          search_query: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          results?: Json
+          search_params?: Json
+          search_query?: string
+        }
+        Relationships: []
+      }
       model_training_runs: {
         Row: {
           created_at: string | null

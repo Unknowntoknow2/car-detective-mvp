@@ -34,9 +34,8 @@ export async function searchMarketListings(input: MarketSearchInput): Promise<Ma
   const targetZip = zip || zipCode;
 
   try {
-    // For now, we'll use the Supabase edge function approach instead of direct OpenAI
-    // This will call our edge function that uses OpenAI with web browsing
-    const response = await fetch('/api/search-market-listings', {
+    // Call the Supabase edge function for market search
+    const response = await fetch('https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/search-market-listings', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

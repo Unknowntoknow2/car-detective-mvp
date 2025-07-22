@@ -79,6 +79,9 @@ verify_jwt = false
 [functions.fetch_nhtsa_recalls]
 verify_jwt = false
 
+[functions.search-market-listings]
+verify_jwt = false
+
 [edge_runtime]
 policy = "per_worker"
 
