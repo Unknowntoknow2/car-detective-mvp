@@ -3,7 +3,7 @@ import React from 'react';
 import { formatCurrency } from '@/utils/formatters';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { generateConfidenceExplanation } from '@/utils/unifiedConfidenceCalculator';
+import { generateConfidenceExplanation } from '@/utils/valuation/calculateUnifiedConfidence';
 import { Bot } from 'lucide-react';
 
 export interface ValuationSummaryProps {
@@ -23,6 +23,7 @@ export interface ValuationSummaryProps {
   };
   sources?: string[];
   explanation?: string;
+  zipCode?: string;
 }
 
 export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
@@ -31,28 +32,35 @@ export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
   vehicleInfo,
   marketAnchors,
   sources = [],
-  explanation
+  explanation,
+  zipCode
 }) => {
+  const listingsCount = marketAnchors?.listingsCount || 0;
+  
+  // HONEST confidence level assessment
   const confidenceLevel = confidenceScore >= 85 ? 'High' :
                           confidenceScore >= 70 ? 'Good' : 
                           confidenceScore >= 50 ? 'Moderate' : 'Low';
   
   const confidenceColor = confidenceScore >= 85 ? 'text-green-600' :
-                          confidenceScore >= 70 ? 'text-amber-500' : 
-                          confidenceScore >= 50 ? 'text-yellow-600' : 'text-red-500';
+                          confidenceScore >= 70 ? 'text-blue-600' : 
+                          confidenceScore >= 50 ? 'text-amber-600' : 'text-red-600';
 
-  // Generate AI confidence explanation
+  // Generate HONEST confidence explanation
   const confidenceContext = {
     exactVinMatch: sources.includes('exact_vin_match') || marketAnchors?.exactVinMatch || false,
-    marketListings: [],
+    marketListings: Array(listingsCount).fill({}), // Mock array for count
     sources,
     trustScore: marketAnchors?.trustScore || 0.5,
     mileagePenalty: 0.02,
-    zipCode: ''
+    zipCode: zipCode || ''
   };
   
   const confidenceExplanation = explanation || 
     generateConfidenceExplanation(confidenceScore, confidenceContext);
+
+  // HONEST badge logic - only show VIN Match if we actually have market data
+  const showVinMatchBadge = (sources.includes('exact_vin_match') || marketAnchors?.exactVinMatch) && listingsCount > 0;
 
   return (
     <div className="space-y-4">
@@ -69,8 +77,8 @@ export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
               <div 
                 className={cn("h-2 rounded-full transition-all duration-500", 
                   confidenceScore >= 85 ? "bg-green-500" : 
-                  confidenceScore >= 70 ? "bg-amber-500" : 
-                  confidenceScore >= 50 ? "bg-yellow-500" :
+                  confidenceScore >= 70 ? "bg-blue-500" : 
+                  confidenceScore >= 50 ? "bg-amber-500" :
                   "bg-red-500"
                 )}
                 style={{ width: `${confidenceScore}%` }}
@@ -79,9 +87,14 @@ export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
             <span className={cn("text-sm font-medium", confidenceColor)}>
               {confidenceScore}% ({confidenceLevel})
             </span>
-            {(sources.includes('exact_vin_match') || marketAnchors?.exactVinMatch) && (
+            {showVinMatchBadge && (
               <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
                 VIN Match
+              </Badge>
+            )}
+            {listingsCount === 0 && (
+              <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800">
+                Fallback Method
               </Badge>
             )}
           </div>
@@ -115,7 +128,7 @@ export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
         )}
       </div>
       
-      {/* Confidence Explanation based on score level */}
+      {/* HONEST Confidence Explanation */}
       <div className={cn(
         "mt-4 p-3 rounded-md border",
         confidenceScore >= 85 ? "bg-green-50 border-green-200" :
@@ -131,6 +144,7 @@ export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
           "text-red-800"
         )}>
           {confidenceLevel} Confidence Valuation
+          {listingsCount === 0 && " (Fallback Method)"}
         </h4>
         <p className={cn(
           "text-xs",
