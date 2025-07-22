@@ -1,4 +1,3 @@
-
 import { PDFFont, PDFPage, rgb } from 'pdf-lib';
 
 export interface ReportData {
@@ -153,25 +152,7 @@ export interface ValuationResult {
   }>;
 }
 
-export interface MarketListing {
-  id: string;
-  source: string;
-  source_type: string;
-  price: number;
-  year?: number;
-  make?: string;
-  model?: string;
-  trim?: string;
-  vin?: string;
-  mileage?: number;
-  condition?: string;
-  dealer_name?: string;
-  location?: string;
-  listing_url: string;
-  is_cpo: boolean;
-  fetched_at: string;
-  confidence_score: number;
-}
+export { MarketListing } from './marketListing';
 
 export interface AuditLog {
   id: string;

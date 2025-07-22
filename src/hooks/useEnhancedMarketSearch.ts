@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { MarketListing } from '@/types/marketListing';
 
 interface EnhancedMarketSearchProps {
   make?: string;
@@ -11,23 +11,7 @@ interface EnhancedMarketSearchProps {
   exact?: boolean;
 }
 
-export interface MarketListing {
-  id: string;
-  price: number;
-  make: string;
-  model: string;
-  year: number;
-  mileage?: number;
-  condition?: string;
-  source: string;
-  source_type: string;
-  fetched_at: string;
-  vin?: string;
-  zip_code?: string;
-  location?: string;
-}
-
-interface MarketSearchStats {
+export interface MarketSearchStats {
   min: number;
   max: number;
   mean: number;
