@@ -55,18 +55,33 @@ export default function ResultsPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch valuation data by ID
-        const { data: valuation, error: valuationError } = await supabase
-          .from('valuations')
-          .select('*')
-          .eq('id', id)
-          .single();
-
-        if (valuationError) {
-          console.error('Error fetching valuation:', valuationError);
-          toast.error('Failed to load valuation');
-          setLoading(false);
-          return;
+        let valuation;
+        
+        // Check if id is a UUID or VIN
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        
+        if (isUUID) {
+          // Fetch by UUID
+          const { data, error } = await supabase
+            .from('valuations')
+            .select('*')
+            .eq('id', id)
+            .single();
+          
+          if (error) throw error;
+          valuation = data;
+        } else {
+          // Fetch by VIN (most recent valuation for this VIN)
+          const { data, error } = await supabase
+            .from('valuations')
+            .select('*')
+            .eq('vin', id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+          
+          if (error) throw error;
+          valuation = data;
         }
 
         if (!valuation) {
@@ -82,7 +97,7 @@ export default function ResultsPage() {
         const { data: followUp, error: followUpError } = await supabase
           .from('follow_up_data')
           .select('*')
-          .eq('valuation_id', id)
+          .eq('valuation_id', valuation.id)
           .single();
 
         if (followUpError && followUpError.message.indexOf('No rows found') === -1) {
