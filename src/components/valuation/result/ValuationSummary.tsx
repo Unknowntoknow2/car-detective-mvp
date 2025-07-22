@@ -112,7 +112,12 @@ export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
             )}
             {listingsCount === 0 && (
               <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800">
-                Fallback Method
+                Fallback Method - Max 60%
+              </Badge>
+            )}
+            {listingsCount > 0 && listingsCount < 3 && (
+              <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+                Limited Data - Max 75%
               </Badge>
             )}
           </div>
@@ -172,6 +177,17 @@ export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
           "text-red-700"
         )}>
           {confidenceExplanation}
+          {listingsCount === 0 && (
+            <div className="mt-2 text-xs text-amber-700">
+              ⚠️ <strong>Confidence limited to 60%</strong> due to lack of real market validation. 
+              Valuation based on fallback MSRP model.
+            </div>
+          )}
+          {listingsCount > 0 && listingsCount < 3 && (
+            <div className="mt-2 text-xs text-yellow-700">
+              ⚠️ <strong>Confidence limited to 75%</strong> due to limited market data ({listingsCount} listing{listingsCount > 1 ? 's' : ''}).
+            </div>
+          )}
         </p>
       </div>
       
