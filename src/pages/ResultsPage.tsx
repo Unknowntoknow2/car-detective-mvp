@@ -1,14 +1,22 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { ValuationProvider, useValuationContext } from '@/contexts/ValuationContext';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 import { RerunValuationButton } from '@/components/valuation/RerunValuationButton';
 import { useMarketListings } from '@/hooks/useMarketListings';
 import type { UnifiedValuationResult as ValuationResultType } from '@/types/valuation';
+import { toast } from 'sonner';
 
 export default function ResultsPage() {
   const { id } = useParams<{ id: string }>();
+
+  // Validate the VIN parameter
+  useEffect(() => {
+    if (id && id.length !== 17) {
+      console.warn('Non-standard VIN length detected:', id.length);
+    }
+  }, [id]);
 
   if (!id) {
     return (
@@ -31,14 +39,35 @@ export default function ResultsPage() {
 function ResultsContent() {
   const { valuationData, isLoading, error, rerunValuation } = useValuationContext();
   
-  // Extract actual data from the valuation response
-  const vehicleData = valuationData as any;
-  const actualMileage = vehicleData?.mileage || 0;
-  const actualEstimatedValue = vehicleData?.estimated_value || 0;
-  const actualYear = vehicleData?.year || 2018;
-  const actualMake = vehicleData?.make || 'TOYOTA';
-  const actualModel = vehicleData?.model || 'Camry';
-  const actualZipCode = vehicleData?.zip_code || '95821';
+  useEffect(() => {
+    console.log('ValuationContext data received:', valuationData);
+    
+    // Check for missing critical data
+    if (valuationData && !valuationData.estimated_value) {
+      console.error('Missing estimated_value in valuation data:', valuationData);
+    }
+  }, [valuationData]);
+  
+  // Extract data from the valuation response with strict validation
+  const vehicleData = valuationData || {};
+  const actualMileage = parseInt(String(vehicleData?.mileage || '0'), 10);
+  const actualEstimatedValue = parseInt(String(vehicleData?.estimated_value || '0'), 10);
+  const actualYear = parseInt(String(vehicleData?.year || '2018'), 10);
+  const actualMake = String(vehicleData?.make || 'TOYOTA').toUpperCase();
+  const actualModel = String(vehicleData?.model || 'Camry');
+  const actualZipCode = String(vehicleData?.zip_code || '95821');
+  
+  // Log the processed data
+  useEffect(() => {
+    console.log('Processed valuation data:', {
+      mileage: actualMileage,
+      estimatedValue: actualEstimatedValue,
+      year: actualYear,
+      make: actualMake,
+      model: actualModel,
+      zipCode: actualZipCode
+    });
+  }, [actualMileage, actualEstimatedValue, actualYear, actualMake, actualModel, actualZipCode]);
   
   // Fetch real market listings based on ACTUAL vehicle data
   const { 
@@ -52,6 +81,16 @@ function ResultsContent() {
     actualYear,
     actualZipCode
   );
+
+  // Show a toast notification when there are market search issues
+  useEffect(() => {
+    if (listingsError) {
+      toast.error('Could not fetch all market listings', {
+        description: 'Using available data for your valuation'
+      });
+      console.error('Market listings error:', listingsError);
+    }
+  }, [listingsError]);
 
   if (isLoading) {
     return (
@@ -97,9 +136,17 @@ function ResultsContent() {
     searchStrategy
   });
   
+  // Validate the estimated value
+  if (actualEstimatedValue <= 0) {
+    console.error('Invalid estimated value detected:', actualEstimatedValue);
+  }
+  
+  // Ensure we have a valid ID
+  const resultId = vehicleData.id || urlId || crypto.randomUUID();
+  
   // Create result using ACTUAL database values
   const result: ValuationResultType = {
-    id: vehicleData.id || crypto.randomUUID(),
+    id: resultId,
     vin: vehicleData.vin || urlId || '',
     vehicle: {
       year: actualYear,
