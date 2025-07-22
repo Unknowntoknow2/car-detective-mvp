@@ -26,3 +26,14 @@ export interface MarketListing {
   photos?: string[];
   link?: string;
 }
+
+export interface MarketPriceEstimate {
+  estimatedPrice: number | null;
+  average: number | null;
+  median: number | null;
+  min: number | null;
+  max: number | null;
+  stdDev: number | null;
+  confidence: number; // 0–100 scale
+  usedListings: MarketListing[];
+}
