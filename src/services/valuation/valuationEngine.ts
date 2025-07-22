@@ -3,6 +3,7 @@ import { calculateConditionAdjustment } from '@/utils/valuation/conditionAdjustm
 import { calculateTitleAdjustment } from '@/utils/valuation/titleAdjustment';
 import { getMarketMultiplier } from '@/utils/valuation/marketData';
 import { MarketDataService } from './marketDataService';
+import { searchMarketListings } from '@/agents/marketSearchAgent';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ValuationEngineInput {
@@ -45,8 +46,20 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
   console.log('🚗 Starting unified valuation calculation for:', input.vin);
 
   try {
-    // 1. Fetch real market data
-    console.log('📊 Fetching market data...');
+    // 1. Fetch live market listings using OpenAI agent
+    console.log('🔍 Searching live market listings...');
+    const marketListings = await searchMarketListings({
+      make: input.decodedVehicle.make,
+      model: input.decodedVehicle.model,
+      year: input.decodedVehicle.year,
+      trim: input.decodedVehicle.trim,
+      mileage: input.mileage,
+      condition: input.condition,
+      zip: input.zipCode,
+    });
+
+    // 2. Fetch traditional market data as fallback
+    console.log('📊 Fetching traditional market data...');
     const marketData = await MarketDataService.fetchMarketData({
       make: input.decodedVehicle.make,
       model: input.decodedVehicle.model,
@@ -56,16 +69,34 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
       condition: input.condition
     });
 
-    // 2. Calculate base value from market data
-    let baseValue = marketData.averagePrice;
+    // 3. Calculate base value from live listings or fallback to market data
+    let baseValue = 0;
+    let listingsSource = 'fallback';
     
-    // If no market data, use fallback estimation
+    if (marketListings.length > 0) {
+      // Calculate average from live listings
+      const validPrices = marketListings.filter(l => l.price > 0).map(l => l.price);
+      if (validPrices.length > 0) {
+        baseValue = Math.round(validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length);
+        listingsSource = 'live_listings';
+        console.log(`✅ ${validPrices.length} live listings found, average: $${baseValue}`);
+      }
+    }
+    
+    // Fallback to traditional market data
+    if (baseValue === 0) {
+      baseValue = marketData.averagePrice;
+      listingsSource = 'market_data';
+    }
+    
+    // Final fallback estimation
     if (baseValue === 0) {
       console.log('⚠️ No market data available, using fallback estimation');
       baseValue = estimateBaseValue(input.decodedVehicle);
+      listingsSource = 'estimation';
     }
 
-    console.log(`💰 Base value: $${baseValue}`);
+    console.log(`💰 Base value: $${baseValue} (source: ${listingsSource})`);
 
     // 3. Calculate adjustments
     const mileagePenalty = calculateMileageAdjustment(input.mileage, input.decodedVehicle.year);
@@ -86,14 +117,18 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
       (baseValue + conditionDelta + titlePenalty + mileagePenalty) * zipMultiplier
     );
 
-    // 5. Calculate confidence score
+    // 5. Calculate confidence score based on live listings
     let confidenceScore = marketData.confidenceScore;
     
-    // Adjust confidence based on data quality
-    if (marketData.listings.length === 0) {
-      confidenceScore = Math.max(confidenceScore, 45); // Minimum for no market data
+    // Boost confidence significantly for live listings
+    if (marketListings.length === 0 && marketData.listings.length === 0) {
+      confidenceScore = 45; // Minimum for no data
+    } else if (marketListings.length >= 5) {
+      confidenceScore = Math.min(85, confidenceScore + 25); // Major boost for live data
+    } else if (marketListings.length > 0) {
+      confidenceScore = Math.min(75, confidenceScore + 15); // Good boost for some live data
     } else if (marketData.listings.length >= 5) {
-      confidenceScore = Math.min(confidenceScore + 10, 90); // Boost for good data
+      confidenceScore = Math.min(confidenceScore + 10, 70); // Moderate boost for traditional data
     }
 
     // 6. Calculate price range
@@ -107,7 +142,7 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
       {
         factor: 'Market Base Value',
         impact: baseValue,
-        description: `Base market value from ${marketData.listings.length} listings`
+        description: `Base market value from ${marketListings.length > 0 ? marketListings.length + ' live' : marketData.listings.length + ' traditional'} listings`
       },
       {
         factor: 'Mileage Adjustment',
@@ -134,20 +169,34 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
     // 8. Generate AI explanation
     const aiExplanation = generateAIExplanation(input, marketData, finalValue, confidenceScore);
 
-    // 9. Transform market listings to expected format
-    const transformedListings = marketData.listings.map(listing => ({
-      id: listing.id,
-      price: listing.price,
-      mileage: listing.mileage,
-      location: listing.location,
-      url: listing.listing_url,
-      source: listing.source,
-      dealer: listing.dealer_name,
-      condition: listing.condition,
-      is_cpo: listing.is_cpo,
-      confidence_score: listing.confidence_score,
-      fetched_at: listing.fetched_at
-    }));
+    // 9. Transform listings to expected format (prioritize live listings)
+    const transformedListings = marketListings.length > 0
+      ? marketListings.map((listing, index) => ({
+          id: `live_${index}`,
+          price: listing.price,
+          mileage: listing.mileage,
+          location: listing.location || listing.zip,
+          url: listing.link,
+          source: listing.source,
+          dealer: listing.source,
+          condition: listing.condition,
+          is_cpo: false,
+          confidence_score: 85, // High confidence for live data
+          fetched_at: new Date().toISOString()
+        }))
+      : marketData.listings.map(listing => ({
+          id: listing.id,
+          price: listing.price,
+          mileage: listing.mileage,
+          location: listing.location,
+          url: listing.listing_url,
+          source: listing.source,
+          dealer: listing.dealer_name,
+          condition: listing.condition,
+          is_cpo: listing.is_cpo,
+          confidence_score: listing.confidence_score,
+          fetched_at: listing.fetched_at
+        }));
 
     console.log(`✅ Valuation complete: $${finalValue} (confidence: ${confidenceScore}%)`);
 
@@ -235,11 +284,17 @@ function generateAIExplanation(
   
   let explanation = `Your ${vehicleDescription} has an estimated market value of $${finalValue.toLocaleString()}. `;
   
-  if (marketData.listings.length > 0) {
-    explanation += `This valuation is based on ${marketData.listings.length} similar vehicles currently listed for sale, `;
+  // Check if we have live listings data in the global scope
+  const hasLiveListings = typeof window !== 'undefined' && (window as any).currentMarketListings?.length > 0;
+  
+  if (hasLiveListings) {
+    const liveCount = (window as any).currentMarketListings.length;
+    explanation += `✅ This valuation is based on ${liveCount} live listings found through real-time market search. `;
+  } else if (marketData.listings.length > 0) {
+    explanation += `This valuation is based on ${marketData.listings.length} similar vehicles from our database, `;
     explanation += `with an average price of $${marketData.averagePrice.toLocaleString()}. `;
   } else {
-    explanation += `This valuation is based on estimated market data as no exact matches were found. `;
+    explanation += `⚠️ No live listings found. This valuation is based on estimated market data. `;
   }
   
   explanation += `The ${confidenceScore}% confidence score reflects the quality and quantity of available market data. `;
