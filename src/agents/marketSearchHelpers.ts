@@ -1,3 +1,5 @@
+import { MarketListing } from '@/types/marketListing';
+
 // Helper functions for listing processing and deduplication
 
 // Remove duplicate listings based on price, mileage, and source similarity

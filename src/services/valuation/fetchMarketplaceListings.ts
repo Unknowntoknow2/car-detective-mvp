@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { MarketListing } from "@/types/valuation";
+import type { MarketListing } from "@/types/marketListing";
 import { toast } from "sonner";
 
 /**

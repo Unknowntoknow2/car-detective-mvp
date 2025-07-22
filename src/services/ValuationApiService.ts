@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
-import type { ValuationResult, MarketListing, AuditLog } from '@/types/valuation';
+import type { ValuationResult, AuditLog } from '@/types/valuation';
+import type { MarketListing } from '@/types/marketListing';
 
 export interface ValuationRequest {
   vin?: string;
