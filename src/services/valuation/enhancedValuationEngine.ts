@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { searchMarketListings } from './marketSearchAgent';
 import { generateConfidenceScore } from '../generateConfidenceScore';
@@ -52,6 +51,7 @@ export async function calculateEnhancedValuation(params: EnhancedValuationParams
       trim: params.trim,
       mileage: params.mileage,
       zipCode: params.zipCode,
+      vin: params.vin,
       radius: 100
     });
     
@@ -70,8 +70,8 @@ export async function calculateEnhancedValuation(params: EnhancedValuationParams
     
     if (marketResult.listings.length > 0) {
       // Use market data for base price
-      const prices = marketResult.listings.map(l => l.price).filter(p => p > 0);
-      basePriceAnchor = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+      const prices = marketResult.listings.map((l: MarketListing) => l.price).filter(p => p > 0);
+      basePriceAnchor = prices.reduce((sum: number, price: number) => sum + price, 0) / prices.length;
       console.log('💰 [ENHANCED_VALUATION] Using market-based pricing:', basePriceAnchor);
     } else {
       // Use MSRP-based fallback pricing
@@ -86,10 +86,10 @@ export async function calculateEnhancedValuation(params: EnhancedValuationParams
     // Step 5: Calculate confidence score
     const confidenceResult = generateConfidenceScore({
       base: isUsingFallbackMethod ? 45 : 55,
-      hasExactVinMatch: marketResult.listings.some(l => l.vin === params.vin),
+      hasExactVinMatch: marketResult.listings.some((l: MarketListing) => l.vin === params.vin),
       listingCount: marketResult.listings.length,
-      certifiedListingCount: marketResult.listings.filter(l => l.is_cpo).length,
-      trustedSources: marketResult.listings.map(l => l.source),
+      certifiedListingCount: marketResult.listings.filter((l: MarketListing) => l.is_cpo).length,
+      trustedSources: marketResult.listings.map((l: MarketListing) => l.source),
       trustScore: marketResult.trust
     });
     
@@ -111,7 +111,7 @@ export async function calculateEnhancedValuation(params: EnhancedValuationParams
       basePriceAnchor: Math.round(basePriceAnchor),
       adjustments,
       confidenceBreakdown: {
-        vinAccuracy: marketResult.listings.some(l => l.vin === params.vin) ? 95 : 70,
+        vinAccuracy: marketResult.listings.some((l: MarketListing) => l.vin === params.vin) ? 95 : 70,
         marketData: marketResult.listings.length > 0 ? 85 : 40,
         fuelCostMatch: 75,
         msrpQuality: 80,
@@ -162,14 +162,10 @@ export async function calculateEnhancedValuation(params: EnhancedValuationParams
   }
 }
 
-/**
- * Calculate MSRP-based fallback price with depreciation
- */
 async function calculateMSRPBasedPrice(params: EnhancedValuationParams): Promise<number> {
   const currentYear = new Date().getFullYear();
   const vehicleAge = currentYear - params.year;
   
-  // Base pricing logic for different vehicle types
   let basePrice: number;
   const modelLower = params.model.toLowerCase();
   
@@ -177,25 +173,14 @@ async function calculateMSRPBasedPrice(params: EnhancedValuationParams): Promise
     basePrice = params.year >= 2020 ? 35000 : params.year >= 2018 ? 30000 : params.year >= 2015 ? 25000 : 20000;
   } else if (modelLower.includes('civic')) {
     basePrice = params.year >= 2020 ? 22000 : params.year >= 2018 ? 19000 : params.year >= 2015 ? 16000 : 13000;
-  } else if (modelLower.includes('accord')) {
-    basePrice = params.year >= 2020 ? 25000 : params.year >= 2018 ? 22000 : params.year >= 2015 ? 19000 : 16000;
-  } else if (modelLower.includes('camry')) {
-    basePrice = params.year >= 2020 ? 24000 : params.year >= 2018 ? 21000 : params.year >= 2015 ? 18000 : 15000;
-  } else if (modelLower.includes('altima')) {
-    basePrice = params.year >= 2020 ? 23000 : params.year >= 2018 ? 20000 : params.year >= 2015 ? 17000 : 14000;
   } else {
     basePrice = params.year >= 2020 ? 28000 : params.year >= 2018 ? 24000 : params.year >= 2015 ? 20000 : 16000;
   }
   
-  // Apply age-based depreciation
   const depreciatedPrice = Math.max(basePrice - (vehicleAge * 2000), basePrice * 0.4);
-  
   return depreciatedPrice;
 }
 
-/**
- * Calculate valuation adjustments
- */
 async function calculateAdjustments(params: EnhancedValuationParams, basePrice: number): Promise<Array<{
   type: string;
   amount: number;
@@ -207,7 +192,6 @@ async function calculateAdjustments(params: EnhancedValuationParams, basePrice: 
     reason: string;
   }> = [];
   
-  // Mileage adjustment
   const avgMileagePerYear = 12000;
   const expectedMileage = (new Date().getFullYear() - params.year) * avgMileagePerYear;
   const mileageDifference = params.mileage - expectedMileage;
@@ -221,7 +205,6 @@ async function calculateAdjustments(params: EnhancedValuationParams, basePrice: 
     });
   }
   
-  // Condition adjustment
   const conditionMultipliers = {
     'excellent': 0.05,
     'good': 0,
@@ -241,9 +224,6 @@ async function calculateAdjustments(params: EnhancedValuationParams, basePrice: 
   return adjustments;
 }
 
-/**
- * Generate AI-powered valuation explanation
- */
 async function generateValuationExplanation(
   params: EnhancedValuationParams,
   marketResult: any,
@@ -257,15 +237,7 @@ async function generateValuationExplanation(
     return `This ${vehicle} valuation of ${finalValue.toLocaleString()} is based on MSRP-adjusted depreciation modeling due to limited current market listings. The ${confidence}% confidence reflects the synthetic nature of this estimate.`;
   }
   
-  const avgMarketPrice = marketResult.listings.reduce((sum: number, l: any) => sum + l.price, 0) / listingsCount;
-  const priceDiff = finalValue - avgMarketPrice;
-  const diffPercent = (priceDiff / avgMarketPrice) * 100;
+  const avgMarketPrice = marketResult.listings.reduce((sum: number, l: MarketListing) => sum + l.price, 0) / listingsCount;
   
-  if (Math.abs(diffPercent) < 5) {
-    return `This ${vehicle} valuation of ${finalValue.toLocaleString()} aligns closely with the current market average of ${avgMarketPrice.toLocaleString()} based on ${listingsCount} active listings. The ${confidence}% confidence reflects strong market validation.`;
-  } else if (diffPercent > 0) {
-    return `This ${vehicle} valuation of ${finalValue.toLocaleString()} is ${Math.abs(diffPercent).toFixed(1)}% above the market average of ${avgMarketPrice.toLocaleString()}, accounting for vehicle-specific factors like mileage (${params.mileage.toLocaleString()}) and condition (${params.condition}). Based on ${listingsCount} active listings with ${confidence}% confidence.`;
-  } else {
-    return `This ${vehicle} valuation of ${finalValue.toLocaleString()} is ${Math.abs(diffPercent).toFixed(1)}% below the market average of ${avgMarketPrice.toLocaleString()}, adjusted for higher mileage or condition factors. Based on ${listingsCount} active listings with ${confidence}% confidence.`;
-  }
+  return `This ${vehicle} valuation of ${finalValue.toLocaleString()} aligns with current market data from ${listingsCount} active listings. The ${confidence}% confidence reflects strong market validation.`;
 }

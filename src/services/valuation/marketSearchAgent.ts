@@ -11,6 +11,7 @@ export interface MarketSearchParams {
   mileage?: number;
   zipCode: string;
   radius?: number;
+  vin?: string;
 }
 
 export interface MarketSearchResult {

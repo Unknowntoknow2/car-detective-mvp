@@ -1,132 +1,57 @@
-
 import React from 'react';
-import { MarketListing } from '@/types/marketListing';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, ExternalLink, MapPin, Calendar } from 'lucide-react';
-import { formatCurrency } from '@/utils/formatters';
+import { CheckCircle, AlertTriangle, Database } from 'lucide-react';
 
 interface MarketDataStatusProps {
-  marketListings: MarketListing[];
-  confidenceScore: number;
-  zipCode?: string;
+  totalListings: number;
+  searchMethod: 'openai' | 'database' | 'fallback';
+  trustScore: number;
 }
 
-export const MarketDataStatus: React.FC<MarketDataStatusProps> = ({
-  marketListings,
-  confidenceScore,
-  zipCode
-}) => {
-  const hasListings = marketListings.length > 0;
-  const avgPrice = hasListings ? marketListings.reduce((sum, l) => sum + l.price, 0) / marketListings.length : 0;
-  const priceRange = hasListings ? {
-    min: Math.min(...marketListings.map(l => l.price)),
-    max: Math.max(...marketListings.map(l => l.price))
-  } : null;
+export function MarketDataStatus({ totalListings, searchMethod, trustScore }: MarketDataStatusProps) {
+  const getStatusIcon = () => {
+    if (totalListings > 3) return <CheckCircle className="h-5 w-5 text-green-600" />;
+    if (totalListings > 0) return <Database className="h-5 w-5 text-yellow-600" />;
+    return <AlertTriangle className="h-5 w-5 text-orange-600" />;
+  };
 
-  if (!hasListings) {
-    return (
-      <Card className="border-amber-200 bg-amber-50">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2 text-amber-800">
-            <AlertTriangle className="w-4 h-4" />
-            Market Data Status
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-amber-100 text-amber-800">
-                0 Listings Found
-              </Badge>
-              <span className="text-sm text-amber-700">
-                No current market listings found for this vehicle
-              </span>
-            </div>
-            
-            <div className="p-3 bg-white border border-amber-200 rounded">
-              <h4 className="font-medium text-sm text-amber-800 mb-2">Search Parameters</h4>
-              <div className="space-y-1 text-xs text-amber-700">
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  <span>Within 100 miles of {zipCode || 'your location'}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  <span>Last 30 days of listings</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="text-xs text-amber-600">
-              <strong>Impact:</strong> Valuation uses MSRP-adjusted model with industry-standard depreciation curves. 
-              Confidence score reduced accordingly.
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const getStatusMessage = () => {
+    if (totalListings > 3) return `Found ${totalListings} current market listings`;
+    if (totalListings > 0) return `Found ${totalListings} market listings (limited data)`;
+    return 'No current market listings found - using fallback pricing';
+  };
+
+  const getSearchMethodLabel = () => {
+    switch (searchMethod) {
+      case 'openai': return 'AI Web Search';
+      case 'database': return 'Database Search';
+      case 'fallback': return 'Fallback Method';
+      default: return 'Unknown';
+    }
+  };
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          Market Listings ({marketListings.length})
-          <Badge variant="default" className="text-xs">Live Data</Badge>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          {getStatusIcon()}
+          Market Data Status
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {/* Price Summary */}
-          <div className="grid grid-cols-3 gap-4 p-3 bg-gray-50 rounded">
-            <div className="text-center">
-              <p className="text-xs text-gray-500">Average</p>
-              <p className="font-medium">{formatCurrency(avgPrice)}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-gray-500">Range Low</p>
-              <p className="font-medium">{priceRange ? formatCurrency(priceRange.min) : '-'}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-gray-500">Range High</p>
-              <p className="font-medium">{priceRange ? formatCurrency(priceRange.max) : '-'}</p>
-            </div>
-          </div>
-
-          {/* Listing Preview */}
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {marketListings.slice(0, 3).map((listing) => (
-              <div key={listing.id} className="flex justify-between items-center p-2 border rounded">
-                <div>
-                  <p className="font-medium text-sm">{formatCurrency(listing.price)}</p>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    {listing.mileage && <span>{listing.mileage.toLocaleString()} mi</span>}
-                    {listing.dealer_name && <span>{listing.dealer_name}</span>}
-                    {listing.location && <span>{listing.location}</span>}
-                  </div>
-                </div>
-                {listing.listing_url && (
-                  <a 
-                    href={listing.listing_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                )}
-              </div>
-            ))}
-            
-            {marketListings.length > 3 && (
-              <p className="text-xs text-gray-500 text-center">
-                +{marketListings.length - 3} more listings included in analysis
-              </p>
-            )}
-          </div>
+      <CardContent className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span>{getStatusMessage()}</span>
+          <Badge variant={totalListings > 0 ? 'default' : 'secondary'}>
+            {getSearchMethodLabel()}
+          </Badge>
+        </div>
+        
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>Data Trust Score</span>
+          <span className="font-medium">{Math.round(trustScore * 100)}%</span>
         </div>
       </CardContent>
     </Card>
   );
-};
+}
