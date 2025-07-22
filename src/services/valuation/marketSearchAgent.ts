@@ -132,29 +132,80 @@ export async function searchMarketListings(input: MarketSearchInput): Promise<Ma
       allListings.push(...newListings);
     }
     
-    // Step 3: Try to fetch live listings via edge function if we have few results
+    // Step 3: Try to fetch live listings via OpenAI web search if we have few results
     if (allListings.length < 5) {
-      console.log('🌐 Attempting to fetch live listings...');
+      console.log('🌐 Attempting to fetch live OpenAI listings...');
       try {
         const { data: liveData, error: liveError } = await supabase.functions.invoke(
-          'enhanced-market-search',
+          'openai-market-search',
           {
             body: {
               make: input.make,
               model: input.model,
               year: input.year,
-              zip: input.zipCode,
-              exact: false
+              trim: input.trim,
+              zip: input.zipCode || '90210',
+              mileage: input.mileage,
+              radius: input.radius || 100
             }
           }
         );
         
-        if (!liveError && liveData?.data && Array.isArray(liveData.data)) {
-          console.log(`✅ Found ${liveData.data.length} live listings`);
-          allListings.push(...liveData.data);
+        if (!liveError && liveData?.success && liveData?.data && Array.isArray(liveData.data)) {
+          console.log(`✅ Found ${liveData.data.length} live OpenAI listings`);
+          console.log('🔍 OpenAI Search Results:', {
+            sources: liveData.meta?.sources || [],
+            confidence: liveData.meta?.confidence || 0,
+            rawResponse: liveData.meta?.openAIRawResponse ? 'Available' : 'Not Available'
+          });
+          
+          // Transform OpenAI listings to match our MarketListing interface
+          const transformedListings = liveData.data.map((listing: any) => ({
+            id: listing.id || crypto.randomUUID(),
+            price: listing.price,
+            mileage: listing.mileage,
+            year: listing.year,
+            make: listing.make,
+            model: listing.model,
+            trim: listing.trim,
+            condition: listing.condition || 'used',
+            vin: listing.vin,
+            source: listing.source,
+            link: listing.link,
+            dealerName: listing.dealerName,
+            location: listing.location,
+            zipCode: listing.zipCode || input.zipCode,
+            sourceType: 'live',
+            isCpo: listing.isCpo || false,
+            confidenceScore: listing.confidenceScore || 75,
+            fetchedAt: listing.fetchedAt || new Date().toISOString()
+          }));
+          
+          allListings.push(...transformedListings);
+        } else {
+          console.warn('⚠️ OpenAI live listings fetch failed:', liveError);
+          
+          // Fallback to enhanced-market-search if OpenAI fails
+          const { data: fallbackData, error: fallbackError } = await supabase.functions.invoke(
+            'enhanced-market-search',
+            {
+              body: {
+                make: input.make,
+                model: input.model,
+                year: input.year,
+                zip: input.zipCode,
+                exact: false
+              }
+            }
+          );
+          
+          if (!fallbackError && fallbackData?.data && Array.isArray(fallbackData.data)) {
+            console.log(`✅ Found ${fallbackData.data.length} fallback listings`);
+            allListings.push(...fallbackData.data);
+          }
         }
-      } catch (liveError) {
-        console.warn('⚠️ Live listings fetch failed:', liveError);
+      } catch (searchError) {
+        console.warn('⚠️ Live listings search failed:', searchError);
       }
     }
     
