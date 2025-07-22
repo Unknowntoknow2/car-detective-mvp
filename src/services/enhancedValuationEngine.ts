@@ -4,6 +4,7 @@ import { MarketListing, ValuationInput } from '@/types/valuation';
 import { calculateUnifiedConfidence, generateConfidenceExplanation } from '@/utils/valuation/calculateUnifiedConfidence';
 import { AdjustmentEngine } from '@/services/adjustmentEngine';
 import { ValidatedAdjustment } from '@/types/adjustments';
+import { searchMarketListings } from '@/agents/marketSearchAgent';
 
 export interface EnhancedValuationResult {
   estimatedValue: number;
@@ -44,40 +45,22 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
     vin: input.vin
   });
 
-  // Step 1: Enhanced market listings search with comprehensive filtering
-  console.log('🔍 Enhanced Market Search Input:', {
-    make: input.make,
-    model: input.model,
+  // Step 1: Use UNIFIED market search agent (live search → database fallback)
+  console.log('🔍 Using Unified Market Search Agent for listings...');
+  
+  const realListings = await searchMarketListings({
+    make: input.make || '',
+    model: input.model || '',
     year: input.year,
-    zipCode: input.zipCode,
-    trim: input.trim || 'any'
+    trim: input.trim,
+    zipCode: input.zipCode
   });
 
-  // Build comprehensive query with trim fallback logic
-  let query = supabase
-    .from('enhanced_market_listings')
-    .select('*')
-    .ilike('make', input.make || '')
-    .ilike('model', input.model || '')
-    .eq('year', input.year)
-    .eq('listing_status', 'active')
-    .gt('price', 1000)
-    .gte('updated_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()) // Last 30 days
-    .order('updated_at', { ascending: false });
-
-  // Apply regional filtering if zipCode provided
-  if (input.zipCode) {
-    query = query.or(`zip_code.eq.${input.zipCode},geo_distance_miles.lte.100,geo_distance_miles.is.null`);
-  }
-
-  const { data: allListings, error: listingsError } = await query.limit(50);
-
-  if (listingsError) {
-    console.error('❌ Error fetching market listings:', listingsError);
-  }
-
-  let realListings = allListings || [];
-  console.log(`📊 Found ${realListings.length} total listings before trim filtering`);
+  console.log(`📊 Unified agent returned ${realListings.length} listings`);
+  
+  // Track listing source for transparency
+  const listingSource = realListings.length > 0 && realListings[0].source_type === 'live' ? 'live' : 'database';
+  console.log(`📡 Listing source: ${listingSource}`);
 
   // Enhanced trim matching with fallback logic
   let trimMatchedListings = realListings;
@@ -114,19 +97,19 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
     }
   }
 
-  realListings = trimMatchedListings.slice(0, 20); // Limit final results
-  console.log(`📊 Final filtered listings: ${realListings.length}`);
+  const finalListings = trimMatchedListings.slice(0, 20); // Limit final results
+  console.log(`📊 Final filtered listings: ${finalListings.length}`);
 
-  // Step 2: Calculate market intelligence using the database function with enhanced logging
+  // Step 2: Calculate market intelligence 
   let marketIntelligence = {
     medianPrice: 0,
     averagePrice: 0,
-    sampleSize: realListings.length,
+    sampleSize: finalListings.length,
     inventoryLevel: 'low' as const,
     demandIndicator: 0.5,
     debugInfo: {
-      totalFound: allListings?.length || 0,
-      afterTrimFilter: realListings.length,
+      totalFound: realListings.length,
+      afterTrimFilter: finalListings.length,
       trimFallbackUsed,
       filters: {
         make: input.make,
