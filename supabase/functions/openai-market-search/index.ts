@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -17,6 +18,8 @@ interface MarketSearchParams {
 }
 
 interface MarketListing {
+  id: string;
+  source: string;
   price: number;
   mileage?: number;
   year?: number;
@@ -24,14 +27,11 @@ interface MarketListing {
   model?: string;
   trim?: string;
   vin?: string;
-  zip?: string;
-  source: string;
-  link?: string;
   dealerName?: string;
-  condition?: string;
-  titleStatus?: string;
-  isCpo?: boolean;
   location?: string;
+  condition?: string;
+  link?: string;
+  isCpo?: boolean;
   confidenceScore?: number;
 }
 
@@ -65,6 +65,7 @@ For each listing you find, extract:
 9. Source marketplace name
 
 Return the results as a JSON array of objects with these exact field names:
+- id (string - generate unique ID)
 - price (number)
 - mileage (number, if available)
 - year (number)
@@ -78,12 +79,13 @@ Return the results as a JSON array of objects with these exact field names:
 - link (string)
 - source (string - marketplace name)
 - isCpo (boolean - true if certified pre-owned)
+- confidenceScore (number - 1-100 based on data quality)
 
 Find at least 3-5 real listings if possible. Only include actual, current listings with real prices, not estimated values or placeholder data.
 
 Search for: ${params.year} ${params.make} ${params.model}${params.trim ? ` ${params.trim}` : ''} near ${params.zip}`;
 
-    console.log('🌐 Sending request to OpenAI with web browsing...');
+    console.log('🌐 Sending request to OpenAI...');
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -96,7 +98,7 @@ Search for: ${params.year} ${params.make} ${params.model}${params.trim ? ` ${par
         messages: [
           {
             role: 'system',
-            content: 'You are a car market research assistant with web browsing capabilities. Search for real automotive listings and extract structured data. Always return valid JSON arrays with the requested fields.'
+            content: 'You are a car market research assistant. Search for real automotive listings and extract structured data. Always return valid JSON arrays with the requested fields. Focus on finding actual current listings with real prices and dealer information.'
           },
           {
             role: 'user',
@@ -109,7 +111,7 @@ Search for: ${params.year} ${params.make} ${params.model}${params.trim ? ` ${par
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -125,7 +127,7 @@ Search for: ${params.year} ${params.make} ${params.model}${params.trim ? ` ${par
       if (jsonMatch) {
         listings = JSON.parse(jsonMatch[0]);
       } else {
-        // If no array found, try to parse the entire content
+        // Try to parse the entire content
         listings = JSON.parse(content);
       }
     } catch (parseError) {
@@ -142,15 +144,13 @@ Search for: ${params.year} ${params.make} ${params.model}${params.trim ? ` ${par
         listing.price && 
         listing.price > 1000 && 
         listing.price < 200000 &&
-        listing.source &&
-        listing.make &&
-        listing.model
+        listing.source
       )
       .map(listing => ({
         ...listing,
-        id: crypto.randomUUID(),
+        id: listing.id || crypto.randomUUID(),
         zipCode: params.zip,
-        confidenceScore: 75, // OpenAI live search confidence
+        confidenceScore: listing.confidenceScore || 75,
         fetchedAt: new Date().toISOString(),
         sourceType: 'live'
       }));
@@ -172,7 +172,6 @@ Search for: ${params.year} ${params.make} ${params.model}${params.trim ? ` ${par
         data: validatedListings,
         meta: {
           searchParams: params,
-          openAIRawResponse: content,
           totalFound: listings.length,
           validatedCount: validatedListings.length,
           sources: [...new Set(validatedListings.map(l => l.source))],

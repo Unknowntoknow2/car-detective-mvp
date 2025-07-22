@@ -46,3 +46,9 @@ port = 8000
 
 [functions.enhanced-market-search]
 verify_jwt = false
+
+[functions.openai-market-search]
+verify_jwt = false
+
+[functions.openai-web-search]
+verify_jwt = false
