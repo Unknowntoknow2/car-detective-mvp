@@ -1,3 +1,4 @@
+
 // Unified Confidence Score Calculator - Centralized logic for 92-95% accuracy
 import { MarketListing, ValuationInput } from "@/types/valuation";
 
@@ -31,6 +32,7 @@ interface ConfidenceResult {
 
 /**
  * Calculate unified confidence score targeting 92-95% when data is excellent
+ * BUT capping at 60% when no market listings exist
  */
 export function calculateUnifiedConfidence(context: ConfidenceContext): ConfidenceResult {
   let confidence = 45; // Base confidence
@@ -45,18 +47,32 @@ export function calculateUnifiedConfidence(context: ConfidenceContext): Confiden
   };
 
   const reasons: string[] = [];
+  const marketListingCount = context.marketListings.length;
 
-  // 🎯 EXACT VIN MATCH - Highest Priority (+25-30 points)
-  if (context.exactVinMatch) {
+  // 🚨 CRITICAL FIX: If no market listings, cap confidence significantly
+  if (marketListingCount === 0) {
+    console.log('⚠️ NO MARKET LISTINGS - Applying significant confidence penalty');
+    breakdown.penalties = -15; // Major penalty for no market data
+    confidence -= 15;
+    reasons.push("No current market listings found (-15 points)");
+  }
+
+  // 🎯 EXACT VIN MATCH - Only meaningful if we have actual market data
+  if (context.exactVinMatch && marketListingCount > 0) {
     const vinBonus = 25;
     confidence += vinBonus;
     breakdown.exactVinBonus = vinBonus;
     reasons.push("Exact VIN match found in real listings (+25 points)");
     console.log('🎯 EXACT VIN MATCH CONFIDENCE BOOST: +25 points');
+  } else if (context.exactVinMatch && marketListingCount === 0) {
+    // VIN match means nothing without market data
+    const vinBonus = 5; // Minimal bonus for VIN identification only
+    confidence += vinBonus;
+    breakdown.exactVinBonus = vinBonus;
+    reasons.push("VIN identification confirmed but no market data (+5 points)");
   }
 
-  // 📊 MARKET DATA QUALITY (+15-20 points)
-  const marketListingCount = context.marketListings.length;
+  // 📊 MARKET DATA QUALITY - Honest assessment
   let marketBonus = 0;
   if (marketListingCount >= 5) {
     marketBonus = 20;
@@ -68,9 +84,8 @@ export function calculateUnifiedConfidence(context: ConfidenceContext): Confiden
     marketBonus = 8;
     reasons.push(`${marketListingCount} market listing found (+8 points)`);
   } else {
-    marketBonus = -10;
-    breakdown.penalties -= 10;
-    reasons.push("No market listings found (-10 points)");
+    marketBonus = 0; // No bonus for no data
+    reasons.push("Using MSRP-based fallback model (0 points)");
   }
   confidence += marketBonus;
   breakdown.marketDataBonus = marketBonus;
@@ -94,82 +109,61 @@ export function calculateUnifiedConfidence(context: ConfidenceContext): Confiden
   // 🔍 DATA SOURCE QUALITY (+5-12 points)
   let sourceBonus = 0;
   if (context.sources.includes('msrp_db_lookup')) sourceBonus += 4;
-  if (context.sources.includes('openai_market_search')) sourceBonus += 3;
+  if (context.sources.includes('vin_decode')) sourceBonus += 3;
   if (context.sources.includes('eia_fuel_costs')) sourceBonus += 2;
-  if (context.sources.includes('auction_data')) sourceBonus += 3;
+  // Don't award points for market search if no results
+  if (context.sources.includes('openai_market_search') && marketListingCount > 0) {
+    sourceBonus += 3;
+  }
   confidence += sourceBonus;
   breakdown.sourceBonus = sourceBonus;
   if (sourceBonus > 0) {
-    reasons.push(`${context.sources.length} verified data sources (+${sourceBonus} points)`);
+    reasons.push(`Verified data sources available (+${sourceBonus} points)`);
   }
 
-  // 🎯 TRUST SCORE ADJUSTMENT (+5-10 points)
-  if (context.trustScore >= 0.9) {
+  // 🎯 TRUST SCORE ADJUSTMENT - Reduced impact without market data
+  if (context.trustScore >= 0.9 && marketListingCount > 0) {
     const trustBonus = 10;
     confidence += trustBonus;
     breakdown.trustBonus = trustBonus;
     reasons.push("Very high data trust score (+10 points)");
-  } else if (context.trustScore >= 0.7) {
+  } else if (context.trustScore >= 0.7 && marketListingCount > 0) {
     const trustBonus = 5;
     confidence += trustBonus;
     breakdown.trustBonus = trustBonus;
     reasons.push("High data trust score (+5 points)");
-  } else if (context.trustScore < 0.3) {
-    const trustPenalty = -8;
-    confidence += trustPenalty;
-    breakdown.penalties += trustPenalty;
-    reasons.push("Low data trust score (-8 points)");
   }
 
-  // 🚨 PENALTIES
-  if (context.mileagePenalty > 0.1) {
-    const mileagePenalty = -Math.round(context.mileagePenalty * 100);
-    confidence += mileagePenalty;
-    breakdown.penalties += mileagePenalty;
-    reasons.push(`High mileage variance (${mileagePenalty} points)`);
+  // 🚨 ADDITIONAL PENALTIES FOR SYNTHETIC DATA
+  if (marketListingCount === 0) {
+    const syntheticPenalty = -5;
+    confidence += syntheticPenalty;
+    breakdown.penalties += syntheticPenalty;
+    reasons.push("Synthetic pricing model penalty (-5 points)");
   }
 
-  if (context.priceVariance && context.priceVariance > 0.3) {
-    const variancePenalty = -5;
-    confidence += variancePenalty;
-    breakdown.penalties += variancePenalty;
-    reasons.push("High price variance in market (-5 points)");
+  // 🎯 STRICT CONFIDENCE CAPS BASED ON DATA AVAILABILITY
+  let maxConfidence = 98;
+  
+  if (marketListingCount === 0) {
+    maxConfidence = 60; // Maximum 60% confidence without market data
+    console.log('🚨 No market data - capping confidence at 60%');
+  } else if (marketListingCount === 1) {
+    maxConfidence = 70;
+  } else if (marketListingCount === 2) {
+    maxConfidence = 80;
   }
 
-  // 🎯 TARGET 92-95% BOOST LOGIC
-  // If we have excellent data quality, push to 92-95%
-  if (
-    context.exactVinMatch &&
-    marketListingCount >= 3 &&
-    (context.photoCondition?.confidenceScore ?? 0) >= 85 &&
-    context.mileagePenalty < 0.05 &&
-    context.trustScore >= 0.7
-  ) {
-    const premiumBoost = Math.max(0, 95 - confidence);
-    confidence += premiumBoost;
-    reasons.push(`Premium quality data detected - boosted to 95% (+${premiumBoost} points)`);
-    console.log('🏆 PREMIUM CONFIDENCE ACHIEVED: 95% (exact VIN + quality data)');
-  } else if (
-    marketListingCount >= 5 &&
-    context.trustScore >= 0.8 &&
-    context.mileagePenalty < 0.08
-  ) {
-    const highQualityBoost = Math.max(0, 92 - confidence);
-    if (highQualityBoost > 0) {
-      confidence += highQualityBoost;
-      reasons.push(`High quality data - boosted to 92% (+${highQualityBoost} points)`);
-    }
-  }
-
-  // Cap confidence at 95% maximum
-  const finalConfidence = Math.min(Math.max(confidence, 25), 95);
+  // Cap confidence at determined maximum
+  const finalConfidence = Math.max(25, Math.min(maxConfidence, confidence));
   
   const reasoning = reasons.join('. ') + '.';
 
   console.log('🧮 Unified Confidence Calculation:', {
     breakdown,
     finalConfidence,
-    reasoning: reasoning.substring(0, 100) + '...'
+    marketListings: marketListingCount,
+    maxAllowed: maxConfidence
   });
 
   return {
@@ -183,21 +177,27 @@ export function calculateUnifiedConfidence(context: ConfidenceContext): Confiden
  * Generate AI confidence explanation using the calculation context
  */
 export function generateConfidenceExplanation(score: number, context: ConfidenceContext): string {
+  const marketListingCount = context.marketListings.length;
+  
+  if (marketListingCount === 0) {
+    return `This valuation uses an MSRP-adjusted fallback model with industry-standard depreciation curves. No current market listings were available for this specific vehicle, reducing confidence to ${score}%. The estimate includes mileage, condition, and regional adjustments but lacks real market validation.`;
+  }
+  
   if (score >= 95) {
     return `This valuation is based on exact VIN matches from real listings in your ZIP code, confirmed condition analysis, and verified mileage data. The highest confidence level.`;
   }
   
   if (score >= 92) {
-    return `This valuation reflects ${context.marketListings.length}+ verified market listings with matching vehicle details and high data quality. Very reliable estimate.`;
+    return `This valuation reflects ${marketListingCount}+ verified market listings with matching vehicle details and high data quality. Very reliable estimate.`;
   }
   
   if (score >= 85) {
-    return `This valuation uses ${context.marketListings.length} market listings and verified data sources but may lack VIN-specific anchoring or complete condition data.`;
+    return `This valuation uses ${marketListingCount} market listings and verified data sources but may lack VIN-specific anchoring or complete condition data.`;
   }
   
   if (score >= 70) {
-    return `This valuation is based on available market data and standard adjustments. Some data points may be estimated rather than verified.`;
+    return `This valuation is based on ${marketListingCount} market listings and standard adjustments. Some data points may be estimated rather than verified.`;
   }
   
-  return `Limited data was available for this vehicle. Confidence is based on similar vehicles and estimated adjustments. Additional verification recommended.`;
+  return `Limited market data was available for this vehicle (${marketListingCount} listings). Confidence is based on available data and estimated adjustments. Additional market research recommended.`;
 }

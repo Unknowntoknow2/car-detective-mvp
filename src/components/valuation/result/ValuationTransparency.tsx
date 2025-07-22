@@ -21,6 +21,8 @@ interface ValuationTransparencyProps {
   estimatedValue: number;
   sources: string[];
   isFallbackMethod: boolean;
+  zipCode?: string;
+  vin?: string;
 }
 
 export const ValuationTransparency: React.FC<ValuationTransparencyProps> = ({
@@ -30,7 +32,9 @@ export const ValuationTransparency: React.FC<ValuationTransparencyProps> = ({
   adjustments,
   estimatedValue,
   sources,
-  isFallbackMethod
+  isFallbackMethod,
+  zipCode,
+  vin
 }) => {
   const getAdjustmentIcon = (amount: number) => {
     if (amount > 0) return <TrendingUp className="w-4 h-4 text-green-600" />;
@@ -44,6 +48,10 @@ export const ValuationTransparency: React.FC<ValuationTransparencyProps> = ({
     return 'text-gray-600';
   };
 
+  // TRUTH CHECK: Are these real adjustments or synthetic?
+  const hasRealAdjustments = adjustments.length > 0 && !isFallbackMethod;
+  const hasSyntheticAdjustments = adjustments.length > 0 && isFallbackMethod;
+
   return (
     <Card>
       <CardHeader>
@@ -53,7 +61,7 @@ export const ValuationTransparency: React.FC<ValuationTransparencyProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Market Data Status */}
+        {/* Market Data Status - HONEST REPORTING */}
         <div className="space-y-3">
           <h4 className="font-medium text-sm">Market Data Used</h4>
           <div className="flex items-center gap-2">
@@ -74,34 +82,54 @@ export const ValuationTransparency: React.FC<ValuationTransparencyProps> = ({
             )}
           </div>
           
-          {isFallbackMethod && (
+          {/* HONEST FALLBACK EXPLANATION */}
+          {isFallbackMethod && marketListingsCount === 0 && (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
               <p className="text-xs text-amber-700">
                 <strong>⚠️ Fallback Pricing Model:</strong> No recent market listings were available for this specific vehicle. 
-                Valuation is based on MSRP-adjusted model with mileage, condition, and regional factors applied.
+                Valuation is based on MSRP-adjusted model with standard depreciation curves, mileage, condition, and regional factors applied.
+                <br/><br/>
+                <strong>Impact:</strong> Confidence reduced to {confidenceScore}% due to lack of real market validation.
               </p>
             </div>
           )}
         </div>
 
-        {/* Base Price Anchor */}
+        {/* Base Price Anchor - HONEST SOURCE IDENTIFICATION */}
         {basePriceAnchor && (
           <div className="space-y-3">
             <h4 className="font-medium text-sm">Base Price Calculation</h4>
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
               <div>
-                <p className="font-medium">{basePriceAnchor.source}</p>
-                <p className="text-xs text-gray-600">{basePriceAnchor.method}</p>
+                <p className="font-medium">
+                  {marketListingsCount > 0 ? basePriceAnchor.source : 'MSRP-Adjusted Model'}
+                </p>
+                <p className="text-xs text-gray-600">
+                  {marketListingsCount > 0 
+                    ? basePriceAnchor.method 
+                    : 'Synthetic pricing using industry depreciation curves'
+                  }
+                </p>
               </div>
               <p className="font-semibold">{formatCurrency(basePriceAnchor.amount)}</p>
             </div>
           </div>
         )}
 
-        {/* Value Adjustments */}
+        {/* Value Adjustments - HONEST SYNTHETIC VS REAL */}
         {adjustments.length > 0 && (
           <div className="space-y-3">
-            <h4 className="font-medium text-sm">Market Adjustments Applied</h4>
+            <h4 className="font-medium text-sm">
+              {hasRealAdjustments ? 'Market Adjustments Applied' : 'Model Adjustments Applied'}
+            </h4>
+            
+            {hasSyntheticAdjustments && (
+              <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                <strong>Note:</strong> These adjustments are calculated using industry-standard depreciation models, 
+                not derived from actual market transactions.
+              </div>
+            )}
+            
             <div className="space-y-2">
               {adjustments.map((adjustment, index) => (
                 <div key={index} className="flex justify-between items-center p-2 border rounded">
@@ -127,14 +155,17 @@ export const ValuationTransparency: React.FC<ValuationTransparencyProps> = ({
             <div>
               <p className="font-semibold text-green-800">Final Market Value</p>
               <p className="text-xs text-green-600">
-                {isFallbackMethod ? 'Based on synthetic pricing model' : 'Based on market analysis'}
+                {isFallbackMethod 
+                  ? 'Based on synthetic pricing model' 
+                  : `Based on ${marketListingsCount} market listing${marketListingsCount > 1 ? 's' : ''}`
+                }
               </p>
             </div>
             <p className="text-xl font-bold text-green-700">{formatCurrency(estimatedValue)}</p>
           </div>
         </div>
 
-        {/* Data Sources */}
+        {/* Data Sources - HONEST REPORTING */}
         <div className="space-y-2">
           <h4 className="font-medium text-sm">Data Sources</h4>
           <div className="flex flex-wrap gap-1">
@@ -143,7 +174,20 @@ export const ValuationTransparency: React.FC<ValuationTransparencyProps> = ({
                 {source.replace('_', ' ').toUpperCase()}
               </Badge>
             ))}
+            {marketListingsCount === 0 && (
+              <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800">
+                MSRP FALLBACK
+              </Badge>
+            )}
           </div>
+          
+          {/* Regional Data Fix */}
+          {zipCode && (
+            <p className="text-xs text-gray-600 mt-2">
+              Regional adjustments applied for ZIP code: {zipCode}
+              {vin && ` • VIN: ${vin.substring(0, 8)}...`}
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>
