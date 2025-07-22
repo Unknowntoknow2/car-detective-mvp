@@ -1,6 +1,4 @@
 
-import { AdjustmentItem } from "./types";
-
 export interface AdjustmentItem {
   factor: string;
   impact: number;

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
@@ -6,9 +5,10 @@ import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationR
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useValuationContext } from '@/context/ValuationContext';
+import { useValuationContext } from '@/contexts/ValuationContext';
 import { useMarketListings } from '@/hooks/useMarketListings';
 import { calculatePriceRange } from '@/valuation/calculateVehicleValue';
+import { ConfidenceRing } from '@/components/valuation/redesign/ConfidenceRing';
 
 // Type guard to check if we have the necessary valuation data
 function hasValueData(data: any): boolean {
@@ -25,7 +25,7 @@ export default function ResultsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { valuation } = useValuationContext();
+  const { valuationData: contextData } = useValuationContext();
   
   const [loading, setLoading] = useState(true);
   const [valuationData, setValuationData] = useState<any>({});
@@ -33,9 +33,9 @@ export default function ResultsPage() {
   
   // Extract vehicle info from valuation data for market listings
   const vehicleInfo = {
-    make: valuationData?.make || valuationData?.vehicleInfo?.make,
-    model: valuationData?.model || valuationData?.vehicleInfo?.model,
-    year: valuationData?.year || valuationData?.vehicleInfo?.year,
+    make: valuationData?.make || valuationData?.vehicle?.make,
+    model: valuationData?.model || valuationData?.vehicle?.model,
+    year: valuationData?.year || valuationData?.vehicle?.year,
     vin: id
   };
   
@@ -94,9 +94,9 @@ export default function ResultsPage() {
         console.log('Fetching valuation data for ID:', id);
         
         // Check if we already have the valuation in context
-        if (valuation && hasValueData(valuation)) {
-          console.log('Using valuation from context:', valuation);
-          setValuationData(valuation);
+        if (contextData && hasValueData(contextData)) {
+          console.log('Using valuation from context:', contextData);
+          setValuationData(contextData);
           setLoading(false);
           return;
         }
@@ -141,7 +141,7 @@ export default function ResultsPage() {
     }
 
     fetchValuationData();
-  }, [id, navigate, valuation]);
+  }, [id, navigate, contextData]);
 
   if (loading) {
     return (
@@ -177,11 +177,11 @@ export default function ResultsPage() {
 
   // Format vehicle data for display
   const vehicleData = {
-    year: valuationData?.year || valuationData?.vehicleInfo?.year,
-    make: valuationData?.make || valuationData?.vehicleInfo?.make,
-    model: valuationData?.model || valuationData?.vehicleInfo?.model,
-    trim: valuationData?.trim || valuationData?.vehicleInfo?.trim,
-    fuelType: valuationData?.fuel_type || valuationData?.vehicleInfo?.fuelType,
+    year: valuationData?.year || valuationData?.vehicle?.year,
+    make: valuationData?.make || valuationData?.vehicle?.make,
+    model: valuationData?.model || valuationData?.vehicle?.model,
+    trim: valuationData?.trim || valuationData?.vehicle?.trim,
+    fuelType: valuationData?.fuel_type || valuationData?.vehicle?.fuelType,
     mileage: valuationData?.mileage || 0
   };
 
@@ -234,14 +234,29 @@ export default function ResultsPage() {
             <Separator />
           </div>
 
-          <UnifiedValuationResult
-            estimatedValue={estimatedValue}
-            confidenceScore={confidenceScore}
-            priceRange={priceRange}
-            vehicleInfo={vehicleData}
-            marketListingsCount={marketListings.length}
-            adjustments={adjustments}
-          />
+          {/* Pass the valuation data as the 'result' prop */}
+          <UnifiedValuationResult result={{
+            id: valuationData?.id || "unknown",
+            vin: id,
+            vehicle: {
+              year: vehicleData.year,
+              make: vehicleData.make,
+              model: vehicleData.model,
+              trim: vehicleData.trim,
+              fuelType: vehicleData.fuelType
+            },
+            zip: valuationData?.zip_code || "",
+            mileage: vehicleData.mileage,
+            baseValue: valuationData?.baseValue || estimatedValue,
+            finalValue: estimatedValue,
+            confidenceScore: confidenceScore,
+            adjustments: adjustments,
+            sources: [],
+            listingCount: marketListings.length,
+            listings: marketListings,
+            timestamp: Date.now(),
+            notes: []
+          }} />
         </div>
 
         <div className="space-y-6">
