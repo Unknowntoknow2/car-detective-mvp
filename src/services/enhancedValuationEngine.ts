@@ -63,7 +63,7 @@ export async function calculateEnhancedValuation(
   try {
     // Step 1: Search for market listings using the unified market search agent
     console.log('📊 Searching for market listings...');
-    const marketListings = await searchMarketListings({
+    const marketSearchResult = await searchMarketListings({
       vin: input.vin,
       make: input.make,
       model: input.model,
@@ -71,6 +71,7 @@ export async function calculateEnhancedValuation(
       zipCode: input.zipCode
     });
     
+    const marketListings = marketSearchResult.listings;
     console.log(`✅ Found ${marketListings.length} market listings`);
     console.log('📋 Listings breakdown:', {
       totalListings: marketListings.length,
