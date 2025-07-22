@@ -154,7 +154,7 @@ export default function ResultsPage() {
                   trustScore: 0.75
                 }}
                 sources={['market_analysis', 'vin_decode']}
-                explanation={confidenceBreakdown?.reasoning}
+                explanation={confidenceBreakdown?.recommendations?.join(' ')}
               />
               
               <Card>
@@ -266,7 +266,7 @@ export default function ResultsPage() {
                 {confidenceBreakdown && (
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <h4 className="font-medium text-blue-800 mb-2">Confidence Explanation</h4>
-                    <p className="text-blue-700 text-sm">{confidenceBreakdown.reasoning}</p>
+                    <p className="text-blue-700 text-sm">{confidenceBreakdown.recommendations?.join('. ')}</p>
                   </div>
                 )}
               </div>
