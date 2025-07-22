@@ -12,6 +12,12 @@ export interface EnhancedValuationResult {
     sampleSize: number;
     inventoryLevel: string;
     demandIndicator: number;
+    debugInfo?: {
+      totalFound: number;
+      afterTrimFilter: number;
+      trimFallbackUsed: boolean;
+      filters: Record<string, any>;
+    };
   };
   marketListings: MarketListing[];
   adjustments: Array<{
@@ -42,31 +48,99 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
     vin: input.vin
   });
 
-  // Step 1: Fetch market listings with case-insensitive search
-  const { data: marketListings, error: listingsError } = await supabase
+  // Step 1: Enhanced market listings search with comprehensive filtering
+  console.log('🔍 Enhanced Market Search Input:', {
+    make: input.make,
+    model: input.model,
+    year: input.year,
+    zipCode: input.zipCode,
+    trim: input.trim || 'any'
+  });
+
+  // Build comprehensive query with trim fallback logic
+  let query = supabase
     .from('enhanced_market_listings')
     .select('*')
     .ilike('make', input.make || '')
     .ilike('model', input.model || '')
     .eq('year', input.year)
     .eq('listing_status', 'active')
-    .order('updated_at', { ascending: false })
-    .limit(20);
+    .gt('price', 1000)
+    .gte('updated_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()) // Last 30 days
+    .order('updated_at', { ascending: false });
+
+  // Apply regional filtering if zipCode provided
+  if (input.zipCode) {
+    query = query.or(`zip_code.eq.${input.zipCode},geo_distance_miles.lte.100,geo_distance_miles.is.null`);
+  }
+
+  const { data: allListings, error: listingsError } = await query.limit(50);
 
   if (listingsError) {
     console.error('❌ Error fetching market listings:', listingsError);
   }
 
-  const realListings = marketListings || [];
-  console.log(`📊 Found ${realListings.length} real market listings`);
+  let realListings = allListings || [];
+  console.log(`📊 Found ${realListings.length} total listings before trim filtering`);
 
-  // Step 2: Calculate market intelligence using the database function
+  // Enhanced trim matching with fallback logic
+  let trimMatchedListings = realListings;
+  let trimFallbackUsed = false;
+
+  if (input.trim && input.trim.trim() && realListings.length > 0) {
+    // Try exact trim match first
+    const exactTrimMatches = realListings.filter(l => 
+      l.trim && l.trim.toLowerCase().includes(input.trim!.toLowerCase())
+    );
+
+    if (exactTrimMatches.length >= 2) {
+      trimMatchedListings = exactTrimMatches;
+      console.log(`✅ Found ${exactTrimMatches.length} exact trim matches for "${input.trim}"`);
+    } else {
+      // Use fuzzy matching or all listings if insufficient exact matches
+      const fuzzyTrimMatches = realListings.filter(l => 
+        !l.trim || l.trim.toLowerCase() === 'unknown' || 
+        (l.trim && (
+          l.trim.toLowerCase().includes(input.trim!.toLowerCase()) ||
+          input.trim!.toLowerCase().includes(l.trim.toLowerCase())
+        ))
+      );
+      
+      if (fuzzyTrimMatches.length > exactTrimMatches.length) {
+        trimMatchedListings = fuzzyTrimMatches;
+        trimFallbackUsed = true;
+        console.log(`⚠️ Using fuzzy trim matching: ${fuzzyTrimMatches.length} listings`);
+      } else {
+        trimMatchedListings = realListings; // Use all if no good matches
+        trimFallbackUsed = true;
+        console.log(`⚠️ Using all listings due to insufficient trim matches`);
+      }
+    }
+  }
+
+  realListings = trimMatchedListings.slice(0, 20); // Limit final results
+  console.log(`📊 Final filtered listings: ${realListings.length}`);
+
+  // Step 2: Calculate market intelligence using the database function with enhanced logging
   let marketIntelligence = {
     medianPrice: 0,
     averagePrice: 0,
     sampleSize: realListings.length,
     inventoryLevel: 'low' as const,
-    demandIndicator: 0.5
+    demandIndicator: 0.5,
+    debugInfo: {
+      totalFound: allListings?.length || 0,
+      afterTrimFilter: realListings.length,
+      trimFallbackUsed,
+      filters: {
+        make: input.make,
+        model: input.model,
+        year: input.year,
+        trim: input.trim,
+        zipCode: input.zipCode,
+        withinDays: 30
+      }
+    }
   };
 
   if (realListings.length > 0) {
@@ -83,17 +157,41 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
       if (!intelligenceError && intelligenceData && intelligenceData.length > 0) {
         const intel = intelligenceData[0];
         marketIntelligence = {
+          ...marketIntelligence,
           medianPrice: intel.median_price || 0,
           averagePrice: intel.average_price || 0,
           sampleSize: intel.sample_size || realListings.length,
           inventoryLevel: intel.inventory_level || 'low',
           demandIndicator: intel.demand_indicator || 0.5
         };
-        console.log('📈 Market Intelligence calculated:', marketIntelligence);
+        console.log('📈 Market Intelligence calculated:', {
+          sample_size: marketIntelligence.sampleSize,
+          median_price: marketIntelligence.medianPrice,
+          average_price: marketIntelligence.averagePrice,
+          confidence_score: intel.confidence_score
+        });
+      } else {
+        console.error('⚠️ Database function returned no data:', intelligenceError);
+        // Fallback calculation from direct listings
+        const prices = realListings.map(l => l.price).filter(p => p > 0).sort((a, b) => a - b);
+        if (prices.length > 0) {
+          const medianIndex = Math.floor(prices.length / 2);
+          marketIntelligence.medianPrice = prices.length % 2 === 0 
+            ? (prices[medianIndex - 1] + prices[medianIndex]) / 2 
+            : prices[medianIndex];
+          marketIntelligence.averagePrice = prices.reduce((sum, p) => sum + p, 0) / prices.length;
+          console.log('📊 Fallback price calculation:', {
+            medianPrice: marketIntelligence.medianPrice,
+            averagePrice: marketIntelligence.averagePrice,
+            priceCount: prices.length
+          });
+        }
       }
     } catch (error) {
       console.error('❌ Error calculating market intelligence:', error);
     }
+  } else {
+    console.log('⚠️ No listings found - will use fallback method');
   }
 
   // Step 3: Determine if we're using fallback method
