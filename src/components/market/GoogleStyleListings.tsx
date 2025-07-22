@@ -1,38 +1,10 @@
 import React, { useState } from 'react';
+import { MarketListing } from '@/types/marketListing';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { MapPin, ExternalLink, Star, Calendar, Gauge, Fuel, Settings } from 'lucide-react';
-
-interface MarketListing {
-  id: string;
-  price: number;
-  mileage?: number;
-  location?: string;
-  source: string;
-  source_type?: string;
-  listing_url?: string;
-  dealer_name?: string;
-  year?: number;
-  make?: string;
-  model?: string;
-  trim?: string;
-  condition?: string;
-  is_cpo?: boolean;
-  days_on_market?: number;
-  dealer_rating?: number;
-  exterior_color?: string;
-  interior_color?: string;
-  fuel_economy_city?: number;
-  fuel_economy_highway?: number;
-  drivetrain?: string;
-  transmission_type?: string;
-  engine_description?: string;
-  photos?: string[];
-  features?: string[];
-  stock_number?: string;
-}
 
 interface GoogleStyleListingsProps {
   listings: MarketListing[];

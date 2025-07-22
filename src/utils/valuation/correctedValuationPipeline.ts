@@ -193,15 +193,15 @@ export async function runCorrectedValuationPipeline(
     audit.sources.push("openai_fallback");
     audit.sourcesUsed!.push("openai_ai_estimation");
     audit.quality += 15;
-    audit.confidence_score = aiFallback.confidence_score;
+    audit.confidence_score = aiFallback.confidence_score || 25;
     audit.fallbackUsed = true;
-    audit.finalValue = aiFallback.estimated_value;
+    audit.finalValue = aiFallback.estimated_value || 25000;
     audit.valueBreakdown = {
-      baseValue: aiFallback.value_breakdown.base_value,
-      depreciationAdjustment: aiFallback.value_breakdown.depreciation,
-      mileageAdjustment: aiFallback.value_breakdown.mileage,
-      conditionAdjustment: aiFallback.value_breakdown.condition,
-      otherAdjustments: aiFallback.value_breakdown.ownership + aiFallback.value_breakdown.usageType + aiFallback.value_breakdown.marketSignal
+      baseValue: aiFallback.value_breakdown?.base_value || 25000,
+      depreciationAdjustment: aiFallback.value_breakdown?.depreciation || 0,
+      mileageAdjustment: aiFallback.value_breakdown?.mileage || 0,
+      conditionAdjustment: aiFallback.value_breakdown?.condition || 0,
+      otherAdjustments: (aiFallback.value_breakdown?.ownership || 0) + (aiFallback.value_breakdown?.usageType || 0) + (aiFallback.value_breakdown?.marketSignal || 0)
     };
     audit.warnings!.push('Used AI fallback due to no market data');
 
@@ -213,24 +213,24 @@ export async function runCorrectedValuationPipeline(
     return {
       success: true,
       valuation: {
-        estimatedValue: aiFallback.estimated_value,
-        confidenceScore: aiFallback.confidence_score,
-        basePrice: aiFallback.value_breakdown.base_value,
-        adjustments: [
+        estimatedValue: aiFallback.estimated_value || 25000,
+        confidenceScore: aiFallback.confidence_score || 25,
+        basePrice: aiFallback.value_breakdown?.base_value || 25000,
+        adjustments: aiFallback.value_breakdown ? [
           {
             factor: 'Depreciation (AI)',
-            impact: aiFallback.value_breakdown.depreciation,
-            percentage: (aiFallback.value_breakdown.depreciation / aiFallback.value_breakdown.base_value) * 100,
+            impact: aiFallback.value_breakdown.depreciation || 0,
+            percentage: ((aiFallback.value_breakdown.depreciation || 0) / (aiFallback.value_breakdown.base_value || 25000)) * 100,
             description: 'AI-estimated depreciation'
           },
           {
             factor: 'Mileage (AI)',
-            impact: aiFallback.value_breakdown.mileage,
-            percentage: (aiFallback.value_breakdown.mileage / aiFallback.value_breakdown.base_value) * 100,
+            impact: aiFallback.value_breakdown.mileage || 0,
+            percentage: ((aiFallback.value_breakdown.mileage || 0) / (aiFallback.value_breakdown.base_value || 25000)) * 100,
             description: 'AI-estimated mileage adjustment'
           }
-        ],
-        priceRange: [aiFallback.estimated_value * 0.85, aiFallback.estimated_value * 1.15],
+        ] : [],
+        priceRange: [(aiFallback.estimated_value || 25000) * 0.85, (aiFallback.estimated_value || 25000) * 1.15],
         marketAnalysis: {
           dataSource: 'ai_estimation',
           listingCount: 0,
