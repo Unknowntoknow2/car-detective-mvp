@@ -26,6 +26,7 @@ interface MarketListing {
   mileage?: number;
   location?: string;
   source: string;
+  source_type?: string;
   listing_url?: string;
   dealer_name?: string;
   year?: number;
@@ -64,7 +65,7 @@ const ResultsPage = () => {
       let valuation;
       
       // Check if id is a UUID or VIN
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id || '');
       
       if (isUUID) {
         // Fetch by UUID
@@ -103,7 +104,7 @@ const ResultsPage = () => {
         .select('*')
         .eq('valuation_request_id', valuation.id);
 
-      setMarketListings(marketListings);
+      setMarketListings(marketListings || []);
 
       // Fetch follow-up data
       const { data: followUp, error: followUpError } = await supabase
