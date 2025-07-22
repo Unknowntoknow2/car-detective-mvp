@@ -29,7 +29,18 @@ export function estimateMarketPrice(listings: MarketListing[]): MarketPriceEstim
 
   const prices = cleaned.map((l) => l.price).sort((a, b) => a - b);
   const count = prices.length;
-  if (count === 0) return { ...estimateMarketPrice([]), usedListings: [] };
+  if (count === 0) {
+    return {
+      estimatedPrice: null,
+      min: null,
+      max: null,
+      average: null,
+      median: null,
+      stdDev: null,
+      confidence: 0,
+      usedListings: [],
+    };
+  }
 
   const avg = prices.reduce((a, b) => a + b, 0) / count;
   const median = count % 2 === 0 
