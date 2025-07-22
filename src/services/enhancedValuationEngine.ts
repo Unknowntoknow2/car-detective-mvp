@@ -18,6 +18,8 @@ export interface EnhancedValuationResult {
     factor: string;
     amount: number;
     description: string;
+    source?: 'market' | 'synthetic';
+    synthetic?: boolean;
   }>;
   basePriceAnchor: {
     source: string;
@@ -127,9 +129,11 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
     factor: string;
     amount: number;
     description: string;
+    source?: 'market' | 'synthetic';
+    synthetic?: boolean;
   }> = [];
 
-  if (!isFallbackMethod && input.mileage) {
+  if (!isFallbackMethod && input.mileage && realListings.length > 0) {
     // Only apply real market-based adjustments when we have data
     const avgMileage = realListings.reduce((sum, l) => sum + (l.mileage || 0), 0) / realListings.length;
     if (avgMileage > 0) {
@@ -140,12 +144,17 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
         adjustments.push({
           factor: 'Mileage Adjustment',
           amount: mileageAdjustment,
-          description: `${input.mileage.toLocaleString()} mi vs market avg ${Math.round(avgMileage).toLocaleString()} mi`
+          description: `${input.mileage.toLocaleString()} mi vs market avg ${Math.round(avgMileage).toLocaleString()} mi`,
+          source: 'market',
+          synthetic: false
         });
         estimatedValue += mileageAdjustment;
       }
     }
   }
+  
+  // CRITICAL: Do NOT add synthetic adjustments for fallback methods
+  // The fallback price already includes depreciation and mileage factors
 
   // Step 6: Calculate confidence score using unified system
   const sources = isFallbackMethod 
