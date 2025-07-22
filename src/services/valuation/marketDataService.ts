@@ -176,16 +176,16 @@ export class MarketDataService {
 
     const prices = marketData.listings.map(l => l.price);
     const sortedPrices = prices.sort((a, b) => a - b);
-    const medianPrice = sortedPrices[Math.floor(sortedPrices.length / 2)];
+    const medianPrice = prices.length > 0 ? sortedPrices[Math.floor(sortedPrices.length / 2)] : 0;
 
     return {
       totalListings: marketData.listings.length,
       averagePrice: marketData.averagePrice,
       medianPrice: Math.round(medianPrice),
-      priceRange: {
+      priceRange: prices.length > 0 ? {
         min: Math.min(...prices),
         max: Math.max(...prices)
-      },
+      } : { min: 0, max: 0 },
       confidence: marketData.confidenceScore,
       dataSource: marketData.dataSource
     };
