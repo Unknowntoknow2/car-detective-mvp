@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, Info, TrendingDown, TrendingUp } from 'lucide-react';
+import { AdjustmentTransparency } from './AdjustmentTransparency';
 import { formatCurrency } from '@/utils/formatters';
 
 interface ValuationTransparencyProps {
@@ -17,6 +18,8 @@ interface ValuationTransparencyProps {
     factor: string;
     amount: number;
     description: string;
+    source?: 'market' | 'synthetic';
+    synthetic?: boolean;
   }>;
   estimatedValue: number;
   sources: string[];
@@ -115,42 +118,12 @@ export const ValuationTransparency: React.FC<ValuationTransparencyProps> = ({
           </div>
         )}
 
-        {/* Value Adjustments - ONLY SHOW REAL ADJUSTMENTS */}
-        {adjustments.length > 0 ? (
-          <div className="space-y-3">
-            <h4 className="font-medium text-sm">
-              Market-Based Adjustments Applied
-            </h4>
-            
-            <div className="space-y-2">
-              {adjustments.map((adjustment, index) => (
-                <div key={index} className="flex justify-between items-center p-2 border rounded">
-                  <div className="flex items-center gap-2">
-                    {getAdjustmentIcon(adjustment.amount)}
-                    <div>
-                      <p className="text-sm font-medium">{adjustment.factor}</p>
-                      <p className="text-xs text-gray-600">{adjustment.description}</p>
-                    </div>
-                  </div>
-                  <p className={`font-semibold text-sm ${getAdjustmentColor(adjustment.amount)}`}>
-                    {adjustment.amount >= 0 ? '+' : ''}{formatCurrency(adjustment.amount)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <h4 className="font-medium text-sm">Value Adjustments</h4>
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-              <p className="text-xs text-blue-700">
-                {isFallbackMethod 
-                  ? "No market-based adjustments applied. Synthetic model includes built-in depreciation and mileage factors."
-                  : "No significant adjustments needed based on market analysis."}
-              </p>
-            </div>
-          </div>
-        )}
+        {/* Value Adjustments - HONEST TRANSPARENCY */}
+        <AdjustmentTransparency
+          adjustments={adjustments}
+          isFallbackMethod={isFallbackMethod}
+          marketListingsCount={marketListingsCount}
+        />
 
         {/* Final Calculation */}
         <div className="border-t pt-4">
