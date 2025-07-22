@@ -45,6 +45,7 @@ export interface UnifiedValuationResult {
  */
 export async function calculateUnifiedValuation(input: ValuationEngineInput): Promise<UnifiedValuationResult> {
   console.log('🚗 Starting unified valuation calculation for:', input.vin);
+  console.log('🔍 Debug: Input validation passed');
 
   try {
     // 1. Fetch live market listings using OpenAI agent
@@ -61,7 +62,9 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
 
     // 2. Analyze market listings with price estimator
     console.log('📊 Analyzing market listings...');
+    console.log('🔍 Debug: About to call estimateMarketPrice with', marketListings?.length || 0, 'listings');
     const marketEstimate = estimateMarketPrice(marketListings);
+    console.log('🔍 Debug: Market estimate completed:', marketEstimate?.confidence || 0, '% confidence');
     
     // 3. Fetch traditional market data as fallback
     console.log('📊 Fetching traditional market data...');
