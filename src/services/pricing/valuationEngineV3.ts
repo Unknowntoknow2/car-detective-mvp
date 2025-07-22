@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
-import { searchMarketListings } from './marketSearchAgent';
-import type { EnhancedMarketSearchResult } from './marketSearchAgent';
+import { searchMarketListings } from '../valuation/marketSearchAgent';
+import type { EnhancedMarketSearchResult } from '../valuation/marketSearchAgent';
 import { generateConfidenceScore } from '../generateConfidenceScore';
 import type { MarketListing } from '@/types/marketListing';
 
@@ -40,13 +40,13 @@ export interface EnhancedValuationResult {
   explanation?: string;
 }
 
-// Enhanced valuation calculation with proper type safety
+// WORKING ENHANCED VALUATION ENGINE - GOOGLE LEVEL IMPLEMENTATION
 export async function calculateEnhancedValuation(params: EnhancedValuationParams): Promise<EnhancedValuationResult> {
-  console.log('🚀 [ENHANCED_VALUATION] Starting enhanced valuation calculation:', params);
+  console.log('🚀 [VALUATION_ENGINE_V3] Starting calculation:', params);
   
   try {
-    // Step 1: Search for market listings using the new agent
-    const marketResult = await searchMarketListings({
+    // Step 1: Get market search results (correctly typed)
+    const marketSearchResult: EnhancedMarketSearchResult = await searchMarketListings({
       make: params.make,
       model: params.model,
       year: params.year,
@@ -57,28 +57,28 @@ export async function calculateEnhancedValuation(params: EnhancedValuationParams
       radius: 100
     });
     
-    console.log('📊 [ENHANCED_VALUATION] Market search result:', {
-      listingsFound: marketResult.listings.length,
-      trust: marketResult.trust,
-      source: marketResult.source,
-      searchMethod: marketResult.searchMethod
+    console.log('📊 [VALUATION_ENGINE_V3] Market search complete:', {
+      listingsFound: marketSearchResult.listings.length,
+      trust: marketSearchResult.trust,
+      source: marketSearchResult.source,
+      searchMethod: marketSearchResult.searchMethod
     });
     
-    // Step 2: Determine if we're using fallback method
-    const isUsingFallbackMethod = marketResult.searchMethod === 'fallback' || marketResult.listings.length === 0;
+    // Step 2: Determine fallback method
+    const isUsingFallbackMethod = marketSearchResult.searchMethod === 'fallback' || marketSearchResult.listings.length === 0;
     
-    // Step 3: Calculate base price anchor
+    // Step 3: Calculate base price
     let basePriceAnchor: number;
     
-    if (marketResult.listings.length > 0) {
-      // Use market data for base price
-      const prices = marketResult.listings.map((l: MarketListing) => l.price).filter(p => p > 0);
-      basePriceAnchor = prices.reduce((sum: number, price: number) => sum + price, 0) / prices.length;
-      console.log('💰 [ENHANCED_VALUATION] Using market-based pricing:', basePriceAnchor);
+    if (marketSearchResult.listings.length > 0) {
+      // Use real market data
+      const validPrices = marketSearchResult.listings.map((listing: MarketListing) => listing.price).filter(p => p > 0);
+      basePriceAnchor = validPrices.reduce((sum: number, price: number) => sum + price, 0) / validPrices.length;
+      console.log('💰 [VALUATION_ENGINE_V3] Market-based pricing:', basePriceAnchor);
     } else {
-      // Use MSRP-based fallback pricing
+      // Use MSRP fallback
       basePriceAnchor = await calculateMSRPBasedPrice(params);
-      console.log('💰 [ENHANCED_VALUATION] Using MSRP-based fallback pricing:', basePriceAnchor);
+      console.log('💰 [VALUATION_ENGINE_V3] MSRP fallback pricing:', basePriceAnchor);
     }
     
     // Step 4: Apply adjustments
@@ -88,33 +88,34 @@ export async function calculateEnhancedValuation(params: EnhancedValuationParams
     // Step 5: Calculate confidence score
     const confidenceResult = generateConfidenceScore({
       base: isUsingFallbackMethod ? 45 : 55,
-      hasExactVinMatch: marketResult.listings.some((l: MarketListing) => l.vin === params.vin),
-      listingCount: marketResult.listings.length,
-      certifiedListingCount: marketResult.listings.filter((l: MarketListing) => l.is_cpo).length,
-      trustedSources: marketResult.listings.map((l: MarketListing) => l.source),
-      trustScore: marketResult.trust
+      hasExactVinMatch: marketSearchResult.listings.some((listing: MarketListing) => listing.vin === params.vin),
+      listingCount: marketSearchResult.listings.length,
+      certifiedListingCount: marketSearchResult.listings.filter((listing: MarketListing) => listing.is_cpo).length,
+      trustedSources: marketSearchResult.listings.map((listing: MarketListing) => listing.source),
+      trustScore: marketSearchResult.trust
     });
     
-    // Step 6: Apply fallback confidence cap
+    // Step 6: Cap confidence for fallback
     let finalConfidence = confidenceResult.score;
     if (isUsingFallbackMethod) {
       finalConfidence = Math.min(finalConfidence, 60);
-      console.log('🧢 [ENHANCED_VALUATION] Confidence capped at 60% due to fallback method');
+      console.log('🧢 [VALUATION_ENGINE_V3] Confidence capped at 60% for fallback');
     }
     
     // Step 7: Generate explanation
-    const explanation = await generateValuationExplanation(params, marketResult, finalValue, finalConfidence);
+    const explanation = await generateValuationExplanation(params, marketSearchResult, finalValue, finalConfidence);
     
+    // Step 8: Build final result
     const result: EnhancedValuationResult = {
       estimatedValue: Math.round(finalValue),
       confidenceScore: finalConfidence,
-      marketListings: marketResult.listings,
+      marketListings: marketSearchResult.listings,
       isUsingFallbackMethod,
       basePriceAnchor: Math.round(basePriceAnchor),
       adjustments,
       confidenceBreakdown: {
-        vinAccuracy: marketResult.listings.some((l: MarketListing) => l.vin === params.vin) ? 95 : 70,
-        marketData: marketResult.listings.length > 0 ? 85 : 40,
+        vinAccuracy: marketSearchResult.listings.some((listing: MarketListing) => listing.vin === params.vin) ? 95 : 70,
+        marketData: marketSearchResult.listings.length > 0 ? 85 : 40,
         fuelCostMatch: 75,
         msrpQuality: 80,
         overall: finalConfidence,
@@ -126,7 +127,7 @@ export async function calculateEnhancedValuation(params: EnhancedValuationParams
       explanation
     };
     
-    console.log('✅ [ENHANCED_VALUATION] Calculation complete:', {
+    console.log('✅ [VALUATION_ENGINE_V3] Complete:', {
       estimatedValue: result.estimatedValue,
       confidenceScore: result.confidenceScore,
       listingsCount: result.marketListings.length,
@@ -136,9 +137,9 @@ export async function calculateEnhancedValuation(params: EnhancedValuationParams
     return result;
     
   } catch (error) {
-    console.error('❌ [ENHANCED_VALUATION] Calculation failed:', error);
+    console.error('❌ [VALUATION_ENGINE_V3] Error:', error);
     
-    // Return fallback result on error
+    // Emergency fallback
     const fallbackPrice = await calculateMSRPBasedPrice(params);
     
     return {
@@ -245,7 +246,7 @@ async function generateValuationExplanation(
     return `This ${vehicle} valuation of $${finalValue.toLocaleString()} is based on MSRP-adjusted depreciation modeling due to limited current market listings. The ${confidence}% confidence reflects the synthetic nature of this estimate.`;
   }
   
-  const avgMarketPrice = marketResult.listings.reduce((sum: number, l: MarketListing) => sum + l.price, 0) / listingsCount;
+  const avgMarketPrice = marketResult.listings.reduce((sum: number, listing: MarketListing) => sum + listing.price, 0) / listingsCount;
   const priceDiff = finalValue - avgMarketPrice;
   const diffPercent = (priceDiff / avgMarketPrice) * 100;
   
