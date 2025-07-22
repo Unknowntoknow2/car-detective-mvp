@@ -23,19 +23,7 @@ interface EnterpriseValuationPanelProps {
   vehicleData: ValuationRequest;
 }
 
-interface MarketListing {
-  id: string;
-  source: string;
-  source_type: string;
-  price: number;
-  mileage?: number;
-  condition?: string;
-  dealer_name?: string;
-  location?: string;
-  listing_url: string;
-  is_cpo: boolean;
-  fetched_at: string;
-}
+import { MarketListing } from '@/types/marketListing';
 
 interface AuditLog {
   id: string;
@@ -282,11 +270,11 @@ export const EnterpriseValuationPanel = ({ vehicleData }: EnterpriseValuationPan
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <Badge variant="outline">{listing.source}</Badge>
-                          <Badge variant="secondary">{listing.source_type}</Badge>
-                          {listing.is_cpo && <Badge>CPO</Badge>}
+                          <Badge variant="secondary">{listing.source_type || listing.sourceType || 'unknown'}</Badge>
+                          {(listing.is_cpo || listing.isCpo) && <Badge>CPO</Badge>}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          {listing.dealer_name && `${listing.dealer_name} • `}
+                          {(listing.dealer_name || listing.dealerName || listing.dealer) && `${listing.dealer_name || listing.dealerName || listing.dealer} • `}
                           {listing.location && `${listing.location} • `}
                           {listing.mileage && `${listing.mileage.toLocaleString()} miles`}
                         </p>
@@ -297,7 +285,7 @@ export const EnterpriseValuationPanel = ({ vehicleData }: EnterpriseValuationPan
                       <div className="text-right">
                         <div className="text-xl font-bold">{formatCurrency(listing.price)}</div>
                         <a 
-                          href={listing.listing_url} 
+                          href={listing.listing_url || listing.listingUrl || listing.link || listing.url} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-sm text-primary hover:underline"

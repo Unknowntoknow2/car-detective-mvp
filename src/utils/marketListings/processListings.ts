@@ -1,5 +1,18 @@
 
-import { MarketListing, MarketData } from '@/types/marketListings';
+import { MarketListing } from '@/types/marketListing';
+
+// Legacy interface for backwards compatibility
+interface MarketData {
+  averagePrice: number;
+  priceRange: {
+    min: number;
+    max: number;
+  };
+  listingCount: number;
+  daysOnMarket: number;
+  averages?: Record<string, number>;
+  sources?: Record<string, string>;
+}
 
 export function processExistingListings(listings: MarketListing[]): MarketData {
   if (!listings || listings.length === 0) {
@@ -31,8 +44,9 @@ export function processExistingListings(listings: MarketListing[]): MarketData {
   }, {} as Record<string, number>);
 
   const sources = listings.reduce((acc, listing) => {
-    if (listing.url) {
-      acc[listing.source] = listing.url;
+    const url = listing.url || listing.link || listing.listingUrl || listing.listing_url;
+    if (url) {
+      acc[listing.source] = url;
     }
     return acc;
   }, {} as Record<string, string>);

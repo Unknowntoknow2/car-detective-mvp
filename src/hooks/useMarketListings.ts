@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { MarketListing } from '@/types/valuation';
+import { MarketListing } from '@/types/marketListing';
 
 interface UseMarketListingsProps {
   make?: string;

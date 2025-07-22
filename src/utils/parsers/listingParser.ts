@@ -1,4 +1,4 @@
-import { MarketListing } from "@/types/valuation";
+import { MarketListing } from "@/types/marketListing";
 
 export interface ParsedListing {
   title: string;

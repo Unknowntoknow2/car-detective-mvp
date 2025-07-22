@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
-import { EnhancedValuationResult, ValuationInput, MarketListing } from '@/types/valuation';
+import { EnhancedValuationResult, ValuationInput } from '@/types/valuation';
+import { MarketListing } from '@/types/marketListing';
 
 export interface ValuationExplanationInput {
   result: EnhancedValuationResult;

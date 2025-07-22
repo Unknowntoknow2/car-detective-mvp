@@ -1,6 +1,7 @@
 
-// Canonical MarketListing type - single source of truth
+// Canonical MarketListing type - single source of truth for ALL market listing data
 export interface MarketListing {
+  // Core identifying fields
   id?: string;
   price: number;
   mileage?: number;
@@ -19,16 +20,25 @@ export interface MarketListing {
   link?: string;        // Live search version
   listingUrl?: string;  // Database version
   listing_url?: string; // Alternative database field name
+  url?: string;         // Generic URL field (for compatibility)
   
-  // Additional fields for enhanced data
+  // Legacy compatibility fields
+  valuationId?: string; // From old marketListings.ts
+  listingDate?: string; // From old marketListings.ts
+  
+  // Dealer and source information
+  dealer?: string;       // Generic dealer field
+  dealerName?: string;
+  dealer_name?: string;  // Database version
+  sourceType?: string;   // 'live' | 'database' | 'dealer' | 'auction' | 'classified'
+  source_type?: string;  // Database version
+  
+  // Vehicle details and features
   photos?: string[];
   titleStatus?: string;
   isCpo?: boolean;
-  is_cpo?: boolean;     // Database version
-  sourceType?: string;  // 'live' | 'database' | 'dealer' | 'auction' | 'classified'
-  source_type?: string; // Database version
-  dealerName?: string;
-  dealer_name?: string; // Database version
+  is_cpo?: boolean;      // Database version
+  distance?: number;     // Distance from search location
   
   // Extended properties for Google-style listings
   days_on_market?: number;
@@ -45,11 +55,11 @@ export interface MarketListing {
   
   // Timestamps
   fetchedAt?: string;
-  fetched_at?: string;  // Database version
+  fetched_at?: string;   // Database version
   updatedAt?: string;
-  updated_at?: string;  // Database version
+  updated_at?: string;   // Database version
   createdAt?: string;
-  created_at?: string;  // Database version
+  created_at?: string;   // Database version
   
   // Confidence and validation
   confidenceScore?: number;

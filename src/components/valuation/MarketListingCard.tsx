@@ -2,19 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/utils/formatters';
 import { ExternalLink, CheckCircle, AlertCircle } from 'lucide-react';
-
-interface MarketListing {
-  id: string;
-  price: number;
-  dealer_name?: string;
-  vin?: string;
-  mileage?: number;
-  is_cpo?: boolean;
-  listing_url?: string;
-  location?: string;
-  source?: string;
-  confidence_score?: number;
-}
+import { MarketListing } from '@/types/marketListing';
 
 interface MarketListingCardProps {
   listings: MarketListing[];
@@ -99,15 +87,17 @@ export const MarketListingCard: React.FC<MarketListingCardProps> = ({
                       Exact VIN
                     </Badge>
                   )}
-                  {listing.is_cpo && (
+                  {(listing.is_cpo || listing.isCpo) && (
                     <Badge variant="outline" className="text-xs border-blue-300 text-blue-700">
                       Certified
                     </Badge>
                   )}
                 </div>
                 
-                {listing.dealer_name && (
-                  <p className="text-sm font-medium text-gray-700">{listing.dealer_name}</p>
+                {(listing.dealer_name || listing.dealerName || listing.dealer) && (
+                  <p className="text-sm font-medium text-gray-700">
+                    {listing.dealer_name || listing.dealerName || listing.dealer}
+                  </p>
                 )}
                 
                 <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
@@ -117,22 +107,23 @@ export const MarketListingCard: React.FC<MarketListingCardProps> = ({
                   {listing.location && (
                     <span>{listing.location}</span>
                   )}
-                  {listing.confidence_score && (
+                  {(listing.confidence_score || listing.confidenceScore) && (
                     <span className="flex items-center gap-1">
-                      {listing.confidence_score >= 85 ? (
+                      {(listing.confidence_score || listing.confidenceScore || 0) >= 85 ? (
                         <CheckCircle className="w-3 h-3 text-green-500" />
                       ) : (
                         <AlertCircle className="w-3 h-3 text-amber-500" />
                       )}
-                      {listing.confidence_score}%
+                      {listing.confidence_score || listing.confidenceScore}%
                     </span>
                   )}
                 </div>
               </div>
               
-              {listing.listing_url && listing.listing_url !== '#' && (
+              {(listing.listing_url || listing.listingUrl || listing.link || listing.url) && 
+               (listing.listing_url || listing.listingUrl || listing.link || listing.url) !== '#' && (
                 <a 
-                  href={listing.listing_url}
+                  href={listing.listing_url || listing.listingUrl || listing.link || listing.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="ml-2 p-1 text-gray-400 hover:text-gray-600"

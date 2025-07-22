@@ -1,11 +1,34 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import {
-  MarketData,
-  MarketListing,
-  MarketListingInsert,
-  MarketListingsResponse,
-} from "@/types/marketListings";
+import { MarketListing } from "@/types/marketListing";
+
+// Legacy types for backwards compatibility
+interface MarketListingInsert {
+  source: string;
+  price: number;
+  url: string | null;
+  make: string;
+  model: string;
+  year: number;
+  valuation_id: string;
+}
+
+interface MarketListingsResponse {
+  data: MarketListing[] | null;
+  error: any;
+}
+
+interface MarketData {
+  averagePrice: number;
+  priceRange: {
+    min: number;
+    max: number;
+  };
+  listingCount: number;
+  daysOnMarket: number;
+  averages?: Record<string, number>;
+  sources?: Record<string, string>;
+}
 
 /**
  * Fetch the last 10 market listings for a given make/model/year.

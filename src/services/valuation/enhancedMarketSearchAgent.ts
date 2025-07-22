@@ -1,6 +1,7 @@
 // Enhanced Market Search Agent - Facebook & Craigslist via OpenAI Web Search
 import { supabase } from "@/integrations/supabase/client";
-import type { UnifiedValuationResult, MarketListing } from "@/types/valuation";
+import type { UnifiedValuationResult } from "@/types/valuation";
+import type { MarketListing } from "@/types/marketListing";
 
 export interface EnhancedMarketListing {
   title: string;

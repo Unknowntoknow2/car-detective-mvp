@@ -16,16 +16,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface MarketListing {
-  price: number;
-  mileage?: number;
-  location?: string;
-  dealer?: string;
-  source?: string;
-  url?: string;
-  condition?: string;
-  distance?: number;
-}
+import { MarketListing } from '@/types/marketListing';
 
 interface MarketListingsGridProps {
   listings: MarketListing[];
@@ -263,20 +254,20 @@ function ListingCard({ listing }: { listing: MarketListing }) {
               </div>
             )}
 
-            {listing.dealer && (
-              <div className="text-xs font-medium truncate" title={listing.dealer}>
-                {listing.dealer}
+            {(listing.dealer || listing.dealerName || listing.dealer_name) && (
+              <div className="text-xs font-medium truncate" title={listing.dealer || listing.dealerName || listing.dealer_name}>
+                {listing.dealer || listing.dealerName || listing.dealer_name}
               </div>
             )}
           </div>
 
           {/* Link */}
-          {listing.url && (
+          {(listing.url || listing.link || listing.listingUrl || listing.listing_url) && (
             <Button
               variant="ghost"
               size="sm"
               className="w-full opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => window.open(listing.url, '_blank')}
+              onClick={() => window.open(listing.url || listing.link || listing.listingUrl || listing.listing_url, '_blank')}
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               View Listing
@@ -313,9 +304,9 @@ function ListingRow({ listing }: { listing: MarketListing }) {
                 </div>
               )}
               
-              {listing.dealer && (
+              {(listing.dealer || listing.dealerName || listing.dealer_name) && (
                 <span className="text-xs font-medium max-w-32 truncate">
-                  {listing.dealer}
+                  {listing.dealer || listing.dealerName || listing.dealer_name}
                 </span>
               )}
             </div>
@@ -328,11 +319,11 @@ function ListingRow({ listing }: { listing: MarketListing }) {
               </Badge>
             )}
             
-            {listing.url && (
+            {(listing.url || listing.link || listing.listingUrl || listing.listing_url) && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => window.open(listing.url, '_blank')}
+                onClick={() => window.open(listing.url || listing.link || listing.listingUrl || listing.listing_url, '_blank')}
               >
                 <ExternalLink className="w-4 h-4" />
               </Button>
