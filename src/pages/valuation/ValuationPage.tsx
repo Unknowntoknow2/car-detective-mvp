@@ -6,6 +6,7 @@ import { UnifiedLookupTabs } from '@/components/lookup/UnifiedLookupTabs';
 import { ValuationEngineTestComponent } from '@/components/test/ValuationEngineTestComponent';
 import { OpenAIMarketSearchTestComponent } from '@/components/test/OpenAIMarketSearchTestComponent';
 import { ListingAnchoringValidationComponent } from '@/components/test/ListingAnchoringValidationComponent';
+import { UIResultsDisplayValidationComponent } from '@/components/test/UIResultsDisplayValidationComponent';
 import { MarketSearchTest } from '@/components/debug/MarketSearchTest';
 
 
@@ -38,6 +39,19 @@ export default function ValuationPage() {
         </CardHeader>
         <CardContent>
           <ListingAnchoringValidationComponent />
+        </CardContent>
+      </Card>
+
+      {/* UI Results Display Validation Test */}
+      <Card className="border-dashed border-2 border-purple-300 bg-purple-50">
+        <CardHeader>
+          <CardTitle className="text-purple-700">🎯 UI Results Page Display Validation (Prompt 2.4)</CardTitle>
+          <p className="text-purple-600 text-sm">
+            THIRD: Validate that ResultsPage correctly renders valuation results, market listings, confidence scores, and PDF/share functionality.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <UIResultsDisplayValidationComponent />
         </CardContent>
       </Card>
 

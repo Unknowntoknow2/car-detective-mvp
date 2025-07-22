@@ -10,6 +10,7 @@ import { ValuationSummary } from '@/components/valuation/result/ValuationSummary
 import { EnhancedConfidenceScore } from '@/components/valuation/result/EnhancedConfidenceScore';
 import { GoogleStyleListings } from '@/components/market/GoogleStyleListings';
 import { MarketDataStatus } from '@/components/valuation/result/MarketDataStatus';
+import { FallbackMethodDisclosure } from '@/components/valuation/result/FallbackMethodDisclosure';
 import { calculateEnhancedValuation } from '@/services/enhancedValuationEngine';
 import { MarketListing, normalizeListing } from '@/types/marketListing';
 import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
@@ -415,6 +416,14 @@ export default function ResultsPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Fallback Method Disclosure */}
+          <FallbackMethodDisclosure
+            isFallbackMethod={valuation.isUsingFallbackMethod || false}
+            confidenceScore={valuation.confidenceScore}
+            marketListingsCount={valuation.marketListings.length}
+            estimatedValue={valuation.estimatedValue}
+          />
 
           {/* Market Data Status */}
           <MarketDataStatus 
