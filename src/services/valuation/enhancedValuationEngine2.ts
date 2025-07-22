@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { searchMarketListings } from './marketSearchAgent';
+import type { EnhancedMarketSearchResult } from './marketSearchAgent';
 import { generateConfidenceScore } from '../generateConfidenceScore';
 import type { MarketListing } from '@/types/marketListing';
 
@@ -39,6 +40,7 @@ export interface EnhancedValuationResult {
   explanation?: string;
 }
 
+// Enhanced valuation calculation with proper type safety
 export async function calculateEnhancedValuation(params: EnhancedValuationParams): Promise<EnhancedValuationResult> {
   console.log('🚀 [ENHANCED_VALUATION] Starting enhanced valuation calculation:', params);
   
@@ -232,7 +234,7 @@ async function calculateAdjustments(params: EnhancedValuationParams, basePrice: 
 
 async function generateValuationExplanation(
   params: EnhancedValuationParams,
-  marketResult: any,
+  marketResult: EnhancedMarketSearchResult,
   finalValue: number,
   confidence: number
 ): Promise<string> {

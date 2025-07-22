@@ -14,7 +14,7 @@ export interface MarketSearchParams {
   vin?: string;
 }
 
-export interface MarketSearchResult {
+export interface EnhancedMarketSearchResult {
   listings: MarketListing[];
   trust: number;
   source: string;
@@ -26,7 +26,7 @@ export interface MarketSearchResult {
 /**
  * Enhanced market search agent using OpenAI web search + database fallback
  */
-export async function searchMarketListings(params: MarketSearchParams): Promise<MarketSearchResult> {
+export async function searchMarketListings(params: MarketSearchParams): Promise<EnhancedMarketSearchResult> {
   console.log('🔍 [MARKET_SEARCH_AGENT] Starting search with params:', params);
   
   try {
@@ -72,7 +72,7 @@ export async function searchMarketListings(params: MarketSearchParams): Promise<
 /**
  * Search using OpenAI web browsing for real-time listings
  */
-async function searchWithOpenAI(params: MarketSearchParams): Promise<MarketSearchResult> {
+async function searchWithOpenAI(params: MarketSearchParams): Promise<EnhancedMarketSearchResult> {
   try {
     console.log('🤖 [OPENAI_SEARCH] Calling OpenAI market search function...');
     
@@ -146,7 +146,7 @@ async function searchWithOpenAI(params: MarketSearchParams): Promise<MarketSearc
 /**
  * Search database for existing market listings
  */
-async function searchDatabase(params: MarketSearchParams): Promise<MarketSearchResult> {
+async function searchDatabase(params: MarketSearchParams): Promise<EnhancedMarketSearchResult> {
   try {
     console.log('🗃️ [DB_SEARCH] Searching database for market listings...');
     
