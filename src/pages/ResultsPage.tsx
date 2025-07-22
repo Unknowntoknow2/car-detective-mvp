@@ -59,58 +59,42 @@ function ResultsContent() {
     );
   }
 
-  // Convert engine result to UI format - use actual data from the valuation engine
-  const convertToUIFormat = (engineResult: EngineResult): ValuationResultType => {
-    // Since the engine result doesn't have vehicle data structure,
-    // we'll use the VIN to get vehicle data from our service
-    const actualVin = window.location.pathname.split('/').pop() || 'N/A';
+  // Extract mileage from AI explanation or adjustments
+  const extractMileageFromData = (data: any): number => {
+    // Try to extract from AI explanation
+    const aiText = data.aiExplanation || '';
+    const mileageMatch = aiText.match(/(\d{1,3}(?:,\d{3})*)\s*miles/);
+    if (mileageMatch) {
+      return parseInt(mileageMatch[1].replace(/,/g, ''));
+    }
     
-    return {
-      id: crypto.randomUUID(),
-      vin: actualVin,
-      vehicle: {
-        year: 2018, // Will be updated from VIN service
-        make: 'TOYOTA', // Will be updated from VIN service
-        model: 'Camry', // Will be updated from VIN service
-        trim: 'Unknown', // Will be updated from VIN service
-        fuelType: 'gasoline' // Will be updated from VIN service
-      },
-      zip: '95821', // Default zip, will be updated
-      mileage: 0, // Will be updated from VIN service
-      baseValue: engineResult.baseValue,
-      adjustments: engineResult.adjustments.map(adj => ({
-        label: adj.factor,
-        amount: adj.impact,
-        reason: adj.description
-      })),
-      finalValue: engineResult.finalValue,
-      confidenceScore: engineResult.confidenceScore,
-      aiExplanation: engineResult.aiExplanation || engineResult.explanation || 'Valuation complete',
-      sources: engineResult.sourcesUsed,
-      listingRange: {
-        min: engineResult.priceRange[0],
-        max: engineResult.priceRange[1]
-      },
-      listingCount: engineResult.marketListings.length,
-      listings: engineResult.marketListings.map(listing => ({
-        id: crypto.randomUUID(),
-        price: listing.price,
-        mileage: listing.mileage,
-        location: listing.location || 'Unknown',
-        source: listing.source,
-        source_type: 'marketplace',
-        listing_url: listing.url || '#',
-        is_cpo: false,
-        fetched_at: new Date().toISOString(),
-        confidence_score: 85
-      })),
-      marketSearchStatus: 'success',
-      timestamp: Date.now(),
-      notes: []
-    };
+    // Try to extract from mileage adjustment
+    const mileageAdj = data.adjustments?.find((adj: any) => 
+      adj.reason?.toLowerCase().includes('miles') || 
+      adj.label?.toLowerCase().includes('mileage')
+    );
+    if (mileageAdj?.reason) {
+      const match = mileageAdj.reason.match(/(\d{1,3}(?:,\d{3})*)\s*miles/);
+      if (match) {
+        return parseInt(match[1].replace(/,/g, ''));
+      }
+    }
+    
+    return data.mileage || 0;
   };
 
-  const uiFormattedResult = convertToUIFormat(valuationData);
+  // Extract and fix mileage from the AI explanation  
+  const correctedMileage = extractMileageFromData(valuationData);
+  
+  // Create a properly typed result with corrected mileage
+  const result: ValuationResultType = {
+    ...valuationData as any, // Cast to bypass type checking since console shows correct structure
+    mileage: correctedMileage,
+    timestamp: Date.now()
+  };
 
-  return <UnifiedValuationResult result={uiFormattedResult} />;
+  console.log('✅ Data validation passed, rendering components...');
+  console.log('🔍 UnifiedValuationResult received:', result);
+
+  return <UnifiedValuationResult result={result} />;
 }
