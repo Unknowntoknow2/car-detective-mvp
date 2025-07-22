@@ -1053,14 +1053,24 @@ export type Database = {
           confidence_score: number | null
           created_at: string | null
           days_listed: number | null
+          days_on_market: number | null
           dealer_name: string | null
+          dealer_rating: number | null
+          drivetrain: string | null
+          engine_description: string | null
+          exterior_color: string | null
           features: Json | null
           fetched_at: string | null
+          fuel_economy_city: number | null
+          fuel_economy_highway: number | null
           geo_distance_miles: number | null
           id: string
+          interior_color: string | null
           is_cpo: boolean | null
           is_validated: boolean | null
+          last_price_update: string | null
           listing_date: string | null
+          listing_status: string | null
           listing_url: string
           location: string | null
           make: string | null
@@ -1068,10 +1078,13 @@ export type Database = {
           model: string | null
           photos: Json | null
           price: number
+          price_history: Json | null
           raw_data: Json | null
           source: string
           source_type: string
+          stock_number: string | null
           title_status: string | null
+          transmission_type: string | null
           trim: string | null
           updated_at: string | null
           validation_errors: Json | null
@@ -1085,14 +1098,24 @@ export type Database = {
           confidence_score?: number | null
           created_at?: string | null
           days_listed?: number | null
+          days_on_market?: number | null
           dealer_name?: string | null
+          dealer_rating?: number | null
+          drivetrain?: string | null
+          engine_description?: string | null
+          exterior_color?: string | null
           features?: Json | null
           fetched_at?: string | null
+          fuel_economy_city?: number | null
+          fuel_economy_highway?: number | null
           geo_distance_miles?: number | null
           id?: string
+          interior_color?: string | null
           is_cpo?: boolean | null
           is_validated?: boolean | null
+          last_price_update?: string | null
           listing_date?: string | null
+          listing_status?: string | null
           listing_url: string
           location?: string | null
           make?: string | null
@@ -1100,10 +1123,13 @@ export type Database = {
           model?: string | null
           photos?: Json | null
           price: number
+          price_history?: Json | null
           raw_data?: Json | null
           source: string
           source_type?: string
+          stock_number?: string | null
           title_status?: string | null
+          transmission_type?: string | null
           trim?: string | null
           updated_at?: string | null
           validation_errors?: Json | null
@@ -1117,14 +1143,24 @@ export type Database = {
           confidence_score?: number | null
           created_at?: string | null
           days_listed?: number | null
+          days_on_market?: number | null
           dealer_name?: string | null
+          dealer_rating?: number | null
+          drivetrain?: string | null
+          engine_description?: string | null
+          exterior_color?: string | null
           features?: Json | null
           fetched_at?: string | null
+          fuel_economy_city?: number | null
+          fuel_economy_highway?: number | null
           geo_distance_miles?: number | null
           id?: string
+          interior_color?: string | null
           is_cpo?: boolean | null
           is_validated?: boolean | null
+          last_price_update?: string | null
           listing_date?: string | null
+          listing_status?: string | null
           listing_url?: string
           location?: string | null
           make?: string | null
@@ -1132,10 +1168,13 @@ export type Database = {
           model?: string | null
           photos?: Json | null
           price?: number
+          price_history?: Json | null
           raw_data?: Json | null
           source?: string
           source_type?: string
+          stock_number?: string | null
           title_status?: string | null
+          transmission_type?: string | null
           trim?: string | null
           updated_at?: string | null
           validation_errors?: Json | null
@@ -1626,6 +1665,72 @@ export type Database = {
           price_trend_90d?: Json | null
           supply_demand_ratio?: number | null
           trim?: string | null
+          year?: number
+          zip_code?: string
+        }
+        Relationships: []
+      }
+      market_intelligence: {
+        Row: {
+          average_price: number | null
+          confidence_score: number | null
+          created_at: string | null
+          days_on_market_avg: number | null
+          demand_indicator: number | null
+          id: string
+          inventory_level: string | null
+          last_calculated: string | null
+          make: string
+          median_price: number | null
+          model: string
+          price_std_dev: number | null
+          price_trend: string | null
+          sample_size: number | null
+          trend_percentage: number | null
+          trim: string | null
+          updated_at: string | null
+          year: number
+          zip_code: string
+        }
+        Insert: {
+          average_price?: number | null
+          confidence_score?: number | null
+          created_at?: string | null
+          days_on_market_avg?: number | null
+          demand_indicator?: number | null
+          id?: string
+          inventory_level?: string | null
+          last_calculated?: string | null
+          make: string
+          median_price?: number | null
+          model: string
+          price_std_dev?: number | null
+          price_trend?: string | null
+          sample_size?: number | null
+          trend_percentage?: number | null
+          trim?: string | null
+          updated_at?: string | null
+          year: number
+          zip_code: string
+        }
+        Update: {
+          average_price?: number | null
+          confidence_score?: number | null
+          created_at?: string | null
+          days_on_market_avg?: number | null
+          demand_indicator?: number | null
+          id?: string
+          inventory_level?: string | null
+          last_calculated?: string | null
+          make?: string
+          median_price?: number | null
+          model?: string
+          price_std_dev?: number | null
+          price_trend?: string | null
+          sample_size?: number | null
+          trend_percentage?: number | null
+          trim?: string | null
+          updated_at?: string | null
           year?: number
           zip_code?: string
         }
@@ -4165,6 +4270,23 @@ export type Database = {
       bytea_to_text: {
         Args: { data: string }
         Returns: string
+      }
+      calculate_market_intelligence: {
+        Args: {
+          p_make: string
+          p_model: string
+          p_year: number
+          p_zip_code: string
+          p_radius_miles?: number
+        }
+        Returns: {
+          median_price: number
+          average_price: number
+          sample_size: number
+          confidence_score: number
+          inventory_level: string
+          demand_indicator: number
+        }[]
       }
       claim_referral_reward: {
         Args: { referral_id: string }
