@@ -28,42 +28,60 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
   // Use context premium status if available, otherwise fall back to user plan
   const isPremium = contextIsPremium || userIsPremium;
 
-  const confidenceRecommendations = result.confidenceScore < 70 ? [
-    'Complete additional vehicle details in the follow-up form',
-    'Verify your vehicle\'s VIN for more accurate data',
-    'Add recent maintenance records if available',
-    'Specify exact trim level and options'
-  ] : [];
-
-  // Add error boundary and defensive rendering
-  console.log('🔍 UnifiedValuationResult received:', result);
+  // Enhanced validation with better error messages
+  console.log('🔍 UnifiedValuationResult received result:', result);
   
   if (!result) {
     console.error('❌ No result data provided to UnifiedValuationResult');
     return (
       <div className="container mx-auto p-6 text-center bg-red-50 border border-red-200 rounded">
         <p className="text-red-600">No valuation data available</p>
-        <p className="text-sm text-red-500 mt-2">Debug: result is null or undefined</p>
+        <p className="text-sm text-red-500 mt-2">Please try refreshing the page or contact support</p>
       </div>
     );
   }
 
-  if (!result.finalValue || typeof result.finalValue !== 'number') {
+  if (!result.finalValue || typeof result.finalValue !== 'number' || result.finalValue <= 0) {
     console.error('❌ Invalid finalValue in result:', result.finalValue);
     return (
-      <div className="container mx-auto p-6 text-center bg-red-50 border border-red-200 rounded">
-        <p className="text-red-600">Invalid valuation data</p>
-        <p className="text-sm text-red-500 mt-2">Debug: finalValue = {JSON.stringify(result.finalValue)}</p>
+      <div className="container mx-auto p-6 text-center bg-yellow-50 border border-yellow-200 rounded">
+        <p className="text-yellow-600">Invalid valuation amount</p>
+        <p className="text-sm text-yellow-500 mt-2">Estimated value: {JSON.stringify(result.finalValue)}</p>
       </div>
     );
   }
 
-  console.log('✅ Data validation passed, rendering components...');
+  // Ensure mileage is displayed correctly
+  const displayMileage = result.mileage || 0;
+  const hasValidListings = result.listings && result.listings.length > 0;
+  
+  // Enhanced confidence recommendations based on data quality
+  const confidenceRecommendations = [];
+  
+  if (result.confidenceScore < 70) {
+    confidenceRecommendations.push('Complete additional vehicle details in the follow-up form');
+  }
+  
+  if (!hasValidListings) {
+    confidenceRecommendations.push('Limited market data available - consider checking back later');
+  }
+  
+  if (displayMileage === 0) {
+    confidenceRecommendations.push('Add accurate mileage for more precise valuation');
+  }
+
+  console.log('✅ Data validation passed, rendering components with:', {
+    finalValue: result.finalValue,
+    mileage: displayMileage,
+    listingCount: result.listingCount,
+    confidenceScore: result.confidenceScore,
+    marketSearchStatus: result.marketSearchStatus
+  });
 
   return (
     <div className="bg-gradient-to-br from-background via-background/98 to-primary/5">
       <div className="max-w-6xl mx-auto p-6 space-y-8">
-        {/* Confidence Badge */}
+        {/* Enhanced Confidence Badge with market data status */}
         <div className="flex justify-center mb-4">
           <ConfidenceExplanationBadge
             confidenceScore={result.confidenceScore}
@@ -72,11 +90,12 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
             sources={result.sources}
             onRetrySearch={() => {
               console.log('Retry market search requested');
+              window.location.reload(); // Simple retry for now
             }}
           />
         </div>
         
-        {/* Hero Section */}
+        {/* Hero Section with consistent data */}
         <section>
           <VehicleHeroCard
             vehicle={{
@@ -85,14 +104,14 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
               model: result.vehicle.model,
               trim: result.vehicle.trim || '',
               fuelType: result.vehicle.fuelType || 'gasoline',
-              transmission: 'Unknown',
-              mileage: result.mileage || 0,
-              condition: 'Good',
+              transmission: 'Automatic', // Default since not in result
+              mileage: displayMileage,
+              condition: 'Good', // Default since not in result
               zipCode: result.zip || ''
             }}
             estimatedValue={result.finalValue}
             confidenceScore={result.confidenceScore}
-            timestamp={result.timestamp?.toString() || new Date().toISOString()}
+            timestamp={new Date(result.timestamp || Date.now()).toISOString()}
             isPremium={isPremium}
           />
         </section>
@@ -109,14 +128,14 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
             confidenceScore={result.confidenceScore}
           />
 
-          {/* Confidence Ring */}
+          {/* Enhanced Confidence Ring with market data factors */}
           <ConfidenceRing
             score={result.confidenceScore}
             factors={{
               vinAccuracy: 85,
-              marketData: result.listingCount > 0 ? 80 : 45,
-              fuelCostMatch: 90,
-              msrpQuality: result.sources?.includes('msrp_db_lookup') ? 95 : 65
+              marketData: hasValidListings ? Math.min(90, 60 + (result.listingCount * 5)) : 30,
+              mileageAccuracy: displayMileage > 0 ? 90 : 50,
+              vehicleDetails: result.vehicle.trim ? 85 : 70
             }}
             recommendations={confidenceRecommendations}
             onImproveClick={() => {
@@ -128,18 +147,27 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({
           />
         </div>
 
+        {/* Market Data Status Indicator */}
+        {result.marketSearchStatus === 'error' && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-yellow-800 text-sm">
+              ⚠️ Limited market data available. Valuation based on vehicle specifications and historical data.
+            </p>
+          </div>
+        )}
+
         {/* Title & Recall Intelligence Panel */}
         {result.titleRecallInfo && (
           <TitleRecallPanel titleRecallInfo={result.titleRecallInfo} />
         )}
 
-        {/* Main Content Tabs */}
+        {/* Main Content Tabs with enhanced data */}
         <TabbedResultsPanels 
           result={{
             ...result,
             vin: result.vin || '',
-            mileage: result.mileage || 0,
-            aiExplanation: result.aiExplanation || 'Valuation explanation',
+            mileage: displayMileage,
+            aiExplanation: result.aiExplanation || `Your ${result.vehicle.year} ${result.vehicle.make} ${result.vehicle.model} is valued at $${result.finalValue.toLocaleString()}.`,
             marketSearchStatus: (result.marketSearchStatus as "success" | "fallback" | "error") || 'success'
           }}
           onUpgrade={onUpgrade}
