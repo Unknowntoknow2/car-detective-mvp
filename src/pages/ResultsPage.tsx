@@ -232,6 +232,12 @@ export default function ResultsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Market Intelligence</CardTitle>
+                {enhancedResult.marketIntelligence.debugInfo && (
+                  <Badge variant="outline" className="text-xs">
+                    Debug: {enhancedResult.marketIntelligence.debugInfo.afterTrimFilter} filtered
+                    {enhancedResult.marketIntelligence.debugInfo.trimFallbackUsed && ' (fuzzy match)'}
+                  </Badge>
+                )}
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -252,6 +258,26 @@ export default function ResultsPage() {
                     <p className="font-medium">{Math.round(enhancedResult.marketIntelligence.demandIndicator * 100)}%</p>
                   </div>
                 </div>
+                
+                {/* Debug Information */}
+                {enhancedResult.marketIntelligence.debugInfo && (
+                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                    <h5 className="text-xs font-medium text-gray-700 mb-2">Search Debug Info</h5>
+                    <div className="text-xs text-gray-600 space-y-1">
+                      <p>Total Found: {enhancedResult.marketIntelligence.debugInfo.totalFound}</p>
+                      <p>After Filters: {enhancedResult.marketIntelligence.debugInfo.afterTrimFilter}</p>
+                      <p>Trim Fallback: {enhancedResult.marketIntelligence.debugInfo.trimFallbackUsed ? 'Yes' : 'No'}</p>
+                      <div className="mt-2">
+                        <p className="font-medium">Applied Filters:</p>
+                        <div className="ml-2">
+                          {Object.entries(enhancedResult.marketIntelligence.debugInfo.filters).map(([key, value]) => (
+                            <p key={key}>{key}: {value || 'N/A'}</p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
