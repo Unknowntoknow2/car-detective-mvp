@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, Info, TrendingDown, TrendingUp } from 'lucide-react';
 import { AdjustmentTransparency } from './AdjustmentTransparency';
 import { formatCurrency } from '@/utils/formatters';
+import { ValidatedAdjustment } from '@/types/adjustments';
 
 interface ValuationTransparencyProps {
   marketListingsCount: number;
@@ -14,13 +15,7 @@ interface ValuationTransparencyProps {
     amount: number;
     method: string;
   };
-  adjustments: Array<{
-    factor: string;
-    amount: number;
-    description: string;
-    source?: 'market' | 'synthetic';
-    synthetic?: boolean;
-  }>;
+  adjustments: ValidatedAdjustment[];
   estimatedValue: number;
   sources: string[];
   isFallbackMethod: boolean;

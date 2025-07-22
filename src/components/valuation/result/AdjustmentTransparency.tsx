@@ -2,17 +2,10 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, TrendingDown, TrendingUp, Info } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
-
-interface AdjustmentItem {
-  factor: string;
-  amount: number;
-  description: string;
-  source?: 'market' | 'synthetic';
-  synthetic?: boolean;
-}
+import { ValidatedAdjustment } from '@/types/adjustments';
 
 interface AdjustmentTransparencyProps {
-  adjustments: AdjustmentItem[];
+  adjustments: ValidatedAdjustment[];
   isFallbackMethod?: boolean;
   marketListingsCount?: number;
   className?: string;
@@ -36,9 +29,13 @@ export const AdjustmentTransparency: React.FC<AdjustmentTransparencyProps> = ({
     return 'text-gray-600';
   };
 
-  // Categorize adjustments
-  const realAdjustments = adjustments.filter(adj => !adj.synthetic && adj.source !== 'synthetic');
-  const syntheticAdjustments = adjustments.filter(adj => adj.synthetic || adj.source === 'synthetic');
+  // Categorize adjustments by their source type
+  const realAdjustments = adjustments.filter(adj => 
+    !adj.synthetic && !adj.source.includes('synthetic')
+  );
+  const syntheticAdjustments = adjustments.filter(adj => 
+    adj.synthetic || adj.source.includes('synthetic')
+  );
   const hasRealAdjustments = realAdjustments.length > 0;
   const hasSyntheticAdjustments = syntheticAdjustments.length > 0;
 
@@ -78,7 +75,10 @@ export const AdjustmentTransparency: React.FC<AdjustmentTransparencyProps> = ({
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium">{adjustment.factor}</p>
                       <Badge variant="default" className="text-xs bg-green-100 text-green-800">
-                        Market-Based
+                        {adjustment.source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {adjustment.confidence}% confidence
                       </Badge>
                     </div>
                     <p className="text-xs text-gray-600">{adjustment.description}</p>
@@ -128,7 +128,10 @@ export const AdjustmentTransparency: React.FC<AdjustmentTransparencyProps> = ({
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium">{adjustment.factor}</p>
                       <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800">
-                        Synthetic
+                        {adjustment.source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {adjustment.confidence}% confidence
                       </Badge>
                     </div>
                     <p className="text-xs text-gray-600">{adjustment.description}</p>

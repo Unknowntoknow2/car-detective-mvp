@@ -2,6 +2,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { MarketListing, ValuationInput } from '@/types/valuation';
 import { calculateUnifiedConfidence, generateConfidenceExplanation } from '@/utils/valuation/calculateUnifiedConfidence';
+import { AdjustmentEngine } from '@/services/adjustmentEngine';
+import { ValidatedAdjustment } from '@/types/adjustments';
 
 export interface EnhancedValuationResult {
   estimatedValue: number;
@@ -20,13 +22,7 @@ export interface EnhancedValuationResult {
     };
   };
   marketListings: MarketListing[];
-  adjustments: Array<{
-    factor: string;
-    amount: number;
-    description: string;
-    source?: 'market' | 'synthetic';
-    synthetic?: boolean;
-  }>;
+  adjustments: ValidatedAdjustment[];
   basePriceAnchor: {
     source: string;
     amount: number;
@@ -222,37 +218,32 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
     estimatedValue = marketPrice;
   }
 
-  // Step 5: Apply REAL adjustments only when we have market data
-  const adjustments: Array<{
-    factor: string;
-    amount: number;
-    description: string;
-    source?: 'market' | 'synthetic';
-    synthetic?: boolean;
-  }> = [];
-
-  if (!isFallbackMethod && input.mileage && realListings.length > 0) {
-    // Only apply real market-based adjustments when we have data
-    const avgMileage = realListings.reduce((sum, l) => sum + (l.mileage || 0), 0) / realListings.length;
-    if (avgMileage > 0) {
-      const mileageDiff = (input.mileage - avgMileage) / 1000;
-      const mileageAdjustment = mileageDiff * -150; // $150 per 1k miles difference
-      
-      if (Math.abs(mileageAdjustment) > 100) {
-        adjustments.push({
-          factor: 'Mileage Adjustment',
-          amount: mileageAdjustment,
-          description: `${input.mileage.toLocaleString()} mi vs market avg ${Math.round(avgMileage).toLocaleString()} mi`,
-          source: 'market',
-          synthetic: false
-        });
-        estimatedValue += mileageAdjustment;
-      }
-    }
-  }
+  // Step 5: Calculate REAL adjustments using the centralized engine
+  console.log('🔧 Calculating real adjustments with AdjustmentEngine...');
   
-  // CRITICAL: Do NOT add synthetic adjustments for fallback methods
-  // The fallback price already includes depreciation and mileage factors
+  const adjustmentContext = {
+    vehicleMileage: input.mileage,
+    marketAverageMileage: realListings.length > 0 
+      ? realListings.reduce((sum, l) => sum + (l.mileage || 0), 0) / realListings.length 
+      : undefined,
+    condition: input.condition,
+    titleStatus: undefined, // Could be enhanced to get from VIN decode
+    zipCode: input.zipCode,
+    marketListings: realListings,
+    baseValue: estimatedValue
+  };
+
+  const adjustmentResult = AdjustmentEngine.calculateAdjustments(adjustmentContext);
+  
+  // Apply calculated adjustments to estimated value
+  estimatedValue += adjustmentResult.totalAdjustment;
+  
+  console.log('✅ Adjustments calculated:', {
+    adjustmentsCount: adjustmentResult.adjustments.length,
+    totalAdjustment: adjustmentResult.totalAdjustment,
+    confidencePenalty: adjustmentResult.confidencePenalty,
+    notes: adjustmentResult.calculationNotes
+  });
 
   // Step 6: Calculate confidence score using unified system
   const sources = isFallbackMethod 
@@ -274,24 +265,41 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
   const confidencePenaltyReasons: string[] = [];
   let maxAllowedConfidence = 95;
   
+  // Apply base confidence penalties
+  let totalConfidencePenalty = adjustmentResult.confidencePenalty;
+  
   if (isFallbackMethod) {
     maxAllowedConfidence = 60;
+    totalConfidencePenalty += 15; // Additional penalty for fallback method
     confidencePenaltyReasons.push('No comparable market listings found');
     confidencePenaltyReasons.push('Fallback MSRP method used');
     confidencePenaltyReasons.push('Synthetic adjustments applied');
   } else if (realListings.length < 3) {
     maxAllowedConfidence = 75;
+    totalConfidencePenalty += 5;
     confidencePenaltyReasons.push(`Limited market data (${realListings.length} listing${realListings.length > 1 ? 's' : ''})`);
+  }
+  
+  // Additional penalty if no adjustments could be calculated
+  if (adjustmentResult.fallbackExplanation) {
+    confidencePenaltyReasons.push(adjustmentResult.fallbackExplanation);
   }
   
   // Apply the cap and create penalty explanation
   const originalConfidence = confidenceResult.confidenceScore;
-  if (originalConfidence > maxAllowedConfidence) {
+  const adjustedConfidence = Math.max(0, originalConfidence - totalConfidencePenalty);
+  
+  if (adjustedConfidence > maxAllowedConfidence) {
     confidenceResult = {
       ...confidenceResult,
       confidenceScore: maxAllowedConfidence
     };
     confidencePenaltyReasons.push(`Confidence capped at ${maxAllowedConfidence}% due to data quality limitations`);
+  } else {
+    confidenceResult = {
+      ...confidenceResult,
+      confidenceScore: adjustedConfidence
+    };
   }
   
   // Step 7: Generate explanation with penalty context
@@ -303,12 +311,14 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
   console.log('✅ Enhanced Valuation Complete:', {
     estimatedValue,
     originalConfidence,
-    cappedConfidence: confidenceResult.confidenceScore,
+    finalConfidence: confidenceResult.confidenceScore,
+    totalConfidencePenalty,
     confidenceCap: maxAllowedConfidence,
     penaltyReasons: confidencePenaltyReasons,
     marketListingsCount: realListings.length,
     isFallbackMethod,
-    adjustmentsCount: adjustments.length
+    adjustmentsCount: adjustmentResult.adjustments.length,
+    adjustmentTotal: adjustmentResult.totalAdjustment
   });
 
   return {
@@ -331,7 +341,7 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
       fetched_at: listing.updated_at || listing.created_at || new Date().toISOString(),
       confidence_score: 0.8
     })),
-    adjustments,
+    adjustments: adjustmentResult.adjustments,
     basePriceAnchor,
     sources,
     isFallbackMethod,

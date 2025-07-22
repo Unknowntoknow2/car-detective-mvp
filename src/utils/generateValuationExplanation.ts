@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 // Note: This file needs refactoring to use unifiedValuationEngine.ts
 // Temporarily removed calculateFinalValuation dependency
@@ -15,13 +14,9 @@ interface ExplanationParams {
 
 export async function generateValuationExplanation(params: ExplanationParams): Promise<string> {
   try {
-    // TODO: Refactor to use unified valuation engine
-    // For now, use basic structure for explanation generation
-    const adjustments = [
-      { factor: 'Depreciation', impact: -2000, description: 'Age-based depreciation' },
-      { factor: 'Mileage', impact: -1000, description: 'Mileage adjustment' },
-      { factor: 'Condition', impact: 500, description: 'Condition adjustment' }
-    ];
+    // REMOVED: Hardcoded adjustments - these were misleading users
+    // All adjustments should now come from the AdjustmentEngine with real sources
+    const adjustments: any[] = []; // No longer using static adjustments
 
     const { data, error } = await supabase.functions.invoke("generate-explanation", {
       body: {

@@ -37,8 +37,8 @@ export function generateDebugInfo(reportData: ReportData): DebugInfo {
     
     calculationSteps: [
       `1. Base Price: $${basePrice.toLocaleString()}`,
-      `2. Mileage Adjustment: -$${Math.round(mileage * 0.05)}`,
-      `3. Condition Factor: ${getConditionMultiplier(condition)}x`,
+      `2. Adjustments: Now calculated by AdjustmentEngine with real sources`,
+      `3. Condition Factor: Calculated based on market data when available`,
       `4. Final Value: $${reportData.estimatedValue?.toLocaleString() || 'TBD'}`
     ]
   };
