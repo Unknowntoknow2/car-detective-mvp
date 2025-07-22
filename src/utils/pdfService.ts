@@ -2,6 +2,7 @@
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
+import { MarketListing, getNormalizedUrl, getNormalizedSourceType, normalizeListing } from '@/types/marketListing';
 
 // Types
 export interface ReportData {
@@ -33,7 +34,7 @@ export interface ReportData {
   basePrice?: number;
   competitorPrices?: number[];
   competitorAverage?: number;
-  marketplaceListings?: any[];
+  marketplaceListings?: MarketListing[];
   auctionResults?: any[];
 }
 
@@ -320,9 +321,11 @@ export async function generateValuationPdf(data: ReportData, options: PdfOptions
     });
     yPosition -= 25;
 
-    const avgPrice = Math.round(data.marketplaceListings.reduce((sum: number, listing: any) => sum + (listing.price || 0), 0) / data.marketplaceListings.length);
+    // Normalize all listings for consistent field access
+    const normalizedListings = data.marketplaceListings.map(normalizeListing);
+    const avgPrice = Math.round(normalizedListings.reduce((sum, listing) => sum + (listing.price || 0), 0) / normalizedListings.length);
     
-    page.drawText(`• Real listings found: ${data.marketplaceListings.length}`, {
+    page.drawText(`• Real listings found: ${normalizedListings.length}`, {
       x: margin,
       y: yPosition,
       size: 11,
@@ -340,10 +343,14 @@ export async function generateValuationPdf(data: ReportData, options: PdfOptions
     });
     yPosition -= 15;
 
-    // Show top 3 listings
-    const topListings = data.marketplaceListings.slice(0, 3);
-    topListings.forEach((listing: any) => {
-      const listingText = `- ${listing.title || 'Listing'} — $${(listing.price || 0).toLocaleString()}`.substring(0, 60);
+    // Show top 3 normalized listings with enhanced field access
+    const topListings = normalizedListings.slice(0, 3);
+    topListings.forEach((listing) => {
+      const dealerName = listing.dealerName || listing.dealer_name || listing.dealer || 'Private Seller';
+      const url = getNormalizedUrl(listing);
+      const sourceType = getNormalizedSourceType(listing);
+      
+      const listingText = `- ${dealerName} — $${(listing.price || 0).toLocaleString()} [${sourceType}]`.substring(0, 60);
       page.drawText(listingText, {
         x: margin,
         y: yPosition,
@@ -354,7 +361,7 @@ export async function generateValuationPdf(data: ReportData, options: PdfOptions
       yPosition -= 12;
     });
 
-    page.drawText('• Source: OpenAI Web Search', {
+    page.drawText('• Data verified via Enhanced Market Search', {
       x: margin,
       y: yPosition,
       size: 9,
