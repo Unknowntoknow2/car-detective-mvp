@@ -13,6 +13,7 @@ import { MarketDataStatus } from '@/components/valuation/result/MarketDataStatus
 import { GoogleStyleListings } from '@/components/market/GoogleStyleListings';
 import { calculateEnhancedValuation } from '@/services/enhancedValuationEngineV2';
 import { EnhancedValuationResult } from '@/types/valuation';
+import { MarketListing, normalizeListing, getNormalizedUrl, getNormalizedSourceType } from '@/types/marketListing';
 import { FallbackMethodDisclosure } from '@/components/valuation/result/FallbackMethodDisclosure';
 
 export default function ResultsPage() {
@@ -184,7 +185,7 @@ export default function ResultsPage() {
 
           {/* Market Data Status */}
           <MarketDataStatus
-            marketListings={enhancedResult.marketListings || []}
+            marketListings={enhancedResult.marketListings?.map(normalizeListing) || []}
             confidenceScore={enhancedResult.confidenceScore}
             zipCode={enhancedResult.zipCode || valuation.state}
           />
@@ -200,7 +201,7 @@ export default function ResultsPage() {
               </CardHeader>
               <CardContent>
                 <GoogleStyleListings
-                  listings={enhancedResult.marketListings}
+                  listings={enhancedResult.marketListings?.map(normalizeListing) || []}
                   vehicleInfo={{
                     year: vehicleInfo.year,
                     make: vehicleInfo.make,

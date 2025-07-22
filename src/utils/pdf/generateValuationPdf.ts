@@ -2,6 +2,7 @@ import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
 import { formatCurrency } from '@/utils/formatters/formatCurrency';
 import { formatDate } from '@/utils/formatters/formatDate';
 import type { UnifiedValuationResult } from '@/types/valuation';
+import { MarketListing, getNormalizedUrl, getNormalizedSourceType, normalizeListing } from '@/types/marketListing';
 
 export async function generateValuationPdf(result: UnifiedValuationResult): Promise<Blob> {
   const pdfDoc = await PDFDocument.create();
@@ -235,15 +236,16 @@ export async function generateValuationPdf(result: UnifiedValuationResult): Prom
   }
 
   // Enhanced Market Listings section (if available)
-  const enhancedListings = result.listings?.filter(listing => 
+  const normalizedListings = result.listings?.map(normalizeListing) || [];
+  const enhancedListings = normalizedListings.filter(listing => 
     ['facebook', 'craigslist', 'offerup', 'ebay', 'amazon'].includes(listing.source?.toLowerCase() || '')
-  ) || [];
+  );
 
   if (enhancedListings.length > 0) {
     addText('ENHANCED MARKET ANALYSIS', { font: boldFont, size: 16, color: primaryColor });
     yPosition -= 5;
 
-    // Platform breakdown
+    // Platform breakdown using normalized listings
     const platformCounts: Record<string, number> = {};
     enhancedListings.forEach(listing => {
       const platform = listing.source?.toLowerCase() || 'other';
