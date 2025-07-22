@@ -21,24 +21,77 @@ export interface MarketSearchResult {
   searchQuery: string;
   confidence: number;
   trust: number;
-  source: string;
+  source: 'enhanced_market_search' | 'live_search_only' | 'database_fallback' | 'no_data';
   notes: string[];
+  metadata?: {
+    liveListingsCount: number;
+    dbListingsCount: number;
+    processingTimeMs: number;
+    searchSources: string[];
+    exactVinMatches: number;
+  };
 }
 
 export async function fetchMarketComps(input: MarketSearchInput): Promise<MarketSearchResult> {
+  const startTime = Date.now();
+  console.log('🎯 Starting market comp search for:', input);
+  
   const listings = await searchMarketListings(input);
-  const trust = listings.length > 0 ? Math.min(0.85, 0.5 + (listings.length * 0.05)) : 0.35;
+  const processingTime = Date.now() - startTime;
+  
+  // Analyze listing composition
+  const liveListings = listings.filter(l => l.sourceType === 'live' || l.source_type === 'live');
+  const dbListings = listings.filter(l => l.sourceType === 'database' || l.source_type === 'database');
+  const exactVinMatches = input.vin ? listings.filter(l => l.vin === input.vin).length : 0;
+  
+  // Calculate enhanced trust and confidence scores
+  const qualityScore = liveListings.length * 0.8 + dbListings.length * 0.6;
+  const trust = Math.min(0.95, 0.3 + (qualityScore * 0.08));
+  const confidence = Math.min(95, 25 + (qualityScore * 10) + (exactVinMatches * 15));
+  
+  // Determine source type
+  let sourceType: 'enhanced_market_search' | 'live_search_only' | 'database_fallback' | 'no_data';
+  if (liveListings.length > 0 && dbListings.length > 0) {
+    sourceType = 'enhanced_market_search';
+  } else if (liveListings.length > 0) {
+    sourceType = 'live_search_only';
+  } else if (dbListings.length > 0) {
+    sourceType = 'database_fallback';
+  } else {
+    sourceType = 'no_data';
+  }
+  
+  // Generate comprehensive notes
+  const notes = [];
+  if (listings.length > 0) {
+    notes.push(`Found ${listings.length} total listings`);
+    if (liveListings.length > 0) notes.push(`${liveListings.length} live web listings`);
+    if (dbListings.length > 0) notes.push(`${dbListings.length} database listings`);
+    if (exactVinMatches > 0) notes.push(`${exactVinMatches} exact VIN matches`);
+    notes.push(`Search completed in ${processingTime}ms`);
+  } else {
+    notes.push('No market listings found');
+    notes.push('Consider expanding search criteria or using depreciation-based valuation');
+  }
+  
+  // Create metadata object
+  const metadata = {
+    liveListingsCount: liveListings.length,
+    dbListingsCount: dbListings.length,
+    processingTimeMs: processingTime,
+    searchSources: Array.from(new Set(listings.map(l => l.source))),
+    exactVinMatches
+  };
   
   return {
     listings,
     totalFound: listings.length,
-    searchQuery: `${input.year} ${input.make} ${input.model}`,
-    confidence: listings.length > 0 ? Math.min(85, 50 + (listings.length * 5)) : 35,
+    searchQuery: `${input.year} ${input.make} ${input.model}${input.trim ? ` ${input.trim}` : ''}`,
+    confidence,
     trust,
-    source: listings.length > 0 ? 'live_market_search' : 'no_data',
-    notes: listings.length > 0 
-      ? [`Found ${listings.length} live listings`, 'Real-time market data available']
-      : ['No live listings found', 'Consider using alternative valuation methods']
+    source: sourceType,
+    notes,
+    metadata
   };
 }
 
@@ -57,7 +110,10 @@ export async function searchMarketListings(input: MarketSearchInput): Promise<Ma
   
   if (liveListings.length > 0) {
     console.log(`✅ Live search successful: ${liveListings.length} listings found`);
-    return liveListings.map(normalizeListing);
+    // Validate and normalize live listings
+    const validatedListings = liveListings.filter(validateListing).map(normalizeListing);
+    console.log(`📊 After validation: ${validatedListings.length} valid listings`);
+    return validatedListings;
   }
 
   // Step 2: Fallback to database search
@@ -65,7 +121,40 @@ export async function searchMarketListings(input: MarketSearchInput): Promise<Ma
   const dbListings = await fallbackDatabaseSearch({ make, model, year, zipCode });
   
   console.log(`📊 Database fallback returned: ${dbListings.length} listings`);
-  return dbListings.map(normalizeListing);
+  // Validate and normalize database listings
+  const validatedDbListings = dbListings.filter(validateListing).map(normalizeListing);
+  console.log(`📊 After validation: ${validatedDbListings.length} valid database listings`);
+  return validatedDbListings;
+}
+
+/**
+ * Validates that a MarketListing has required fields and valid data
+ */
+function validateListing(listing: MarketListing): boolean {
+  // Check required fields
+  if (!listing.price || listing.price <= 0) {
+    console.warn('⚠️ Invalid listing: price missing or invalid', listing.price);
+    return false;
+  }
+  
+  if (!listing.source || listing.source.trim() === '') {
+    console.warn('⚠️ Invalid listing: source missing');
+    return false;
+  }
+  
+  // Price sanity check (between $1,000 and $200,000)
+  if (listing.price < 1000 || listing.price > 200000) {
+    console.warn('⚠️ Invalid listing: price out of reasonable range', listing.price);
+    return false;
+  }
+  
+  // Mileage sanity check if provided
+  if (listing.mileage !== undefined && (listing.mileage < 0 || listing.mileage > 500000)) {
+    console.warn('⚠️ Invalid listing: mileage out of reasonable range', listing.mileage);
+    return false;
+  }
+  
+  return true;
 }
 
 /**
@@ -92,24 +181,32 @@ async function attemptLiveSearch(params: { make: string; model: string; year: nu
 
     const { listings = [] } = response.data || {};
     
-    // Convert to MarketListing format
+    // Convert raw live listings to canonical MarketListing format
     return listings.map((listing: any): MarketListing => ({
       id: `live-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      price: listing.price,
-      mileage: listing.mileage || 0,
-      year: listing.year || params.year,
+      price: Number(listing.price) || 0,
+      mileage: Number(listing.mileage) || undefined,
+      year: Number(listing.year) || params.year,
       make: listing.make || params.make,
       model: listing.model || params.model,
-      trim: listing.trim || '',
-      condition: 'used',
-      location: listing.location || '',
+      trim: listing.trim || undefined,
+      condition: listing.condition || 'used',
+      vin: listing.vin || undefined,
+      zipCode: listing.zipCode || params.zipCode,
+      location: listing.location || undefined,
       source: listing.source || 'Live Web Search',
+      
+      // Live format fields
+      link: listing.link || listing.url || undefined,
       sourceType: 'live',
-      link: listing.link || '',
-      dealerName: '',
-      isCpo: false,
+      dealerName: listing.dealer || listing.dealerName || undefined,
+      isCpo: Boolean(listing.isCpo || listing.is_cpo),
+      titleStatus: listing.titleStatus || undefined,
+      photos: listing.photos || listing.images || undefined,
+      
+      // Timestamps
       fetchedAt: listing.fetchedAt || new Date().toISOString(),
-      confidenceScore: 0.9 // High confidence for live data
+      confidenceScore: Number(listing.confidenceScore) || 85 // High confidence for live data
     }));
 
   } catch (error) {
@@ -150,28 +247,48 @@ async function fallbackDatabaseSearch(params: { make: string; model: string; yea
       return [];
     }
 
-    // Convert to MarketListing format
+    // Convert database listings to canonical MarketListing format
     return (listings || []).map((listing): MarketListing => ({
-      id: listing.id,
-      price: listing.price,
-      mileage: listing.mileage || 0,
-      year: listing.year || params.year,
+      id: listing.id || `db-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      price: Number(listing.price) || 0,
+      mileage: Number(listing.mileage) || undefined,
+      year: Number(listing.year) || params.year,
       make: listing.make || params.make,
       model: listing.model || params.model,
-      trim: listing.trim || '',
+      trim: listing.trim || undefined,
       condition: listing.condition || 'used',
-      location: listing.location || '',
-      source: listing.source || 'Database',
+      vin: listing.vin || undefined,
+      zipCode: listing.zip_code || params.zipCode,
+      location: listing.location || undefined,
+      source: listing.source || 'Enhanced Database',
+      
+      // Database format fields (with fallbacks to live format)
+      listingUrl: listing.listing_url || undefined,
+      listing_url: listing.listing_url || undefined,
       sourceType: 'database',
-      listingUrl: listing.listing_url || '',
-      listing_url: listing.listing_url || '',
-      dealerName: listing.dealer_name || '',
-      dealer_name: listing.dealer_name || '',
-      isCpo: listing.is_cpo || false,
-      is_cpo: listing.is_cpo || false,
+      source_type: 'database',
+      dealerName: listing.dealer_name || undefined,
+      dealer_name: listing.dealer_name || undefined,
+      isCpo: Boolean(listing.is_cpo),
+      is_cpo: Boolean(listing.is_cpo),
+      titleStatus: listing.title_status || undefined,
+      photos: listing.photos || undefined,
+      
+      // Extended database fields
+      days_on_market: listing.days_on_market || undefined,
+      dealer_rating: listing.dealer_rating || undefined,
+      exterior_color: listing.exterior_color || undefined,
+      interior_color: listing.interior_color || undefined,
+      
+      // Timestamps
       fetchedAt: listing.fetched_at || listing.created_at || new Date().toISOString(),
       fetched_at: listing.fetched_at || listing.created_at || new Date().toISOString(),
-      confidenceScore: 0.7 // Lower confidence for database data
+      updatedAt: listing.updated_at || undefined,
+      updated_at: listing.updated_at || undefined,
+      createdAt: listing.created_at || undefined,
+      created_at: listing.created_at || undefined,
+      
+      confidenceScore: Number(listing.confidence_score) || 70 // Medium confidence for database data
     }));
 
   } catch (error) {
