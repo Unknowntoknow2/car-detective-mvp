@@ -213,8 +213,8 @@ export class EnhancedMarketListingService {
     const averageMileage = mileages.filter(m => m != null).reduce((sum, mileage) => sum + mileage, 0) / mileages.filter(m => m != null).length || 0;
     
     // Find most common condition
-    const conditionCounts = conditions.reduce((acc, condition) => {
-      acc[condition!] = (acc[condition!] || 0) + 1;
+    const conditionCounts = conditions.filter(c => c != null).reduce((acc, condition) => {
+      acc[condition] = (acc[condition] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
     
