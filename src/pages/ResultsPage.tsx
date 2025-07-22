@@ -176,7 +176,7 @@ export default function ResultsPage() {
 
   // Calculate unified confidence score
   const confidenceInput = {
-    vin: valuationData.vin,
+    vin: valuationData.vin || undefined,
     make: valuationData.make,
     model: valuationData.model,
     year: valuationData.year,
@@ -332,7 +332,7 @@ export default function ResultsPage() {
         year={valuationData.year}
         make={valuationData.make}
         model={valuationData.model}
-        vin={valuationData.vin}
+        vin={valuationData.vin || undefined}
         mileage={followUpData?.mileage || valuationData.mileage || 0}
         condition={followUpData?.condition || 'Good'}
         zipCode={valuationData.state}
