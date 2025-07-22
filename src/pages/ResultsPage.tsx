@@ -9,7 +9,7 @@ import { FallbackMethodDisclosure } from "@/components/valuation/result/Fallback
 import { ValuationActions } from "@/components/valuation/result/ValuationActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EnhancedConfidenceScore } from "@/components/valuation/result/EnhancedConfidenceScore";
-import { calculateEnhancedValuation } from '@/services/valuation/enhancedValuationEngine2';
+import { calculateEnhancedValuation } from '@/services/pricing/valuationEngineV3';
 import type { MarketListing } from '@/types/marketListing';
 
 interface ValuationData {
