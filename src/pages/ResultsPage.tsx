@@ -1,282 +1,258 @@
-import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { ValuationProvider, useValuationContext } from '@/contexts/ValuationContext';
+
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Separator } from '@/components/ui/separator';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
-import { RerunValuationButton } from '@/components/valuation/RerunValuationButton';
-import { useMarketListings } from '@/hooks/useMarketListings';
-import type { 
-  UnifiedValuationResult as ValuationResultType, 
-  LegacyValuationResult, 
-  MarketListing as ValuationMarketListing,
-  ValuationAdjustment
-} from '@/types/valuation';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useValuationContext } from '@/context/ValuationContext';
+import { useMarketListings } from '@/hooks/useMarketListings';
+import { calculatePriceRange } from '@/valuation/calculateVehicleValue';
 
-export default function ResultsPage() {
-  const { id } = useParams<{ id: string }>();
-
-  // Validate the VIN parameter
-  useEffect(() => {
-    if (id && id.length !== 17) {
-      console.warn('Non-standard VIN length detected:', id.length);
-    }
-  }, [id]);
-
-  if (!id) {
-    return (
-      <div className="container mx-auto py-8 text-center">
-        <p className="text-red-600">No valuation ID provided</p>
-      </div>
-    );
-  }
-
+// Type guard to check if we have the necessary valuation data
+function hasValueData(data: any): boolean {
   return (
-    <ValuationProvider valuationId={id}>
-      <div className="min-h-screen bg-background">
-        <RerunValuationButton />
-        <ResultsContent />
-      </div>
-    </ValuationProvider>
+    data && 
+    (typeof data.estimatedValue === 'number' || 
+     typeof data.estimated_value === 'number' || 
+     typeof data.finalValue === 'number' || 
+     typeof data.baseValue === 'number')
   );
 }
 
-function ResultsContent() {
-  const { valuationData, isLoading, error, rerunValuation } = useValuationContext();
+export default function ResultsPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { valuation } = useValuationContext();
   
-  useEffect(() => {
-    console.log('ValuationContext data received:', valuationData);
-    
-    // Check for missing critical value data
-    if (valuationData && !hasValueData(valuationData)) {
-      console.error('Missing value data in valuation result:', valuationData);
-    }
-  }, [valuationData]);
-
-  // Type guard function to check for any valid value property
-  function hasValueData(data: any): boolean {
-    return !!(
-      data.finalValue || 
-      data.baseValue || 
-      data.estimatedValue || 
-      data.estimated_value ||
-      (typeof data === 'object' && data !== null && 
-        ((data.vehicle && typeof data.vehicle === 'object') || 
-         'make' in data || 
-         'model' in data)
-      )
-    );
-  }
+  const [loading, setLoading] = useState(true);
+  const [valuationData, setValuationData] = useState<any>({});
+  const [error, setError] = useState<string | null>(null);
   
-  // Extract data from the valuation response with strict validation
-  const vehicleData: Record<string, any> = valuationData || {};
+  // Extract vehicle info from valuation data for market listings
+  const vehicleInfo = {
+    make: valuationData?.make || valuationData?.vehicleInfo?.make,
+    model: valuationData?.model || valuationData?.vehicleInfo?.model,
+    year: valuationData?.year || valuationData?.vehicleInfo?.year,
+    vin: id
+  };
   
-  // Handle different data formats - the API might return nested vehicle data or flat data
-  const actualMileage = parseInt(String(
-    vehicleData.mileage || 
-    (vehicleData.vehicle && vehicleData.vehicle.mileage) || 
-    '0'), 10);
-    
-  const actualEstimatedValue = parseInt(String(
-    vehicleData.estimated_value || 
-    vehicleData.estimatedValue || 
-    vehicleData.finalValue || 
-    vehicleData.baseValue || 
-    '0'), 10);
-    
-  const actualYear = parseInt(String(
-    vehicleData.year || 
-    (vehicleData.vehicle && vehicleData.vehicle.year) || 
-    '2018'), 10);
-    
-  const actualMake = String(
-    vehicleData.make || 
-    (vehicleData.vehicle && vehicleData.vehicle.make) || 
-    'TOYOTA').toUpperCase();
-    
-  const actualModel = String(
-    vehicleData.model || 
-    (vehicleData.vehicle && vehicleData.vehicle.model) || 
-    'Camry');
-    
-  const actualZipCode = String(
-    vehicleData.zip_code || 
-    vehicleData.zip || 
-    vehicleData.zipCode || 
-    '95821');
-  
-  // Log the processed data
-  useEffect(() => {
-    console.log('Processed valuation data:', {
-      mileage: actualMileage,
-      estimatedValue: actualEstimatedValue,
-      year: actualYear,
-      make: actualMake,
-      model: actualModel,
-      zipCode: actualZipCode
-    });
-  }, [actualMileage, actualEstimatedValue, actualYear, actualMake, actualModel, actualZipCode]);
-  
-  // Fetch real market listings based on ACTUAL vehicle data
-  const { 
-    listings: marketListings, 
-    loading: listingsLoading, 
-    error: listingsError,
-    searchStrategy 
-  } = useMarketListings(
-    actualMake,
-    actualModel, 
-    actualYear,
-    actualZipCode
-  );
-
-  // Show a toast notification when there are market search issues
-  useEffect(() => {
-    if (listingsError) {
-      toast.error('Could not fetch all market listings', {
-        description: 'Using available data for your valuation'
-      });
-      console.error('Market listings error:', listingsError);
-    }
-  }, [listingsError]);
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto py-8 text-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-        <p className="mt-4 text-muted-foreground">Loading valuation...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto py-8 text-center">
-        <p className="text-red-600 mb-4">Error: {error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  if (!valuationData) {
-    return (
-      <div className="container mx-auto py-8 text-center">
-        <p className="text-muted-foreground">No valuation data found</p>
-      </div>
-    );
-  }
-
-  const { id: urlId } = useParams<{ id: string }>();
-  
-  console.log('📊 Using ACTUAL valuation data:', {
-    actualMileage,
-    actualEstimatedValue,
-    actualYear,
-    actualMake,
-    actualModel,
-    actualZipCode,
-    marketListingsCount: marketListings.length,
-    searchStrategy
+  // Fetch market listings with exact year match
+  const { listings: marketListings, loading: listingsLoading } = useMarketListings({
+    make: vehicleInfo.make,
+    model: vehicleInfo.model,
+    year: vehicleInfo.year,
+    vin: id,
+    exact: true
   });
+
+  // Calculate the estimated value based on different possible property names
+  const estimatedValue = 
+    valuationData?.estimatedValue || 
+    valuationData?.estimated_value || 
+    valuationData?.finalValue || 
+    valuationData?.baseValue || 
+    0;
   
-  // Validate the estimated value
-  if (actualEstimatedValue <= 0) {
-    console.error('Invalid estimated value detected:', actualEstimatedValue);
-  }
-  
-  // Get ID safely
-  const resultId = String(
-    vehicleData.id || 
-    vehicleData.request_id || 
-    urlId || 
-    crypto.randomUUID()
-  );
-  
-  // Safely get trim value
-  const vehicleTrim = String(
-    vehicleData.trim || 
-    (vehicleData.vehicle && vehicleData.vehicle.trim) || 
-    'Standard'
-  );
-  
-  // Safely get fuel type
-  const vehicleFuelType = String(
-    vehicleData.fuel_type || 
-    vehicleData.fuelType || 
-    (vehicleData.vehicle && vehicleData.vehicle.fuelType) || 
-    'gasoline'
-  );
-  
-  // Safely get confidence score
-  const confidenceScore = Number(
-    vehicleData.confidence_score || 
-    vehicleData.confidenceScore || 
-    (marketListings.length > 3 ? 85 : 70)
-  );
-  
-  // Safely process adjustments
-  const adjustments: ValuationAdjustment[] = (vehicleData.adjustments || []).map((adj: any) => ({
-    label: adj.factor || adj.label || 'Market Adjustment',
-    amount: adj.impact || adj.amount || 0,
-    reason: adj.description || adj.reason || 'Market-based value adjustment'
-  }));
-  
-  // Create result using ACTUAL database values
-  const result: ValuationResultType = {
-    id: resultId,
-    vin: String(vehicleData.vin || urlId || ''),
-    vehicle: {
-      year: actualYear,
-      make: actualMake,
-      model: actualModel,
-      trim: vehicleTrim,
-      fuelType: vehicleFuelType
-    },
-    zip: actualZipCode,
-    mileage: actualMileage, // Use ACTUAL mileage from database
-    baseValue: actualEstimatedValue,
-    finalValue: actualEstimatedValue, // Use ACTUAL estimated value
-    confidenceScore: confidenceScore,
-    sources: ['database_valuation', 'market_analysis'],
-    listings: marketListings.map(listing => ({
-      id: listing.id,
-      price: listing.price,
-      mileage: listing.mileage || 0,
-      location: listing.location || 'Unknown',
-      source: listing.source,
-      source_type: 'marketplace',
-      listing_url: listing.listing_url || '#',
-      is_cpo: false,
-      fetched_at: listing.fetched_at,
-      confidence_score: listing.confidence_score || 80
-    })),
-    listingCount: marketListings.length,
-    listingRange: marketListings.length > 0 ? {
-      min: Math.min(...marketListings.map(l => l.price)),
-      max: Math.max(...marketListings.map(l => l.price))
-    } : undefined,
-    adjustments: adjustments,
-    notes: [
-      `Market search strategy: ${searchStrategy}`,
-      `Found ${marketListings.length} comparable listings`,
-      listingsError ? `Market data warning: ${listingsError}` : ''
-    ].filter(Boolean),
-    timestamp: Date.now(),
-    aiExplanation: `Your ${actualYear} ${actualMake} ${actualModel} with ${actualMileage.toLocaleString()} miles is valued at $${actualEstimatedValue.toLocaleString()} based on current market analysis and ${marketListings.length} comparable listings in your area.`,
-    marketSearchStatus: listingsError ? 'error' : marketListings.length > 0 ? 'success' : 'fallback'
+  // Calculate price range based on market listings
+  const priceRange = valuationData?.priceRange || 
+    calculatePriceRange(estimatedValue, marketListings);
+
+  // Calculate proper confidence factors
+  const confidenceFactors = {
+    vinAccuracy: valuationData?.confidenceFactors?.vinAccuracy || 85,
+    marketData: valuationData?.confidenceFactors?.marketData || 
+      (marketListings.length > 2 ? 75 : marketListings.length > 0 ? 65 : 50),
+    fuelCostMatch: valuationData?.confidenceFactors?.fuelCostMatch || 75,
+    msrpQuality: valuationData?.confidenceFactors?.msrpQuality || 80
   };
 
-  console.log('✅ Final result object:', {
-    estimatedValue: result.finalValue,
-    mileage: result.mileage,
-    listingCount: result.listingCount,
-    confidenceScore: result.confidenceScore,
-    marketSearchStatus: result.marketSearchStatus
-  });
+  // Log valuation and market data for debugging
+  useEffect(() => {
+    if (valuationData && Object.keys(valuationData).length > 0) {
+      console.log('Current valuation data:', valuationData);
+    }
+    if (marketListings && marketListings.length > 0) {
+      console.log('Market listings:', marketListings);
+    }
+  }, [valuationData, marketListings]);
 
-  return <UnifiedValuationResult result={result} />;
+  // Fetch valuation data on component mount
+  useEffect(() => {
+    async function fetchValuationData() {
+      if (!id) {
+        navigate('/');
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        console.log('Fetching valuation data for ID:', id);
+        
+        // Check if we already have the valuation in context
+        if (valuation && hasValueData(valuation)) {
+          console.log('Using valuation from context:', valuation);
+          setValuationData(valuation);
+          setLoading(false);
+          return;
+        }
+
+        // If ID is a VIN, fetch from database
+        if (id && id.length >= 17) {
+          console.log('Fetching valuation from database by VIN:', id);
+          const { data, error } = await supabase
+            .from('valuations')
+            .select('*')
+            .eq('vin', id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (error) {
+            console.error('Error fetching valuation by VIN:', error);
+            // Try UUID lookup if VIN lookup fails
+            const { data: uuidData, error: uuidError } = await supabase
+              .from('valuations')
+              .select('*')
+              .eq('id', id)
+              .single();
+
+            if (uuidError) {
+              console.error('Error fetching valuation by ID:', uuidError);
+              throw new Error('Valuation not found');
+            }
+            
+            setValuationData(uuidData);
+          } else {
+            setValuationData(data);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching valuation:', err);
+        setError('Failed to fetch valuation data');
+        toast.error('Failed to load valuation. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchValuationData();
+  }, [id, navigate, valuation]);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading valuation data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !hasValueData(valuationData)) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex flex-col items-center justify-center h-64">
+          <h2 className="text-xl font-semibold mb-2">Valuation Not Found</h2>
+          <p className="text-muted-foreground mb-6">
+            {error || "We couldn't find the valuation you're looking for."}
+          </p>
+          <button
+            className="bg-primary text-primary-foreground px-4 py-2 rounded"
+            onClick={() => navigate('/valuation')}
+          >
+            Start New Valuation
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Format vehicle data for display
+  const vehicleData = {
+    year: valuationData?.year || valuationData?.vehicleInfo?.year,
+    make: valuationData?.make || valuationData?.vehicleInfo?.make,
+    model: valuationData?.model || valuationData?.vehicleInfo?.model,
+    trim: valuationData?.trim || valuationData?.vehicleInfo?.trim,
+    fuelType: valuationData?.fuel_type || valuationData?.vehicleInfo?.fuelType,
+    mileage: valuationData?.mileage || 0
+  };
+
+  // Calculate confidence score
+  const confidenceScore = valuationData?.confidenceScore || 
+    valuationData?.confidence_score || 
+    Math.round((confidenceFactors.vinAccuracy + confidenceFactors.marketData + confidenceFactors.fuelCostMatch + confidenceFactors.msrpQuality) / 4);
+
+  // Extract adjustments
+  const adjustments = valuationData?.adjustments || [];
+
+  // Generate recommendations based on data quality
+  const recommendations = [
+    vehicleData.mileage === 0 ? "Enter your vehicle's actual mileage for a more accurate valuation" : "",
+    marketListings.length < 3 ? "Add more specific vehicle details for better market matching" : "",
+    !user ? "Sign in to save your valuation and receive dealer offers" : ""
+  ].filter(Boolean);
+
+  const handleImproveClick = () => {
+    navigate('/valuation/details');
+  };
+
+  return (
+    <div className="container mx-auto py-8">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="md:col-span-2 space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold">
+              {vehicleData.year} {vehicleData.make} {vehicleData.model}
+            </h1>
+            <p className="text-muted-foreground">
+              {vehicleData.mileage > 0 ? `${vehicleData.mileage.toLocaleString()} miles` : ''} 
+              {vehicleData.fuelType ? ` • ${vehicleData.fuelType.toLowerCase()}` : ''} 
+              {valuationData?.zip_code ? ` • ${valuationData.zip_code}` : ''}
+            </p>
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2">
+              <button className="bg-primary text-white px-4 py-2 rounded-l hover:bg-primary/90 transition-colors">
+                Overview
+              </button>
+              <button className="px-4 py-2 hover:bg-muted transition-colors">
+                Market Data
+              </button>
+              <button className="px-4 py-2 hover:bg-muted transition-colors rounded-r">
+                Details
+              </button>
+            </div>
+            <Separator />
+          </div>
+
+          <UnifiedValuationResult
+            estimatedValue={estimatedValue}
+            confidenceScore={confidenceScore}
+            priceRange={priceRange}
+            vehicleInfo={vehicleData}
+            marketListingsCount={marketListings.length}
+            adjustments={adjustments}
+          />
+        </div>
+
+        <div className="space-y-6">
+          <ConfidenceRing
+            score={confidenceScore}
+            factors={confidenceFactors}
+            recommendations={recommendations}
+            onImproveClick={handleImproveClick}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
