@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Download, Share2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +12,6 @@ import { ValuationTransparency } from '@/components/valuation/result/ValuationTr
 import { MarketDataStatus } from '@/components/valuation/result/MarketDataStatus';
 import { GoogleStyleListings } from '@/components/market/GoogleStyleListings';
 import { calculateEnhancedValuation, EnhancedValuationResult } from '@/services/enhancedValuationEngine';
-import { generateValuationPdf } from '@/utils/generateValuationPdf';
 import { FallbackMethodDisclosure } from '@/components/valuation/result/FallbackMethodDisclosure';
 
 export default function ResultsPage() {
@@ -81,22 +81,8 @@ export default function ResultsPage() {
     if (!valuation || !enhancedResult) return;
     
     try {
-      await generateValuationPdf({
-        id: valuation.id,
-        vehicleInfo: {
-          year: valuation.year,
-          make: valuation.make,
-          model: valuation.model,
-          vin: valuation.vin,
-          mileage: valuation.mileage
-        },
-        estimatedValue: enhancedResult.estimatedValue,
-        confidenceScore: enhancedResult.confidenceScore,
-        marketListings: enhancedResult.marketListings,
-        explanation: enhancedResult.explanation,
-        isFallbackMethod: enhancedResult.isFallbackMethod
-      });
-      toast.success('PDF downloaded successfully');
+      // PDF generation functionality will be implemented later
+      toast.success('PDF download feature coming soon');
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error('Failed to generate PDF');
@@ -214,8 +200,12 @@ export default function ResultsPage() {
               <CardContent>
                 <GoogleStyleListings
                   listings={enhancedResult.marketListings}
-                  searchQuery={`${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}`}
-                  estimatedValue={enhancedResult.estimatedValue}
+                  vehicleInfo={{
+                    year: vehicleInfo.year,
+                    make: vehicleInfo.make,
+                    model: vehicleInfo.model,
+                    zipCode: enhancedResult.zipCode
+                  }}
                 />
               </CardContent>
             </Card>
