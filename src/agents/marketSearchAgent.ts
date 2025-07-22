@@ -1,7 +1,19 @@
+
 // src/agents/marketSearchAgent.ts
 
-import { MarketSearchInput, MarketListing } from "@/types/valuationTypes";
+import { MarketListing, normalizeListing } from "@/types/marketListing";
 import { supabase } from '@/integrations/supabase/client';
+
+export interface MarketSearchInput {
+  vin?: string;
+  make: string;
+  model: string;
+  year: number;
+  trim?: string;
+  mileage?: number;
+  condition?: string;
+  zipCode?: string;
+}
 
 export interface MarketSearchResult {
   listings: MarketListing[];
@@ -45,7 +57,7 @@ export async function searchMarketListings(input: MarketSearchInput): Promise<Ma
   
   if (liveListings.length > 0) {
     console.log(`✅ Live search successful: ${liveListings.length} listings found`);
-    return liveListings;
+    return liveListings.map(normalizeListing);
   }
 
   // Step 2: Fallback to database search
@@ -53,7 +65,7 @@ export async function searchMarketListings(input: MarketSearchInput): Promise<Ma
   const dbListings = await fallbackDatabaseSearch({ make, model, year, zipCode });
   
   console.log(`📊 Database fallback returned: ${dbListings.length} listings`);
-  return dbListings;
+  return dbListings.map(normalizeListing);
 }
 
 /**
@@ -81,7 +93,7 @@ async function attemptLiveSearch(params: { make: string; model: string; year: nu
     const { listings = [] } = response.data || {};
     
     // Convert to MarketListing format
-    return listings.map((listing: any) => ({
+    return listings.map((listing: any): MarketListing => ({
       id: `live-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       price: listing.price,
       mileage: listing.mileage || 0,
@@ -92,12 +104,12 @@ async function attemptLiveSearch(params: { make: string; model: string; year: nu
       condition: 'used',
       location: listing.location || '',
       source: listing.source || 'Live Web Search',
-      source_type: 'live',
-      listing_url: listing.link || '',
-      dealer_name: '',
-      is_cpo: false,
-      fetched_at: listing.fetchedAt || new Date().toISOString(),
-      confidence_score: 0.9 // High confidence for live data
+      sourceType: 'live',
+      link: listing.link || '',
+      dealerName: '',
+      isCpo: false,
+      fetchedAt: listing.fetchedAt || new Date().toISOString(),
+      confidenceScore: 0.9 // High confidence for live data
     }));
 
   } catch (error) {
@@ -139,7 +151,7 @@ async function fallbackDatabaseSearch(params: { make: string; model: string; yea
     }
 
     // Convert to MarketListing format
-    return (listings || []).map(listing => ({
+    return (listings || []).map((listing): MarketListing => ({
       id: listing.id,
       price: listing.price,
       mileage: listing.mileage || 0,
@@ -150,12 +162,16 @@ async function fallbackDatabaseSearch(params: { make: string; model: string; yea
       condition: listing.condition || 'used',
       location: listing.location || '',
       source: listing.source || 'Database',
-      source_type: 'database',
+      sourceType: 'database',
+      listingUrl: listing.listing_url || '',
       listing_url: listing.listing_url || '',
+      dealerName: listing.dealer_name || '',
       dealer_name: listing.dealer_name || '',
+      isCpo: listing.is_cpo || false,
       is_cpo: listing.is_cpo || false,
+      fetchedAt: listing.fetched_at || listing.created_at || new Date().toISOString(),
       fetched_at: listing.fetched_at || listing.created_at || new Date().toISOString(),
-      confidence_score: 0.7 // Lower confidence for database data
+      confidenceScore: 0.7 // Lower confidence for database data
     }));
 
   } catch (error) {

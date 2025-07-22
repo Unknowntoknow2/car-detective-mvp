@@ -1,3 +1,4 @@
+
 // Market search types for the OpenAI agent
 export interface MarketSearchInput {
   vin?: string;
@@ -11,21 +12,8 @@ export interface MarketSearchInput {
   zipCode?: string; // Alternative name for zip
 }
 
-export interface MarketListing {
-  year: number;
-  make: string;
-  model: string;
-  trim?: string;
-  mileage?: number;
-  price: number;
-  condition?: string;
-  zip?: string;
-  location?: string;
-  source: string;
-  titleStatus?: string;
-  photos?: string[];
-  link?: string;
-}
+// Re-export the canonical MarketListing type
+export { MarketListing } from './marketListing';
 
 export interface MarketPriceEstimate {
   estimatedPrice: number | null;
