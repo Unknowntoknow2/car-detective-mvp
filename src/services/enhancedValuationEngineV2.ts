@@ -102,7 +102,7 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
     }
 
     // 7. Apply adjustments only if we have real market data
-    const adjustments: any[] = [];
+    const adjustments: Array<{ label: string; value: number; source: string }> = [];
     let finalPrice = basePrice;
 
     if (!isUsingFallbackMethod && realListingsCount >= 2) {
