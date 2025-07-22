@@ -41,6 +41,12 @@ export interface UnifiedConfidenceInput {
   sourcesCount?: number;
   trustedSources?: string[];
   trustScore?: number;
+  
+  // Market listings for confidence calculation
+  marketListings?: any[];
+  sources?: string[];
+  mileagePenalty?: number;
+  zipCode?: string;
 }
 
 /**
