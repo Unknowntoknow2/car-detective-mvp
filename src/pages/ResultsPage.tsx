@@ -11,7 +11,7 @@ import { ValuationSummary } from '@/components/valuation/result/ValuationSummary
 import { ValuationTransparency } from '@/components/valuation/result/ValuationTransparency';
 import { MarketDataStatus } from '@/components/valuation/result/MarketDataStatus';
 import { GoogleStyleListings } from '@/components/market/GoogleStyleListings';
-import { calculateEnhancedValuation } from '@/services/enhancedValuationEngine';
+import { calculateEnhancedValuation } from '@/services/enhancedValuationEngineV2';
 import { EnhancedValuationResult } from '@/types/valuation';
 import { FallbackMethodDisclosure } from '@/components/valuation/result/FallbackMethodDisclosure';
 
