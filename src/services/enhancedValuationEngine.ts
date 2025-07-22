@@ -170,17 +170,44 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
     zipCode: input.zipCode || ''
   };
 
-  const confidenceResult = calculateUnifiedConfidence(confidenceContext);
+  let confidenceResult = calculateUnifiedConfidence(confidenceContext);
   
-  // Step 7: Generate explanation
+  // CRITICAL: Enforce honest confidence caps based on data quality
+  const confidencePenaltyReasons: string[] = [];
+  let maxAllowedConfidence = 95;
+  
+  if (isFallbackMethod) {
+    maxAllowedConfidence = 60;
+    confidencePenaltyReasons.push('No comparable market listings found');
+    confidencePenaltyReasons.push('Fallback MSRP method used');
+    confidencePenaltyReasons.push('Synthetic adjustments applied');
+  } else if (realListings.length < 3) {
+    maxAllowedConfidence = 75;
+    confidencePenaltyReasons.push(`Limited market data (${realListings.length} listing${realListings.length > 1 ? 's' : ''})`);
+  }
+  
+  // Apply the cap and create penalty explanation
+  const originalConfidence = confidenceResult.confidenceScore;
+  if (originalConfidence > maxAllowedConfidence) {
+    confidenceResult = {
+      ...confidenceResult,
+      confidenceScore: maxAllowedConfidence
+    };
+    confidencePenaltyReasons.push(`Confidence capped at ${maxAllowedConfidence}% due to data quality limitations`);
+  }
+  
+  // Step 7: Generate explanation with penalty context
   const explanation = generateConfidenceExplanation(
     confidenceResult.confidenceScore,
     confidenceContext
-  );
+  ) + (confidencePenaltyReasons.length > 0 ? ` ${confidencePenaltyReasons.join('. ')}.` : '');
 
   console.log('✅ Enhanced Valuation Complete:', {
     estimatedValue,
-    confidenceScore: confidenceResult.confidenceScore,
+    originalConfidence,
+    cappedConfidence: confidenceResult.confidenceScore,
+    confidenceCap: maxAllowedConfidence,
+    penaltyReasons: confidencePenaltyReasons,
     marketListingsCount: realListings.length,
     isFallbackMethod,
     adjustmentsCount: adjustments.length
