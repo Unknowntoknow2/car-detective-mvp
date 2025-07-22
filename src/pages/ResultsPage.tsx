@@ -78,22 +78,52 @@ export default function ResultsPage() {
         }
         
         if (existingValuation) {
-          console.log('✅ Found existing valuation for VIN');
+          console.log('✅ Found existing valuation for VIN - Re-running enhanced engine for fresh data');
+          
+          // Get vehicle info from decoded_vehicles table
+          const { data: decodedVehicle } = await supabase
+            .from('decoded_vehicles')
+            .select('*')
+            .eq('vin', identifier)
+            .maybeSingle();
+          
+          if (!decodedVehicle) {
+            throw new Error('Vehicle information not found for this VIN');
+          }
+          
+          // Re-run enhanced valuation to get fresh market data
+          const enhancedResult = await calculateEnhancedValuation({
+            vin: identifier,
+            make: decodedVehicle.make || 'Unknown',
+            model: decodedVehicle.model || 'Unknown',
+            year: decodedVehicle.year || new Date().getFullYear(),
+            mileage: existingValuation.mileage || 50000,
+            condition: existingValuation.condition || 'good',
+            zipCode: existingValuation.zip_code || '90210'
+          });
+          
+          console.log('🎯 Fresh enhanced valuation result:', enhancedResult);
+          
+          // Normalize market listings
+          const normalizedListings = enhancedResult.marketListings.map(normalizeListing);
+          
           valuationData = {
             id: existingValuation.id,
-            vin: existingValuation.vin,
-            make: existingValuation.make || 'Unknown',
-            model: existingValuation.model || 'Unknown',
-            year: existingValuation.year || new Date().getFullYear(),
-            mileage: existingValuation.mileage,
-            condition: existingValuation.condition || 'good',
-            estimatedValue: existingValuation.estimated_value || 0,
-            confidenceScore: existingValuation.confidence_score || 0,
-            zipCode: existingValuation.state,
-            marketListings: [],
-            adjustments: [],
-            valuationMethod: 'database',
-            isUsingFallbackMethod: false
+            vin: identifier,
+            make: decodedVehicle.make || 'Unknown',
+            model: decodedVehicle.model || 'Unknown',
+            year: decodedVehicle.year || new Date().getFullYear(),
+            mileage: enhancedResult.mileage || existingValuation.mileage || 50000,
+            condition: enhancedResult.condition || existingValuation.condition || 'good',
+            estimatedValue: enhancedResult.estimatedValue,
+            confidenceScore: enhancedResult.confidenceScore,
+            zipCode: enhancedResult.zipCode || existingValuation.zip_code || '90210',
+            marketListings: normalizedListings,
+            adjustments: enhancedResult.adjustments || [],
+            valuationMethod: 'enhanced_fresh',
+            isUsingFallbackMethod: enhancedResult.isUsingFallbackMethod || false,
+            basePriceAnchor: enhancedResult.basePriceAnchor,
+            confidenceBreakdown: enhancedResult.confidenceBreakdown
           };
         } else {
           console.log('🔧 No existing valuation found, running enhanced valuation engine');
@@ -194,11 +224,11 @@ export default function ResultsPage() {
           condition: uuidValuation.condition || 'good',
           estimatedValue: uuidValuation.estimated_value || 0,
           confidenceScore: uuidValuation.confidence_score || 0,
-          zipCode: uuidValuation.state,
+          zipCode: uuidValuation.zip_code || uuidValuation.state,
           marketListings: [],
-          adjustments: [],
+          adjustments: uuidValuation.adjustments || [],
           valuationMethod: 'database',
-          isUsingFallbackMethod: false
+          isUsingFallbackMethod: uuidValuation.confidence_score <= 60
         };
       }
       
