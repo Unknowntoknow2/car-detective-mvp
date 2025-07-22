@@ -1,6 +1,8 @@
 
 import { MarketListing, getNormalizedSourceType } from '@/types/marketListing';
 
+export { generateConfidenceExplanation } from './generateConfidenceExplanation';
+
 export interface ConfidenceContext {
   exactVinMatch: boolean;
   marketListings: MarketListing[];

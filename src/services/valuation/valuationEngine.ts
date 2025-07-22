@@ -57,7 +57,7 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
       trim: input.decodedVehicle.trim,
       mileage: input.mileage,
       condition: input.condition,
-      zip: input.zipCode,
+      zipCode: input.zipCode,
     });
 
     // 2. Analyze market listings with price estimator

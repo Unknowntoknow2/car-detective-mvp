@@ -70,7 +70,7 @@ export const ValuationSummary: React.FC<ValuationSummaryProps> = ({
   };
   
   const confidenceExplanation = explanation || 
-    generateConfidenceExplanation(confidenceScore, confidenceContext);
+    generateConfidenceExplanation(confidenceScore, listingsCount, marketAnchors?.exactVinMatch || false, sources || []);
 
   // HONEST badge logic - only show VIN Match if we actually have market data
   const showVinMatchBadge = (sources.includes('exact_vin_match') || marketAnchors?.exactVinMatch) && listingsCount > 0;
