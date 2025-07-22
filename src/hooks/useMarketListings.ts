@@ -1,65 +1,115 @@
-
 import { useState, useEffect } from 'react';
-import { MarketListing, MarketData } from '@/types/marketListings';
+import { supabase } from '@/integrations/supabase/client';
 
-interface UseMarketListingsProps {
+interface MarketListing {
+  id: string;
+  price: number;
+  mileage: number;
+  year: number;
   make: string;
   model: string;
-  year: number;
-  zipCode: string;
+  source: string;
+  dealer_name: string;
+  location: string;
+  listing_url: string;
+  fetched_at: string;
+  confidence_score: number;
 }
 
-export function useMarketListings({ make, model, year, zipCode }: UseMarketListingsProps) {
+export function useMarketListings(make: string, model: string, year: number, zipCode: string) {
   const [listings, setListings] = useState<MarketListing[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchListings = async () => {
-      setIsLoading(true);
-      setError(null);
-      
+    async function fetchMarketListings() {
       try {
-        // Mock implementation - replace with actual API call
-        const mockListings: MarketListing[] = [
-          {
-            id: '1',
-            valuationId: 'mock-valuation-1',
-            price: 25000,
-            source: 'CarMax',
-            url: 'https://carmax.com/listing/1',
-            listingDate: new Date().toISOString(),
-            createdAt: new Date().toISOString(),
-          },
-        ];
-        
-        setListings(mockListings);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch listings');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+        setLoading(true);
+        setError(null);
 
-    if (make && model && year && zipCode) {
-      fetchListings();
+        console.log(`🔍 Fetching market listings for ${year} ${make} ${model} in ${zipCode}`);
+
+        // First try exact match (year, make, model, zip)
+        let { data: exactMatches, error: exactError } = await supabase
+          .from('market_listings')
+          .select('*')
+          .ilike('make', `%${make}%`)
+          .ilike('model', `%${model}%`)
+          .eq('year', year)
+          .eq('zip_code', zipCode)
+          .order('fetched_at', { ascending: false })
+          .limit(10);
+
+        if (exactError) {
+          console.error('Error fetching exact matches:', exactError);
+        }
+
+        console.log(`📊 Found ${exactMatches?.length || 0} exact matches`);
+
+        // If no exact matches, try same year without zip restriction
+        if (!exactMatches || exactMatches.length === 0) {
+          console.log('🔍 No exact matches, trying same year without zip restriction');
+          
+          const { data: yearMatches, error: yearError } = await supabase
+            .from('market_listings')
+            .select('*')
+            .ilike('make', `%${make}%`)
+            .ilike('model', `%${model}%`)
+            .eq('year', year)
+            .order('fetched_at', { ascending: false })
+            .limit(10);
+
+          if (yearError) {
+            console.error('Error fetching year matches:', yearError);
+          }
+
+          exactMatches = yearMatches;
+          console.log(`📊 Found ${exactMatches?.length || 0} year matches`);
+        }
+
+        // If still no matches, try broader search (±2 years)
+        if (!exactMatches || exactMatches.length < 3) {
+          console.log('🔍 Few matches found, expanding to ±2 years');
+          
+          const { data: broadMatches, error: broadError } = await supabase
+            .from('market_listings')
+            .select('*')
+            .ilike('make', `%${make}%`)
+            .ilike('model', `%${model}%`)
+            .gte('year', year - 2)
+            .lte('year', year + 2)
+            .order('fetched_at', { ascending: false })
+            .limit(20);
+
+          if (broadError) {
+            console.error('Error fetching broad matches:', broadError);
+          }
+
+          // Combine exact matches with broad matches, prioritizing exact matches
+          const combinedMatches = [
+            ...(exactMatches || []),
+            ...(broadMatches || []).filter(broad => 
+              !(exactMatches || []).some(exact => exact.id === broad.id)
+            )
+          ];
+
+          exactMatches = combinedMatches.slice(0, 10);
+          console.log(`📊 Found ${exactMatches?.length || 0} combined matches`);
+        }
+
+        setListings(exactMatches || []);
+      } catch (err) {
+        console.error('Error in useMarketListings:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch market listings');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (make && model && year) {
+      fetchMarketListings();
     }
   }, [make, model, year, zipCode]);
 
-  const marketData: MarketData = {
-    averagePrice: listings.reduce((sum, listing) => sum + listing.price, 0) / (listings.length || 1),
-    priceRange: {
-      min: Math.min(...listings.map(l => l.price), 0),
-      max: Math.max(...listings.map(l => l.price), 0)
-    },
-    listingCount: listings.length,
-    daysOnMarket: 30
-  };
-
-  return {
-    listings,
-    marketData,
-    isLoading,
-    error
-  };
+  return { listings, loading, error };
 }
