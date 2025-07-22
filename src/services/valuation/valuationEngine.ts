@@ -146,36 +146,10 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
       Math.round(finalValue * 1.1)
     ];
 
-    // 9. Create adjustments array
-    const adjustments = [
-      {
-        factor: 'Market Base Value',
-        impact: baseValue,
-        description: marketEstimate.usedListings.length > 0 
-          ? `Market analysis from ${marketEstimate.usedListings.length} live listings (confidence: ${marketEstimate.confidence}%)`
-          : `Base market value from ${marketData.listings.length > 0 ? marketData.listings.length + ' traditional' : 'estimated'} listings`
-      },
-      {
-        factor: 'Mileage Adjustment',
-        impact: mileagePenalty,
-        description: `${input.mileage.toLocaleString()} miles adjustment`
-      },
-      {
-        factor: 'Condition Adjustment',
-        impact: conditionDelta,
-        description: `${input.condition} condition adjustment`
-      },
-      {
-        factor: 'Title Adjustment',
-        impact: titlePenalty,
-        description: `${input.titleStatus || 'clean'} title adjustment`
-      },
-      {
-        factor: 'Regional Market',
-        impact: Math.round(finalValue * (zipAdjustment / 100)),
-        description: `${input.zipCode} area market adjustment`
-      }
-    ];
+    // 9. Create adjustments array - REMOVED HARDCODED ADJUSTMENTS
+    // All adjustments are now calculated by the AdjustmentEngine
+    // This ensures adjustments are only shown when they have real sources
+    const adjustments: any[] = []; // Will be populated by AdjustmentEngine if implemented
 
     // 10. Generate AI explanation with market insights
     const aiExplanation = generateAIExplanation(input, marketData, finalValue, confidenceScore, marketEstimate);
