@@ -9,8 +9,9 @@ import { FallbackMethodDisclosure } from "@/components/valuation/result/Fallback
 import { ValuationActions } from "@/components/valuation/result/ValuationActions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EnhancedConfidenceScore } from "@/components/valuation/result/EnhancedConfidenceScore";
-import { calculateEnhancedValuation } from '@/services/pricing/valuationEngineV3';
+import { calculateUnifiedValuation } from '@/services/valuation/valuationEngine';
 import type { MarketListing } from '@/types/marketListing';
+import { SimilarListingsSection } from '@/components/SimilarListingsSection';
 
 interface ValuationData {
   id: string;
@@ -177,15 +178,17 @@ export default function ResultsPage() {
               });
 
             // Run enhanced valuation engine
-            const enhancedResult = await calculateEnhancedValuation({
+            const enhancedResult = await calculateUnifiedValuation({
               vin: valuationData.vin,
-              make: decodedVehicle.make,
-              model: decodedVehicle.model,
-              year: decodedVehicle.year,
-              trim: decodedVehicle.trim,
+              zipCode: valuationData.state || '90210',
               mileage: valuationData.mileage || 75000,
               condition: valuationData.condition || 'good',
-              zipCode: valuationData.state || '90210'
+              decodedVehicle: {
+                year: decodedVehicle.year,
+                make: decodedVehicle.make,
+                model: decodedVehicle.model,
+                trim: decodedVehicle.trim
+              }
             });
 
             const normalizedListings = enhancedResult.marketListings.map(normalizeListing);
@@ -196,17 +199,16 @@ export default function ResultsPage() {
               make: decodedVehicle.make || 'Unknown',
               model: decodedVehicle.model || 'Unknown',
               year: decodedVehicle.year || new Date().getFullYear(),
-              mileage: enhancedResult.mileage,
-              condition: enhancedResult.condition,
-              estimatedValue: enhancedResult.estimatedValue,
+              mileage: valuationData.mileage || 75000,
+              condition: valuationData.condition || 'good',
+              estimatedValue: enhancedResult.finalValue,
               confidenceScore: enhancedResult.confidenceScore,
-              zipCode: enhancedResult.zipCode,
+              zipCode: valuationData.state || '90210',
               marketListings: normalizedListings,
               adjustments: enhancedResult.adjustments,
-              valuationMethod: 'enhanced_fresh',
-              isUsingFallbackMethod: enhancedResult.isUsingFallbackMethod,
-              basePriceAnchor: enhancedResult.basePriceAnchor,
-              confidenceBreakdown: enhancedResult.confidenceBreakdown
+              valuationMethod: 'enhanced_phase2',
+              isUsingFallbackMethod: enhancedResult.confidenceScore === 0,
+              basePriceAnchor: enhancedResult.baseValue
             });
           } catch (enhancedError) {
             console.error('Enhanced valuation failed:', enhancedError);
@@ -365,6 +367,11 @@ export default function ResultsPage() {
               confidenceScore={valuationData.confidenceScore}
               explanation="Limited market data available. Valuation based on MSRP-adjusted depreciation model with condition and mileage adjustments."
             />
+          )}
+
+          {/* Similar Listings Section */}
+          {valuationData.marketListings.length > 0 && (
+            <SimilarListingsSection listings={valuationData.marketListings} />
           )}
         </div>
 
