@@ -162,19 +162,91 @@ export default function ResultsPage() {
         if (valuationData.estimated_value && valuationData.estimated_value > 0) {
           console.log('✅ Using database valuation data directly');
           
-          // Load market listings for this VIN from enhanced_market_listings table
-          const { data: marketListings, error: marketError } = await supabase
-            .from('enhanced_market_listings')
-            .select('*')
-            .eq('vin', valuationData.vin)
-            .order('created_at', { ascending: false });
+          // First, search for real market listings using our edge functions
+          console.log('🔍 Searching for real market listings...');
+          
+          let realMarketListings: any[] = [];
+          
+          try {
+            // Try enhanced market search first
+            const { data: enhancedSearchData, error: enhancedSearchError } = await supabase.functions.invoke('enhanced-market-search', {
+              body: {
+                make: valuationData.make,
+                model: valuationData.model,
+                year: valuationData.year,
+                zipCode: valuationData.state || '94016',
+                mileage: valuationData.mileage,
+                radius: 100
+              }
+            });
 
-          console.log('🔍 Market listings query result:', { marketListings, marketError });
+            if (!enhancedSearchError && enhancedSearchData?.success && enhancedSearchData?.data?.length > 0) {
+              console.log('✅ Enhanced market search found listings:', enhancedSearchData.data.length);
+              realMarketListings = enhancedSearchData.data;
+            } else {
+              console.log('🔄 Enhanced search failed, trying OpenAI market search...');
+              
+              // Fallback to OpenAI market search
+              const { data: openaiSearchData, error: openaiSearchError } = await supabase.functions.invoke('openai-market-search', {
+                body: {
+                  make: valuationData.make,
+                  model: valuationData.model,
+                  year: valuationData.year,
+                  zip: valuationData.state || '94016',
+                  mileage: valuationData.mileage,
+                  radius: 100
+                }
+              });
 
-          const normalizedListings = marketListings?.map(normalizeListing) || [];
-          const hasRealMarketData = normalizedListings.length > 0;
+              if (!openaiSearchError && openaiSearchData?.success && openaiSearchData?.data?.length > 0) {
+                console.log('✅ OpenAI market search found listings:', openaiSearchData.data.length);
+                realMarketListings = openaiSearchData.data;
+              } else {
+                console.log('❌ Both search methods failed, using database listings as fallback');
+              }
+            }
+          } catch (searchError) {
+            console.error('❌ Market search error:', searchError);
+          }
 
-          console.log(`📊 Found ${normalizedListings.length} market listings for VIN ${valuationData.vin}`);
+          // If no real listings found, fall back to database listings but mark as fallback
+          let finalListings = realMarketListings;
+          let isUsingFallback = false;
+          
+          if (realMarketListings.length === 0) {
+            console.log('📂 No real listings found, checking database for cached data...');
+            const { data: dbListings, error: dbError } = await supabase
+              .from('enhanced_market_listings')
+              .select('*')
+              .eq('vin', valuationData.vin)
+              .order('created_at', { ascending: false });
+
+            if (!dbError && dbListings && dbListings.length > 0) {
+              // Check if these are real listings or test data by examining URLs
+              const hasRealUrls = dbListings.some(listing => 
+                listing.listing_url && 
+                !listing.listing_url.includes('example.com') &&
+                !listing.listing_url.includes('listing1') &&
+                !listing.listing_url.includes('listing2')
+              );
+              
+              if (hasRealUrls) {
+                finalListings = dbListings.map(normalizeListing);
+                console.log('✅ Found real cached listings in database');
+              } else {
+                console.log('⚠️ Database contains test data, marking as fallback');
+                isUsingFallback = true;
+                finalListings = [];
+              }
+            } else {
+              isUsingFallback = true;
+            }
+          } else {
+            // Normalize real search results
+            finalListings = realMarketListings.map(normalizeListing);
+          }
+
+          console.log(`📊 Final listings count: ${finalListings.length}, Using fallback: ${isUsingFallback}`);
 
           setValuationData({
             id: valuationData.id,
@@ -187,9 +259,9 @@ export default function ResultsPage() {
             estimatedValue: valuationData.estimated_value,
             confidenceScore: valuationData.confidence_score || 0,
             zipCode: valuationData.state || 'Unknown',
-            marketListings: normalizedListings,
-            valuationMethod: 'database_confirmed',
-            isUsingFallbackMethod: !hasRealMarketData
+            marketListings: finalListings,
+            valuationMethod: isUsingFallback ? 'fallback_pricing' : 'live_search',
+            isUsingFallbackMethod: isUsingFallback
           });
         } else {
           throw new Error('No valid valuation data available');
