@@ -106,14 +106,16 @@ export default function ResultsPage() {
           console.log('🔍 Searching by VIN:', identifier);
           console.log('🔍 About to query valuations table by VIN...');
           
-          // Search by VIN in valuations table - get most recent valuation
+          // Search by VIN in valuations table - get most recent VALID valuation
           const { data: vinData, error: vinError } = await supabase
             .from('valuations')
             .select('*')
             .eq('vin', identifier)
+            .gt('estimated_value', 0)
+            .gt('confidence_score', 0)
             .order('created_at', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
 
           console.log('🔍 Valuations query result:', { vinData, vinError });
 
