@@ -1,12 +1,17 @@
-
 project_id = "xltxqqzattxogxtqrggt"
 
 [api]
 enabled = true
 port = 54321
-schemas = ["public", "graphql_public"]
+schemas = ["public", "storage", "graphql_public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
+
+[functions.enhanced-market-search]
+verify_jwt = false
+
+[functions.openai-market-search]
+verify_jwt = false
 
 [db]
 port = 54322
@@ -18,50 +23,3 @@ port = 54323
 [inbucket]
 enabled = true
 port = 54324
-smtp_port = 54325
-pop3_port = 54326
-
-[storage]
-enabled = true
-port = 54327
-
-[auth]
-enabled = true
-port = 54328
-
-[edge_runtime]
-enabled = true
-port = 54329
-
-[functions.fetch-auction-data]
-verify_jwt = false
-
-[functions.fetch-bidcars-data]
-verify_jwt = false
-
-[functions.fetch-autoauctions-data]
-verify_jwt = false
-
-[functions.fetch-marketplace-data]
-verify_jwt = false
-
-[functions.generate-auction-intelligence]
-verify_jwt = false
-
-[functions.fetch-competitor-prices]
-verify_jwt = false
-
-[functions.export-valuation-json]
-verify_jwt = false
-
-[functions.test-email-integration]
-verify_jwt = false
-
-[functions.log-valuation-audit]
-verify_jwt = false
-
-[functions.fetch-eia-fuel-prices]
-verify_jwt = false
-
-[functions.safe-audit-logger]
-verify_jwt = false

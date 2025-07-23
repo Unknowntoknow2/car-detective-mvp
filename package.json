@@ -60,6 +60,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
     "embla-carousel-react": "^8.6.0",
+    "esbuild": "0.25.5",
     "framer-motion": "^12.15.0",
     "input-otp": "^1.4.2",
     "jspdf": "^3.0.1",
@@ -90,7 +91,7 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
-    "@esbuild/linux-x64": "^0.21.5",
+    "@esbuild/linux-x64": "0.25.5",
     "@eslint/js": "^9.29.0",
     "@rollup/rollup-linux-x64-gnu": "^4.43.0",
     "@types/node": "^22.15.30",

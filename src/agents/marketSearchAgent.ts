@@ -1,3 +1,8 @@
+// DEBUG START: Input verification
+console.log('[MARKET_SEARCH] Payload =', {
+  year: input.year, make: input.make, model: input.model, vin: input.vin, zip: input.zipCode
+});
+
 // Market Search Agent - Fetches real-time market data via OpenAI Web Search
 import { supabase } from "@/integrations/supabase/client";
 import { ValuationInput, MarketListing } from "@/types/valuation";
@@ -286,3 +291,8 @@ function calculateTrustScore(content: string, parsedListings: ParsedListing[], m
     notes
   };
 }
+// DEBUG END: Edge response
+console.log('[MARKET_SEARCH] Edge Function Response:', searchResult, 'Error:', searchError);
+  console.warn('⚠️ No listings returned. Triggering fallback.');
+}
+
