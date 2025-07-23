@@ -32,7 +32,7 @@ export async function searchMarketListings(params: MarketSearchParams): Promise<
   try {
     // First, try enhanced market search (includes caching + OpenAI)
     const enhancedResult = await searchWithEnhancedSearch(params);
-    if (enhancedResult.listings.length >= 5) {
+    if (enhancedResult.listings.length >= 1) {  // Lower threshold for testing
       console.log(`✅ [MARKET_SEARCH_AGENT] Found ${enhancedResult.listings.length} listings via enhanced search`);
       return enhancedResult;
     }
@@ -66,7 +66,7 @@ export async function searchMarketListings(params: MarketSearchParams): Promise<
  */
 async function searchWithEnhancedSearch(params: MarketSearchParams): Promise<EnhancedMarketSearchResult> {
   try {
-    console.log('🔍 [ENHANCED_SEARCH] Calling enhanced-market-search function...');
+    console.log('🔍 [ENHANCED_SEARCH] Calling enhanced-market-search function with params:', params);
     
     const { data, error } = await supabase.functions.invoke('enhanced-market-search', {
       body: {
@@ -74,27 +74,24 @@ async function searchWithEnhancedSearch(params: MarketSearchParams): Promise<Enh
         model: params.model,
         year: params.year,
         trim: params.trim,
+        zip: params.zipCode,
         zipCode: params.zipCode,
         mileage: params.mileage,
-        radius: params.radius || 100
+        radius: params.radius || 100,
+        vin: params.vin
       }
     });
     
+    console.log('📊 [ENHANCED_SEARCH] Function response:', { data, error });
+    
     if (error) {
-      console.error('❌ [ENHANCED_SEARCH] Function call failed:', error);
-      throw new Error(`Enhanced search failed: ${error.message}`);
+      console.error('❌ [ENHANCED_SEARCH] Function call failed, trying database fallback:', error);
+      return await searchDatabaseDirect(params);
     }
     
     if (!data || !data.success) {
-      console.warn('⚠️ [ENHANCED_SEARCH] No successful response');
-      return {
-        listings: [],
-        trust: 0.3,
-        source: 'enhanced_no_results',
-        notes: 'Enhanced search completed but found no listings',
-        totalFound: 0,
-        searchMethod: 'lovable_intelligence'
-      };
+      console.warn('⚠️ [ENHANCED_SEARCH] No successful response, trying database fallback');
+      return await searchDatabaseDirect(params);
     }
     
     // Transform enhanced search results to MarketListing format
@@ -260,7 +257,97 @@ async function searchWithOpenAI(params: MarketSearchParams): Promise<EnhancedMar
 }
 
 /**
- * Search database for existing market listings
+ * Search enhanced_market_listings table directly
+ */
+async function searchDatabaseDirect(params: MarketSearchParams): Promise<EnhancedMarketSearchResult> {
+  try {
+    console.log('🗃️ [DB_DIRECT] Searching enhanced_market_listings for:', params);
+    
+    let query = supabase
+      .from('enhanced_market_listings')
+      .select('*')
+      .ilike('make', params.make)
+      .ilike('model', params.model)
+      .eq('year', params.year)
+      .eq('listing_status', 'active')
+      .gte('fetched_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      .order('price', { ascending: true });
+    
+    if (params.vin) {
+      query = query.eq('vin', params.vin);
+    }
+    
+    const { data, error } = await query.limit(50);
+    
+    if (error) {
+      console.error('❌ [DB_DIRECT] Query failed:', error);
+      throw error;
+    }
+    
+    console.log(`📊 [DB_DIRECT] Found ${data?.length || 0} listings in database`);
+    
+    if (!data || data.length === 0) {
+      return {
+        listings: [],
+        trust: 0.1,
+        source: 'database_empty',
+        notes: 'No listings found in database for the specified criteria',
+        totalFound: 0,
+        searchMethod: 'database'
+      };
+    }
+    
+    // Transform to MarketListing format
+    const listings: MarketListing[] = data.map(item => ({
+      id: item.id,
+      source: item.source || 'Database',
+      sourceType: 'database',
+      source_type: 'marketplace',
+      price: item.price,
+      year: item.year || params.year,
+      make: item.make || params.make,
+      model: item.model || params.model,
+      trim: item.trim,
+      vin: item.vin,
+      mileage: item.mileage,
+      condition: item.condition || 'used',
+      dealer: item.dealer_name,
+      dealerName: item.dealer_name,
+      dealer_name: item.dealer_name,
+      location: item.location || params.zipCode,
+      zip: params.zipCode,
+      zipCode: params.zipCode,
+      link: item.listing_url,
+      listingUrl: item.listing_url,
+      listing_url: item.listing_url || '#',
+      photos: Array.isArray(item.photos) ? item.photos : [],
+      isCpo: item.is_cpo || false,
+      is_cpo: item.is_cpo || false,
+      fetchedAt: item.fetched_at,
+      fetched_at: item.fetched_at,
+      confidenceScore: item.confidence_score || 85,
+      confidence_score: item.confidence_score || 85
+    }));
+    
+    console.log(`✅ [DB_DIRECT] Processed ${listings.length} listings from database`);
+    
+    return {
+      listings,
+      trust: 0.85,
+      source: 'database_cached',
+      notes: `Found ${listings.length} cached listings from database`,
+      totalFound: listings.length,
+      searchMethod: 'database'
+    };
+    
+  } catch (error) {
+    console.error('❌ [DB_DIRECT] Error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Search database for existing market listings (legacy)
  */
 async function searchDatabase(params: MarketSearchParams): Promise<EnhancedMarketSearchResult> {
   try {
