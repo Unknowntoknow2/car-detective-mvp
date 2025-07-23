@@ -50,40 +50,50 @@ serve(async (req) => {
     const params: MarketSearchParams = await req.json();
     console.log('🔍 OpenAI Market Search Request:', params);
 
-    // Construct the search prompt for OpenAI
-    const searchPrompt = `Find real used car listings for a ${params.year} ${params.make} ${params.model}${params.trim ? ` ${params.trim}` : ''} near ZIP code ${params.zip}. Search popular automotive marketplaces like AutoTrader, CarGurus, Cars.com, CarMax, Carvana, Facebook Marketplace, and Craigslist.
+    // Enhanced Google-style search prompt for real-time listings
+    const searchPrompt = `You are a listings intelligence agent. Your task is to search the web for *at least 20 real-time used car listings* matching the following:
 
-For each listing you find, extract:
-1. Price (actual selling price, not MSRP)
-2. Mileage
-3. Year, Make, Model, Trim
-4. VIN (if available)
-5. Dealer/Seller name
-6. Location (city/state or ZIP)
-7. Condition (new, used, certified pre-owned)
-8. Link to the listing
-9. Source marketplace name
+- Make/Model: ${params.make} ${params.model}${params.trim ? ` ${params.trim}` : ''}
+- Year: ${params.year}
+- Max mileage: ${params.mileage ? `under ${params.mileage.toLocaleString()} miles` : 'under 125,000 miles'}
+- Zip code: ${params.zip}
+- Radius: within ${params.radius || 100} miles
 
-Return the results as a JSON array of objects with these exact field names:
-- id (string - generate unique ID)
-- price (number)
-- mileage (number, if available)
-- year (number)
-- make (string)
-- model (string)
-- trim (string, if available)
-- vin (string, if available)  
-- dealerName (string)
-- location (string)
-- condition (string)
-- link (string)
-- source (string - marketplace name)
-- isCpo (boolean - true if certified pre-owned)
-- confidenceScore (number - 1-100 based on data quality)
+Your goal is to return listings like Google does — with photos, prices, dealer names, location, and direct URLs to the listing page.
 
-Find at least 3-5 real listings if possible. Only include actual, current listings with real prices, not estimated values or placeholder data.
+Use sites such as:
+- cars.com
+- autotrader.com
+- carfax.com
+- ebay.com
+- cargurus.com
+- craigslist.org
+- facebook marketplace
+- carmax.com
+- carvana.com
 
-Search for: ${params.year} ${params.make} ${params.model}${params.trim ? ` ${params.trim}` : ''} near ${params.zip}`;
+Return the result as a JSON array with each item containing:
+{
+  "id": "unique-listing-id",
+  "title": "2010 Nissan Altima Hybrid",
+  "price": 7998,
+  "mileage": 104000,
+  "year": 2010,
+  "make": "Nissan",
+  "model": "Altima",
+  "trim": "Hybrid",
+  "location": "Sacramento, CA",
+  "dealerName": "Premier Nissan",
+  "link": "https://www.autotrader.com/cars-for-sale/vehicledetail...",
+  "imageUrl": "https://cdn.example.com/car.jpg",
+  "source": "autotrader.com",
+  "condition": "used",
+  "vin": "1N4AL2AP0BN123456",
+  "isCpo": false,
+  "confidenceScore": 95
+}
+
+Make sure the listings are real and current. Do NOT fabricate data. Use real data extracted from the sites. Return only the JSON array, no explanations.`;
 
     console.log('🌐 Sending request to OpenAI...');
 
