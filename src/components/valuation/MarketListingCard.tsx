@@ -17,9 +17,10 @@ export const MarketListingCard: React.FC<MarketListingCardProps> = ({
 }) => {
   if (!listings || listings.length === 0) {
     return (
-      <div className="p-4 border rounded-lg bg-gray-50">
-        <h4 className="font-medium text-gray-700 mb-2">Market Listings</h4>
-        <p className="text-sm text-gray-500">No market listings found</p>
+      <div className="p-4 border rounded-lg bg-red-50 border-red-200">
+        <h4 className="font-medium text-red-700 mb-2">Market Listings</h4>
+        <p className="text-sm text-red-600">❌ No real market listings found - valuation not available</p>
+        <p className="text-xs text-red-500 mt-1">We need at least 5 current listings for accurate pricing</p>
       </div>
     );
   }
