@@ -82,27 +82,32 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
     let listingsSource = 'fallback';
     let marketConfidence = 0;
     
-    if (marketEstimate.estimatedPrice && marketEstimate.usedListings.length > 0) {
-      // Use market estimator's robust price calculation
+    if (marketEstimate.estimatedPrice && marketEstimate.usedListings.length >= 5) {
+      // Use market estimator's robust price calculation ONLY if we have sufficient data
       baseValue = marketEstimate.estimatedPrice;
       marketConfidence = marketEstimate.confidence;
       listingsSource = 'live_market_analysis';
       console.log(`✅ ${marketEstimate.usedListings.length} valid listings analyzed`);
       console.log(`📊 Market stats: Min: $${marketEstimate.min}, Max: $${marketEstimate.max}, Median: $${marketEstimate.median}, StdDev: $${marketEstimate.stdDev}`);
-    }
-    
-    // Fallback to traditional market data
-    if (baseValue === 0) {
-      baseValue = marketData.averagePrice;
-      listingsSource = 'market_data';
-      marketConfidence = marketData.confidenceScore;
-    }
-    
-    // Final fallback estimation
-    if (baseValue === 0) {
-      console.log('⚠️ No market data available, using fallback estimation');
-      baseValue = estimateBaseValue(input.decodedVehicle);
-      listingsSource = 'estimation';
+    } else {
+      // 🚨 CRITICAL: If insufficient market data, return error state instead of fallback
+      console.error(`❌ Insufficient market data: Only ${marketEstimate.usedListings.length} listings found (minimum 5 required)`);
+      
+      return {
+        finalValue: 0,
+        priceRange: [0, 0],
+        confidenceScore: 0,
+        marketListings: [],
+        zipAdjustment: 0,
+        mileagePenalty: 0,
+        conditionDelta: 0,
+        titlePenalty: 0,
+        aiExplanation: `❌ Unable to provide accurate valuation: Only ${marketEstimate.usedListings.length} live market listings found. We need at least 5 current listings to ensure pricing accuracy. Please try again later or widen your search radius.`,
+        sourcesUsed: ['insufficient_data'],
+        adjustments: [],
+        baseValue: 0,
+        explanation: `No sufficient market data available. Found ${marketEstimate.usedListings.length}/5 required listings.`
+      };
     }
 
     console.log(`💰 Base value: $${baseValue} (source: ${listingsSource}, confidence: ${marketConfidence}%)`);
