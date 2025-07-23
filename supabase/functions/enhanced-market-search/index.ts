@@ -6,7 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Initialize Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -46,25 +45,21 @@ interface MarketListing {
 
 async function searchMarketListings(params: SearchParams): Promise<MarketListing[]> {
   console.log('🔍 Enhanced Market Search - Starting search with params:', params);
-  
   const zipCode = params.zipCode || params.zip || '94016';
   const radius = params.radius || 100;
-  
+
   try {
-    // First, try to find existing recent listings
     const { data: existingListings, error: dbError } = await supabase
       .from('enhanced_market_listings')
       .select('*')
       .ilike('make', params.make)
       .ilike('model', params.model)
       .eq('year', params.year)
-      .gte('fetched_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
+      .gte('fetched_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
       .limit(20);
 
     if (!dbError && existingListings && existingListings.length > 0) {
       console.log(`✅ Found ${existingListings.length} recent listings in database`);
-      
-      // Filter out fake listings
       const realListings = existingListings.filter(listing => 
         listing.listing_url && 
         !listing.listing_url.includes('example.com') &&
@@ -72,7 +67,6 @@ async function searchMarketListings(params: SearchParams): Promise<MarketListing
         !listing.listing_url.includes('listing2') &&
         listing.price > 1000
       );
-
       if (realListings.length > 0) {
         return realListings.map(listing => ({
           id: listing.id,
@@ -97,10 +91,7 @@ async function searchMarketListings(params: SearchParams): Promise<MarketListing
       }
     }
 
-    // If no recent listings found, generate realistic mock data based on market intelligence
     console.log('📊 No recent listings found, generating market-based estimates...');
-    
-    // Get market intelligence for pricing
     const { data: marketData } = await supabase
       .from('market_intelligence')
       .select('*')
@@ -111,8 +102,6 @@ async function searchMarketListings(params: SearchParams): Promise<MarketListing
       .single();
 
     const basePrice = marketData?.median_price || estimateBasePrice(params);
-    
-    // Generate realistic listings with proper variance
     const mockListings: MarketListing[] = [
       {
         id: `listing-${Date.now()}-1`,
@@ -126,11 +115,11 @@ async function searchMarketListings(params: SearchParams): Promise<MarketListing
         mileage: (params.mileage || 60000) + Math.random() * 20000,
         condition: 'good',
         location: `${zipCode} area`,
-        listing_url: `https://autotrader.com/cars-for-sale/vehicledetails.xhtml?listingId=${Math.random().toString(36).substr(2, 9)}`,
+        listing_url: `https://autotrader.com/...`,
         is_cpo: false,
         fetched_at: new Date().toISOString(),
         confidence_score: 88,
-        photos: [`https://images.autotrader.com/scaler/620/420/cms/content/articles/oversteer/${params.make.toLowerCase()}-${params.model.toLowerCase()}-${params.year}-1.jpg`]
+        photos: [`https://images.autotrader.com/...`]
       },
       {
         id: `listing-${Date.now()}-2`,
@@ -145,11 +134,11 @@ async function searchMarketListings(params: SearchParams): Promise<MarketListing
         condition: 'excellent',
         dealer_name: 'Premium Auto Sales',
         location: `${zipCode} area`,
-        listing_url: `https://cars.com/vehicledetail/detail/${Math.random().toString(36).substr(2, 9)}`,
+        listing_url: `https://cars.com/...`,
         is_cpo: true,
         fetched_at: new Date().toISOString(),
         confidence_score: 92,
-        photos: [`https://platform.cstatic-images.com/xlarge/in/v2/stock_photos/${params.make.toLowerCase()}/${params.model.toLowerCase()}/${params.year}/primary.jpg`]
+        photos: [`https://platform.cstatic-images.com/...`]
       },
       {
         id: `listing-${Date.now()}-3`,
@@ -162,15 +151,14 @@ async function searchMarketListings(params: SearchParams): Promise<MarketListing
         mileage: (params.mileage || 60000) + Math.random() * 10000,
         condition: 'good',
         location: `${zipCode} area`,
-        listing_url: `https://cargurus.com/Cars/inventorylisting/viewDetailsFilterViewInventoryListing.action?inventorySearchWidgetType=AUTO&sourceContext=carGurusHomePageModel&entitySelectingHelper.selectedEntity=${Math.random().toString(36).substr(2, 9)}`,
+        listing_url: `https://cargurus.com/...`,
         is_cpo: false,
         fetched_at: new Date().toISOString(),
         confidence_score: 85,
-        photos: [`https://static.cargurus.com/images/site/2008/01/12/17/29/${params.make.toLowerCase()}-${params.model.toLowerCase()}-${params.year}.jpg`]
+        photos: [`https://static.cargurus.com/...`]
       }
     ];
 
-    // Store these listings in the database for future use
     const { error: insertError } = await supabase
       .from('enhanced_market_listings')
       .insert(mockListings.map(listing => ({
@@ -193,11 +181,8 @@ async function searchMarketListings(params: SearchParams): Promise<MarketListing
 }
 
 function estimateBasePrice(params: SearchParams): number {
-  // Basic depreciation model for price estimation
   const currentYear = new Date().getFullYear();
   const age = currentYear - params.year;
-  
-  // Base MSRP estimates by make (simplified)
   const basePrices: { [key: string]: number } = {
     'toyota': 35000,
     'honda': 32000,
@@ -210,30 +195,23 @@ function estimateBasePrice(params: SearchParams): number {
     'lexus': 40000,
     'infiniti': 38000
   };
-
   const basePrice = basePrices[params.make.toLowerCase()] || 30000;
-  
-  // Apply depreciation (roughly 15% first year, 10% subsequent years)
   let depreciatedPrice = basePrice;
   if (age > 0) {
-    depreciatedPrice *= 0.85; // First year
+    depreciatedPrice *= 0.85;
     for (let i = 1; i < age; i++) {
-      depreciatedPrice *= 0.90; // Subsequent years
+      depreciatedPrice *= 0.90;
     }
   }
-
-  // Adjust for mileage
   const avgMilesPerYear = 12000;
   const expectedMiles = age * avgMilesPerYear;
   const actualMiles = params.mileage || expectedMiles;
   const mileageAdjustment = (expectedMiles - actualMiles) / 100000 * 0.1;
   depreciatedPrice *= (1 + mileageAdjustment);
-
-  return Math.max(depreciatedPrice, 5000); // Minimum floor
+  return Math.max(depreciatedPrice, 5000);
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -258,7 +236,6 @@ serve(async (req) => {
     }
 
     const listings = await searchMarketListings(searchParams);
-
     const response = {
       success: true,
       data: listings,
@@ -275,7 +252,6 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('❌ Enhanced Market Search - Error:', error);
-    
     return new Response(JSON.stringify({
       success: false,
       error: error.message,
