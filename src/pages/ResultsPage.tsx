@@ -90,65 +90,73 @@ export default function ResultsPage() {
         const identifier = id;
         console.log('🔍 Loading valuation data for ID:', identifier);
 
-        // Try multiple tables for valuation data
-        let uuidValuation = null;
-        let uuidError = null;
+        // Try to fetch valuation data - NO MOCK FALLBACKS
+        let valuationData = null;
+        let fetchError = null;
 
-        // First try valuations_uuid table
-        const { data: uuidData, error: err1 } = await supabase
-          .from('valuations_uuid')
-          .select('*')
-          .eq('id', identifier)
-          .maybeSingle();
-
-        if (!err1 && uuidData) {
-          uuidValuation = uuidData;
-        } else {
-          // Try regular valuations table
-          const { data: regData, error: err2 } = await supabase
+        // Check if identifier looks like a VIN (17 characters, alphanumeric)
+        const isVin = /^[A-HJ-NPR-Z0-9]{17}$/i.test(identifier);
+        
+        if (isVin) {
+          console.log('🔍 Searching by VIN:', identifier);
+          
+          // Search by VIN in valuations table
+          const { data: vinData, error: vinError } = await supabase
             .from('valuations')
+            .select('*')
+            .eq('vin', identifier)
+            .order('created_at', { ascending: false })
+            .maybeSingle();
+
+          if (!vinError && vinData) {
+            valuationData = vinData;
+            console.log('✅ Found valuation by VIN:', vinData);
+          } else {
+            fetchError = new Error(`No valuation found for VIN: ${identifier}`);
+          }
+        } else {
+          console.log('🔍 Searching by UUID:', identifier);
+          
+          // Try valuations_uuid first, then regular valuations
+          const { data: uuidData, error: uuidError } = await supabase
+            .from('valuations_uuid')
             .select('*')
             .eq('id', identifier)
             .maybeSingle();
 
-          if (!err2 && regData) {
-            uuidValuation = regData;
+          if (!uuidError && uuidData) {
+            valuationData = uuidData;
           } else {
-            // Try valuation_requests table
-            const { data: reqData, error: err3 } = await supabase
-              .from('valuation_requests')
+            const { data: regData, error: regError } = await supabase
+              .from('valuations')
               .select('*')
               .eq('id', identifier)
               .maybeSingle();
 
-            if (!err3 && reqData) {
-              uuidValuation = reqData;
+            if (!regError && regData) {
+              valuationData = regData;
             } else {
-              uuidError = err3 || err2 || err1;
+              fetchError = new Error(`No valuation found for ID: ${identifier}`);
             }
           }
         }
 
-        if (uuidError) {
-          console.error('Error fetching UUID valuation:', uuidError);
-          throw new Error('Failed to fetch valuation data');
+        if (fetchError || !valuationData) {
+          console.error('❌ Valuation not found:', fetchError?.message);
+          throw fetchError || new Error('Valuation data not found');
         }
 
-        if (!uuidValuation) {
-          throw new Error('Valuation not found');
-        }
-
-        console.log('✅ Found UUID valuation:', uuidValuation);
+        console.log('✅ Found valuation data:', valuationData);
 
         // Process enhanced valuation if we have VIN data
-        if (uuidValuation.vin) {
+        if (valuationData.vin) {
           try {
             // Decode vehicle from VIN (simplified for now)
             const decodedVehicle: DecodedVehicle = {
-              make: uuidValuation.make || 'Ford',
-              model: uuidValuation.model || 'F-150',
-              year: uuidValuation.year || 2021,
-              trim: uuidValuation.trim
+              make: valuationData.make || 'Unknown',
+              model: valuationData.model || 'Unknown',
+              year: valuationData.year || new Date().getFullYear(),
+              trim: valuationData.trim
             };
 
             console.log('🚗 Running enhanced valuation for:', decodedVehicle);
@@ -158,33 +166,33 @@ export default function ResultsPage() {
               .from('valuations_uuid')
               .upsert({
                 id: identifier,
-                vin: uuidValuation.vin,
+                vin: valuationData.vin,
                 make: decodedVehicle.make,
                 model: decodedVehicle.model,
                 year: decodedVehicle.year,
-                mileage: uuidValuation.mileage || 75000,
-                condition: uuidValuation.condition || 'good',
-                zip_code: uuidValuation.zip_code || '90210',
+                mileage: valuationData.mileage || 75000,
+                condition: valuationData.condition || 'good',
+                zip_code: valuationData.state || '90210',
                 data_source: 'enhanced_engine'
               });
 
             // Run enhanced valuation engine
             const enhancedResult = await calculateEnhancedValuation({
-              vin: uuidValuation.vin,
+              vin: valuationData.vin,
               make: decodedVehicle.make,
               model: decodedVehicle.model,
               year: decodedVehicle.year,
               trim: decodedVehicle.trim,
-              mileage: uuidValuation.mileage || 75000,
-              condition: uuidValuation.condition || 'good',
-              zipCode: uuidValuation.zip_code || '90210'
+              mileage: valuationData.mileage || 75000,
+              condition: valuationData.condition || 'good',
+              zipCode: valuationData.state || '90210'
             });
 
             const normalizedListings = enhancedResult.marketListings.map(normalizeListing);
             
             setValuationData({
-              id: uuidValuation.id,
-              vin: uuidValuation.vin,
+              id: valuationData.id,
+              vin: valuationData.vin,
               make: decodedVehicle.make || 'Unknown',
               model: decodedVehicle.model || 'Unknown',
               year: decodedVehicle.year || new Date().getFullYear(),
@@ -202,20 +210,20 @@ export default function ResultsPage() {
             });
           } catch (enhancedError) {
             console.error('Enhanced valuation failed:', enhancedError);
-            // Fallback to basic UUID data
+            // Use the actual database valuation data - NO MOCK FALLBACK
             setValuationData({
-              id: uuidValuation.id,
-              vin: uuidValuation.vin,
-              make: uuidValuation.make || 'Unknown',
-              model: uuidValuation.model || 'Unknown',
-              year: uuidValuation.year || new Date().getFullYear(),
-              mileage: uuidValuation.mileage || 0,
-              condition: uuidValuation.condition || 'good',
-              estimatedValue: uuidValuation.estimated_value || 25000,
-              confidenceScore: uuidValuation.confidence_score || 65,
-              zipCode: uuidValuation.zip_code || '90210',
+              id: valuationData.id,
+              vin: valuationData.vin,
+              make: valuationData.make || 'Unknown',
+              model: valuationData.model || 'Unknown',
+              year: valuationData.year || new Date().getFullYear(),
+              mileage: valuationData.mileage || 0,
+              condition: valuationData.condition || 'good',
+              estimatedValue: valuationData.estimated_value || 0,
+              confidenceScore: valuationData.confidence_score || 0,
+              zipCode: valuationData.state || 'Unknown',
               marketListings: [],
-              valuationMethod: 'basic_uuid',
+              valuationMethod: 'database_only',
               isUsingFallbackMethod: true
             });
           }
@@ -225,47 +233,7 @@ export default function ResultsPage() {
 
       } catch (error) {
         console.error('❌ Results page error:', error);
-        
-        // Final fallback to mock data for development
-        const mockData: ValuationData = {
-          id: 'mock-id',
-          vin: '1FTEW1CP7MKD73632',
-          make: 'Ford',
-          model: 'F-150',
-          year: 2021,
-          mileage: 74776,
-          condition: 'good',
-          estimatedValue: 45428,
-          confidenceScore: 78,
-          zipCode: '95821',
-          marketListings: [],
-          valuationMethod: 'mock_fallback',
-          isUsingFallbackMethod: true,
-          basePriceAnchor: 50000,
-          adjustments: [
-            {
-              type: 'mileage',
-              amount: -2500,
-              reason: 'Higher than average mileage'
-            },
-            {
-              type: 'condition',
-              amount: -2072,
-              reason: 'Vehicle condition: good'
-            }
-          ],
-          confidenceBreakdown: {
-            vinAccuracy: 70,
-            marketData: 40,
-            fuelCostMatch: 75,
-            msrpQuality: 80,
-            overall: 78,
-            recommendations: ['No current market listings found', 'Using MSRP-based fallback pricing']
-          }
-        };
-
-        setValuationData(mockData);
-        toast.warning('Using sample data - valuation lookup failed');
+        setError(error instanceof Error ? error.message : 'Failed to load valuation data');
       }
 
       setLoading(false);
