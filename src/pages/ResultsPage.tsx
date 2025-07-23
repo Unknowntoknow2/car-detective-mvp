@@ -87,6 +87,10 @@ export default function ResultsPage() {
         return;
       }
 
+      // Clear any existing state to prevent race conditions
+      setError(null);
+      setValuationData(null);
+
       try {
         const identifier = id;
         console.log('🔍 Loading valuation data for ID:', identifier);
@@ -149,88 +153,26 @@ export default function ResultsPage() {
 
         console.log('✅ Found valuation data:', valuationData);
 
-        // Process enhanced valuation if we have VIN data
-        if (valuationData.vin) {
-          try {
-            // Decode vehicle from VIN (simplified for now)
-            const decodedVehicle: DecodedVehicle = {
-              make: valuationData.make || 'Unknown',
-              model: valuationData.model || 'Unknown',
-              year: valuationData.year || new Date().getFullYear(),
-              trim: valuationData.trim
-            };
-
-            console.log('🚗 Running enhanced valuation for:', decodedVehicle);
-
-            // Save to valuations_uuid table for future reference
-            await supabase
-              .from('valuations_uuid')
-              .upsert({
-                id: identifier,
-                vin: valuationData.vin,
-                make: decodedVehicle.make,
-                model: decodedVehicle.model,
-                year: decodedVehicle.year,
-                mileage: valuationData.mileage || 75000,
-                condition: valuationData.condition || 'good',
-                zip_code: valuationData.state || '90210',
-                data_source: 'enhanced_engine'
-              });
-
-            // Run enhanced valuation engine
-            const enhancedResult = await calculateUnifiedValuation({
-              vin: valuationData.vin,
-              zipCode: valuationData.state || '90210',
-              mileage: valuationData.mileage || 75000,
-              condition: valuationData.condition || 'good',
-              decodedVehicle: {
-                year: decodedVehicle.year,
-                make: decodedVehicle.make,
-                model: decodedVehicle.model,
-                trim: decodedVehicle.trim
-              }
-            });
-
-            const normalizedListings = enhancedResult.marketListings.map(normalizeListing);
-            
-            setValuationData({
-              id: valuationData.id,
-              vin: valuationData.vin,
-              make: decodedVehicle.make || 'Unknown',
-              model: decodedVehicle.model || 'Unknown',
-              year: decodedVehicle.year || new Date().getFullYear(),
-              mileage: valuationData.mileage || 75000,
-              condition: valuationData.condition || 'good',
-              estimatedValue: enhancedResult.finalValue,
-              confidenceScore: enhancedResult.confidenceScore,
-              zipCode: valuationData.state || '90210',
-              marketListings: normalizedListings,
-              adjustments: enhancedResult.adjustments,
-              valuationMethod: 'enhanced_phase2',
-              isUsingFallbackMethod: enhancedResult.confidenceScore === 0,
-              basePriceAnchor: enhancedResult.baseValue
-            });
-          } catch (enhancedError) {
-            console.error('Enhanced valuation failed:', enhancedError);
-            // Use the actual database valuation data - NO MOCK FALLBACK
-            setValuationData({
-              id: valuationData.id,
-              vin: valuationData.vin,
-              make: valuationData.make || 'Unknown',
-              model: valuationData.model || 'Unknown',
-              year: valuationData.year || new Date().getFullYear(),
-              mileage: valuationData.mileage || 0,
-              condition: valuationData.condition || 'good',
-              estimatedValue: valuationData.estimated_value || 0,
-              confidenceScore: valuationData.confidence_score || 0,
-              zipCode: valuationData.state || 'Unknown',
-              marketListings: [],
-              valuationMethod: 'database_only',
-              isUsingFallbackMethod: true
-            });
-          }
+        // If we have valid database valuation data, use it directly without enhanced processing
+        if (valuationData.estimated_value && valuationData.estimated_value > 0) {
+          console.log('✅ Using database valuation data directly');
+          setValuationData({
+            id: valuationData.id,
+            vin: valuationData.vin,
+            make: valuationData.make || 'Unknown',
+            model: valuationData.model || 'Unknown',
+            year: valuationData.year || new Date().getFullYear(),
+            mileage: valuationData.mileage || 0,
+            condition: valuationData.condition || 'good',
+            estimatedValue: valuationData.estimated_value,
+            confidenceScore: valuationData.confidence_score || 0,
+            zipCode: valuationData.state || 'Unknown',
+            marketListings: [],
+            valuationMethod: 'database_confirmed',
+            isUsingFallbackMethod: false
+          });
         } else {
-          throw new Error('No VIN data available for enhanced valuation');
+          throw new Error('No valid valuation data available');
         }
 
       } catch (error) {
