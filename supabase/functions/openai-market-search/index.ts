@@ -50,50 +50,77 @@ serve(async (req) => {
     const params: MarketSearchParams = await req.json();
     console.log('🔍 OpenAI Market Search Request:', params);
 
-    // Enhanced Google-style search prompt for real-time listings
-    const searchPrompt = `You are a listings intelligence agent. Your task is to search the web for *at least 20 real-time used car listings* matching the following:
+    // Lovable-style automotive market intelligence prompt
+    const searchPrompt = `You are an automotive market intelligence agent working inside a vehicle valuation system (AIN). Your job is to search the internet like Google does when a user searches: "${params.year} ${params.make} ${params.model} near ${params.zip} under ${params.mileage || 125000} miles."
 
-- Make/Model: ${params.make} ${params.model}${params.trim ? ` ${params.trim}` : ''}
-- Year: ${params.year}
-- Max mileage: ${params.mileage ? `under ${params.mileage.toLocaleString()} miles` : 'under 125,000 miles'}
-- Zip code: ${params.zip}
-- Radius: within ${params.radius || 100} miles
+🎯 GOAL:
+Return **at least 20 real, live listings** for the vehicle described, **just like Google or Cars.com would**, with:
+- Direct **listing links**
+- Title, mileage, price, image, and dealer/location
+- Clean formatting and JSON structure
 
-Your goal is to return listings like Google does — with photos, prices, dealer names, location, and direct URLs to the listing page.
+📌 VEHICLE SEARCH INPUT:
+Make: ${params.make}
+Model: ${params.model}${params.trim ? `\nTrim: ${params.trim}` : ''}
+Year: ${params.year}
+ZIP Code: ${params.zip}
+Max Mileage: ${params.mileage ? params.mileage.toLocaleString() : '125,000'} miles
+Search Radius: ${params.radius || 100} miles
 
-Use sites such as:
+🌐 TARGET SOURCES:
+Search these sites (you can use web tools, site search, or scrape listings):
 - cars.com
 - autotrader.com
-- carfax.com
-- ebay.com
 - cargurus.com
 - craigslist.org
 - facebook marketplace
-- carmax.com
+- ebay.com
+- carfax.com
 - carvana.com
 
-Return the result as a JSON array with each item containing:
-{
-  "id": "unique-listing-id",
-  "title": "2010 Nissan Altima Hybrid",
-  "price": 7998,
-  "mileage": 104000,
-  "year": 2010,
-  "make": "Nissan",
-  "model": "Altima",
-  "trim": "Hybrid",
-  "location": "Sacramento, CA",
-  "dealerName": "Premier Nissan",
-  "link": "https://www.autotrader.com/cars-for-sale/vehicledetail...",
-  "imageUrl": "https://cdn.example.com/car.jpg",
-  "source": "autotrader.com",
-  "condition": "used",
-  "vin": "1N4AL2AP0BN123456",
-  "isCpo": false,
-  "confidenceScore": 95
-}
+✅ OUTPUT FORMAT (REQUIRED):
+Return a **JSON array** of listings with this exact structure:
 
-Make sure the listings are real and current. Do NOT fabricate data. Use real data extracted from the sites. Return only the JSON array, no explanations.`;
+[
+  {
+    "id": "unique-listing-id",
+    "title": "${params.year} ${params.make} ${params.model}${params.trim ? ` ${params.trim}` : ''}",
+    "price": 7998,
+    "mileage": 104000,
+    "year": ${params.year},
+    "make": "${params.make}",
+    "model": "${params.model}",
+    "trim": "${params.trim || ''}",
+    "location": "Sacramento, CA",
+    "dealerName": "Premier ${params.make}",
+    "link": "https://www.autotrader.com/cars-for-sale/vehicledetail...",
+    "listingUrl": "https://www.autotrader.com/cars-for-sale/vehicledetail...",
+    "imageUrl": "https://cdn.cars.com/vehicle-image.jpg",
+    "source": "autotrader.com",
+    "condition": "used",
+    "vin": "1N4AL2AP0BN123456",
+    "isCpo": false,
+    "confidenceScore": 95,
+    "zipCode": "${params.zip}",
+    "fetchedAt": "${new Date().toISOString()}"
+  }
+]
+
+Each listing must:
+- Be real
+- Be from a legitimate site
+- Match the year/make/model/mileage/ZIP filter
+- Include a real image and clickable link
+
+⚠️ DON'T:
+- Don't fabricate listings
+- Don't give explanations or HTML
+- Don't return anything that's not a real listing with a real link
+
+🎯 YOUR OBJECTIVE:
+Mimic the Google "car for sale" result panel — full of real cars, clickable links, photos, and details — all structured in JSON.
+
+Return only the JSON array, no explanations.`;
 
     console.log('🌐 Sending request to OpenAI...');
 

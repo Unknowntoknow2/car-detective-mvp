@@ -20,7 +20,7 @@ export interface EnhancedMarketSearchResult {
   source: string;
   notes: string;
   totalFound: number;
-  searchMethod: 'openai' | 'database' | 'fallback';
+  searchMethod: 'lovable_intelligence' | 'openai' | 'database' | 'fallback';
 }
 
 /**
@@ -70,11 +70,11 @@ export async function searchMarketListings(params: MarketSearchParams): Promise<
 }
 
 /**
- * Search using OpenAI web browsing for real-time listings
+ * Lovable-style automotive market intelligence search
  */
 async function searchWithOpenAI(params: MarketSearchParams): Promise<EnhancedMarketSearchResult> {
   try {
-    console.log('🤖 [OPENAI_SEARCH] Calling OpenAI market search function...');
+    console.log('🚀 [LOVABLE_INTELLIGENCE] Launching Google-style market intelligence search...');
     
     const { data, error } = await supabase.functions.invoke('openai-market-search', {
       body: {
@@ -89,26 +89,27 @@ async function searchWithOpenAI(params: MarketSearchParams): Promise<EnhancedMar
     });
     
     if (error) {
-      console.error('❌ [OPENAI_SEARCH] Function call failed:', error);
-      throw new Error(`OpenAI search failed: ${error.message}`);
+      console.error('❌ [LOVABLE_INTELLIGENCE] Function call failed:', error);
+      throw new Error(`Market intelligence search failed: ${error.message}`);
     }
     
     if (!data || !data.success) {
-      console.warn('⚠️ [OPENAI_SEARCH] No successful response from OpenAI');
+      console.warn('⚠️ [LOVABLE_INTELLIGENCE] No successful response from market intelligence');
       return {
         listings: [],
         trust: 0.3,
-        source: 'openai_no_results',
-        notes: 'OpenAI search completed but found no listings',
+        source: 'intelligence_no_results',
+        notes: 'Market intelligence search completed but found no current listings',
         totalFound: 0,
-        searchMethod: 'openai'
+        searchMethod: 'lovable_intelligence'
       };
     }
     
-    // Transform OpenAI results to MarketListing format
+    // Transform Lovable intelligence results to MarketListing format
     const listings: MarketListing[] = (data.data || []).map((item: any) => ({
-      id: item.id || `openai-${Date.now()}-${Math.random()}`,
-      source: item.source || 'OpenAI Search',
+      id: item.id || crypto.randomUUID(),
+      source: item.source || 'Live Market Search',
+      sourceType: 'live',
       source_type: 'marketplace',
       price: item.price || 0,
       year: item.year || params.year,
@@ -118,27 +119,54 @@ async function searchWithOpenAI(params: MarketSearchParams): Promise<EnhancedMar
       vin: item.vin,
       mileage: item.mileage,
       condition: item.condition || 'used',
+      dealer: item.dealerName,
+      dealerName: item.dealerName,
       dealer_name: item.dealerName || item.dealer_name,
       location: item.location || params.zipCode,
-      listing_url: item.link || item.listing_url || '#',
+      zip: params.zipCode,
+      zipCode: params.zipCode,
+      link: item.link || item.listingUrl,
+      listingUrl: item.listingUrl || item.link,
+      listing_url: item.listingUrl || item.link || '#',
+      photos: item.imageUrl ? [item.imageUrl] : [],
+      isCpo: item.isCpo || false,
       is_cpo: item.isCpo || false,
+      fetchedAt: new Date().toISOString(),
       fetched_at: new Date().toISOString(),
+      confidenceScore: item.confidenceScore || 85,
       confidence_score: item.confidenceScore || 85
     }));
     
-    console.log(`✅ [OPENAI_SEARCH] Processed ${listings.length} listings from OpenAI`);
+    // Filter for valid listings
+    const validListings = listings.filter(listing => 
+      listing.price > 1000 && 
+      listing.price < 500000 &&
+      listing.make && 
+      listing.model &&
+      listing.source
+    );
+    
+    console.log(`✅ [LOVABLE_INTELLIGENCE] Processed ${validListings.length}/${listings.length} valid listings`);
+    
+    // Calculate trust score based on listing quality and quantity
+    const trustScore = Math.min(
+      0.9, // Max 90% trust
+      0.5 + (validListings.length >= 10 ? 0.4 : validListings.length >= 5 ? 0.3 : validListings.length >= 1 ? 0.2 : 0)
+    );
     
     return {
-      listings,
-      trust: data.meta?.confidence / 100 || 0.8,
-      source: 'openai_web_search',
-      notes: `Found ${listings.length} listings via OpenAI web search`,
-      totalFound: listings.length,
-      searchMethod: 'openai'
+      listings: validListings,
+      trust: trustScore,
+      source: 'lovable_market_intelligence',
+      notes: validListings.length > 0 
+        ? `Found ${validListings.length} real listings via Google-style market intelligence from ${data.meta?.sources?.length || 'multiple'} sources`
+        : 'No current listings found matching your criteria. Try expanding search radius or adjusting filters.',
+      totalFound: validListings.length,
+      searchMethod: 'lovable_intelligence'
     };
     
   } catch (error) {
-    console.error('❌ [OPENAI_SEARCH] Error:', error);
+    console.error('❌ [LOVABLE_INTELLIGENCE] Error:', error);
     throw error;
   }
 }
