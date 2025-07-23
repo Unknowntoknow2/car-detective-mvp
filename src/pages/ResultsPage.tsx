@@ -161,6 +161,21 @@ export default function ResultsPage() {
         // If we have valid database valuation data, use it directly without enhanced processing
         if (valuationData.estimated_value && valuationData.estimated_value > 0) {
           console.log('✅ Using database valuation data directly');
+          
+          // Load market listings for this VIN from enhanced_market_listings table
+          const { data: marketListings, error: marketError } = await supabase
+            .from('enhanced_market_listings')
+            .select('*')
+            .eq('vin', valuationData.vin)
+            .order('created_at', { ascending: false });
+
+          console.log('🔍 Market listings query result:', { marketListings, marketError });
+
+          const normalizedListings = marketListings?.map(normalizeListing) || [];
+          const hasRealMarketData = normalizedListings.length > 0;
+
+          console.log(`📊 Found ${normalizedListings.length} market listings for VIN ${valuationData.vin}`);
+
           setValuationData({
             id: valuationData.id,
             vin: valuationData.vin,
@@ -172,9 +187,9 @@ export default function ResultsPage() {
             estimatedValue: valuationData.estimated_value,
             confidenceScore: valuationData.confidence_score || 0,
             zipCode: valuationData.state || 'Unknown',
-            marketListings: [],
+            marketListings: normalizedListings,
             valuationMethod: 'database_confirmed',
-            isUsingFallbackMethod: false
+            isUsingFallbackMethod: !hasRealMarketData
           });
         } else {
           throw new Error('No valid valuation data available');
@@ -225,7 +240,7 @@ export default function ResultsPage() {
     );
   }
 
-  const isUsingFallback = valuationData.isUsingFallbackMethod || valuationData.marketListings.length === 0;
+  const isUsingFallback = valuationData.isUsingFallbackMethod;
 
   return (
     <div className="container mx-auto py-6 space-y-6">
