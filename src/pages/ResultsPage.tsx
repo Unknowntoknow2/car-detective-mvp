@@ -104,6 +104,7 @@ export default function ResultsPage() {
         
         if (isVin) {
           console.log('🔍 Searching by VIN:', identifier);
+          console.log('🔍 About to query valuations table by VIN...');
           
           // Search by VIN in valuations table
           const { data: vinData, error: vinError } = await supabase
@@ -113,10 +114,13 @@ export default function ResultsPage() {
             .order('created_at', { ascending: false })
             .maybeSingle();
 
+          console.log('🔍 Valuations query result:', { vinData, vinError });
+
           if (!vinError && vinData) {
             valuationData = vinData;
             console.log('✅ Found valuation by VIN:', vinData);
           } else {
+            console.log('❌ No valuation found, error:', vinError);
             fetchError = new Error(`No valuation found for VIN: ${identifier}`);
           }
         } else {
