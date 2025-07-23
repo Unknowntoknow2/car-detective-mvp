@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
-import { searchMarketListings } from '../valuation/marketSearchAgent';
-import type { EnhancedMarketSearchResult } from '../valuation/marketSearchAgent';
+import { searchMarketListings } from '../marketSearch';
+import type { EnhancedMarketSearchResult } from '../marketSearch';
 import { generateConfidenceScore } from '../generateConfidenceScore';
 import type { MarketListing } from '@/types/marketListing';
 
@@ -59,13 +59,13 @@ export async function calculateEnhancedValuation(params: EnhancedValuationParams
     
     console.log('📊 [VALUATION_ENGINE_V3] Market search complete:', {
       listingsFound: marketSearchResult.listings.length,
-      trust: marketSearchResult.trust,
-      source: marketSearchResult.source,
-      searchMethod: marketSearchResult.searchMethod
+      confidence: marketSearchResult.meta.confidence,
+      sources: marketSearchResult.meta.sources,
+      searchMethod: marketSearchResult.meta.searchMethod
     });
     
     // Step 2: Determine fallback method
-    const isUsingFallbackMethod = marketSearchResult.searchMethod === 'fallback' || marketSearchResult.listings.length === 0;
+    const isUsingFallbackMethod = marketSearchResult.meta.searchMethod === 'fallback' || marketSearchResult.listings.length === 0;
     
     // Step 3: Calculate base price
     let basePriceAnchor: number;
@@ -92,7 +92,7 @@ export async function calculateEnhancedValuation(params: EnhancedValuationParams
       listingCount: marketSearchResult.listings.length,
       certifiedListingCount: marketSearchResult.listings.filter((listing: MarketListing) => listing.is_cpo).length,
       trustedSources: marketSearchResult.listings.map((listing: MarketListing) => listing.source),
-      trustScore: marketSearchResult.trust
+      trustScore: marketSearchResult.meta.confidence / 100
     });
     
     // Step 6: Cap confidence for fallback

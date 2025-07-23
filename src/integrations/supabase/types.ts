@@ -1059,6 +1059,7 @@ export type Database = {
           drivetrain: string | null
           engine_description: string | null
           exterior_color: string | null
+          extra: Json | null
           features: Json | null
           fetched_at: string | null
           fuel_economy_city: number | null
@@ -1104,6 +1105,7 @@ export type Database = {
           drivetrain?: string | null
           engine_description?: string | null
           exterior_color?: string | null
+          extra?: Json | null
           features?: Json | null
           fetched_at?: string | null
           fuel_economy_city?: number | null
@@ -1149,6 +1151,7 @@ export type Database = {
           drivetrain?: string | null
           engine_description?: string | null
           exterior_color?: string | null
+          extra?: Json | null
           features?: Json | null
           fetched_at?: string | null
           fuel_economy_city?: number | null
@@ -3796,6 +3799,69 @@ export type Database = {
           year?: number | null
           zip_code?: string | null
           zip_demand_factor?: number | null
+        }
+        Relationships: []
+      }
+      valuations_uuid: {
+        Row: {
+          base_price: number | null
+          condition: string | null
+          confidence_score: number | null
+          created_at: string | null
+          data_source: string | null
+          estimated_value: number | null
+          id: string
+          is_vin_lookup: boolean | null
+          make: string | null
+          market_data: Json | null
+          mileage: number | null
+          model: string | null
+          state: string | null
+          updated_at: string | null
+          user_id: string | null
+          value_breakdown: Json | null
+          vin: string | null
+          year: number | null
+        }
+        Insert: {
+          base_price?: number | null
+          condition?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          data_source?: string | null
+          estimated_value?: number | null
+          id?: string
+          is_vin_lookup?: boolean | null
+          make?: string | null
+          market_data?: Json | null
+          mileage?: number | null
+          model?: string | null
+          state?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          value_breakdown?: Json | null
+          vin?: string | null
+          year?: number | null
+        }
+        Update: {
+          base_price?: number | null
+          condition?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          data_source?: string | null
+          estimated_value?: number | null
+          id?: string
+          is_vin_lookup?: boolean | null
+          make?: string | null
+          market_data?: Json | null
+          mileage?: number | null
+          model?: string | null
+          state?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          value_breakdown?: Json | null
+          vin?: string | null
+          year?: number | null
         }
         Relationships: []
       }

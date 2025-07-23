@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { MarketListing, normalizeListing } from '@/types/marketListing';
 import { calculateUnifiedConfidence } from '@/utils/valuation/calculateUnifiedConfidence';
 import { BasePriceService } from '@/services/basePriceService';
-import { searchMarketListings } from '@/services/valuation/marketSearchAgent';
+import { searchMarketListings } from './marketSearch';
 
 export interface EnhancedValuationInput {
   vin: string;

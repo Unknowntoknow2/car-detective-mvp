@@ -90,12 +90,44 @@ export default function ResultsPage() {
         const identifier = id;
         console.log('🔍 Loading valuation data for ID:', identifier);
 
-        // Fetch from valuations_uuid table
-        const { data: uuidValuation, error: uuidError } = await supabase
+        // Try multiple tables for valuation data
+        let uuidValuation = null;
+        let uuidError = null;
+
+        // First try valuations_uuid table
+        const { data: uuidData, error: err1 } = await supabase
           .from('valuations_uuid')
           .select('*')
           .eq('id', identifier)
           .maybeSingle();
+
+        if (!err1 && uuidData) {
+          uuidValuation = uuidData;
+        } else {
+          // Try regular valuations table
+          const { data: regData, error: err2 } = await supabase
+            .from('valuations')
+            .select('*')
+            .eq('id', identifier)
+            .maybeSingle();
+
+          if (!err2 && regData) {
+            uuidValuation = regData;
+          } else {
+            // Try valuation_requests table
+            const { data: reqData, error: err3 } = await supabase
+              .from('valuation_requests')
+              .select('*')
+              .eq('id', identifier)
+              .maybeSingle();
+
+            if (!err3 && reqData) {
+              uuidValuation = reqData;
+            } else {
+              uuidError = err3 || err2 || err1;
+            }
+          }
+        }
 
         if (uuidError) {
           console.error('Error fetching UUID valuation:', uuidError);
@@ -120,6 +152,21 @@ export default function ResultsPage() {
             };
 
             console.log('🚗 Running enhanced valuation for:', decodedVehicle);
+
+            // Save to valuations_uuid table for future reference
+            await supabase
+              .from('valuations_uuid')
+              .upsert({
+                id: identifier,
+                vin: uuidValuation.vin,
+                make: decodedVehicle.make,
+                model: decodedVehicle.model,
+                year: decodedVehicle.year,
+                mileage: uuidValuation.mileage || 75000,
+                condition: uuidValuation.condition || 'good',
+                zip_code: uuidValuation.zip_code || '90210',
+                data_source: 'enhanced_engine'
+              });
 
             // Run enhanced valuation engine
             const enhancedResult = await calculateEnhancedValuation({
