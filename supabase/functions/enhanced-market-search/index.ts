@@ -14,8 +14,10 @@ interface MarketSearchParams {
   year: number;
   trim?: string;
   mileage?: number;
-  zipCode: string;
+  zip: string;
+  zipCode?: string;
   radius?: number;
+  exact?: boolean;
 }
 
 serve(async (req) => {
@@ -28,6 +30,17 @@ serve(async (req) => {
     const params: MarketSearchParams = await req.json();
     console.log('🔍 Enhanced Market Search Request:', params);
 
+    // Normalize parameters
+    const searchParams = {
+      make: params.make,
+      model: params.model,
+      year: params.year,
+      trim: params.trim,
+      zip: params.zip || params.zipCode,
+      mileage: params.mileage,
+      radius: params.radius || 100
+    };
+
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -37,9 +50,9 @@ serve(async (req) => {
     const { data: cachedListings, error: cacheError } = await supabase
       .from('enhanced_market_listings')
       .select('*')
-      .eq('make', params.make)
-      .eq('model', params.model)
-      .eq('year', params.year)
+      .eq('make', searchParams.make)
+      .eq('model', searchParams.model)
+      .eq('year', searchParams.year)
       .gte('fetched_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Last 24 hours
       .order('price', { ascending: true })
       .limit(50);
@@ -47,29 +60,31 @@ serve(async (req) => {
     if (cachedListings && cachedListings.length >= 5) {
       console.log(`✅ Found ${cachedListings.length} cached listings`);
       
+      const transformedListings = cachedListings.map(listing => ({
+        id: listing.id,
+        title: `${listing.year} ${listing.make} ${listing.model}${listing.trim ? ` ${listing.trim}` : ''}`,
+        price: listing.price,
+        mileage: listing.mileage,
+        year: listing.year,
+        make: listing.make,
+        model: listing.model,
+        trim: listing.trim,
+        vin: listing.vin,
+        location: listing.location,
+        dealerName: listing.dealer_name,
+        link: listing.listing_url,
+        listingUrl: listing.listing_url,
+        imageUrl: listing.photos?.[0] || null,
+        source: listing.source,
+        condition: listing.condition,
+        isCpo: listing.is_cpo,
+        confidenceScore: listing.confidence_score,
+        fetchedAt: listing.fetched_at
+      }));
+      
       return new Response(JSON.stringify({
         success: true,
-        data: cachedListings.map(listing => ({
-          id: listing.id,
-          title: `${listing.year} ${listing.make} ${listing.model}${listing.trim ? ` ${listing.trim}` : ''}`,
-          price: listing.price,
-          mileage: listing.mileage,
-          year: listing.year,
-          make: listing.make,
-          model: listing.model,
-          trim: listing.trim,
-          vin: listing.vin,
-          location: listing.location,
-          dealerName: listing.dealer_name,
-          link: listing.listing_url,
-          listingUrl: listing.listing_url,
-          imageUrl: listing.photos?.[0] || null,
-          source: listing.source,
-          condition: listing.condition,
-          isCpo: listing.is_cpo,
-          confidenceScore: listing.confidence_score,
-          fetchedAt: listing.fetched_at
-        })),
+        data: transformedListings,
         meta: {
           confidence: 85,
           sources: [...new Set(cachedListings.map(l => l.source))],
@@ -86,14 +101,12 @@ serve(async (req) => {
     console.log('🔄 No cached data found, calling OpenAI market search...');
     
     const { data: openaiData, error: openaiError } = await supabase.functions.invoke('openai-market-search', {
-      body: params
+      body: searchParams
     });
 
-    if (openaiError) {
-      throw new Error(`OpenAI search failed: ${openaiError.message}`);
-    }
-
-    if (!openaiData?.success || !openaiData?.data?.length) {
+    if (openaiError || !openaiData?.success) {
+      console.error('❌ OpenAI search failed:', openaiError);
+      
       return new Response(JSON.stringify({
         success: false,
         data: [],
@@ -102,54 +115,56 @@ serve(async (req) => {
           sources: [],
           totalFound: 0,
           searchMethod: 'enhanced_no_results',
-          error: 'No market listings found'
+          error: openaiError?.message || 'No market listings found'
         }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Store new listings in enhanced_market_listings
-    const newListings = openaiData.data.map((listing: any) => ({
-      vin: listing.vin,
-      make: listing.make || params.make,
-      model: listing.model || params.model,
-      year: listing.year || params.year,
-      trim: listing.trim,
-      price: listing.price,
-      mileage: listing.mileage,
-      condition: listing.condition || 'used',
-      location: listing.location,
-      zip_code: params.zipCode,
-      dealer_name: listing.dealerName,
-      listing_url: listing.link || listing.listingUrl,
-      source: listing.source,
-      source_type: 'marketplace',
-      is_cpo: listing.isCpo || false,
-      confidence_score: listing.confidenceScore || 80,
-      photos: listing.imageUrl ? [listing.imageUrl] : [],
-      fetched_at: new Date().toISOString(),
-      listing_status: 'active'
-    }));
+    // Store new listings in enhanced_market_listings (only if we have valid data)
+    if (openaiData?.data?.length > 0) {
+      const newListings = openaiData.data.map((listing: any) => ({
+        vin: listing.vin,
+        make: listing.make || searchParams.make,
+        model: listing.model || searchParams.model,
+        year: listing.year || searchParams.year,
+        trim: listing.trim,
+        price: listing.price,
+        mileage: listing.mileage,
+        condition: listing.condition || 'used',
+        location: listing.location,
+        zip_code: searchParams.zip,
+        dealer_name: listing.dealerName,
+        listing_url: listing.link || listing.listingUrl,
+        source: listing.source,
+        source_type: 'marketplace',
+        is_cpo: listing.isCpo || false,
+        confidence_score: listing.confidenceScore || 80,
+        photos: listing.imageUrl ? [listing.imageUrl] : [],
+        fetched_at: new Date().toISOString(),
+        listing_status: 'active'
+      }));
 
-    // Insert new listings (ignore duplicates)
-    const { error: insertError } = await supabase
-      .from('enhanced_market_listings')
-      .upsert(newListings, { onConflict: 'listing_url', ignoreDuplicates: true });
+      // Insert new listings (ignore duplicates)
+      const { error: insertError } = await supabase
+        .from('enhanced_market_listings')
+        .upsert(newListings, { onConflict: 'listing_url', ignoreDuplicates: true });
 
-    if (insertError) {
-      console.warn('⚠️ Failed to cache listings:', insertError);
-    } else {
-      console.log(`✅ Cached ${newListings.length} new listings`);
+      if (insertError) {
+        console.warn('⚠️ Failed to cache listings:', insertError);
+      } else {
+        console.log(`✅ Cached ${newListings.length} new listings`);
+      }
     }
 
     return new Response(JSON.stringify({
       success: true,
-      data: openaiData.data,
+      data: openaiData.data || [],
       meta: {
-        confidence: Math.min(90, 60 + (openaiData.data.length * 3)),
+        confidence: Math.min(90, 60 + ((openaiData.data?.length || 0) * 3)),
         sources: openaiData.meta?.sources || ['OpenAI Live Search'],
-        totalFound: openaiData.data.length,
+        totalFound: openaiData.data?.length || 0,
         searchMethod: 'enhanced_live_search',
         cacheHit: false
       }
