@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EnhancedConfidenceScore } from "@/components/valuation/result/EnhancedConfidenceScore";
 import { calculateUnifiedValuation } from '@/services/valuation/valuationEngine';
 import type { MarketListing } from '@/types/marketListing';
-import { SimilarListingsSection } from '@/components/SimilarListingsSection';
+import { SimilarListingsSection } from '@/components/results/SimilarListingsSection';
 
 interface ValuationData {
   id: string;
