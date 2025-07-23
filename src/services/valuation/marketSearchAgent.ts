@@ -30,29 +30,21 @@ export async function searchMarketListings(params: MarketSearchParams): Promise<
   console.log('🔍 [MARKET_SEARCH_AGENT] Starting search with params:', params);
   
   try {
-    // First, try OpenAI web search for real-time listings
-    const openaiResult = await searchWithOpenAI(params);
-    if (openaiResult.listings.length > 0) {
-      console.log(`✅ [MARKET_SEARCH_AGENT] Found ${openaiResult.listings.length} listings via OpenAI`);
-      return openaiResult;
+    // First, try enhanced market search (includes caching + OpenAI)
+    const enhancedResult = await searchWithEnhancedSearch(params);
+    if (enhancedResult.listings.length >= 5) {
+      console.log(`✅ [MARKET_SEARCH_AGENT] Found ${enhancedResult.listings.length} listings via enhanced search`);
+      return enhancedResult;
     }
     
-    // Fallback to database search
-    console.log('🔄 [MARKET_SEARCH_AGENT] OpenAI search returned no results, trying database...');
-    const dbResult = await searchDatabase(params);
-    if (dbResult.listings.length > 0) {
-      console.log(`✅ [MARKET_SEARCH_AGENT] Found ${dbResult.listings.length} listings in database`);
-      return dbResult;
-    }
-    
-    // Final fallback - return empty with clear indication
-    console.log('❌ [MARKET_SEARCH_AGENT] No listings found via any method');
+    // 🚨 CRITICAL: No fallback to synthetic data - return honest error state
+    console.log('❌ [MARKET_SEARCH_AGENT] Insufficient market data found');
     return {
       listings: [],
-      trust: 0.2,
-      source: 'fallback',
-      notes: 'No current market listings found via OpenAI search or database. Using synthetic pricing model.',
-      totalFound: 0,
+      trust: 0,
+      source: 'insufficient_data',
+      notes: `❌ Unable to find sufficient market data. Found ${enhancedResult.listings.length} listings but need at least 5 for accurate valuation. Please try again later or expand your search radius.`,
+      totalFound: enhancedResult.listings.length,
       searchMethod: 'fallback'
     };
     
@@ -66,6 +58,102 @@ export async function searchMarketListings(params: MarketSearchParams): Promise<
       totalFound: 0,
       searchMethod: 'fallback'
     };
+  }
+}
+
+/**
+ * Enhanced market search using the enhanced-market-search Edge Function
+ */
+async function searchWithEnhancedSearch(params: MarketSearchParams): Promise<EnhancedMarketSearchResult> {
+  try {
+    console.log('🔍 [ENHANCED_SEARCH] Calling enhanced-market-search function...');
+    
+    const { data, error } = await supabase.functions.invoke('enhanced-market-search', {
+      body: {
+        make: params.make,
+        model: params.model,
+        year: params.year,
+        trim: params.trim,
+        zipCode: params.zipCode,
+        mileage: params.mileage,
+        radius: params.radius || 100
+      }
+    });
+    
+    if (error) {
+      console.error('❌ [ENHANCED_SEARCH] Function call failed:', error);
+      throw new Error(`Enhanced search failed: ${error.message}`);
+    }
+    
+    if (!data || !data.success) {
+      console.warn('⚠️ [ENHANCED_SEARCH] No successful response');
+      return {
+        listings: [],
+        trust: 0.3,
+        source: 'enhanced_no_results',
+        notes: 'Enhanced search completed but found no listings',
+        totalFound: 0,
+        searchMethod: 'lovable_intelligence'
+      };
+    }
+    
+    // Transform enhanced search results to MarketListing format
+    const listings: MarketListing[] = (data.data || []).map((item: any) => ({
+      id: item.id || crypto.randomUUID(),
+      source: item.source || 'Enhanced Market Search',
+      sourceType: 'live',
+      source_type: 'marketplace',
+      price: item.price || 0,
+      year: item.year || params.year,
+      make: item.make || params.make,
+      model: item.model || params.model,
+      trim: item.trim,
+      vin: item.vin,
+      mileage: item.mileage,
+      condition: item.condition || 'used',
+      dealer: item.dealerName,
+      dealerName: item.dealerName,
+      dealer_name: item.dealerName || item.dealer_name,
+      location: item.location || params.zipCode,
+      zip: params.zipCode,
+      zipCode: params.zipCode,
+      link: item.link || item.listingUrl,
+      listingUrl: item.listingUrl || item.link,
+      listing_url: item.listingUrl || item.link || '#',
+      photos: item.imageUrl ? [item.imageUrl] : [],
+      isCpo: item.isCpo || false,
+      is_cpo: item.isCpo || false,
+      fetchedAt: new Date().toISOString(),
+      fetched_at: new Date().toISOString(),
+      confidenceScore: item.confidenceScore || 85,
+      confidence_score: item.confidenceScore || 85
+    }));
+    
+    // Filter for valid listings
+    const validListings = listings.filter(listing => 
+      listing.price > 1000 && 
+      listing.price < 500000 &&
+      listing.make && 
+      listing.model &&
+      listing.source
+    );
+    
+    console.log(`✅ [ENHANCED_SEARCH] Processed ${validListings.length}/${listings.length} valid listings`);
+    
+    return {
+      listings: validListings,
+      trust: data.meta?.confidence / 100 || 0.8,
+      source: 'enhanced_market_search',
+      notes: validListings.length > 0 
+        ? `Found ${validListings.length} listings via enhanced market search (${data.meta?.cacheHit ? 'cached' : 'live search'})`
+        : 'No current listings found matching your criteria.',
+      totalFound: validListings.length,
+      searchMethod: 'lovable_intelligence'
+    };
+    
+  } catch (error) {
+    console.error('❌ [ENHANCED_SEARCH] Error:', error);
+    throw error;
   }
 }
 
