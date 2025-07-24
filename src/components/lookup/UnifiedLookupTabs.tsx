@@ -15,6 +15,7 @@ import { useMakeModels } from '@/hooks/useMakeModels';
 import { useUnifiedLookup } from '@/hooks/useUnifiedLookup';
 import { calculateUnifiedValuation } from '@/services/valuation/valuationEngine';
 import { valuationLogger } from '@/utils/valuationLogger';
+import { fetchVehicleByVin } from '@/services/vehicleLookupService';
 
 export function UnifiedLookupTabs() {
   const [vin, setVin] = useState('');
@@ -38,13 +39,14 @@ export function UnifiedLookupTabs() {
   const navigate = useNavigate();
   const { findMakeById, findModelById } = useMakeModels();
   
-  // Use the real unified lookup service
+  // Use the real unified lookup service for plates/manual, but direct service for VIN
   const { 
     isLoading: isUnifiedLoading, 
-    lookupByVin, 
     lookupByPlate, 
     processManualEntry 
   } = useUnifiedLookup({ mode: 'vpic', tier: 'free' });
+
+  const [isVinLoading, setIsVinLoading] = useState(false);
 
   const validateVin = (vin: string) => {
     return /^[A-HJ-NPR-Z0-9]{17}$/i.test(vin);
@@ -60,29 +62,30 @@ export function UnifiedLookupTabs() {
     }
 
     valuationLogger.vinLookup(vin, 'decode-start', { vin }, true);
+    setIsVinLoading(true);
     
     try {
-      // FIXED: Use the unified lookup service that properly calls edge function and saves to DB
-      const decodeResult = await lookupByVin(vin);
+      // CRITICAL FIX: Use vehicleLookupService that calls unified-decode edge function and saves to DB
+      const vehicleInfo = await fetchVehicleByVin(vin);
       
-      if (decodeResult && decodeResult.success && decodeResult.vehicle) {
+      if (vehicleInfo) {
         valuationLogger.vinLookup(vin, 'decode-success', { 
-          vehicle: decodeResult.vehicle,
+          vehicle: vehicleInfo,
           navigateTo: '/valuation/followup'
         }, true);
         
         // Navigate to follow-up questions with decoded vehicle data
         const params = new URLSearchParams({
-          year: decodeResult.vehicle.year.toString(),
-          make: decodeResult.vehicle.make,
-          model: decodeResult.vehicle.model,
-          trim: decodeResult.vehicle.trim || '',
+          year: vehicleInfo.year.toString(),
+          make: vehicleInfo.make,
+          model: vehicleInfo.model,
+          trim: vehicleInfo.trim || '',
           vin: vin,
-          engine: decodeResult.vehicle.engine || '',
-          transmission: decodeResult.vehicle.transmission || '',
-          bodyType: decodeResult.vehicle.bodyType || '',
-          fuelType: decodeResult.vehicle.fuelType || '',
-          drivetrain: decodeResult.vehicle.drivetrain || '',
+          engine: vehicleInfo.engine || '',
+          transmission: vehicleInfo.transmission || '',
+          bodyType: vehicleInfo.bodyType || '',
+          fuelType: vehicleInfo.fuelType || '',
+          drivetrain: vehicleInfo.drivetrain || '',
           source: 'vin'
         });
         
@@ -90,14 +93,16 @@ export function UnifiedLookupTabs() {
         navigate(`/valuation/followup?${params.toString()}`);
         
       } else {
-        valuationLogger.vinLookup(vin, 'decode-failed', { error: decodeResult?.error }, false, decodeResult?.error || 'Unknown decode error');
-        toast.error(`Failed to decode VIN: ${decodeResult?.error || 'Please check the VIN and try again.'}`);
+        valuationLogger.vinLookup(vin, 'decode-failed', { error: 'No vehicle data returned' }, false, 'No vehicle data returned');
+        toast.error('Failed to decode VIN. Please check the VIN and try again.');
       }
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       valuationLogger.vinLookup(vin, 'service-error', { error: errorMessage }, false, errorMessage);
       toast.error('VIN lookup service temporarily unavailable. Please try again.');
+    } finally {
+      setIsVinLoading(false);
     }
   };
 
@@ -257,10 +262,10 @@ export function UnifiedLookupTabs() {
                 </div>
                 <Button 
                   type="submit" 
-                  disabled={!validateVin(vin) || isUnifiedLoading}
+                  disabled={!validateVin(vin) || isVinLoading}
                   className="w-full"
                 >
-                  {isUnifiedLoading ? (
+                  {isVinLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Decoding VIN with NHTSA...
