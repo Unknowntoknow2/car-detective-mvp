@@ -7,6 +7,8 @@ import { searchMarketListings } from '@/services/valuation/marketSearchAgent';
 import { estimateMarketPrice } from '@/agents/marketPriceEstimator';
 import { supabase } from '@/integrations/supabase/client';
 import { valuationLogger } from '@/utils/valuationLogger';
+import { processFollowUpData, ValuationAdjustment } from './followUpDataCalculators';
+import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 // ✅ PHASE 2: Source weighting for confidence calculation
 const SOURCE_WEIGHTS = {
@@ -209,39 +211,112 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
 
     console.log(`💰 Base value: $${baseValue} (source: ${listingsSource}, confidence: ${marketConfidence}%)`);
 
-    // 5. Calculate adjustments
+    // 5. Calculate traditional adjustments
     const mileagePenalty = calculateMileageAdjustment(input.mileage, input.decodedVehicle.year);
     const conditionDelta = calculateConditionAdjustment(input.condition, baseValue);
     const titlePenalty = calculateTitleAdjustment(input.titleStatus || 'clean', baseValue);
     const zipAdjustment = await getMarketMultiplier(input.zipCode);
 
-    console.log('📈 Adjustments:', {
+    // 🚀 NEW: Process follow-up data for comprehensive valuation
+    let followUpAdjustments: ValuationAdjustment[] = [];
+    let followUpTotal = 0;
+    let confidenceBoost = 0;
+    let dataCompleteness = 0;
+    
+    if (input.followUpData) {
+      valuationLogger.valuationEngine(input.vin, 'followup-processing', {
+        hasFollowUpData: true,
+        fieldsPresent: Object.keys(input.followUpData).length
+      }, true);
+      
+      const followUpResult = processFollowUpData(input.followUpData as FollowUpAnswers, baseValue);
+      followUpAdjustments = followUpResult.adjustments;
+      followUpTotal = followUpResult.totalAdjustment;
+      confidenceBoost = followUpResult.confidenceBoost;
+      dataCompleteness = followUpResult.dataCompleteness;
+      
+      console.log('🔍 Follow-up data analysis:', {
+        adjustmentsCount: followUpAdjustments.length,
+        totalAdjustment: followUpTotal,
+        confidenceBoost,
+        dataCompleteness
+      });
+    }
+
+    console.log('📈 All adjustments:', {
       mileagePenalty,
       conditionDelta,
       titlePenalty,
-      zipAdjustment
+      zipAdjustment,
+      followUpTotal,
+      followUpAdjustmentsCount: followUpAdjustments.length
     });
 
-    // 6. Calculate final value
+    // 6. Calculate final value with all adjustments
     const zipMultiplier = 1 + (zipAdjustment / 100);
     const finalValue = Math.round(
-      (baseValue + conditionDelta + titlePenalty + mileagePenalty) * zipMultiplier
+      (baseValue + conditionDelta + titlePenalty + mileagePenalty + followUpTotal) * zipMultiplier
     );
 
-    // 7. ✅ PHASE 2: Use source-weighted confidence (already calculated above)
-    let confidenceScore = marketConfidence;
+    // 7. Enhanced confidence calculation with follow-up data boost
+    let confidenceScore = Math.min(100, marketConfidence + confidenceBoost);
     
-    // 8. Calculate price range based on actual price spread
+    // 8. Calculate price range based on actual price spread and confidence
+    const variabilityFactor = Math.max(0.05, (100 - confidenceScore) / 1000); // More confident = tighter range
     const priceRange: [number, number] = [
-      Math.round(finalValue * 0.9),
-      Math.round(finalValue * 1.1)
+      Math.round(finalValue * (1 - variabilityFactor)),
+      Math.round(finalValue * (1 + variabilityFactor))
     ];
 
-    // 9. Create adjustments array - REMOVED HARDCODED ADJUSTMENTS
-    const adjustments: any[] = [];
+    // 9. Create comprehensive adjustments array
+    const adjustments: any[] = [
+      ...followUpAdjustments.map(adj => ({
+        factor: adj.factor,
+        impact: adj.impact,
+        description: adj.description,
+        source: adj.source,
+        confidence: adj.confidence
+      })),
+      {
+        factor: 'Mileage',
+        impact: mileagePenalty,
+        description: `${input.mileage.toLocaleString()} miles for ${input.decodedVehicle.year} ${input.decodedVehicle.make}`,
+        source: 'calculated',
+        confidence: 90
+      },
+      {
+        factor: 'Condition',
+        impact: conditionDelta,
+        description: `Vehicle is in ${input.condition} condition`,
+        source: 'calculated',
+        confidence: 85
+      },
+      {
+        factor: 'Title Status',
+        impact: titlePenalty,
+        description: `${input.titleStatus || 'clean'} title status`,
+        source: 'calculated',
+        confidence: 95
+      },
+      {
+        factor: 'Regional Market',
+        impact: Math.round((finalValue / zipMultiplier) * (zipAdjustment / 100)),
+        description: `Market conditions in ZIP ${input.zipCode}`,
+        source: 'calculated',
+        confidence: 80
+      }
+    ].filter(adj => adj.impact !== 0);
 
-    // 10. ✅ PHASE 2: Generate AI explanation with enhanced market insights
+    // 10. Generate enhanced AI explanation with comprehensive insights
     const aiExplanation = generatePhase2AIExplanation(input, marketData, finalValue, confidenceScore, marketListings, validPrices);
+    
+    valuationLogger.valuationEngine(input.vin, 'enhanced-explanation', {
+      hasFollowUpData: !!input.followUpData,
+      adjustmentsCount: adjustments.length,
+      followUpAdjustments: followUpAdjustments.length,
+      confidenceWithBoost: confidenceScore,
+      dataCompleteness
+    }, true);
 
     // 11. ✅ PHASE 2: Transform listings to expected format using real market data
     const transformedListings = marketListings.map((listing, index) => ({
@@ -343,7 +418,7 @@ function estimateBaseValue(vehicle: ValuationEngineInput['decodedVehicle']): num
 }
 
 /**
- * ✅ PHASE 2: Generate enhanced AI explanation with source weighting insights
+ * ✅ ENHANCED: Generate comprehensive AI explanation with follow-up data insights
  */
 function generatePhase2AIExplanation(
   input: ValuationEngineInput,
@@ -357,7 +432,7 @@ function generatePhase2AIExplanation(
   
   let explanation = `Your ${vehicleDescription} has an estimated market value of $${finalValue.toLocaleString()}. `;
   
-  // ✅ PHASE 2: Enhanced market analysis explanation
+  // Market analysis explanation
   if (marketListings && marketListings.length >= 5) {
     const sources = [...new Set(marketListings.map(l => l.source))];
     const minPrice = Math.min(...validPrices);
@@ -368,23 +443,87 @@ function generatePhase2AIExplanation(
     explanation += `from ${sources.length} trusted sources including ${sources.slice(0, 3).join(', ')}${sources.length > 3 ? ` and ${sources.length - 3} others` : ''}. `;
     explanation += `Prices range from $${minPrice.toLocaleString()} to $${maxPrice.toLocaleString()}, `;
     explanation += `with a median price of $${medianPrice.toLocaleString()}. `;
-    explanation += `Our ${confidenceScore}% confidence score reflects source quality weighting and data consistency. `;
   } else if (marketData.listings.length > 0) {
     explanation += `This valuation is based on ${marketData.listings.length} similar vehicles from our database, `;
     explanation += `with an average price of $${marketData.averagePrice.toLocaleString()}. `;
   } else {
     explanation += `⚠️ Limited market data available. This estimate uses industry depreciation models. `;
   }
+
+  // 🚀 NEW: Follow-up data insights
+  if (input.followUpData) {
+    const followUp = input.followUpData as FollowUpAnswers;
+    
+    // Service history insights
+    if (followUp.serviceHistory?.hasRecords) {
+      if (followUp.serviceHistory.regularMaintenance) {
+        explanation += ` Your documented regular maintenance history positively impacts the valuation.`;
+      }
+      if (followUp.serviceHistory.dealerMaintained) {
+        explanation += ` Dealer-maintained service records add credibility and value.`;
+      }
+    } else {
+      explanation += ` Limited service records may slightly affect buyer confidence.`;
+    }
+
+    // Accident history insights
+    if (followUp.accidents?.hadAccident === false) {
+      explanation += ` The clean accident history enhances your vehicle's appeal.`;
+    } else if (followUp.accidents?.hadAccident) {
+      if (followUp.accidents.frameDamage) {
+        explanation += ` Frame damage significantly impacts the valuation as noted.`;
+      } else {
+        explanation += ` Previous accident history has been factored into the pricing.`;
+      }
+    }
+
+    // Condition details
+    if (followUp.tire_condition === 'excellent' || followUp.brake_condition === 'excellent') {
+      explanation += ` Excellent tire and brake condition adds to the overall value.`;
+    } else if (followUp.tire_condition === 'poor' || followUp.brake_condition === 'poor') {
+      explanation += ` Tire or brake replacement needs have been considered in the valuation.`;
+    }
+
+    // Dashboard lights
+    if (followUp.dashboard_lights && followUp.dashboard_lights.length > 0) {
+      explanation += ` Active dashboard warning lights reduce the estimated value as they indicate potential repair needs.`;
+    }
+
+    // Modifications
+    if (followUp.modifications?.hasModifications) {
+      if (followUp.modifications.reversible) {
+        explanation += ` Vehicle modifications are reversible, which minimizes impact on resale value.`;
+      } else {
+        explanation += ` Permanent modifications may affect marketability to general buyers.`;
+      }
+    }
+
+    // Additional notes insights
+    if (followUp.additional_notes && followUp.additional_notes.length > 20) {
+      const notes = followUp.additional_notes.toLowerCase();
+      if (notes.includes('garage') || notes.includes('covered')) {
+        explanation += ` Garage-kept storage helps preserve vehicle condition.`;
+      }
+      if (notes.includes('smoke') && notes.includes('free')) {
+        explanation += ` Smoke-free environment enhances interior value.`;
+      }
+      if (notes.includes('highway')) {
+        explanation += ` Highway miles typically result in less wear than city driving.`;
+      }
+    }
+  }
   
+  // Traditional factors
   if (input.mileage > 100000) {
-    explanation += `The higher mileage (${input.mileage.toLocaleString()} miles) has been factored into the valuation. `;
+    explanation += ` The higher mileage (${input.mileage.toLocaleString()} miles) has been factored into the valuation.`;
   }
   
   if (input.condition !== 'excellent') {
-    explanation += `The ${input.condition} condition has been considered in the final estimate. `;
+    explanation += ` The ${input.condition} condition has been considered in the final estimate.`;
   }
   
-  explanation += `Regional market conditions for ZIP ${input.zipCode} have also been applied.`;
+  explanation += ` Regional market conditions for ZIP ${input.zipCode} have also been applied.`;
+  explanation += ` Our ${confidenceScore}% confidence score reflects data quality and completeness.`;
   
   return explanation;
 }

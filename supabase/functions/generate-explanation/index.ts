@@ -26,12 +26,19 @@ Deno.serve(async (req) => {
       zipCode = location,
       baseMarketValue,
       finalValuation,
-      adjustments,
+      adjustments = [],
       mileageAdj = 0,
       conditionAdj = 0,
       zipAdj = 0,
       featureAdjTotal = 0,
     } = requestData;
+
+    console.log('📝 Generating explanation with enhanced data:', {
+      vehicle: `${year} ${make} ${model}`,
+      adjustments: adjustments.length,
+      finalValuation,
+      hasFollowUpData: adjustments.some(adj => adj.source === 'followup')
+    });
 
     // Validate required fields
     if (!make || !model || !year || !finalValuation) {
