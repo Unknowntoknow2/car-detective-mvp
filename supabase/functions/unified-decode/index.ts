@@ -21,19 +21,23 @@ serve(async (req) => {
   }
 
   try {
-    const requestBody = await req.text();
-    console.log('🔍 [UNIFIED-DECODE] Raw request body:', requestBody);
-    
     let parsedBody;
+    
+    // Try to parse as JSON first
     try {
-      parsedBody = JSON.parse(requestBody);
+      parsedBody = await req.json();
+      console.log('🔍 [UNIFIED-DECODE] Parsed request body:', parsedBody);
     } catch (parseError) {
-      console.error('❌ [UNIFIED-DECODE] Failed to parse request body:', parseError);
+      console.error('❌ [UNIFIED-DECODE] Failed to parse request as JSON:', parseError);
+      console.error('❌ [UNIFIED-DECODE] Request content type:', req.headers.get('content-type'));
+      console.error('❌ [UNIFIED-DECODE] Request method:', req.method);
+      
       return new Response(
         JSON.stringify({
           success: false,
           error: 'Invalid JSON in request body',
-          source: 'parse_error'
+          source: 'parse_error',
+          details: parseError.message
         }),
         { 
           status: 400, 
