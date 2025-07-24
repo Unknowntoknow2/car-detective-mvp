@@ -13,13 +13,37 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 serve(async (req) => {
+  console.log('🔄 [UNIFIED-DECODE] Request received:', req.method, req.url);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { vin } = await req.json();
+    const requestBody = await req.text();
+    console.log('🔍 [UNIFIED-DECODE] Raw request body:', requestBody);
+    
+    let parsedBody;
+    try {
+      parsedBody = JSON.parse(requestBody);
+    } catch (parseError) {
+      console.error('❌ [UNIFIED-DECODE] Failed to parse request body:', parseError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Invalid JSON in request body',
+          source: 'parse_error'
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    const { vin } = parsedBody;
+    console.log('🔍 [UNIFIED-DECODE] Extracted VIN:', vin);
     
     if (!vin || vin.length !== 17) {
       console.error('Invalid VIN format:', vin);
@@ -162,11 +186,19 @@ serve(async (req) => {
       doors: doors
     };
 
-    // PHASE 1 FIX: Save decoded vehicle to database
+    // CRITICAL FIX: Save decoded vehicle to database with comprehensive error handling
     try {
-      console.log('💾 Saving decoded vehicle to database for VIN:', vin.toUpperCase());
+      console.log('💾 [UNIFIED-DECODE] Saving decoded vehicle to database for VIN:', vin.toUpperCase());
+      console.log('💾 [UNIFIED-DECODE] Vehicle data to save:', {
+        vin: vin.toUpperCase(),
+        year, make, model,
+        trim: trim || series || 'Standard',
+        engine: engineCylinders ? `${engineCylinders}-Cylinder` : null,
+        transmission, bodytype: bodyClass || vehicleType,
+        fueltype: fuelType, drivetrain
+      });
       
-      const { error: insertError } = await supabase
+      const { data: insertData, error: insertError } = await supabase
         .from('decoded_vehicles')
         .upsert({
           vin: vin.toUpperCase(),
@@ -187,19 +219,69 @@ serve(async (req) => {
           created_at: new Date().toISOString()
         }, {
           onConflict: 'vin'
-        });
+        })
+        .select();
 
       if (insertError) {
-        console.error('❌ Failed to save decoded vehicle:', insertError);
-        // Don't fail the request, just log the error
+        console.error('❌ [UNIFIED-DECODE] Database save failed:', insertError);
+        console.error('❌ [UNIFIED-DECODE] Insert error details:', JSON.stringify(insertError, null, 2));
+        
+        // Return error but don't fail completely - allow the decode to continue
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: `Database save failed: ${insertError.message}`,
+            vin: vin.toUpperCase(),
+            source: 'database_error',
+            details: insertError
+          }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
       } else {
-        console.log('✅ Decoded vehicle saved successfully');
+        console.log('✅ [UNIFIED-DECODE] Decoded vehicle saved successfully:', insertData);
+        
+        // Verify the save by reading it back
+        const { data: verifyData, error: verifyError } = await supabase
+          .from('decoded_vehicles')
+          .select('*')
+          .eq('vin', vin.toUpperCase())
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        if (verifyError) {
+          console.warn('⚠️ [UNIFIED-DECODE] Could not verify database save:', verifyError);
+        } else if (verifyData) {
+          console.log('✅ [UNIFIED-DECODE] Database save verified:', verifyData.id);
+        } else {
+          console.warn('⚠️ [UNIFIED-DECODE] No data found after save - potential issue');
+        }
       }
     } catch (saveError) {
-      console.error('❌ Error saving decoded vehicle:', saveError);
-      // Don't fail the request, just log the error
+      console.error('❌ [UNIFIED-DECODE] Exception during database save:', saveError);
+      console.error('❌ [UNIFIED-DECODE] Save error stack:', saveError instanceof Error ? saveError.stack : 'No stack trace');
+      
+      // Return error for database issues
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Database operation failed: ${saveError instanceof Error ? saveError.message : 'Unknown error'}`,
+          vin: vin.toUpperCase(),
+          source: 'database_exception'
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
+    console.log('✅ [UNIFIED-DECODE] Successfully processed VIN decode for:', vin.toUpperCase());
+    console.log('✅ [UNIFIED-DECODE] Final response data:', decodedVehicle);
+    
     return new Response(
       JSON.stringify({
         success: true,
@@ -213,14 +295,16 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Unified Decode Error:', error);
+    console.error('❌ [UNIFIED-DECODE] Top-level error:', error);
+    console.error('❌ [UNIFIED-DECODE] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || 'Internal server error',
+        error: error instanceof Error ? error.message : 'Internal server error',
         vin: '',
-        source: 'error'
+        source: 'server_error',
+        details: error instanceof Error ? { name: error.name, message: error.message } : error
       }),
       { 
         status: 500, 
