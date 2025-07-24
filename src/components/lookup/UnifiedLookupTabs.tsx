@@ -14,6 +14,7 @@ import { EnhancedVehicleSelector } from '@/components/lookup/form-parts/Enhanced
 import { useMakeModels } from '@/hooks/useMakeModels';
 import { useUnifiedLookup } from '@/hooks/useUnifiedLookup';
 import { calculateUnifiedValuation } from '@/services/valuation/valuationEngine';
+import { valuationLogger } from '@/utils/valuationLogger';
 
 export function UnifiedLookupTabs() {
   const [vin, setVin] = useState('');
@@ -53,18 +54,22 @@ export function UnifiedLookupTabs() {
     e.preventDefault();
     
     if (!validateVin(vin)) {
+      valuationLogger.vinLookup(vin, 'validation-failed', { reason: 'invalid-format' }, false, 'Invalid VIN format');
       toast.error('Please enter a valid 17-character VIN');
       return;
     }
 
-    console.log('🚗 VIN Lookup: Decoding VIN to find vehicle:', vin);
+    valuationLogger.vinLookup(vin, 'decode-start', { vin }, true);
     
     try {
       // First decode the VIN to get vehicle information
       const result = await lookupByVin(vin);
       
       if (result && result.success && result.vehicle) {
-        console.log('✅ VIN Lookup: Successfully decoded vehicle:', result.vehicle);
+        valuationLogger.vinLookup(vin, 'decode-success', { 
+          vehicle: result.vehicle,
+          navigateTo: '/valuation/followup'
+        }, true);
         
         // Navigate to follow-up questions with decoded vehicle data (same pattern as plate lookup)
         const params = new URLSearchParams({
@@ -85,12 +90,13 @@ export function UnifiedLookupTabs() {
         navigate(`/valuation/followup?${params.toString()}`);
         
       } else {
-        console.error('❌ VIN Lookup: Failed to decode VIN:', result?.error);
+        valuationLogger.vinLookup(vin, 'decode-failed', { error: result?.error }, false, result?.error || 'Unknown decode error');
         toast.error('Failed to decode VIN. Please check the VIN and try again.');
       }
       
     } catch (error) {
-      console.error('❌ VIN lookup error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      valuationLogger.vinLookup(vin, 'service-error', { error: errorMessage }, false, errorMessage);
       toast.error('VIN lookup service temporarily unavailable. Please try again.');
     }
   };
@@ -103,7 +109,15 @@ export function UnifiedLookupTabs() {
       return;
     }
 
-    console.log('🔧 Manual Entry: Processing with database vehicle data');
+    const manualVin = `MANUAL_${selectedMakeId}_${selectedModelId}_${selectedYear}`;
+    valuationLogger.vinLookup(manualVin, 'manual-entry-start', { 
+      selectedMakeId, 
+      selectedModelId, 
+      selectedYear, 
+      mileage, 
+      condition, 
+      zipCode 
+    }, true);
     
     try {
       // Get the actual make and model names from the database
@@ -129,11 +143,12 @@ export function UnifiedLookupTabs() {
         fuelType: 'gasoline'
       });
       
-      console.log('✅ Manual Entry: Valuation completed');
+      valuationLogger.vinLookup(manualVin, 'manual-valuation-success', { finalValue: 'completed' }, true);
       toast.success('Manual valuation completed!');
       
     } catch (error) {
-      console.error('❌ Manual valuation error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      valuationLogger.vinLookup(manualVin, 'manual-valuation-error', { error: errorMessage }, false, errorMessage);
       toast.error('Failed to process manual valuation. Please try again.');
     }
   };

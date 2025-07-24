@@ -9,6 +9,7 @@ import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { useValuationContext } from '@/contexts/ValuationContext';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { valuationLogger } from '@/utils/valuationLogger';
 
 export default function ValuationFollowUpPage() {
   const [searchParams] = useSearchParams();
@@ -39,12 +40,21 @@ export default function ValuationFollowUpPage() {
   // Load actual follow-up data and create valuation
   const handleSubmitAnswers = async (): Promise<boolean> => {
     try {
-      console.log('🚀 [DEBUG] ValuationFollowUpPage: Starting handleSubmitAnswers for VIN:', vehicleData.vin);
-      console.log('🚀 [DEBUG] Vehicle data:', vehicleData);
+      valuationLogger.followUp(vehicleData.vin, 'submit-start', { 
+        vehicleData: {
+          year: vehicleData.year,
+          make: vehicleData.make,
+          model: vehicleData.model,
+          source: vehicleData.source
+        }
+      }, true);
       
       // FIX #1: Validate VIN first
       if (!vehicleData.vin || vehicleData.vin.length !== 17) {
-        console.error('❌ [DEBUG] Invalid or missing VIN:', vehicleData.vin);
+        valuationLogger.followUp(vehicleData.vin || 'invalid', 'validation-failed', { 
+          reason: 'invalid-vin',
+          vinLength: vehicleData.vin?.length || 0 
+        }, false, 'Invalid VIN format');
         toast.error('Invalid VIN. Please go back and enter a valid 17-character VIN.');
         return false;
       }
@@ -61,16 +71,19 @@ export default function ValuationFollowUpPage() {
       const { FollowUpService } = await import('@/services/followUpService');
       const { data: followUpData, error: followUpError } = await FollowUpService.getAnswersByVin(vehicleData.vin);
       
-      console.log('🔍 [DEBUG] Loading follow-up data for VIN:', vehicleData.vin);
+      valuationLogger.followUp(vehicleData.vin, 'load-answers', { hasError: !!followUpError }, !followUpError);
       if (followUpError) {
-        console.error('❌ [DEBUG] Error loading follow-up data:', followUpError);
+        valuationLogger.followUp(vehicleData.vin, 'load-answers-error', { error: followUpError }, false, typeof followUpError === 'string' ? followUpError : 'Follow-up data error');
         toast.error('Failed to load your information. Please try again.');
         return false;
       }
 
-      console.log('🔍 [DEBUG] Follow-up data result:', followUpData);
       if (!followUpData || !followUpData.mileage || !followUpData.zip_code) {
-        console.error('❌ [DEBUG] Missing required follow-up data. Data:', followUpData);
+        valuationLogger.followUp(vehicleData.vin, 'incomplete-data', { 
+          hasMileage: !!followUpData?.mileage,
+          hasZipCode: !!followUpData?.zip_code,
+          data: followUpData
+        }, false, 'Incomplete follow-up data');
         toast.error('Please complete all required fields before submitting.');
         return false;
       }
@@ -88,19 +101,26 @@ export default function ValuationFollowUpPage() {
         fuelType: (vehicleData.fuelType as 'gasoline' | 'diesel' | 'hybrid' | 'electric') || 'gasoline'
       };
 
-      console.log('🚀 [DEBUG] Processing valuation with REAL user data:', valuationInput);
-      console.log('🔍 [DEBUG] User ID being passed:', userId || 'anonymous');
-      console.log('🚀 [DEBUG] About to call rerunValuation...');
+      valuationLogger.followUp(vehicleData.vin, 'valuation-start', { 
+        valuationInput,
+        userId: userId || 'anonymous'
+      }, true);
+      
       await rerunValuation(valuationInput);
       
-      console.log('✅ Valuation created successfully');
+      valuationLogger.followUp(vehicleData.vin, 'valuation-success', { 
+        navigateTo: `/results/${valuationInput.vin}`
+      }, true);
+      
       toast.success('Valuation completed successfully!');
-      // Navigate to results page with the VIN since the engine result doesn't have an ID
       navigate(`/results/${valuationInput.vin}`, { replace: true });
       return true;
     } catch (error) {
-      console.error('❌ [DEBUG] Error in handleSubmitAnswers:', error);
-      console.error('❌ [DEBUG] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      valuationLogger.followUp(vehicleData.vin, 'submit-error', { 
+        error: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined
+      }, false, errorMessage);
       toast.error('Failed to complete valuation. Please try again.');
       return false;
     }

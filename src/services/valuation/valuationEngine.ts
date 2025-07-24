@@ -6,6 +6,7 @@ import { MarketDataService } from './marketDataService';
 import { searchMarketListings } from '@/services/valuation/marketSearchAgent';
 import { estimateMarketPrice } from '@/agents/marketPriceEstimator';
 import { supabase } from '@/integrations/supabase/client';
+import { valuationLogger } from '@/utils/valuationLogger';
 
 // ✅ PHASE 2: Source weighting for confidence calculation
 const SOURCE_WEIGHTS = {
@@ -58,12 +59,21 @@ export interface UnifiedValuationResult {
  * Main valuation engine that processes vehicle data and returns comprehensive results
  */
 export async function calculateUnifiedValuation(input: ValuationEngineInput): Promise<UnifiedValuationResult> {
-  console.log('🚗 Starting unified valuation calculation for:', input.vin);
-  console.log('🔍 Debug: Input validation passed');
+  valuationLogger.valuationEngine(input.vin, 'calculation-start', {
+    zipCode: input.zipCode,
+    mileage: input.mileage,
+    vehicle: {
+      year: input.decodedVehicle.year,
+      make: input.decodedVehicle.make,
+      model: input.decodedVehicle.model,
+      trim: input.decodedVehicle.trim
+    }
+  }, true);
 
   try {
     // ✅ PHASE 2: Radius retry logic - try 100 miles first, then 200 miles
-    console.log('🔍 Phase 2: Searching live market listings with radius retry...');
+    valuationLogger.valuationEngine(input.vin, 'market-search-start', { radius: 100 }, true);
+    
     let marketSearchResult = await searchMarketListings({
       make: input.decodedVehicle.make,
       model: input.decodedVehicle.model,
@@ -76,7 +86,11 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
 
     // If insufficient listings, retry with wider radius
     if (marketSearchResult.listings.length < 5) {
-      console.log(`🔄 Only ${marketSearchResult.listings.length} listings found, retrying with 200-mile radius...`);
+      valuationLogger.valuationEngine(input.vin, 'market-search-retry', { 
+        firstAttemptResults: marketSearchResult.listings.length,
+        retryRadius: 200 
+      }, true);
+      
       marketSearchResult = await searchMarketListings({
         make: input.decodedVehicle.make,
         model: input.decodedVehicle.model,
@@ -89,14 +103,18 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
     }
 
     const marketListings = marketSearchResult.listings;
-
-    // 2. ✅ PHASE 2: Enhanced confidence calculation with source weighting
-    console.log('📊 Phase 2: Analyzing market listings with source weighting...');
-    console.log('🔍 Debug: About to process', marketListings?.length || 0, 'listings');
+    
+    valuationLogger.valuationEngine(input.vin, 'market-analysis', { 
+      listingsFound: marketListings?.length || 0,
+      usedOpenAIFallback: marketSearchResult.searchMethod === 'openai' || false,
+      sources: [marketSearchResult.source]
+    }, true);
     
     if (!marketListings || marketListings.length < 5) {
-      // 🚨 CRITICAL: If insufficient market data, return error state instead of fallback
-      console.error(`❌ Insufficient market data: Only ${marketListings?.length || 0} listings found (minimum 5 required)`);
+      valuationLogger.valuationEngine(input.vin, 'insufficient-data', { 
+        listingsFound: marketListings?.length || 0,
+        minimumRequired: 5
+      }, false, 'Insufficient market data for accurate valuation');
       
       return {
         finalValue: 0,
@@ -170,9 +188,13 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
     const listingsSource = 'enhanced_market_analysis';
     const marketConfidence = sourceBasedConfidence;
 
-    console.log(`💰 Phase 2: Base value: $${baseValue} (median from ${validPrices.length} prices)`);
-    console.log(`📊 Phase 2: Source-weighted confidence: ${marketConfidence}% (from ${marketListings.length} listings)`);
-    console.log(`🎯 Phase 2: Price range: $${Math.min(...validPrices)}-$${Math.max(...validPrices)}`);
+    valuationLogger.valuationEngine(input.vin, 'pricing-calculated', {
+      baseValue,
+      validPricesCount: validPrices.length,
+      confidenceScore: marketConfidence,
+      priceRange: [Math.min(...validPrices), Math.max(...validPrices)],
+      listingsAnalyzed: marketListings.length
+    }, true);
 
     // 3. Fetch traditional market data as backup context only (not for valuation)
     console.log('📊 Fetching traditional market data for context...');
@@ -236,9 +258,15 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
       fetched_at: listing.fetchedAt || listing.fetched_at || new Date().toISOString()
     }));
 
-    console.log(`✅ Phase 2 Valuation complete: $${finalValue} (confidence: ${confidenceScore}%)`);
-    console.log(`📊 Phase 2 Market analysis: ${marketListings.length} listings, price range: $${Math.min(...validPrices)}-$${Math.max(...validPrices)}`);
-    console.log(`🎯 Phase 2 Median-based pricing: $${medianPrice} from ${validPrices.length} valid prices`);
+    valuationLogger.valuationEngine(input.vin, 'calculation-complete', {
+      finalValue,
+      confidenceScore,
+      marketListingsCount: marketListings.length,
+      validPricesCount: validPrices.length,
+      medianPrice,
+      usedOpenAIFallback: marketSearchResult.searchMethod === 'openai' || false,
+      sourcesUsed: ['enhanced_market_analysis', 'source_weighted_confidence', 'median_pricing']
+    }, true);
 
     return {
       finalValue,
@@ -257,7 +285,10 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
     };
 
   } catch (error) {
-    console.error('❌ Error in unified valuation:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    valuationLogger.valuationEngine(input.vin, 'calculation-error', { 
+      error: errorMessage 
+    }, false, errorMessage);
     
     // Return fallback result
     const fallbackValue = estimateBaseValue(input.decodedVehicle);
