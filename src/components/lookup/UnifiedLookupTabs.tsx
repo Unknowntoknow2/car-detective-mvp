@@ -62,11 +62,10 @@ export function UnifiedLookupTabs() {
     valuationLogger.vinLookup(vin, 'decode-start', { vin }, true);
     
     try {
-      // PHASE 1 FIX: Use dedicated VIN decode service that ensures database saving
-      const { decodeVin } = await import('@/services/valuation/vehicleDecodeService');
-      const decodeResult = await decodeVin(vin);
+      // FIXED: Use the unified lookup service that properly calls edge function and saves to DB
+      const decodeResult = await lookupByVin(vin);
       
-      if (decodeResult.success && decodeResult.vehicle) {
+      if (decodeResult && decodeResult.success && decodeResult.vehicle) {
         valuationLogger.vinLookup(vin, 'decode-success', { 
           vehicle: decodeResult.vehicle,
           navigateTo: '/valuation/followup'
@@ -91,8 +90,8 @@ export function UnifiedLookupTabs() {
         navigate(`/valuation/followup?${params.toString()}`);
         
       } else {
-        valuationLogger.vinLookup(vin, 'decode-failed', { error: decodeResult.error }, false, decodeResult.error || 'Unknown decode error');
-        toast.error(`Failed to decode VIN: ${decodeResult.error || 'Please check the VIN and try again.'}`);
+        valuationLogger.vinLookup(vin, 'decode-failed', { error: decodeResult?.error }, false, decodeResult?.error || 'Unknown decode error');
+        toast.error(`Failed to decode VIN: ${decodeResult?.error || 'Please check the VIN and try again.'}`);
       }
       
     } catch (error) {
