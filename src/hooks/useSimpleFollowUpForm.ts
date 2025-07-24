@@ -350,7 +350,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
             user_id: (await supabase.auth.getUser()).data.user?.id || null,
             estimated_value: 0, // Will be calculated
             confidence_score: 0, // Will be calculated
-            source: 'followup_form',
             created_at: new Date().toISOString()
           })
           .select('id')
