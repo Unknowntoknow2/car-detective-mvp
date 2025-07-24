@@ -62,27 +62,28 @@ export function UnifiedLookupTabs() {
     valuationLogger.vinLookup(vin, 'decode-start', { vin }, true);
     
     try {
-      // First decode the VIN to get vehicle information
-      const result = await lookupByVin(vin);
+      // PHASE 1 FIX: Use dedicated VIN decode service that ensures database saving
+      const { decodeVin } = await import('@/services/valuation/vehicleDecodeService');
+      const decodeResult = await decodeVin(vin);
       
-      if (result && result.success && result.vehicle) {
+      if (decodeResult.success && decodeResult.vehicle) {
         valuationLogger.vinLookup(vin, 'decode-success', { 
-          vehicle: result.vehicle,
+          vehicle: decodeResult.vehicle,
           navigateTo: '/valuation/followup'
         }, true);
         
-        // Navigate to follow-up questions with decoded vehicle data (same pattern as plate lookup)
+        // Navigate to follow-up questions with decoded vehicle data
         const params = new URLSearchParams({
-          year: result.vehicle.year.toString(),
-          make: result.vehicle.make,
-          model: result.vehicle.model,
-          trim: result.vehicle.trim || '',
+          year: decodeResult.vehicle.year.toString(),
+          make: decodeResult.vehicle.make,
+          model: decodeResult.vehicle.model,
+          trim: decodeResult.vehicle.trim || '',
           vin: vin,
-          engine: result.vehicle.engine || '',
-          transmission: result.vehicle.transmission || '',
-          bodyType: result.vehicle.bodyType || '',
-          fuelType: result.vehicle.fuelType || '',
-          drivetrain: result.vehicle.drivetrain || '',
+          engine: decodeResult.vehicle.engine || '',
+          transmission: decodeResult.vehicle.transmission || '',
+          bodyType: decodeResult.vehicle.bodyType || '',
+          fuelType: decodeResult.vehicle.fuelType || '',
+          drivetrain: decodeResult.vehicle.drivetrain || '',
           source: 'vin'
         });
         
@@ -90,8 +91,8 @@ export function UnifiedLookupTabs() {
         navigate(`/valuation/followup?${params.toString()}`);
         
       } else {
-        valuationLogger.vinLookup(vin, 'decode-failed', { error: result?.error }, false, result?.error || 'Unknown decode error');
-        toast.error('Failed to decode VIN. Please check the VIN and try again.');
+        valuationLogger.vinLookup(vin, 'decode-failed', { error: decodeResult.error }, false, decodeResult.error || 'Unknown decode error');
+        toast.error(`Failed to decode VIN: ${decodeResult.error || 'Please check the VIN and try again.'}`);
       }
       
     } catch (error) {

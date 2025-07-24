@@ -290,7 +290,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
     return Boolean(hasValidZip && hasValidMileage && hasValidCondition);
   }, [formData]);
 
-  // NEW: Complete submission function that links follow-up to valuation
+  // PHASE 2 FIX: Enhanced submission function with proper VIN decode validation and valuation creation
   const submitFollowUpAndStartValuation = useCallback(async (): Promise<{ success: boolean; message: string; valuationId?: string; requiresValuation?: boolean }> => {
     try {
       if (!vin) {
@@ -302,95 +302,69 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
         return { success: false, message: 'Please complete all required fields (location, mileage, condition)' };
       }
 
+      console.log('🚀 [FOLLOW-UP] Starting submission for VIN:', vin);
+
+      // PHASE 2 FIX: Ensure VIN is decoded before proceeding
+      const { needsDecoding, decodeVin, getDecodedVehicle } = await import('@/services/valuation/vehicleDecodeService');
+      
+      if (await needsDecoding(vin)) {
+        console.log('🔍 [FOLLOW-UP] VIN not decoded, triggering decode first...');
+        
+        const decodeResult = await decodeVin(vin);
+        if (!decodeResult.success) {
+          console.error('❌ [FOLLOW-UP] VIN decode failed:', decodeResult.error);
+          return { success: false, message: `VIN decode failed: ${decodeResult.error}` };
+        }
+        
+        console.log('✅ [FOLLOW-UP] VIN decoded successfully during follow-up');
+      }
+
+      // Get decoded vehicle data for valuation
+      const decodedVehicle = await getDecodedVehicle(vin);
+      
       // 1. Check for existing valuation by VIN
       const { data: existingValuations } = await supabase
         .from('valuations')
-        .select('id')
+        .select('id, estimated_value')
         .eq('vin', vin)
         .order('created_at', { ascending: false })
         .limit(1);
 
       let valuation_id: string | undefined = existingValuations?.[0]?.id ?? undefined;
 
-      // 2. PHASE 2 FIX: If no valuation exists, create a valuation request
+      // 2. If no valuation exists, create a valuation record
       if (!valuation_id) {
-        console.log('🚀 No existing valuation found, creating valuation request for VIN:', vin);
+        console.log('🚀 [FOLLOW-UP] Creating new valuation record for VIN:', vin);
         
-        try {
-          // Create valuation request using follow-up data
-          const { data: newValuation, error: valuationError } = await supabase
-            .from('valuations')
-            .insert({
-              vin: vin,
-              make: formData.make,
-              model: formData.model,
-              year: formData.year,
-              mileage: formData.mileage,
-              condition: formData.condition,
-              state: formData.zip_code,
-              user_id: (await supabase.auth.getUser()).data.user?.id || null,
-              estimated_value: 0, // Will be calculated later
-              confidence_score: 0, // Will be calculated later
-              source: 'followup_form',
-              created_at: new Date().toISOString()
-            })
-            .select('id')
-            .single();
+        const { data: newValuation, error: valuationError } = await supabase
+          .from('valuations')
+          .insert({
+            vin: vin,
+            make: decodedVehicle?.make || formData.make || 'Unknown',
+            model: decodedVehicle?.model || formData.model || 'Unknown', 
+            year: decodedVehicle?.year || formData.year || new Date().getFullYear(),
+            trim: decodedVehicle?.trim || undefined,
+            mileage: formData.mileage,
+            condition: formData.condition,
+            state: formData.zip_code,
+            user_id: (await supabase.auth.getUser()).data.user?.id || null,
+            estimated_value: 0, // Will be calculated
+            confidence_score: 0, // Will be calculated
+            source: 'followup_form',
+            created_at: new Date().toISOString()
+          })
+          .select('id')
+          .single();
 
-          if (valuationError || !newValuation) {
-            console.error('❌ Failed to create valuation:', valuationError);
-            return { success: false, message: 'Failed to create valuation record' };
-          }
-
-          valuation_id = newValuation.id;
-          console.log('✅ Created new valuation with ID:', valuation_id);
-          
-          // PHASE 3 FIX: Trigger valuation calculation immediately
-          try {
-            console.log('🧮 Triggering valuation calculation for:', valuation_id);
-            
-            // Call the valuation result edge function
-            const { data: valuationResult, error: calcError } = await supabase.functions.invoke('valuation-result', {
-              body: {
-                vin: vin,
-                followUpData: {
-                  mileage: formData.mileage,
-                  condition: formData.condition,
-                  zip_code: formData.zip_code,
-                  year: formData.year,
-                  make: formData.make,
-                  model: formData.model
-                }
-              }
-            });
-
-            if (calcError) {
-              console.error('⚠️ Valuation calculation failed:', calcError);
-              // Don't fail the submission, just log the error
-            } else if (valuationResult && valuationResult.estimated_value > 0) {
-              console.log('✅ Valuation calculated successfully:', valuationResult.estimated_value);
-              
-              // Update the valuation with calculated values
-              await supabase
-                .from('valuations')
-                .update({
-                  estimated_value: valuationResult.estimated_value,
-                  confidence_score: valuationResult.confidence_score || 75,
-                  updated_at: new Date().toISOString()
-                })
-                .eq('id', valuation_id);
-            }
-          } catch (calcError) {
-            console.error('⚠️ Error during valuation calculation:', calcError);
-            // Don't fail the submission, just log the error
-          }
-          
-        } catch (error) {
-          console.error('❌ Error creating valuation:', error);
+        if (valuationError || !newValuation) {
+          console.error('❌ [FOLLOW-UP] Failed to create valuation:', valuationError);
           return { success: false, message: 'Failed to create valuation record' };
         }
+
+        valuation_id = newValuation.id;
+        console.log('✅ [FOLLOW-UP] Created valuation with ID:', valuation_id);
       } else {
-        console.log('✅ Found existing valuation:', valuation_id);
+        console.log('✅ [FOLLOW-UP] Using existing valuation:', valuation_id);
       }
 
       // 3. Save follow-up data with valuation_id link
@@ -398,6 +372,10 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
         ...formData,
         vin,
         valuation_id,
+        // Use decoded vehicle data when available
+        make: decodedVehicle?.make || formData.make,
+        model: decodedVehicle?.model || formData.model,
+        year: decodedVehicle?.year || formData.year,
         is_complete: true,
         completion_percentage: 100,
         updated_at: new Date().toISOString()
@@ -409,14 +387,44 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
         return { success: false, message: 'Failed to save follow-up data' };
       }
 
+      // 4. PHASE 3 FIX: Trigger valuation calculation if needed
+      const currentValuation = existingValuations?.[0];
+      if (!currentValuation?.estimated_value || currentValuation.estimated_value <= 0) {
+        console.log('🧮 [FOLLOW-UP] Triggering valuation calculation...');
+        
+        try {
+          // Call valuation creation via the valuation-request edge function
+          const { data: valuationRequestResult, error: requestError } = await supabase.functions.invoke('valuation-request', {
+            body: {
+              vin: vin,
+              make: decodedVehicle?.make || formData.make || 'Unknown',
+              model: decodedVehicle?.model || formData.model || 'Unknown',
+              year: decodedVehicle?.year || formData.year || new Date().getFullYear(),
+              mileage: formData.mileage,
+              zip_code: formData.zip_code,
+              condition: formData.condition,
+              requested_by: 'followup_form'
+            }
+          });
+
+          if (requestError) {
+            console.error('⚠️ [FOLLOW-UP] Valuation request failed:', requestError);
+          } else {
+            console.log('✅ [FOLLOW-UP] Valuation request submitted successfully');
+          }
+        } catch (calcError) {
+          console.error('⚠️ [FOLLOW-UP] Error during valuation calculation:', calcError);
+        }
+      }
+
       return { 
         success: true, 
-        message: 'Follow-up submitted and valuation complete',
+        message: 'Follow-up submitted and valuation process started',
         valuationId: valuation_id
       };
 
     } catch (error) {
-      console.error('❌ Error in submitFollowUpAndStartValuation:', error);
+      console.error('❌ [FOLLOW-UP] Error in submitFollowUpAndStartValuation:', error);
       return { 
         success: false, 
         message: error instanceof Error ? error.message : 'Unexpected error during valuation process'
