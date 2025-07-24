@@ -16,6 +16,7 @@ import { saveMarketListings } from "@/services/valuation/marketListingService";
 import { saveValuationExplanation } from "@/services/supabase/explanationService";
 import { generateQRCode } from "@/utils/qrCodeGenerator";
 import { getPackageAdjustments } from "@/utils/adjustments/packageAdjustments";
+import { generateEmergencyFallbackValue, trackValuationFallback } from "@/utils/valuation/emergencyFallbackUtils";
 // import { generateConfidenceExplanation } from "@/utils/valuation/confidenceExplainer";
 import type { DecodedVehicleInfo } from "@/types/vehicle";
 
@@ -527,8 +528,23 @@ export async function processValuation(
     });
     console.log('🔍 Confidence breakdown:', confidenceBreakdown);
     
-    // Ensure final value is reasonable
-    finalValue = Math.max(3000, Math.round(finalValue));
+    // CRITICAL FIX: Ensure final value is never $0 and apply emergency fallback if needed
+    if (finalValue <= 0 || isNaN(finalValue)) {
+      console.error('🚨 CRITICAL: Valuation resulted in $0 or invalid value, applying emergency fallback');
+      finalValue = generateEmergencyFallbackValue(vehicleData, mileage, condition);
+      confidenceScore = Math.min(confidenceScore, 60); // Lower confidence for emergency fallback
+      sources.push('emergency_fallback');
+      
+      // Track this critical issue
+      await logValuationStep('EMERGENCY_FALLBACK_APPLIED', vin, valuationRequest?.id || 'fallback', { 
+        originalValue: 0, 
+        emergencyValue: finalValue,
+        reason: 'zero_or_invalid_valuation' 
+      }, userId, zipCode);
+    }
+    
+    // Ensure minimum reasonable value
+    finalValue = Math.max(8000, Math.round(finalValue));
     tracker.completeStep('confidence_calc', { score: confidenceScore, spreadAnalysis: listingRange ? (listingRange.max - listingRange.min) / finalValue : null });
     await logValuationStep('CONFIDENCE_COMPUTED', vin, valuationRequest?.id || 'fallback', { confidenceScore, finalValue, listingCount: listings.length, marketSpread: listingRange }, userId, zipCode);
     
