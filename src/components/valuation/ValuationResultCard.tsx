@@ -40,14 +40,16 @@ import {
   Shield
 } from 'lucide-react';
 import type { UnifiedValuationResult as EngineResult } from '@/services/valuation/valuationEngine';
+import { valuationLogger } from '@/utils/valuationLogger';
 
 interface ValuationResultCardProps {
   result: EngineResult;
   onDownloadPdf?: () => void;
   onShareReport?: () => void;
+  vin?: string;
 }
 
-export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: ValuationResultCardProps) {
+export function ValuationResultCard({ result, onDownloadPdf, onShareReport, vin = 'unknown' }: ValuationResultCardProps) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   
@@ -67,16 +69,28 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
     explanation
   } = result;
 
+  // Log results display
+  React.useEffect(() => {
+    valuationLogger.resultsDisplay(vin, 'display-results', {
+      finalValue,
+      confidenceScore,
+      marketListingsCount: marketListings?.length || 0,
+      sourcesUsed: sourcesUsed || [],
+      usedOpenAIFallback: sourcesUsed?.includes('openai') || sourcesUsed?.includes('openai-web') || false
+    }, true);
+  }, [finalValue, confidenceScore, marketListings, sourcesUsed, vin]);
+
   const handleDownloadPdf = async () => {
     if (isGeneratingPdf) return;
     
     setIsGeneratingPdf(true);
     try {
-      // TODO: Implement PDF generation for the new engine result format
-      console.log('Generating PDF for:', result);
+      valuationLogger.resultsDisplay(vin, 'pdf-download-start', { finalValue }, true);
       onDownloadPdf?.();
+      valuationLogger.resultsDisplay(vin, 'pdf-download-success', {}, true);
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      valuationLogger.resultsDisplay(vin, 'pdf-download-error', { error: errorMessage }, false, errorMessage);
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -102,14 +116,30 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport }: Va
       await navigator.clipboard.writeText(shareLink);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
+      valuationLogger.resultsDisplay(vin, 'share-copy-success', { shareLink }, true);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      valuationLogger.resultsDisplay(vin, 'share-copy-error', { error: errorMessage }, false, errorMessage);
     }
   };
 
   return (
     <TooltipProvider>
       <div className="space-y-6">
+        {/* Warning Banner for Data Quality Issues */}
+        {(marketListings.length === 0 || confidenceScore < 65 || sourcesUsed?.some(source => source.includes('openai') || source.includes('fallback'))) && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Data Quality Warning:</strong>
+              {marketListings.length === 0 && ' No market listings found. '}
+              {confidenceScore < 65 && ' Low confidence score due to limited data. '}
+              {sourcesUsed?.some(source => source.includes('openai') || source.includes('fallback')) && ' AI-generated or fallback data used. '}
+              Results may be less accurate than usual.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Valuation Summary */}
         <Card className="border-2 border-primary/20">
           <CardHeader>
