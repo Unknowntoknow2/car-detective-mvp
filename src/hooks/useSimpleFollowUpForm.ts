@@ -312,21 +312,83 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
       let valuation_id: string | undefined = existingValuations?.[0]?.id ?? undefined;
 
-      // 2. If no valuation exists, return a flag indicating valuation is needed
+      // 2. PHASE 2 FIX: If no valuation exists, create a valuation request
       if (!valuation_id) {
-        console.log('🚀 No existing valuation found, signaling parent to create valuation for VIN:', vin);
+        console.log('🚀 No existing valuation found, creating valuation request for VIN:', vin);
         
-        // Save follow-up data first, then signal parent to create valuation
-        const saveSuccess = await saveFormData(formData);
-        if (!saveSuccess) {
-          return { success: false, message: 'Failed to save follow-up data' };
+        try {
+          // Create valuation request using follow-up data
+          const { data: newValuation, error: valuationError } = await supabase
+            .from('valuations')
+            .insert({
+              vin: vin,
+              make: formData.make,
+              model: formData.model,
+              year: formData.year,
+              mileage: formData.mileage,
+              condition: formData.condition,
+              state: formData.zip_code,
+              user_id: (await supabase.auth.getUser()).data.user?.id || null,
+              estimated_value: 0, // Will be calculated later
+              confidence_score: 0, // Will be calculated later
+              source: 'followup_form',
+              created_at: new Date().toISOString()
+            })
+            .select('id')
+            .single();
+
+          if (valuationError || !newValuation) {
+            console.error('❌ Failed to create valuation:', valuationError);
+            return { success: false, message: 'Failed to create valuation record' };
+          }
+
+          valuation_id = newValuation.id;
+          console.log('✅ Created new valuation with ID:', valuation_id);
+          
+          // PHASE 3 FIX: Trigger valuation calculation immediately
+          try {
+            console.log('🧮 Triggering valuation calculation for:', valuation_id);
+            
+            // Call the valuation result edge function
+            const { data: valuationResult, error: calcError } = await supabase.functions.invoke('valuation-result', {
+              body: {
+                vin: vin,
+                followUpData: {
+                  mileage: formData.mileage,
+                  condition: formData.condition,
+                  zip_code: formData.zip_code,
+                  year: formData.year,
+                  make: formData.make,
+                  model: formData.model
+                }
+              }
+            });
+
+            if (calcError) {
+              console.error('⚠️ Valuation calculation failed:', calcError);
+              // Don't fail the submission, just log the error
+            } else if (valuationResult && valuationResult.estimated_value > 0) {
+              console.log('✅ Valuation calculated successfully:', valuationResult.estimated_value);
+              
+              // Update the valuation with calculated values
+              await supabase
+                .from('valuations')
+                .update({
+                  estimated_value: valuationResult.estimated_value,
+                  confidence_score: valuationResult.confidence_score || 75,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', valuation_id);
+            }
+          } catch (calcError) {
+            console.error('⚠️ Error during valuation calculation:', calcError);
+            // Don't fail the submission, just log the error
+          }
+          
+        } catch (error) {
+          console.error('❌ Error creating valuation:', error);
+          return { success: false, message: 'Failed to create valuation record' };
         }
-        
-        return { 
-          success: false, 
-          message: 'NEEDS_VALUATION_CREATION',
-          requiresValuation: true 
-        };
       } else {
         console.log('✅ Found existing valuation:', valuation_id);
       }

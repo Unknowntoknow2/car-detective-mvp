@@ -1,10 +1,16 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+// Initialize Supabase client
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -155,6 +161,44 @@ serve(async (req) => {
       seats: getValue(33),
       doors: doors
     };
+
+    // PHASE 1 FIX: Save decoded vehicle to database
+    try {
+      console.log('💾 Saving decoded vehicle to database for VIN:', vin.toUpperCase());
+      
+      const { error: insertError } = await supabase
+        .from('decoded_vehicles')
+        .upsert({
+          vin: vin.toUpperCase(),
+          year: year,
+          make: make,
+          model: model,
+          trim: trim || series || 'Standard',
+          engine: engineCylinders ? `${engineCylinders}-Cylinder` : null,
+          transmission: transmission,
+          bodytype: bodyClass || vehicleType,
+          fueltype: fuelType,
+          drivetrain: drivetrain,
+          enginecylinders: engineCylinders,
+          displacementl: displacement,
+          seats: getValue(33),
+          doors: doors,
+          timestamp: new Date().toISOString(),
+          created_at: new Date().toISOString()
+        }, {
+          onConflict: 'vin'
+        });
+
+      if (insertError) {
+        console.error('❌ Failed to save decoded vehicle:', insertError);
+        // Don't fail the request, just log the error
+      } else {
+        console.log('✅ Decoded vehicle saved successfully');
+      }
+    } catch (saveError) {
+      console.error('❌ Error saving decoded vehicle:', saveError);
+      // Don't fail the request, just log the error
+    }
 
     return new Response(
       JSON.stringify({
