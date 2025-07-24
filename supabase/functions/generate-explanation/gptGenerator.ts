@@ -62,23 +62,35 @@ Return the explanation in this EXACT markdown format:
 Be precise with numbers and professional in tone. This is for someone potentially selling a $20,000+ asset.
 `;
 
-    // Create user prompt with structured data
+    // Create user prompt with enhanced structured data
+    let adjustmentsText = '';
+    
+    if (adjustments && adjustments.length > 0) {
+      adjustmentsText = '\nDetailed Adjustments:\n';
+      adjustments.forEach(adj => {
+        const impact = adj.impact >= 0 ? `+$${adj.impact.toLocaleString()}` : `-$${Math.abs(adj.impact).toLocaleString()}`;
+        adjustmentsText += `* ${adj.factor}: ${impact} - ${adj.description}\n`;
+      });
+    } else {
+      adjustmentsText = `
+Adjustments:
+* Mileage Adjustment: $${mileageAdj.toLocaleString()}
+* Condition Adjustment: $${conditionAdj.toLocaleString()}
+* ZIP Regional Adjustment: $${zipAdj.toLocaleString()}
+* Feature Adjustments: $${featureAdjTotal.toLocaleString()}`;
+    }
+
     const userPrompt = `
 Vehicle: ${year} ${make} ${model}
 Mileage: ${mileage.toLocaleString()} miles
 Condition: ${condition}
 ZIP Code: ${zipCode}
 Base Market Price: $${baseMarketValue.toLocaleString()}
-
-Adjustments:
-* Mileage Adjustment: $${mileageAdj.toLocaleString()}
-* Condition Adjustment: $${conditionAdj.toLocaleString()}
-* ZIP Regional Adjustment: $${zipAdj.toLocaleString()}
-* Feature Adjustments: $${featureAdjTotal.toLocaleString()}
+${adjustmentsText}
 
 Final Valuation: $${finalValuation.toLocaleString()}
 
-Explain this to a car owner with transparency, so they understand how the price was formed.
+Explain this comprehensive valuation to a car owner with transparency, highlighting how each factor contributes to the final price. Include specific mentions of follow-up data analysis if present.
 `;
 
     // Call OpenAI API
