@@ -2,8 +2,6 @@ export interface Adjustment {
   factor: string;
   impact: number;
   description: string;
-  source?: 'followup' | 'calculated' | 'ai_analysis';
-  confidence?: number;
 }
 
 export interface ExplanationRequest {

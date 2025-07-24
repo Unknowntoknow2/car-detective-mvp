@@ -100,31 +100,11 @@ export async function getDecodedVehicle(vin: string) {
 }
 
 /**
- * Check if vehicle needs decoding - Enhanced with logging
+ * Check if vehicle needs decoding
  */
 export async function needsDecoding(vin: string): Promise<boolean> {
-  if (!vin || vin.length !== 17) {
-    console.log('🔍 [NEEDS DECODING] Invalid VIN format:', vin);
-    return false;
-  }
+  if (!vin || vin.length !== 17) return false;
   
-  console.log('🔍 [NEEDS DECODING] Checking if VIN needs decoding:', vin);
-  
-  try {
-    const existingVehicle = await getDecodedVehicle(vin);
-    const needsDecode = !existingVehicle;
-    
-    console.log('🔍 [NEEDS DECODING] Result:', {
-      vin,
-      hasExistingVehicle: !!existingVehicle,
-      needsDecoding: needsDecode,
-      existingVehicleId: existingVehicle?.id
-    });
-    
-    return needsDecode;
-  } catch (error) {
-    console.error('❌ [NEEDS DECODING] Error checking decode status:', error);
-    // If we can't check, assume it needs decoding
-    return true;
-  }
+  const existingVehicle = await getDecodedVehicle(vin);
+  return !existingVehicle;
 }
