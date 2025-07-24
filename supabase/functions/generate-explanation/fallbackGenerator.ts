@@ -70,45 +70,30 @@ export function generateDetailedExplanation(data: ExplanationRequest): string {
     }. This baseline value is derived from recent sales data for similar vehicles in the national market, considering the make, model, year, and current market trends.`,
   );
 
-  // Paragraph 2: Enhanced adjustments with follow-up data
+  // Paragraph 2: Key adjustments
   let adjustmentText =
     `The valuation has been adjusted based on several factors specific to your vehicle. It has ${getMileageText()} and is in ${getConditionText()}.`;
 
-  // Process detailed adjustments if available
-  if (adjustments && adjustments.length > 0) {
-    const followUpAdjs = adjustments.filter(adj => adj.source === 'followup');
-    const calculatedAdjs = adjustments.filter(adj => adj.source === 'calculated');
-    
-    if (followUpAdjs.length > 0) {
-      adjustmentText += ` Based on your detailed vehicle information, we've applied ${followUpAdjs.length} specific adjustments:`;
-      
-      followUpAdjs.forEach(adj => {
-        const impact = adj.impact >= 0 ? `+${formatCurrency(adj.impact)}` : `${formatCurrency(adj.impact)}`;
-        adjustmentText += ` ${adj.factor} (${impact}) - ${adj.description}.`;
-      });
+  // Add regional adjustment text if significant
+  if (Math.abs(zipAdj) > 100) {
+    if (zipAdj > 0) {
+      adjustmentText +=
+        ` The vehicle market in your location (${zipCode}) typically commands higher prices, adding ${
+          formatCurrency(zipAdj)
+        } to your valuation.`;
+    } else {
+      adjustmentText +=
+        ` The vehicle market in your location (${zipCode}) typically sees lower prices, reducing your valuation by ${
+          formatCurrency(Math.abs(zipAdj))
+        }.`;
     }
-  } else {
-    // Fallback to traditional adjustment text
-    if (Math.abs(zipAdj) > 100) {
-      if (zipAdj > 0) {
-        adjustmentText +=
-          ` The vehicle market in your location (${zipCode}) typically commands higher prices, adding ${
-            formatCurrency(zipAdj)
-          } to your valuation.`;
-      } else {
-        adjustmentText +=
-          ` The vehicle market in your location (${zipCode}) typically sees lower prices, reducing your valuation by ${
-            formatCurrency(Math.abs(zipAdj))
-          }.`;
-      }
-    }
+  }
 
-    // Add feature adjustment text if significant
-    if (featureAdjTotal > 0) {
-      adjustmentText += ` Your vehicle's special features and options add ${
-        formatCurrency(featureAdjTotal)
-      } to its overall value.`;
-    }
+  // Add feature adjustment text if significant
+  if (featureAdjTotal > 0) {
+    adjustmentText += ` Your vehicle's special features and options add ${
+      formatCurrency(featureAdjTotal)
+    } to its overall value.`;
   }
 
   paragraphs.push(adjustmentText);
