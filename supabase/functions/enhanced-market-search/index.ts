@@ -91,93 +91,173 @@ async function searchMarketListings(params: SearchParams): Promise<MarketListing
       }
     }
 
-    console.log('📊 No recent listings found, generating market-based estimates...');
-    const { data: marketData } = await supabase
-      .from('market_intelligence')
-      .select('*')
-      .ilike('make', params.make)
-      .ilike('model', params.model)
-      .eq('year', params.year)
-      .limit(1)
-      .single();
-
-    const basePrice = marketData?.median_price || estimateBasePrice(params);
-    const mockListings: MarketListing[] = [
-      {
-        id: `listing-${Date.now()}-1`,
-        source: 'AutoTrader',
-        source_type: 'marketplace',
-        price: Math.round(basePrice * 0.95),
-        year: params.year,
-        make: params.make,
-        model: params.model,
-        trim: 'Base',
-        mileage: (params.mileage || 60000) + Math.random() * 20000,
-        condition: 'good',
-        location: `${zipCode} area`,
-        listing_url: `https://autotrader.com/...`,
-        is_cpo: false,
-        fetched_at: new Date().toISOString(),
-        confidence_score: 88,
-        photos: [`https://images.autotrader.com/...`]
-      },
-      {
-        id: `listing-${Date.now()}-2`,
-        source: 'Cars.com',
-        source_type: 'marketplace',
-        price: Math.round(basePrice * 1.02),
-        year: params.year,
-        make: params.make,
-        model: params.model,
-        trim: 'Limited',
-        mileage: (params.mileage || 60000) - Math.random() * 15000,
-        condition: 'excellent',
-        dealer_name: 'Premium Auto Sales',
-        location: `${zipCode} area`,
-        listing_url: `https://cars.com/...`,
-        is_cpo: true,
-        fetched_at: new Date().toISOString(),
-        confidence_score: 92,
-        photos: [`https://platform.cstatic-images.com/...`]
-      },
-      {
-        id: `listing-${Date.now()}-3`,
-        source: 'CarGurus',
-        source_type: 'marketplace',
-        price: Math.round(basePrice * 0.98),
-        year: params.year,
-        make: params.make,
-        model: params.model,
-        mileage: (params.mileage || 60000) + Math.random() * 10000,
-        condition: 'good',
-        location: `${zipCode} area`,
-        listing_url: `https://cargurus.com/...`,
-        is_cpo: false,
-        fetched_at: new Date().toISOString(),
-        confidence_score: 85,
-        photos: [`https://static.cargurus.com/...`]
+    console.log('📊 No recent listings found, triggering real scrapers...');
+    
+    // Try to scrape real listings from external sources
+    try {
+      const scrapedListings = await triggerRealScrapers(params, zipCode);
+      if (scrapedListings.length > 0) {
+        console.log(`✅ Found ${scrapedListings.length} real listings from scrapers`);
+        return scrapedListings;
       }
-    ];
-
-    const { error: insertError } = await supabase
-      .from('enhanced_market_listings')
-      .insert(mockListings.map(listing => ({
-        ...listing,
-        photos: listing.photos || []
-      })));
-
-    if (insertError) {
-      console.error('Error storing mock listings:', insertError);
-    } else {
-      console.log('✅ Stored mock listings in database');
+    } catch (scraperError) {
+      console.error('❌ Scraper failed:', scraperError);
     }
-
-    return mockListings;
+    
+    console.log('📊 No real listings available, returning empty results');
+    return [];
 
   } catch (error) {
     console.error('❌ Enhanced Market Search Error:', error);
     throw error;
   }
+}
+
+async function triggerRealScrapers(params: SearchParams, zipCode: string): Promise<MarketListing[]> {
+  const allListings: MarketListing[] = [];
+  
+  // Try AutoTrader scraper
+  try {
+    console.log('🚗 Calling AutoTrader scraper...');
+    const { data: autoTraderData, error: autoTraderError } = await supabase.functions.invoke(
+      'fetch-competitor-prices',
+      {
+        body: {
+          source: 'autotrader',
+          make: params.make,
+          model: params.model,
+          year: params.year,
+          zip: zipCode,
+          radius: params.radius || 100
+        }
+      }
+    );
+    
+    if (!autoTraderError && autoTraderData?.listings) {
+      const validatedListings = await validateAndStoreListings(autoTraderData.listings, 'AutoTrader');
+      allListings.push(...validatedListings);
+    }
+  } catch (error) {
+    console.error('❌ AutoTrader scraper failed:', error);
+  }
+
+  // Try Cars.com scraper  
+  try {
+    console.log('🚗 Calling Cars.com scraper...');
+    const { data: carsData, error: carsError } = await supabase.functions.invoke(
+      'fetch-competitor-prices',
+      {
+        body: {
+          source: 'cars.com',
+          make: params.make,
+          model: params.model,
+          year: params.year,
+          zip: zipCode,
+          radius: params.radius || 100
+        }
+      }
+    );
+    
+    if (!carsError && carsData?.listings) {
+      const validatedListings = await validateAndStoreListings(carsData.listings, 'Cars.com');
+      allListings.push(...validatedListings);
+    }
+  } catch (error) {
+    console.error('❌ Cars.com scraper failed:', error);
+  }
+
+  return allListings;
+}
+
+async function validateAndStoreListings(rawListings: any[], source: string): Promise<MarketListing[]> {
+  const validListings: MarketListing[] = [];
+  
+  for (const listing of rawListings) {
+    // Validate listing data
+    if (!isValidListing(listing)) {
+      console.log('❌ Rejected invalid listing:', listing);
+      continue;
+    }
+    
+    const validatedListing: MarketListing = {
+      id: `${source.toLowerCase()}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      source,
+      source_type: 'marketplace',
+      price: parseFloat(listing.price) || 0,
+      year: parseInt(listing.year) || 0,
+      make: listing.make || '',
+      model: listing.model || '',
+      trim: listing.trim || null,
+      vin: listing.vin || null,
+      mileage: parseInt(listing.mileage) || 0,
+      condition: listing.condition || 'used',
+      dealer_name: listing.dealer_name || listing.dealerName || null,
+      location: listing.location || '',
+      listing_url: listing.url || listing.listing_url || '',
+      is_cpo: Boolean(listing.is_cpo || listing.isCpo),
+      fetched_at: new Date().toISOString(),
+      confidence_score: calculateConfidenceScore(listing),
+      photos: Array.isArray(listing.photos) ? listing.photos : []
+    };
+    
+    validListings.push(validatedListing);
+  }
+  
+  // Store validated listings in database
+  if (validListings.length > 0) {
+    const { error: insertError } = await supabase
+      .from('enhanced_market_listings')
+      .insert(validListings);
+      
+    if (insertError) {
+      console.error('❌ Error storing validated listings:', insertError);
+    } else {
+      console.log(`✅ Stored ${validListings.length} validated listings from ${source}`);
+    }
+  }
+  
+  return validListings;
+}
+
+function isValidListing(listing: any): boolean {
+  // Check required fields
+  if (!listing.price || !listing.url || !listing.make || !listing.model) {
+    return false;
+  }
+  
+  // Check price range (reject unrealistic prices)
+  const price = parseFloat(listing.price);
+  if (price <= 1000 || price > 500000) {
+    return false;
+  }
+  
+  // Check URL format (reject placeholder URLs)
+  const url = listing.url || listing.listing_url || '';
+  if (url.includes('...') || url.includes('placeholder') || url.includes('example.com') || url.length < 10) {
+    return false;
+  }
+  
+  // Check for realistic mileage
+  const mileage = parseInt(listing.mileage) || 0;
+  if (mileage < 0 || mileage > 500000) {
+    return false;
+  }
+  
+  return true;
+}
+
+function calculateConfidenceScore(listing: any): number {
+  let score = 70; // Base score
+  
+  // Add points for having complete data
+  if (listing.dealer_name) score += 5;
+  if (listing.photos && listing.photos.length > 0) score += 5;
+  if (listing.vin) score += 10;
+  if (listing.trim) score += 3;
+  if (listing.condition) score += 2;
+  
+  // Cap at 95%
+  return Math.min(95, score);
 }
 
 function estimateBasePrice(params: SearchParams): number {
