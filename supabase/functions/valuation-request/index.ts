@@ -95,11 +95,39 @@ serve(async (req) => {
         run_by: 'valuation_request_api'
       });
 
+    // PHASE 3 FIX: Automatically trigger valuation calculation
+    console.log('🧮 Triggering automatic valuation calculation...');
+    
+    try {
+      const { data: aggregateResult, error: aggregateError } = await supabase.functions.invoke('valuation-aggregate', {
+        body: {
+          request_id: valuationRequest.id,
+          vin: requestData.vin,
+          make: requestData.make,
+          model: requestData.model,
+          year: requestData.year,
+          mileage: requestData.mileage,
+          zip_code: requestData.zip_code,
+          condition: requestData.condition
+        }
+      });
+
+      if (aggregateError) {
+        console.error('⚠️ Auto-calculation failed:', aggregateError);
+        // Don't fail the request creation, just log the error
+      } else if (aggregateResult?.success) {
+        console.log('✅ Auto-calculation completed:', aggregateResult.estimated_value);
+      }
+    } catch (calcError) {
+      console.error('⚠️ Error in auto-calculation:', calcError);
+      // Don't fail the request creation, just log the error
+    }
+
     return new Response(JSON.stringify({
       success: true,
       request_id: valuationRequest.id,
-      status: 'pending',
-      message: 'Valuation request created successfully. Use /valuation-aggregate to start market data collection.'
+      status: 'completed',
+      message: 'Valuation request created and calculation initiated.'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
