@@ -33,6 +33,9 @@ interface MarketSearchResult {
     exactMatch: boolean;
     count: number;
     stats?: MarketSearchStats | null;
+    usedOpenAIFallback?: boolean;
+    searchMethod?: string;
+    verificationNotes?: string;
   };
 }
 
@@ -52,7 +55,9 @@ export function useEnhancedMarketSearch({
     confidence: 0,
     exactMatch: false,
     count: 0,
-    stats: null
+    stats: null,
+    usedOpenAIFallback: false,
+    searchMethod: 'unknown'
   });
 
   useEffect(() => {
@@ -95,7 +100,10 @@ export function useEnhancedMarketSearch({
             confidence: data.meta?.confidence || 0,
             exactMatch: data.meta?.exact_match || false,
             count: data.meta?.count || data.data.length,
-            stats: data.meta?.stats || null
+            stats: data.meta?.stats || null,
+            usedOpenAIFallback: data.meta?.used_openai_fallback || false,
+            searchMethod: data.meta?.search_method || 'unknown',
+            verificationNotes: data.meta?.verification_notes
           });
         } else {
           setListings([]);
@@ -104,7 +112,9 @@ export function useEnhancedMarketSearch({
             confidence: 0,
             exactMatch: false,
             count: 0,
-            stats: null
+            stats: null,
+            usedOpenAIFallback: false,
+            searchMethod: 'no_data'
           });
         }
       } catch (err) {
