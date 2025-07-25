@@ -40,7 +40,7 @@ async function testCalculateValuationFromListings() {
     console.log('Market Analysis:', result1.market_analysis);
     console.log('');
   } catch (error) {
-    console.log('❌ Test 1 failed:', error.message);
+    console.log('❌ Test 1 failed:', error instanceof Error ? error.message : String(error));
   }
 
   // Test Case 2: Fallback valuation with no listings
@@ -67,7 +67,7 @@ async function testCalculateValuationFromListings() {
     console.log('Value Breakdown:', result2.value_breakdown);
     console.log('');
   } catch (error) {
-    console.log('❌ Test 2 failed:', error.message);
+    console.log('❌ Test 2 failed:', error instanceof Error ? error.message : String(error));
   }
 
   // Test Case 3: Luxury vehicle with fallback
@@ -94,7 +94,7 @@ async function testCalculateValuationFromListings() {
     });
     console.log('');
   } catch (error) {
-    console.log('❌ Test 3 failed:', error.message);
+    console.log('❌ Test 3 failed:', error instanceof Error ? error.message : String(error));
   }
 
   // Test Case 4: Electric vehicle with fallback
@@ -122,7 +122,7 @@ async function testCalculateValuationFromListings() {
     });
     console.log('');
   } catch (error) {
-    console.log('❌ Test 4 failed:', error.message);
+    console.log('❌ Test 4 failed:', error instanceof Error ? error.message : String(error));
   }
 
   // Test Case 5: High mileage older vehicle
@@ -148,7 +148,7 @@ async function testCalculateValuationFromListings() {
     });
     console.log('');
   } catch (error) {
-    console.log('❌ Test 5 failed:', error.message);
+    console.log('❌ Test 5 failed:', error instanceof Error ? error.message : String(error));
   }
 
   // Test Case 6: Invalid/corrupted data (should never fail)
@@ -179,7 +179,7 @@ async function testCalculateValuationFromListings() {
     });
     console.log('');
   } catch (error) {
-    console.log('❌ Test 6 failed:', error.message);
+    console.log('❌ Test 6 failed:', error instanceof Error ? error.message : String(error));
     console.log('❌ This is critical - the function should never throw!');
   }
 
