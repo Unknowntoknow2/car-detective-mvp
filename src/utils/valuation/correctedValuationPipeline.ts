@@ -3,7 +3,8 @@
 import { fetchMarketComps, type MarketSearchResult } from "@/agents/marketSearchAgent";
 import { generateOpenAIFallbackValuation } from "@/agents/openaiAgent";
 import { ValuationInput, EnhancedValuationResult, EnhancedAuditLog } from "@/types/valuation";
-// TODO: Implement calculateValuationFromListings in unifiedValuationEngine.ts
+// Implemented calculateValuationFromListings with robust fallback
+import { calculateValuationFromListings } from "@/utils/valuation/unifiedValuationEngine";
 import { saveAuditLog } from "@/integrations/supabase/auditLogClient";
 
 export interface CorrectedValuationInput {

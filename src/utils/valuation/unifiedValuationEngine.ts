@@ -17,6 +17,7 @@ import { saveValuationExplanation } from "@/services/supabase/explanationService
 import { generateQRCode } from "@/utils/qrCodeGenerator";
 import { getPackageAdjustments } from "@/utils/adjustments/packageAdjustments";
 import { generateEmergencyFallbackValue, trackValuationFallback } from "@/utils/valuation/emergencyFallbackUtils";
+import { estimateFallbackValue, type FallbackValuationResult } from "@/utils/valuation/fallbackEstimator";
 // import { generateConfidenceExplanation } from "@/utils/valuation/confidenceExplainer";
 import type { DecodedVehicleInfo } from "@/types/vehicle";
 
@@ -812,4 +813,337 @@ export async function calculateFinalValuation(input: any): Promise<any> {
   };
   
   return await processValuation(unifiedInput);
+}
+
+// Input interface for calculateValuationFromListings
+export interface ListingValuationInput {
+  vin: string;
+  year: number;
+  make: string;
+  model: string;
+  trim?: string;
+  mileage: number;
+  condition: string;
+  fuelType?: string;
+  bodyType?: string;
+  baseMsrp?: number;
+  marketListings: any[];
+  zipCode?: string;
+}
+
+// Output interface for calculateValuationFromListings
+export interface ListingValuationResult {
+  estimated_value: number;
+  confidence_score: number;
+  explanation: string;
+  source: string;
+  value_breakdown?: {
+    base_value: number;
+    market_adjustment: number;
+    depreciation: number;
+    mileage: number;
+    condition: number;
+    other_adjustments: number;
+  };
+  market_analysis?: {
+    listing_count: number;
+    price_range: [number, number];
+    median_price: number;
+    average_price: number;
+  };
+}
+
+/**
+ * Calculate valuation from market listings with robust fallback
+ * Always returns a positive, reasonable value even when no market listings are available
+ */
+export async function calculateValuationFromListings(
+  input: ListingValuationInput
+): Promise<ListingValuationResult> {
+  console.log('🔍 Starting calculateValuationFromListings with input:', {
+    vin: input.vin,
+    year: input.year,
+    make: input.make,
+    model: input.model,
+    listingsCount: input.marketListings?.length || 0
+  });
+
+  try {
+    // Check if we have sufficient market listings for market-based valuation
+    const validListings = (input.marketListings || []).filter(listing => 
+      listing && 
+      listing.price && 
+      typeof listing.price === 'number' && 
+      listing.price > 1000 && 
+      listing.price < 500000
+    );
+
+    console.log(`📊 Valid market listings found: ${validListings.length} out of ${input.marketListings?.length || 0}`);
+
+    // If we have sufficient valid listings (3 or more), use market-based calculation
+    if (validListings.length >= 3) {
+      console.log('✅ Using market-based valuation with', validListings.length, 'listings');
+      return calculateMarketBasedValuation(input, validListings);
+    }
+
+    // If insufficient listings, use robust fallback algorithm
+    console.log('⚠️ Insufficient market listings, using fallback algorithm');
+    return calculateFallbackValuation(input);
+
+  } catch (error) {
+    console.error('❌ Error in calculateValuationFromListings:', error);
+    
+    // Even if there's an error, we must return a value - use emergency fallback
+    console.log('🚨 Using emergency fallback due to calculation error');
+    return calculateEmergencyFallback(input, error instanceof Error ? error.message : 'Unknown error');
+  }
+}
+
+/**
+ * Calculate valuation based on market listings
+ */
+function calculateMarketBasedValuation(
+  input: ListingValuationInput,
+  validListings: any[]
+): ListingValuationResult {
+  const prices = validListings.map(listing => listing.price).sort((a, b) => a - b);
+  const medianPrice = prices[Math.floor(prices.length / 2)];
+  const averagePrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+
+  // Use median as base value (more robust than average)
+  let baseValue = medianPrice;
+
+  // Apply adjustments for mileage and condition differences
+  const mileageAdjustment = calculateMarketMileageAdjustment(input.mileage, validListings);
+  const conditionAdjustment = calculateMarketConditionAdjustment(input.condition, validListings);
+  
+  const estimatedValue = Math.max(
+    Math.round(baseValue + mileageAdjustment + conditionAdjustment),
+    5000 // Minimum reasonable value
+  );
+
+  // Calculate confidence based on market data quality
+  const confidenceScore = calculateMarketConfidence(validListings, prices);
+
+  const explanation = generateMarketExplanation(input, {
+    listingCount: validListings.length,
+    medianPrice,
+    averagePrice,
+    priceRange: [minPrice, maxPrice],
+    mileageAdjustment,
+    conditionAdjustment,
+    estimatedValue,
+    confidenceScore
+  });
+
+  return {
+    estimated_value: estimatedValue,
+    confidence_score: confidenceScore,
+    explanation,
+    source: 'market_listings',
+    value_breakdown: {
+      base_value: baseValue,
+      market_adjustment: 0,
+      depreciation: 0,
+      mileage: mileageAdjustment,
+      condition: conditionAdjustment,
+      other_adjustments: 0
+    },
+    market_analysis: {
+      listing_count: validListings.length,
+      price_range: [minPrice, maxPrice],
+      median_price: medianPrice,
+      average_price: averagePrice
+    }
+  };
+}
+
+/**
+ * Calculate valuation using fallback algorithm when listings are insufficient
+ */
+function calculateFallbackValuation(input: ListingValuationInput): ListingValuationResult {
+  console.log('🔄 Using fallback algorithm for valuation');
+
+  // Use the sophisticated fallback estimator
+  const fallbackResult: FallbackValuationResult = estimateFallbackValue({
+    year: input.year,
+    make: input.make,
+    model: input.model,
+    trim: input.trim,
+    mileage: input.mileage,
+    condition: input.condition,
+    fuelType: input.fuelType,
+    bodyType: input.bodyType,
+    baseMsrp: input.baseMsrp
+  });
+
+  return {
+    estimated_value: fallbackResult.estimated_value,
+    confidence_score: fallbackResult.confidence_score,
+    explanation: fallbackResult.explanation,
+    source: fallbackResult.source,
+    value_breakdown: {
+      base_value: fallbackResult.value_breakdown.base_value,
+      market_adjustment: 0,
+      depreciation: fallbackResult.value_breakdown.depreciation,
+      mileage: fallbackResult.value_breakdown.mileage,
+      condition: fallbackResult.value_breakdown.condition,
+      other_adjustments: fallbackResult.value_breakdown.fuel_type + fallbackResult.value_breakdown.regional
+    }
+  };
+}
+
+/**
+ * Emergency fallback when all else fails - ensures we always return a value
+ */
+function calculateEmergencyFallback(input: ListingValuationInput, errorMessage: string): ListingValuationResult {
+  console.log('🚨 Using emergency fallback calculation');
+
+  // Use the existing emergency fallback utility
+  const emergencyValue = generateEmergencyFallbackValue(
+    {
+      make: input.make,
+      model: input.model,
+      year: input.year,
+      trim: input.trim,
+      fuelType: input.fuelType
+    },
+    input.mileage,
+    input.condition
+  );
+
+  // Track the emergency fallback usage
+  trackValuationFallback(input.vin, 0, emergencyValue, `Emergency fallback: ${errorMessage}`);
+
+  return {
+    estimated_value: emergencyValue,
+    confidence_score: 25, // Low confidence for emergency fallback
+    explanation: `Emergency valuation estimate of $${emergencyValue.toLocaleString()} for your ${input.year} ${input.make} ${input.model}. ` +
+                `This estimate was calculated using basic depreciation models due to insufficient data availability. ` +
+                `We recommend seeking additional market data or a professional appraisal for a more accurate valuation.`,
+    source: 'emergency_fallback',
+    value_breakdown: {
+      base_value: emergencyValue,
+      market_adjustment: 0,
+      depreciation: 0,
+      mileage: 0,
+      condition: 0,
+      other_adjustments: 0
+    }
+  };
+}
+
+/**
+ * Calculate mileage adjustment based on market listings
+ */
+function calculateMarketMileageAdjustment(targetMileage: number, listings: any[]): number {
+  const listingsWithMileage = listings.filter(l => l.mileage && typeof l.mileage === 'number');
+  
+  if (listingsWithMileage.length === 0) {
+    return 0;
+  }
+
+  const averageMileage = listingsWithMileage.reduce((sum, l) => sum + l.mileage, 0) / listingsWithMileage.length;
+  const mileageDifference = targetMileage - averageMileage;
+  
+  // Rough estimate: $0.15 per mile difference
+  return Math.round(mileageDifference * -0.15);
+}
+
+/**
+ * Calculate condition adjustment based on market listings
+ */
+function calculateMarketConditionAdjustment(targetCondition: string, listings: any[]): number {
+  const conditionValues: Record<string, number> = {
+    'excellent': 1.0,
+    'very good': 0.9,
+    'good': 0.8,
+    'fair': 0.6,
+    'poor': 0.4
+  };
+
+  const targetConditionValue = conditionValues[targetCondition.toLowerCase()] || 0.8;
+  
+  // If we can't determine market condition distribution, use conservative adjustment
+  const baseAdjustmentRate = 0.05; // 5% per condition level difference
+  const averageConditionValue = 0.8; // Assume "good" as average
+  
+  const conditionDifference = targetConditionValue - averageConditionValue;
+  
+  // Get average price from listings to calculate percentage adjustment
+  const averagePrice = listings.reduce((sum, l) => sum + l.price, 0) / listings.length;
+  
+  return Math.round(averagePrice * conditionDifference * baseAdjustmentRate);
+}
+
+/**
+ * Calculate confidence score for market-based valuation
+ */
+function calculateMarketConfidence(listings: any[], prices: number[]): number {
+  let confidence = 70; // Start with good confidence for market-based valuation
+
+  // Adjust based on number of listings
+  if (listings.length >= 10) {
+    confidence += 15;
+  } else if (listings.length >= 5) {
+    confidence += 10;
+  } else if (listings.length >= 3) {
+    confidence += 5;
+  }
+
+  // Adjust based on price consistency
+  const priceRange = Math.max(...prices) - Math.min(...prices);
+  const averagePrice = prices.reduce((sum, p) => sum + p, 0) / prices.length;
+  const priceVariability = priceRange / averagePrice;
+
+  if (priceVariability < 0.2) {
+    confidence += 10; // Prices are very consistent
+  } else if (priceVariability > 0.5) {
+    confidence -= 10; // Prices are highly variable
+  }
+
+  // Ensure confidence is within reasonable bounds
+  return Math.max(25, Math.min(95, Math.round(confidence)));
+}
+
+/**
+ * Generate explanation for market-based valuation
+ */
+function generateMarketExplanation(
+  input: ListingValuationInput,
+  analysis: {
+    listingCount: number;
+    medianPrice: number;
+    averagePrice: number;
+    priceRange: [number, number];
+    mileageAdjustment: number;
+    conditionAdjustment: number;
+    estimatedValue: number;
+    confidenceScore: number;
+  }
+): string {
+  let explanation = `This valuation for your ${input.year} ${input.make} ${input.model} `;
+  explanation += `is based on ${analysis.listingCount} current market listings. `;
+  
+  explanation += `\n\nMarket Analysis:`;
+  explanation += `\n• Price Range: $${analysis.priceRange[0].toLocaleString()} - $${analysis.priceRange[1].toLocaleString()}`;
+  explanation += `\n• Median Price: $${analysis.medianPrice.toLocaleString()}`;
+  explanation += `\n• Average Price: $${analysis.averagePrice.toLocaleString()}`;
+  
+  if (analysis.mileageAdjustment !== 0) {
+    explanation += `\n\nMileage Adjustment: ${analysis.mileageAdjustment >= 0 ? '+' : ''}$${analysis.mileageAdjustment.toLocaleString()} `;
+    explanation += `(based on ${input.mileage.toLocaleString()} miles compared to market average)`;
+  }
+  
+  if (analysis.conditionAdjustment !== 0) {
+    explanation += `\n\nCondition Adjustment: ${analysis.conditionAdjustment >= 0 ? '+' : ''}$${analysis.conditionAdjustment.toLocaleString()} `;
+    explanation += `(${input.condition} condition relative to market)`;
+  }
+  
+  explanation += `\n\nFinal Estimated Value: $${analysis.estimatedValue.toLocaleString()}`;
+  explanation += `\nConfidence: ${analysis.confidenceScore}% (Market-based estimate)`;
+  
+  return explanation;
 }
