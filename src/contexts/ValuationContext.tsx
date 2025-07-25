@@ -294,4 +294,7 @@ export function useValuationContext() {
   return context;
 }
 
+// Alias for convenience - commonly used shorter name
+export const useValuation = useValuationContext;
+
 export { ValuationContext };
