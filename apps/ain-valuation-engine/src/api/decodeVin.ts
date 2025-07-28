@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client'
+import supabase from '@/integrations/supabase/client'
 
 export async function decodeVin(vin: string) {
   const anonToken = import.meta.env.VITE_SUPABASE_ANON_KEY
