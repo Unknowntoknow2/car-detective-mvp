@@ -10,10 +10,9 @@ import { convertToVariableValueArray } from '@/utils/convertToVariableValueArray
 
 interface VinLookupFormProps {
   onSuccess?: (data: DecodedVehicle[]) => void
-  decoded?: DecodedVehicle[]
 }
 
-export function VinLookupForm({ onSuccess, decoded }: VinLookupFormProps) {
+export function VinLookupForm({ onSuccess }: VinLookupFormProps) {
   const [vin, setVin] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -35,8 +34,8 @@ export function VinLookupForm({ onSuccess, decoded }: VinLookupFormProps) {
       const array = convertToVariableValueArray(data.decodedData[0])
       setDecodedData(array)
       onSuccess?.(array)
-    } catch (err: any) {
-      setError(err.message || 'Unexpected error')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unexpected error')
     } finally {
       setLoading(false)
     }

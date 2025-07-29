@@ -1,1 +1,2 @@
-declare module 'url';\ndeclare module 'path';
+declare module 'url';
+declare module 'path';

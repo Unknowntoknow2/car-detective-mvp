@@ -1,8 +1,9 @@
 import React from "react";
 import { VinLookupForm } from "@/components/lookup/vin/VinLookupForm";
+import { DecodedVehicle } from "@/types/DecodedVehicle";
 
 function App() {
-  const handleDecodedVin = (data: any) => {
+  const handleDecodedVin = (data: DecodedVehicle[]) => {
     console.log("Decoded VIN result:", data);
     // TODO: Navigate to follow-up form or store in state
   };
