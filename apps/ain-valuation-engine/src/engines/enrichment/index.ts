@@ -54,7 +54,6 @@ export async function getEnrichedVehicleProfile(
     console.warn('Skipping fuel economy enrichment: Missing year, make, or model.');
   }
 
-  enrichedProfile.marketValueUSD = 25000; // Placeholder value
 
   return enrichedProfile;
 }

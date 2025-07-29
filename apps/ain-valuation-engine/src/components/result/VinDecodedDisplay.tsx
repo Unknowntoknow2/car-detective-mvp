@@ -1,3 +1,4 @@
+import { VariableValue } from '@/types/VariableValue';
 // src/components/result/VinDecodedDisplay.tsx
 
 import React from 'react'

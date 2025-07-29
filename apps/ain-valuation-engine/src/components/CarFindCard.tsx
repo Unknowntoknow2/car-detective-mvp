@@ -1,8 +1,9 @@
+import { VariableValue } from '@/types/VariableValue';
 import React from 'react'
 import { DecodedVehicle } from '@/types/DecodedVehicle'
 
 interface CarFindCardProps {
-  decoded: DecodedVehicle[]
+  decoded: VariableValue[]
 }
 
 /**
