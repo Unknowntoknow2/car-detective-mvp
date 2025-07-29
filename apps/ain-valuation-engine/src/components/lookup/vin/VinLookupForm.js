@@ -23,7 +23,7 @@ export function VinLookupForm({ onSuccess }) {
             }
             const array = convertToVariableValueArray(data.decodedData[0]);
             setDecodedData(array);
-            onSuccess?.(array);
+            onSuccess?.(array, vin);
         }
         catch (err) {
             setError(err instanceof Error ? err.message : 'Unexpected error');

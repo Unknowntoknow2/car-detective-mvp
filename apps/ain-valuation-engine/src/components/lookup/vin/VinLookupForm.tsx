@@ -9,7 +9,7 @@ import { decodeVin } from '@/api/decodeVin'
 import { convertToVariableValueArray } from '@/utils/convertToVariableValueArray'
 
 interface VinLookupFormProps {
-  onSuccess?: (data: DecodedVehicle[]) => void
+  onSuccess?: (data: DecodedVehicle[], vin: string) => void
 }
 
 export function VinLookupForm({ onSuccess }: VinLookupFormProps) {
@@ -33,7 +33,7 @@ export function VinLookupForm({ onSuccess }: VinLookupFormProps) {
 
       const array = convertToVariableValueArray(data.decodedData[0])
       setDecodedData(array)
-      onSuccess?.(array)
+      onSuccess?.(array, vin)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Unexpected error')
     } finally {
