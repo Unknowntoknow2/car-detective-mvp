@@ -20,9 +20,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "sans-serif"],
-        display: ["Playfair Display", "serif"],
-        mono: ["JetBrains Mono", "monospace"],
+        sans: ["-apple-system", "BlinkMacSystemFont", "SF Pro Display", "Inter", "sans-serif"],
+        display: ["-apple-system", "BlinkMacSystemFont", "SF Pro Display", "Inter", "sans-serif"],
+        mono: ["SF Mono", "Monaco", "Inconsolata", "Roboto Mono", "monospace"],
       },
       colors: {
         primary: {
@@ -171,14 +171,36 @@ export default {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        "glow": {
+          "0%, 100%": { filter: "drop-shadow(0 0 20px hsl(214 100% 50% / 0.3))" },
+          "50%": { filter: "drop-shadow(0 0 40px hsl(214 100% 50% / 0.6))" },
+        },
+        "tesla-slide": {
+          "0%": { transform: "translateX(-100%) scale(0.8)", opacity: "0" },
+          "100%": { transform: "translateX(0) scale(1)", opacity: "1" },
+        },
+        "apple-bounce": {
+          "0%": { transform: "scale(0.3)", opacity: "0" },
+          "50%": { transform: "scale(1.05)" },
+          "70%": { transform: "scale(0.9)" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        "glass-morph": {
+          "0%": { backdropFilter: "blur(0px)", opacity: "0" },
+          "100%": { backdropFilter: "blur(20px)", opacity: "1" },
+        },
       },
       animation: {
-        "fade-in": "fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-        "slide-in": "slide-in 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-        "scale-in": "scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-        "pulse-soft": "pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        "float": "float 3s ease-in-out infinite",
-        "shimmer": "shimmer 3s ease-in-out infinite",
+        "fade-in": "fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+        "slide-in": "slide-in 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+        "scale-in": "scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
+        "pulse-soft": "pulse-soft 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "float": "float 4s ease-in-out infinite",
+        "shimmer": "shimmer 2s ease-in-out infinite",
+        "glow": "glow 2s ease-in-out infinite",
+        "tesla-slide": "tesla-slide 0.8s cubic-bezier(0.16, 1, 0.3, 1)",
+        "apple-bounce": "apple-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+        "glass-morph": "glass-morph 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
