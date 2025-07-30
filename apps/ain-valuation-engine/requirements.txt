@@ -1,0 +1,7 @@
+pandas
+scikit-learn
+flask
+shap
+flake8
+pytest
+pytest-cov
