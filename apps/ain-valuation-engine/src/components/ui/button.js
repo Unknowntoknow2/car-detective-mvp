@@ -1,4 +1,5 @@
 import { jsx as _jsx } from "react/jsx-runtime";
+<<<<<<< HEAD
 export function Button({ variant = 'default', size = 'md', className = '', children, ...props }) {
     const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
     const variantClasses = {
@@ -13,4 +14,8 @@ export function Button({ variant = 'default', size = 'md', className = '', child
     };
     const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
     return (_jsx("button", { className: classes, ...props, children: children }));
+=======
+export function Button(props) {
+    return _jsx("button", { ...props });
+>>>>>>> main
 }

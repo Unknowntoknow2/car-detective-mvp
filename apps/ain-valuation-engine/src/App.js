@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from "react";
 import { VinLookupForm } from "@/components/lookup/vin/VinLookupForm";
@@ -38,5 +39,15 @@ function App() {
         }
     };
     return (_jsxs("div", { className: "min-h-screen bg-gray-50", children: [_jsx("header", { className: "bg-white shadow-sm", children: _jsx("div", { className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4", children: _jsxs("div", { className: "flex justify-between items-center", children: [_jsx("div", { className: "flex items-center", children: _jsx("h1", { className: "text-xl font-bold text-gray-900", children: "AIN Valuation" }) }), currentState !== 'vin-lookup' && (_jsx("button", { onClick: handleStartOver, className: "text-gray-600 hover:text-gray-900", children: "New Valuation" }))] }) }) }), _jsx("main", { className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8", children: renderCurrentState() }), _jsx("footer", { className: "bg-white border-t mt-16", children: _jsx("div", { className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8", children: _jsxs("div", { className: "text-center text-gray-600", children: [_jsx("p", { className: "mb-2", children: "Powered by advanced AI and comprehensive market data analysis" }), _jsxs("div", { className: "flex justify-center space-x-6 text-sm", children: [_jsx("span", { children: "\u2713 100+ Comparable Analysis" }), _jsx("span", { children: "\u2713 Real-time Market Data" }), _jsx("span", { children: "\u2713 Vehicle History Integration" }), _jsx("span", { children: "\u2713 AI-Powered Explanations" })] })] }) }) })] }));
+=======
+import { jsx as _jsx } from "react/jsx-runtime";
+import { VinLookupForm } from "@/components/lookup/vin/VinLookupForm";
+function App() {
+    const handleDecodedVin = (data) => {
+        console.log("Decoded VIN result:", data);
+        // TODO: Navigate to follow-up form or store in state
+    };
+    return (_jsx("div", { className: "min-h-screen bg-gray-50 p-6 flex items-center justify-center", children: _jsx(VinLookupForm, { onSuccess: handleDecodedVin }) }));
+>>>>>>> main
 }
 export default App;

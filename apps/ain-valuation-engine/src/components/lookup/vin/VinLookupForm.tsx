@@ -1,3 +1,4 @@
+import { VariableValue } from '@/types/VariableValue';
 'use client'
 
 import React, { useState } from 'react'
@@ -9,14 +10,19 @@ import { decodeVin } from '@/api/decodeVin'
 import { convertToVariableValueArray } from '@/utils/convertToVariableValueArray'
 
 interface VinLookupFormProps {
+<<<<<<< HEAD
   onSuccess?: (data: DecodedVehicle[], vin: string) => void
+=======
+  onSuccess?: (data: VariableValue[]) => void
+  decoded?: VariableValue[]
+>>>>>>> main
 }
 
 export function VinLookupForm({ onSuccess }: VinLookupFormProps) {
   const [vin, setVin] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [decodedData, setDecodedData] = useState<DecodedVehicle[] | null>(null)
+  const [decodedData, setDecodedData] = useState<VariableValue[] | null>(null)
 
   const handleDecode = async () => {
     setLoading(true)
@@ -47,7 +53,7 @@ export function VinLookupForm({ onSuccess }: VinLookupFormProps) {
         <Input
           value={vin}
           onChange={(e) => setVin(e.target.value)}
-          placeholder="Enter VIN (e.g., 1FTEW1CG6HKD46234)"
+          placeholder="Enter VIN"
           maxLength={17}
         />
         <Button onClick={handleDecode} disabled={loading || vin.length !== 17}>

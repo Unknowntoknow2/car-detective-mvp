@@ -1,0 +1,36 @@
+export interface DecodedVehicle {
+  vin: string;
+  make: string;
+  model: string;
+  modelYear: number;
+  trim: string;
+  engineCylinders?: number;
+  engineModel?: string;
+  fuelTypePrimary?: string;
+  fuelTypeSecondary?: string;
+  driveType?: string;
+  transmissionStyle?: string;
+  transmissionSpeeds?: number;
+  vehicleType?: string;
+  bodyClass?: string;
+  doors?: number;
+  seats?: number;
+  seatRows?: number;
+  engineHP?: number;
+  displacementL?: number;
+  basePrice?: number;
+  electrificationLevel?: string;
+  batteryType?: string;
+  abs?: string;
+  esc?: string;
+  adaptiveCruiseControl?: string;
+  laneKeepSystem?: string;
+  autoReverseSystem?: string;
+  rearVisibilitySystem?: string;
+  forwardCollisionWarning?: string;
+  pedestrianAutomaticEmergencyBraking?: string;
+  entertainmentSystem?: string;
+  plantCity?: string;
+  plantCountry?: string;
+  manufacturer?: string;
+}
