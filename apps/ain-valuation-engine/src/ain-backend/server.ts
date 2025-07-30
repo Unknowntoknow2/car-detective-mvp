@@ -1,27 +1,25 @@
-import express from 'express';
-import rateLimit from 'express-rate-limit';
-import { logger } from './logger';
+import express from "express";
+import logger from "./logger";
+import axios from "axios";
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-const jokeLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 60,
-  message: { error: 'Too many requests, please try again later.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-app.get('/api/joke', jokeLimiter, async (req, res) => {
-  logger.info('Joke endpoint hit', { ip: req.ip });
+async function fetchJoke(): Promise<string> {
   try {
-    // Fetch joke from Official Joke API
-    const joke = await fetchJoke();
-    res.json(joke);
+    const response = await axios.get("https://official-joke-api.appspot.com/random_joke");
+    return `${response.data.setup} ${response.data.punchline}`;
   } catch (error) {
-    logger.error('Joke API error', { error });
-    res.status(500).json({ error: 'Failed to fetch joke.' });
+    logger.error("Error fetching joke:", error);
+    return "No joke available.";
   }
+}
+
+app.get("/api/joke", async (req, res) => {
+  const joke = await fetchJoke();
+  res.send({ joke });
 });
 
-// ...rest of your server code
+app.listen(PORT, () => {
+  logger.info(`Server listening on port ${PORT}`);
+});

@@ -2,19 +2,18 @@ import React, { useState } from "react";
 import { VinLookupForm } from "@/components/lookup/vin/VinLookupForm";
 import { DataCollectionForm } from "@/components/followup/DataCollectionForm";
 import { ValuationResultsDisplay } from "@/components/result/ValuationResultsDisplay";
-import { DecodedVehicle } from "@/types/DecodedVehicle";
+import { VariableValue } from "@/types/VariableValue";
 import { ValuationResult } from "@/types/ValuationTypes";
 
 type AppState = 'vin-lookup' | 'data-collection' | 'valuation-results';
 
 function App() {
   const [currentState, setCurrentState] = useState<AppState>('vin-lookup');
-  const [decodedVin, setDecodedVin] = useState<DecodedVehicle[]>([]);
+  const [decodedVin, setDecodedVin] = useState<VariableValue[]>([]);
   const [valuationResult, setValuationResult] = useState<ValuationResult | null>(null);
-
   const [currentVin, setCurrentVin] = useState<string>('');
 
-  const handleVinDecoded = (data: DecodedVehicle[], vin: string) => {
+  const handleVinDecoded = (data: VariableValue[], vin: string) => {
     console.log("Decoded VIN result:", data);
     setDecodedVin(data);
     setCurrentVin(vin);
