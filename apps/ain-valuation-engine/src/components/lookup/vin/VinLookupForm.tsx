@@ -10,12 +10,9 @@ import { decodeVin } from '@/api/decodeVin'
 import { convertToVariableValueArray } from '@/utils/convertToVariableValueArray'
 
 interface VinLookupFormProps {
-<<<<<<< HEAD
   onSuccess?: (data: DecodedVehicle[], vin: string) => void
-=======
   onSuccess?: (data: VariableValue[]) => void
   decoded?: VariableValue[]
->>>>>>> main
 }
 
 export function VinLookupForm({ onSuccess }: VinLookupFormProps) {
