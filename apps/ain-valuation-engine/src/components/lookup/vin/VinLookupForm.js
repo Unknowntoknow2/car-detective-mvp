@@ -6,7 +6,11 @@ import { Button } from '@/components/ui/button';
 import { CarFindCard } from '@/components/CarFindCard';
 import { decodeVin } from '@/api/decodeVin';
 import { convertToVariableValueArray } from '@/utils/convertToVariableValueArray';
+<<<<<<< HEAD
+export function VinLookupForm({ onSuccess }) {
+=======
 export function VinLookupForm({ onSuccess, decoded }) {
+>>>>>>> main
     const [vin, setVin] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -23,10 +27,17 @@ export function VinLookupForm({ onSuccess, decoded }) {
             }
             const array = convertToVariableValueArray(data.decodedData[0]);
             setDecodedData(array);
+<<<<<<< HEAD
+            onSuccess?.(array, vin);
+        }
+        catch (err) {
+            setError(err instanceof Error ? err.message : 'Unexpected error');
+=======
             onSuccess?.(array);
         }
         catch (err) {
             setError(err.message || 'Unexpected error');
+>>>>>>> main
         }
         finally {
             setLoading(false);

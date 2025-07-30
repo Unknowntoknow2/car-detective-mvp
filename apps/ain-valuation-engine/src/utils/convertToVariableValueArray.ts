@@ -1,4 +1,4 @@
-export function convertToVariableValueArray(data: any): { Variable: string; Value: string }[] {
+export function convertToVariableValueArray(data: Record<string, unknown>): { Variable: string; Value: string }[] {
   if (!data || typeof data !== 'object') return []
 
   return Object.entries(data).map(([key, value]) => ({
