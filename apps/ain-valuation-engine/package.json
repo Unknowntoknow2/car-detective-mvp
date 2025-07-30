@@ -30,5 +30,8 @@
     "openai": "^5.11.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
-  }
+  },
+  "description": "[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main)",
+  "keywords": [],
+  "author": ""
 }
