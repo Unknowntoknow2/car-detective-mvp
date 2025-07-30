@@ -5,7 +5,6 @@ import React, { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CarFindCard } from '@/components/CarFindCard'
-import { DecodedVehicle } from '@/types/DecodedVehicle'
 import { decodeVin } from '@/api/decodeVin'
 import { convertToVariableValueArray } from '@/utils/convertToVariableValueArray'
 
@@ -35,7 +34,7 @@ export function VinLookupForm({ onSuccess }: VinLookupFormProps) {
 
       const array = convertToVariableValueArray(data.decodedData[0])
       setDecodedData(array)
-      onSuccess?.(array, vin)
+      onSuccess?.(array, vin) // This now matches the expected type
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Unexpected error')
     } finally {
