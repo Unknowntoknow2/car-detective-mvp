@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DecodedVehicle } from '@/types/DecodedVehicle';
 import { VehicleData, VehicleCondition, TitleStatus, DataGap } from '@/types/ValuationTypes';
-import { valuationEngine } from '@/services/valuationEngine';
+import valuationEngine from '@/services/valuationEngine';
 
 interface DataCollectionFormProps {
   decodedVin: DecodedVehicle[];
