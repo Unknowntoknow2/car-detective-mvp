@@ -1,121 +1,73 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { DecodedVehicle } from '@/types/DecodedVehicle';
-import { VehicleData, VehicleCondition, TitleStatus, DataGap } from '@/types/ValuationTypes';
-import { ValuationEngine } from '@/services/valuationEngine';
+import { VariableValue } from '@/types/VariableValue';
+'use client'
 
-interface DataCollectionFormProps {
-  decodedVin: DecodedVehicle[];
-  vin: string;
-  onComplete: (valuation: any) => void;
+import React, { useState } from 'react'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { CarFindCard } from '@/components/CarFindCard'
+import { decodeVin } from '@/api/decodeVin'
+import { convertToVariableValueArray } from '@/utils/convertToVariableValueArray'
+
+interface VinLookupFormProps {
+  onSuccess?: (data: VariableValue[], vin: string) => void
+  decoded?: VariableValue[]
 }
 
-export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollectionFormProps) {
-  const [vehicleData, setVehicleData] = useState<Partial<VehicleData>>({});
-  const [dataGaps, setDataGaps] = useState<DataGap[]>([]);
-  const [currentGapIndex, setCurrentGapIndex] = useState(0);
-  const [isCollecting, setIsCollecting] = useState(true);
-  const [isGeneratingValuation, setIsGeneratingValuation] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+export function VinLookupForm({ onSuccess }: VinLookupFormProps) {
+  const [vin, setVin] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [decodedData, setDecodedData] = useState<VariableValue[] | null>(null)
 
-  useEffect(() => {
-    // Extract basic vehicle data from decoded VIN
-    const extractedData = extractVehicleDataFromVin(decodedVin);
-    extractedData.vin = vin; // Set the VIN from props
-    setVehicleData(extractedData);
+  const handleDecode = async () => {
+    setLoading(true)
+    setError(null)
+    setDecodedData(null)
 
-    // Identify data gaps that need user input
-    const gaps = identifyDataGaps(extractedData);
-    setDataGaps(gaps);
+    try {
+      const data = await decodeVin(vin)
+      console.log("🔍 Raw decode:", data.decodedData[0])
 
-    if (gaps.length === 0) {
-      setIsCollecting(false);
-    }
-  }, [decodedVin, vin]);
+      if (!data || !data.decodedData) {
+        throw new Error('Failed to decode VIN')
+      }
 
-  // Refactored: Now uses actual DecodedVehicle keys (no Variable/Value)
-  const extractVehicleDataFromVin = (decoded: DecodedVehicle[]): Partial<VehicleData> => {
-    // Assumes decodedVin is an array of objects with the correct keys
-    const item = decoded[0] || {};
-    return {
-      vin: vin,
-      make: item.make,
-      model: item.model,
-      year: item.modelYear,
-      trim: item.trim,
-      engineSize: item.engineSize,
-      fuelType: item.fuelTypePrimary,
-      drivetrain: item.drivetrain,
-      transmission: item.transmissionStyle,
-      // Add more fields as necessary based on your DecodedVehicle type
-    };
-  };
+      const array = convertToVariableValueArray(data.decodedData[0])
+      setDecodedData(array)
+      onSuccess?.(array, vin) // This now matches the expected type
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unexpected error')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const identifyDataGaps = (data: Partial<VehicleData>): DataGap[] => {
-    const gaps: DataGap[] = [];
-    if (!data.mileage) {
-      gaps.push({
-        field: 'mileage',
-        required: true,
-        prompt: 'What is the current mileage of your vehicle?',
-        validationRules: [
-          { type: 'required', message: 'Mileage is required for accurate valuation' },
-          { type: 'min', value: 0, message: 'Mileage cannot be negative' },
-          { type: 'max', value: 999999, message: 'Please enter a valid mileage' }
-        ]
-      });
-    }
-    if (!data.zipCode) {
-      gaps.push({
-        field: 'zipCode',
-        required: true,
-        prompt: 'What is your ZIP code? (This helps us find local market comparisons)',
-        validationRules: [
-          { type: 'required', message: 'ZIP code is required' },
-          { type: 'pattern', value: /^\d{5}(-\d{4})?$/, message: 'Please enter a valid ZIP code' }
-        ]
-      });
-    }
-    if (!data.condition) {
-      gaps.push({
-        field: 'condition',
-        required: true,
-        prompt: 'What is the overall condition of your vehicle?',
-        validationRules: [
-          { type: 'required', message: 'Vehicle condition is required' }
-        ]
-      });
-    }
-    if (!data.titleStatus) {
-      gaps.push({
-        field: 'titleStatus',
-        required: true,
-        defaultValue: TitleStatus.CLEAN,
-        prompt: 'What is the title status of your vehicle?',
-        validationRules: [
-          { type: 'required', message: 'Title status is required' }
-        ]
-      });
-    }
-    if (!data.exteriorColor) {
-      gaps.push({
-        field: 'exteriorColor',
-        required: false,
-        prompt: 'What is the exterior color of your vehicle? (Optional)',
-        validationRules: []
-      });
-    }
-    return gaps;
-  };
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <Input
+          value={vin}
+          onChange={(e) => setVin(e.target.value)}
+          placeholder="Enter VIN"
+          maxLength={17}
+        />
+        <Button onClick={handleDecode} disabled={loading || vin.length !== 17}>
+          {loading ? 'Decoding...' : 'Decode VIN'}
+        </Button>
+      </div>
 
-  const handleInputChange = (field: string, value: any) => {
-    setVehicleData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
+      {error && (
+        <div className="text-red-500 text-sm">
+          ❌ {error}
+        </div>
+      )}
 
-  // ...[rest of your code remains unchanged]...
-  // (Leave the rest of the component code as-is)
+      {decodedData && (
+        <div className="border rounded p-4 bg-muted">
+          <h3 className="text-lg font-semibold mb-2">VIN Decoded Result:</h3>
+          <CarFindCard decoded={decodedData} />
+        </div>
+      )}
+    </div>
+  )
 }
