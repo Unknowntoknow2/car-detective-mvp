@@ -5,51 +5,102 @@
 
 @import url("./premium-effects.css");
 
-/* Base styles */
+/* FANG-Level Design System - Tesla/Apple Inspired */
 @layer base {
   :root {
+    /* Tesla Deep Space Colors */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 220 13% 9%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 13% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 142 71% 45%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
-    --radius: 0.5rem;
+    --popover-foreground: 220 13% 9%;
+    
+    /* Premium Blue Spectrum - Tesla/Apple Inspired */
+    --primary: 214 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 214 100% 85%;
+    --primary-dark: 214 100% 35%;
+    
+    /* Sophisticated Neutrals */
+    --secondary: 220 9% 46%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 13% 95%;
+    --muted-foreground: 220 9% 46%;
+    
+    /* Electric Accent */
+    --accent: 151 90% 50%;
+    --accent-foreground: 220 13% 9%;
+    
+    /* Semantic Colors */
+    --destructive: 0 100% 67%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 151 55% 42%;
+    --warning: 38 92% 50%;
+    --info: 214 100% 50%;
+    
+    /* Glass Morphism */
+    --glass-bg: 0 0% 100% / 0.8;
+    --glass-border: 220 13% 91% / 0.5;
+    --glass-shadow: 220 13% 9% / 0.1;
+    
+    /* Surfaces */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 214 100% 50%;
+    --radius: 0.75rem;
+    
+    /* Premium Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(214 100% 50%) 0%, hsl(214 100% 35%) 100%);
+    --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.9) 0%, hsl(0 0% 100% / 0.7) 100%);
+    --gradient-mesh: linear-gradient(135deg, hsl(214 100% 50% / 0.1) 0%, hsl(151 90% 50% / 0.1) 100%);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 142 71% 45%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    /* Tesla Dark Mode - Deep Space */
+    --background: 220 27% 8%;
+    --foreground: 220 9% 89%;
+    --card: 220 27% 10%;
+    --card-foreground: 220 9% 89%;
+    --popover: 220 27% 10%;
+    --popover-foreground: 220 9% 89%;
+    
+    /* Electric Blue in Dark */
+    --primary: 214 100% 60%;
+    --primary-foreground: 220 27% 8%;
+    --primary-light: 214 100% 80%;
+    --primary-dark: 214 100% 40%;
+    
+    /* Dark Neutrals */
+    --secondary: 220 27% 15%;
+    --secondary-foreground: 220 9% 89%;
+    --muted: 220 27% 12%;
+    --muted-foreground: 220 9% 65%;
+    
+    /* Electric Green Accent */
+    --accent: 151 90% 45%;
+    --accent-foreground: 220 27% 8%;
+    
+    /* Dark Semantic */
+    --destructive: 0 100% 67%;
+    --destructive-foreground: 220 9% 89%;
+    --success: 151 55% 42%;
+    --warning: 38 92% 50%;
+    --info: 214 100% 60%;
+    
+    /* Dark Glass */
+    --glass-bg: 220 27% 8% / 0.8;
+    --glass-border: 220 27% 20% / 0.5;
+    --glass-shadow: 220 27% 4% / 0.3;
+    
+    --border: 220 27% 18%;
+    --input: 220 27% 18%;
+    --ring: 214 100% 60%;
+    
+    /* Dark Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(214 100% 60%) 0%, hsl(214 100% 40%) 100%);
+    --gradient-glass: linear-gradient(135deg, hsl(220 27% 10% / 0.9) 0%, hsl(220 27% 8% / 0.7) 100%);
+    --gradient-mesh: linear-gradient(135deg, hsl(214 100% 60% / 0.1) 0%, hsl(151 90% 45% / 0.1) 100%);
   }
 
   * {
@@ -62,40 +113,54 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
   body {
     @apply bg-background text-foreground font-sans leading-normal;
     min-height: 100vh;
+    background-attachment: fixed;
+    background-image: var(--gradient-mesh);
   }
 
-  /* Typography scale */
+  /* FANG-Level Typography - Apple/Tesla Inspired */
   h1, .h1 {
-    @apply text-4xl sm:text-5xl font-bold tracking-tight leading-tight text-foreground;
+    @apply text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-none text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+    letter-spacing: -0.025em;
+    text-rendering: optimizeLegibility;
   }
 
   h2, .h2 {
-    @apply text-3xl sm:text-4xl font-bold tracking-tight leading-tight text-foreground;
+    @apply text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+    letter-spacing: -0.02em;
   }
 
   h3, .h3 {
-    @apply text-2xl sm:text-3xl font-semibold tracking-tight leading-tight text-foreground;
+    @apply text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight leading-tight text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+    letter-spacing: -0.015em;
   }
 
   h4, .h4 {
-    @apply text-xl sm:text-2xl font-semibold tracking-tight leading-tight text-foreground;
+    @apply text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight leading-tight text-foreground;
+    letter-spacing: -0.01em;
   }
 
   h5, .h5 {
-    @apply text-lg sm:text-xl font-semibold tracking-tight leading-tight text-foreground;
+    @apply text-lg sm:text-xl lg:text-2xl font-medium tracking-tight leading-tight text-foreground;
+    letter-spacing: -0.005em;
   }
 
   h6, .h6 {
-    @apply text-base sm:text-lg font-medium tracking-tight leading-tight text-foreground;
+    @apply text-base sm:text-lg lg:text-xl font-medium tracking-tight leading-tight text-foreground;
   }
 
   p {
-    @apply text-base text-muted-foreground leading-relaxed;
+    @apply text-base lg:text-lg text-muted-foreground leading-relaxed;
+    font-variant-numeric: oldstyle-nums;
   }
 
   :focus-visible {
@@ -108,48 +173,109 @@
 }
 
 @layer components {
+  /* FANG-Level Glass Morphism Cards */
   .card {
-    @apply bg-card rounded-xl shadow-sm border border-border/50 transition-all p-6 hover:shadow-md;
+    @apply bg-card/90 rounded-2xl border border-border/30 transition-all duration-500 ease-out p-6;
+    backdrop-filter: blur(20px);
+    box-shadow: 
+      0 8px 32px -12px hsl(var(--glass-shadow)),
+      0 2px 8px -4px hsl(var(--glass-shadow)),
+      inset 0 1px 0 hsl(var(--glass-border));
+  }
+
+  .card:hover {
+    @apply shadow-2xl scale-[1.02];
+    box-shadow: 
+      0 20px 40px -12px hsl(var(--glass-shadow)),
+      0 8px 16px -4px hsl(var(--glass-shadow)),
+      inset 0 1px 0 hsl(var(--glass-border));
   }
 
   .card-interactive {
-    @apply card cursor-pointer hover:border-primary/30;
+    @apply card cursor-pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
+  .card-interactive:hover {
+    @apply border-primary/40 -translate-y-1;
+    box-shadow: 
+      0 25px 50px -12px hsl(var(--primary) / 0.25),
+      0 0 0 1px hsl(var(--primary) / 0.1),
+      inset 0 1px 0 hsl(var(--glass-border));
+  }
+
+  /* FANG-Level Button System - Tesla/Apple Quality */
   .btn {
-    @apply inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+    letter-spacing: -0.01em;
+    transform: translateZ(0);
   }
 
   .btn-sm {
-    @apply h-8 px-3 text-sm;
+    @apply h-9 px-4 text-sm;
+    border-radius: 0.75rem;
   }
 
   .btn-base {
-    @apply h-10 px-4 text-base;
+    @apply h-11 px-6 text-base;
+    border-radius: 0.875rem;
   }
 
   .btn-lg {
-    @apply h-12 px-6 text-lg;
+    @apply h-14 px-8 text-lg;
+    border-radius: 1rem;
   }
 
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    background: var(--gradient-primary);
+    @apply text-primary-foreground shadow-lg;
+    box-shadow: 
+      0 4px 16px hsl(var(--primary) / 0.3),
+      0 1px 2px hsl(var(--primary) / 0.4);
+  }
+
+  .btn-primary:hover {
+    @apply scale-105 shadow-xl;
+    box-shadow: 
+      0 8px 25px hsl(var(--primary) / 0.4),
+      0 2px 8px hsl(var(--primary) / 0.3);
   }
 
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+    @apply bg-secondary/90 text-secondary-foreground shadow-md border border-border/30;
+    backdrop-filter: blur(12px);
+  }
+
+  .btn-secondary:hover {
+    @apply scale-105 shadow-lg bg-secondary;
   }
 
   .btn-accent {
-    @apply bg-accent text-accent-foreground hover:bg-accent/90;
+    @apply bg-accent text-accent-foreground shadow-lg;
+    box-shadow: 
+      0 4px 16px hsl(var(--accent) / 0.3),
+      0 1px 2px hsl(var(--accent) / 0.4);
+  }
+
+  .btn-accent:hover {
+    @apply scale-105 shadow-xl;
+    box-shadow: 
+      0 8px 25px hsl(var(--accent) / 0.4),
+      0 2px 8px hsl(var(--accent) / 0.3);
   }
 
   .btn-outline {
-    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
+    @apply border-2 border-primary/20 bg-background/80 text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-sm;
+    backdrop-filter: blur(8px);
+  }
+
+  .btn-outline:hover {
+    @apply scale-105 shadow-lg;
   }
 
   .btn-ghost {
-    @apply hover:bg-accent hover:text-accent-foreground;
+    @apply hover:bg-muted/80 hover:text-foreground backdrop-blur-sm;
   }
 
   .input {
@@ -214,28 +340,60 @@
 }
 
 @layer utilities {
+  /* FANG-Level Spacing & Effects */
   .section-spacing {
-    @apply py-12 md:py-16 lg:py-20;
+    @apply py-16 md:py-24 lg:py-32;
   }
 
   .content-spacing {
-    @apply space-y-6 md:space-y-8;
+    @apply space-y-8 md:space-y-12 lg:space-y-16;
   }
 
+  /* Tesla-Level Micro-Interactions */
   .hover-lift {
-    @apply transition-transform duration-300 hover:-translate-y-1;
+    @apply transition-all duration-500 ease-out hover:-translate-y-2;
+    transform: translateZ(0);
   }
 
   .hover-scale {
-    @apply transition-transform duration-300 hover:scale-105;
+    @apply transition-all duration-400 ease-out hover:scale-105;
+    transform: translateZ(0);
   }
 
+  .hover-glow {
+    @apply transition-all duration-500 ease-out;
+    filter: drop-shadow(0 0 0 transparent);
+  }
+
+  .hover-glow:hover {
+    filter: drop-shadow(0 0 20px hsl(var(--primary) / 0.3));
+  }
+
+  /* Apple-Level Shadows */
   .shadow-card {
-    @apply shadow-sm hover:shadow-md transition-shadow duration-300;
+    box-shadow: 
+      0 4px 16px -4px hsl(var(--glass-shadow)),
+      0 2px 8px -2px hsl(var(--glass-shadow));
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .shadow-card:hover {
+    box-shadow: 
+      0 20px 40px -8px hsl(var(--glass-shadow)),
+      0 8px 16px -4px hsl(var(--glass-shadow));
   }
 
   .shadow-button {
-    @apply shadow hover:shadow-md transition-shadow duration-300;
+    box-shadow: 
+      0 2px 8px hsl(var(--primary) / 0.2),
+      0 1px 2px hsl(var(--primary) / 0.3);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .shadow-button:hover {
+    box-shadow: 
+      0 8px 25px hsl(var(--primary) / 0.3),
+      0 4px 8px hsl(var(--primary) / 0.2);
   }
 
   .hidden-mobile {
@@ -254,12 +412,38 @@
     text-wrap: pretty;
   }
 
+  /* Premium Gradient System */
   .bg-gradient-primary {
-    @apply bg-gradient-to-r from-primary to-primary/70;
+    background: var(--gradient-primary);
   }
 
   .bg-gradient-accent {
-    @apply bg-gradient-to-r from-accent to-accent/70;
+    background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent) / 0.8) 100%);
+  }
+
+  .bg-gradient-glass {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(20px);
+  }
+
+  .bg-gradient-mesh {
+    background: var(--gradient-mesh);
+  }
+
+  /* Tesla-Inspired Glass Effects */
+  .glass-effect {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: 
+      0 8px 32px hsl(var(--glass-shadow)),
+      inset 0 1px 0 hsl(var(--glass-border));
+  }
+
+  .frosted-glass {
+    backdrop-filter: blur(16px) saturate(120%);
+    background: hsl(var(--background) / 0.7);
+    border: 1px solid hsl(var(--border) / 0.2);
   }
 
   .touch-target {
