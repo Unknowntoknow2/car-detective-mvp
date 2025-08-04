@@ -48,4 +48,5 @@ build/
 *.njsproj
 *.sln
 *.sw?
-.vercel
+.vercelvenv/
+venv/

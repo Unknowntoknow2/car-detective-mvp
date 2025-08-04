@@ -91,7 +91,7 @@ export class VehicleHistoryService {
 
   private async getCarfaxHistory(vin: string): Promise<ApiResponse<any>> {
     if (!this.carfaxApiKey) {
-      return this.getMockCarfaxHistory(vin);
+      throw new Error('Carfax API key missing');
     }
 
     return apiClient.get<CarfaxResponse>(
@@ -104,7 +104,7 @@ export class VehicleHistoryService {
 
   private async getAutocheckHistory(vin: string): Promise<ApiResponse<any>> {
     if (!this.autocheckApiKey) {
-      return this.getMockAutocheckHistory(vin);
+      throw new Error('Autocheck API key missing');
     }
 
     return apiClient.get<AutocheckResponse>(
@@ -141,91 +141,6 @@ export class VehicleHistoryService {
         },
       };
     }
-  }
-
-  private getMockCarfaxHistory(vin: string): Promise<ApiResponse<any>> {
-    // Generate realistic mock data for testing
-    const mockData = {
-      vin,
-      accidents: [
-        {
-          date: '2022-03-15',
-          severity: 'minor',
-          description: 'Minor collision - front bumper damage',
-          estimatedDamage: 2500,
-        },
-      ],
-      serviceRecords: [
-        {
-          date: '2023-01-15',
-          mileage: 25000,
-          type: 'routine_maintenance',
-          description: 'Oil change, filter replacement',
-          dealer: true,
-          cost: 89.99,
-        },
-        {
-          date: '2022-07-10',
-          mileage: 20000,
-          type: 'inspection',
-          description: 'State inspection and emissions test',
-          dealer: false,
-          cost: 35.00,
-        },
-      ],
-      ownership: [
-        {
-          startDate: '2021-06-01',
-          endDate: null,
-          type: 'personal',
-          state: 'CA',
-        },
-      ],
-      titles: [
-        {
-          date: '2021-06-01',
-          state: 'CA',
-          type: 'clean',
-          mileage: 15000,
-        },
-      ],
-    };
-
-    return Promise.resolve({
-      success: true,
-      data: mockData,
-      metadata: {
-        source: 'carfax_mock',
-        timestamp: new Date(),
-      },
-    });
-  }
-
-  private getMockAutocheckHistory(vin: string): Promise<ApiResponse<any>> {
-    // Generate complementary mock data
-    const mockData = {
-      vin,
-      events: [
-        {
-          date: '2023-06-20',
-          type: 'service',
-          description: 'Brake inspection and pad replacement',
-          mileage: 28000,
-          dealer: true,
-        },
-      ],
-      ownershipCount: 1,
-      accidentIndicators: 1,
-    };
-
-    return Promise.resolve({
-      success: true,
-      data: mockData,
-      metadata: {
-        source: 'autocheck_mock',
-        timestamp: new Date(),
-      },
-    });
   }
 
   private extractCarfaxAccidents(data: any): AccidentRecord[] {

@@ -1,13 +1,45 @@
-<<<<<<< HEAD
-import { openai } from './openaiClient';
 import { marketListingsService } from './marketListingsService';
 import { vehicleHistoryService } from './vehicleHistoryService';
 import { VehicleCondition, TitleStatus } from '@/types/ValuationTypes';
+// Add these imports for new audit and VIN decode support
+import { auditLogService } from './auditLogService'; // You should create this file (see below)
+import { decodeVIN } from './vinService'; // You should create this file (see below)
+
 export class ValuationEngine {
     minComparables = 100;
     maxComparables = 200;
     searchRadius = 150; // miles
     inflationRate = 0.025; // 2.5% annual inflation
+
+    /**
+     * Main entrypoint: enforces VIN/year consistency before running valuation.
+     * Accepts: { vin, year (user input), ...vehicleData }
+     */
+    async processValuation({ vin, year: userSelectedYear, ...vehicleData }) {
+        // 1. Decode VIN to get true year
+        const decodedVehicle = await decodeVIN(vin);
+        if (parseInt(userSelectedYear, 10) !== parseInt(decodedVehicle.year, 10)) {
+            // 2. Audit log for security/tracing
+            await auditLogService.record({
+                event: 'VIN-Year mismatch',
+                vin,
+                userSelectedYear,
+                decodedYear: decodedVehicle.year,
+                timestamp: new Date().toISOString(),
+            });
+            // 3. Hard fail
+            throw new Error(
+                `Year mismatch detected. VIN indicates the vehicle year is ${decodedVehicle.year}, but you selected ${userSelectedYear}. Please verify and resubmit.`
+            );
+        }
+        // 4. Always use VIN-decoded year for all backend logic
+        return this.generateValuation({
+            ...vehicleData,
+            vin,
+            year: decodedVehicle.year,
+        });
+    }
+
     async generateValuation(vehicleData) {
         try {
             console.log('🚗 Starting valuation for:', vehicleData);
@@ -28,7 +60,7 @@ export class ValuationEngine {
             const marketFactors = await this.calculateMarketFactors(vehicleData);
             // Step 7: Calculate final value
             const finalValue = this.applyAdjustments(baseValue, adjustments, marketFactors);
-            // Step 8: Generate AI explanation
+            // Step 8: Generate AI explanation (fallback only)
             const explanation = await this.generateExplanation(vehicleData, finalValue, adjustments, marketFactors);
             // Step 9: Calculate accuracy metrics
             const accuracy = this.calculateAccuracy(comparables, finalValue);
@@ -73,6 +105,7 @@ export class ValuationEngine {
             };
         }
     }
+
     async gatherMarketData(vehicleData) {
         console.log('📊 Gathering market data...');
         const marketResponse = await marketListingsService.getMarketListings(vehicleData, this.searchRadius, this.maxComparables);
@@ -83,6 +116,7 @@ export class ValuationEngine {
         console.log(`📈 Found ${marketResponse.data.length} market listings`);
         return marketResponse.data;
     }
+
     async findComparables(vehicleData, marketData) {
         console.log('🔍 Finding comparable vehicles...');
         // Score each listing based on similarity to target vehicle
@@ -99,6 +133,7 @@ export class ValuationEngine {
         console.log(`🎯 Selected ${comparables.length} comparable vehicles`);
         return comparables;
     }
+
     calculateSimilarityScore(target, listing) {
         let score = 0;
         let maxScore = 0;
@@ -157,6 +192,7 @@ export class ValuationEngine {
         score += 3; // Assume moderate proximity
         return maxScore > 0 ? score / maxScore : 0;
     }
+
     getConditionValue(condition) {
         const values = {
             [VehicleCondition.EXCELLENT]: 5,
@@ -167,6 +203,7 @@ export class ValuationEngine {
         };
         return values[condition] || 3;
     }
+
     calculateBaseValue(comparables) {
         if (comparables.length === 0) {
             throw new Error('No comparable vehicles found for valuation');
@@ -207,6 +244,7 @@ export class ValuationEngine {
         console.log(`💰 Base value calculated: $${Math.round(avgValue)} from ${comparables.length} comparables`);
         return avgValue;
     }
+
     async calculateAdjustments(vehicleData, historyData, comparables) {
         const adjustments = [];
         // Mileage adjustment
@@ -253,11 +291,13 @@ export class ValuationEngine {
         console.log(`🔧 Applied ${adjustments.length} valuation adjustments`);
         return adjustments;
     }
+
     calculateMileageAdjustment(mileageDiff) {
         // Typical depreciation: $0.10-0.15 per mile for most vehicles
         const depreciationPerMile = 0.12;
         return -mileageDiff * depreciationPerMile;
     }
+
     calculateConditionAdjustment(condition) {
         const adjustments = {
             [VehicleCondition.EXCELLENT]: 0.05,
@@ -268,6 +308,7 @@ export class ValuationEngine {
         };
         return adjustments[condition] || 0;
     }
+
     calculateTitleAdjustment(titleStatus) {
         const adjustments = {
             [TitleStatus.CLEAN]: 0,
@@ -279,6 +320,7 @@ export class ValuationEngine {
         };
         return adjustments[titleStatus] || 0;
     }
+
     calculateHistoryAdjustments(historyData) {
         const adjustments = [];
         // Accident history adjustment
@@ -317,6 +359,7 @@ export class ValuationEngine {
         }
         return adjustments;
     }
+
     async calculateMarketFactors(vehicleData) {
         const factors = [];
         // Seasonal factors
@@ -347,6 +390,7 @@ export class ValuationEngine {
         console.log(`📊 Applied ${factors.length} market factors`);
         return factors;
     }
+
     getSeasonalFactor(vehicleData, month) {
         // Simplified seasonal adjustments
         // Spring/Summer: convertibles and sports cars up, SUVs down
@@ -365,15 +409,18 @@ export class ValuationEngine {
         }
         return 0;
     }
+
     getSeasonalDescription(month, factor) {
         const season = month >= 3 && month <= 8 ? 'Spring/Summer' : 'Fall/Winter';
         const direction = factor > 0 ? 'increased' : 'decreased';
         return `${season} season with ${direction} demand for this vehicle type`;
     }
+
     getEconomicFactor() {
         // Simplified economic factor - in real implementation would use economic indicators
         return 0.01; // Slight positive market conditions
     }
+
     applyAdjustments(baseValue, adjustments, marketFactors) {
         let adjustedValue = baseValue;
         // Apply valuation adjustments
@@ -392,34 +439,12 @@ export class ValuationEngine {
         console.log(`💰 Final adjusted value: $${Math.round(adjustedValue)} (base: $${Math.round(baseValue)})`);
         return adjustedValue;
     }
+
     async generateExplanation(vehicleData, finalValue, adjustments, marketFactors) {
-        try {
-            const prompt = `Generate a clear, professional explanation for a vehicle valuation:
-
-Vehicle: ${vehicleData.year} ${vehicleData.make} ${vehicleData.model}
-VIN: ${vehicleData.vin}
-Estimated Value: $${Math.round(finalValue).toLocaleString()}
-
-Adjustments Applied:
-${adjustments.map(adj => `- ${adj.factor}: ${adj.percentage > 0 ? '+' : ''}${adj.percentage.toFixed(1)}% (${adj.explanation})`).join('\n')}
-
-Market Factors:
-${marketFactors.map(factor => `- ${factor.factor}: ${factor.impact > 0 ? '+' : ''}${(factor.impact * 100).toFixed(1)}% (${factor.description})`).join('\n')}
-
-Please provide a concise explanation of how this valuation was calculated and what factors influenced the final price. Keep it under 200 words and make it understandable to consumers.`;
-            const response = await openai.chat.completions.create({
-                model: 'gpt-3.5-turbo',
-                messages: [{ role: 'user', content: prompt }],
-                max_tokens: 300,
-                temperature: 0.3,
-            });
-            return response.choices[0]?.message?.content || this.generateFallbackExplanation(finalValue, adjustments);
-        }
-        catch (error) {
-            console.warn('Failed to generate AI explanation, using fallback');
-            return this.generateFallbackExplanation(finalValue, adjustments);
-        }
+        // OpenAI/api removed: always return fallback explanation
+        return this.generateFallbackExplanation(finalValue, adjustments);
     }
+
     generateFallbackExplanation(finalValue, adjustments) {
         const majorAdjustments = adjustments.filter(adj => Math.abs(adj.percentage) > 2);
         let explanation = `This valuation of $${Math.round(finalValue).toLocaleString()} is based on comprehensive market analysis of comparable vehicles. `;
@@ -429,6 +454,7 @@ Please provide a concise explanation of how this valuation was calculated and wh
         explanation += `The estimate considers current market conditions, vehicle history, and condition to provide an accurate market value.`;
         return explanation;
     }
+
     calculateAccuracy(comparables, finalValue) {
         const comparablePrices = comparables.map(c => c.price);
         const avgComparable = comparablePrices.reduce((a, b) => a + b, 0) / comparablePrices.length;
@@ -448,6 +474,7 @@ Please provide a concise explanation of how this valuation was calculated and wh
             confidenceInterval: Math.round(confidenceInterval * 100) / 100,
         };
     }
+
     calculateConfidence(accuracy, comparableCount) {
         let confidence = 50; // Base confidence
         // Boost confidence based on number of comparables
@@ -467,6 +494,7 @@ Please provide a concise explanation of how this valuation was calculated and wh
         }
         return Math.max(10, Math.min(95, Math.round(confidence)));
     }
+
     calculatePriceRange(finalValue, confidence) {
         // Range width based on confidence (lower confidence = wider range)
         const rangePercentage = (100 - confidence) * 0.3 / 100; // 0-27% range
@@ -477,25 +505,5 @@ Please provide a concise explanation of how this valuation was calculated and wh
         };
     }
 }
+
 export const valuationEngine = new ValuationEngine();
-=======
-import { decodeVin } from '../api/decodeVin';
-import supabase from './supabaseClient';
-export async function runValuation(vin) {
-    try {
-        const decoded = await decodeVin(vin);
-        // Save to Supabase
-        await supabase.from('vin_history').insert([
-            {
-                vin,
-                response: decoded
-            }
-        ]);
-        return decoded;
-    }
-    catch (error) {
-        console.error('Valuation failed:', error);
-        throw error;
-    }
-}
->>>>>>> main
