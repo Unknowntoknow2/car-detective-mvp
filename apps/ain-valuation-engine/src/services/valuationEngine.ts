@@ -1,5 +1,5 @@
 import { decodeVin } from '../api/decodeVin'
-import supabase from './supabaseClient'
+import supabase from '../integrations/supabase/client'
 
 export async function runValuation(vin: string) {
   try {

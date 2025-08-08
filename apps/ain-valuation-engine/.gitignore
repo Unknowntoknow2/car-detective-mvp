@@ -9,7 +9,6 @@ lerna-debug.log*
 
 # Node.js
 node_modules/
-package-lock.json
 
 # Python
 __pycache__/
@@ -50,3 +49,6 @@ build/
 *.sw?
 .vercelvenv/
 venv/
+__pycache__/
+node_modules/
+.env

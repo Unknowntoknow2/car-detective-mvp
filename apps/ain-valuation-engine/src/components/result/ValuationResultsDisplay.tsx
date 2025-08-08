@@ -1,5 +1,5 @@
 import React from 'react';
-import { ValuationResult, MarketListing, ValuationAdjustment, MarketFactor } from '@/types/ValuationTypes';
+import { ValuationResult } from '@/types/ValuationTypes';
 
 interface ValuationResultsDisplayProps {
   valuation: ValuationResult;

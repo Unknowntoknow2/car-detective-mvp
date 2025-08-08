@@ -1,4 +1,31 @@
+import OpenAI from 'openai';
+import fs from 'fs';
+import path from 'path';
+
+const openai = new OpenAI({
+  apiKey: process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY,
+});
+
 export async function transcribeAudio(audioBuffer: Buffer) {
-  // TODO: Connect to Whisper API and transcribe audio
-  return "Transcribed text";
+  try {
+    // Create a temporary file for the audio buffer
+    const tempFilePath = path.join('/tmp', `audio_${Date.now()}.webm`);
+    fs.writeFileSync(tempFilePath, audioBuffer);
+
+    // Transcribe the audio
+    const transcription = await openai.audio.transcriptions.create({
+      file: fs.createReadStream(tempFilePath),
+      model: "whisper-1",
+      language: "en", // Specify language for better accuracy
+      response_format: "text"
+    });
+
+    // Clean up temporary file
+    fs.unlinkSync(tempFilePath);
+
+    return transcription;
+  } catch (error: any) {
+    console.error('Whisper API error:', error);
+    return "Audio transcription temporarily unavailable. Please try again later.";
+  }
 }

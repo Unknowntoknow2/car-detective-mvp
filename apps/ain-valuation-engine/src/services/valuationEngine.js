@@ -440,14 +440,14 @@ export class ValuationEngine {
         return adjustedValue;
     }
 
-    async generateExplanation(vehicleData, finalValue, adjustments, marketFactors) {
+    async generateExplanation(vehicleData, finalValue, adjustments, _marketFactors) {
         // OpenAI/api removed: always return fallback explanation
         return this.generateFallbackExplanation(finalValue, adjustments);
     }
 
-    generateFallbackExplanation(finalValue, adjustments) {
+    generateFallbackExplanation(_finalValue, adjustments) {
         const majorAdjustments = adjustments.filter(adj => Math.abs(adj.percentage) > 2);
-        let explanation = `This valuation of $${Math.round(finalValue).toLocaleString()} is based on comprehensive market analysis of comparable vehicles. `;
+        let explanation = `This valuation of $${Math.round(_finalValue).toLocaleString()} is based on comprehensive market analysis of comparable vehicles. `;
         if (majorAdjustments.length > 0) {
             explanation += `Key factors affecting the price include: ${majorAdjustments.map(adj => adj.explanation).join(', ')}. `;
         }
@@ -455,7 +455,7 @@ export class ValuationEngine {
         return explanation;
     }
 
-    calculateAccuracy(comparables, finalValue) {
+    calculateAccuracy(comparables, _finalValue) {
         const comparablePrices = comparables.map(c => c.price);
         const avgComparable = comparablePrices.reduce((a, b) => a + b, 0) / comparablePrices.length;
         // Calculate standard deviation

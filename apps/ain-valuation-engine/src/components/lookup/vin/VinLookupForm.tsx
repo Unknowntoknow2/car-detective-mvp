@@ -1,5 +1,4 @@
 import { VariableValue } from '@/types/VariableValue';
-'use client'
 
 import React, { useState } from 'react'
 import { Input } from '@/components/ui/input'

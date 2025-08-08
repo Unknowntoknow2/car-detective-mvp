@@ -1,5 +1,5 @@
 import express from "express";
-import { SupabaseClient, createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import { ConversationEngine } from "./conversationEngine";
 
 const router = express.Router();
