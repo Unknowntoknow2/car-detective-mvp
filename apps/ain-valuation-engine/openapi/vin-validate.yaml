@@ -1,0 +1,45 @@
+openapi: 3.0.3
+info:
+  title: AIN VIN Validation API
+  version: 1.0.0
+paths:
+  /vin-validate:
+    post:
+      summary: Validate VIN (format + ISO 3779) with negative caching
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [vin]
+              properties:
+                vin: { type: string, example: "1HGCM82633A004352" }
+      responses:
+        "200":
+          description: VIN is valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, example: true }
+                  vin: { type: string }
+                  parts:
+                    type: object
+                    properties:
+                      wmi: { type: string }
+                      vds: { type: string }
+                      vis: { type: string }
+        "400":
+          description: Invalid format
+          content: { application/json: { schema: { type: object, properties: { ok: {type: boolean}, code: {type: string, example: "400_INVALID_VIN_FORMAT"}, message: {type: string} } } } }
+        "422":
+          description: Check digit fail
+          content: { application/json: { schema: { type: object, properties: { ok: {type: boolean}, code: {type: string, example: "422_CHECK_DIGIT_FAIL"}, message: {type: string} } } } }
+        "500":
+          description: Server error
+      headers:
+        X-Request-Id:
+          schema: { type: string }
+          description: Correlation ID

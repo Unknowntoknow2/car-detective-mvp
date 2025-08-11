@@ -1,7 +1,9 @@
-pandas
-scikit-learn
-flask
-shap
-flake8
+fastapi
+uvicorn
+pydantic
+requests
 pytest
 pytest-cov
+httpx
+flake8
+coverage

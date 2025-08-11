@@ -210,13 +210,13 @@ export interface RateLimit {
 export interface DataGap {
   field: string;
   required: boolean;
-  defaultValue?: any;
+  defaultValue?: string | number | boolean | null;
   prompt: string;
   validationRules?: ValidationRule[];
 }
 
 export interface ValidationRule {
   type: 'required' | 'min' | 'max' | 'pattern' | 'custom';
-  value?: any;
+  value?: string | number | RegExp;
   message: string;
 }

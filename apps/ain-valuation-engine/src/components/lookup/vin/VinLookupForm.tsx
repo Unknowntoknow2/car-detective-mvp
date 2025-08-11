@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CarFindCard } from '@/components/CarFindCard'
-import { decodeVin } from '@/api/decodeVin'
+import { decodeVin, VINDecodeError, isVinDecodeSuccessful } from '@/services/unifiedVinDecoder'
 import { convertToVariableValueArray } from '@/utils/convertToVariableValueArray'
 
 interface VinLookupFormProps {
@@ -24,18 +24,38 @@ export function VinLookupForm({ onSuccess }: VinLookupFormProps) {
     setDecodedData(null)
 
     try {
-      const data = await decodeVin(vin)
-      console.log("🔍 Raw decode:", data.decodedData[0])
+      const result = await decodeVin(vin)
+      console.log("🔍 Unified decode result:", result)
 
-      if (!data || !data.decodedData) {
-        throw new Error('Failed to decode VIN')
+      if (!result || !isVinDecodeSuccessful(result)) {
+        throw new Error(result?.metadata?.errorText || 'Failed to decode VIN')
       }
 
-      const array = convertToVariableValueArray(data.decodedData[0])
+      // Convert the unified response to the legacy format for compatibility
+      const legacyData = {
+        Make: result.categories.identity.make,
+        Model: result.categories.identity.model,
+        ModelYear: result.categories.identity.modelYear,
+        Trim: result.categories.identity.trim,
+        BodyClass: result.categories.identity.bodyClass,
+        EngineCylinders: result.categories.powertrain.engineCylinders,
+        FuelTypePrimary: result.categories.powertrain.fuelTypePrimary,
+        DriveType: result.categories.powertrain.driveType,
+        TransmissionStyle: result.categories.powertrain.transmissionStyle,
+        PlantCountry: result.categories.manufacturing.plantCountry,
+        // Include all raw data for completeness
+        ...result.raw
+      }
+
+      const array = convertToVariableValueArray(legacyData)
       setDecodedData(array)
-      onSuccess?.(array, vin) // This now matches the expected type
+      onSuccess?.(array, vin)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Unexpected error')
+      if (err instanceof VINDecodeError) {
+        setError(`VIN Decode Error (${err.code}): ${err.message}`)
+      } else {
+        setError(err instanceof Error ? err.message : 'Unexpected error')
+      }
     } finally {
       setLoading(false)
     }

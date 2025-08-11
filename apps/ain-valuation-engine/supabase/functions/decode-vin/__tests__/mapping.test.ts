@@ -1,7 +1,48 @@
 // Unit tests for vPIC data mapping helpers
 // Tests for toBool, parseAirbagFlag, and safety equipment mapping functions
 
+// @ts-ignore remote Deno std import
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
+
+// Minimal Deno declaration for editors without full Deno env
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+declare const Deno: { test: (name: string, fn: () => void | Promise<void>) => void };
+
+interface SafetyEquipment {
+  abs: boolean | null;
+  esc: boolean | null;
+  traction_control: boolean | null;
+  dynamic_brake_support: boolean | null;
+  cib: boolean | null;
+  adaptive_cruise_control: boolean | null;
+  forward_collision_warning: boolean | null;
+  lane_departure_warning: boolean | null;
+  lane_keep_system: boolean | null;
+  lane_centering_assistance: boolean | null;
+  pedestrian_aeb: boolean | null;
+  rear_visibility_system: boolean | null;
+  rear_aeb: boolean | null;
+  rear_cross_traffic_alert: boolean | null;
+  park_assist: boolean | null;
+  tpms: boolean | null;
+  edr: boolean | null;
+  blind_spot_monitoring: boolean | null;
+}
+
+interface AirbagMap {
+  front: boolean | null;
+  side: boolean | null;
+  curtain: boolean | null;
+  knee: boolean | null;
+  seat_cushion: boolean | null;
+  pretensioner: boolean | null;
+}
+
+interface LightingMap {
+  daytime_running_lights: boolean | null;
+  lower_beam_source: string | null;
+  automatic_beam_switching: boolean | null;
+}
 
 // Import the helper functions from the main file
 // Note: In a real setup, these would be exported from a separate module
@@ -28,7 +69,7 @@ function parseAirbagFlag(s: string | null): boolean | null {
 }
 
 // Map vPIC response to our safety equipment structure
-function mapSafetyEquipment(vpicData: any): object {
+function mapSafetyEquipment(vpicData: Record<string, any>): SafetyEquipment {
   return {
     abs: toBool(vpicData.ABS),
     esc: toBool(vpicData.ESC),
@@ -52,7 +93,7 @@ function mapSafetyEquipment(vpicData: any): object {
 }
 
 // Map vPIC response to our airbag structure
-function mapAirbags(vpicData: any): object {
+function mapAirbags(vpicData: Record<string, any>): AirbagMap {
   return {
     front: parseAirbagFlag(vpicData.AirBagLocFront),
     side: parseAirbagFlag(vpicData.AirBagLocSide),
@@ -64,7 +105,7 @@ function mapAirbags(vpicData: any): object {
 }
 
 // Map vPIC response to our lighting structure
-function mapLighting(vpicData: any): object {
+function mapLighting(vpicData: Record<string, any>): LightingMap {
   return {
     daytime_running_lights: toBool(vpicData.DaytimeRunningLight),
     lower_beam_source: vpicData.LowerBeamHeadlampLightSource || null,

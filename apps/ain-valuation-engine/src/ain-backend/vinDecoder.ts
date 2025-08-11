@@ -1,6 +1,13 @@
-import axios from 'axios';
+import { decodeVin, extractLegacyVehicleInfo, isVinDecodeSuccessful } from '../services/unifiedVinDecoder';
+
 export async function decodeVIN(vin: string) {
-  const url = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`;
-  const response = await axios.get(url);
-  return response.data;
+  const result = await decodeVin(vin);
+  
+  if (!isVinDecodeSuccessful(result)) {
+    return [];
+  }
+  
+  // Return in legacy array format for backward compatibility
+  const legacyData = extractLegacyVehicleInfo(result);
+  return [legacyData];
 }

@@ -9,12 +9,29 @@ export interface ValuationInputs {
   zipCode?: string;
 }
 
-export interface FuelEconomyData {
-  fuelType: string;
-  cityMpg: number | null;
-  highwayMpg: number | null;
-  combinedMpg: number | null;
-  fuelCostPerYearUSD?: number;
+// Main valuation interfaces and types
+
+import { FuelEconomyData } from '../services/fuelEconomyService';
+
+export interface NHTSARecall {
+  id: string;
+  campaignNumber: string;
+  component: string;
+  summary: string;
+  consequence: string;
+  remedy: string;
+  notes?: string;
+  recallDate: string;
+}
+
+export interface VehicleSpecification {
+  bodyStyle?: string;
+  drivetrain?: string;
+  engine?: string;
+  transmission?: string;
+  fuelType?: string;
+  seatingCapacity?: number;
+  doors?: number;
 }
 
 export interface EnrichedVehicleProfile {
@@ -27,7 +44,7 @@ export interface EnrichedVehicleProfile {
   vehicleType?: string;
 
   fuelEconomy?: FuelEconomyData;
-  nhtsaRecalls?: any[];
+  nhtsaRecalls?: NHTSARecall[];
 
   marketValueUSD?: number | null;
   valuationConfidence?: string;

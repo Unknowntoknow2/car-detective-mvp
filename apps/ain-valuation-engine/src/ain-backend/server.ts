@@ -1,5 +1,5 @@
 import express from "express";
-import logger from "./logger.js";
+import logger from "../utils/logger.js";
 import axios from "axios";
 
 const app = express();
@@ -14,6 +14,11 @@ async function fetchJoke(): Promise<string> {
     return "No joke available.";
   }
 }
+
+// Root route to fix 'Cannot GET /'
+app.get("/", (req, res) => {
+  res.send("Backend is running!");
+});
 
 app.get("/api/joke", async (req, res) => {
   const joke = await fetchJoke();

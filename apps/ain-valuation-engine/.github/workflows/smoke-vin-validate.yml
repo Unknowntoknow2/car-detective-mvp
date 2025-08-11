@@ -1,0 +1,23 @@
+name: Smoke VIN Validate
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 * * * *"
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call vin-validate (valid VIN)
+        env:
+          PROJECT_REF: xltxqqzattxogxtqrggt
+        run: |
+          set -euo pipefail
+          BASE="https://${PROJECT_REF}.supabase.co/functions/v1"
+          code=$(curl -s -o /tmp/out.json -w "%{http_code}" \
+            -X POST "$BASE/vin-validate" \
+            -H "content-type: application/json" \
+            -d '{"vin":"1HGCM82633A004352"}')
+          echo "HTTP $code"
+          cat /tmp/out.json
+          # Must be ok:true
+          jq -e '.ok == true' /tmp/out.json

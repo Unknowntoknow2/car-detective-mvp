@@ -1,4 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
+import logger from "../utils/logger";
+import { SessionData, VehicleData } from '../types/api';
 
 const supabaseUrl = process.env.SUPABASE_URL || "";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -6,7 +8,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 export const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Session and vehicle data functions
-export async function storeSession(sessionId: string, sessionData: any) {
+export async function storeSession(sessionId: string, sessionData: SessionData) {
   try {
     const { data, error } = await supabase
       .from('sessions')
@@ -19,7 +21,7 @@ export async function storeSession(sessionId: string, sessionData: any) {
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.error('Error storing session:', error);
+    logger.error('Error storing session:', error);
     return { success: false, error };
   }
 }
@@ -35,12 +37,12 @@ export async function retrieveSession(sessionId: string) {
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.error('Error retrieving session:', error);
+    logger.error('Error retrieving session:', error);
     return { success: false, error };
   }
 }
 
-export async function storeVehicleData(vehicleId: string, vehicleData: any) {
+export async function storeVehicleData(vehicleId: string, vehicleData: VehicleData) {
   try {
     const { data, error } = await supabase
       .from('vehicles')
@@ -53,7 +55,7 @@ export async function storeVehicleData(vehicleId: string, vehicleData: any) {
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.error('Error storing vehicle data:', error);
+    logger.error('Error storing vehicle data:', error);
     return { success: false, error };
   }
 }
@@ -69,7 +71,7 @@ export async function retrieveVehicleData(vehicleId: string) {
     if (error) throw error;
     return { success: true, data };
   } catch (error) {
-    console.error('Error retrieving vehicle data:', error);
+    logger.error('Error retrieving vehicle data:', error);
     return { success: false, error };
   }
 }

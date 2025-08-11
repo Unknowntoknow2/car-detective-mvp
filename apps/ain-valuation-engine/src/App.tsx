@@ -1,31 +1,79 @@
 import React, { useState } from "react";
+import logger from "./utils/logger";
 import { VinLookupForm } from "@/components/lookup/vin/VinLookupForm";
 import { DataCollectionForm } from "@/components/followup/DataCollectionForm";
 import { ValuationResultsDisplay } from "@/components/result/ValuationResultsDisplay";
 import { VariableValue } from "@/types/VariableValue";
 import { ValuationResult } from "@/types/ValuationTypes";
 
+/** Application state defining the current step in the valuation workflow */
 type AppState = 'vin-lookup' | 'data-collection' | 'valuation-results';
 
+/**
+ * Main application component managing the vehicle valuation workflow.
+ * 
+ * This component orchestrates the three-step valuation process:
+ * 1. VIN lookup and decoding
+ * 2. Additional data collection
+ * 3. Final valuation results display
+ * 
+ * The component manages state transitions and data flow between steps,
+ * ensuring a smooth user experience through the valuation process.
+ * 
+ * @component
+ * @returns {JSX.Element} The main application interface
+ * 
+ * @example
+ * ```tsx
+ * import App from './App';
+ * 
+ * function Root() {
+ *   return <App />;
+ * }
+ * ```
+ * 
+ * @stateFlow
+ * vin-lookup → data-collection → valuation-results
+ * 
+ * @features
+ * - Multi-step wizard interface
+ * - State persistence between steps
+ * - Error handling and recovery
+ * - Structured logging for debugging
+ */
 function App() {
   const [currentState, setCurrentState] = useState<AppState>('vin-lookup');
   const [decodedVin, setDecodedVin] = useState<VariableValue[]>([]);
   const [valuationResult, setValuationResult] = useState<ValuationResult | null>(null);
   const [currentVin, setCurrentVin] = useState<string>('');
 
+  /**
+   * Handles successful VIN decoding and transitions to data collection step.
+   * 
+   * @param {VariableValue[]} data - Decoded vehicle data from VIN lookup
+   * @param {string} vin - The original VIN that was decoded
+   */
   const handleVinDecoded = (data: VariableValue[], vin: string) => {
-    console.log("Decoded VIN result:", data);
+    logger.info("Decoded VIN result:", data);
     setDecodedVin(data);
     setCurrentVin(vin);
     setCurrentState('data-collection');
   };
 
+  /**
+   * Handles completion of data collection and transitions to results display.
+   * 
+   * @param {ValuationResult} valuation - Complete valuation results
+   */
   const handleDataCollectionComplete = (valuation: ValuationResult) => {
-    console.log("Valuation completed:", valuation);
+    logger.info("Valuation completed:", valuation);
     setValuationResult(valuation);
     setCurrentState('valuation-results');
   };
 
+  /**
+   * Resets the application to initial state for a new valuation.
+   */
   const handleStartOver = () => {
     setCurrentState('vin-lookup');
     setDecodedVin([]);
@@ -33,6 +81,11 @@ function App() {
     setValuationResult(null);
   };
 
+  /**
+   * Renders the appropriate component based on current application state.
+   * 
+   * @returns {JSX.Element} The current step component
+   */
   const renderCurrentState = () => {
     switch (currentState) {
       case 'vin-lookup':

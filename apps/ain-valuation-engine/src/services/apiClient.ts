@@ -1,6 +1,14 @@
 import axios, { AxiosResponse } from 'axios';
 import { ApiResponse, RateLimit } from '@/types/ValuationTypes';
 
+interface RequestOptions {
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  headers?: Record<string, string>;
+  body?: Record<string, unknown> | string | FormData;
+  timeout?: number;
+  retries?: number;
+}
+
 export class ApiClient {
   private baseTimeout = 10000; // 10 seconds
   private maxRetries = 3;
@@ -8,13 +16,7 @@ export class ApiClient {
 
   private async makeRequest<T>(
     url: string,
-    options: {
-      method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-      headers?: Record<string, string>;
-      body?: any;
-      timeout?: number;
-      retries?: number;
-    } = {}
+    options: RequestOptions = {}
   ): Promise<ApiResponse<T>> {
     const {
       method = 'GET',
@@ -75,23 +77,23 @@ export class ApiClient {
     };
   }
 
-  private extractRateLimit(headers: any): RateLimit | undefined {
+  private extractRateLimit(headers: Record<string, unknown>): RateLimit | undefined {
     const remaining = headers['x-ratelimit-remaining'];
     const reset = headers['x-ratelimit-reset'];
     const limit = headers['x-ratelimit-limit'];
 
     if (remaining && reset && limit) {
       return {
-        remaining: parseInt(remaining),
-        resetTime: new Date(parseInt(reset) * 1000),
-        limit: parseInt(limit),
+        remaining: parseInt(String(remaining)),
+        resetTime: new Date(parseInt(String(reset)) * 1000),
+        limit: parseInt(String(limit)),
       };
     }
 
     return undefined;
   }
 
-  private formatError(error: any): string {
+  private formatError(error: Error | unknown): string {
     if (axios.isAxiosError(error)) {
       if (error.response) {
         return `HTTP ${error.response.status}: ${error.response.data?.message || error.response.statusText}`;
@@ -110,7 +112,7 @@ export class ApiClient {
 
   public async post<T>(
     url: string,
-    body: any,
+    body: Record<string, unknown> | string | FormData,
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
     return this.makeRequest<T>(url, { method: 'POST', body, headers });
@@ -118,7 +120,7 @@ export class ApiClient {
 
   public async put<T>(
     url: string,
-    body: any,
+    body: Record<string, unknown> | string | FormData,
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
     return this.makeRequest<T>(url, { method: 'PUT', body, headers });

@@ -1,13 +1,60 @@
 import { apiClient } from './apiClient';
 import { VehicleHistory, AccidentRecord, ServiceRecord, OwnershipRecord, TitleRecord, RecallRecord, ApiResponse } from '@/types/ValuationTypes';
 
+// Properly typed Carfax response structure
+interface CarfaxAccident {
+  date: string;
+  severity: string;
+  damageDescription: string;
+  estimatedCost?: number;
+}
+
+interface CarfaxService {
+  date: string;
+  type: string;
+  mileage: number;
+  description: string;
+  cost?: number;
+  dealer?: string;
+}
+
+interface CarfaxOwner {
+  startDate: string;
+  endDate?: string;
+  state: string;
+  type: 'personal' | 'lease' | 'fleet' | 'rental';
+}
+
+interface CarfaxTitle {
+  date: string;
+  state: string;
+  type: string;
+  mileage?: number;
+}
+
 interface CarfaxResponse {
   vin: string;
-  reportData: any;
+  reportData: {
+    accidents: CarfaxAccident[];
+    serviceRecords: CarfaxService[];
+    ownership: CarfaxOwner[];
+    titles: CarfaxTitle[];
+  };
+}
+
+// Properly typed Autocheck response structure
+interface AutocheckEvent {
+  type: string;
+  date: string;
+  description: string;
+  severity?: string;
+  mileage?: number;
 }
 
 interface AutocheckResponse {
-  vehicleHistory: any;
+  vehicleHistory: {
+    events: AutocheckEvent[];
+  };
 }
 
 export class VehicleHistoryService {
@@ -143,27 +190,27 @@ export class VehicleHistoryService {
     }
   }
 
-  private extractCarfaxAccidents(data: any): AccidentRecord[] {
+  private extractCarfaxAccidents(data: CarfaxResponse['reportData']): AccidentRecord[] {
     if (!data.accidents) return [];
 
-    return data.accidents.map((accident: any) => ({
+    return data.accidents.map((accident: CarfaxAccident) => ({
       date: new Date(accident.date),
       severity: this.mapSeverity(accident.severity),
-      description: accident.description,
-      damageAmount: accident.estimatedDamage,
+      description: accident.damageDescription,
+      damageAmount: accident.estimatedCost,
     }));
   }
 
-  private extractCarfaxService(data: any): ServiceRecord[] {
+  private extractCarfaxService(data: CarfaxResponse['reportData']): ServiceRecord[] {
     if (!data.serviceRecords) return [];
 
-    return data.serviceRecords.map((service: any) => ({
+    return data.serviceRecords.map((service: CarfaxService) => ({
       date: new Date(service.date),
       mileage: service.mileage,
       serviceType: service.type,
       description: service.description,
       cost: service.cost,
-      dealer: service.dealer,
+      dealer: Boolean(service.dealer), // Convert to boolean as expected by ServiceRecord
     }));
   }
 

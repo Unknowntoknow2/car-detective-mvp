@@ -1,7 +1,8 @@
-import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+// @ts-ignore - Deno remote imports
+// @ts-ignore - Deno remote imports
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-serve(async (req) => {
+serve(async (req: Request) => {
   const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -290,7 +291,12 @@ serve(async (req) => {
     // Normalize NHTSA SafetyRatings response
     const results = Array.isArray(nhtsaData.Results) ? nhtsaData.Results : [];
     let safetyRatings = null;
-    let safetyFlags = {};
+    interface SafetyFlags {
+      nhtsa_id?: string | null;
+      vehicle_description?: string | null;
+      [key: string]: any;
+    }
+    let safetyFlags: SafetyFlags = {};
 
     if (results.length > 0) {
       // Take the first result or try to find best match

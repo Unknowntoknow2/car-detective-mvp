@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "useUnknownInCatchVariables": false,
+  },
+  "importMap": "./import_map.json",
+  "tasks": {
+    "check:one": "deno check --remote",
+    "check:backfill": "deno check --remote jobs/backfill-safety-json/index.ts",
+    "dev:backfill": "deno run -A jobs/backfill-safety-json/index.ts"
+  }
+}

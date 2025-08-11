@@ -1,12 +1,12 @@
+import { MarketListing } from '@/types/ValuationTypes';
+import logger from '../utils/logger';
+
 interface ValuationResult {
-  value: number;
+  estimatedValue: number;
   confidence: number;
-  breakdown: {
-    baseValue: number;
-    mileageAdjustment: number;
-    conditionAdjustment: number;
-    marketFactors: number;
-    finalValue: number;
+  priceRange: {
+    low: number;
+    high: number;
   };
   factors: string[];
 }
@@ -17,7 +17,7 @@ interface VehicleData {
   model?: string;
   mileage?: number;
   condition?: 'excellent' | 'good' | 'fair' | 'poor';
-  marketComparables?: any[];
+  marketComparables?: MarketListing[];
 }
 
 export async function valuateVehicle(vehicleData: VehicleData): Promise<ValuationResult> {
@@ -74,28 +74,22 @@ export async function valuateVehicle(vehicleData: VehicleData): Promise<Valuatio
     ];
     
     return {
-      value: Math.round(finalValue),
+      estimatedValue: Math.round(finalValue),
       confidence: Math.round(confidence * 100) / 100,
-      breakdown: {
-        baseValue: Math.round(baseValue),
-        mileageAdjustment: Math.round(mileageAdjustment),
-        conditionAdjustment: Math.round(conditionAdjustment),
-        marketFactors: Math.round(marketFactors),
-        finalValue: Math.round(finalValue)
+      priceRange: {
+        low: Math.round(finalValue * 0.9),
+        high: Math.round(finalValue * 1.1)
       },
       factors
     };
   } catch (error) {
-    console.error('Valuation error:', error);
+    logger.error('Valuation error:', error);
     return {
-      value: 0,
+      estimatedValue: 0,
       confidence: 0,
-      breakdown: {
-        baseValue: 0,
-        mileageAdjustment: 0,
-        conditionAdjustment: 0,
-        marketFactors: 0,
-        finalValue: 0
+      priceRange: {
+        low: 0,
+        high: 0
       },
       factors: ['Valuation calculation failed']
     };

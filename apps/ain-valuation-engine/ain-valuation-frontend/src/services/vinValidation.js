@@ -82,5 +82,17 @@ export function isValidWMI(vin) {
   const wmi = vin.slice(0, 3);
   return KNOWN_WMI.includes(wmi);
 }
-export { validateVINFull as validateVIN };
+/**
+ * VIN validation function that returns result object instead of throwing
+ * @param {string} vin
+ * @returns {Object} { valid: boolean, error?: string }
+ */
+export function validateVIN(vin) {
+  try {
+    validateVINFull(vin);
+    return { valid: true };
+  } catch (error) {
+    return { valid: false, error: error.message };
+  }
+}
 

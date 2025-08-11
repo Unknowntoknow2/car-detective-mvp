@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import logger from '../utils/logger';
 
 const openai = new OpenAI({
   apiKey: process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY,
@@ -33,7 +34,7 @@ export async function analyzeImage(imageBuffer: Buffer) {
 
     return response.choices[0]?.message?.content || "Unable to analyze image.";
   } catch (error) {
-    console.error('Vision API error:', error);
+    logger.error('Vision API error:', error);
     return "Image analysis temporarily unavailable. Please try again later.";
   }
 }

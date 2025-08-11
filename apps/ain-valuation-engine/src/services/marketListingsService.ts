@@ -1,19 +1,76 @@
 import { apiClient } from './apiClient';
 import { VehicleData, MarketListing, VehicleCondition, ApiResponse } from '@/types/ValuationTypes';
 
+// Proper typing for external API responses
+interface AutotraderListing {
+  id: string;
+  price: number;
+  mileage: number;
+  year: number;
+  make: string;
+  model: string;
+  trim?: string;
+  condition: string;
+  location: {
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  dealer: {
+    name: string;
+    phone?: string;
+  };
+  images?: string[];
+  url?: string;
+}
+
+interface CarsComListing {
+  listingId: string;
+  askingPrice: number;
+  mileage: number;
+  year: number;
+  make: string;
+  model: string;
+  trim?: string;
+  condition: string;
+  location: string;
+  dealerName: string;
+  photos?: Array<{ url: string }>;
+  detailsUrl?: string;
+}
+
+interface CarGurusListing {
+  id: string;
+  priceString: string;
+  price: number;
+  mileage: number;
+  year: number;
+  makeName: string;
+  modelName: string;
+  trimName?: string;
+  condition: string;
+  city: string;
+  state: string;
+  dealerDisplayName: string;
+  mainPictureUrl?: string;
+  listingUrl?: string;
+  listingDate?: string;
+  sellerType?: string;
+}
+
 interface AutotraderResponse {
-  listings: any[];
+  listings: AutotraderListing[];
   total: number;
   page: number;
 }
 
 interface CarsComResponse {
-  listings: any[];
+  listings: CarsComListing[];
   totalResults: number;
 }
 
 interface CarGurusResponse {
-  data: any[];
+  data: CarGurusListing[];
   count: number;
 }
 
@@ -252,7 +309,7 @@ export class MarketListingsService {
     return locations[Math.floor(Math.random() * locations.length)];
   }
 
-  private transformAutotraderListing(data: any): MarketListing {
+  private transformAutotraderListing(data: AutotraderListing): MarketListing {
     return {
       id: data.id,
       price: data.price,
@@ -262,15 +319,15 @@ export class MarketListingsService {
       model: data.model,
       trim: data.trim,
       condition: this.mapCondition(data.condition),
-      location: `${data.city}, ${data.state}`,
+      location: `${data.location.city}, ${data.location.state}`,
       source: 'autotrader',
-      listingDate: new Date(data.listingDate),
+      listingDate: new Date(), // Autotrader doesn't provide listing date in our interface
       url: data.url,
-      dealer: data.isDealer,
+      dealer: Boolean(data.dealer.name), // Convert to boolean based on dealer presence
     };
   }
 
-  private transformCarsComListing(data: any): MarketListing {
+  private transformCarsComListing(data: CarsComListing): MarketListing {
     return {
       id: data.listingId,
       price: data.askingPrice,
@@ -280,27 +337,27 @@ export class MarketListingsService {
       model: data.model,
       trim: data.trim,
       condition: this.mapCondition(data.condition),
-      location: `${data.location.city}, ${data.location.state}`,
+      location: data.location, // Cars.com provides location as string
       source: 'cars.com',
-      listingDate: new Date(data.datePosted),
-      url: data.detailUrl,
-      dealer: data.sellerType === 'dealer',
+      listingDate: new Date(), // Cars.com doesn't provide date in our interface
+      url: data.detailsUrl,
+      dealer: Boolean(data.dealerName), // Convert to boolean based on dealer name presence
     };
   }
 
-  private transformCarGurusListing(data: any): MarketListing {
+  private transformCarGurusListing(data: CarGurusListing): MarketListing {
     return {
       id: data.id,
       price: data.price,
       mileage: data.mileage,
-      year: data.carYear,
+      year: data.year,
       make: data.makeName,
       model: data.modelName,
       trim: data.trimName,
       condition: this.mapCondition(data.condition),
       location: `${data.city}, ${data.state}`,
       source: 'cargurus',
-      listingDate: new Date(data.listingDate),
+      listingDate: data.listingDate ? new Date(data.listingDate) : new Date(),
       url: data.listingUrl,
       dealer: data.sellerType === 'DEALER',
     };

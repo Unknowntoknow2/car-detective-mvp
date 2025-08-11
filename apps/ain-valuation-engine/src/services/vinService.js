@@ -1,7 +1,27 @@
-// Stub for decodeVIN, replace with real API call as needed
-export async function decodeVIN(_vin) {
-    // Example implementation: Call NHTSA VPIC, parse year, etc.
-    // Here, just return a mock for illustration:
-    // In production, you'd fetch from the NHTSA API and parse the year field!
-    return { year: "2023" }; // Replace with real decode logic!
+import { decodeVin, extractVehicleInfo, isVinDecodeSuccessful } from './unifiedVinDecoder';
+
+// Updated VIN service using unified decoder
+export async function decodeVIN(vin) {
+    try {
+        const result = await decodeVin(vin);
+        
+        if (!isVinDecodeSuccessful(result)) {
+            throw new Error('VIN decode failed: ' + result.metadata.errorText);
+        }
+        
+        const vehicleInfo = extractVehicleInfo(result);
+        
+        // Return legacy format for backward compatibility
+        return { 
+            year: vehicleInfo.modelYear,
+            make: vehicleInfo.make,
+            model: vehicleInfo.model,
+            trim: vehicleInfo.trim,
+            // Include full vehicle info for enhanced usage
+            ...vehicleInfo
+        };
+    } catch (error) {
+        console.error('VIN decode failed:', error);
+        throw error;
+    }
 }

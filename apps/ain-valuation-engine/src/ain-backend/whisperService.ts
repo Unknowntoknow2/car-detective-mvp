@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import logger from '../utils/logger';
 import fs from 'fs';
 import path from 'path';
 
@@ -24,8 +25,8 @@ export async function transcribeAudio(audioBuffer: Buffer) {
     fs.unlinkSync(tempFilePath);
 
     return transcription;
-  } catch (error: any) {
-    console.error('Whisper API error:', error);
+  } catch (error) {
+    logger.error('Whisper API error:', error);
     return "Audio transcription temporarily unavailable. Please try again later.";
   }
 }

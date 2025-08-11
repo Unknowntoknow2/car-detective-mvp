@@ -1,9 +1,10 @@
-import axios from "axios";
+import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from '../services/unifiedVinDecoder';
+import { ConversationState, VehicleFeature } from '../types/api';
 
 export class ConversationEngine {
-  state: any;
-  constructor(state: any) {
-    this.state = state || {};
+  state: ConversationState;
+  constructor(state: ConversationState = {}) {
+    this.state = state;
   }
 
   getNextQuestion() {
@@ -13,20 +14,31 @@ export class ConversationEngine {
     return "All information collected!";
   }
 
-  async processInput(input: any) {
+  async processInput(input: Record<string, unknown>) {
     this.state = { ...this.state, ...input };
     return this.state;
   }
 
-  async collectFeatures(features: any) {
+  async collectFeatures(features: VehicleFeature[]) {
     this.state.features = features;
-    if (features.vin) {
-      const vin = features.vin;
+    const vinFeature = features.find(f => f.name === 'vin');
+    if (vinFeature && typeof vinFeature.value === 'string') {
+      const vin = vinFeature.value;
       try {
-        const response = await axios.get(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/${vin}?format=json`);
-        this.state.decoded = response.data.Results;
+        const result = await decodeVin(vin);
+        if (isVinDecodeSuccessful(result)) {
+          // Convert unified format to legacy DecodedVinResult format
+          const legacyResults = Object.entries(result.raw).map(([key, value]) => ({
+            Variable: key,
+            Value: value
+          }));
+          this.state.decoded = legacyResults;
+        } else {
+          this.state.decodeError = result.metadata.errorText || 'VIN decoding failed';
+        }
+        this.state.vin = vin;
       } catch (error) {
-        this.state.decodeError = error.message || "VIN decoding failed";
+        this.state.decodeError = (error as Error).message || "VIN decoding failed";
       }
     }
     return this.state;

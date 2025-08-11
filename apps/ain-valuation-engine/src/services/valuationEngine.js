@@ -3,7 +3,7 @@ import { vehicleHistoryService } from './vehicleHistoryService';
 import { VehicleCondition, TitleStatus } from '@/types/ValuationTypes';
 // Add these imports for new audit and VIN decode support
 import { auditLogService } from './auditLogService'; // You should create this file (see below)
-import { decodeVIN } from './vinService'; // You should create this file (see below)
+import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from './unifiedVinDecoder';
 
 export class ValuationEngine {
     minComparables = 100;
@@ -17,14 +17,22 @@ export class ValuationEngine {
      */
     async processValuation({ vin, year: userSelectedYear, ...vehicleData }) {
         // 1. Decode VIN to get true year
-        const decodedVehicle = await decodeVIN(vin);
-        if (parseInt(userSelectedYear, 10) !== parseInt(decodedVehicle.year, 10)) {
+        const result = await decodeVin(vin);
+        
+        if (!isVinDecodeSuccessful(result)) {
+            throw new Error(result.metadata.errorText || 'VIN decoding failed');
+        }
+        
+        const decodedVehicle = extractLegacyVehicleInfo(result);
+        const decodedYear = parseInt(decodedVehicle.modelYear, 10);
+        
+        if (parseInt(userSelectedYear, 10) !== decodedYear) {
             // 2. Audit log for security/tracing
             await auditLogService.record({
                 event: 'VIN-Year mismatch',
                 vin,
                 userSelectedYear,
-                decodedYear: decodedVehicle.year,
+                decodedYear,
                 timestamp: new Date().toISOString(),
             });
             // 3. Hard fail

@@ -125,7 +125,7 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
     return gaps;
   }
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean) => {
     setVehicleData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -147,17 +147,17 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
           }
           break;
         case 'min':
-          if (typeof value === 'number' && value < rule.value) {
+          if (typeof value === 'number' && typeof rule.value === 'number' && value < rule.value) {
             newErrors[currentGap.field] = rule.message;
           }
           break;
         case 'max':
-          if (typeof value === 'number' && value > rule.value) {
+          if (typeof value === 'number' && typeof rule.value === 'number' && value > rule.value) {
             newErrors[currentGap.field] = rule.message;
           }
           break;
         case 'pattern':
-          if (typeof value === 'string' && !rule.value.test(value)) {
+          if (typeof value === 'string' && rule.value instanceof RegExp && !rule.value.test(value)) {
             newErrors[currentGap.field] = rule.message;
           }
           break;
@@ -195,7 +195,9 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
       const result = await runValuation(vin);
 
       if (result) {
-        onComplete(result);
+        // Convert DecodedVinData to ValuationResult for the interface
+        const valuationResult = result as any; // Temporary type assertion
+        onComplete(valuationResult);
       } else {
         console.error('Valuation failed');
         // Handle error - show error message to user

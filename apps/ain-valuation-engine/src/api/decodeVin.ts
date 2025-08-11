@@ -1,23 +1,40 @@
 
+/**
+ * Unified VIN decoding API endpoint
+ * Uses the consolidated unifiedVinDecoder service
+ * @deprecated Use decodeVin from unifiedVinDecoder.ts directly instead
+ */
+
+import { decodeVin as unifiedDecodeVin, extractLegacyVehicleInfo, isVinDecodeSuccessful } from '../services/unifiedVinDecoder';
+
+/**
+ * @deprecated Use decodeVin from unifiedVinDecoder.ts directly instead
+ * This API wrapper is maintained for backward compatibility only
+ */
 export async function decodeVin(vin: string) {
-  const anonToken = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-  const response = await fetch(
-    import.meta.env.VITE_SUPABASE_URL + '/functions/v1/decode-vin',
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${anonToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ vin }),
+  console.warn('⚠️ src/api/decodeVin.ts is DEPRECATED. Use unifiedVinDecoder.decodeVin directly.');
+  
+  try {
+    const result = await unifiedDecodeVin(vin);
+    
+    if (!isVinDecodeSuccessful(result)) {
+      throw new Error(result.metadata.errorText || 'VIN decode failed');
     }
-  )
-
-  if (!response.ok) {
-    const err = await response.text()
-    throw new Error(`❌ VIN decode failed: ${response.status} ${err}`)
+    
+    // Extract vehicle info for backward compatibility
+    const vehicleInfo = extractLegacyVehicleInfo(result);
+    
+    return {
+      success: true,
+      data: vehicleInfo,
+      raw: result.raw,
+      metadata: result.metadata
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      data: null
+    };
   }
-
-  return await response.json()
 }
