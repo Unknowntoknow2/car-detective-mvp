@@ -150,9 +150,48 @@ Data is versioned (DVC, LakeFS) and enriched (e.g., VIN decoding, EPA specs) for
 
 ---
 
+## Architecture
+
+The AIN Valuation Engine follows a modern, scalable architecture designed for enterprise deployment:
+
+### Core Components
+- **Frontend**: React 19 with TypeScript and Vite build system
+- **Backend**: Supabase with PostgreSQL database and Edge Functions
+- **AI/ML Stack**: OpenAI GPT-3.5-turbo, SHAP explainability, scikit-learn models
+- **Data Sources**: NHTSA vPIC, EPA, safety ratings, market listings
+- **Caching**: Redis for performance optimization
+- **Monitoring**: Comprehensive logging and performance metrics
+
+For detailed architectural decisions, see [Architecture Decision Records](docs/adr/).
+
+---
+
 ## Development Roadmap
 
-See [AIN_Enterprise_Development_Manual.md](AIN_Enterprise_Development_Manual.md) for the full roadmap, team structure, operational playbook, and contribution guide.
+See [CHANGELOG.md](CHANGELOG.md) for recent releases and [AIN_Enterprise_Development_Manual.md](AIN_Enterprise_Development_Manual.md) for the full roadmap, team structure, operational playbook, and contribution guide.
+
+### Current Version: 1.2.0
+- ✅ VIN decoding and vehicle specifications
+- ✅ NHTSA safety ratings integration
+- ✅ Safety data backfill system
+- 🚧 IIHS safety ratings (in progress)
+- 📋 European NCAP support (planned)
+
+---
+
+## Documentation
+
+### Core Documentation
+- [System Architecture](SYSTEM_DOCUMENTATION.md) - Technical system overview
+- [Enterprise Manual](AIN_Enterprise_Development_Manual.md) - Complete enterprise guide
+- [API Documentation](API_INTEGRATION_GUIDE.md) - API integration guide
+- [Troubleshooting](TROUBLESHOOTING_GUIDE.md) - Common issues and solutions
+
+### Developer Resources
+- [Architecture Decision Records](docs/adr/) - Key architectural decisions
+- [Database Schema](docs/schema/vehicle_specs.md) - Core data model documentation
+- [PR History](docs/history/) - Major development milestones
+- [Contributing Guide](CONTRIBUTING.md) - Development workflow and standards
 
 ---
 
@@ -163,7 +202,7 @@ See [AIN_Enterprise_Development_Manual.md](AIN_Enterprise_Development_Manual.md)
 - Submit PRs with tests and documentation updates
 - Run pre-commit hooks and CI before merging
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed information and [docs/history/](docs/history/) for examples of major contributions.
 
 ---
 
@@ -175,14 +214,20 @@ AIN Car Valuation Engine is [MIT licensed](LICENSE).
 
 ## Support & Community
 
-- [OpenAI API](https://openai.com/api)
-- [Kaggle Datasets](https://www.kaggle.com/datasets)
-- [EPA Data](https://www.fueleconomy.gov/)
-- [NHTSA API](https://vpic.nhtsa.dot.gov/api/)
-- [CarAPI](https://carapi.app/)
+### External Resources
+- [OpenAI API](https://openai.com/api) - AI/ML integration
+- [Kaggle Datasets](https://www.kaggle.com/datasets) - Vehicle data sources
+- [EPA Data](https://www.fueleconomy.gov/) - Fuel economy information
+- [NHTSA API](https://vpic.nhtsa.dot.gov/api/) - Vehicle specifications and safety
+- [CarAPI](https://carapi.app/) - Automotive data integration
+
+### Project Resources
+- **Issues**: GitHub Issues for bug reports and feature requests
+- **Discussions**: GitHub Discussions for community questions
+- **Enterprise Support**: See [AIN_Enterprise_Development_Manual.md](AIN_Enterprise_Development_Manual.md)
 
 For questions, join discussions or open issues!
 
 ---
 
-> For full enterprise documentation, operational playbooks, and onboarding guides, see [AIN_Enterprise_Development_Manual.md](AIN_Enterprise_Development_Manual.md)# My AI/ML Project
+> **Enterprise Users**: For complete onboarding, operational playbooks, and audit documentation, see [AIN_Enterprise_Development_Manual.md](AIN_Enterprise_Development_Manual.md) and the [docs/](docs/) directory.
