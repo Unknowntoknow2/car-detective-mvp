@@ -157,3 +157,8 @@ if __name__ == '__main__':
     # In production, use a WSGI server like Gunicorn (e.g., gunicorn -w 4 api.app:app)
     app.run(debug=True, host='0.0.0.0', port=5000)
 
+
+
+@app.get('/api/health')
+def _health():
+    return {'ok': True}
