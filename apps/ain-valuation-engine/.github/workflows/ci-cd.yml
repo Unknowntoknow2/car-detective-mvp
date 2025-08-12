@@ -48,6 +48,7 @@ jobs:
   docker:
     name: Build & Push Docker
     needs: test
+    if: ${{ secrets.DOCKER_USERNAME !=  && secrets.DOCKER_PASSWORD !=  }}
     runs-on: ubuntu-latest
     if: ${{ github.ref == 'refs/heads/main' }}
     env:
