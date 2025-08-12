@@ -182,6 +182,7 @@ class VehicleDataForValuation(BaseModel):
 # and is ready for predictions.
 @app.before_request
 def before_first_request():
+    pass
 def load_model_pipeline():
     global MODEL_PIPELINE
     logger.info("Initializing valuation engine pipeline...")
