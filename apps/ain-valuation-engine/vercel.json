@@ -1,20 +1,15 @@
 {
   "version": 2,
-
-  // Run all Python serverless functions with Python 3.11
   "functions": {
-    "api/**/*.py": { "runtime": "python3.11", "memory": 1024, "maxDuration": 10 }
+    "api/**/*.py": {
+      "runtime": "python3.11"
+    }
   },
-
-  // Build your Vite SPA; output goes to "dist"
-  "buildCommand": "npm ci --legacy-peer-deps && npm run build",
-  "outputDirectory": "dist",
-
-  // Route /api/* to Python; everything else to the SPA
   "routes": [
-    { "src": "^/api/ping$", "dest": "/api/ping.py" },
-    { "src": "^/api(?:/.*)?$", "dest": "/api/app.py" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
-  ]
+    { "src": "^/api$", "dest": "/api/app.py" },
+    { "src": "^/api/(.*)$", "dest": "/api/app.py" }
+  ],
+  "installCommand": "npm ci --legacy-peer-deps || npm install --legacy-peer-deps",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist"
 }
