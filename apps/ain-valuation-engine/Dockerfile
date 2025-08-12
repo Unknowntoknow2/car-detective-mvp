@@ -1,9 +1,16 @@
-FROM python:3.11-slim AS base
+FROM python:3.10-slim
+
 WORKDIR /app
-COPY requirements.txt ./
+
+# Copy requirements file
+COPY requirements.txt .
+
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-FROM base AS runtime
+# Copy project files
 COPY . .
-EXPOSE 8000
-CMD ["python", "src/ain-backend/server.py"]
+
+# Command to run the application
+# Replace "app.py" with your actual entry point file
+CMD ["python", "app.py"]
