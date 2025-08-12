@@ -1,9 +1,2 @@
-fastapi
-uvicorn
-pydantic
-requests
-pytest
-pytest-cov
-httpx
-flake8
-coverage
+pytest==7.3.1
+pytest-cov==4.1.0
