@@ -1,112 +1,64 @@
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, jsonify, request
+from werkzeug.exceptions import HTTPException
 import os
-import uuid
-from werkzeug.utils import secure_filename
-from datetime import datetime
-
-# Assuming val_engine is in the same directory level or added to PYTHONPATH
-from val_engine.main import initialize_valuation_engine, run_valuation
-from val_engine.model import MODEL_PATH, ENCODERS_PATH
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = 'uploads/videos'
-ALLOWED_EXTENSIONS = {'mp4', 'mov', 'webm'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# ---------- Consistent JSON error envelope ----------
+@app.errorhandler(Exception)
+def _err(e):
+    code = e.code if isinstance(e, HTTPException) else 500
+    return jsonify(
+        error="internal_error" if code >= 500 else "bad_request",
+        details={"message": str(e)}
+    ), code
 
-def allowed_file(filename):
-    return filename is not None and '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+# ---------- Health / Version ----------
+@app.get("/api/v1/health")
+def health():
+    return jsonify(ok=True)
 
-with app.app_context():
-    try:
-        initialize_valuation_engine()
-        print("Flask app: Valuation engine initialized successfully.")
-    except Exception as e:
-        print(f"Flask app: ERROR during valuation engine initialization: {e}")
+@app.get("/api/v1/version")
+def version():
+    sha = os.getenv("VERCEL_GIT_COMMIT_SHA") or os.getenv("GITHUB_SHA") or "dev"
+    return jsonify(service="vehicle-platform", version=sha)
 
-@app.route('/api/health')
-def _health():
-    return jsonify({"ok": True})
+# ---------- OpenAPI (stub) ----------
+@app.get("/api/v1/openapi.json")
+def openapi():
+    return jsonify({
+        "openapi": "3.0.0",
+        "info": {"title": "Vehicle API", "version": "v1"},
+        "paths": {
+            "/api/v1/health": {"get": {"responses": {"200": {"description": "OK"}}}},
+            "/api/v1/version": {"get": {"responses": {"200": {"description": "OK"}}}}
+        }
+    })
 
-@app.route('/valuation', methods=['POST'])
-def get_valuation():
-    if not request.is_json:
-        return make_response(jsonify({"error": "Request must be JSON"}), 400)
+# ---------- API index ----------
+@app.get("/api")
+def api_index():
+    return jsonify(endpoints=[
+        "/api/v1/health",
+        "/api/v1/version",
+        "/api/v1/openapi.json"
+    ])
 
-    input_data = request.json
+# ---------- (Optional) valuation stub with lazy import ----------
+@app.post("/api/v1/valuations")
+def valuations():
+    data = request.get_json(silent=True) or {}
+    vin = data.get("vin")
+    if not vin:
+        return jsonify(error="bad_request", details={"message": "vin is required"}), 400
 
-    if input_data is None:
-        return make_response(jsonify({"error": "Invalid input."}), 400)
+    if os.getenv("ENABLE_VAL_ENGINE"):
+        from val_engine.main import initialize_valuation_engine, run_valuation  # noqa: E402
+        ve = initialize_valuation_engine()
+        # result = run_valuation(ve, vin)
+        # return jsonify(result)
 
-    required_fields = ["vin", "make", "model", "year", "mileage", "overall_condition_rating", "zipcode"]
-    for field in required_fields:
-        value = input_data.get(field)
-        if not isinstance(value, dict) or "value" not in value:
-            return make_response(jsonify({"error": f"Missing or invalid required field: {field}. Ensure it has a 'value' key."}), 400)
+    return jsonify({"vin": vin, "valuation": None, "status": "stub"})
 
-    try:
-        valuation_result = run_valuation(input_data)
-        return jsonify(valuation_result), 200
-    except RuntimeError as e:
-        return make_response(jsonify({"error": str(e)}), 500)
-    except KeyError as e:
-        return make_response(jsonify({"error": f"Missing expected data for valuation: {e}"}), 400)
-    except Exception as e:
-        print(f"An unexpected error occurred during valuation: {e}")
-        return make_response(jsonify({"error": "An internal error occurred during valuation."}), 500)
-
-@app.route('/upload_video', methods=['POST'])
-def upload_video():
-    if 'video' not in request.files:
-        return make_response(jsonify({"error": "No video file provided in request."}), 400)
-
-    video_file = request.files['video']
-    if not video_file or not video_file.filename:
-        return make_response(jsonify({"error": "No selected video file."}), 400)
-
-    if not allowed_file(video_file.filename):
-        return make_response(jsonify({"error": "Invalid file type. Only MP4, MOV, WebM are allowed."}), 400)
-
-    valuation_id = request.form.get('valuation_id')
-    vin = request.form.get('vin')
-    
-    if not valuation_id and not vin:
-        return make_response(jsonify({"error": "Missing associated metadata (valuation_id or VIN)."}), 400)
-
-    try:
-        original_filename = secure_filename(video_file.filename)
-        unique_filename = f"{uuid.uuid4()}_{original_filename}"
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-        video_file.save(file_path)
-
-        simulated_public_url = f"/videos/{unique_filename}" 
-        simulated_ai_score = 85
-        simulated_duration = 120
-        simulated_ai_summary = "Minor scratch on rear bumper, engine sound normal."
-
-        return jsonify({
-            "message": "Video uploaded successfully.",
-            "file_url": simulated_public_url,
-            "filename": unique_filename,
-            "valuation_id": valuation_id,
-            "vin": vin,
-            "uploaded_at": datetime.utcnow().isoformat(),
-            "ai_condition_score": simulated_ai_score,
-            "duration_seconds": simulated_duration,
-            "ai_analysis_summary": simulated_ai_summary,
-            "verified": True,
-            "source_origin": "AppRecorded"
-        }), 200
-
-    except Exception as e:
-        print(f"Error uploading video: {e}")
-        return make_response(jsonify({"error": f"Failed to upload video: {e}"}), 500)
-
-if __name__ == '__main__':
-    if os.path.exists(MODEL_PATH):
-        os.remove(MODEL_PATH)
-    if os.path.exists(ENCODERS_PATH):
-        os.remove(ENCODERS_PATH)
-    print("Cleaned up model artifacts before starting Flask app for fresh test.")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "3000")))
