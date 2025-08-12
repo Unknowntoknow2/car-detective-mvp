@@ -180,7 +180,8 @@ class VehicleDataForValuation(BaseModel):
 # --- Model Loading at App Startup ---
 # This ensures the model is loaded once when the Flask app starts
 # and is ready for predictions.
-@app.before_first_request
+@app.before_request
+def before_first_request():
 def load_model_pipeline():
     global MODEL_PIPELINE
     logger.info("Initializing valuation engine pipeline...")
