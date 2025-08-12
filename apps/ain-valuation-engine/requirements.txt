@@ -11,7 +11,7 @@ matplotlib==3.7.1
 shap==0.42.1
 
 # Web/API
-flask==2.0.1  # Using older Flask version to maintain compatibility
+flask==2.0.1
 slowapi==0.1.7
 requests==2.30.0
 aiohttp==3.8.4
