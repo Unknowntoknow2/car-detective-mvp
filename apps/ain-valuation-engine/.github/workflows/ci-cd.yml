@@ -48,9 +48,8 @@ jobs:
   docker:
     name: Build & Push Docker
     needs: test
-    if: ${{ secrets.DOCKER_USERNAME !=  && secrets.DOCKER_PASSWORD !=  }}
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: false # Disabled until Docker secrets are configured
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
@@ -79,6 +78,7 @@ jobs:
     name: Deploy
     needs: docker
     runs-on: ubuntu-latest
+    if: false # Disabled until AWS secrets are configured
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
