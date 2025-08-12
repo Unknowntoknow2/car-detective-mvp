@@ -1,25 +1,14 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict
-
-from flask import Flask, jsonify, Request
+from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException
 
-# -----------------------------------------------------------------------------
-# Flask app
-# -----------------------------------------------------------------------------
 app = Flask(__name__)
 
-# -----------------------------------------------------------------------------
-# Error envelope (always JSON)
-# -----------------------------------------------------------------------------
+# --- JSON error envelope ------------------------------------------------------
 @app.errorhandler(Exception)
 def handle_error(e: Exception):
-    """
-    Return a JSON error envelope and a proper HTTP status code.
-    Designed to satisfy Flask & type checkers (no tuple return).
-    """
     status = e.code if isinstance(e, HTTPException) and hasattr(e, "code") else 500
     payload = {
         "error": "internal_error" if int(status) >= 500 else "bad_request",
@@ -29,9 +18,7 @@ def handle_error(e: Exception):
     resp.status_code = int(status)
     return resp
 
-# -----------------------------------------------------------------------------
-# Discoverability (/ and /api)
-# -----------------------------------------------------------------------------
+# --- Discoverability ----------------------------------------------------------
 @app.get("/")
 @app.get("/api")
 def api_index():
@@ -45,26 +32,17 @@ def api_index():
         ]
     }
 
-# -----------------------------------------------------------------------------
-# Health & version
-# -----------------------------------------------------------------------------
+# --- Health & Version ---------------------------------------------------------
 @app.get("/api/v1/health")
 def health():
     return {"ok": True}
 
 @app.get("/api/v1/version")
 def version():
-    # Vercel provides VERCEL_GIT_COMMIT_SHA at runtime if available
-    ver = (
-        os.getenv("VERCEL_GIT_COMMIT_SHA")
-        or os.getenv("GIT_SHA")
-        or "dev"
-    )
+    ver = os.getenv("VERCEL_GIT_COMMIT_SHA") or os.getenv("GIT_SHA") or "dev"
     return {"service": "vehicle-platform", "version": ver}
 
-# -----------------------------------------------------------------------------
-# Minimal OpenAPI stub (so tools have something to read)
-# -----------------------------------------------------------------------------
+# --- OpenAPI stub -------------------------------------------------------------
 @app.get("/api/v1/openapi.json")
 def openapi():
     return {
@@ -77,16 +55,7 @@ def openapi():
         }
     }
 
-# -----------------------------------------------------------------------------
-# Simple ping (replaces old serverless ping.py)
-# -----------------------------------------------------------------------------
+# --- Simple ping --------------------------------------------------------------
 @app.get("/api/ping")
 def ping():
     return {"ok": True, "path": "/api/ping"}
-
-# -----------------------------------------------------------------------------
-# (Optional) placeholder for future safety endpoint
-# -----------------------------------------------------------------------------
-# @app.get("/api/v1/safety/<string:vin>")
-# def safety_stub(vin: str):
-#     return {"error": "not_implemented", "details": {"vin": vin}}, 501
