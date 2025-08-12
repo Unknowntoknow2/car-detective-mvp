@@ -6,8 +6,13 @@ app = Flask(__name__)
 
 # ---------- Consistent JSON error envelope ----------
 @app.errorhandler(Exception)
-def _err(e):
-    code = e.code if isinstance(e, HTTPException) else 500
+def _err(e: Exception):
+    code = 500
+    if isinstance(e, HTTPException) and getattr(e, "code", None) is not None:
+        try:
+            code = int(e.code)  # guard: e.code can be None
+        except Exception:
+            code = 500
     return jsonify(
         error="internal_error" if code >= 500 else "bad_request",
         details={"message": str(e)}
@@ -35,7 +40,7 @@ def openapi():
         }
     })
 
-# ---------- API index ----------
+# ---------- API index & root ----------
 @app.get("/api")
 def api_index():
     return jsonify(endpoints=[
@@ -43,6 +48,11 @@ def api_index():
         "/api/v1/version",
         "/api/v1/openapi.json"
     ])
+
+# Vercel will invoke this function at /api/app, which maps to "/" inside Flask
+@app.get("/")
+def root():
+    return jsonify(message="Vehicle API root", see="/api")
 
 # ---------- (Optional) valuation stub with lazy import ----------
 @app.post("/api/v1/valuations")
