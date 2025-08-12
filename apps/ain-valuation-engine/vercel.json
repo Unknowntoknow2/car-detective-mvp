@@ -2,7 +2,9 @@
   "version": 2,
   "functions": {
     "api/app.py": {
-      "runtime": "@vercel/python"
+      "runtime": "@vercel/python",
+      "memory": 1024,
+      "maxDuration": 10
     }
   },
   "builds": [
@@ -16,6 +18,9 @@
   ],
   "routes": [
     { "src": "^/api/(.*)$", "dest": "/api/app.py" },
+    { "src": "^/valuation$", "dest": "/api/app.py" },
+    { "src": "^/upload_video$", "dest": "/api/app.py" },
+    { "src": "^/$", "dest": "/api/app.py" },
     { "src": "^(?!/api/).*", "dest": "/index.html" }
   ],
   "installCommand": "npm ci --legacy-peer-deps || npm install --legacy-peer-deps",
