@@ -4,13 +4,13 @@ import os
 
 app = Flask(__name__)
 
-# ---------- Consistent JSON error envelope ----------
+# ---------- JSON error envelope ----------
 @app.errorhandler(Exception)
 def _err(e: Exception):
     code = 500
     if isinstance(e, HTTPException) and getattr(e, "code", None) is not None:
         try:
-            code = int(e.code)  # guard: e.code can be None
+            code = int(e.code)
         except Exception:
             code = 500
     return jsonify(
@@ -49,25 +49,24 @@ def api_index():
         "/api/v1/openapi.json"
     ])
 
-# Vercel will invoke this function at /api/app, which maps to "/" inside Flask
+# Vercel invokes /api/app -> Flask "/"
 @app.get("/")
 def root():
     return jsonify(message="Vehicle API root", see="/api")
 
-# ---------- (Optional) valuation stub with lazy import ----------
+# ---------- Example stub (optional) ----------
 @app.post("/api/v1/valuations")
 def valuations():
-    data = request.get_json(silent=True) or {}
-    vin = data.get("vin")
+    payload = request.get_json(silent=True) or {}
+    vin = payload.get("vin")
     if not vin:
         return jsonify(error="bad_request", details={"message": "vin is required"}), 400
-
-    if os.getenv("ENABLE_VAL_ENGINE"):
-        from val_engine.main import initialize_valuation_engine, run_valuation  # noqa: E402
-        ve = initialize_valuation_engine()
-        # result = run_valuation(ve, vin)
-        # return jsonify(result)
-
+    # Lazy import here if/when you enable the engine
+    # if os.getenv("ENABLE_VAL_ENGINE"):
+    #     from val_engine.main import initialize_valuation_engine, run_valuation  # noqa: E402
+    #     ve = initialize_valuation_engine()
+    #     result = run_valuation(ve, vin)
+    #     return jsonify(result)
     return jsonify({"vin": vin, "valuation": None, "status": "stub"})
 
 if __name__ == "__main__":
