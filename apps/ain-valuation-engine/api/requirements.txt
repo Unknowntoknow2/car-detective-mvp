@@ -1,4 +1,9 @@
+setuptools
+wheel
+setuptools
+wheel
 Flask==2.0.3
 Werkzeug==2.0.3
 requests==2.31.0
 python-dotenv==1.0.0
+//for saving the update
