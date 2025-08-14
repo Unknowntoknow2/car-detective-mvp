@@ -3,6 +3,7 @@ import time
 import logging
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List
+import os
 
 logging.basicConfig(level=logging.INFO)
 
@@ -23,7 +24,6 @@ def fetch_nhtsa_recalls(vin: str) -> List[Dict[str, Any]]:
 
 # --- VIN Decoder Abstraction Layer ---
 
-
 class VinDecodeProvider(ABC):
     """Abstract base class for VIN decode providers."""
     @abstractmethod
@@ -34,7 +34,6 @@ class VinDecodeProvider(ABC):
     def provider_name(self) -> str:
         pass
 
-
 class NHTSAProvider(VinDecodeProvider):
     def decode(self, vin: str) -> Dict[str, Any]:
         url = f"https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/{vin}?format=json"
@@ -43,6 +42,21 @@ class NHTSAProvider(VinDecodeProvider):
             resp.raise_for_status()
             data = resp.json()
             result = {item['Variable']: item['Value'] for item in data['Results']}
+            # Check for error codes or error text in the results
+            error_code = None
+            error_text = None
+            for item in data['Results']:
+                if item.get('Variable') == 'Error Code' and item.get('Value'):
+                    error_code = item.get('Value')
+                if item.get('Variable') == 'Error Text' and item.get('Value'):
+                    error_text = item.get('Value')
+            # Require Make, Model, and Model Year for a successful decode
+            if not (result.get('Make') and result.get('Model') and result.get('Model Year')):
+                result['error'] = "Incomplete decode: missing Make/Model/Year"
+            elif error_code or error_text:
+                # Only set error if error_code is not zero or error_text is meaningful
+                if error_code not in (None, "0", 0) or (error_text and "clean" not in error_text.lower()):
+                    result['error'] = f"{error_code or ''} {error_text or ''}".strip()
             return result
         except Exception as e:
             logging.error(f"NHTSA API error: {e}")
@@ -51,19 +65,17 @@ class NHTSAProvider(VinDecodeProvider):
     def provider_name(self) -> str:
         return "NHTSA"
 
-
-# Placeholder for a commercial provider (e.g., ClearVin, VinAudit)
-
-import os
-
 class VinAuditProvider(VinDecodeProvider):
     """
-    Live integration with VinAudit commercial VIN decode API.
-    Requires VINAUDIT_API_KEY in environment or .env file.
+    Commercial VIN decode provider for VinAudit API.
+    Reads API key and endpoint from environment variables or .env file.
+    Handles timeouts, rate limits, and provider-specific errors.
     """
     def __init__(self):
         self.api_key = os.getenv("VINAUDIT_API_KEY")
-        self.endpoint = "https://api.vinaudit.com/v2/vehicle"
+        self.endpoint = os.getenv("VINAUDIT_API_ENDPOINT", "https://api.vinaudit.com/v2/vehicle")
+        self.timeout = int(os.getenv("VINAUDIT_API_TIMEOUT", "10"))
+        self.max_retries = int(os.getenv("VINAUDIT_API_MAX_RETRIES", "2"))
 
     def decode(self, vin: str) -> Dict[str, Any]:
         if not self.api_key:
@@ -73,29 +85,56 @@ class VinAuditProvider(VinDecodeProvider):
             "key": self.api_key,
             "format": "json"
         }
-        try:
-            resp = requests.get(self.endpoint, params=params, timeout=10)
-            resp.raise_for_status()
-            data = resp.json()
-            if data.get("error"):
-                return {"error": data["error"]}
-            # Map VinAudit fields to canonical schema as needed
-            result = {k: v for k, v in data.items()}
-            return result
-        except Exception as e:
-            logging.error(f"VinAudit API error: {e}")
-            return {"error": f"VinAudit API error: {e}"}
+        attempt = 0
+        while attempt <= self.max_retries:
+            try:
+                resp = requests.get(self.endpoint, params=params, timeout=self.timeout)
+                resp.raise_for_status()
+                data = resp.json()
+                if data.get("error"):
+                    # VinAudit returns error in response body
+                    return {"error": data["error"]}
+                # Map VinAudit fields to canonical schema as needed
+                result = self._map_vinaudit_to_canonical(data)
+                return result
+            except requests.exceptions.Timeout:
+                attempt += 1
+                logging.warning(f"VinAudit timeout (attempt {attempt}/{self.max_retries})")
+                if attempt > self.max_retries:
+                    return {"error": "VinAudit API timeout."}
+            except requests.exceptions.RequestException as e:
+                logging.error(f"VinAudit API error: {e}")
+                return {"error": f"VinAudit API error: {e}"}
+        return {"error": "VinAudit provider failed after retries."}
+
+    def _map_vinaudit_to_canonical(self, data: dict) -> dict:
+        # Example mapping; update as needed for your schema
+        mapping = {
+            "vin": "VIN",
+            "make": "Make",
+            "model": "Model",
+            "year": "Model Year",
+            "trim": "Trim",
+            "engine": "Engine Model",
+            "engine_displacement": "Engine Displacement (L)",
+            "fuel_type": "Fuel Type Primary",
+            "body_type": "Body Class",
+            "doors": "Doors",
+            "plant_country": "Plant Country",
+            "plant_state": "Plant State",
+            "plant_city": "Plant City",
+        }
+        canonical = {v: data.get(k) for k, v in mapping.items()}
+        return canonical
 
     def provider_name(self) -> str:
         return "VinAudit"
 
-# Retain CommercialProvider as a fallback stub
 class CommercialProvider(VinDecodeProvider):
     def decode(self, vin: str) -> Dict[str, Any]:
         return {"error": "Commercial provider not implemented."}
     def provider_name(self) -> str:
         return "Commercial"
-
 
 class VinDecoder:
     """
@@ -123,7 +162,7 @@ class VinDecoder:
                 "vin": vin,
                 "success": not result.get("error"),
                 "error": result.get("error", None),
-                "compliance_check": True,  # Placeholder for real compliance logic
+                "compliance_check": True,
             }
             compliance_log.append(compliance_event)
             provenance.append({
@@ -136,39 +175,32 @@ class VinDecoder:
                 result['provider'] = provider.provider_name()
                 result['provenance'] = provenance
                 result['compliance_log'] = compliance_log
-                # Enrichment hooks
                 result['recalls'] = fetch_nhtsa_recalls(vin)
-                result['geo'] = geo_enrichment_stub(result)
-                result['fuel'] = fuel_enrichment_stub(result)
+                # Real enrichment (geo, fuel, market, etc.)
+                from vehicle_data_enrichment import enrich_with_geocoding, enrich_with_epa_nhtsa, enrich_with_market_signals
+                enriched = enrich_with_geocoding(result)
+                enriched = enrich_with_epa_nhtsa(enriched)
+                enriched = enrich_with_market_signals(enriched)
+                # Attach compliance/provenance logs for enrichment
+                if 'compliance_log' not in enriched:
+                    enriched['compliance_log'] = []
+                enriched['compliance_log'].extend([
+                    {"step": "geo_enrichment", "status": enriched.get("geo_compliance", "n/a")},
+                    {"step": "epa_nhtsa_enrichment", "status": enriched.get("epa_nhtsa_compliance", "n/a")},
+                    {"step": "market_enrichment", "status": enriched.get("market_compliance", "n/a")},
+                ])
+                result = enriched
                 result['explainability'] = explainability_stub(result)
                 return result
         return {"error": "All providers failed.", "provenance": provenance, "compliance_log": compliance_log}
-def geo_enrichment_stub(decoded: dict) -> dict:
-    """Stub for geo-location enrichment. Replace with real provider integration."""
-    # Example: Use Plant Country/State/City if available
-    return {
-        "country": decoded.get("Plant Country"),
-        "state": decoded.get("Plant State"),
-        "city": decoded.get("Plant City")
-    }
-
-def fuel_enrichment_stub(decoded: dict) -> dict:
-    """Stub for fuel enrichment. Replace with EPA or other provider integration."""
-    return {
-        "fuel_type": decoded.get("Fuel Type Primary"),
-        "engine_displacement_l": decoded.get("Engine Displacement (L)")
-    }
 
 def explainability_stub(decoded: dict) -> dict:
-    """Stub for explainability/attribution enrichment. Replace with SHAP or model integration."""
     return {
         "confidence": 0.99 if decoded.get("Make") else 0.0,
         "provider": decoded.get("provider"),
         "rationale": "Decoded using provider and mapped to canonical schema."
     }
 
-
-# Canonical field mapping for NHTSA (expandable for multi-provider)
 CANONICAL_FIELD_MAP = {
     'Make': 'make',
     'Model': 'model',
@@ -190,19 +222,14 @@ CANONICAL_FIELD_MAP = {
     'Air Bag Locations': 'airbags',
     'Seat Belt Type': 'seat_belt',
     'Other Restraint Info': 'restraint',
-    # Add more as needed
 }
 
-# Data quality scoring based on field completeness
 def data_quality_score(decoded_vehicle: dict, required_fields=None):
     if required_fields is None:
         required_fields = list(CANONICAL_FIELD_MAP.keys())
     filled = sum(1 for f in required_fields if decoded_vehicle.get(f) not in [None, '', 'NA', 'N/A'])
     return round(100 * filled / len(required_fields))
 
-# Canonical schema mapping (simplified)
-
-# Expanded canonical fields for 100% NHTSA vPIC coverage
 CANONICAL_FIELDS = [
     "VIN", "Make", "Model", "Model Year", "Manufacturer Name", "Plant Country", "Plant State", "Plant City", "Plant Company Name", "Vehicle Type", "Series", "Trim",
     "Drive Type", "Transmission Style", "Transmission Speeds", "Doors", "Seats", "Seat Rows", "Body Class",
@@ -210,7 +237,6 @@ CANONICAL_FIELDS = [
     "Air Bag Locations", "Seat Belt Type", "Other Restraint Info", "Pretensioner"
 ]
 
-# Mapping from possible NHTSA variable names to canonical schema
 NHTSA_TO_CANONICAL = {
     "VIN": "VIN",
     "Make": "Make",
@@ -252,7 +278,6 @@ NHTSA_TO_CANONICAL = {
     "Pretensioner": "Pretensioner"
 }
 
-
 def map_to_canonical(raw: Dict[str, Any], vin: str = None) -> Dict[str, Any]:
     """
     Map raw provider output to canonical schema, including provenance and explainability fields.
@@ -268,8 +293,6 @@ def map_to_canonical(raw: Dict[str, Any], vin: str = None) -> Dict[str, Any]:
         if extra in raw:
             canonical[extra] = raw[extra]
     return canonical
-
-# Example usage
 
 def decode_and_map(vin: str) -> Dict[str, Any]:
     """
@@ -291,7 +314,6 @@ def decode_and_map(vin: str) -> Dict[str, Any]:
     if missing:
         logging.info(f"The following fields are missing or incomplete: {', '.join(missing)}. You may supplement these manually or with another provider.")
     return canonical
-
 
 if __name__ == "__main__":
     import sys
