@@ -1,1 +1,16 @@
-{"projectId":"prj_Nf4LaTemhcGEb6HErkDYEbtVG0jM","orgId":"team_UkPce4oApZL0DHQT7nSxAR0g"}
+{
+  "projectId": "prj_Nf4LaTemhcGEb6HErkDYEbtVG0jM",
+  "orgId": "team_UkPce4oApZL0DHQT7nSxAR0g",
+  "projectName": "vin-public-project",
+  "settings": {
+    "createdAt": 1753740903090,
+    "framework": "vite",
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "22.x"
+  }
+}
