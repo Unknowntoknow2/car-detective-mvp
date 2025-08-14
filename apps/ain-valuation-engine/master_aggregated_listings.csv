@@ -1,0 +1,6 @@
+vin,year,make,model,trim,mileage,price,listing_date,state,body_type,engine,transmission,drivetrain,color,location
+1HGCM82633A004352,2018,Honda,Accord,EX,35000,21000,2025-01-15,CA,Sedan,2.0L I4,Automatic,FWD,White,Los Angeles
+1FAFP404X1F192345,2017,Ford,Mustang,GT,42000,26000,2025-02-10,TX,Coupe,5.0L V8,Manual,RWD,Red,Houston
+2T1BURHE5JC123456,2019,Toyota,Corolla,LE,22000,17000,2025-03-05,NY,Sedan,1.8L I4,Automatic,FWD,Blue,New York
+3FA6P0H74JR123456,2020,Ford,Fusion,SE,15000,19500,2025-04-20,FL,Sedan,2.5L I4,Automatic,FWD,Black,Miami
+5NPE24AF4FH123456,2016,Hyundai,Sonata,SE,50000,14000,2025-05-18,IL,Sedan,2.4L I4,Automatic,FWD,Gray,Chicago

@@ -17,7 +17,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Import our enhanced modules
 from model import train_model, predict_price_comprehensive, engineer_comprehensive_features
-from shap_explainer import (
+from val_engine.shap_explainer import (
     set_explainer, 
     explain_prediction, 
     explain_prediction_comprehensive,

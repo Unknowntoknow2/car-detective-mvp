@@ -563,3 +563,8 @@ def get_explanation_summary(explanation_result: Union[np.ndarray, Dict[str, Any]
             return summary
         
         return "Unable to generate summary for this explanation format."
+
+class VehicleValuationExplainer:
+    def __init__(self):
+        pass
+

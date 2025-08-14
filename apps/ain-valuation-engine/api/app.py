@@ -1,159 +1,192 @@
-# api/app.py
+from __future__ import annotations
 
-from flask import Flask, request, jsonify, make_response
 import os
-import uuid # For generating unique filenames
-from werkzeug.utils import secure_filename # For securing filenames
+import re
+import requests
+from flask import Flask, jsonify
+from werkzeug.exceptions import HTTPException
 
-# Assuming val_engine is in the same directory level or added to PYTHONPATH
-from val_engine.main import initialize_valuation_engine, run_valuation
-from val_engine.model import MODEL_PATH, ENCODERS_PATH # For cleanup in example
-
-# --- Flask App Setup ---
 app = Flask(__name__)
 
-# Configuration for video uploads
-# It's crucial to configure a secure upload folder.
-# In a real production environment, this would be a cloud storage bucket.
-UPLOAD_FOLDER = 'uploads/videos'
-ALLOWED_EXTENSIONS = {'mp4', 'mov', 'webm'} # Define allowed video formats
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+HTTP_TIMEOUT = float(os.getenv("HTTP_TIMEOUT", "6"))
+UA = {"User-Agent": "ain-valuation-engine/1.0"}
 
-# Ensure the upload directory exists
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# ---------- helpers ------------------------------------------------------------
+def _json_get(url: str, params: dict | None = None) -> dict:
+    r = requests.get(url, params=params or {}, headers=UA, timeout=HTTP_TIMEOUT)
+    r.raise_for_status()
+    return r.json()
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+def _normalize_vin(vin: str) -> str:
+    vin = (vin or "").strip().upper()
+    # minimal VIN sanity, don't block—just keep behavior predictable
+    if not re.fullmatch(r"[A-HJ-NPR-Z0-9]{11,17}", vin):
+        # still accept, but caller may see empty decode from vPIC
+        pass
+    return vin
 
-# --- Initialize ML Model at App Startup ---
-# This ensures the model is loaded once when the Flask app starts
-# and is ready for predictions.
-with app.app_context():
+# ---------- error envelope -----------------------------------------------------
+@app.errorhandler(Exception)
+def handle_error(e: Exception):
+    status = int(e.code) if isinstance(e, HTTPException) and hasattr(e, "code") else 500
+    payload = {
+        "error": "internal_error" if status >= 500 else "bad_request",
+        "details": {"message": str(e)},
+    }
+    resp = jsonify(payload)
+    resp.status_code = status
+    return resp
+
+# ---------- discoverability ----------------------------------------------------
+@app.get("/")
+@app.get("/api")
+def api_index():
+    return {
+        "name": "Vehicle Data API",
+        "endpoints": [
+            "/api/v1/health",
+            "/api/v1/version",
+            "/api/v1/openapi.json",
+            "/api/ping",
+            "/api/v1/identity/{vin}",
+            "/api/v1/safety/{vin}"
+        ],
+    }
+
+# ---------- health & version ---------------------------------------------------
+@app.get("/api/v1/health")
+def health():
+    return {"ok": True}
+
+@app.get("/api/v1/version")
+def version():
+    ver = os.getenv("VERCEL_GIT_COMMIT_SHA") or os.getenv("GIT_SHA") or "dev"
+    return {"service": "vehicle-platform", "version": ver}
+
+# ---------- openapi (stub) -----------------------------------------------------
+@app.get("/api/v1/openapi.json")
+def openapi():
+    return {
+        "openapi": "3.0.0",
+        "info": {"title": "Vehicle API", "version": "v1"},
+        "paths": {
+            "/api/v1/health": {"get": {"summary": "Health check"}},
+            "/api/v1/version": {"get": {"summary": "Service version"}},
+            "/api/ping": {"get": {"summary": "Simple ping"}},
+            "/api/v1/identity/{vin}": {"get": {"summary": "VIN decode (vPIC)"}},
+            "/api/v1/safety/{vin}": {"get": {"summary": "NHTSA ratings + recalls"}}
+        },
+    }
+
+@app.get("/api/ping")
+def ping():
+    return {"ok": True, "path": "/api/ping"}
+
+# ---------- v1: identity (vPIC) -----------------------------------------------
+@app.get("/api/v1/identity/<vin>")
+def identity(vin: str):
+    vin = _normalize_vin(vin)
+    data = _json_get(
+        f"https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/{vin}",
+        params={"format": "json"},
+    )
+    res = (data.get("Results") or [{}])[0]
+
+    identity = {
+        "vin": vin,
+        "make": res.get("Make") or None,
+        "model": res.get("Model") or None,
+        "year": _safe_int(res.get("ModelYear")),
+        "trim": res.get("Trim") or None,
+        "bodyClass": res.get("BodyClass") or None,
+        "driveType": res.get("DriveType") or None,
+        "engine": {
+            "model": res.get("EngineModel") or None,
+            "cylinders": _safe_int(res.get("EngineCylinders")),
+            "displacementL": _safe_float(res.get("DisplacementL")),
+            "hp": _safe_float(res.get("EngineHP")),
+            "fuelType": res.get("FuelTypePrimary") or None,
+        },
+        "transmission": {
+            "style": res.get("TransmissionStyle") or None,
+            "speeds": _safe_int(res.get("TransmissionSpeeds")),
+        },
+        "plantCountry": res.get("PlantCountry") or None,
+        "raw": res,  # keep for debugging until we finalize mapping
+    }
+    return identity
+
+# ---------- v1: safety (NHTSA ratings + recalls) ------------------------------
+@app.get("/api/v1/safety/<vin>")
+def safety(vin: str):
+    vin = _normalize_vin(vin)
+
+    # 1) recall-by-vin (precise)
+    recalls = []
     try:
-        initialize_valuation_engine()
-        print("Flask app: Valuation engine initialized successfully.")
-    except Exception as e:
-        print(f"Flask app: ERROR during valuation engine initialization: {e}")
-        # In production, you might want to log this error and potentially exit
-        # or mark the app as unhealthy.
+        rec = _json_get(
+            "https://api.nhtsa.gov/recalls/recallsByVin",
+            params={"vin": vin},
+        )
+        recalls = rec.get("results") or []
+    except Exception:
+        recalls = []
 
+    # 2) use decode to get year/make/model → ratings
+    ident = identity(vin)
+    year = ident.get("year")
+    make = (ident.get("make") or "").strip()
+    model = (ident.get("model") or "").strip()
 
-# --- API Endpoints ---
+    ratings = {}
+    if year and make and model:
+        try:
+            # search for vehicle IDs for Y/M/M
+            listing = _json_get(
+                f"https://api.nhtsa.gov/SafetyRatings/modelyear/{year}/make/{make}/model/{model}"
+            )
+            vehicles = listing.get("Results") or []
+            # pick first candidate; optionally refine by VehicleDescription/trim later
+            vid = vehicles[0].get("VehicleId") if vehicles else None
+            detail = {}
+            if vid:
+                detail = _json_get(
+                    f"https://api.nhtsa.gov/SafetyRatings/VehicleId/{vid}"
+                )
+                detail = (detail.get("Results") or [{}])[0]
+            ratings = {
+                "searchResults": vehicles,
+                "selectedVehicleId": vid,
+                "overall": detail.get("OverallRating"),
+                "front": detail.get("OverallFrontCrashRating"),
+                "side": detail.get("OverallSideCrashRating"),
+                "rollover": detail.get("RolloverRating"),
+                "raw": detail,
+            }
+        except Exception:
+            ratings = {}
 
-@app.route('/')
-def health_check():
-    """Basic health check endpoint."""
-    return jsonify({"status": "healthy", "message": "AIN Valuation Engine API is running."}), 200
+    return {
+        "vin": vin,
+        "identity": {
+            "year": year,
+            "make": make,
+            "model": model,
+            "trim": ident.get("trim"),
+        },
+        "nhtsa": ratings,
+        "recalls": recalls,
+    }
 
-@app.route('/valuation', methods=['POST'])
-def get_valuation():
-    """
-    Endpoint to get a vehicle valuation.
-    Expects a JSON payload conforming to VehicleDataForValuation.
-    """
-    if not request.is_json:
-        return make_response(jsonify({"error": "Request must be JSON"}), 400)
-
-    input_data = request.json
-
-    # Basic input validation (more robust validation with JSON Schema/Pydantic would go here)
-    required_fields = ["vin", "make", "model", "year", "mileage", "overall_condition_rating", "zipcode"]
-    for field in required_fields:
-        if field not in input_data or not isinstance(input_data[field], dict) or "value" not in input_data[field]:
-            return make_response(jsonify({"error": f"Missing or invalid required field: {field}. Ensure it has a 'value' key."}), 400)
-
+# ---------- small parsing helpers ---------------------------------------------
+def _safe_int(v):
     try:
-        # Call the refactored run_valuation from val_engine.main
-        valuation_result = run_valuation(input_data)
-        return jsonify(valuation_result), 200
-    except RuntimeError as e:
-        # Catch errors related to model not being loaded or other engine issues
-        return make_response(jsonify({"error": str(e)}), 500)
-    except KeyError as e:
-        # Catch errors for missing expected keys
-        return make_response(jsonify({"error": f"Missing expected data for valuation: {e}"}), 400)
-    except Exception as e:
-        # Catch any other unexpected errors
-        print(f"An unexpected error occurred during valuation: {e}")
-        return make_response(jsonify({"error": "An internal error occurred during valuation."}), 500)
+        return int(v) if v not in (None, "", "0", "0.0") else None
+    except Exception:
+        return None
 
-
-@app.route('/upload_video', methods=['POST'])
-def upload_video():
-    """
-    Endpoint to handle video uploads for condition analysis.
-    Expects a video file and associated metadata (e.g., valuation_id, vin).
-    """
-    if 'video' not in request.files:
-        return make_response(jsonify({"error": "No video file provided in request."}), 400)
-
-    video_file = request.files['video']
-    if video_file.filename == '':
-        return make_response(jsonify({"error": "No selected video file."}), 400)
-
-    if not allowed_file(video_file.filename):
-        return make_response(jsonify({"error": "Invalid file type. Only MP4, MOV, WebM are allowed."}), 400)
-
-    # Extract metadata from form data (or JSON body if sent separately)
-    # For simplicity, assuming metadata like valuation_id/vin is sent as form fields
-    valuation_id = request.form.get('valuation_id')
-    vin = request.form.get('vin')
-    
-    if not valuation_id and not vin:
-        return make_response(jsonify({"error": "Missing associated metadata (valuation_id or VIN)."}), 400)
-
+def _safe_float(v):
     try:
-        # Secure the filename and create a unique name to prevent overwrites
-        original_filename = secure_filename(video_file.filename)
-        unique_filename = f"{uuid.uuid4()}_{original_filename}"
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-        video_file.save(file_path)
-
-        # In a real scenario, you would then:
-        # 1. Upload this file to a cloud storage bucket (e.g., Supabase Storage, S3).
-        # 2. Trigger an asynchronous AI analysis job (e.g., using a message queue like Celery/RabbitMQ, or cloud functions).
-        # 3. Store the video URL and initial metadata in your database (e.g., Supabase).
-        # 4. Once AI analysis is complete, update the database with ai_condition_score, ai_analysis_summary.
-
-        # For this example, we'll simulate the URL and AI analysis
-        # In production, this would be the public URL from your cloud storage
-        simulated_public_url = f"/videos/{unique_filename}" 
-        
-        # Simulate AI analysis result (this would come from an actual AI service)
-        simulated_ai_score = 85 # Example score
-        simulated_duration = 120 # Example duration in seconds
-        simulated_ai_summary = "Minor scratch on rear bumper, engine sound normal."
-
-        # Return success response with video metadata
-        return jsonify({
-            "message": "Video uploaded successfully.",
-            "file_url": simulated_public_url,
-            "filename": unique_filename,
-            "valuation_id": valuation_id,
-            "vin": vin,
-            "uploaded_at": pd.Timestamp.now().isoformat(),
-            "ai_condition_score": simulated_ai_score,
-            "duration_seconds": simulated_duration,
-            "ai_analysis_summary": simulated_ai_summary,
-            "verified": True, # Once AI analysis is done, it can be marked verified
-            "source_origin": "AppRecorded" # Or 'UserUpload'
-        }), 200
-
-    except Exception as e:
-        print(f"Error uploading video: {e}")
-        return make_response(jsonify({"error": f"Failed to upload video: {e}"}), 500)
-
-if __name__ == '__main__':
-    # Clean up model artifacts from previous local test runs (if any)
-    # This is for development convenience, not for production deployment.
-    if os.path.exists(MODEL_PATH):
-        os.remove(MODEL_PATH)
-    if os.path.exists(ENCODERS_PATH):
-        os.remove(ENCODERS_PATH)
-    print("Cleaned up model artifacts before starting Flask app for fresh test.")
-    
-    # Run the Flask app
-    # In production, use a WSGI server like Gunicorn (e.g., gunicorn -w 4 api.app:app)
-    app.run(debug=True, host='0.0.0.0', port=5000)
-
+        return float(v) if v not in (None, "", "0", "0.0") else None
+    except Exception:
+        return None
