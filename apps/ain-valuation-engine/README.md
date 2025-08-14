@@ -208,6 +208,13 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed information and [docs/histor
 
 ## License
 
+
+## Monitoring & Best Practices
+- Automated monitoring: See `automated_monitoring.py` and `AUTOMATED_MONITORING_SETUP.md`
+- Error alerting: See `email_alert.py` (integrated in monitoring script)
+- Best practices checklist: See `BEST_PRACTICES_CHECKLIST.md`
+- Documentation index: See `DOCUMENTATION_INDEX.md`
+
 AIN Car Valuation Engine is [MIT licensed](LICENSE).
 
 ---
