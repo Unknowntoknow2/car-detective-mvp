@@ -24,7 +24,7 @@ export async function logValuationAudit(payload: ValuationAuditPayload): Promise
       baseValue: payload.baseValue
     });
 
-    // Prepare the correct data structure for the edge function
+    // Prepare the enhanced data structure with pipeline tracking
     const auditData = {
       vin: payload.input?.vin || 'unknown',
       action: 'valuation_calculated',
@@ -39,7 +39,16 @@ export async function logValuationAudit(payload: ValuationAuditPayload): Promise
       confidence_score: payload.confidence,
       sources_used: [`market_listings_${payload.listings_count}`],
       processing_time_ms: Date.now() - new Date(payload.timestamp).getTime(),
-      created_at: payload.timestamp
+      created_at: payload.timestamp,
+      // Enhanced audit metadata
+      pipeline_metadata: {
+        total_listings_fetched: payload.listings_count,
+        valid_listings_processed: payload.listings_count,
+        comp_set_inclusions: payload.listings_count,
+        exclusion_reasons: [],
+        fallback_method_used: payload.input?.fallback_method || 'none',
+        quality_scores: payload.input?.quality_scores || []
+      }
     };
 
     // Use edge function for service role access to bypass RLS
@@ -64,6 +73,45 @@ export async function logValuationAudit(payload: ValuationAuditPayload): Promise
   } catch (error) {
     console.error('❌ Critical error in audit logging:', error);
     return 'audit_failed_' + Date.now();
+  }
+}
+
+/**
+ * Enhanced pipeline stage logging
+ */
+export async function logPipelineStage(
+  stage: 'decode' | 'normalize' | 'match' | 'quality_score' | 'comp_inclusion',
+  vin: string,
+  auditId: string,
+  metadata: {
+    passed: boolean;
+    reason?: string;
+    data?: any;
+    confidence?: number;
+    timestamp?: string;
+  }
+): Promise<void> {
+  try {
+    console.log(`📊 Pipeline stage ${stage}:`, { vin, passed: metadata.passed, reason: metadata.reason });
+    
+    const stageData = {
+      audit_id: auditId,
+      vin: vin,
+      stage: stage,
+      passed: metadata.passed,
+      fail_reason: metadata.reason,
+      stage_data: metadata.data || {},
+      confidence_score: metadata.confidence || 0,
+      timestamp: metadata.timestamp || new Date().toISOString()
+    };
+
+    // Log to local storage for immediate availability
+    const stageKey = `pipeline_stage_${auditId}_${stage}`;
+    localStorage.setItem(stageKey, JSON.stringify(stageData));
+    
+    console.log(`✅ Pipeline stage ${stage} logged`);
+  } catch (error) {
+    console.error(`❌ Error logging pipeline stage ${stage}:`, error);
   }
 }
 

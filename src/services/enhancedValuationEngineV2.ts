@@ -17,12 +17,26 @@ interface ConfidenceBreakdown {
  */
 export async function calculateEnhancedValuation(input: ValuationInput): Promise<EnhancedValuationResult> {
   const startTime = Date.now();
+  const auditId = `audit_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+  
   console.log('🚀 Enhanced Valuation Engine v2.0 - Starting calculation');
   console.log('Input:', { vin: input.vin, make: input.make, model: input.model, year: input.year, zipCode: input.zipCode });
+  console.log('🔍 Audit ID:', auditId);
+
+  // Enhanced pipeline tracking
+  const pipelineStages = {
+    decode: { passed: false, timestamp: '', reason: '' },
+    normalize: { passed: false, timestamp: '', reason: '' },
+    match: { passed: false, timestamp: '', reason: '' },
+    quality_score: { passed: false, timestamp: '', reason: '' },
+    comp_inclusion: { passed: false, timestamp: '', reason: '' }
+  };
 
   try {
     // 1. Search for market listings using the enhanced market search agent
     console.log('🔍 Enhanced valuation engine: Searching for market listings...');
+    pipelineStages.decode.timestamp = new Date().toISOString();
+    
     const rawMarketListings = await searchMarketListings({
       vin: input.vin,
       make: input.make,
@@ -34,9 +48,17 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
       zipCode: input.zipCode,
     });
 
+    pipelineStages.decode.passed = !!(rawMarketListings && rawMarketListings.length > 0);
+    if (!pipelineStages.decode.passed) {
+      pipelineStages.decode.reason = 'No market listings found';
+    }
+
     console.log(`📊 Found ${rawMarketListings?.length || 0} total market listings`);
+    console.log(`✅ Decode stage: ${pipelineStages.decode.passed ? 'PASSED' : 'FAILED'} - ${pipelineStages.decode.reason}`);
 
     // 2. Normalize all listings to unified format early in pipeline
+    pipelineStages.normalize.timestamp = new Date().toISOString();
+    
     const normalizedListings: MarketListing[] = (rawMarketListings || []).map(listing => {
       const normalized = normalizeListing(listing);
       console.log('🔧 Normalized listing:', {
@@ -47,6 +69,13 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
       });
       return normalized;
     });
+
+    pipelineStages.normalize.passed = normalizedListings.length > 0;
+    if (!pipelineStages.normalize.passed) {
+      pipelineStages.normalize.reason = 'No listings could be normalized';
+    }
+    
+    console.log(`✅ Normalize stage: ${pipelineStages.normalize.passed ? 'PASSED' : 'FAILED'} - ${pipelineStages.normalize.reason}`);
 
     // 3. Filter for valid listings with real pricing data
     const validListings = normalizedListings.filter(listing => {
