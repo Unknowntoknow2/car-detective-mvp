@@ -318,7 +318,7 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
     console.log('📋 Final valuation result:', {
       estimatedValue: result.estimatedValue,
       confidenceScore: result.confidenceScore,
-      listingsUsed: result.marketListings.length,
+      listingsUsed: result.marketListings?.length || 0,
       realListings: realListingsCount,
       isUsingFallbackMethod: result.isFallbackMethod,
       processingTime: Date.now() - startTime

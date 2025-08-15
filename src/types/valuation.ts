@@ -325,23 +325,29 @@ export interface EnhancedValuationResult {
   confidenceScore: number;
   confidence_score?: number;  // Backward compatibility
   confidenceLabel?: string;
-  valuationMethod: string;
-  isUsingFallbackMethod: boolean;
+  valuationMethod?: string;
+  isUsingFallbackMethod?: boolean;
   isFallbackMethod?: boolean;  // Backward compatibility
   
   // Market data
-  marketListings: MarketListing[];
-  marketSearchStatus: string;
+  marketListings?: MarketListing[];
+  marketSearchStatus?: string;
   sources?: string[];  // Backward compatibility
   
   // Adjustments
-  adjustments: ValuationAdjustment[];
-  baseValue: number;
+  adjustments?: ValuationAdjustment[];
+  baseValue?: number;
   
   // Backward compatibility fields
   base_value_source?: string;
   value_breakdown?: any;
   explanation?: string;
+  mileage_adjustment?: number;
+  valuation_explanation?: string;
+  vin?: string;
+  depreciation?: number;
+  marketIntelligence?: any;
+  auditTrail?: any;
   
   // Process audit trail (if enabled)
   processAuditTrail?: {
@@ -354,12 +360,12 @@ export interface EnhancedValuationResult {
   };
 
   // Vehicle info
-  make: string;
-  model: string;
-  year: number;
+  make?: string;
+  model?: string;
+  year?: number;
   mileage?: number;
-  condition: string;
-  zipCode: string;
+  condition?: string;
+  zipCode?: string;
 }
 
 // Value breakdown for transparency
