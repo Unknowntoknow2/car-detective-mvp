@@ -4,6 +4,10 @@ import { searchMarketListings } from '@/agents/marketSearchAgent';
 import { estimateMarketPrice } from '@/agents/marketPriceEstimator';
 import { calculateUnifiedConfidence } from '@/utils/valuation/calculateUnifiedConfidence';
 import { generateAIExplanation } from '@/services/aiExplanationService';
+import { scoreListingQuality } from '@/utils/valuation/listingInclusionAnalyzer';
+import { recordListingAudit, recordValuationOutcome, snapshotListing } from '@/services/valuation/listingAuditService';
+import { getConfidenceForResult } from '@/utils/valuation/confidence';
+import { logPipelineStage } from '@/services/valuationAuditLogger';
 
 interface ConfidenceBreakdown {
   vinAccuracy: number;
@@ -77,16 +81,76 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
     
     console.log(`✅ Normalize stage: ${pipelineStages.normalize.passed ? 'PASSED' : 'FAILED'} - ${pipelineStages.normalize.reason}`);
 
-    // 3. Filter for valid listings with real pricing data
-    const validListings = normalizedListings.filter(listing => {
-      const isValid = listing.price > 1000 && listing.price < 200000;
-      if (!isValid) {
-        console.log('⚠️ Filtered out invalid listing:', { price: listing.price, source: listing.source });
-      }
-      return isValid;
-    });
+    // 3. Filter for valid listings with real pricing data and process audit
+    pipelineStages.match.timestamp = new Date().toISOString();
+    
+    const validListings: MarketListing[] = [];
+    const excludedListings: any[] = [];
 
-    console.log(`✅ ${validListings.length} valid listings after filtering`);
+    for (const listing of normalizedListings) {
+      // Basic validation
+      const basicValid = listing.price > 1000 && listing.price < 200000;
+      if (!basicValid) {
+        console.log('⚠️ Filtered out invalid listing:', { price: listing.price, source: listing.source });
+        continue;
+      }
+
+      // Quality scoring and audit
+      const qualityResult = scoreListingQuality({
+        odometer: listing.mileage,
+        hasPhotos: !!(listing.photos?.length),
+        photoCount: listing.photos?.length ?? 0,
+        hasVinPhoto: false, // Would need VIN photo detection
+        feeTransparency: 5, // Default moderate transparency
+        sourceTierWeight: listing.source?.toLowerCase().includes('carmax') || 
+                         listing.source?.toLowerCase().includes('carvana') ? 0.95 : 0.90,
+        withinRadius: true, // Default to true - would calculate based on distance
+        priceWithinBand: true, // Default to true - would calculate based on price distribution
+        listingFreshDays: 7 // Default fresh listing
+      });
+
+      const trustTier = listing.source?.toLowerCase().includes('carmax') || 
+                       listing.source?.toLowerCase().includes('carvana') ? 'Tier1' : 'Tier2';
+      
+      const include = qualityResult.reason === undefined;
+
+      // Record audit for this listing
+      await recordListingAudit({
+        valuationId: auditId,
+        listingUrl: getNormalizedUrl(listing),
+        source: listing.source,
+        stageStatus: { 
+          decode: pipelineStages.decode.passed,
+          market_search: true, 
+          normalize: pipelineStages.normalize.passed, 
+          match: true, 
+          quality_score: true 
+        },
+        trustTier: trustTier,
+        qualityScore: qualityResult.score,
+        includedInCompSet: include,
+        exclusionReason: include ? undefined : qualityResult.reason
+      });
+
+      // Snapshot listing
+      await snapshotListing(auditId, getNormalizedUrl(listing), listing.source, listing);
+
+      if (include) {
+        validListings.push(listing);
+      } else {
+        excludedListings.push({ 
+          listing, 
+          score: qualityResult.score, 
+          reason: qualityResult.reason 
+        });
+      }
+    }
+
+    pipelineStages.match.passed = validListings.length > 0;
+    pipelineStages.quality_score.passed = validListings.length > 0;
+    pipelineStages.comp_inclusion.passed = validListings.length >= 3;
+
+    console.log(`✅ ${validListings.length} valid listings after filtering and audit`);
 
     // 4. Analyze market listings with price estimator
     console.log('📊 Analyzing market listings...');
@@ -110,6 +174,7 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
     // 6. Calculate base price from market data or fallback
     let basePrice: number;
     let basePriceAnchor: { source: string; amount: number; method: string };
+    let finalMethod: 'market_based' | 'fallback_pricing' | 'broadened_search' = 'fallback_pricing';
     
     if (!isUsingFallbackMethod && marketPriceEstimate.estimatedPrice) {
       basePrice = marketPriceEstimate.estimatedPrice;
@@ -118,6 +183,7 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
         amount: basePrice,
         method: `statistical_analysis_${realListingsCount}_listings`
       };
+      finalMethod = 'market_based';
       console.log('💰 Using market-based pricing:', basePrice);
     } else {
       // Fallback pricing using depreciation model
@@ -127,6 +193,7 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
         amount: basePrice,
         method: 'age_based_depreciation'
       };
+      finalMethod = 'fallback_pricing';
       console.log('⚠️ Using fallback pricing:', basePrice);
     }
 
@@ -150,8 +217,8 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
       console.log('⚠️ Skipping adjustments - insufficient market data');
     }
 
-    // 8. Calculate enhanced confidence score
-    const confidenceScore = calculateUnifiedConfidence({
+    // 8. Calculate enhanced confidence score with caps
+    const rawConfidenceScore = calculateUnifiedConfidence({
       exactVinMatch: validListings.some(l => l.vin === input.vin),
       marketListings: validListings,
       sources: validListings.map(l => l.source),
@@ -159,6 +226,13 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
       mileagePenalty: 0,
       zipCode: input.zipCode || ''
     });
+
+    const confidenceResult = getConfidenceForResult({
+      method: finalMethod,
+      confidence_score: rawConfidenceScore / 100
+    });
+
+    const confidenceScore = Math.round(confidenceResult.finalConfidence * 100);
 
     console.log('📊 Confidence calculation:', {
       score: confidenceScore,
@@ -210,6 +284,17 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
     // 11. Return enhanced valuation result with complete transparency
     console.log(`🎯 Final Enhanced Valuation: $${finalPrice.toLocaleString()} with ${confidenceScore}% confidence`);
     
+    // Record final valuation outcome
+    const rangePct = finalMethod === 'market_based' ? 0.10 : 0.15;
+    const low = Math.round(finalPrice * (1 - rangePct));
+    const high = Math.round(finalPrice * (1 + rangePct));
+    
+    await recordValuationOutcome(auditId, {
+      finalMethod,
+      confidenceCappedAt: confidenceResult.finalConfidence,
+      valueRange: { low, high, pct: rangePct }
+    });
+
     const result: EnhancedValuationResult = {
       estimatedValue: finalPrice,
       confidenceScore,
@@ -220,6 +305,13 @@ export async function calculateEnhancedValuation(input: ValuationInput): Promise
       zipCode: input.zipCode,
       vin: input.vin,
       marketIntelligence,
+      // Add audit metadata for UI
+      auditTrail: {
+        auditId,
+        finalMethod,
+        excludedListings: excludedListings.length,
+        confidenceLabel: confidenceResult.label
+      }
     };
 
     // 12. Log final result for debugging

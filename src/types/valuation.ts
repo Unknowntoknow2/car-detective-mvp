@@ -347,6 +347,14 @@ export interface EnhancedValuationResult {
     adjustedPrice: number;
     sources: string[];
   };
+  
+  // Audit trail metadata
+  auditTrail?: {
+    auditId: string;
+    finalMethod: string;
+    excludedListings: number;
+    confidenceLabel: string;
+  };
 }
 
 // Value breakdown for transparency

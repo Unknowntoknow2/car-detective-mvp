@@ -12,6 +12,8 @@ import { EnhancedConfidenceScore } from "@/components/valuation/result/EnhancedC
 import { calculateUnifiedValuation } from '@/services/valuation/valuationEngine';
 import type { MarketListing } from '@/types/marketListing';
 import { SimilarListingsSection } from '@/components/results/SimilarListingsSection';
+import ProcessAuditTrail from '@/components/valuation/ProcessAuditTrail';
+import { WhyNotCountedCard } from '@/components/valuation/WhyNotCountedCard';
 
 interface ValuationData {
   id: string;
@@ -549,6 +551,12 @@ export default function ResultsPage() {
           {valuationData.marketListings.length > 0 && (
             <SimilarListingsSection listings={valuationData.marketListings} />
           )}
+
+          {/* Process Audit Trail */}
+          <ProcessAuditTrail valuationId={valuationData.id} />
+
+          {/* Why Not Counted Card for excluded listings */}
+          <WhyNotCountedCard excluded={[]} />
         </div>
 
         {/* Sidebar */}
