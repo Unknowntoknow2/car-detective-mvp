@@ -1,9 +1,8 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Camera, TrendingUp, Shield, CheckCircle2 } from 'lucide-react';
-import { MissingDataAnalysis, MissingFieldImpact } from '@/utils/valuation/missingFieldAnalyzer';
+import { Camera, CheckCircle2 } from 'lucide-react';
+import { MissingDataAnalysis } from '@/utils/valuation/missingFieldAnalyzer';
 
 interface MissingInfoPromptProps {
   analysis: MissingDataAnalysis;
@@ -17,30 +16,38 @@ interface MissingInfoPromptProps {
   className?: string;
 }
 
-const getCategoryIcon = (category: string) => {
-  switch (category) {
-    case 'verification':
-      return <Camera className="h-4 w-4" />;
-    case 'condition':
-      return <TrendingUp className="h-4 w-4" />;
-    case 'history':
-      return <Shield className="h-4 w-4" />;
-    case 'legal':
-      return <AlertCircle className="h-4 w-4" />;
-    default:
-      return <CheckCircle2 className="h-4 w-4" />;
-  }
+const getFieldDisplayName = (fieldId: string) => {
+  const names: Record<string, string> = {
+    mileage: 'Current Mileage',
+    accidents: 'Accident History Confirmation', 
+    photos: 'Exterior Photos',
+    condition: 'Overall Condition Rating',
+    zip_code: 'ZIP Code Location',
+    title_status: 'Title Status',
+    serviceHistory: 'Service Records',
+    modifications: 'Modifications Status',
+    tire_condition: 'Tire Condition',
+    exterior_condition: 'Exterior Condition',
+    interior_condition: 'Interior Condition'
+  };
+  return names[fieldId] || fieldId;
 };
 
-const getPriorityColor = (priority: string) => {
-  switch (priority) {
-    case 'high':
-      return 'destructive';
-    case 'medium':
-      return 'secondary';
-    default:
-      return 'outline';
-  }
+const getFieldExplanation = (fieldId: string) => {
+  const explanations: Record<string, string> = {
+    mileage: 'Mileage is one of the top 3 factors in market value; can shift price by thousands.',
+    accidents: 'This lets us adjust your value based on verified damage records.',
+    photos: 'Our AI can detect wear, scratches, and dents to improve accuracy.',
+    condition: 'Overall condition directly affects market positioning and buyer appeal.',
+    zip_code: 'Local market conditions vary significantly by region and affect pricing.',
+    title_status: 'Title issues can severely impact marketability and resale value.',
+    serviceHistory: 'Well-documented maintenance records increase buyer confidence and value.',
+    modifications: 'Aftermarket changes can increase or decrease value depending on quality.',
+    tire_condition: 'Tire replacement costs are immediate buyer expenses that affect negotiation.',
+    exterior_condition: 'Exterior appearance affects first impressions and resale value.',
+    interior_condition: 'Interior wear reflects vehicle care and influences buyer decisions.'
+  };
+  return explanations[fieldId] || 'This information helps improve valuation accuracy.';
 };
 
 export const MissingInfoPrompt: React.FC<MissingInfoPromptProps> = ({
@@ -50,94 +57,67 @@ export const MissingInfoPrompt: React.FC<MissingInfoPromptProps> = ({
   onCompleteValuation,
   className
 }) => {
-  const { missingFields, currentAccuracyRange, improvedAccuracyRange, confidenceBoost } = analysis;
+  const { missingFields, currentAccuracyRange, improvedAccuracyRange } = analysis;
 
   if (missingFields.length === 0) {
     return (
       <Card className={`border-success bg-success/5 ${className}`}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-success">
-            <CheckCircle2 className="h-5 w-5" />
-            Valuation Complete
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-success-foreground">
-            Your valuation data is complete! We have everything needed for maximum accuracy.
-          </p>
-          {onCompleteValuation && (
-            <Button 
-              onClick={onCompleteValuation}
-              className="mt-4 w-full"
-            >
-              View Final Valuation
-            </Button>
-          )}
+        <CardContent className="pt-6">
+          <div className="text-center space-y-3">
+            <CheckCircle2 className="h-8 w-8 text-success mx-auto" />
+            <div>
+              <p className="font-semibold text-success">Valuation Complete</p>
+              <p className="text-sm text-success/80">
+                Your valuation data is complete! We have everything needed for maximum accuracy.
+              </p>
+            </div>
+            {onCompleteValuation && (
+              <Button 
+                onClick={onCompleteValuation}
+                className="mt-4"
+                size="lg"
+              >
+                View Final Valuation
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
   }
 
-  const vehicleDescription = vehicleInfo 
-    ? `${vehicleInfo.year || ''} ${vehicleInfo.make || ''} ${vehicleInfo.model || ''}`.trim()
-    : 'your vehicle';
-
   const topFields = missingFields.slice(0, 3);
+  const hasCarfaxIntegration = missingFields.some(f => ['accidents', 'title_status', 'serviceHistory'].includes(f.field));
 
   return (
-    <Card className={`border-warning bg-gradient-to-br from-warning/5 to-secondary/5 ${className}`}>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-warning" />
-            Almost Ready — {topFields.length} Details Needed
-          </span>
-          <Badge variant="outline" className="text-sm">
-            {analysis.completionPercentage}% Complete
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">
-            To provide the most accurate value for your <span className="font-medium">{vehicleDescription}</span> 
-            {analysis.isPremiumRequired && ' and unlock premium features like AI photo grading'}, 
-            we still need:
+    <Card className={className}>
+      <CardContent className="pt-6 space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold mb-2">
+            We're almost ready — just a few details left to finalize your valuation.
+          </h3>
+          <p className="text-muted-foreground">
+            To provide the most accurate value{hasCarfaxIntegration && ' (and unlock Carfax/AutoCheck integration)'}, we still need:
           </p>
         </div>
 
         <div className="space-y-4">
           {topFields.map((field, index) => (
-            <div 
-              key={field.field}
-              className="flex items-start gap-3 p-3 rounded-lg border bg-card/50 hover:bg-card/70 transition-colors"
-            >
-              <div className="mt-1">
-                {getCategoryIcon(field.category)}
-              </div>
-              <div className="flex-1 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-medium text-sm">{field.impactDescription}</p>
-                    <p className="text-xs text-muted-foreground">{field.helpText}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge 
-                      variant={getPriorityColor(field.priority) as any}
-                      className="text-xs whitespace-nowrap"
-                    >
-                      {field.valueImpact}
-                    </Badge>
-                  </div>
+            <div key={field.field} className="space-y-1">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="font-medium text-sm">
+                    <span className="text-primary">{getFieldDisplayName(field.field)}</span> — {getFieldExplanation(field.field)}
+                  </p>
                 </div>
                 {onCompleteField && (
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => onCompleteField(field.field)}
-                    className="text-xs h-7"
+                    className="ml-3 text-xs shrink-0"
                   >
-                    Add This Info
+                    Add Info
                   </Button>
                 )}
               </div>
@@ -145,30 +125,19 @@ export const MissingInfoPrompt: React.FC<MissingInfoPromptProps> = ({
           ))}
         </div>
 
-        <div className="border-t pt-4">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Accuracy Range:</span>
-            <div className="flex items-center gap-2">
-              <span className="text-warning">{currentAccuracyRange}</span>
-              <span className="text-muted-foreground">→</span>
-              <span className="text-success font-medium">{improvedAccuracyRange}</span>
-            </div>
-          </div>
-          {confidenceBoost > 0 && (
-            <p className="text-xs text-muted-foreground mt-1">
-              Completing these fields improves accuracy by {Math.round(confidenceBoost)}%
-            </p>
-          )}
+        <div className="bg-muted/50 rounded-lg p-4">
+          <p className="text-sm font-medium">
+            Completing these fields can reduce your valuation range from <span className="text-warning">{currentAccuracyRange}</span> to <span className="text-success">{improvedAccuracyRange}</span>.
+          </p>
         </div>
 
         {analysis.isPremiumRequired && (
-          <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
-            <div className="flex items-start gap-2">
-              <Camera className="h-4 w-4 text-primary mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-primary">AI Photo Analysis Available</p>
-                <p className="text-xs text-muted-foreground">
-                  Upload 3–8 clear photos to enable our industry-leading AI condition scoring
+          <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Camera className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium text-primary text-sm">
+                  <strong>Tip:</strong> Uploading 3–8 clear photos enables our AI condition scoring for unmatched accuracy.
                 </p>
               </div>
             </div>
@@ -176,19 +145,13 @@ export const MissingInfoPrompt: React.FC<MissingInfoPromptProps> = ({
         )}
 
         <div className="pt-2">
-          {onCompleteValuation ? (
-            <Button 
-              onClick={onCompleteValuation}
-              className="w-full"
-              size="lg"
-            >
-              Complete My Valuation Now
-            </Button>
-          ) : (
-            <div className="text-center text-sm text-muted-foreground">
-              Complete the missing fields above to get your final, defendable valuation
-            </div>
-          )}
+          <Button 
+            onClick={onCompleteValuation}
+            className="w-full"
+            size="lg"
+          >
+            Complete My Valuation Now
+          </Button>
         </div>
       </CardContent>
     </Card>
