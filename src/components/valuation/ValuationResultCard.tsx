@@ -39,6 +39,7 @@ import {
   FileX,
   Shield
 } from 'lucide-react';
+import { AuditAndSourcesAccordion } from './AuditAndSourcesAccordion';
 import type { UnifiedValuationResult as EngineResult } from '@/services/valuation/valuationEngine';
 import { valuationLogger } from '@/utils/valuationLogger';
 
@@ -154,6 +155,18 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport, vin 
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Method-specific disclosure for fallback */}
+            {sourcesUsed?.some(source => source.includes('fallback') || source.includes('depreciation')) && (
+              <Alert variant="default" className="border-orange-200 bg-orange-50">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Fallback Pricing Method:</strong> Model-based estimate (no verified local comps yet). 
+                  Confidence is limited to {Math.min(confidenceScore, 60)}% when using fallback pricing.
+                  Add photos or retry live market search to tighten the range.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Final Value Display */}
             <div className="text-center p-6 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg">
               <h3 className="text-sm font-medium text-muted-foreground mb-2">Estimated Market Value</h3>
@@ -161,6 +174,12 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport, vin 
               {priceRange && priceRange.length === 2 && (
                 <p className="text-sm text-muted-foreground mt-2">
                   Market Range: ${priceRange[0].toLocaleString()} - ${priceRange[1].toLocaleString()}
+                </p>
+              )}
+              {/* Show range percentage for fallback method */}
+              {sourcesUsed?.some(source => source.includes('fallback')) && (
+                <p className="text-xs text-orange-600 mt-1">
+                  ±15% range due to model-based pricing
                 </p>
               )}
             </div>
@@ -490,6 +509,13 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport, vin 
             </div>
           </CardContent>
         </Card>
+
+        {/* Audit & Sources Section */}
+        {import.meta.env.VITE_FEATURE_AUDIT === '1' && (
+          <div>
+            <AuditAndSourcesAccordion result={result as any} />
+          </div>
+        )}
       </div>
     </TooltipProvider>
   );

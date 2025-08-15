@@ -318,43 +318,48 @@ import { MarketListing } from '@/types/marketListing';
 
 // Enhanced valuation result interface
 export interface EnhancedValuationResult {
+  id?: string;
   estimatedValue: number;
-  estimated_value?: number;
-  base_value_source?: string;
-  price_range_low?: number;
-  price_range_high?: number;
-  depreciation?: number;
-  mileage_adjustment?: number;
-  value_breakdown?: ValueBreakdown;
+  estimated_value?: number;  // Backward compatibility
+  priceRange?: [number, number];
   confidenceScore: number;
-  confidence_score?: number;
-  valuation_explanation?: string;
-  audit_id?: string;
-  sources?: string[];
-  exactVinMatch?: MarketListing;
-  explanation?: string;
-  zipCode?: string;
-  vin?: string;
-  basePriceAnchor?: number;
-  isFallbackMethod?: boolean;
-  marketListings: MarketListing[];
-  market_listings?: MarketListing[];
-  marketIntelligence?: {
-    medianPrice: number;
-    priceRange: [number, number];
-    confidence: number;
-    outlierCount: number;
-    adjustedPrice: number;
-    sources: string[];
-  };
+  confidence_score?: number;  // Backward compatibility
+  confidenceLabel?: string;
+  valuationMethod: string;
+  isUsingFallbackMethod: boolean;
+  isFallbackMethod?: boolean;  // Backward compatibility
   
-  // Audit trail metadata
-  auditTrail?: {
-    auditId: string;
-    finalMethod: string;
+  // Market data
+  marketListings: MarketListing[];
+  marketSearchStatus: string;
+  sources?: string[];  // Backward compatibility
+  
+  // Adjustments
+  adjustments: ValuationAdjustment[];
+  baseValue: number;
+  
+  // Backward compatibility fields
+  base_value_source?: string;
+  value_breakdown?: any;
+  explanation?: string;
+  
+  // Process audit trail (if enabled)
+  processAuditTrail?: {
+    includedListings: number;
     excludedListings: number;
-    confidenceLabel: string;
+    exclusionReasons: Array<{ source: string; url: string; reason: string }>;
+    processStages: any;
+    valuationId: string;
+    error?: string;
   };
+
+  // Vehicle info
+  make: string;
+  model: string;
+  year: number;
+  mileage?: number;
+  condition: string;
+  zipCode: string;
 }
 
 // Value breakdown for transparency
