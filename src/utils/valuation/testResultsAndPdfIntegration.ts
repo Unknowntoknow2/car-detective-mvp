@@ -14,7 +14,15 @@ export function testResultsPageAndPdfIntegration() {
     estimatedValue: 35000,
     confidenceScore: 88,
     zipCode: '90210',
-    isFallbackMethod: false,
+    valuationMethod: 'market_based',
+    isUsingFallbackMethod: false,
+    marketSearchStatus: 'success',
+    adjustments: [],
+    baseValue: 32000,
+    make: 'Ford',
+    model: 'F-150',
+    year: 2021,
+    condition: 'good',
     marketListings: [
       // Live format listing
       {
