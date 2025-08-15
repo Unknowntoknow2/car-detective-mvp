@@ -60,11 +60,11 @@ def _generate_mock_summary(estimated_price: float, vehicle_data: Dict[str, Any],
     Generate a mock summary when LLM API is not available.
     This provides a fallback for development and testing.
     """
-    make = (vehicle_data.get('make', 'Unknown')['value'] if isinstance(vehicle_data.get('make', {}), dict) else vehicle_data.get('make', 'Unknown'))
-    model = (vehicle_data.get('model', 'Unknown')['value'] if isinstance(vehicle_data.get('model', {}), dict) else vehicle_data.get('model', 'Unknown'))
-    year = (vehicle_data.get('year', 'Unknown')['value'] if isinstance(vehicle_data.get('year', {}), dict) else vehicle_data.get('year', 'Unknown'))
+    make = vehicle_data.get('make', {}).get('value', 'Unknown')
+    model = vehicle_data.get('model', {}).get('value', 'Unknown')
+    year = vehicle_data.get('year', {}).get('value', 'Unknown')
     condition = vehicle_data.get('overall_condition_rating', {}).get('value', 'Good')
-    mileage = (vehicle_data.get('mileage', 'Unknown')['value'] if isinstance(vehicle_data.get('mileage', {}), dict) else vehicle_data.get('mileage', 'Unknown'))
+    mileage = vehicle_data.get('mileage', {}).get('value', 'Unknown')
 
     mode_text = "selling" if mode == "sell" else "purchasing"
 
@@ -132,10 +132,10 @@ def generate_valuation_summary(
         return _generate_mock_summary(estimated_price, vehicle_data, mode)
 
     # Extract basic vehicle information
-    make = (vehicle_data.get('make', 'Unknown')['value'] if isinstance(vehicle_data.get('make', {}), dict) else vehicle_data.get('make', 'Unknown'))
-    model = (vehicle_data.get('model', 'Unknown')['value'] if isinstance(vehicle_data.get('model', {}), dict) else vehicle_data.get('model', 'Unknown'))
-    year = (vehicle_data.get('year', 'Unknown')['value'] if isinstance(vehicle_data.get('year', {}), dict) else vehicle_data.get('year', 'Unknown'))
-    mileage = (vehicle_data.get('mileage', 'Unknown')['value'] if isinstance(vehicle_data.get('mileage', {}), dict) else vehicle_data.get('mileage', 'Unknown'))
+    make = vehicle_data.get('make', {}).get('value', 'Unknown')
+    model = vehicle_data.get('model', {}).get('value', 'Unknown')
+    year = vehicle_data.get('year', {}).get('value', 'Unknown')
+    mileage = vehicle_data.get('mileage', {}).get('value', 'Unknown')
     condition = vehicle_data.get('overall_condition_rating', {}).get('value', 'Unknown')
 
     # Build the prompt for LLM

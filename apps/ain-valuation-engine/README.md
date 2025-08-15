@@ -8,25 +8,25 @@ AIN (Automotive Intelligence Network) is an enterprise-grade, AI-powered vehicle
 
 ## Features
 
-- **AI-Powered Vehicle Valuation:**  
+- **AI-Powered Vehicle Valuation:**
   Predict fair market values using modern ML and deep learning models.
-- **Scalable Data Ingestion:**  
+- **Scalable Data Ingestion:**
   Automated pipelines for ingesting millions of records from diverse sources (Kaggle, EPA, NHTSA, CarAPI, and more).
-- **Neural Network Support:**  
+- **Neural Network Support:**
   Modular pipeline for swapping tree-based (sklearn) and neural (PyTorch/TensorFlow) models.
-- **Explainability:**  
+- **Explainability:**
   SHAP for feature-level breakdowns; GPT-powered human-readable narratives for every valuation.
-- **Buyer/Seller Mode:**  
+- **Buyer/Seller Mode:**
   Toggle to generate valuations optimized for buyers or sellers.
-- **REST API (Flask/FastAPI):**  
+- **REST API (Flask/FastAPI):**
   Secure endpoints, input validation, PDF/CSV/JSON export, and robust error handling.
-- **Retraining & Model Versioning:**  
+- **Retraining & Model Versioning:**
   CLI and automated retraining workflows with model registry, versioning, and audit trails.
-- **Compliance & Security:**  
+- **Compliance & Security:**
   GDPR/CCPA compliant, PII redaction, authentication/authorization, audit logs.
-- **Monitoring & MLOps:**  
+- **Monitoring & MLOps:**
   MLFlow, Weights & Biases, Evidently, Prometheus, Grafana, Sentry.
-- **Documentation & Extensibility:**  
+- **Documentation & Extensibility:**
   Comprehensive API docs, setup guides, modular codebase for rapid feature expansion.
 
 ---
@@ -51,6 +51,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+
 ### Environment Setup
 
 Create a `.env` file in the project root:
@@ -58,8 +59,14 @@ Create a `.env` file in the project root:
 ```env
 OPENAI_API_KEY=your_openai_key
 API_AUTH_SECRET=your_api_secret
-# Add other environment variables as needed
+# Commercial VIN provider (optional)
+VINAUDIT_API_KEY=your_vinaudit_key
+VINAUDIT_API_ENDPOINT=https://api.vinaudit.com/v2/vehicle  # optional
+VINAUDIT_API_TIMEOUT=10  # optional
+VINAUDIT_API_MAX_RETRIES=2  # optional
 ```
+
+If using a commercial provider, set the relevant environment variables as above. The pipeline will automatically use NHTSA first, then fall back to the commercial provider if needed. See `README_VIN_DECODER_PIPELINE.md` for full details.
 
 ### Run the API
 

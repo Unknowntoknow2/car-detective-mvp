@@ -21,7 +21,32 @@ python vin_decoder_pipeline_integration.py <VIN>
 
 ---
 
-## Extending
+
+## Commercial Provider Integration
+
+### Setup
+- Obtain a commercial VIN decode API key (e.g., from VinAudit).
+- Set the following environment variables in your `.env` or shell:
+  - `VINAUDIT_API_KEY=your_vinaudit_key`
+  - `VINAUDIT_API_ENDPOINT=https://api.vinaudit.com/v2/vehicle` (optional, defaults to VinAudit)
+  - `VINAUDIT_API_TIMEOUT=10` (optional, request timeout in seconds)
+  - `VINAUDIT_API_MAX_RETRIES=2` (optional, retry attempts on timeout)
+
+### Usage
+- The pipeline will automatically try NHTSA first, then fall back to the commercial provider if NHTSA fails or is incomplete.
+- All provenance, compliance, and error details are included in the output.
+
+### Example
+```bash
+export VINAUDIT_API_KEY=your_vinaudit_key
+python vin_decoder_pipeline_integration.py <VIN>
+```
+
+### Error Handling
+- If the commercial provider fails (timeout, rate limit, bad VIN), errors are logged and included in the output.
+- See the `provenance` and `compliance_log` fields in `db_output.json` for details.
+
+### Extending
 - To add new enrichment or output fields, update `vin_decoder_abstraction.py`.
 - For new output targets (DB, queue, API), extend `persist_to_db_output()`.
 
