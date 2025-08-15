@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -1454,6 +1454,44 @@ export type Database = {
         }
         Relationships: []
       }
+      listing_audit_snapshots: {
+        Row: {
+          captured_at: string | null
+          created_at: string | null
+          id: string
+          listing_url: string | null
+          snapshot: Json | null
+          source: string | null
+          valuation_id: string | null
+        }
+        Insert: {
+          captured_at?: string | null
+          created_at?: string | null
+          id?: string
+          listing_url?: string | null
+          snapshot?: Json | null
+          source?: string | null
+          valuation_id?: string | null
+        }
+        Update: {
+          captured_at?: string | null
+          created_at?: string | null
+          id?: string
+          listing_url?: string | null
+          snapshot?: Json | null
+          source?: string | null
+          valuation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_audit_snapshots_valuation_id_fkey"
+            columns: ["valuation_id"]
+            isOneToOne: false
+            referencedRelation: "valuations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       makes: {
         Row: {
           created_at: string | null
@@ -1906,44 +1944,71 @@ export type Database = {
       }
       market_search_audit: {
         Row: {
+          api_error: string | null
+          api_http_status: number | null
+          api_ok: boolean | null
           created_at: string | null
           data_sources_used: Json | null
           error_message: string | null
+          exclusion_reason: string | null
           id: string
+          included_in_comp_set: boolean | null
           listings_found: number | null
           listings_validated: number | null
+          quality_score: number | null
+          retry_attempts: number | null
           search_duration_ms: number | null
           search_params: Json
           search_status: string | null
           search_type: string
+          stage_status: Json | null
+          trust_tier: string | null
           valuation_request_id: string | null
           vin: string | null
         }
         Insert: {
+          api_error?: string | null
+          api_http_status?: number | null
+          api_ok?: boolean | null
           created_at?: string | null
           data_sources_used?: Json | null
           error_message?: string | null
+          exclusion_reason?: string | null
           id?: string
+          included_in_comp_set?: boolean | null
           listings_found?: number | null
           listings_validated?: number | null
+          quality_score?: number | null
+          retry_attempts?: number | null
           search_duration_ms?: number | null
           search_params: Json
           search_status?: string | null
           search_type: string
+          stage_status?: Json | null
+          trust_tier?: string | null
           valuation_request_id?: string | null
           vin?: string | null
         }
         Update: {
+          api_error?: string | null
+          api_http_status?: number | null
+          api_ok?: boolean | null
           created_at?: string | null
           data_sources_used?: Json | null
           error_message?: string | null
+          exclusion_reason?: string | null
           id?: string
+          included_in_comp_set?: boolean | null
           listings_found?: number | null
           listings_validated?: number | null
+          quality_score?: number | null
+          retry_attempts?: number | null
           search_duration_ms?: number | null
           search_params?: Json
           search_status?: string | null
           search_type?: string
+          stage_status?: Json | null
+          trust_tier?: string | null
           valuation_request_id?: string | null
           vin?: string | null
         }
@@ -3178,9 +3243,11 @@ export type Database = {
           adjustment_percentage: number | null
           adjustment_reason: string | null
           base_value: number | null
+          confidence_capped_at: number | null
           confidence_score: number | null
           created_at: string
           data_sources: string[] | null
+          final_method: string | null
           final_value: number
           id: string
           metadata: Json | null
@@ -3190,6 +3257,7 @@ export type Database = {
           updated_at: string
           user_id: string | null
           valuation_request_id: string | null
+          value_range: Json | null
           vin: string
           zip_code: string | null
         }
@@ -3198,9 +3266,11 @@ export type Database = {
           adjustment_percentage?: number | null
           adjustment_reason?: string | null
           base_value?: number | null
+          confidence_capped_at?: number | null
           confidence_score?: number | null
           created_at?: string
           data_sources?: string[] | null
+          final_method?: string | null
           final_value: number
           id?: string
           metadata?: Json | null
@@ -3210,6 +3280,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           valuation_request_id?: string | null
+          value_range?: Json | null
           vin: string
           zip_code?: string | null
         }
@@ -3218,9 +3289,11 @@ export type Database = {
           adjustment_percentage?: number | null
           adjustment_reason?: string | null
           base_value?: number | null
+          confidence_capped_at?: number | null
           confidence_score?: number | null
           created_at?: string
           data_sources?: string[] | null
+          final_method?: string | null
           final_value?: number
           id?: string
           metadata?: Json | null
@@ -3230,6 +3303,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           valuation_request_id?: string | null
+          value_range?: Json | null
           vin?: string
           zip_code?: string | null
         }
@@ -4341,17 +4415,17 @@ export type Database = {
         Args: {
           p_make: string
           p_model: string
+          p_radius_miles?: number
           p_year: number
           p_zip_code: string
-          p_radius_miles?: number
         }
         Returns: {
-          median_price: number
           average_price: number
-          sample_size: number
           confidence_score: number
-          inventory_level: string
           demand_indicator: number
+          inventory_level: string
+          median_price: number
+          sample_size: number
         }[]
       }
       claim_referral_reward: {
@@ -4373,15 +4447,15 @@ export type Database = {
       get_adjustment_breakdown_heatmap: {
         Args: Record<PropertyKey, never>
         Returns: {
-          zip_code: string
-          fuel_type: string
-          condition: string
           average_condition_adj: number
           average_fuel_adj: number
-          average_mileage_adj: number
           average_market_adj: number
+          average_mileage_adj: number
+          condition: string
           final_value_avg: number
+          fuel_type: string
           sample_count: number
+          zip_code: string
         }[]
       }
       get_current_user_role: {
@@ -4392,37 +4466,37 @@ export type Database = {
         Args: { batch_limit?: number; force_reprocess?: boolean }
         Returns: {
           id: string
-          vin: string
           make: string
           model: string
-          year: number
-          trim_level: string
           table_name: string
+          trim_level: string
+          vin: string
+          year: number
         }[]
       }
       get_title_adjustment: {
-        Args: { title_status: string; base_value: number }
+        Args: { base_value: number; title_status: string }
         Returns: number
       }
       get_trims_by_make_model_year: {
         Args: { input_make: string; input_model: string; input_year: number }
         Returns: {
-          id: string
-          trim_name: string
           engine_type: string
-          transmission: string
           fuel_type: string
-          msrp: number
+          id: string
           image_url: string
+          msrp: number
+          transmission: string
+          trim_name: string
         }[]
       }
       get_user_referral_stats: {
         Args: { user_id: string }
         Returns: {
-          total_referrals: number
-          pending_referrals: number
-          earned_rewards: number
           claimed_rewards: number
+          earned_rewards: number
+          pending_referrals: number
+          total_referrals: number
         }[]
       }
       has_premium_access: {
@@ -4435,12 +4509,12 @@ export type Database = {
       }
       http_delete: {
         Args:
+          | { content: string; content_type: string; uri: string }
           | { uri: string }
-          | { uri: string; content: string; content_type: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
       }
       http_get: {
-        Args: { uri: string } | { uri: string; data: Json }
+        Args: { data: Json; uri: string } | { uri: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
       }
       http_head: {
@@ -4459,17 +4533,17 @@ export type Database = {
         }[]
       }
       http_patch: {
-        Args: { uri: string; content: string; content_type: string }
+        Args: { content: string; content_type: string; uri: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
       }
       http_post: {
         Args:
-          | { uri: string; content: string; content_type: string }
-          | { uri: string; data: Json }
+          | { content: string; content_type: string; uri: string }
+          | { data: Json; uri: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
       }
       http_put: {
-        Args: { uri: string; content: string; content_type: string }
+        Args: { content: string; content_type: string; uri: string }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
       }
       http_reset_curlopt: {
@@ -4493,11 +4567,11 @@ export type Database = {
         Returns: boolean
       }
       mark_referral_earned: {
-        Args: { user_id: string; reward_type?: string; reward_amount?: number }
+        Args: { reward_amount?: number; reward_type?: string; user_id: string }
         Returns: undefined
       }
       process_referral: {
-        Args: { token: string; new_user_id: string }
+        Args: { new_user_id: string; token: string }
         Returns: undefined
       }
       text_to_bytea: {

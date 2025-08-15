@@ -21,7 +21,62 @@ import {
   Target,
   RefreshCw
 } from 'lucide-react';
-import { ListingAuditResult } from '@/services/valuation/listingAuditService';
+
+interface ListingAuditResult {
+  listingUrl?: string;
+  captureDateTime?: string;
+  source?: string;
+  apiOutcome?: {
+    status: 'success' | 'fail' | 'partial';
+    httpCode?: number;
+    errorMessage?: string;
+    processingStages?: Array<{
+      stage: string;
+      passed: boolean;
+    }>;
+  };
+  vin?: string;
+  vehicleInfo?: {
+    year?: number;
+    make?: string;
+    model?: string;
+    trim?: string;
+  };
+  stockNumber?: string;
+  matchToSubject?: 'exact' | 'trim-level' | 'no-match';
+  matchFailReason?: string;
+  advertisedPrice?: number;
+  dealerFeesListed?: boolean;
+  feeTransparencyScore?: number;
+  taxesIncluded?: boolean;
+  odometer?: number;
+  mileagePresent?: boolean;
+  mileageFailReason?: string;
+  dealerClaimedCondition?: string;
+  photoCount?: number;
+  hasVinPlatePhoto?: boolean;
+  accidentDisclosure?: string;
+  ownerCount?: number;
+  titleStatus?: string;
+  recallNotePresent?: boolean;
+  inspectionStatus?: 'passed' | 'failed' | 'not-provided';
+  keyFeatures?: string[];
+  packages?: string[];
+  specialPaint?: string;
+  listingZip?: string;
+  distanceFromTarget?: number;
+  withinRadius?: boolean;
+  radiusFailReason?: string;
+  transferAvailable?: boolean;
+  qualityScore?: number;
+  systemConfidenceScore?: number;
+  trustTier?: 'tier1' | 'tier2' | 'tier3';
+  includedInCompSet?: boolean;
+  exclusionReason?: string;
+  fallbackMethod?: 'none' | 'depreciation-curve' | 'broadened-search' | 'manual-match';
+  retryAttempts?: number;
+  finalMethod?: string;
+}
 
 interface ListingProcessAuditFormProps {
   auditResult?: ListingAuditResult;
@@ -157,7 +212,7 @@ export const ListingProcessAuditForm: React.FC<ListingProcessAuditFormProps> = (
           <div>
             <Label className="text-sm font-medium">Processing Pipeline Status</Label>
             <div className="grid grid-cols-2 gap-2 mt-2">
-              {formData.apiOutcome?.processingStages?.map((stage, index) => (
+              {formData.apiOutcome?.processingStages?.map((stage: any, index: number) => (
                 <div key={index} className="flex items-center gap-2 p-2 border rounded">
                   {getStatusIcon(stage.passed)}
                   <span className="text-sm">{stage.stage.replace('_', ' ')}</span>
