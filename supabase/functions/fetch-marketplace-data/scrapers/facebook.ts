@@ -1,175 +1,102 @@
-
-import { launchBrowser, setupStealthPage } from '../../_shared/puppeteer-launch.ts'
-
-export async function fetchFacebookMarketplaceListings(searchQuery: string, zipCode?: string): Promise<any[]> {
-  console.log(`🔍 Facebook Marketplace scraper starting for: ${searchQuery}`)
-  
-  let browser
+// Facebook Marketplace scraper implementation  
+export async function fetchFacebookMarketplaceListings(query: string, zipCode: string) {
   try {
-    // Use headful mode for Facebook to handle login sessions
-    browser = await launchBrowser(false) // headful = false for now, can be changed to true for manual login
-    const page = await setupStealthPage(browser)
-    const results: any[] = []
-
-    // Determine location based on zip code or default to Sacramento
-    const location = getLocationFromZip(zipCode || '95814')
-    const searchUrl = `https://www.facebook.com/marketplace/${location}/search/?query=${encodeURIComponent(searchQuery)}&category=vehicles`
+    console.log('🔍 Scraping Facebook Marketplace for:', { query, zipCode });
     
-    console.log(`🌐 Navigating to: ${searchUrl}`)
-    await page.goto(searchUrl, { 
-      waitUntil: 'networkidle2',
-      timeout: 60000 
-    })
-
-    // Wait for the marketplace feed to load
-    try {
-      await page.waitForSelector('[role="feed"], [data-pagelet="MarketplaceRoot"]', { timeout: 20000 })
-    } catch (timeoutError) {
-      console.log('⏰ Timeout waiting for Facebook feed, checking for login requirement')
-      
-      // Check if we need to log in
-      const loginRequired = await page.$('input[name="email"], input[data-testid="royal_email"]')
-      if (loginRequired) {
-        console.log('🔐 Facebook login required - manual session needed')
-        return []
+    // Facebook Marketplace requires authentication and has strict anti-bot measures
+    // For now, we'll use a limited approach that tries to access public data
+    const searchUrl = `https://www.facebook.com/marketplace/search/?query=${encodeURIComponent(query)}&radius=50&latitude=${getLatFromZip(zipCode)}&longitude=${getLngFromZip(zipCode)}`;
+    
+    const response = await fetch(searchUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
       }
+    });
+
+    if (!response.ok) {
+      console.warn(`Facebook Marketplace returned ${response.status} - likely blocked`);
+      return [];
     }
 
-    // Scroll to load more listings (Facebook uses infinite scroll)
-    console.log('📜 Scrolling to load more listings...')
-    for (let i = 0; i < 5; i++) {
-      await page.evaluate(() => {
-        window.scrollBy(0, 2000)
-      })
-      await page.waitForTimeout(2000) // Natural scrolling delay
-    }
-
-    // Extract listings from the marketplace feed
-    const listings = await page.evaluate(() => {
-      const vehicles = []
-      
-      // Facebook marketplace listings selectors (multiple patterns)
-      const listingSelectors = [
-        '[role="feed"] > div',
-        '[data-pagelet="MarketplaceRoot"] a[role="link"]',
-        'div[data-testid="marketplace-item"]'
-      ]
-      
-      let listingElements: NodeListOf<Element> | null = null
-      
-      // Try different selectors
-      for (const selector of listingSelectors) {
-        listingElements = document.querySelectorAll(selector)
-        if (listingElements.length > 0) {
-          console.log(`Found ${listingElements.length} listings with selector: ${selector}`)
-          break
-        }
-      }
-      
-      if (!listingElements || listingElements.length === 0) {
-        console.log('No listing elements found')
-        return []
-      }
-
-      for (const element of listingElements) {
+    const html = await response.text();
+    
+    // Facebook's structure is heavily obfuscated and changes frequently
+    // Try to extract basic listing data from any JSON-LD or structured data
+    const listings = [];
+    
+    // Look for JSON data in the page
+    const jsonMatches = html.match(/\{"marketplace_search":\{[^}]+\}/g);
+    if (jsonMatches) {
+      for (const jsonMatch of jsonMatches.slice(0, 5)) {
         try {
-          // Extract title from various possible locations
-          let titleElement = element.querySelector('span[dir="auto"]') || 
-                           element.querySelector('[data-testid="marketplace-item-title"]') ||
-                           element.querySelector('div[role="heading"]')
-          
-          const title = titleElement?.textContent?.trim() || ''
-          
-          // Skip if no meaningful title
-          if (!title || title.length < 5) continue
-          
-          // Extract URL
-          let linkElement = element.querySelector('a[href*="/marketplace/item/"]') || 
-                          element.closest('a') ||
-                          element.querySelector('a')
-          
-          const relativeUrl = linkElement?.getAttribute('href') || ''
-          const url = relativeUrl.startsWith('http') ? relativeUrl : `https://www.facebook.com${relativeUrl}`
-          
-          // Skip if no valid URL
-          if (!url.includes('marketplace')) continue
-          
-          // Extract price from title or separate price element
-          let price: number | null = null
-          const priceElement = element.querySelector('[data-testid="marketplace-item-price"], .marketplace-item-price')
-          const priceText = priceElement?.textContent || title
-          
-          const priceMatch = priceText.match(/\$[\d,]+/)
-          if (priceMatch) {
-            price = parseInt(priceMatch[0].replace(/[^\d]/g, ''))
+          const data = JSON.parse(jsonMatch);
+          if (data.marketplace_search && data.marketplace_search.feed) {
+            data.marketplace_search.feed.edges.forEach((edge: any, index: number) => {
+              if (edge.node && edge.node.listing && listings.length < 10) {
+                const listing = edge.node.listing;
+                if (listing.marketplace_listing_price && listing.marketplace_listing_title) {
+                  listings.push({
+                    id: `fb-${listing.id || index}`,
+                    title: listing.marketplace_listing_title,
+                    price: parseInt(listing.marketplace_listing_price.replace(/[^\d]/g, '')),
+                    mileage: extractMileageFromTitle(listing.marketplace_listing_title),
+                    url: `https://www.facebook.com/marketplace/item/${listing.id}`,
+                    location: zipCode,
+                    platform: 'facebook',
+                    vin: null,
+                    created_at: new Date().toISOString()
+                  });
+                }
+              }
+            });
           }
-          
-          // Extract location if available
-          const locationElement = element.querySelector('[data-testid="marketplace-item-location"]')
-          const location = locationElement?.textContent?.trim() || 'Facebook Marketplace'
-          
-          // Try to extract mileage from title
-          const mileageMatch = title.match(/(\d{1,3}[,\d]*)\s*(?:miles?|mi|k)/i)
-          const mileage = mileageMatch ? parseInt(mileageMatch[1].replace(/,/g, '')) : null
-          
-          // Try to extract VIN from title (less common on Facebook)
-          const vinMatch = title.match(/\b[A-HJ-NPR-Z0-9]{17}\b/i)
-          const vin = vinMatch ? vinMatch[0] : null
-          
-          if (title && url) {
-            vehicles.push({
-              vin,
-              title,
-              price,
-              mileage: mileage && mileage < 1000000 ? mileage : null, // Sanity check
-              location,
-              platform: 'Facebook',
-              url,
-            })
-          }
-        } catch (error) {
-          console.error('Error parsing Facebook listing:', error)
+        } catch (parseError) {
+          console.warn('Failed to parse Facebook JSON data:', parseError);
         }
       }
-      
-      return vehicles
-    })
+    }
 
-    console.log(`📊 Found ${listings.length} Facebook Marketplace listings for query: ${searchQuery}`)
-    results.push(...listings)
+    // If no structured data found, Facebook likely blocked the request
+    if (listings.length === 0) {
+      console.warn('⚠️ Facebook Marketplace: No listings found - likely blocked by anti-bot measures');
+      // Return empty instead of fake data
+      return [];
+    }
 
-    return results
+    console.log(`✅ Facebook Marketplace: Found ${listings.length} listings`);
+    return listings;
 
   } catch (error) {
-    console.error(`❌ Facebook Marketplace scraping failed for query ${searchQuery}:`, error)
-    return []
-  } finally {
-    if (browser) {
-      try {
-        await browser.close()
-        console.log('🔒 Facebook browser closed')
-      } catch (closeError) {
-        console.error('Error closing Facebook browser:', closeError)
-      }
-    }
+    console.error('❌ Facebook Marketplace scraping failed:', error);
+    return [];
   }
 }
 
-function getLocationFromZip(zipCode: string): string {
-  // Simplified location mapping for Facebook Marketplace URLs
-  const zip = parseInt(zipCode)
-  
-  if (zip >= 90000 && zip <= 96699) return 'losangeles' // CA
-  if (zip >= 94000 && zip <= 94999) return 'sanfrancisco' // SF Bay Area
-  if (zip >= 95000 && zip <= 95999) return 'sacramento' // Sacramento
-  if (zip >= 98000 && zip <= 99999) return 'seattle' // WA
-  if (zip >= 10000 && zip <= 19999) return 'newyork' // NY
-  if (zip >= 60000 && zip <= 60699) return 'chicago' // IL
-  if (zip >= 75000 && zip <= 75999) return 'dallas' // TX
-  if (zip >= 77000 && zip <= 77999) return 'houston' // TX
-  if (zip >= 33000 && zip <= 34999) return 'miami' // FL
-  if (zip >= 30000 && zip <= 31999) return 'atlanta' // GA
-  
-  // Default to Sacramento
-  return 'sacramento'
+// Simplified coordinate mapping for major ZIP codes
+function getLatFromZip(zipCode: string): number {
+  const zipNum = parseInt(zipCode);
+  if (zipNum >= 10000 && zipNum <= 14999) return 40.7128; // NYC
+  if (zipNum >= 90000 && zipNum <= 96199) return 34.0522; // LA
+  if (zipNum >= 60000 && zipNum <= 60999) return 41.8781; // Chicago
+  return 39.8283; // Default to center of US
+}
+
+function getLngFromZip(zipCode: string): number {
+  const zipNum = parseInt(zipCode);
+  if (zipNum >= 10000 && zipNum <= 14999) return -74.0060; // NYC
+  if (zipNum >= 90000 && zipNum <= 96199) return -118.2437; // LA  
+  if (zipNum >= 60000 && zipNum <= 60999) return -87.6298; // Chicago
+  return -98.5795; // Default to center of US
+}
+
+function extractMileageFromTitle(title: string): number {
+  const mileageMatch = title.match(/(\d+),?(\d{3})?\s*mi/i);
+  if (mileageMatch) {
+    return parseInt(mileageMatch[1] + (mileageMatch[2] || ''));
+  }
+  return 0;
 }
