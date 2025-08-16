@@ -1,58 +1,57 @@
-// Real Craigslist scraper implementation
+
 export async function fetchCraigslistListings(query: string, zipCode: string) {
   try {
     console.log('🔍 Scraping Craigslist for:', { query, zipCode });
     
-    // Format query for Craigslist search
-    const searchTerms = query.replace(/\s+/g, '+');
-    const url = `https://${getAreaFromZip(zipCode)}.craigslist.org/search/cta?query=${searchTerms}&sort=date&hasPic=1&search_distance=50`;
+    // Craigslist search URL for cars
+    const searchUrl = `https://${getRegionFromZip(zipCode)}.craigslist.org/search/ctd?query=${encodeURIComponent(query)}&purveyor-input=all&search_distance=50&postal=${zipCode}`;
     
-    const response = await fetch(url, {
+    const response = await fetch(searchUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
-        'Connection': 'keep-alive'
+        'Accept-Language': 'en-US,en;q=0.9'
       }
     });
 
     if (!response.ok) {
-      throw new Error(`Craigslist returned ${response.status}`);
+      console.warn(`Craigslist returned ${response.status}`);
+      return [];
     }
 
     const html = await response.text();
-    const listings = [];
-
-    // Parse Craigslist listings
-    const listingRegex = /<a href="([^"]+)" class="result-title[^"]*"[^>]*>([^<]+)<\/a>[\s\S]*?<span class="result-price">(\$[\d,]+)<\/span>[\s\S]*?<span class="result-hood">([^<]*)<\/span>/g;
+    const listings: any[] = [];
     
-    let match;
-    let count = 0;
-    while ((match = listingRegex.exec(html)) !== null && count < 20) {
-      const [, detailUrl, title, priceStr, location] = match;
-      
-      const price = parseInt(priceStr.replace(/[\$,]/g, ''));
-      if (price > 1000) {
-        // Extract mileage from title
-        const mileageMatch = title.match(/(\d+k?)\s*mi/i);
-        let mileage = 0;
-        if (mileageMatch) {
-          mileage = parseInt(mileageMatch[1].replace('k', '000'));
+    // Parse HTML using regex patterns (since DOMParser may not be available)
+    const listingPattern = /<li class="result-row"[\s\S]*?<\/li>/g;
+    const matches = html.match(listingPattern) || [];
+    
+    for (const match of matches.slice(0, 10)) {
+      try {
+        const priceMatch = match.match(/class="result-price">.*?\$(\d+(?:,\d{3})*)/);
+        const titleMatch = match.match(/class="result-title hdrlnk"[^>]*>([^<]+)/);
+        const linkMatch = match.match(/href="([^"]*)" class="result-title hdrlnk"/);
+        const locationMatch = match.match(/class="result-hood".*?\(([^)]+)\)/);
+        
+        if (priceMatch && titleMatch && linkMatch) {
+          const price = parseInt(priceMatch[1].replace(/,/g, ''));
+          const title = titleMatch[1].trim();
+          const url = linkMatch[1].startsWith('http') ? linkMatch[1] : `https://craigslist.org${linkMatch[1]}`;
+          
+          listings.push({
+            id: `cl-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            title,
+            price,
+            mileage: extractMileageFromTitle(title),
+            url,
+            location: locationMatch ? locationMatch[1] : zipCode,
+            platform: 'craigslist',
+            vin: null,
+            created_at: new Date().toISOString()
+          });
         }
-
-        listings.push({
-          id: `cl-${detailUrl.split('/').pop()}`,
-          title: title.trim(),
-          price,
-          mileage,
-          url: detailUrl.startsWith('http') ? detailUrl : `https://craigslist.org${detailUrl}`,
-          location: location.trim().replace(/[()]/g, ''),
-          platform: 'craigslist',
-          vin: null,
-          created_at: new Date().toISOString()
-        });
-        count++;
+      } catch (parseError) {
+        console.warn('Failed to parse Craigslist listing:', parseError);
       }
     }
 
@@ -65,22 +64,26 @@ export async function fetchCraigslistListings(query: string, zipCode: string) {
   }
 }
 
-// Map ZIP codes to Craigslist areas (simplified mapping)
-function getAreaFromZip(zipCode: string): string {
+function getRegionFromZip(zipCode: string): string {
   const zipNum = parseInt(zipCode);
   
-  // Major metro area mappings
-  if (zipNum >= 10000 && zipNum <= 14999) return 'newyork'; // NYC area
-  if (zipNum >= 90000 && zipNum <= 96199) return 'losangeles'; // LA area  
-  if (zipNum >= 60000 && zipNum <= 60999) return 'chicago'; // Chicago area
-  if (zipNum >= 77000 && zipNum <= 77999) return 'houston'; // Houston area
-  if (zipNum >= 33000 && zipNum <= 34999) return 'miami'; // Miami area
-  if (zipNum >= 94000 && zipNum <= 94999) return 'sfbay'; // SF Bay area
-  if (zipNum >= 98000 && zipNum <= 99499) return 'seattle'; // Seattle area
-  if (zipNum >= 85000 && zipNum <= 85999) return 'phoenix'; // Phoenix area
-  if (zipNum >= 19000 && zipNum <= 19999) return 'philadelphia'; // Philadelphia area
-  if (zipNum >= 30000 && zipNum <= 31999) return 'atlanta'; // Atlanta area
+  // Map ZIP codes to Craigslist regions
+  if (zipNum >= 10000 && zipNum <= 14999) return 'newyork';
+  if (zipNum >= 90000 && zipNum <= 96199) return 'losangeles';
+  if (zipNum >= 60000 && zipNum <= 60999) return 'chicago';
+  if (zipNum >= 94000 && zipNum <= 94999) return 'sfbay';
+  if (zipNum >= 30000 && zipNum <= 39999) return 'atlanta';
+  if (zipNum >= 75000 && zipNum <= 75999) return 'dallas';
+  if (zipNum >= 98000 && zipNum <= 99499) return 'seattle';
+  if (zipNum >= 33000 && zipNum <= 34999) return 'miami';
   
-  // Default to nearest major city
-  return 'newyork';
+  return 'sfbay'; // Default fallback
+}
+
+function extractMileageFromTitle(title: string): number {
+  const mileageMatch = title.match(/(\d+),?(\d{3})?\s*(?:miles?|mi|k\s*miles)/i);
+  if (mileageMatch) {
+    return parseInt(mileageMatch[1] + (mileageMatch[2] || ''));
+  }
+  return 0;
 }
