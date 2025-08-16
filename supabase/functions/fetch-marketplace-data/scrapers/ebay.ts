@@ -1,150 +1,113 @@
-
-import { launchBrowser, setupStealthPage } from '../../_shared/puppeteer-launch.ts'
-
-export async function fetchEbayMotorsListings(query: string, zipCode: string): Promise<any[]> {
-  console.log(`🚗 eBay Motors scraper starting for: ${query} near ${zipCode}`)
-  
-  let browser
+// eBay Motors scraper implementation
+export async function fetchEbayMotorsListings(query: string, zipCode: string) {
   try {
-    browser = await launchBrowser(true)
-    const page = await setupStealthPage(browser)
-    const results: any[] = []
+    console.log('🔍 Scraping eBay Motors for:', { query, zipCode });
+    
+    // Format query for eBay Motors search
+    const searchTerms = encodeURIComponent(query);
+    const url = `https://www.ebay.com/sch/Cars-Trucks/6001/i.html?_nkw=${searchTerms}&_dcat=6001&_stpos=${zipCode}&_sop=1&_fosrp=1`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive'
+      }
+    });
 
-    // Loop through first 3 pages for comprehensive results
-    for (let pageNum = 1; pageNum <= 3; pageNum++) {
-      console.log(`📄 Scraping eBay Motors page ${pageNum}`)
-      
-      const searchUrl = `https://www.ebay.com/sch/Cars-Trucks/6001/i.html?_nkw=${encodeURIComponent(query)}&_pgn=${pageNum}&LH_ItemCondition=3000|1000&_sop=1`
-      
-      await page.goto(searchUrl, { 
-        waitUntil: 'networkidle2',
-        timeout: 30000 
-      })
+    if (!response.ok) {
+      throw new Error(`eBay returned ${response.status}`);
+    }
 
-      // Wait for search results
+    const html = await response.text();
+    const listings = [];
+
+    // Parse eBay listings - they use structured data and specific CSS classes
+    const itemRegex = /<div class="s-item__wrapper[^"]*"[\s\S]*?href="([^"]+)"[\s\S]*?<h3 class="s-item__title[^"]*">([^<]+)<\/h3>[\s\S]*?<span class="s-item__price[^"]*">([^<]+)<\/span>[\s\S]*?<span class="s-item__location[^"]*">([^<]*)<\/span>/g;
+    
+    let match;
+    let count = 0;
+    while ((match = itemRegex.exec(html)) !== null && count < 15) {
+      const [, itemUrl, title, priceStr, location] = match;
+      
+      // Skip non-vehicle listings
+      if (title.toLowerCase().includes('part') || title.toLowerCase().includes('wheel') || title.toLowerCase().includes('tire')) {
+        continue;
+      }
+      
+      const priceMatch = priceStr.match(/\$([\d,]+)/);
+      if (priceMatch) {
+        const price = parseInt(priceMatch[1].replace(/,/g, ''));
+        
+        if (price > 2000) { // Filter out parts/accessories
+          // Extract mileage from title
+          const mileageMatch = title.match(/(\d+),?(\d{3})?\s*mi/i);
+          let mileage = 0;
+          if (mileageMatch) {
+            mileage = parseInt(mileageMatch[1] + (mileageMatch[2] || ''));
+          }
+
+          listings.push({
+            id: `ebay-${itemUrl.split('/').pop()?.split('?')[0]}`,
+            title: title.trim(),
+            price,
+            mileage,
+            url: itemUrl,
+            location: location.trim(),
+            platform: 'ebay',
+            vin: null,
+            created_at: new Date().toISOString()
+          });
+          count++;
+        }
+      }
+    }
+
+    // Also try to parse JSON-LD structured data if available
+    const jsonLdMatch = html.match(/<script type="application\/ld\+json">(\{[^<]+\})<\/script>/);
+    if (jsonLdMatch && listings.length < 10) {
       try {
-        await page.waitForSelector('.s-item', { timeout: 15000 })
-      } catch (timeoutError) {
-        console.log(`⏰ Timeout on page ${pageNum}, checking for results`)
-      }
-
-      // Check for no results
-      const noResults = await page.$('.srp-save-null-search')
-      if (noResults) {
-        console.log(`ℹ️ No eBay results found on page ${pageNum}`)
-        break
-      }
-
-      // Extract listings from current page
-      const listings = await page.evaluate(() => {
-        const vehicles = []
-        const listingElements = document.querySelectorAll('.s-item')
-
-        for (const element of listingElements) {
-          try {
-            // Skip sponsored/ad items
-            if (element.querySelector('.s-item__subtitle')?.textContent?.includes('Sponsored')) {
-              continue
-            }
-
-            const titleElement = element.querySelector('.s-item__title')
-            const priceElement = element.querySelector('.s-item__price')
-            const linkElement = element.querySelector('.s-item__link')
-            const locationElement = element.querySelector('.s-item__location')
-            const conditionElement = element.querySelector('.SECONDARY_INFO, .s-item__subtitle')
-            const shippingElement = element.querySelector('.s-item__shipping')
-
-            const title = titleElement?.textContent?.trim() || ''
-            const priceText = priceElement?.textContent?.trim() || ''
-            const url = linkElement?.getAttribute('href') || ''
-            const location = locationElement?.textContent?.trim() || ''
-            const condition = conditionElement?.textContent?.trim() || ''
-            const shipping = shippingElement?.textContent?.trim() || ''
-
-            // Extract price - handle various formats
-            let price = null
-            const priceMatch = priceText.match(/\$?[\d,]+/)
-            if (priceMatch) {
-              price = parseInt(priceMatch[0].replace(/[$,]/g, ''))
-            }
-
-            // Extract VIN from title if available
-            const vinMatch = title.match(/\b[A-HJ-NPR-Z0-9]{17}\b/i)
-            const vin = vinMatch ? vinMatch[0].toUpperCase() : null
-
-            // Extract mileage from title
-            const mileageMatch = title.match(/(\d{1,3}[,\d]*)\s*(?:miles?|mi|k)/i)
-            let mileage = null
-            if (mileageMatch) {
-              mileage = parseInt(mileageMatch[1].replace(/,/g, ''))
-              // Convert if it's in thousands (e.g., "120k miles")
-              if (title.toLowerCase().includes('k miles') || title.toLowerCase().includes('k mi')) {
-                mileage = mileage * 1000
+        const structuredData = JSON.parse(jsonLdMatch[1]);
+        if (structuredData['@type'] === 'ItemList' && structuredData.itemListElement) {
+          structuredData.itemListElement.slice(0, 10 - listings.length).forEach((item: any, index: number) => {
+            if (item.item && item.item.offers && item.item.offers.price) {
+              const price = parseInt(String(item.item.offers.price).replace(/[^\d]/g, ''));
+              if (price > 2000) {
+                listings.push({
+                  id: `ebay-structured-${index}`,
+                  title: item.item.name || 'eBay Vehicle Listing',
+                  price,
+                  mileage: extractMileageFromDescription(item.item.description || ''),
+                  url: item.item['@id'] || item.item.url || '#',
+                  location: zipCode,
+                  platform: 'ebay',
+                  vin: null,
+                  created_at: new Date().toISOString()
+                });
               }
             }
-
-            // Extract year from title
-            const yearMatch = title.match(/\b(19|20)\d{2}\b/)
-            const year = yearMatch ? parseInt(yearMatch[0]) : null
-
-            // Skip items that don't look like vehicles
-            if (!title || title.length < 10 || !url || url.includes('javascript:')) {
-              continue
-            }
-
-            // Filter out parts/accessories
-            const partsKeywords = ['part', 'tire', 'wheel', 'engine', 'transmission', 'bumper', 'hood', 'door', 'mirror']
-            const isPartListing = partsKeywords.some(keyword => 
-              title.toLowerCase().includes(keyword) && !title.toLowerCase().includes('car') && !title.toLowerCase().includes('vehicle')
-            )
-            
-            if (isPartListing) {
-              continue
-            }
-
-            vehicles.push({
-              vin,
-              title,
-              price,
-              mileage: mileage && mileage < 1000000 ? mileage : null, // Sanity check
-              location,
-              platform: 'eBay',
-              url: url.split('?')[0], // Clean URL
-              condition: condition || 'Used',
-              year,
-              shipping_info: shipping
-            })
-          } catch (error) {
-            console.error('Error parsing eBay listing:', error)
-          }
+          });
         }
-
-        return vehicles
-      })
-
-      console.log(`📊 Found ${listings.length} eBay listings on page ${pageNum}`)
-      results.push(...listings)
-
-      // Add delay between pages to avoid rate limiting
-      if (pageNum < 3) {
-        await page.waitForTimeout(2000)
+      } catch (parseError) {
+        console.warn('Failed to parse eBay structured data:', parseError);
       }
     }
 
-    console.log(`✅ eBay scraping completed: ${results.length} total results`)
-    return results
+    console.log(`✅ eBay Motors: Found ${listings.length} listings`);
+    return listings;
 
   } catch (error) {
-    console.error(`❌ eBay scraping failed for query ${query}:`, error)
-    return []
-  } finally {
-    if (browser) {
-      try {
-        await browser.close()
-        console.log('🔒 eBay browser closed')
-      } catch (closeError) {
-        console.error('Error closing eBay browser:', closeError)
-      }
-    }
+    console.error('❌ eBay Motors scraping failed:', error);
+    return [];
   }
+}
+
+function extractMileageFromDescription(description: string): number {
+  const mileageMatch = description.match(/(\d+),?(\d{3})?\s*(miles?|mi)/i);
+  if (mileageMatch) {
+    return parseInt(mileageMatch[1] + (mileageMatch[2] || ''));
+  }
+  return 0;
 }

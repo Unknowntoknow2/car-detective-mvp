@@ -1,170 +1,108 @@
-
-import { launchBrowser, setupStealthPage } from '../../_shared/puppeteer-launch.ts'
-
-export async function fetchOfferUpListings(query: string, zipCode: string): Promise<any[]> {
-  console.log(`🏷️ OfferUp scraper starting for: ${query} near ${zipCode}`)
-  
-  let browser
+// OfferUp scraper implementation
+export async function fetchOfferUpListings(query: string, zipCode: string) {
   try {
-    browser = await launchBrowser(true)
-    const page = await setupStealthPage(browser)
-    const results: any[] = []
-
-    // OfferUp search URL with location
-    const searchUrl = `https://offerup.com/search/?q=${encodeURIComponent(query)}&sort=distance&location=${encodeURIComponent(zipCode)}`
+    console.log('🔍 Scraping OfferUp for:', { query, zipCode });
     
-    console.log(`🌐 Navigating to: ${searchUrl}`)
-    await page.goto(searchUrl, { 
-      waitUntil: 'networkidle2',
-      timeout: 30000 
-    })
-
-    // Wait for initial content load
-    try {
-      await page.waitForSelector('[data-testid="item-tile"], .item-tile, .listing-card', { timeout: 15000 })
-    } catch (timeoutError) {
-      console.log('⏰ Timeout waiting for OfferUp results, checking for alternative selectors')
-    }
-
-    // Check for no results
-    const noResults = await page.$('.no-results, .empty-search, .no-items-found')
-    if (noResults) {
-      console.log(`ℹ️ No OfferUp results found for query: ${query}`)
-      return []
-    }
-
-    // Scroll multiple times to trigger lazy loading and load more items
-    console.log('📜 Scrolling to load more OfferUp listings...')
-    for (let i = 0; i < 5; i++) {
-      await page.evaluate(() => window.scrollBy(0, 1500))
-      await page.waitForTimeout(2000)
-      
-      // Check if more items loaded
-      const itemCount = await page.$$eval('[data-testid="item-tile"], .item-tile, .listing-card', els => els.length)
-      console.log(`📊 Found ${itemCount} items after scroll ${i + 1}`)
-    }
-
-    // Extract listings using multiple selector strategies
-    const listings = await page.evaluate(() => {
-      const vehicles = []
-      
-      // Try multiple selector strategies for OfferUp's different layouts
-      let listingElements = document.querySelectorAll('[data-testid="item-tile"]')
-      
-      // Fallback selectors if the main one doesn't work
-      if (listingElements.length === 0) {
-        listingElements = document.querySelectorAll('.item-tile, .listing-card, .item-card')
+    // Format query for OfferUp search
+    const searchTerms = encodeURIComponent(query);
+    const url = `https://offerup.com/search/?q=${searchTerms}&radius=50&location=${zipCode}`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer': 'https://offerup.com/',
+        'Connection': 'keep-alive'
       }
+    });
 
-      for (const element of listingElements) {
-        try {
-          // Try different title selectors
-          let titleElement = element.querySelector('[data-testid="item-title"]')
-          if (!titleElement) {
-            titleElement = element.querySelector('.item-title, .listing-title, h3, h4')
-          }
+    if (!response.ok) {
+      throw new Error(`OfferUp returned ${response.status}`);
+    }
 
-          // Try different price selectors
-          let priceElement = element.querySelector('[data-testid="item-price"]')
-          if (!priceElement) {
-            priceElement = element.querySelector('.item-price, .listing-price, .price')
-          }
+    const html = await response.text();
+    const listings = [];
 
-          // Try different location selectors
-          let locationElement = element.querySelector('[data-testid="item-location"]')
-          if (!locationElement) {
-            locationElement = element.querySelector('.item-location, .listing-location, .location')
-          }
+    // OfferUp uses React/SPA architecture, so look for data in JSON scripts
+    const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([^<]+)<\/script>/);
+    
+    if (nextDataMatch) {
+      try {
+        const nextData = JSON.parse(nextDataMatch[1]);
+        const searchResults = nextData?.props?.pageProps?.searchResults?.data || [];
+        
+        searchResults.slice(0, 15).forEach((item: any, index: number) => {
+          if (item.title && item.price && item.price > 2000) {
+            // Filter out non-vehicle items
+            const title = item.title.toLowerCase();
+            if (!title.includes('part') && !title.includes('wheel') && !title.includes('tire')) {
+              
+              // Extract mileage from title or description
+              const mileageMatch = (item.title + ' ' + (item.description || '')).match(/(\d+),?(\d{3})?\s*(miles?|mi)/i);
+              let mileage = 0;
+              if (mileageMatch) {
+                mileage = parseInt(mileageMatch[1] + (mileageMatch[2] || ''));
+              }
 
-          // Try different URL selectors
-          let linkElement = element.querySelector('a[href]')
-
-          const title = titleElement?.textContent?.trim() || ''
-          const priceText = priceElement?.textContent?.trim() || ''
-          const location = locationElement?.textContent?.trim() || ''
-          const url = linkElement?.getAttribute('href') || ''
-
-          // Extract price - handle various formats
-          let price = null
-          const priceMatch = priceText.match(/\$?[\d,]+/)
-          if (priceMatch) {
-            price = parseInt(priceMatch[0].replace(/[$,]/g, ''))
-          }
-
-          // Extract mileage from title if available
-          const mileageMatch = title.match(/(\d{1,3}[,\d]*)\s*(?:miles?|mi|k)/i)
-          let mileage = null
-          if (mileageMatch) {
-            mileage = parseInt(mileageMatch[1].replace(/,/g, ''))
-            // Convert if it's in thousands (e.g., "120k miles")
-            if (title.toLowerCase().includes('k miles') || title.toLowerCase().includes('k mi')) {
-              mileage = mileage * 1000
+              listings.push({
+                id: `offerup-${item.id || index}`,
+                title: item.title,
+                price: parseInt(String(item.price)),
+                mileage,
+                url: `https://offerup.com/item/detail/${item.id}`,
+                location: item.location?.display_name || zipCode,
+                platform: 'offerup',
+                vin: null,
+                created_at: new Date().toISOString()
+              });
             }
           }
-
-          // Try to extract VIN from title
-          const vinMatch = title.match(/\b[A-HJ-NPR-Z0-9]{17}\b/i)
-          const vin = vinMatch ? vinMatch[0].toUpperCase() : null
-
-          // Extract year from title
-          const yearMatch = title.match(/\b(19|20)\d{2}\b/)
-          const year = yearMatch ? parseInt(yearMatch[0]) : null
-
-          // Skip items that don't look like vehicles or don't have essential data
-          if (!title || title.length < 10 || !url) {
-            continue
-          }
-
-          // Filter out non-vehicle items (common on OfferUp)
-          const nonVehicleKeywords = ['phone', 'laptop', 'furniture', 'clothing', 'book', 'toy', 'game']
-          const isNonVehicle = nonVehicleKeywords.some(keyword => 
-            title.toLowerCase().includes(keyword)
-          )
-          
-          if (isNonVehicle) {
-            continue
-          }
-
-          // Ensure URL is absolute
-          let fullUrl = url
-          if (url && !url.startsWith('http')) {
-            fullUrl = `https://offerup.com${url}`
-          }
-
-          vehicles.push({
-            vin,
-            title,
-            price,
-            mileage: mileage && mileage < 1000000 ? mileage : null, // Sanity check
-            location: location || 'OfferUp',
-            platform: 'OfferUp',
-            url: fullUrl,
-            year
-          })
-        } catch (error) {
-          console.error('Error parsing OfferUp listing:', error)
-        }
-      }
-
-      return vehicles
-    })
-
-    console.log(`📊 Found ${listings.length} OfferUp listings for query: ${query}`)
-    results.push(...listings)
-
-    return results
-
-  } catch (error) {
-    console.error(`❌ OfferUp scraping failed for query ${query}:`, error)
-    return []
-  } finally {
-    if (browser) {
-      try {
-        await browser.close()
-        console.log('🔒 OfferUp browser closed')
-      } catch (closeError) {
-        console.error('Error closing OfferUp browser:', closeError)
+        });
+      } catch (parseError) {
+        console.warn('Failed to parse OfferUp Next.js data:', parseError);
       }
     }
+
+    // Fallback: try to parse HTML elements if JSON parsing fails
+    if (listings.length === 0) {
+      const itemRegex = /<a[^>]+href="([^"]*\/item\/detail\/[^"]*)"[^>]*>[\s\S]*?<h2[^>]*>([^<]+)<\/h2>[\s\S]*?\$([0-9,]+)[\s\S]*?<p[^>]*>([^<]*)<\/p>/g;
+      
+      let match;
+      let count = 0;
+      while ((match = itemRegex.exec(html)) !== null && count < 10) {
+        const [, itemUrl, title, priceStr, description] = match;
+        
+        const price = parseInt(priceStr.replace(/,/g, ''));
+        if (price > 2000) {
+          // Extract mileage from title or description
+          const mileageMatch = (title + ' ' + description).match(/(\d+),?(\d{3})?\s*(miles?|mi)/i);
+          let mileage = 0;
+          if (mileageMatch) {
+            mileage = parseInt(mileageMatch[1] + (mileageMatch[2] || ''));
+          }
+
+          listings.push({
+            id: `offerup-html-${count}`,
+            title: title.trim(),
+            price,
+            mileage,
+            url: itemUrl.startsWith('http') ? itemUrl : `https://offerup.com${itemUrl}`,
+            location: zipCode,
+            platform: 'offerup',
+            vin: null,
+            created_at: new Date().toISOString()
+          });
+          count++;
+        }
+      }
+    }
+
+    console.log(`✅ OfferUp: Found ${listings.length} listings`);
+    return listings;
+
+  } catch (error) {
+    console.error('❌ OfferUp scraping failed:', error);
+    return [];
   }
 }
