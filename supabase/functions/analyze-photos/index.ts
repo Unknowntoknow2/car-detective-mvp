@@ -1,395 +1,253 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-import { analyzeImagesWithOpenAI } from "./openai-service.ts";
-import { storeAssessmentResult } from "./database.ts";
-import { ConditionAssessmentResult } from "./types.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { corsHeaders } from '../_shared/cors.ts';
 
-// CORS headers
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Get the request body
-    const formData = await req.formData();
-    const valuationId = formData.get("valuationId")?.toString();
-
-    if (!valuationId) {
-      return new Response(
-        JSON.stringify({ error: "Missing valuation ID" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
     }
 
-    // Extract photos from the form data
-    const photos = [];
-    const fileEntries = Array.from(formData.entries()).filter((entry) =>
-      entry[0].startsWith("photos[") && entry[1] instanceof File
-    );
+    const { photoUrls, valuationId } = await req.json();
 
-    if (fileEntries.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "No photos provided" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+    if (!photoUrls || !Array.isArray(photoUrls) || photoUrls.length === 0) {
+      return new Response(JSON.stringify({ 
+        error: 'No photo URLs provided' 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
-    console.log(
-      `Processing ${fileEntries.length} photos for valuation: ${valuationId}`,
+    console.log(`🔍 Analyzing ${photoUrls.length} photos for valuation ${valuationId}`);
+
+    // Initialize Supabase client
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Set up Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
-    const supabaseServiceRole = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    const adminClient = createClient(supabaseUrl, supabaseServiceRole);
-
-    // Upload all photos to Supabase Storage and analyze each one
-    const photoUrls = [];
-    const individualResults = [];
+    // Process photos in batches to avoid API limits
+    const batchSize = 3;
     const individualScores = [];
+    let overallDamage = [];
+    let overallQuality = [];
 
-    for (const [_, file] of fileEntries) {
-      const photoFile = file as File;
-      const fileExt = photoFile.name.split(".").pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `${valuationId}/${fileName}`;
+    for (let i = 0; i < photoUrls.length; i += batchSize) {
+      const batch = photoUrls.slice(i, i + batchSize);
+      
+      // Prepare image messages for OpenAI
+      const imageMessages = batch.map(url => ({
+        type: "image_url",
+        image_url: {
+          url: url,
+          detail: "high"
+        }
+      }));
 
-      // Upload to storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("vehicle-photos")
-        .upload(filePath, photoFile, {
-          cacheControl: "3600",
-          upsert: false,
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4.1-2025-04-14',
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert automotive inspector analyzing vehicle photos for valuation purposes. 
+
+Analyze each photo and return a JSON response with this exact structure:
+{
+  "photos": [
+    {
+      "index": 0,
+      "score": 85,
+      "condition": "Good",
+      "explanation": "Clear exterior shot showing minor wear",
+      "damageDetected": ["minor scratches on bumper"],
+      "qualityIssues": ["slight blur in corner"],
+      "isPrimary": true
+    }
+  ],
+  "overallAssessment": {
+    "condition": "Good",
+    "confidence": 85,
+    "description": "Vehicle shows normal wear consistent with age and mileage",
+    "damageAssessment": {
+      "exterior": ["minor paint scratches"],
+      "interior": ["light seat wear"],
+      "mechanical": []
+    }
+  }
+}
+
+Scoring criteria:
+- 90-100: Excellent condition, like new
+- 75-89: Good condition, minor cosmetic issues
+- 60-74: Fair condition, noticeable wear
+- 40-59: Poor condition, significant issues
+- Below 40: Major damage or problems
+
+Focus on: paint condition, body damage, interior wear, tire condition, mechanical visible issues.`
+            },
+            {
+              role: 'user',
+              content: [
+                {
+                  type: "text",
+                  text: `Please analyze these ${batch.length} vehicle photos and assess their condition, damage, and overall quality. Return detailed JSON analysis.`
+                },
+                ...imageMessages
+              ]
+            }
+          ],
+          max_completion_tokens: 1000,
+          temperature: 0.3
+        }),
+      });
+
+      if (!response.ok) {
+        console.error(`❌ OpenAI API error: ${response.status}`);
+        // Add fallback scores for this batch
+        batch.forEach((url, idx) => {
+          individualScores.push({
+            url,
+            score: 70,
+            isPrimary: i + idx === 0,
+            explanation: "AI analysis unavailable - estimated score",
+            damageDetected: [],
+            qualityIssues: ["AI analysis failed"]
+          });
         });
-
-      if (uploadError) {
-        console.error("Error uploading photo:", uploadError);
         continue;
       }
 
-      // Get the public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from("vehicle-photos")
-        .getPublicUrl(filePath);
+      const aiResult = await response.json();
+      const content = aiResult.choices[0]?.message?.content;
 
-      photoUrls.push(publicUrl);
+      if (content) {
+        try {
+          // Extract JSON from the response
+          const jsonMatch = content.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const analysis = JSON.parse(jsonMatch[0]);
+            
+            // Process individual photo scores
+            if (analysis.photos) {
+              analysis.photos.forEach((photo: any, idx: number) => {
+                individualScores.push({
+                  url: batch[idx],
+                  score: photo.score || 70,
+                  isPrimary: i + idx === 0 || photo.isPrimary,
+                  explanation: photo.explanation || "Analysis completed",
+                  damageDetected: photo.damageDetected || [],
+                  qualityIssues: photo.qualityIssues || []
+                });
+              });
+            }
 
-      // Log successful upload
-      console.log(`Uploaded photo: ${publicUrl}`);
-
-      // Analyze individual photo
-      try {
-        const result = await analyzeImagesWithOpenAI([publicUrl]);
-
-        // If the result is a Response (error), skip this image
-        if (result instanceof Response) {
-          console.error("Error analyzing image:", await result.text());
-          continue;
-        }
-
-        individualResults.push(result);
-        individualScores.push({
-          url: publicUrl,
-          score: result.confidenceScore / 100, // Convert to 0-1 range
-        });
-
-        // Store this individual photo score
-        const { error: scoreError } = await adminClient
-          .from("photo_condition_scores")
-          .insert({
-            valuation_id: valuationId,
-            image_url: publicUrl,
-            condition_score: result.confidenceScore / 100,
-            confidence_score: result.confidenceScore / 100,
-            issues: result.issuesDetected || [],
-            summary: result.aiSummary || "",
-          });
-
-        if (scoreError) {
-          console.error("Error storing photo score:", scoreError);
-        }
-      } catch (error) {
-        console.error("Error analyzing individual photo:", error);
-      }
-    }
-
-    if (photoUrls.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "Failed to upload any photos" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    // Process all images together to get overall assessment
-    let assessmentResult: ConditionAssessmentResult;
-    try {
-      // If we have individual results, compute an average
-      if (individualResults.length > 0) {
-        // Calculate average confidence score
-        const avgConfidenceScore = individualResults.reduce(
-          (sum, result) => sum + result.confidenceScore,
-          0,
-        ) / individualResults.length;
-
-        // Determine overall condition based on weighted assessment
-        // This logic can be adjusted based on business requirements
-        const conditions = ["Poor", "Fair", "Good", "Excellent"] as const;
-        const conditionScores = {
-          "Poor": individualResults.filter((r) =>
-            r.condition === "Poor"
-          ).length,
-          "Fair": individualResults.filter((r) =>
-            r.condition === "Fair"
-          ).length,
-          "Good": individualResults.filter((r) =>
-            r.condition === "Good"
-          ).length,
-          "Excellent": individualResults.filter((r) =>
-            r.condition === "Excellent"
-          ).length,
-        };
-
-        // Find condition with highest score
-        const overallCondition = Object.entries(conditionScores)
-          .sort((a, b) => b[1] - a[1])[0][0] as
-            | "Excellent"
-            | "Good"
-            | "Fair"
-            | "Poor";
-
-        // Combine issues detected from all images
-        const allIssues = individualResults.flatMap((r) =>
-          r.issuesDetected || []
-        );
-        // Remove duplicates
-        const uniqueIssues = [...new Set(allIssues)];
-
-        // Generate combined summary
-        const aiSummary = generateCombinedSummary(
-          individualResults,
-          overallCondition,
-        );
-
-        assessmentResult = {
-          condition: overallCondition,
-          confidenceScore: avgConfidenceScore,
-          issuesDetected: uniqueIssues,
-          aiSummary,
-        };
-
-        // Find the highest confidence score image and mark it as primary
-        const bestResult = [...individualResults]
-          .sort((a, b) => b.confidenceScore - a.confidenceScore)[0];
-
-        if (bestResult && bestResult.confidenceScore >= 70) {
-          const bestImageIndex = individualResults.indexOf(bestResult);
-          if (bestImageIndex >= 0 && bestImageIndex < photoUrls.length) {
-            // Mark this as the primary image in the database
-            const bestImageUrl = photoUrls[bestImageIndex];
-
-            // Update this specific image to mark it as primary
-            const { error: updateError } = await adminClient
-              .from("photo_condition_scores")
-              .update({ is_primary: true })
-              .eq("image_url", bestImageUrl);
-
-            if (updateError) {
-              console.error("Error marking primary image:", updateError);
-            } else {
-              console.log(
-                `Marked ${bestImageUrl} as primary image with confidence ${bestResult.confidenceScore}`,
-              );
+            // Aggregate damage and quality issues
+            if (analysis.overallAssessment?.damageAssessment) {
+              const damage = analysis.overallAssessment.damageAssessment;
+              overallDamage.push(...(damage.exterior || []), ...(damage.interior || []), ...(damage.mechanical || []));
             }
           }
+        } catch (parseError) {
+          console.warn('⚠️ Failed to parse AI response, using fallback');
+          // Add fallback for this batch
+          batch.forEach((url, idx) => {
+            individualScores.push({
+              url,
+              score: 70,
+              isPrimary: i + idx === 0,
+              explanation: "AI parsing failed - estimated score"
+            });
+          });
         }
-      } else {
-        // Call OpenAI to analyze all images together as fallback
-        const aiResult = await analyzeImagesWithOpenAI(photoUrls);
-
-        // If the result is a Response (error), return it
-        if (aiResult instanceof Response) {
-          return aiResult;
-        }
-
-        assessmentResult = aiResult;
       }
-    } catch (error) {
-      console.error("AI analysis error:", error);
 
-      // Fall back to simulated analysis if AI analysis fails
-      assessmentResult = await simulatePhotoAnalysis(photoUrls);
-    }
-
-    // Store assessment result in database
-    const storedResult = await storeAssessmentResult(
-      valuationId,
-      assessmentResult,
-      photoUrls.length,
-    );
-
-    // For each photo, store a record in the valuation_photos table
-    for (const photoUrl of photoUrls) {
-      const { error: photoRecordError } = await adminClient
-        .from("valuation_photos")
-        .insert({
-          valuation_id: valuationId,
-          photo_url: photoUrl,
-          score: assessmentResult.confidenceScore / 100, // Store as 0-1 value
-          uploaded_at: new Date().toISOString(),
-        });
-
-      if (photoRecordError) {
-        console.error("Error storing photo record:", photoRecordError);
+      // Rate limiting delay
+      if (i + batchSize < photoUrls.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
 
-    // Return the assessment result
-    return new Response(
-      JSON.stringify({
-        photoUrls,
-        condition: assessmentResult.condition,
-        confidenceScore: assessmentResult.confidenceScore,
-        issuesDetected: assessmentResult.issuesDetected,
-        aiSummary: assessmentResult.aiSummary,
-        analysisTimestamp: new Date().toISOString(),
-        individualScores,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    // Calculate overall score and condition
+    const avgScore = individualScores.reduce((sum, s) => sum + s.score, 0) / individualScores.length;
+    
+    let condition: "Excellent" | "Good" | "Fair" | "Poor";
+    let confidence = Math.min(95, 60 + (individualScores.length * 8)); // Higher confidence with more photos
+
+    if (avgScore >= 90) {
+      condition = "Excellent";
+    } else if (avgScore >= 75) {
+      condition = "Good";
+    } else if (avgScore >= 60) {
+      condition = "Fair";
+    } else {
+      condition = "Poor";
+    }
+
+    const result = {
+      overallScore: Math.round(avgScore),
+      individualScores,
+      aiCondition: {
+        condition,
+        confidence,
+        description: `AI analysis of ${photoUrls.length} photos. ${condition} condition with ${overallDamage.length > 0 ? `noted issues: ${overallDamage.slice(0, 3).join(', ')}` : 'no major issues detected'}.`,
+        damageAssessment: overallDamage.length > 0 ? {
+          exterior: overallDamage.filter(d => d.includes('paint') || d.includes('body') || d.includes('bumper')),
+          interior: overallDamage.filter(d => d.includes('seat') || d.includes('dashboard') || d.includes('interior')),
+          mechanical: overallDamage.filter(d => d.includes('engine') || d.includes('tire') || d.includes('mechanical'))
+        } : undefined
+      }
+    };
+
+    // Store analysis in database
+    try {
+      await supabase.from('ai_photo_analysis').insert({
+        valuation_id: valuationId,
+        photo_urls: photoUrls,
+        analysis_results: result,
+        confidence_score: confidence,
+        condition_score: avgScore,
+        features_detected: { photo_count: photoUrls.length, ai_enabled: true },
+        damage_detected: overallDamage.length > 0 ? { damage_list: overallDamage } : {}
+      });
+    } catch (dbError) {
+      console.warn('⚠️ Failed to store analysis in database:', dbError);
+    }
+
+    console.log(`✅ Photo analysis completed: ${Math.round(avgScore)} overall score`);
+
+    return new Response(JSON.stringify(result), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+
   } catch (error) {
-    console.error("Error in analyze-photos function:", error);
-
-    return new Response(
-      JSON.stringify({
-        error: "Failed to process images",
-        details: error instanceof Error ? error.message : String(error),
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    console.error('💥 Photo analysis failed:', error);
+    return new Response(JSON.stringify({ 
+      error: error.message || 'Photo analysis failed',
+      overallScore: 60,
+      individualScores: [],
+      aiCondition: {
+        condition: "Fair",
+        confidence: 30,
+        description: "Analysis unavailable - please try again"
+      }
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 });
-
-/**
- * Simulates analyzing photos if OpenAI analysis fails
- */
-async function simulatePhotoAnalysis(
-  imageUrls: string[],
-): Promise<ConditionAssessmentResult> {
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-
-  // Generate a mock assessment
-  const conditions = ["Excellent", "Good", "Fair", "Poor"] as const;
-  const randomIndex = Math.floor(Math.random() * 3); // Bias toward better conditions
-  const condition = conditions[randomIndex];
-
-  const confidenceScore = Math.round(
-    85 - (randomIndex * 10) + (Math.random() * 10),
-  );
-
-  const possibleIssues = [
-    "Minor scratches on front bumper",
-    "Light wear on driver seat",
-    "Small dent on passenger door",
-    "Windshield has minor chip",
-    "Paint fading on hood",
-    "Wheel rim has curb rash",
-    "Headlight lens slightly cloudy",
-  ];
-
-  const issuesDetected = randomIndex === 0
-    ? []
-    : possibleIssues.slice(0, randomIndex + 1);
-
-  const summaries = [
-    "Vehicle appears to be in excellent condition with no visible issues detected.",
-    "Vehicle is in good condition overall with minimal wear appropriate for its age.",
-    "Vehicle shows normal wear and would benefit from minor cosmetic repairs.",
-    "Vehicle has several issues that should be addressed to improve its condition.",
-  ];
-
-  return {
-    condition: condition,
-    confidenceScore,
-    issuesDetected,
-    aiSummary: summaries[randomIndex],
-  };
-}
-
-/**
- * Generates a combined summary from multiple image analyses
- */
-function generateCombinedSummary(
-  results: ConditionAssessmentResult[],
-  overallCondition: "Excellent" | "Good" | "Fair" | "Poor",
-): string {
-  // Select 1-3 of the most important issues to highlight
-  const allIssues = results.flatMap((r) => r.issuesDetected || []);
-  const uniqueIssues = [...new Set(allIssues)];
-  const topIssues = uniqueIssues.slice(0, Math.min(3, uniqueIssues.length));
-
-  // Create the summary based on the overall condition
-  let summary = "";
-
-  switch (overallCondition) {
-    case "Excellent":
-      summary =
-        "Vehicle appears to be in excellent condition based on multiple photos. ";
-      if (topIssues.length === 0) {
-        summary += "No significant issues were detected.";
-      } else {
-        summary += `Only minor cosmetic issues noted: ${topIssues.join("; ")}.`;
-      }
-      break;
-
-    case "Good":
-      summary =
-        "Vehicle is in good overall condition with some minor wear appropriate for its age. ";
-      if (topIssues.length > 0) {
-        summary += `Issues to note: ${topIssues.join("; ")}.`;
-      }
-      break;
-
-    case "Fair":
-      summary =
-        "Vehicle shows signs of normal wear and would benefit from some maintenance. ";
-      if (topIssues.length > 0) {
-        summary += `Key issues include: ${topIssues.join("; ")}.`;
-      }
-      break;
-
-    case "Poor":
-      summary =
-        "Vehicle condition is below average with multiple issues detected. ";
-      if (topIssues.length > 0) {
-        summary += `Major concerns include: ${topIssues.join("; ")}.`;
-      } else {
-        summary += "Detailed inspection recommended.";
-      }
-      break;
-  }
-
-  return summary;
-}
