@@ -1,3 +1,0 @@
-[functions.decode-vin]
-  runtime = "edge"
-  auth_required = false
