@@ -1,0 +1,308 @@
+"""
+LLM (Large Language Model) based summary generation for vehicle valuations.
+
+This module uses an LLM to create natural language summaries that explain
+vehicle valuations, incorporating both the vehicle's detailed attributes
+and the machine learning model's feature contributions (SHAP values).
+
+The goal is to provide clear, trust-building explanations that cover:
+- The estimated value.
+- Key positive and negative contributing factors.
+- Important verified vehicle history and features.
+- Any relevant market context.
+
+Dependencies:
+    - openai: For OpenAI API calls (fallback to mock if not available)
+    - typing: For type hints
+    - os: For environment variable access
+
+Example:
+    >>> from val_engine.llm_summary import generate_valuation_summary
+    >>>
+    >>> # Simulate comprehensive vehicle data (VehicleDataForValuation)
+    >>> mock_vehicle_data = {
+    ...     'vin': {'value': '123ABC...', 'verified': True, 'source_origin': 'NHTSA'},
+    ...     'year': {'value': 2020, 'verified': True, 'source_origin': 'OEM'},
+    ...     'mileage': {'value': 25000, 'verified': True, 'source_origin': 'Odometer'},
+    ...     'make': {'value': 'Toyota', 'verified': True, 'source_origin': 'OEM'},
+    ...     'model': {'value': 'Camry', 'verified': True, 'source_origin': 'OEM'},
+    ...     'overall_condition_rating': {'value': 'Excellent', 'verified': True, 'source_origin': 'User'},
+    ...     'zipcode': {'value': 90210, 'verified': True, 'source_origin': 'User'}
+    ... }
+    >>>
+    >>> summary = generate_valuation_summary(
+    ...     estimated_price=24750.0,
+    ...     vehicle_data=mock_vehicle_data,
+    ...     mode="sell"
+    ... )
+    >>> print(summary)
+"""
+
+import os
+import json
+from typing import Dict, List, Optional, Any
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+
+# Initialize OpenAI client if available
+client = None
+if OPENAI_AVAILABLE and os.getenv("OPENAI_API_KEY"):
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Configuration
+USE_MOCK_LLM = os.environ.get('USE_MOCK_LLM', 'true').lower() == 'true' or client is None
+
+def _generate_mock_summary(estimated_price: float, vehicle_data: Dict[str, Any], mode: str = "sell") -> str:
+    """
+    Generate a mock summary when LLM API is not available.
+    This provides a fallback for development and testing.
+    """
+    make = (vehicle_data.get('make', 'Unknown')['value'] if isinstance(vehicle_data.get('make', {}), dict) else vehicle_data.get('make', 'Unknown'))
+    model = (vehicle_data.get('model', 'Unknown')['value'] if isinstance(vehicle_data.get('model', {}), dict) else vehicle_data.get('model', 'Unknown'))
+    year = (vehicle_data.get('year', 'Unknown')['value'] if isinstance(vehicle_data.get('year', {}), dict) else vehicle_data.get('year', 'Unknown'))
+    condition = vehicle_data.get('overall_condition_rating', {}).get('value', 'Good')
+    mileage = (vehicle_data.get('mileage', 'Unknown')['value'] if isinstance(vehicle_data.get('mileage', {}), dict) else vehicle_data.get('mileage', 'Unknown'))
+
+    mode_text = "selling" if mode == "sell" else "purchasing"
+
+    # Build verified facts
+    verified_facts = []
+    if vehicle_data.get('accident_history', {}).get('verified') and not vehicle_data['accident_history'].get('value', []):
+        verified_facts.append("verified accident-free history")
+    if vehicle_data.get('title_type', {}).get('verified') and vehicle_data['title_type'].get('value') == 'Clean':
+        verified_facts.append("clean title")
+    if vehicle_data.get('factory_warranty_remaining_months', {}).get('verified') and vehicle_data['factory_warranty_remaining_months'].get('value', 0) > 0:
+        verified_facts.append("remaining factory warranty")
+
+    return f"""**Vehicle Valuation Summary**
+
+This {year} {make} {model} has been valued at **${estimated_price:,.2f}** for {mode_text} purposes using our comprehensive AI-powered analysis system.
+
+**Key Value Drivers:**
+• **{condition} Overall Condition**: {'Advanced' if vehicle_data.get('photo_ai_score') else 'Professional'} condition assessment confirms vehicle quality
+• **Mileage Analysis**: {f'{mileage:,} miles' if isinstance(mileage, (int, float)) else 'Mileage reviewed'} relative to vehicle age and market standards
+• **Verified History**: {', '.join(verified_facts) if verified_facts else 'Comprehensive history analysis completed'}
+• **Market Position**: Valuation reflects current market conditions and regional pricing trends
+
+**Analysis Confidence:**
+This valuation incorporates multiple verified data sources including {'OEM specifications, ' if any(v.get('source_origin') == 'OEM' for v in vehicle_data.values() if isinstance(v, dict)) else ''}{'third-party history reports, ' if any(v.get('source_origin') in ['Carfax', 'NHTSA'] for v in vehicle_data.values() if isinstance(v, dict)) else ''}and comprehensive condition assessment.
+
+**Market Context:**
+The estimated value reflects current market dynamics, comparable vehicle analysis, and buyer demand patterns in your region. This vehicle represents {'strong value' if condition in ['Excellent', 'Good'] else 'fair value'} in today's market.
+
+*Note: This valuation is based on available data and current market conditions. Actual selling price may vary depending on specific buyer negotiations and market timing.*"""
+
+def generate_valuation_summary(
+    estimated_price: float,
+    vehicle_data: Dict[str, Any],
+    shap_values: Optional[List[List[float]]] = None,
+    expected_value: Optional[float] = None,
+    feature_names: Optional[List[str]] = None,
+    mode: str = "sell",
+    video_analysis: Optional[Dict] = None
+) -> str:
+    """
+    Generate a comprehensive valuation summary including comprehensive vehicle data analysis.
+
+    Args:
+        estimated_price (float): The final predicted valuation price
+        vehicle_data (Dict[str, Any]): The comprehensive VehicleDataForValuation dictionary
+        shap_values (Optional[List[List[float]]]): SHAP values from model explanation
+        expected_value (Optional[float]): Base prediction value from SHAP explainer
+        feature_names (Optional[List[str]]): Feature names corresponding to SHAP values
+        mode (str): Valuation mode - 'buy' or 'sell'
+        video_analysis (Optional[Dict]): Video analysis results (legacy compatibility)
+
+    Returns:
+        str: Comprehensive natural language summary of the valuation
+    """
+
+    # Validate inputs
+    if not isinstance(vehicle_data, dict):
+        raise ValueError("vehicle_data must be a dictionary")
+
+    if estimated_price <= 0:
+        raise ValueError("estimated_price must be a positive number")
+
+    # Use mock generation if LLM is not available
+    if USE_MOCK_LLM:
+        return _generate_mock_summary(estimated_price, vehicle_data, mode)
+
+    # Extract basic vehicle information
+    make = (vehicle_data.get('make', 'Unknown')['value'] if isinstance(vehicle_data.get('make', {}), dict) else vehicle_data.get('make', 'Unknown'))
+    model = (vehicle_data.get('model', 'Unknown')['value'] if isinstance(vehicle_data.get('model', {}), dict) else vehicle_data.get('model', 'Unknown'))
+    year = (vehicle_data.get('year', 'Unknown')['value'] if isinstance(vehicle_data.get('year', {}), dict) else vehicle_data.get('year', 'Unknown'))
+    mileage = (vehicle_data.get('mileage', 'Unknown')['value'] if isinstance(vehicle_data.get('mileage', {}), dict) else vehicle_data.get('mileage', 'Unknown'))
+    condition = vehicle_data.get('overall_condition_rating', {}).get('value', 'Unknown')
+
+    # Build the prompt for LLM
+    mode_context = "selling" if mode == "sell" else "purchasing"
+
+    prompt_parts = [
+        f"You are an expert automotive valuation analyst providing a professional summary for a vehicle valuation.",
+        f"",
+        f"Vehicle: {year} {make} {model}",
+        f"Estimated Market Value: ${estimated_price:,.2f}",
+        f"Context: This valuation is for {mode_context} purposes.",
+        f"",
+        f"Vehicle Details:"
+    ]
+
+    # Add verified vehicle details with verification status
+    if mileage != 'Unknown':
+        mileage_verified = vehicle_data.get('mileage', {}).get('verified', False)
+        mileage_source = vehicle_data.get('mileage', {}).get('source_origin', 'Unknown')
+        prompt_parts.append(f"• Mileage: {mileage:,} miles {'(verified from ' + mileage_source + ')' if mileage_verified else '(unverified)'}")
+
+    if condition != 'Unknown':
+        condition_verified = vehicle_data.get('overall_condition_rating', {}).get('verified', False)
+        condition_source = vehicle_data.get('overall_condition_rating', {}).get('source_origin', 'Unknown')
+        prompt_parts.append(f"• Overall Condition: {condition} {'(verified from ' + condition_source + ')' if condition_verified else '(user-reported)'}")
+
+    # Add comprehensive vehicle history
+    accident_history = vehicle_data.get('accident_history', {})
+    if accident_history:
+        accidents = accident_history.get('value', [])
+        verified = accident_history.get('verified', False)
+        source = accident_history.get('source_origin', 'Unknown')
+        if isinstance(accidents, list):
+            if len(accidents) == 0:
+                prompt_parts.append(f"• Accident History: Clean {'(verified from ' + source + ')' if verified else '(reported)'}")
+            else:
+                prompt_parts.append(f"• Accident History: {len(accidents)} incident(s) {'(verified from ' + source + ')' if verified else '(reported)'}")
+
+    # Add title information
+    title_type = vehicle_data.get('title_type', {})
+    if title_type:
+        title_value = title_type.get('value', 'Unknown')
+        title_verified = title_type.get('verified', False)
+        title_source = title_type.get('source_origin', 'Unknown')
+        if title_value != 'Unknown':
+            prompt_parts.append(f"• Title Type: {title_value} {'(verified from ' + title_source + ')' if title_verified else ''}")
+
+    # Add warranty information
+    warranty = vehicle_data.get('factory_warranty_remaining_months', {})
+    if warranty and warranty.get('value', 0) > 0:
+        months = warranty.get('value')
+        verified = warranty.get('verified', False)
+        source = warranty.get('source_origin', 'Unknown')
+        prompt_parts.append(f"• Factory Warranty: {months} months remaining {'(verified from ' + source + ')' if verified else ''}")
+
+    # Add AI assessment scores
+    photo_score = vehicle_data.get('photo_ai_score', {})
+    if photo_score and photo_score.get('value'):
+        score = photo_score.get('value')
+        verified = photo_score.get('verified', False)
+        prompt_parts.append(f"• AI Photo Analysis: {score}/100 condition score {'(verified)' if verified else ''}")
+
+    # Add video analysis (from video_analysis parameter or vehicle_data)
+    video_score = vehicle_data.get('video_ai_condition_score', {})
+    if video_score and video_score.get('value'):
+        score = video_score.get('value')
+        verified = video_score.get('verified', False)
+        prompt_parts.append(f"• AI Video Analysis: {score}/100 condition score {'(verified)' if verified else ''}")
+    elif video_analysis and video_analysis.get('status') == 'Success':
+        ai_insights = video_analysis.get('ai_insights', {})
+        condition_score = ai_insights.get('overall_condition_score')
+        if condition_score:
+            prompt_parts.append(f"• AI Video Analysis: {condition_score}/100 condition score (verified)")
+
+    # Add premium features
+    features = vehicle_data.get('features_options', {})
+    if features and features.get('value'):
+        feature_dict = features.get('value', {})
+        if isinstance(feature_dict, dict):
+            enabled_features = [k.replace('_', ' ').title() for k, v in feature_dict.items() if v]
+            if enabled_features:
+                verified = features.get('verified', False)
+                source = features.get('source_origin', 'Unknown')
+                prompt_parts.append(f"• Premium Features: {', '.join(enabled_features[:5])} {'(verified from ' + source + ')' if verified else ''}")
+
+    # Add SHAP model analysis if available
+    if shap_values and feature_names and expected_value is not None:
+        try:
+            feature_contributions = {}
+            if len(shap_values) > 0 and len(shap_values[0]) == len(feature_names):
+                for i, name in enumerate(feature_names):
+                    feature_contributions[name] = shap_values[0][i]
+
+                # Sort by absolute contribution
+                sorted_contributions = sorted(
+                    feature_contributions.items(),
+                    key=lambda item: abs(item[1]),
+                    reverse=True
+                )
+
+                prompt_parts.append("")
+                prompt_parts.append(f"Model Analysis (Base Prediction: ${expected_value:,.2f}):")
+
+                # Add significant factors
+                for feature, contribution in sorted_contributions[:5]:
+                    if abs(contribution) >= 50:
+                        impact = "increases" if contribution > 0 else "decreases"
+                        feature_display = feature.replace('_', ' ').title()
+                        prompt_parts.append(f"• {feature_display}: {impact} value by ${abs(contribution):,.0f}")
+
+        except Exception as e:
+            print(f"Warning: Could not process SHAP values: {e}")
+
+    # Add geographic and market context
+    zipcode = vehicle_data.get('zipcode', {})
+    if zipcode and zipcode.get('value'):
+        zip_val = zipcode.get('value')
+        zip_verified = zipcode.get('verified', False)
+        prompt_parts.append(f"• Location: ZIP {zip_val} {'(verified)' if zip_verified else ''}")
+
+    market_data = []
+    if vehicle_data.get('market_saturation_level', {}).get('value'):
+        saturation = vehicle_data['market_saturation_level']['value']
+        market_data.append(f"market saturation: {saturation}")
+
+    if vehicle_data.get('time_on_market_days', {}).get('value'):
+        days = vehicle_data['time_on_market_days']['value']
+        market_data.append(f"typical time on market: {days} days")
+
+    if market_data:
+        prompt_parts.append(f"• Market Context: {', '.join(market_data)}")
+
+    # Final LLM instructions
+    prompt_parts.extend([
+        "",
+        "Instructions:",
+        f"Generate a professional, comprehensive valuation summary (250-350 words) that:",
+        f"1. Explains the ${estimated_price:,.2f} valuation in clear, confident language",
+        f"2. Highlights verified data sources and their reliability",
+        f"3. Discusses key value drivers and any concerns",
+        f"4. Uses language appropriate for {mode_context} context",
+        f"5. Includes confidence assessment based on data quality",
+        f"6. Provides market context and positioning",
+        f"",
+        f"Format as a professional automotive analyst report with clear sections."
+    ])
+
+    llm_prompt = "\n".join(prompt_parts)
+
+    # Debug output
+    if os.environ.get('DEBUG_LLM_PROMPT', 'false').lower() == 'true':
+        print(f"\n--- LLM Prompt ---\n{llm_prompt}\n------------------")
+
+    # Call OpenAI API
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",  # Cost-effective model for summaries
+            messages=[
+                {"role": "system", "content": "You are an expert automotive valuation analyst with extensive experience in market analysis and vehicle assessment."},
+                {"role": "user", "content": llm_prompt}
+            ],
+            max_tokens=500,
+            temperature=0.3  # Lower temperature for more consistent, professional output
+        )
+
+        return response.choices[0].message.content.strip()
+
+    except Exception as e:
+        print(f"Error calling OpenAI API: {e}")
+        return _generate_mock_summary(estimated_price, vehicle_data, mode)

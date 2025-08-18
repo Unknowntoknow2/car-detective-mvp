@@ -1,0 +1,200 @@
+name: Manual Backfill Safety JSON Data
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'Number of days to look back for VINs'
+        required: false
+        default: '14'
+        type: string
+      limit:
+        description: 'Maximum number of VINs to process'
+        required: false
+        default: '100'
+        type: string
+      dry_run:
+        description: 'Run in dry-run mode (no actual changes)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      rate_limit_ms:
+        description: 'Rate limit between VIN processing (milliseconds)'
+        required: false
+        default: '1000'
+        type: string
+
+jobs:
+  backfill-safety-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up environment variables
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> $GITHUB_ENV
+          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> $GITHUB_ENV
+
+      - name: Validate inputs
+        run: |
+          # Validate numeric inputs
+          if ! [[ "${{ github.event.inputs.days }}" =~ ^[0-9]+$ ]]; then
+            echo "❌ Error: days must be a positive integer"
+            exit 1
+          fi
+          
+          if ! [[ "${{ github.event.inputs.limit }}" =~ ^[0-9]+$ ]]; then
+            echo "❌ Error: limit must be a positive integer"
+            exit 1
+          fi
+          
+          if ! [[ "${{ github.event.inputs.rate_limit_ms }}" =~ ^[0-9]+$ ]]; then
+            echo "❌ Error: rate_limit_ms must be a positive integer"
+            exit 1
+          fi
+          
+          echo "✅ Input validation passed"
+          echo "📊 Configuration:"
+          echo "   - Days: ${{ github.event.inputs.days }}"
+          echo "   - Limit: ${{ github.event.inputs.limit }}"
+          echo "   - Dry Run: ${{ github.event.inputs.dry_run }}"
+          echo "   - Rate Limit: ${{ github.event.inputs.rate_limit_ms }}ms"
+
+      - name: Check Supabase connectivity
+        run: |
+          echo "🔍 Testing Supabase connection..."
+          
+          # Test basic connectivity
+          response=$(curl -s -w "%{http_code}" -o /tmp/health_check \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}")
+          
+          if [[ "$response" != "200" ]]; then
+            echo "❌ Failed to connect to Supabase (HTTP $response)"
+            cat /tmp/health_check
+            exit 1
+          fi
+          
+          echo "✅ Supabase connection successful"
+
+      - name: Execute backfill job
+        id: backfill
+        run: |
+          echo "🚀 Starting backfill job..."
+          
+          # Prepare request body
+          request_body=$(cat <<EOF
+          {
+            "days": ${{ github.event.inputs.days }},
+            "limit": ${{ github.event.inputs.limit }},
+            "dry_run": ${{ github.event.inputs.dry_run }},
+            "rate_limit_ms": ${{ github.event.inputs.rate_limit_ms }}
+          }
+          EOF
+          )
+          
+          echo "📤 Request payload:"
+          echo "$request_body" | jq '.'
+          
+          # Execute the backfill function
+          response=$(curl -s -w "\n%{http_code}" \
+            -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/jobs/backfill-safety-json" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -d "$request_body")
+          
+          # Split response and status code
+          http_code=$(echo "$response" | tail -n1)
+          response_body=$(echo "$response" | head -n -1)
+          
+          echo "📥 Response (HTTP $http_code):"
+          echo "$response_body" | jq '.'
+          
+          # Check if the request was successful
+          if [[ "$http_code" != "200" ]]; then
+            echo "❌ Backfill job failed (HTTP $http_code)"
+            exit 1
+          fi
+          
+          # Parse and display results
+          success=$(echo "$response_body" | jq -r '.success')
+          if [[ "$success" != "true" ]]; then
+            echo "❌ Backfill job reported failure"
+            echo "$response_body" | jq -r '.error // "Unknown error"'
+            exit 1
+          fi
+          
+          echo "✅ Backfill job completed successfully!"
+          
+          # Extract and display key metrics
+          total_vins=$(echo "$response_body" | jq -r '.stats.total_vins // 0')
+          processed=$(echo "$response_body" | jq -r '.stats.processed // 0')
+          succeeded=$(echo "$response_body" | jq -r '.stats.succeeded // 0')
+          failed=$(echo "$response_body" | jq -r '.stats.failed // 0')
+          skipped=$(echo "$response_body" | jq -r '.stats.skipped // 0')
+          safety_updated=$(echo "$response_body" | jq -r '.stats.safety_updated // 0')
+          airbags_updated=$(echo "$response_body" | jq -r '.stats.airbags_updated // 0')
+          lighting_updated=$(echo "$response_body" | jq -r '.stats.lighting_updated // 0')
+          total_time=$(echo "$response_body" | jq -r '.stats.total_time_ms // 0')
+          avg_time=$(echo "$response_body" | jq -r '.stats.average_time_per_vin_ms // 0')
+          
+          echo "📊 Summary Statistics:"
+          echo "   - Total VINs found: $total_vins"
+          echo "   - Processed: $processed"
+          echo "   - Succeeded: $succeeded"
+          echo "   - Failed: $failed"
+          echo "   - Skipped: $skipped"
+          echo ""
+          echo "🔧 Data Updates:"
+          echo "   - Safety equipment: $safety_updated VINs"
+          echo "   - Airbags: $airbags_updated VINs"
+          echo "   - Lighting: $lighting_updated VINs"
+          echo ""
+          echo "⏱️  Performance:"
+          echo "   - Total time: ${total_time}ms"
+          echo "   - Average per VIN: ${avg_time}ms"
+          
+          # Set outputs for potential downstream jobs
+          echo "total_vins=$total_vins" >> $GITHUB_OUTPUT
+          echo "succeeded=$succeeded" >> $GITHUB_OUTPUT
+          echo "failed=$failed" >> $GITHUB_OUTPUT
+          echo "safety_updated=$safety_updated" >> $GITHUB_OUTPUT
+          echo "airbags_updated=$airbags_updated" >> $GITHUB_OUTPUT
+          echo "lighting_updated=$lighting_updated" >> $GITHUB_OUTPUT
+
+      - name: Create job summary
+        run: |
+          echo "# 🎯 Backfill Safety JSON Data - Job Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Job Configuration:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Days lookback: ${{ github.event.inputs.days }}" >> $GITHUB_STEP_SUMMARY
+          echo "- VIN limit: ${{ github.event.inputs.limit }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Dry run: ${{ github.event.inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Rate limit: ${{ github.event.inputs.rate_limit_ms }}ms" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Results:**" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Total VINs: ${{ steps.backfill.outputs.total_vins }}" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Succeeded: ${{ steps.backfill.outputs.succeeded }}" >> $GITHUB_STEP_SUMMARY
+          echo "- ❌ Failed: ${{ steps.backfill.outputs.failed }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Data Updates:**" >> $GITHUB_STEP_SUMMARY
+          echo "- 🛡️ Safety equipment: ${{ steps.backfill.outputs.safety_updated }} VINs" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎈 Airbags: ${{ steps.backfill.outputs.airbags_updated }} VINs" >> $GITHUB_STEP_SUMMARY
+          echo "- 💡 Lighting: ${{ steps.backfill.outputs.lighting_updated }} VINs" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "_Job completed at $(date -u '+%Y-%m-%d %H:%M:%S UTC')_" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Backfill job failed. Check the logs above for details."
+          echo "Common issues:"
+          echo "  - Supabase connection problems"
+          echo "  - Invalid input parameters"
+          echo "  - Rate limiting issues"
+          echo "  - Database constraints or timeouts"

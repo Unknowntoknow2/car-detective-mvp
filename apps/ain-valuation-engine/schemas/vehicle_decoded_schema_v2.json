@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "VehicleDecoded",
+  "type": "object",
+  "properties": {
+    "vin": { "type": "string" },
+    "make": { "type": "string" },
+    "model": { "type": "string" },
+    "year": { "type": "integer" },
+    "trim": { "type": "string" },
+    "engine_displacement": { "type": "string" },
+    "fuel_type": { "type": "string" },
+    "body_type": { "type": "string" },
+    "schema_version": { "type": "string", "const": "v2" }
+  },
+  "required": ["vin", "make", "model", "year", "trim", "engine_displacement", "fuel_type", "body_type", "schema_version"]
+}

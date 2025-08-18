@@ -1,0 +1,73 @@
+
+# Feature schema for AIN Valuation Engine ML pipeline
+features:
+	- name: year
+		dtype: int
+		range: [1980, 2100]
+		null_policy: not_null
+	- name: make
+		dtype: str
+		null_policy: not_null
+	- name: model
+		dtype: str
+		null_policy: not_null
+	- name: trim
+		dtype: str
+		null_policy: nullable
+	- name: body_style
+		dtype: str
+		null_policy: nullable
+	- name: drivetrain
+		dtype: str
+		null_policy: nullable
+	- name: fuel_type
+		dtype: str
+		null_policy: nullable
+	- name: zip
+		dtype: str
+		null_policy: not_null
+	- name: mileage
+		dtype: int
+		range: [0, 500000]
+		null_policy: not_null
+	- name: age_years
+		dtype: float
+		range: [0, 50]
+		null_policy: not_null
+	- name: comp_count
+		dtype: int
+		range: [0, 50]
+		null_policy: not_null
+	- name: comp_mean
+		dtype: float
+		null_policy: not_null
+	- name: comp_median
+		dtype: float
+		null_policy: not_null
+	- name: condition_score
+		dtype: float
+		range: [0, 1]
+		null_policy: not_null
+	- name: owners
+		dtype: int
+		range: [0, 10]
+		null_policy: not_null
+	- name: accidents
+		dtype: int
+		range: [0, 10]
+		null_policy: not_null
+	- name: title_brand_flags
+		dtype: int
+		range: [0, 10]
+		null_policy: not_null
+	- name: options_count
+		dtype: int
+		range: [0, 100]
+		null_policy: not_null
+	- name: region_bucket
+		dtype: str
+		null_policy: nullable
+	- name: completeness
+		dtype: float
+		range: [0, 1]
+		null_policy: not_null
