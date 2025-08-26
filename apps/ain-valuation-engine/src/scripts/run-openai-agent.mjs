@@ -1,5 +1,8 @@
+import { createRequire as _createRequire } from "module";
+const __require = _createRequire(import.meta.url);
 // @ts-nocheck
 import { OpenAIListingsAgent } from "../services/marketAgents/retail/OpenAIListingsAgent.js";
+const minimist = __require("minimist");
 import { getCohortStats } from "../valuation/CohortStats.js";
 const args = minimist(process.argv.slice(2));
 const { zip = "94103", radius = 100, make, model, year, mode = "ingest" } = args;

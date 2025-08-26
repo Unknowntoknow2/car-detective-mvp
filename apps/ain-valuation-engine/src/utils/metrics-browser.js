@@ -1,0 +1,11 @@
+const mkCounter = () => ({ inc: () => { } });
+const mkGauge = () => ({ inc: () => { }, dec: () => { } });
+const mkSummary = () => ({ observe: () => { }, startTimer: () => (..._labels) => void 0 });
+export const apiCallsTotal = mkCounter();
+export const httpRequestDuration = mkSummary();
+export const httpRequestTotal = mkCounter();
+export const activeConnections = mkGauge();
+export const valuationRequestsTotal = mkCounter();
+export const valuationDuration = mkSummary();
+export const databaseOperations = mkCounter();
+export default {};
