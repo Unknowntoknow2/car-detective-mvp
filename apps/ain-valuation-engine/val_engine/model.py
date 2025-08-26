@@ -69,8 +69,9 @@ import os
 from typing import Dict, Any, Tuple, Union, List, Optional
 
 # Define file paths for model persistence
-MODEL_PATH = 'gradient_boosting_model.joblib'
-ENCODERS_PATH = 'label_encoders.joblib'
+MIN_TRAIN_ROWS = 1000
+MODEL_PATH = os.getenv('AIN_TABULAR_MODEL_PATH', 'gradient_boosting_model.joblib')
+ENCODERS_PATH = os.getenv('AIN_ENCODERS_PATH', 'label_encoders.joblib')
 
 def get_scalar_value(value, default=None):
     """Helper function to extract scalar value from Series or return the value as-is."""
@@ -290,8 +291,8 @@ def train_model(dataframe: pd.DataFrame, use_enhanced_features: bool = True) -> 
     """
     global _model, _encoders
 
-    if dataframe.empty:
-        raise ValueError("Training DataFrame cannot be empty.")
+    if dataframe.empty or len(dataframe) < MIN_TRAIN_ROWS:
+        raise ValueError(f"Training data must have at least {MIN_TRAIN_ROWS} rows. Refusing to train on toy data.")
     
     df = dataframe.copy()
     
@@ -754,9 +755,8 @@ def load_model_artifacts() -> Tuple[GradientBoostingRegressor, Dict[str, LabelEn
     if not os.path.exists(ENCODERS_PATH):
         raise FileNotFoundError(f"Encoders file not found at {ENCODERS_PATH}. Please train the model first.")
 
-    _model = joblib.load(MODEL_PATH)
-    _encoders = joblib.load(ENCODERS_PATH)
-
+    model = joblib.load(MODEL_PATH)
+    return model, None
     if not isinstance(_model, GradientBoostingRegressor):
         raise RuntimeError(f"Loaded model is not of expected type GradientBoostingRegressor: {type(_model)}")
     if not isinstance(_encoders, dict):

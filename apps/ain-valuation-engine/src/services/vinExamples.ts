@@ -35,7 +35,7 @@ export async function basicVinExample() {
     return result;
   } catch (error) {
     if (error instanceof VINDecodeError) {
-      console.error('❌ VIN Decode Error:', error.message, '(Code:', error.code, ')');
+      console.error('❌ VIN Decode Error:', (error as any)?.message ?? String(error), '(Code:', error.code, ')');
     } else {
       console.error('❌ Unexpected error:', error);
     }
@@ -91,7 +91,7 @@ export async function fallbackExample() {
     const directResult = await decodeVin(vin, { forceDirectAPI: true });
     console.log('✅ Direct NHTSA API worked:', directResult.metadata.source);
   } catch (error) {
-    console.log('❌ Direct API failed:', error.message);
+    console.log('❌ Direct API failed:', (error as any)?.message ?? String(error));
   }
   
   // Then try normal flow (edge function → fallback)
@@ -100,7 +100,7 @@ export async function fallbackExample() {
     console.log('✅ Normal flow worked via:', normalResult.metadata.source);
     return normalResult;
   } catch (error) {
-    console.log('❌ Both endpoints failed:', error.message);
+    console.log('❌ Both endpoints failed:', (error as any)?.message ?? String(error));
     return null;
   }
 }
@@ -173,9 +173,9 @@ export async function errorHandlingExample() {
       }
     } catch (error) {
       if (error instanceof VINDecodeError) {
-        console.log(`   Decode: ❌ ${error.code}: ${error.message}`);
+        console.log(`   Decode: ❌ ${error.code}: ${(error as any)?.message ?? String(error)}`);
       } else {
-        console.log(`   Decode: ❌ Unexpected: ${error.message}`);
+        console.log(`   Decode: ❌ Unexpected: ${(error as any)?.message ?? String(error)}`);
       }
     }
   }

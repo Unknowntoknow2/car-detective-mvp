@@ -1,5 +1,19 @@
-import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from '../services/unifiedVinDecoder';
-import { ConversationState, VehicleFeature } from '../types/api';
+import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from '../services/unifiedVinDecoder.js';
+// Inline types for backend
+type ConversationState = Record<string, any>;
+type VehicleFeature = any;
+type VehicleData = {
+  vin: string;
+  year: number;
+  make: string;
+  model: string;
+  mileage: number;
+  zip?: string;
+  condition: string;
+  titleStatus: string;
+};
+type ValuationResult = any;
+import { valuateVehicle } from './valuationEngine.js';
 
 export class ConversationEngine {
   state: ConversationState;
@@ -45,19 +59,18 @@ export class ConversationEngine {
   }
 
   async runValuation() {
-    // Example: Basic valuation logic using mileage and decoded year/model
-    const { mileage, decoded } = this.state;
-    let baseValue = 25000; // Example base value
-
-    if (decoded && Array.isArray(decoded)) {
-      const yearObj = decoded.find(r => r.Variable === "Model Year");
-      const year = yearObj ? parseInt(yearObj.Value) : 2020;
-      baseValue -= (2025 - year) * 1500;
-    }
-    if (mileage) {
-      baseValue -= Number(mileage) * 0.10;
-    }
-    this.state.valuation = Math.max(baseValue, 5000);
+    // Build canonical VehicleData from state
+    const vehicleData: VehicleData = {
+      vin: this.state.vin,
+      year: this.state.year,
+      make: this.state.make,
+      model: this.state.model,
+  mileage: isNaN(Number(this.state.mileage)) ? 0 : Number(this.state.mileage),
+      condition: this.state.condition,
+      titleStatus: this.state.titleStatus
+    };
+    const valuation: ValuationResult = await valuateVehicle(vehicleData);
+    this.state.valuation = valuation;
     return this.state;
   }
 }

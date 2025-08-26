@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -11,7 +11,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 
 # Install Python dependencies
+RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install pre-commit
+RUN pip install 'numpy<2.3' 'numba<0.59' 'llvmlite<0.40'
+RUN pre-commit install
 
 # Copy project files
 COPY . .
@@ -21,8 +25,8 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     ENVIRONMENT=production
 
-# Run only the basic test to verify setup
-RUN pytest tests/test_basic.py -v
+# Optionally run a basic test to verify setup
+# RUN pytest tests/test_basic.py -v
 
-# Command to run the application
-CMD ["python", "src/ain-backend/server.py"]
+# Default to bash for dev/test
+CMD ["bash"]

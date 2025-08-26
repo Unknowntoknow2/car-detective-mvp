@@ -1,7 +1,7 @@
 // src/services/fuelEconomyService.ts
 import { ExternalApiService } from './centralizedApi';
 import { ConfigService } from './centralizedApi';
-import logger from '../utils/logger';
+import logger from '../utils/logger.js';
 import { apiCallsTotal } from '../utils/metrics';
 
 export interface FuelEconomyData {
@@ -62,7 +62,7 @@ export async function fetchFuelEconomyByYearMakeModel(
   try {
     const response = await ExternalApiService.getFuelEconomyData(year, make, model);
     
-    if (!response.success || !response.data) {
+    if (!response.ok || !response.data) {
       return null;
     }
 
@@ -76,7 +76,7 @@ export async function fetchFuelEconomyByYearMakeModel(
       { headers: { Accept: 'application/json' } }
     );
 
-    if (!vehicleResponse.success) return null;
+  if (!vehicleResponse.ok) return null;
 
     const v = vehicleResponse.data;
     if (!v) return null;
@@ -135,9 +135,9 @@ export async function fetchAvgFuelCostUSD(): Promise<number | null> {
     const apiKeys = ConfigService.getApiKeys();
     const response = await ExternalApiService.getGasPrices(apiKeys.eia);
     
-    apiCallsTotal.inc({ service: 'eia', status: response.success ? 'success' : 'error' });
+    apiCallsTotal.inc({ service: 'eia', status: response.ok ? 'success' : 'error' });
     
-    if (!response.success || !response.data) {
+    if (!response.ok || !response.data) {
       return null;
     }
 

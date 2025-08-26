@@ -1,70 +1,60 @@
-
-import torch
-from typing import Dict, Optional, Any
+import numpy as np
+from sklearn.linear_model import Ridge
+import joblib
 
 class EnsembleValuator:
-    """
-    Multimodal ensemble for tabular, image, and text data.
-    Each model can be trained independently and used in the ensemble.
-    """
-    def __init__(self, tabular_model=None, image_model=None, text_model=None, meta_learner=None):
-        self.tabular_model = tabular_model
-        self.image_model = image_model
-        self.text_model = text_model
-        self.meta_learner = meta_learner  # Optional meta-learner for stacking
+    def __init__(self, xgb_model, dnn_model, cnn_model=None, bert_model=None, meta_learner=None, blend_weights=None):
+        self.xgb = xgb_model
+        self.dnn = dnn_model
+        self.cnn = cnn_model
+        self.bert = bert_model
+        self.meta = meta_learner or Ridge()
+        self.blend_weights = blend_weights
+        self.mode = 'stacking'  # or 'blending'
 
-    def predict(self, X_tab=None, X_img=None, X_txt=None, return_embeddings: bool = False):
-        preds = []
-        embeddings = []
-        if self.tabular_model and X_tab is not None:
-            tab_pred = self.tabular_model(X_tab)
-            preds.append(tab_pred)
-            if return_embeddings and hasattr(self.tabular_model, 'get_embedding'):
-                embeddings.append(self.tabular_model.get_embedding(X_tab))
-        if self.image_model and X_img is not None:
-            if return_embeddings:
-                img_pred, img_emb = self.image_model(X_img, return_embedding=True)
-                preds.append(img_pred)
-                embeddings.append(img_emb)
-            else:
-                preds.append(self.image_model(X_img))
-        if self.text_model and X_txt is not None:
-            if return_embeddings:
-                txt_pred, txt_emb = self.text_model(*X_txt, return_embedding=True)
-                preds.append(txt_pred)
-                embeddings.append(txt_emb)
-            else:
-                preds.append(self.text_model(*X_txt))
-        # Simple average ensemble (customize as needed)
-        if preds:
-            stacked = torch.stack([p.squeeze() for p in preds])
-            ensemble_pred = torch.mean(stacked, dim=0)
-        else:
-            ensemble_pred = None
-        if return_embeddings:
-            return ensemble_pred, embeddings
-        return ensemble_pred
+    def set_mode(self, mode):
+        assert mode in ['stacking', 'blending']
+        self.mode = mode
+
+    def fit(self, X_tab, X_img=None, X_txt=None, y=None):
+        xgb_preds = self.xgb.predict(X_tab)
+        dnn_preds = self.dnn.predict(X_tab)
+        features = [xgb_preds, dnn_preds]
+        if self.cnn and X_img is not None:
+            features.append(self.cnn.predict(X_img))
+        if self.bert and X_txt is not None:
+            features.append(self.bert.predict(X_txt))
+        meta_X = np.column_stack(features)
+        if self.mode == 'stacking':
+            self.meta.fit(meta_X, y)
+        elif self.mode == 'blending':
+            if not self.blend_weights:
+                n = len(features)
+                self.blend_weights = [1/n]*n
+
+    def predict(self, X_tab, X_img=None, X_txt=None):
+        preds = [self.xgb.predict(X_tab), self.dnn.predict(X_tab)]
+        if self.cnn and X_img is not None:
+            preds.append(self.cnn.predict(X_img))
+        if self.bert and X_txt is not None:
+            preds.append(self.bert.predict(X_txt))
+        meta_X = np.column_stack(preds)
+        if self.mode == 'stacking':
+            return self.meta.predict(meta_X)
+        elif self.mode == 'blending':
+            weights = np.array(self.blend_weights)
+            return np.dot(meta_X, weights)
+
+    def save(self, path):
+        joblib.dump(self, path)
 
     @staticmethod
-    def preprocess_inputs(tabular=None, image_path=None, text=None, tab_preproc=None, img_size=224, text_model=None):
-        X_tab = tab_preproc(tabular) if (tabular is not None and tab_preproc is not None) else tabular
-        X_img = None
-        if image_path is not None:
-            from .image_cnn import ImageCNNRegressor
-            X_img = ImageCNNRegressor.preprocess_image(image_path, size=img_size)
-        X_txt = None
-        if text is not None and text_model is not None:
-            X_txt = text_model.preprocess_text(text)
-        return X_tab, X_img, X_txt
+    def load(path):
+        return joblib.load(path)
 
-# Example usage
-if __name__ == "__main__":
-    # from .image_cnn import ImageCNNRegressor
-    # from .text_bert import TextBERTRegressor
-    # tabular_model = ...
-    # image_model = ImageCNNRegressor()
-    # text_model = TextBERTRegressor()
-    # ensemble = EnsembleValuator(tabular_model, image_model, text_model)
-    # X_tab, X_img, X_txt = EnsembleValuator.preprocess_inputs(tabular, image_path, text, tab_preproc, 224, text_model)
-    # pred = ensemble.predict(X_tab, X_img, X_txt)
-    pass
+    def evaluate(self, X_tab, X_img, X_txt, y_true):
+        y_pred = self.predict(X_tab, X_img, X_txt)
+        mae = np.mean(np.abs(y_true - y_pred))
+        rmse = np.sqrt(np.mean((y_true - y_pred)**2))
+        r2 = 1 - np.sum((y_true - y_pred)**2) / np.sum((y_true - np.mean(y_true))**2)
+        return {'mae': mae, 'rmse': rmse, 'r2': r2}

@@ -1,0 +1,67 @@
+suite: "AIN_valuation_v1_go_nogo"
+seed: 42
+data:
+  min_rows: 10000
+  time_window_months: 36
+  guard_for_mape_min_price_usd: 5000
+  segments_min:
+    fuel:
+      gas: 4000
+      hybrid: 800
+      ev: 800
+    body_style:
+      sedan: 1500
+      suv: 2500
+      truck: 1200
+
+splits:
+  method: "time_series_block"
+  train_end: "2024-06-30"
+  test_start: "2024-07-01"
+
+models:
+  tabular: "xgb_v1.pkl"
+  blend: true
+  fallback: true
+
+metrics:
+  overall:
+    mae_max_usd: 1250
+    rmse_max_usd: 2000
+    mape_max_pct: 8.5
+    r2_min: 0.88
+    coverage_min_pct: 80
+  by_fuel:
+    gas:
+      mae_max_usd: 1200
+      mape_max_pct: 8.0
+    hybrid:
+      mae_max_usd: 1400
+      mape_max_pct: 9.0
+    ev:
+      mae_max_usd: 1600
+      mape_max_pct: 10.0
+  fallback_only:
+    mape_max_pct: 12.0
+
+latency:
+  p95_ms_live_cached: 1500
+  p95_ms_fresh_fetch: 3000
+  p95_ms_fallback: 600
+
+confidence_rules:
+  high_band_pct: [0.06, 0.08]
+  med_band_pct: [0.08, 0.12]
+  low_band_pct: [0.12, 0.18]
+
+audit_must_have:
+  - inputs_hash
+  - featureset_id
+  - comps_used_ids
+  - comps_removed_with_reason
+  - method_tag
+  - model_version
+  - confidence_score
+  - band_low_high
+  - timings_ms
+  - explanation_payload

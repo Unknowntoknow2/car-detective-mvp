@@ -1,0 +1,11 @@
+{
+  "cars.com":       { "allowed": true,  "maxConcurrent": 2, "minDelayMs": 300, "freshnessDays": 21, "cacheTtlMs": 600000 },
+  "cargurus.com":   { "allowed": true,  "maxConcurrent": 2, "minDelayMs": 300, "freshnessDays": 21, "cacheTtlMs": 600000 },
+  "autotrader.com": { "allowed": true,  "maxConcurrent": 2, "minDelayMs": 350, "freshnessDays": 21, "cacheTtlMs": 600000 },
+  "carmax.com":     { "allowed": true,  "maxConcurrent": 2, "minDelayMs": 350, "freshnessDays": 30, "cacheTtlMs": 900000 },
+  "edmunds.com":    { "allowed": true,  "maxConcurrent": 2, "minDelayMs": 300, "freshnessDays": 30, "cacheTtlMs": 600000 },
+  "truecar.com":    { "allowed": true,  "maxConcurrent": 2, "minDelayMs": 300, "freshnessDays": 21, "cacheTtlMs": 600000 },
+  "kbb.com":        { "allowed": true,  "maxConcurrent": 1, "minDelayMs": 400, "freshnessDays": 30, "cacheTtlMs": 900000 },
+  "craigslist.org": { "allowed": false, "maxConcurrent": 0, "minDelayMs": 0 },
+  "facebook.com":   { "allowed": false, "maxConcurrent": 0, "minDelayMs": 0 }
+}

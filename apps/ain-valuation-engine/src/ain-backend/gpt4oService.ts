@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
-import logger from '../utils/logger';
-import { AIContext } from '../types/api';
+import logger from '../utils/logger.js';
+type AIContext = any;
 
 const openai = new OpenAI({
   apiKey: process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY,

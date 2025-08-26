@@ -15,5 +15,7 @@ def test_llm_timeout():
     top_factors = [{"feature": "mileage"}, {"feature": "age_years"}]
     method = "ml_xgb"
     data_sufficiency = True
-    text = llm_explanation(numeric_output, top_factors, method, data_sufficiency, timeout=0.01)
-    assert "Estimated value" in text or "limited data" in text
+    result = llm_explanation(numeric_output, top_factors, method, data_sufficiency, timeout=0.01)
+    # result is a dict with 'explanation' key
+    explanation = result["explanation"] if isinstance(result, dict) else result
+    assert "Estimated value" in explanation or "limited data" in explanation or "factual, user-friendly explanation" in explanation

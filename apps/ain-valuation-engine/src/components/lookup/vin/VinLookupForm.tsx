@@ -1,8 +1,8 @@
-import { VariableValue } from '@/types/VariableValue';
+import { VariableValue } from '../../../types/VariableValue';
 
 import React, { useState } from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import { Input } from '../../ui/input'
+import { Button } from '../../ui/button'
 import { CarFindCard } from '@/components/CarFindCard'
 import { decodeVin, VINDecodeError, isVinDecodeSuccessful } from '@/services/unifiedVinDecoder'
 import { convertToVariableValueArray } from '@/utils/convertToVariableValueArray'
@@ -84,7 +84,7 @@ export function VinLookupForm({ onSuccess }: VinLookupFormProps) {
       {decodedData && (
         <div className="border rounded p-4 bg-muted">
           <h3 className="text-lg font-semibold mb-2">VIN Decoded Result:</h3>
-          <CarFindCard decoded={decodedData} />
+          <CarFindCard decoded={decodedData as any as { Variable: string; Value: string | number | null }[]} />
         </div>
       )}
     </div>

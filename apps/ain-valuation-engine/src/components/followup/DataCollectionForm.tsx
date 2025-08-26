@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { VariableValue } from '@/types/VariableValue';
-import { VehicleData, VehicleCondition, TitleStatus, DataGap, ValuationResult } from '@/types/ValuationTypes';
-import { runValuation } from '@/services/valuationEngine'; // <-- fixed import
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { VariableValue } from '../../types/VariableValue';
+import { VehicleData, VehicleCondition, TitleStatus, DataGap, ValuationResult } from '../../types/ValuationTypes';
+import { valuateVehicle } from '@/ain-backend/valuationEngine';
 
 interface DataCollectionFormProps {
   decodedVin: VariableValue[];
@@ -18,6 +18,7 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
   const [isCollecting, setIsCollecting] = useState(true);
   const [isGeneratingValuation, setIsGeneratingValuation] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const requiredFields: (keyof VehicleData)[] = ['vin', 'year', 'make', 'model', 'mileage', 'condition', 'titleStatus'];
 
   useEffect(() => {
     // Extract basic vehicle data from decoded VIN
@@ -35,33 +36,69 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
 
   function extractVehicleDataFromVin(decoded: VariableValue[], vin: string): Partial<VehicleData> {
     const data: Partial<VehicleData> = { vin };
+    // Google-level: log all decoded fields for mapping
+    if (decoded && decoded.length > 0) {
+      // eslint-disable-next-line no-console
+      console.log('[VIN DECODE] All decoded fields:', decoded);
+    }
     decoded.forEach(item => {
+      const val = item.Value !== undefined && item.Value !== null ? String(item.Value) : undefined;
       switch (item.Variable) {
         case 'Make':
-          data.make = item.Value || '';
+          data.make = val;
           break;
         case 'Model':
-          data.model = item.Value || '';
+          data.model = val;
           break;
         case 'Model Year':
-          data.year = parseInt(item.Value || '0');
+          data.year = val ? parseInt(val) : undefined;
           break;
         case 'Trim':
-          data.trim = item.Value || undefined;
+          data.trim = val;
           break;
         case 'Engine Number of Cylinders':
-          data.engineSize = item.Value || undefined;
+        case 'Engine Displacement (L)':
+        case 'Engine Model':
+          data.engineSize = val;
           break;
         case 'Fuel Type - Primary':
-          data.fuelType = item.Value || undefined;
+        case 'Fuel Type':
+          data.fuelType = val;
           break;
         case 'Drive Type':
-          data.drivetrain = item.Value || undefined;
+        case 'Drive':
+          data.drivetrain = val;
           break;
         case 'Transmission Style':
-          data.transmission = item.Value || undefined;
+        case 'Transmission':
+          data.transmission = val;
           break;
+        case 'Body Class':
+          data.body = val;
+          break;
+        case 'Doors':
+        case 'Number of Doors':
+          data.doors = val ? parseInt(val) : undefined;
+          break;
+        case 'Exterior Color':
+        case 'Color':
+          data.exteriorColor = val;
+          break;
+        case 'Interior Color':
+          data.interiorColor = val;
+          break;
+        case 'Plant Country':
+          data.plantCountry = val;
+          break;
+        case 'Plant State':
+          data.plantState = val;
+          break;
+        case 'Plant City':
+          data.plantCity = val;
+          break;
+        // Add more mappings as needed
         default:
+          // Optionally, collect unmapped fields for future mapping
           break;
       }
     });
@@ -189,22 +226,57 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
 
   const generateValuation = async () => {
     setIsGeneratingValuation(true);
-
     try {
-      // This is a demo: assumes runValuation returns ValuationResult
-      const result = await runValuation(vin);
-
+      // Always build a complete VehicleData object from decoded VIN and user input
+      const vd: VehicleData = {
+        vin: vehicleData.vin!,
+        year: vehicleData.year,
+        make: vehicleData.make,
+        model: vehicleData.model,
+        trim: vehicleData.trim || undefined,
+        mileage: Number(vehicleData.mileage),
+        zip: vehicleData.zip,
+        condition: vehicleData.condition,
+        titleStatus: vehicleData.titleStatus,
+        color: vehicleData.color || vehicleData.exteriorColor || undefined,
+        fuelType: vehicleData.fuelType,
+        transmission: vehicleData.transmission,
+        driveType: vehicleData.drivetrain,
+      };
+      // Strict validation: all required fields must be present, non-empty, and valid
+      const required = ['vin','year','make','model','mileage','condition','titleStatus'];
+      const missing = required.filter(f => {
+        const v = vd[f as keyof VehicleData];
+        if (v === undefined || v === null) return true;
+        if (typeof v === 'string' && v.trim() === '') return true;
+        if (f === 'mileage' && (typeof v !== 'number' || isNaN(v) || v <= 0)) return true;
+        if (f === 'year' && (typeof v !== 'number' || isNaN(v) || v < 1900)) return true;
+        return false;
+      });
+      // Log the full vehicleData for debugging
+      // eslint-disable-next-line no-console
+      console.log('[Valuation Submission] vehicleData:', vd);
+      if (missing.length > 0) {
+        alert('Missing or invalid required fields: ' + missing.join(', '));
+        setIsGeneratingValuation(false);
+        return;
+      }
+      const result = await valuateVehicle(vd);
       if (result) {
-        // Convert DecodedVinData to ValuationResult for the interface
-        const valuationResult = result as any; // Temporary type assertion
-        onComplete(valuationResult);
+        // Normalize the result to ensure camelCase and required fields
+        const normalizeResult = (val: any): ValuationResult => ({
+          ...val,
+          estimatedValue: val.estimatedValue ?? val.estimated_value ?? val.finalValue ?? null,
+          priceRange: val.priceRange ?? val.range ?? { low: null, high: null },
+          confidence: val.confidence ?? val.confidenceScore ?? null,
+          timestamp: val.timestamp ?? val.createdAt ?? Date.now(),
+        });
+        onComplete(normalizeResult(result));
       } else {
         console.error('Valuation failed');
-        // Handle error - show error message to user
       }
     } catch (error) {
       console.error('Valuation error:', error);
-      // Handle error
     } finally {
       setIsGeneratingValuation(false);
     }
@@ -224,7 +296,7 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
             <Input
               type="number"
               placeholder="Enter mileage (e.g., 45000)"
-              value={value || ''}
+              value={String(value ?? '')}
               onChange={(e) => handleInputChange(currentGap.field, parseInt(e.target.value) || 0)}
               className={error ? 'border-red-500' : ''}
             />
@@ -237,7 +309,7 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
           <div className="space-y-2">
             <Input
               placeholder="Enter ZIP code (e.g., 90210)"
-              value={value || ''}
+              value={String(value ?? '')}
               onChange={(e) => handleInputChange(currentGap.field, e.target.value)}
               className={error ? 'border-red-500' : ''}
               maxLength={10}
@@ -250,7 +322,7 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
         return (
           <div className="space-y-2">
             <select
-              value={value || ''}
+              value={String(value ?? '')}
               onChange={(e) => handleInputChange(currentGap.field, e.target.value)}
               className={`w-full p-3 border rounded-md ${error ? 'border-red-500' : 'border-gray-300'}`}
             >
@@ -269,7 +341,7 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
         return (
           <div className="space-y-2">
             <select
-              value={value || TitleStatus.CLEAN}
+              value={String(value ?? TitleStatus.CLEAN)}
               onChange={(e) => handleInputChange(currentGap.field, e.target.value)}
               className={`w-full p-3 border rounded-md ${error ? 'border-red-500' : 'border-gray-300'}`}
             >
@@ -289,7 +361,7 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
           <div className="space-y-2">
             <Input
               placeholder="Enter exterior color (e.g., White, Black, Silver)"
-              value={value || ''}
+              value={String(value ?? '')}
               onChange={(e) => handleInputChange(currentGap.field, e.target.value)}
               className={error ? 'border-red-500' : ''}
             />
@@ -301,7 +373,7 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
         return (
           <Input
             placeholder={`Enter ${currentGap.field}`}
-            value={value || ''}
+            value={String(value ?? '')}
             onChange={(e) => handleInputChange(currentGap.field, e.target.value)}
             className={error ? 'border-red-500' : ''}
           />
@@ -322,13 +394,18 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
   }
 
   if (!isCollecting) {
+    // Check for missing required fields
+    const missing = requiredFields.filter(f => !vehicleData[f]);
     return (
       <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg text-center">
         <h3 className="text-lg font-semibold mb-4">Data Collection Complete</h3>
         <p className="text-gray-600 mb-4">
-          We have all the information needed to generate your valuation.
+          {missing.length === 0
+            ? 'We have all the information needed to generate your valuation.'
+            : <span className="text-red-600">Missing required fields: {missing.join(', ')}</span>
+          }
         </p>
-        <Button onClick={generateValuation} className="w-full">
+        <Button onClick={generateValuation} className="w-full" disabled={missing.length > 0}>
           Generate Valuation Report
         </Button>
       </div>

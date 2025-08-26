@@ -1,0 +1,9 @@
+{
+  "us_t1": { "trust": 1.00, "freshnessDays": 21, "cacheTtlMs": 600000, "maxRetries": 3, "stopOn429After": 2, "minDelayMs": 300 },
+  "us_t2": { "trust": 0.70, "freshnessDays": 14, "cacheTtlMs": 300000, "maxRetries": 2, "stopOn429After": 1, "minDelayMs": 500 },
+  "oem":   { "trust": 0.92, "freshnessDays": 14, "cacheTtlMs": 600000, "maxRetries": 2, "stopOn429After": 1, "minDelayMs": 400 },
+  "dealer_group": { "trust": 0.90, "freshnessDays": 21, "cacheTtlMs": 600000, "maxRetries": 2, "stopOn429After": 1, "minDelayMs": 400 },
+  "auction": { "trust": 0.88, "freshnessDays": 7, "cacheTtlMs": 300000, "maxRetries": 2, "stopOn429After": 1, "minDelayMs": 400 },
+  "intl": { "trust": 0.90, "freshnessDays": 30, "cacheTtlMs": 900000, "maxRetries": 2, "stopOn429After": 1, "minDelayMs": 400 },
+  "specialty": { "trust": 0.92, "freshnessDays": 45, "cacheTtlMs": 900000, "maxRetries": 2, "stopOn429After": 1, "minDelayMs": 400 }
+}

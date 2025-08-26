@@ -1,3 +1,139 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+import os
+import sys
+import json
+import argparse
+import traceback
+from pathlib import Path
+
+# Optional .env support — will NOT block execution if missing
+try:
+    from dotenv import load_dotenv  # type: ignore
+    load_dotenv()
+except Exception:
+    # Safe to ignore; environment variables remain as-is
+    pass
+
+import pandas as pd
+
+# Centralized loader (deterministic)
+from val_engine.pipeline_loader import load_pipeline, PipelineLoadError
+
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(
+        description="AIN Valuation Engine — deterministic inference using bundle['pipe']"
+    )
+    p.add_argument(
+        "--bundle",
+        default=os.environ.get("AIN_MODEL_BUNDLE", "artifacts/model_bundle.joblib"),
+        help="Path to model bundle (joblib) containing 'pipe'. Default: artifacts/model_bundle.joblib",
+    )
+    p.add_argument(
+        "--input",
+        help="Path to JSON/CSV with inference rows; if omitted, runs a 1-row demo.",
+    )
+    p.add_argument(
+        "--output",
+        help="Path to write predictions JSON (list of floats). If omitted, prints to stdout.",
+    )
+    return p.parse_args()
+
+def read_input_frame(path: str | None) -> pd.DataFrame:
+    if not path:
+        # Minimal 1-row demo aligned to your train_tabular.py feature set (adjust as needed)
+        demo = {
+            "mileage": 62000,
+            "year": 2018,
+            "owner_count": 2,
+            "engine_hp": 285,
+            "mpg_city": 18,
+            "mpg_highway": 24,
+            "make": "Ford",
+            "model": "F-150",
+            "trim": "XLT",
+            "drivetrain": "4WD",
+            "fuel_type": "Gasoline",
+            "transmission": "Automatic",
+            "exterior_color": "Blue",
+            "interior_color": "Gray",
+            "state": "CA",
+            "zip_region": "900xx",
+        }
+        return pd.DataFrame([demo])
+
+    p = Path(path)
+    if not p.exists():
+        raise FileNotFoundError(f"Input file not found: {p.resolve()}")
+    if p.suffix.lower() == ".csv":
+        return pd.read_csv(p)
+    # default try json (list[dict] or dict -> single row)
+    with open(p, "r") as f:
+        obj = json.load(f)
+    if isinstance(obj, dict):
+        return pd.DataFrame([obj])
+    if isinstance(obj, list):
+        return pd.DataFrame(obj)
+    raise ValueError("Unsupported JSON structure; expected dict or list of dicts.")
+
+def main() -> int:
+    args = parse_args()
+    try:
+        pipe, meta = load_pipeline(args.bundle)
+    except PipelineLoadError as e:
+        print(f"[FATAL] {e}", file=sys.stderr)
+        return 2
+    except Exception as e:
+        print("[FATAL] Unexpected error while loading bundle:", file=sys.stderr)
+        traceback.print_exc()
+        return 2
+
+    try:
+        df = read_input_frame(args.input)
+        preds = pipe.predict(df)
+        out = [float(x) for x in preds]
+    except Exception:
+        print("[FATAL] Inference failed:", file=sys.stderr)
+        traceback.print_exc()
+        return 3
+
+    if args.output:
+        Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+        with open(args.output, "w") as f:
+            json.dump(out, f, indent=2)
+        print(json.dumps({
+            "status": "ok",
+            "bundle": meta,
+            "output_path": args.output,
+            "n_predictions": len(out),
+        }, indent=2))
+    else:
+        print(json.dumps({
+            "status": "ok",
+            "bundle": meta,
+            "predictions": out,
+        }, indent=2))
+    return 0
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+# --- Unpickle compatibility shim (for older artifacts that used FrequencyEncoder)
+try:
+    from sklearn.base import BaseEstimator, TransformerMixin
+    class FrequencyEncoder(BaseEstimator, TransformerMixin):  # matches pickled symbol
+        def __init__(self, cols=None, min_freq=1): self.cols=cols; self.min_freq=min_freq
+        def fit(self, X, y=None): return self
+        def transform(self, X):
+            import pandas as pd
+            df = pd.DataFrame(X).copy()
+            maps = getattr(self, "mapping_", None) or getattr(self, "freq_maps_", None)
+            if isinstance(maps, dict):
+                for col, mp in maps.items():
+                    if col in df.columns:
+                        df[col] = df[col].map(mp).fillna(0.0)
+            return df
+except Exception:
+    pass
 """
 Main valuation engine entry point for vehicle price estimation and analysis.
 
@@ -74,6 +210,11 @@ import uuid
 import logging
 from datetime import datetime
 from typing import Dict, Any, Union, Tuple, List, Optional
+from pathlib import Path
+import joblib
+
+DEFAULT_BUNDLE = Path("artifacts/model_bundle.joblib")
+import joblib
 
 # Supabase imports (optional)
 try:
@@ -99,8 +240,11 @@ from val_engine.llm_summary import generate_valuation_summary
 
 # Load environment variables (optional)
 try:
-    from dotenv import load_dotenv
-    load_dotenv()
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass  # dotenv not available, that's fine
 except ImportError:
     # dotenv not available, that's fine
     pass
@@ -270,10 +414,9 @@ def run_valuation(input_dict: Dict[str, Any], mode: str = 'sell') -> Dict[str, A
     if mode not in ['buy', 'sell']:
         raise ValueError("Invalid mode provided. Must be 'buy' or 'sell'.")
 
-    # Preprocess input data
+    # Preprocess input data (raw, single-row DataFrame)
     input_df = preprocess_input(input_dict)
-    
-    # Generate price prediction using the loaded model and encoders
+    # PATCH: Pass raw input DataFrame to pipeline; do not align, reorder, or fill columns manually
     original_predicted_price = predict_price(input_df, _loaded_model, _loaded_encoders)
     
     # Apply buyer/seller adjustment
@@ -361,72 +504,227 @@ def run_valuation(input_dict: Dict[str, Any], mode: str = 'sell') -> Dict[str, A
     
     return valuation_result
 
+def load_pipeline(bundle_path: str | Path = DEFAULT_BUNDLE):
+    bundle = joblib.load(bundle_path)
+    if isinstance(bundle, dict) and "pipe" in bundle:
+        return bundle["pipe"], bundle
+    # Backward compatibility: if a bare Pipeline was saved
+    return bundle, {"metadata": {"note": "legacy pipeline without bundle format"}}
+
 if __name__ == "__main__":
-    model_path_in_model_py = 'gradient_boosting_model.joblib'
-    encoders_path_in_model_py = 'label_encoders.joblib'
-    if os.path.exists(model_path_in_model_py):
-        os.remove(model_path_in_model_py)
-    if os.path.exists(encoders_path_in_model_py):
-        os.remove(encoders_path_in_model_py)
-    logger.info("Cleaned up model artifacts before starting Flask app for fresh test.")
+    import argparse
+    import os
+    import sys
+    from val_engine.utils.vin import decode_vin
+    from val_engine.utils.epa_lookup import attach_epa
+    from val_engine.utils.feature_builder import build_inference_df
+    from val_engine.utils.schema import VehicleDataForValuation
+    from val_engine.model import load_model_artifacts, predict_price
+    from val_engine.market import load_comps_file, compute_market_anchor
+    import json
+    from datetime import datetime
 
-    initialize_valuation_engine()
+    parser = argparse.ArgumentParser(description="AIN Valuation Engine: Production-Grade Vehicle Valuation")
+    parser.add_argument("--vin", type=str, required=True, help="17-digit VIN for the target vehicle")
+    parser.add_argument("--mileage", type=int, required=True, help="Current odometer reading (miles)")
+    parser.add_argument("--zip", type=str, required=True, help="5-digit ZIP code for market context")
+    parser.add_argument("--condition", type=str, required=True, choices=["excellent", "very_good", "good", "fair", "poor"], help="Vehicle condition (standardized)")
+    parser.add_argument("--mode", type=str, required=True, choices=["buy", "sell"], help="Valuation mode: 'buy' or 'sell'")
+    parser.add_argument("--title-status", dest="title_status", default=None)
+    parser.add_argument("--accidents", type=int, default=None)
+    parser.add_argument("--owners", type=int, default=None)
+    parser.add_argument("--fuel-type", dest="fuel_type", default=None)
+    parser.add_argument("--in-service-date", type=str, default=None, help="Date vehicle entered service (YYYY-MM-DD)")
+    parser.add_argument("--warranty-basic-months", type=int, default=36)
+    parser.add_argument("--warranty-powertrain-months", type=int, default=60)
+    parser.add_argument("--warranty-basic-miles", type=int, default=36000)
+    parser.add_argument("--warranty-powertrain-miles", type=int, default=60000)
+    parser.add_argument("--comps-file", type=str, default=None, help="Path to JSON file with market comps (optional)")
+    parser.add_argument("--output", type=str, default=None, help="Output JSON file path (default: ${AIN_OUTDIR}/valuation_{VIN}.json)")
+    args = parser.parse_args()
 
-    sample_vehicle_data = {
-        'vin': {'value': '1HGCM82633A004352', 'verified': True, 'source_origin': 'NHTSA'},
-        'year': {'value': 2020, 'verified': True, 'source_origin': 'OEM'},
-        'mileage': {'value': 45000, 'verified': True, 'source_origin': 'Odometer'},
-        'make': {'value': 'Honda', 'verified': True, 'source_origin': 'OEM'},
-        'model': {'value': 'Civic', 'verified': True, 'source_origin': 'OEM'},
-        'overall_condition_rating': {'value': 'Good', 'verified': False, 'source_origin': 'User'},
-        'zipcode': {'value': 94107, 'verified': True, 'source_origin': 'User'},
-        'photo_ai_score': {'value': 84, 'verified': True, 'source_origin': 'AI_Photo'},
-        'ai_video_condition_score': {'value': 77, 'verified': True, 'source_origin': 'AI_Video'},
-        'accident_history': {'value': [], 'verified': True, 'source_origin': 'Carfax'},
-        'title_type': {'value': 'Clean', 'verified': True, 'source_origin': 'Carfax'},
-        'factory_warranty_remaining_months': {'value': 24, 'verified': True, 'source_origin': 'OEM'},
-        'features_options': {
-            'value': {'sunroof_moonroof': True, 'advanced_safety_systems': True},
-            'verified': False, 'source_origin': 'User'
-        },
-        'exterior_color': {'value': 'Blue', 'verified': True, 'source_origin': 'OEM'},
-        'market_confidence_score': {'value': 92, 'verified': True, 'source_origin': 'AIN_Engine'}
-    }
-    
-    print("\n--- Running Valuation for Sample Vehicle (Sell Mode) ---")
-    result_sell = run_valuation(sample_vehicle_data, mode='sell')
-    print("Valuation Results (Sell Mode):")
-    print(f"Estimated Value: ${result_sell['estimated_value']:,.2f}")
-    print(f"Original Predicted Value: ${result_sell['original_predicted_value']:,.2f}")
-    print(f"Mode Adjustment: ${result_sell['mode_adjustment_amount']:,.2f}")
-    print(f"Confidence Score: {result_sell['confidence_score']}/100")
-    print(f"Summary: {result_sell['summary']}")
-    print("\nFeature Contributions (Sell Mode):")
-    if result_sell['adjustments']['feature_names'] and result_sell['adjustments']['feature_contributions']:
-        for feature, contribution in zip(result_sell['adjustments']['feature_names'], result_sell['adjustments']['feature_contributions']):
-            print(f"   {feature}: ${contribution:+.2f}")
-
-    print("\n--- Running Valuation for Sample Vehicle (Buy Mode) ---")
-    result_buy = run_valuation(sample_vehicle_data, mode='buy')
-    print("Valuation Results (Buy Mode):")
-    print(f"Estimated Value: ${result_buy['estimated_value']:,.2f}")
-    print(f"Original Predicted Value: ${result_buy['original_predicted_value']:,.2f}")
-    print(f"Mode Adjustment: ${result_buy['mode_adjustment_amount']:,.2f}")
-    print(f"Confidence Score: {result_buy['confidence_score']}/100")
-    print(f"Summary: {result_buy['summary']}")
-    print("\nFeature Contributions (Buy Mode):")
-    if result_buy['adjustments']['feature_names'] and result_buy['adjustments']['feature_contributions']:
-        for feature, contribution in zip(result_buy['adjustments']['feature_names'], result_buy['adjustments']['feature_contributions']):
-            print(f"   {feature}: ${contribution:+.2f}")
-
-    output_filename_sell = "valuation_output_sell.json"
-    output_filename_buy = "valuation_output_buy.json"
+    # 1. VIN decode
     try:
-        with open(output_filename_sell, "w") as f:
-            json.dump(result_sell, f, indent=2, default=str)
-        print(f"\nResults saved to '{output_filename_sell}'")
-        with open(output_filename_buy, "w") as f:
-            json.dump(result_buy, f, indent=2, default=str)
-        print(f"Results saved to '{output_filename_buy}'")
+        vin_decoded = decode_vin(args.vin)
+        vin_decoded = attach_epa(vin_decoded)
     except Exception as e:
-        print(f"Warning: Failed to save results to JSON: {e}")
+        print(f"ERROR: VIN decode failed: {e}", file=sys.stderr)
+        sys.exit(1)
+    if not vin_decoded.get('make') or not vin_decoded.get('model') or not vin_decoded.get('year'):
+        print(f"ERROR: VIN decode did not return valid make/model/year for {args.vin}", file=sys.stderr)
+        sys.exit(1)
+
+    # 2. Build feature vector using schema and new builder
+    from datetime import datetime
+    in_service_date = None
+    if args.in_service_date:
+        try:
+            in_service_date = datetime.strptime(args.in_service_date, "%Y-%m-%d").date()
+        except Exception:
+            print(f"WARNING: Could not parse in_service_date: {args.in_service_date}")
+    payload = VehicleDataForValuation(
+        vin=args.vin,
+        mileage=args.mileage,
+        zip=args.zip,
+        condition=args.condition,
+        mode=args.mode,
+        title_status=args.title_status,
+        accidents=args.accidents,
+        owners=args.owners,
+        fuel_type=args.fuel_type,
+        in_service_date=in_service_date,
+        warranty_basic_months=args.warranty_basic_months,
+        warranty_powertrain_months=args.warranty_powertrain_months,
+        warranty_basic_miles=args.warranty_basic_miles,
+        warranty_powertrain_miles=args.warranty_powertrain_miles
+    )
+
+    features_df = build_inference_df(payload, vin_decoded)
+    # Load pipeline from bundle
+    pipe, bundle = load_pipeline()
+    model = pipe
+
+    # 3. Load model
+    try:
+        model, _ = load_model_artifacts()
+    except Exception as e:
+        print(f"ERROR: Model load failed: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    # 4. Market comps anchoring
+    comps_file = args.comps_file or os.environ.get("AIN_COMPS_FILE")
+    market_anchor = None
+    if comps_file:
+        try:
+            comps = load_comps_file(comps_file)
+            market_anchor = compute_market_anchor(
+                comps,
+                target_trim=vin_decoded.get('trim'),
+                target_year=vin_decoded.get('year'),
+                target_miles=args.mileage
+            )
+        except Exception as e:
+            print(f"WARNING: Failed to load or process comps file: {e}", file=sys.stderr)
+            market_anchor = None
+
+
+    # 5. Run valuation (model prediction, market anchoring logic)
+    import pandas as pd
+    input_df = features_df
+    # === Feature alignment (make inference columns match training)
+    import pandas as pd, datetime
+    now_year = datetime.datetime.utcnow().year
+
+    # 1) Figure out what columns the trained pipeline expects
+    expected_cols = None
+    if hasattr(model, "feature_names_in_"):
+        expected_cols = list(model.feature_names_in_)
+    elif isinstance(bundle, dict) and "feature_names" in bundle:
+        expected_cols = list(bundle["feature_names"])
+
+
+    # === Predict
+    print("=== DEBUG: Input to model.predict (raw, unaligned) ===")
+    print(features_df.head())
+    print("dtypes:\n", features_df.dtypes)
+    try:
+        print("Model expects columns:", model.feature_names_in_)
+    except AttributeError:
+        pass
+    model_pred = float(model.predict(features_df)[0])
+    estimated_value = model_pred
+    confidence_score = 80
+    comps_used = 0
+    market_point_estimate = None
+    if market_anchor and market_anchor['comps_used'] >= 3 and market_anchor['median_price']:
+        # Anchor: blend model and market median, bounded by ±7.5% of median, cannot override by >10%
+        market_point_estimate = market_anchor['median_price']
+        comps_used = market_anchor['comps_used']
+        lower = market_point_estimate * 0.925
+        upper = market_point_estimate * 1.075
+        estimated_value = min(max(model_pred, lower), upper)
+        # If model is outside ±10%, force to median unless confidence < 60
+        if abs(model_pred - market_point_estimate) / market_point_estimate > 0.10:
+            estimated_value = market_point_estimate
+        confidence_score = 90 if comps_used >= 3 else 70
+
+    # 6. SHAP explainability
+    try:
+        from val_engine.shap_explainer import set_explainer, explain_prediction
+        set_explainer(model)
+        shap_result = explain_prediction(input_df)
+        # For legacy/simple format, shap_result is np.ndarray; for comprehensive, it's a dict
+        if isinstance(shap_result, dict):
+            top_factors = shap_result.get('feature_explanations', [])[:10]
+        else:
+            # Legacy: build top factors from feature importances
+            top_factors = []
+            feature_names = list(input_df.columns)
+            for i, val in enumerate(shap_result[0]):
+                top_factors.append({
+                    'feature': feature_names[i],
+                    'contribution': float(val)
+                })
+            top_factors = sorted(top_factors, key=lambda x: abs(x['contribution']), reverse=True)[:10]
+    except Exception as e:
+        print(f"WARNING: SHAP explainability failed: {e}", file=sys.stderr)
+        top_factors = []
+
+    # 7. LLM summary
+    try:
+        from val_engine.llm_summary import generate_valuation_summary
+        llm_summary = generate_valuation_summary(
+            estimated_value,
+            {
+                'vin': {'value': args.vin, 'verified': True, 'source_origin': 'NHTSA'},
+                'year': {'value': vin_decoded.get('year'), 'verified': True, 'source_origin': 'NHTSA'},
+                'make': {'value': vin_decoded.get('make'), 'verified': True, 'source_origin': 'NHTSA'},
+                'model': {'value': vin_decoded.get('model'), 'verified': True, 'source_origin': 'NHTSA'},
+                'trim': {'value': vin_decoded.get('trim'), 'verified': True, 'source_origin': 'NHTSA'},
+                'mileage': {'value': args.mileage, 'verified': True, 'source_origin': 'User'},
+                'zipcode': {'value': args.zip, 'verified': True, 'source_origin': 'User'},
+                'overall_condition_rating': {'value': args.condition, 'verified': True, 'source_origin': 'User'}
+            },
+            shap_values=[ [f['contribution'] for f in top_factors] ],
+            expected_value=market_point_estimate or model_pred,
+            feature_names=[f['feature'] for f in top_factors],
+            mode=args.mode
+        )
+    except Exception as e:
+        print(f"WARNING: LLM summary failed: {e}", file=sys.stderr)
+        llm_summary = ""
+
+    # 8. Compose output
+    output = {
+        "vin": args.vin,
+        "decoded_vehicle": vin_decoded,
+        "input": {
+            "mileage": args.mileage,
+            "zip": args.zip,
+            "condition": args.condition,
+            "mode": args.mode
+        },
+        "market": {
+            "median_price": market_point_estimate,
+            "comps_used": comps_used,
+            "listings": market_anchor['listings'] if market_anchor else []
+        },
+        "estimated_value": round(estimated_value, 2),
+        "confidence_score": confidence_score,
+        "shap": {
+            "top_factors": top_factors
+        },
+        "llm_summary": llm_summary,
+        "timestamp": datetime.now().isoformat(),
+        "engine_version": "3.0"
+    }
+
+    # 7. Output path
+    out_path = args.output or os.path.join(
+        os.environ.get("AIN_OUTDIR", os.getcwd()),
+        f"valuation_{args.vin}.json"
+    )
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    with open(out_path, "w") as f:
+        json.dump(output, f, indent=2, default=str)
+    print(f"Valuation complete. Output written to {out_path}")

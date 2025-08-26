@@ -1,4 +1,4 @@
-import { decodeVin, extractLegacyVehicleInfo, isVinDecodeSuccessful } from '../services/unifiedVinDecoder';
+import { decodeVin, extractLegacyVehicleInfo, isVinDecodeSuccessful } from '../services/unifiedVinDecoder.js';
 
 export async function decodeVIN(vin: string) {
   const result = await decodeVin(vin);

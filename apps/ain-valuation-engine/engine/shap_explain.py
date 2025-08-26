@@ -53,9 +53,15 @@ def top_local_drivers(val_input: ValuationInput, top_n=5):
 	return result
 def top_local_drivers(val_input: ValuationInput, top_n=5, ensemble=False):
 	if ensemble:
-		# Stub: Use KernelExplainer or meta-learner SHAP for ensemble
-		# Aggregate importances from all base models
-		return [{"feature": "ensemble_feature", "direction": "positive", "abs_impact": 0.1} for _ in range(top_n)]
+		# Example: Aggregate SHAP values from all base models (stub)
+		drivers = [
+			{"feature": "tabular:year", "direction": "positive", "abs_impact": 0.2},
+			{"feature": "image:damage", "direction": "negative", "abs_impact": 0.15},
+			{"feature": "text:inspection", "direction": "positive", "abs_impact": 0.1},
+			{"feature": "tabular:mileage", "direction": "negative", "abs_impact": 0.08},
+			{"feature": "image:color", "direction": "positive", "abs_impact": 0.05}
+		]
+		return drivers[:top_n]
 	else:
 		_load_model_and_pipeline()
 		explainer = _get_explainer()
@@ -72,3 +78,9 @@ def top_local_drivers(val_input: ValuationInput, top_n=5, ensemble=False):
 				"abs_impact": abs(val)
 			})
 		return result
+
+def explain_ensemble(val_input, top_n=5):
+	# Returns both JSON and human-readable explanation
+	drivers = top_local_drivers(val_input, top_n=top_n, ensemble=True)
+	text = "Top drivers: " + ", ".join(f"{d['feature']} ({d['direction']}, {d['abs_impact']:.2f})" for d in drivers)
+	return {"drivers": drivers, "narrative": text}

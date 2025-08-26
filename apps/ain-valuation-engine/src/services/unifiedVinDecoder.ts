@@ -3,7 +3,7 @@
  * Consolidates all VIN decoding logic with proper fallback handling
  */
 
-import { validateVIN } from './vinValidation';
+import { validateVIN } from './vinValidation.js';
 
 // Types for VIN decoding response
 export interface DecodedVinData {
@@ -68,10 +68,15 @@ export async function decodeVin(vin: string, options: VinDecodeOptions = {}): Pr
   if (!forceDirectAPI) {
     try {
       console.log('🔧 Attempting Supabase edge function...');
+  const HAS_SUPABASE = !!(process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY);
+  if (!HAS_SUPABASE) {
+    console.warn("[supabase] Missing VITE_SUPABASE_URL/KEY — skipping edge function, using direct NHTSA API.");
+    throw new Error("EdgeDisabled");
+  }
       const edgeResult = await callSupabaseEdgeFunction(cleanVin, timeout);
       return normalizeVinResponse(edgeResult, 'SUPABASE_EDGE');
     } catch (error) {
-      console.warn('⚠️ Supabase edge function failed, falling back to direct API:', error.message);
+      console.warn('⚠️ Supabase edge function failed, falling back to direct API:', (error as any)?.message ?? String(error));
       
       // If edge function returns 401, it means auth issues - proceed to fallback
       // For other errors, we'll also fallback to ensure reliability
@@ -88,7 +93,7 @@ export async function decodeVin(vin: string, options: VinDecodeOptions = {}): Pr
     throw new VINDecodeError(
       'VIN decoding failed on all endpoints',
       'ALL_ENDPOINTS_FAILED',
-      { originalError: error.message }
+      { originalError: (error as any)?.message ?? String(error) }
     );
   }
 }
@@ -144,7 +149,7 @@ async function callSupabaseEdgeFunction(vin: string, timeout: number): Promise<a
   } catch (error) {
     clearTimeout(timeoutId);
     
-    if (error.name === 'AbortError') {
+    if ((error as any)?.name === 'AbortError') {
       throw new VINDecodeError('Edge function request timeout', 'TIMEOUT_ERROR');
     }
     
@@ -155,7 +160,7 @@ async function callSupabaseEdgeFunction(vin: string, timeout: number): Promise<a
     throw new VINDecodeError(
       'Edge function request failed',
       'NETWORK_ERROR',
-      error.message
+      (error as any)?.message ?? String(error)
     );
   }
 }
@@ -203,7 +208,7 @@ async function callNHTSADirectAPI(vin: string, timeout: number, retries: number)
     } catch (error) {
       clearTimeout(timeoutId);
       
-      if (error.name === 'AbortError') {
+      if ((error as any)?.name === 'AbortError') {
         if (attempt === retries) {
           throw new VINDecodeError('NHTSA API timeout', 'TIMEOUT_ERROR');
         }
@@ -213,7 +218,7 @@ async function callNHTSADirectAPI(vin: string, timeout: number, retries: number)
       
       if (error instanceof VINDecodeError) {
         if (attempt === retries) throw error;
-        console.warn(`⚠️ Attempt ${attempt + 1} failed: ${error.message}, retrying...`);
+        console.warn(`⚠️ Attempt ${attempt + 1} failed: ${(error as any)?.message ?? String(error)}, retrying...`);
         continue;
       }
       
@@ -221,11 +226,11 @@ async function callNHTSADirectAPI(vin: string, timeout: number, retries: number)
         throw new VINDecodeError(
           'NHTSA API request failed',
           'NETWORK_ERROR',
-          error.message
+          (error as any)?.message ?? String(error)
         );
       }
       
-      console.warn(`⚠️ Attempt ${attempt + 1} failed: ${error.message}, retrying...`);
+      console.warn(`⚠️ Attempt ${attempt + 1} failed: ${(error as any)?.message ?? String(error)}, retrying...`);
       
       // Exponential backoff
       await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));

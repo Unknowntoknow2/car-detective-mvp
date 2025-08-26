@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { ApiResponse, RateLimit } from '@/types/ValuationTypes';
+import { ApiResponse, RateLimit } from '../types/ValuationTypes';
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -41,7 +41,8 @@ export class ApiClient {
         });
 
         return {
-          success: true,
+          // ...existing code...
+          ok: true,
           data: response.data,
           metadata: {
             source: url,
@@ -52,7 +53,8 @@ export class ApiClient {
       } catch (error) {
         if (attempt === retries) {
           return {
-            success: false,
+            // ...existing code...
+            ok: false,
             error: this.formatError(error),
             metadata: {
               source: url,
@@ -68,7 +70,8 @@ export class ApiClient {
     }
 
     return {
-      success: false,
+  // ...existing code...
+      ok: false,
       error: 'Maximum retries exceeded',
       metadata: {
         source: url,

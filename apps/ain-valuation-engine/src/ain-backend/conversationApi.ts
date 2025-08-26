@@ -1,5 +1,5 @@
 import express from "express";
-import { ConversationEngine } from "./conversationEngine";
+import { ConversationEngine } from "./conversationEngine.js";
 
 const router = express.Router();
 

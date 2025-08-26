@@ -50,13 +50,13 @@ async function runQuickTest() {
   } catch (error) {
     console.error('\n❌ Test failed:');
     if (error instanceof VINDecodeError) {
-      console.error(`   VIN Decode Error: ${error.code} - ${error.message}`);
+      console.error(`   VIN Decode Error: ${error.code} - ${(error as any)?.message ?? String(error)}`);
       if (error.details) {
         console.error(`   Details:`, error.details);
       }
     } else {
-      console.error(`   Unexpected error: ${error.message}`);
-      console.error(`   Stack: ${error.stack}`);
+      console.error(`   Unexpected error: ${(error as any)?.message ?? String(error)}`);
+      console.error(`   Stack: ${(error as any)?.stack ?? ""}`);
     }
     return false;
   }

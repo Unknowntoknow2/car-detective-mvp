@@ -3,7 +3,7 @@
 
 import { ApiClient } from './apiClient';
 import { withErrorHandling } from '../utils/errorHandling';
-import { DecodedVinResult } from '../types/api';
+import { DecodedVinResult, ApiResponse } from '@/types/ValuationTypes';
 import { decodeVin, extractLegacyVehicleInfo, isVinDecodeSuccessful } from './unifiedVinDecoder';
 
 // Single instance of API client
@@ -107,21 +107,19 @@ export class ExternalApiService {
       body?: Record<string, unknown>;
       timeout?: number;
     } = {}
-  ): Promise<{ success: boolean; data?: T; error?: string }> {
+  ): Promise<ApiResponse<T>> {
     const result = await withErrorHandling(async () => {
       const response = await apiClient.get<T>(url, options.headers);
-      
-      if (!response.success) {
+      if (!response.ok) {
         const errorMsg = response.error || 'External API call failed';
         throw new Error(errorMsg);
       }
-      
       return response.data;
     }, 'external-api');
 
-    return result.success 
-      ? { success: true, data: result.data as T }
-      : { success: false, error: result.error?.message };
+    return (result && 'ok' in result)
+      ? (result as ApiResponse<T>)
+      : { ok: false, error: (result as any)?.error?.message };
   }
 
   // Fuel economy API
@@ -135,9 +133,8 @@ export class ExternalApiService {
   // EIA energy data API
   static async getGasPrices(apiKey?: string) {
     if (!apiKey) {
-      return { success: false, error: 'EIA API key not provided' };
+      return { ok: false, error: 'EIA API key not provided' };
     }
-    
     const baseUrl = 'https://api.eia.gov/series/';
     return this.makeExternalCall(
       `${baseUrl}?api_key=${apiKey}&series_id=PET.EMM_EPMR_PTE_NUS_DPG.W`

@@ -46,7 +46,7 @@ export async function legacyDecodeVin(vin: string): Promise<LegacyVinResponse> {
     // Return legacy error format
     return {
       errorCode: 'DECODE_ERROR',
-      errorText: error.message || 'VIN decoding failed'
+      errorText: (((error as any)?.message ?? String(error)) || 'VIN decoding failed')
     };
   }
 }
@@ -88,10 +88,10 @@ export async function enhancedDecodeVin(vin: string): Promise<{
   } catch (error) {
     return {
       success: false,
-      error: error.message,
+      error: (error as any)?.message ?? String(error),
       legacy: {
         errorCode: 'DECODE_ERROR',
-        errorText: error.message
+        errorText: (error as any)?.message ?? String(error)
       }
     };
   }
@@ -180,7 +180,7 @@ export async function testMigration() {
     console.log('\n🎉 All migration tests passed!');
     return true;
   } catch (error) {
-    console.error('\n❌ Migration test failed:', error.message);
+    console.error('\n❌ Migration test failed:', (error as any)?.message ?? String(error));
     return false;
   }
 }

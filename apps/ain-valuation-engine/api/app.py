@@ -1,5 +1,44 @@
-from __future__ import annotations
+# ---------- v1: valuation (full E2E) ------------------------------------------
+from flask import request
 
+@app.post("/api/v1/valuation")
+def valuation():
+    data = request.get_json(force=True)
+    vin = _normalize_vin(data.get("vin"))
+    miles = data.get("miles")
+    zip_code = data.get("zip")
+    condition = data.get("condition")
+
+    # Use existing identity and safety logic
+    ident = identity(vin)
+    safety_info = safety(vin)
+
+    # Mock valuation logic (replace with real model as needed)
+    base_value = 25000
+    year = ident.get("year") or 2023
+    age = max(0, 2025 - int(year))
+    mileage_penalty = (int(miles) // 10000) * 500 if miles else 0
+    condition_bonus = 1000 if (condition and "very good" in condition.lower()) else 0
+    value = base_value - (age * 1200) - mileage_penalty + condition_bonus
+    value = max(2000, value)
+
+    return {
+        "vin": vin,
+        "miles": miles,
+        "zip": zip_code,
+        "condition": condition,
+        "vehicle": ident,
+        "safety": safety_info["nhtsa"],
+        "recalls": safety_info["recalls"],
+        "valuation": {
+            "estimate": value,
+            "currency": "USD",
+            "confidence": 0.85,
+            "explanation": f"Base: ${base_value}, Age: -${age*1200}, Mileage: -${mileage_penalty}, Condition: +${condition_bonus}"
+        }
+    }
+
+from __future__ import annotations
 import os
 import re
 import requests

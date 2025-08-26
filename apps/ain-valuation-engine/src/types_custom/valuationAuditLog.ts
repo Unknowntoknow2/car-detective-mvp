@@ -1,10 +1,5 @@
 import { DecodedVehicle } from "./DecodedVehicle";
-
-export interface MarketListing {
-  source: string;
-  price: number;
-  url: string;
-}
+import type { MarketListing } from '../types/marketListing';
 
 export interface ValuationAuditLog {
   auditLogId: string;

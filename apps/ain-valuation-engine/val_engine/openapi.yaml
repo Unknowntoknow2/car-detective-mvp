@@ -1,0 +1,133 @@
+openapi: 3.0.0
+info:
+  title: AIN Vehicle Valuation API
+  version: 1.0.0
+  description: |
+    Robust vehicle valuation endpoint with SHAP explanations. Accepts vehicle data and returns a predicted value, confidence, and feature attributions.
+servers:
+  - url: http://localhost:8000
+paths:
+  /valuate:
+    post:
+      summary: Predict vehicle value and explain drivers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValuationInput'
+      responses:
+        '200':
+          description: Valuation result with SHAP explanations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValuationOutput'
+        '422':
+          description: Validation error
+        '400':
+          description: Malformed request
+components:
+  schemas:
+    ValuationInput:
+      type: object
+      required:
+        - year
+        - make
+        - model
+        - zip
+        - mileage
+        - age_years
+        - comp_count
+        - comp_mean
+        - comp_median
+        - condition_score
+        - owners
+        - accidents
+        - title_brand_flags
+        - options_count
+        - completeness
+      properties:
+        year:
+          type: integer
+          minimum: 1980
+          maximum: 2100
+        make:
+          type: string
+        model:
+          type: string
+        trim:
+          type: string
+        body_style:
+          type: string
+        drivetrain:
+          type: string
+        fuel_type:
+          type: string
+        zip:
+          type: string
+        mileage:
+          type: integer
+          minimum: 0
+          maximum: 500000
+        age_years:
+          type: number
+          minimum: 0
+          maximum: 50
+        comp_count:
+          type: integer
+          minimum: 0
+          maximum: 50
+        comp_mean:
+          type: number
+        comp_median:
+          type: number
+        condition_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        owners:
+          type: integer
+          minimum: 0
+          maximum: 10
+        accidents:
+          type: integer
+          minimum: 0
+          maximum: 10
+        title_brand_flags:
+          type: integer
+          minimum: 0
+          maximum: 10
+        options_count:
+          type: integer
+          minimum: 0
+          maximum: 100
+        region_bucket:
+          type: string
+        completeness:
+          type: number
+          minimum: 0
+          maximum: 1
+    ValuationOutput:
+      type: object
+      properties:
+        value:
+          type: number
+        range_low:
+          type: number
+        range_high:
+          type: number
+        confidence:
+          type: number
+        method:
+          type: string
+        model_version:
+          type: string
+        top_factors:
+          type: array
+          items:
+            type: string
+        explanation:
+          type: string
+        latency_ms:
+          type: integer

@@ -1,7 +1,7 @@
 import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from './unifiedVinDecoder'
-import supabase from '../integrations/supabase/client'
-import logger from '../utils/logger'
-import { valuationRequestsTotal, valuationDuration, databaseOperations } from '../utils/metrics'
+import { fetchVinLookup } from './vinLookupService'
+import { fetchMarketPricing } from './vehiclePricingService'
+import { fetchResidualForecast } from './residualValueService'
 
 /**
  * Executes a complete vehicle valuation process for a given VIN number.
@@ -32,49 +32,72 @@ import { valuationRequestsTotal, valuationDuration, databaseOperations } from '.
  * - Measures valuation duration for performance monitoring
  * - Records database operation metrics for audit purposes
  */
-export async function runValuation(vin: string) {
-  const timer = valuationDuration.startTimer();
-  
+export async function runValuation(vehicle) {
+  // vehicle: normalized and enriched VehicleData
+  // 1. VIN Lookup API enrichment
+  let vinLookup = null;
   try {
-    valuationRequestsTotal.inc({ status: 'started' });
-    
-    const decoded = await decodeVin(vin)
-
-    if (!isVinDecodeSuccessful(decoded)) {
-      throw new Error(decoded.metadata.errorText || 'VIN decoding failed')
-    }
-
-    // Extract legacy format for database storage
-    const legacyData = extractLegacyVehicleInfo(decoded)
-
-    // Save to Supabase
-    const dbTimer = Date.now();
-    await supabase.from('vin_history').insert([
-      {
-        vin,
-        response: legacyData
-      }
-    ])
-    
-    databaseOperations.inc({ 
-      operation: 'insert', 
-      table: 'vin_history', 
-      status: 'success' 
-    });
-
-    valuationRequestsTotal.inc({ status: 'success' });
-    timer({ status: 'success' });
-    
-    return decoded
-  } catch (error) {
-    logger.error('Valuation failed:', error)
-    valuationRequestsTotal.inc({ status: 'error' });
-    databaseOperations.inc({ 
-      operation: 'insert', 
-      table: 'vin_history', 
-      status: 'error' 
-    });
-    timer({ status: 'error' });
-    throw error
+    vinLookup = await fetchVinLookup(vehicle.vin);
+  } catch (e) {
+    vinLookup = null;
   }
+
+  // 2. Market Pricing API
+  let marketPricing = null;
+  try {
+    marketPricing = await fetchMarketPricing(vehicle.make, vehicle.model, vehicle.year);
+  } catch (e) {
+    marketPricing = null;
+  }
+
+  // 3. Residual Value API
+  let residualForecast = null;
+  try {
+    residualForecast = await fetchResidualForecast(vehicle.vin);
+  } catch (e) {
+    residualForecast = null;
+  }
+
+  // 4. Baseline valuation logic (simple example)
+  const baseValue = Math.max(5000, 30000 - (vehicle.mileage / 10));
+  const priceRange = {
+    low: Math.round(baseValue * 0.9),
+    high: Math.round(baseValue * 1.1)
+  };
+  const confidence = 0.85;
+
+  // 5. Merge all into ValuationResult
+  return {
+    coreResult: {
+      vin: vehicle.vin,
+      year: vehicle.year,
+      make: vehicle.make,
+      model: vehicle.model,
+      mileage: vehicle.mileage,
+      zip: vehicle.zip,
+      condition: vehicle.condition,
+      titleStatus: vehicle.titleStatus,
+      estimatedValue: baseValue,
+      priceRange,
+      confidence
+    },
+    enrichment: {
+      vinLookup: vinLookup ? {
+        trim: vinLookup.trim,
+        engine: vinLookup.engine,
+        drivetrain: vinLookup.drive,
+        fuelType: vinLookup.fuelType
+      } : null,
+      marketPricing: marketPricing ? {
+        retail: marketPricing.retail,
+        wholesale: marketPricing.wholesale,
+        tradeIn: marketPricing.tradeIn
+      } : null,
+      residualForecast: residualForecast ? {
+        "1yr": residualForecast["1yr"],
+        "2yr": residualForecast["2yr"],
+        "3yr": residualForecast["3yr"]
+      } : null
+    }
+  };
 }

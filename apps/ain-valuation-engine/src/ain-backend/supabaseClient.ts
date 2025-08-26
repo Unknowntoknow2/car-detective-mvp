@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
-import logger from "../utils/logger";
-import { SessionData, VehicleData } from '../types/api';
+import logger from "../utils/logger.js";
+type VehicleData = any; type SessionData = any;
 
 const supabaseUrl = process.env.SUPABASE_URL || "";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";

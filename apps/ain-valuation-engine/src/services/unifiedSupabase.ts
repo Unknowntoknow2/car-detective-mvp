@@ -2,8 +2,8 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ConfigService } from './centralizedApi';
-import { SessionData, VehicleData } from '../types/api';
-import logger from '../utils/logger';
+import { VehicleData, SessionData } from '@/types/ValuationTypes';
+import logger from '../utils/logger.js';
 
 // Singleton pattern for client instances
 class SupabaseManager {
@@ -46,7 +46,7 @@ class SupabaseManager {
         throw new Error(`Supabase function error: ${error.message}`);
       }
 
-      return { data, error: null };
+  return { data, error: null };
     } catch (error) {
       return { 
         data: null, 
@@ -71,7 +71,7 @@ export class SessionManager {
         });
       
       if (error) throw error;
-      return { success: true, data };
+  return { success: true, data };
     } catch (error) {
       logger.error('Error storing session:', error);
       return { 
@@ -90,7 +90,7 @@ export class SessionManager {
         .single();
       
       if (error) throw error;
-      return { success: true, data: data?.data };
+  return { success: true, data: data?.data };
     } catch (error) {
       logger.error('Error retrieving session:', error);
       return { 
@@ -111,7 +111,7 @@ export class SessionManager {
         .eq('id', sessionId);
       
       if (error) throw error;
-      return { success: true, data };
+  return { success: true, data, ok: true };
     } catch (error) {
       logger.error('Error updating session:', error);
       return { 
@@ -129,7 +129,7 @@ export class SessionManager {
         .eq('id', sessionId);
       
       if (error) throw error;
-      return { success: true };
+  return { success: true, ok: true };
     } catch (error) {
       logger.error('Error deleting session:', error);
       return { 
@@ -155,7 +155,7 @@ export class VehicleDataManager {
         });
       
       if (error) throw error;
-      return { success: true, data };
+  return { success: true, data, ok: true };
     } catch (error) {
       logger.error('Error storing vehicle data:', error);
       return { 
@@ -174,7 +174,7 @@ export class VehicleDataManager {
         .single();
       
       if (error) throw error;
-      return { success: true, data: data?.data };
+  return { success: true, data: data?.data };
     } catch (error) {
       logger.error('Error retrieving vehicle data:', error);
       return { 

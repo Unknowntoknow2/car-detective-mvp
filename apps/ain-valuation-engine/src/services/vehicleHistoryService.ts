@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import { VehicleHistory, AccidentRecord, ServiceRecord, OwnershipRecord, TitleRecord, RecallRecord, ApiResponse } from '@/types/ValuationTypes';
+import { VehicleHistory, AccidentRecord, ServiceRecord, OwnershipRecord, TitleRecord, RecallRecord, ApiResponse } from '../types/ValuationTypes';
 
 // Properly typed Carfax response structure
 interface CarfaxAccident {
@@ -78,11 +78,12 @@ export class VehicleHistoryService {
         serviceRecords: [],
         ownershipHistory: [],
         titleHistory: [],
-        recallsHistory: [],
+        recallHistory: [],
       };
 
+
       // Process Carfax results
-      if (carfaxResults.status === 'fulfilled' && carfaxResults.value.success) {
+      if (carfaxResults.status === 'fulfilled' && carfaxResults.value.ok) {
         const carfaxData = carfaxResults.value.data;
         if (carfaxData) {
           history.accidentHistory.push(...this.extractCarfaxAccidents(carfaxData));
@@ -93,7 +94,7 @@ export class VehicleHistoryService {
       }
 
       // Process Autocheck results
-      if (autocheckResults.status === 'fulfilled' && autocheckResults.value.success) {
+      if (autocheckResults.status === 'fulfilled' && autocheckResults.value.ok) {
         const autocheckData = autocheckResults.value.data;
         if (autocheckData) {
           history.accidentHistory.push(...this.extractAutocheckAccidents(autocheckData));
@@ -103,10 +104,10 @@ export class VehicleHistoryService {
       }
 
       // Process NHTSA recall results
-      if (recallResults.status === 'fulfilled' && recallResults.value.success) {
+      if (recallResults.status === 'fulfilled' && recallResults.value.ok) {
         const recallData = recallResults.value.data;
         if (recallData) {
-          history.recallsHistory.push(...recallData);
+          history.recallHistory.push(...recallData);
         }
       }
 
@@ -117,7 +118,8 @@ export class VehicleHistoryService {
       history.titleHistory = this.deduplicateTitles(history.titleHistory);
 
       return {
-        success: true,
+  // ...existing code...
+        ok: true,
         data: history,
         metadata: {
           source: 'multiple_history_sources',
@@ -126,7 +128,8 @@ export class VehicleHistoryService {
       };
     } catch (error) {
       return {
-        success: false,
+  // ...existing code...
+        ok: false,
         error: error instanceof Error ? error.message : 'Failed to fetch vehicle history',
         metadata: {
           source: 'vehicle_history_service',
@@ -168,19 +171,20 @@ export class VehicleHistoryService {
         `${this.nhtsaBaseUrl}?vin=${vin}&format=json`
       );
 
-      if (!response.success) {
+      if (!response.ok) {
         return {
-          success: false,
+          ok: false,
           error: response.error,
           metadata: response.metadata,
         };
       }
 
       const recalls = response.data?.results?.map(this.transformNHTSARecall) || [];
-      return { ...response, data: recalls };
+  return { ...response, data: recalls, ok: true };
     } catch (error) {
       return {
-        success: false,
+  // ...existing code...
+        ok: false,
         error: error instanceof Error ? error.message : 'Failed to fetch NHTSA recalls',
         metadata: {
           source: 'nhtsa_recalls',
@@ -194,10 +198,10 @@ export class VehicleHistoryService {
     if (!data.accidents) return [];
 
     return data.accidents.map((accident: CarfaxAccident) => ({
-      date: new Date(accident.date),
+      date: accident.date,
       severity: this.mapSeverity(accident.severity),
-      description: accident.damageDescription,
-      damageAmount: accident.estimatedCost,
+      damageDescription: accident.damageDescription,
+      estimatedCost: accident.estimatedCost,
     }));
   }
 
@@ -205,12 +209,12 @@ export class VehicleHistoryService {
     if (!data.serviceRecords) return [];
 
     return data.serviceRecords.map((service: CarfaxService) => ({
-      date: new Date(service.date),
+      date: service.date,
+      type: service.type,
       mileage: service.mileage,
-      serviceType: service.type,
       description: service.description,
       cost: service.cost,
-      dealer: Boolean(service.dealer), // Convert to boolean as expected by ServiceRecord
+      dealer: service.dealer,
     }));
   }
 
@@ -218,9 +222,9 @@ export class VehicleHistoryService {
     if (!data.ownership) return [];
 
     return data.ownership.map((owner: any) => ({
-      startDate: new Date(owner.startDate),
-      endDate: owner.endDate ? new Date(owner.endDate) : undefined,
-      ownerType: this.mapOwnerType(owner.type),
+      startDate: owner.startDate,
+      endDate: owner.endDate,
+      type: this.mapOwnerType(owner.type),
       state: owner.state,
     }));
   }
@@ -229,9 +233,9 @@ export class VehicleHistoryService {
     if (!data.titles) return [];
 
     return data.titles.map((title: any) => ({
-      date: new Date(title.date),
+      date: title.date,
       state: title.state,
-      titleType: this.mapTitleType(title.type),
+      type: this.mapTitleType(title.type),
       mileage: title.mileage,
     }));
   }
@@ -242,9 +246,9 @@ export class VehicleHistoryService {
     return data.events
       .filter((event: any) => event.type === 'accident')
       .map((accident: any) => ({
-        date: new Date(accident.date),
+        date: accident.date,
         severity: this.mapSeverity(accident.severity || 'unknown'),
-        description: accident.description,
+        damageDescription: accident.description,
       }));
   }
 
@@ -254,11 +258,11 @@ export class VehicleHistoryService {
     return data.events
       .filter((event: any) => event.type === 'service')
       .map((service: any) => ({
-        date: new Date(service.date),
+        date: service.date,
+        type: 'maintenance',
         mileage: service.mileage || 0,
-        serviceType: 'maintenance',
         description: service.description,
-        dealer: service.dealer || false,
+        dealer: service.dealer,
       }));
   }
 
@@ -270,9 +274,9 @@ export class VehicleHistoryService {
     const records: OwnershipRecord[] = [];
     for (let i = 0; i < data.ownershipCount; i++) {
       records.push({
-        startDate: new Date(2020 + i, 0, 1), // Approximate dates
-        endDate: i === data.ownershipCount - 1 ? undefined : new Date(2020 + i + 1, 0, 1),
-        ownerType: 'personal',
+        startDate: `${2020 + i}-01-01`,
+        endDate: i === data.ownershipCount - 1 ? undefined : `${2020 + i + 1}-01-01`,
+        type: 'personal',
         state: 'Unknown',
       });
     }
@@ -282,7 +286,7 @@ export class VehicleHistoryService {
   private transformNHTSARecall(recall: any): RecallRecord {
     return {
       recallNumber: recall.NHTSACampaignNumber,
-      date: new Date(recall.ReportReceivedDate),
+      date: recall.ReportReceivedDate,
       description: recall.Summary,
       status: recall.RemedyStatus === 'Remedy Available' ? 'completed' : 'open',
     };
@@ -330,41 +334,41 @@ export class VehicleHistoryService {
   private deduplicateAccidents(accidents: AccidentRecord[]): AccidentRecord[] {
     const seen = new Set();
     return accidents.filter(accident => {
-      const key = `${accident.date.toISOString()}-${accident.description}`;
+      const key = `${accident.date}-${accident.damageDescription}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
-    }).sort((a, b) => b.date.getTime() - a.date.getTime());
+    });
   }
 
   private deduplicateService(records: ServiceRecord[]): ServiceRecord[] {
     const seen = new Set();
     return records.filter(record => {
-      const key = `${record.date.toISOString()}-${record.mileage}-${record.serviceType}`;
+      const key = `${record.date}-${record.mileage}-${record.type}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
-    }).sort((a, b) => b.date.getTime() - a.date.getTime());
+    });
   }
 
   private deduplicateOwnership(records: OwnershipRecord[]): OwnershipRecord[] {
     const seen = new Set();
     return records.filter(record => {
-      const key = `${record.startDate.toISOString()}-${record.ownerType}-${record.state}`;
+      const key = `${record.startDate}-${record.type}-${record.state}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
-    }).sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+    });
   }
 
   private deduplicateTitles(records: TitleRecord[]): TitleRecord[] {
     const seen = new Set();
     return records.filter(record => {
-      const key = `${record.date.toISOString()}-${record.state}-${record.titleType}`;
+      const key = `${record.date}-${record.state}-${record.type}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
-    }).sort((a, b) => b.date.getTime() - a.date.getTime());
+    });
   }
 }
 

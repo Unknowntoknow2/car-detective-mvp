@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import logger from "./utils/logger";
+import { GlobalErrorBoundary } from "@/components/security/GlobalErrorBoundary";
 import { VinLookupForm } from "@/components/lookup/vin/VinLookupForm";
 import { DataCollectionForm } from "@/components/followup/DataCollectionForm";
 import { ValuationResultsDisplay } from "@/components/result/ValuationResultsDisplay";
-import { VariableValue } from "@/types/VariableValue";
-import { ValuationResult } from "@/types/ValuationTypes";
+import { VariableValue } from "./types/VariableValue";
+import { ValuationResult } from "./types/ValuationTypes";
 
 /** Application state defining the current step in the valuation workflow */
 type AppState = 'vin-lookup' | 'data-collection' | 'valuation-results';
@@ -146,48 +147,50 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">AIN Valuation</h1>
-            </div>
-            {currentState !== 'vin-lookup' && (
-              <button 
-                onClick={handleStartOver}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                New Valuation
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {renderCurrentState()}
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-gray-600">
-            <p className="mb-2">
-              Powered by advanced AI and comprehensive market data analysis
-            </p>
-            <div className="flex justify-center space-x-6 text-sm">
-              <span>✓ 100+ Comparable Analysis</span>
-              <span>✓ Real-time Market Data</span>
-              <span>✓ Vehicle History Integration</span>
-              <span>✓ AI-Powered Explanations</span>
+    <GlobalErrorBoundary context="AppRoot">
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <header className="bg-white shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <h1 className="text-xl font-bold text-gray-900">AIN Valuation</h1>
+              </div>
+              {currentState !== 'vin-lookup' && (
+                <button 
+                  onClick={handleStartOver}
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  New Valuation
+                </button>
+              )}
             </div>
           </div>
-        </div>
-      </footer>
-    </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {renderCurrentState()}
+        </main>
+
+        {/* Footer */}
+        <footer className="bg-white border-t mt-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="text-center text-gray-600">
+              <p className="mb-2">
+                Powered by advanced AI and comprehensive market data analysis
+              </p>
+              <div className="flex justify-center space-x-6 text-sm">
+                <span>✓ 100+ Comparable Analysis</span>
+                <span>✓ Real-time Market Data</span>
+                <span>✓ Vehicle History Integration</span>
+                <span>✓ AI-Powered Explanations</span>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </GlobalErrorBoundary>
   );
 }
 
