@@ -1,8 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const AIN_API_URL = Deno.env.get("AIN_API_URL")!;
-const AIN_API_KEY = Deno.env.get("AIN_API_KEY")!;
+const AIN_UPSTREAM_URL = Deno.env.get("AIN_UPSTREAM_URL");
+const AIN_API_KEY = Deno.env.get("AIN_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
@@ -90,6 +90,15 @@ serve(async (req) => {
       );
     }
 
+    // Check if upstream is configured
+    if (!AIN_UPSTREAM_URL) {
+      console.error("❌ AIN_UPSTREAM_URL not configured");
+      return new Response(
+        JSON.stringify({ error: "upstream_not_configured" }), 
+        { status: 502, headers: { ...hdr, "Content-Type": "application/json" }}
+      );
+    }
+
     console.log(`🚀 AIN Valuation Request for user ${user.id}:`, { 
       vin: vin?.substring(0, 8) + "...", make, model, year 
     });
@@ -98,7 +107,7 @@ serve(async (req) => {
     const ac = new AbortController();
     const timeoutId = setTimeout(() => ac.abort(), 30000);
 
-    const res = await fetch(`${AIN_API_URL}/valuation`, {
+    const res = await fetch(`${AIN_UPSTREAM_URL}/valuation`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

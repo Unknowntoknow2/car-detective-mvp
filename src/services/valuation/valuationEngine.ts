@@ -142,25 +142,18 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
     }
 
     // Call secure edge function (no API keys exposed)
-    const edgeUrl = `https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/ain-valuation`;
-    const response = await fetch(edgeUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify(ainPayload)
+    const { data, error } = await supabase.functions.invoke('ain-valuation', {
+      body: ainPayload
     });
     const latency = Math.round(performance.now() - startTime);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      log('error', '❌ AIN edge function error:', { status: response.status, error: errorText });
-      emit('err', { status: response.status, error: errorText, latency });
-      throw new Error(`AIN edge error: ${response.status}`);
+    if (error) {
+      log('error', '❌ AIN edge function error:', { error: error.message });
+      emit('err', { error: error.message, latency });
+      throw new Error(`AIN edge error: ${error.message}`);
     }
 
-    const ain = await response.json();
+    const ain = data;
 
     // Emit telemetry
     emit('ok', { 
