@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { runCorrectedValuationPipeline } from '@/utils/valuation/correctedValuationPipeline';
+import { calculateUnifiedValuation, type ValuationEngineInput } from '@/services/valuation/valuationEngine';
 import { toast } from 'sonner';
 
 interface CorrectedValuationParams {
@@ -40,12 +40,42 @@ export function useCorrectedValuation() {
       console.log('🔧 Starting corrected valuation pipeline...');
       toast.info('Recalculating valuation with corrected data...');
       
-      const results = await runCorrectedValuationPipeline(params);
+      // Convert to ValuationEngineInput format
+      const engineInput: ValuationEngineInput = {
+        vin: params.vin,
+        zipCode: params.zipCode,
+        mileage: params.mileage,
+        condition: params.condition,
+        decodedVehicle: {
+          year: params.year,
+          make: params.make,
+          model: params.model,
+          trim: params.trim
+        }
+      };
       
-      setResults(results);
+      const result = await calculateUnifiedValuation(engineInput);
+      
+      // Convert to expected format
+      const formattedResults: CorrectedValuationResults = {
+        success: true,
+        valuation: {
+          estimatedValue: result.finalValue,
+          confidenceScore: result.confidenceScore,
+          basePrice: result.baseValue,
+          adjustments: result.adjustments || [],
+          priceRange: result.priceRange,
+          marketAnalysis: {
+            dataSource: result.sourcesUsed?.join(', ') || 'market_data',
+            listingCount: result.marketListingsCount || 0
+          }
+        }
+      };
+      
+      setResults(formattedResults);
       toast.success('Valuation corrected and updated successfully!');
       
-      return results;
+      return formattedResults;
     } catch (error) {
       console.error('Error running corrected valuation:', error);
       toast.error('Failed to correct valuation');

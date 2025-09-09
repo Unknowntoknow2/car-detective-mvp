@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { runMarketDataDiagnostics, logMarketDataSummary } from './marketDataDiagnostics';
-import { runCorrectedValuationPipeline } from '@/utils/valuation/correctedValuationPipeline';
+import { calculateUnifiedValuation, type ValuationEngineInput } from '@/services/valuation/valuationEngine';
 
 interface AuditResult {
   testName: string;
@@ -291,20 +291,24 @@ export class Phase2Auditor {
       if (decodedVehicle) {
         logs.push('🧮 Testing confidence scoring with limited market data...');
 
-        // Run corrected valuation pipeline
-        const valuationResult = await runCorrectedValuationPipeline({
+        // Run valuation pipeline
+        const engineInput: ValuationEngineInput = {
           vin: this.testVin,
-          make: decodedVehicle.make || 'Toyota',
-          model: decodedVehicle.model || 'Prius Prime',
-          year: decodedVehicle.year || 2024,
+          zipCode: '90210',
           mileage: 25000,
           condition: 'good',
-          zipCode: '90210',
-          trim: decodedVehicle.trim
-        });
+          decodedVehicle: {
+            year: decodedVehicle.year || 2024,
+            make: decodedVehicle.make || 'Toyota',
+            model: decodedVehicle.model || 'Prius Prime',
+            trim: decodedVehicle.trim
+          }
+        };
+        
+        const valuationResult = await calculateUnifiedValuation(engineInput);
 
-        if (valuationResult.success) {
-          const confidence = valuationResult.valuation.confidenceScore;
+        if (valuationResult.finalValue > 0) {
+          const confidence = valuationResult.confidenceScore;
           logs.push(`📊 Confidence Score: ${confidence}%`);
 
           // Validate confidence scoring logic
