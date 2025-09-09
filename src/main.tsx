@@ -4,9 +4,13 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AppProviders } from './providers/AppProviders';
 import './styles/index.css';
+import { validateAINConfiguration } from './utils/buildTimeChecks';
 
 const renderApp = () => {
   try {
+    // Validate AIN configuration at app startup
+    validateAINConfiguration();
+    
     const rootElement = document.getElementById('root');
     if (!rootElement) {
       throw new Error('Root element not found');
