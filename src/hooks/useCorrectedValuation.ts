@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
-import { calculateUnifiedValuation, type ValuationEngineInput } from '@/services/valuation/valuationEngine';
+import { computeValuation } from '@/services/valuation/computeValuation';
+import { type ValuationEngineInput } from '@/services/valuation/valuationEngine';
 import { toast } from 'sonner';
 
 interface CorrectedValuationParams {
@@ -54,7 +55,9 @@ export function useCorrectedValuation() {
         }
       };
       
-      const result = await calculateUnifiedValuation(engineInput);
+      const t0 = performance.now();
+      const result = await computeValuation(engineInput);
+      console.info("ain.val.ms", Math.round(performance.now()-t0), { via: import.meta.env.USE_AIN_VALUATION });
       
       // Convert to expected format
       const formattedResults: CorrectedValuationResults = {

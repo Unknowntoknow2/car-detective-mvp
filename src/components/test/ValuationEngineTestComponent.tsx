@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { calculateUnifiedValuation } from '@/services/valuation/valuationEngine';
+import { computeValuation } from '@/services/valuation/computeValuation';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 import { ValuationProgressDisplay } from '@/components/valuation/ValuationProgressDisplay';
 import { ValuationProgressTracker } from '@/utils/valuation/progressTracker';
@@ -45,7 +45,8 @@ export function ValuationEngineTestComponent() {
     try {
       console.log('🧪 Starting valuation engine test...');
       
-      const valuationResult = await calculateUnifiedValuation({
+      const t0 = performance.now();
+      const valuationResult = await computeValuation({
         vin,
         mileage,
         condition,
@@ -56,6 +57,7 @@ export function ValuationEngineTestComponent() {
           model: 'X5'
         }
       });
+      console.info("ain.val.ms", Math.round(performance.now()-t0), { via: import.meta.env.USE_AIN_VALUATION });
       
       console.log('✅ Valuation test completed:', valuationResult);
       setResult(valuationResult);
