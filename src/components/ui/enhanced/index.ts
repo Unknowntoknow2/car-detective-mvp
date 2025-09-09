@@ -5,3 +5,4 @@ export * from './ProfessionalHero';
 export * from './TestimonialSection';
 export * from './FeatureSection';
 export * from './PricingSection';
+export * from './ProfessionalModal';

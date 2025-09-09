@@ -535,6 +535,17 @@ export default function ProfessionalHomePage() {
             </ProfessionalButton>
           </div>
           
+          <div className="flex justify-center mt-4">
+            <ProfessionalButton 
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate('/modals')}
+              className="text-xs"
+            >
+              View Professional Modal Components
+            </ProfessionalButton>
+          </div>
+          
           <p className="text-sm text-muted-foreground mt-6">
             <CheckCircle className="w-4 h-4 inline mr-1 text-success" />
             Premium includes full CARFAX report ($44 value), market analysis, and dealer offers
