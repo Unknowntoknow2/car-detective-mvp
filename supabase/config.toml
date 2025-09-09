@@ -14,7 +14,8 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.ain-valuation]
-verify_jwt = false
+# Require JWT auth for security
+verify_jwt = true
 
 [db]
 port = 54322

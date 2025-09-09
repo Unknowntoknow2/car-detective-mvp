@@ -133,59 +133,71 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
   const startTime = performance.now();
 
   try {
-    // Call secure edge function instead of direct API
-    const { data, error } = await supabase.functions.invoke('ain-valuation', {
-      body: ainPayload
-    });
+    // Get auth token for secure edge function call
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
 
+    if (!token) {
+      throw new Error('Authentication required for AIN valuation');
+    }
+
+    // Call secure edge function (no API keys exposed)
+    const edgeUrl = `https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/ain-valuation`;
+    const response = await fetch(edgeUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(ainPayload)
+    });
     const latency = Math.round(performance.now() - startTime);
 
-    if (error) {
-      log('error', '❌ AIN edge function error:', error);
-      emit('err', { error: error.message, latency });
-      throw new Error(`AIN service error: ${error.message}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      log('error', '❌ AIN edge function error:', { status: response.status, error: errorText });
+      emit('err', { status: response.status, error: errorText, latency });
+      throw new Error(`AIN edge error: ${response.status}`);
     }
 
-    if (!data?.success) {
-      log('error', '❌ AIN API returned error:', data);
-      emit('err', { error: data?.error || 'Unknown AIN error', latency });
-      throw new Error(data?.error || 'AIN API returned error');
-    }
+    const ain = await response.json();
 
-    const ain = data.data;
     // Emit telemetry
     emit('ok', { 
-      value: ain.estimated_value, 
-      confidence: ain.confidence_score,
+      value: ain.finalValue, 
+      confidence: ain.confidenceScore,
       latency_ms: latency,
-      comparables: ain.market_data?.comparables_count || 0
+      comparables: ain.marketListingsCount || 0
     });
     emit('latency.ms', latency);
 
     // Normalize to UnifiedValuationResult shape
     const normalized: UnifiedValuationResult = {
-      finalValue: ain.estimated_value ?? ain.finalValue ?? 0,
-      priceRange: ain.price_range ?? [
-        Math.round((ain.estimated_value ?? 0) * 0.9),
-        Math.round((ain.estimated_value ?? 0) * 1.1)
+      finalValue: ain.finalValue ?? 0,
+      priceRange: ain.priceRange ?? [
+        Math.round((ain.finalValue ?? 0) * 0.9),
+        Math.round((ain.finalValue ?? 0) * 1.1)
       ],
-      confidenceScore: ain.confidence_score ?? ain.confidenceScore ?? 0,
-      marketListings: ain.market_listings ?? [],
+      confidenceScore: ain.confidenceScore ?? 0,
+      marketListings: [],
       zipAdjustment: 0,
       mileagePenalty: 0,
       conditionDelta: 0,
       titlePenalty: 0,
-      aiExplanation: `AIN API valuation with ${ain.confidence_score ?? 0}% confidence`,
-      sourcesUsed: ['AIN_API'],
-      adjustments: ain.adjustments ?? [],
-      baseValue: ain.base_value ?? ain.estimated_value ?? 0,
-      explanation: 'Valuation provided by AIN API',
-      marketListingsCount: ain.listing_count ?? 0,
-      dataQuality: (ain.confidence_score ?? 0) >= 80 ? 'excellent' : 
-                   (ain.confidence_score ?? 0) >= 60 ? 'good' : 'fair'
+      aiExplanation: ain.explanation || `AIN AI valuation with ${ain.marketListingsCount || 'multiple'} market comparables`,
+      sourcesUsed: ain.sourcesUsed || ['AIN_API'],
+      adjustments: (ain.adjustments || []).map((adj: any) => ({
+        factor: adj.factor,
+        impact: adj.impact || adj.amount || 0,
+        explanation: adj.description || adj.explanation || ''
+      })),
+      baseValue: ain.finalValue,
+      explanation: ain.explanation || `Valuation provided by AIN API`,
+      marketListingsCount: ain.marketListingsCount || 0,
+      dataQuality: ain.confidenceScore >= 90 ? 'excellent' : 
+                   ain.confidenceScore >= 70 ? 'good' : 'fair'
     };
 
-    log('info', '✅ AIN valuation completed:', normalized);
     return normalized;
 
   } catch (error) {
