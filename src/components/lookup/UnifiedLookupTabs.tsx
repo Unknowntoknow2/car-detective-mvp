@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, FileText, Loader2 } from 'lucide-react';
-import { useValuationContext } from '@/contexts/ValuationContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useUnifiedLookup } from '@/hooks/useUnifiedLookup';
@@ -23,7 +22,6 @@ export function UnifiedLookupTabs() {
     state: ''
   });
   
-  const { rerunValuation } = useValuationContext();
   const navigate = useNavigate();
   
   // Use the real unified lookup service for plates only, direct service for VIN
