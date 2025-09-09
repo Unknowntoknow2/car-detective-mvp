@@ -13,6 +13,9 @@ verify_jwt = false
 [functions.openai-market-search]
 verify_jwt = false
 
+[functions.ain-valuation]
+verify_jwt = false
+
 [db]
 port = 54322
 
