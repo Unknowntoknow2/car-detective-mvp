@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { computeValuation } from '@/services/valuation/computeValuation';
+import { calculateUnifiedValuation } from '@/services/valuation/valuationEngine';
 import { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 import { ValuationProgressDisplay } from '@/components/valuation/ValuationProgressDisplay';
 import { ValuationProgressTracker } from '@/utils/valuation/progressTracker';
@@ -46,7 +46,7 @@ export function ValuationEngineTestComponent() {
       console.log('🧪 Starting valuation engine test...');
       
       const t0 = performance.now();
-      const valuationResult = await computeValuation({
+      const valuationResult = await calculateUnifiedValuation({
         vin,
         mileage,
         condition,

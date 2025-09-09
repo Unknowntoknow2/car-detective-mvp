@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { TabValidation } from '@/components/followup/validation/TabValidation';
-import { computeValuation } from '@/services/valuation/computeValuation';
+import { calculateUnifiedValuation } from '@/services/valuation/valuationEngine';
 import { type ValuationEngineInput } from '@/services/valuation/valuationEngine';
 import { toast } from 'sonner';
 import { useFollowUpDataLoader } from './useFollowUpDataLoader';
@@ -144,7 +144,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
         };
         
         const t0 = performance.now();
-        const valuationResult = await computeValuation(engineInput);
+        const valuationResult = await calculateUnifiedValuation(engineInput);
         console.info("ain.val.ms", Math.round(performance.now()-t0), { via: import.meta.env.USE_AIN_VALUATION });
 
         if (valuationResult.finalValue > 0) {
