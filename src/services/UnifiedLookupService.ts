@@ -169,38 +169,6 @@ export class UnifiedLookupService {
       };
     }
   }
-}
-    try {
-      const vehicle: DecodedVehicleInfo = {
-        year: parseInt(data.year),
-        make: data.make,
-        model: data.model,
-        trim: data.trim,
-        mileage: data.mileage ? parseInt(data.mileage) : undefined,
-        condition: data.condition,
-        zipCode: data.zipCode,
-        fuelType: data.fuelType,
-        transmission: data.transmission,
-        confidenceScore: 70
-      };
-
-      return {
-        success: true,
-        vehicle,
-        source: 'manual',
-        tier: options.tier,
-        confidence: vehicle.confidenceScore
-      };
-    } catch (error) {
-      console.error("Manual entry processing error:", error);
-      return {
-        success: false,
-        source: 'failed',
-        tier: options.tier,
-        error: 'Failed to process manual entry data'
-      };
-    }
-  }
 
   private static validateVin(vin: string): boolean {
     if (!vin || vin.length !== 17) return false;
@@ -368,4 +336,14 @@ export class UnifiedLookupService {
       }),
     );
   };
+}
+
+// Enhanced lookup by VIN with enrichment
+export async function lookupByVin(vin: string, options: LookupOptions = { tier: 'free', mode: 'vpic', includeHistory: false, includeMarketData: false }): Promise<UnifiedVehicleLookupResult> {
+  return UnifiedLookupService.lookupByVin(vin, options);
+}
+
+// Enhanced lookup by license plate with enrichment
+export async function lookupByPlate(plate: string, state: string, options: LookupOptions = { tier: 'free', mode: 'vpic', includeHistory: false, includeMarketData: false }): Promise<UnifiedVehicleLookupResult> {
+  return UnifiedLookupService.lookupByPlate(plate, state, options);
 }
