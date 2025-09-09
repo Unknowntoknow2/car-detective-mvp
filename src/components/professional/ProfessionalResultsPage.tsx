@@ -43,51 +43,7 @@ interface ValuationData {
   isUsingFallbackMethod?: boolean;
 }
 
-// Helper function to generate fallback valuation
-function generateFallbackValuation(vehicle: any, mileage: number): number {
-  const currentYear = new Date().getFullYear();
-  const age = currentYear - (vehicle.year || currentYear);
-  
-  const basePrices: { [key: string]: { [key: string]: number } } = {
-    'nissan': {
-      'altima': 25000, 'sentra': 20000, 'maxima': 35000, 'rogue': 28000,
-      'murano': 32000, 'pathfinder': 34000, 'versa': 16000, 'kicks': 22000
-    },
-    'toyota': {
-      'camry': 26000, 'corolla': 22000, 'prius': 28000, 'rav4': 30000,
-      'highlander': 36000, 'sienna': 35000, 'tacoma': 28000
-    },
-    'honda': {
-      'accord': 26000, 'civic': 23000, 'crv': 28000, 'pilot': 34000,
-      'ridgeline': 38000, 'insight': 24000
-    },
-    'ford': {
-      'f150': 32000, 'escape': 26000, 'fusion': 24000, 'explorer': 34000, 'mustang': 28000
-    },
-    'chevrolet': {
-      'silverado': 30000, 'equinox': 26000, 'malibu': 24000, 'tahoe': 52000, 'cruze': 20000
-    }
-  };
-  
-  const makeData = basePrices[vehicle.make?.toLowerCase()] || {};
-  const basePrice = makeData[vehicle.model?.toLowerCase()] || 28000;
-  
-  let depreciatedPrice = basePrice;
-  if (age > 0) {
-    depreciatedPrice *= 0.82;
-    for (let i = 1; i < age; i++) {
-      depreciatedPrice *= 0.88;
-    }
-  }
-  
-  const avgMilesPerYear = 12000;
-  const expectedMiles = age * avgMilesPerYear;
-  const excessMiles = Math.max(0, mileage - expectedMiles);
-  const mileageReduction = (excessMiles / 1000) * 50;
-  
-  depreciatedPrice -= mileageReduction;
-  return Math.max(Math.round(depreciatedPrice), 8000);
-}
+// No fake valuation generation - rely only on real data
 
 export default function ProfessionalResultsPage() {
   const { id } = useParams<{ id: string }>();
@@ -157,80 +113,13 @@ export default function ProfessionalResultsPage() {
           throw fetchError || new Error('Valuation data not found');
         }
 
-        // Generate fallback if needed
+        // Only use real valuations - no fake data generation
         if (!valuationData.estimated_value || valuationData.estimated_value <= 0) {
-          let vehicleDetails = {
-            make: valuationData.make,
-            model: valuationData.model,
-            year: valuationData.year,
-            trim: valuationData.trim
-          };
-          
-          if (valuationData.vin) {
-            const { data: decodedVehicle } = await supabase
-              .from('decoded_vehicles')
-              .select('*')
-              .eq('vin', valuationData.vin)
-              .maybeSingle();
-              
-            if (decodedVehicle) {
-              vehicleDetails = {
-                make: decodedVehicle.make || valuationData.make,
-                model: decodedVehicle.model || valuationData.model,
-                year: decodedVehicle.year || valuationData.year,
-                trim: decodedVehicle.trim || valuationData.trim
-              };
-            }
-          }
-          
-          const fallbackValue = generateFallbackValuation(vehicleDetails, valuationData.mileage || 60000);
-          
-          const { error: updateError } = await supabase
-            .from('valuations')
-            .update({
-              estimated_value: fallbackValue,
-              confidence_score: 75
-            })
-            .eq('id', valuationData.id);
-            
-          if (!updateError) {
-            valuationData.estimated_value = fallbackValue;
-            valuationData.confidence_score = 75;
-            
-            toast.success('Valuation completed successfully!', {
-              description: `New estimate: $${fallbackValue.toLocaleString()} (75% confidence)`
-            });
-          } else {
-            valuationData.estimated_value = fallbackValue;
-            valuationData.confidence_score = 75;
-            
-            toast.success('Valuation completed successfully!', {
-              description: `Estimate: $${fallbackValue.toLocaleString()} (75% confidence)`
-            });
-          }
+          throw new Error('No valid valuation data found. Please request a new valuation.');
         }
 
-        // Search for market listings
+        // Only use verified market listings from database - no API calls
         let realMarketListings: any[] = [];
-        
-        try {
-          const { data: enhancedSearchData, error: enhancedSearchError } = await supabase.functions.invoke('enhanced-market-search', {
-            body: {
-              make: valuationData.make,
-              model: valuationData.model,
-              year: valuationData.year,
-              zipCode: valuationData.state || '94016',
-              mileage: valuationData.mileage,
-              radius: 100
-            }
-          });
-
-          if (!enhancedSearchError && enhancedSearchData?.success && enhancedSearchData?.data?.length > 0) {
-            realMarketListings = enhancedSearchData.data;
-          }
-        } catch (searchError) {
-          console.error('❌ Market search error:', searchError);
-        }
 
         let finalListings = realMarketListings;
         let isUsingFallback = false;

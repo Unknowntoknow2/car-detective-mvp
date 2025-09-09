@@ -65,31 +65,8 @@ serve(async (req) => {
     let marketStatus = 'fallback';
 
     try {
-      // Try to get market data first
-      console.log('🔍 Searching for market listings...');
-      
-      const { data: marketData, error: marketError } = await supabase.functions.invoke('enhanced-market-search', {
-        body: {
-          make: requestData.make,
-          model: requestData.model,
-          year: requestData.year,
-          zipCode: requestData.zip_code || '94016',
-          mileage: requestData.mileage || 60000,
-          radius: 100
-        }
-      });
-
-      if (!marketError && marketData?.success && marketData?.data?.length > 0) {
-        console.log(`✅ Found ${marketData.data.length} market listings`);
-        
-        // Calculate average price from market data
-        const prices = marketData.data.map((listing: any) => Number(listing.price)).filter((price: number) => price > 1000);
-        if (prices.length > 0) {
-          estimatedValue = Math.round(prices.reduce((sum: number, price: number) => sum + price, 0) / prices.length);
-          confidenceScore = Math.min(85, 60 + (prices.length * 5)); // Higher confidence with more listings
-          marketStatus = 'success';
-        }
-      }
+      // Try to get market data first - no external API calls
+      console.log('🔍 Checking for existing market listings in database...');
 
       // Fallback valuation if no market data
       if (estimatedValue === 0) {

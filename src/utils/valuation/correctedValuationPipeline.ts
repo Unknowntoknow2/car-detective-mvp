@@ -1,7 +1,6 @@
 
-// Enhanced Valuation Pipeline with Real Market Data + AI Fallback + Full Audit Trail
+// Enhanced Valuation Pipeline with Real Market Data - No AI Fallback
 import { fetchMarketComps, type MarketSearchResult } from "@/agents/marketSearchAgent";
-import { generateOpenAIFallbackValuation } from "@/agents/openaiAgent";
 import { ValuationInput, EnhancedValuationResult, EnhancedAuditLog } from "@/types/valuation";
 // TODO: Implement calculateValuationFromListings in unifiedValuationEngine.ts
 import { saveAuditLog } from "@/integrations/supabase/auditLogClient";
@@ -174,72 +173,35 @@ export async function runCorrectedValuationPipeline(
       };
     }
 
-    console.log('⚠️ No market listings found, falling back to AI estimation...');
+    console.log('⚠️ No market listings found - unable to generate valuation without real data');
     audit.warnings!.push('No market listings available');
     
-    // Step 2: Fallback to AI search (OpenAI)
-    console.log('🤖 Step 2: Using OpenAI AI fallback...');
-    const aiFallback = await generateOpenAIFallbackValuation({
-      vin: input.vin,
-      make: input.make,
-      model: input.model,
-      year: input.year,
-      mileage: input.mileage,
-      condition: input.condition,
-      zipCode: input.zipCode
-    });
-
-    // Update audit with AI fallback
-    audit.sources.push("openai_fallback");
-    audit.sourcesUsed!.push("openai_ai_estimation");
-    audit.quality += 15;
-    audit.confidence_score = aiFallback.confidence_score || 25;
-    audit.fallbackUsed = true;
-    audit.finalValue = aiFallback.estimated_value || 25000;
-    audit.valueBreakdown = {
-      baseValue: aiFallback.value_breakdown?.base_value || 25000,
-      depreciationAdjustment: aiFallback.value_breakdown?.depreciation || 0,
-      mileageAdjustment: aiFallback.value_breakdown?.mileage || 0,
-      conditionAdjustment: aiFallback.value_breakdown?.condition || 0,
-      otherAdjustments: (aiFallback.value_breakdown?.ownership || 0) + (aiFallback.value_breakdown?.usageType || 0) + (aiFallback.value_breakdown?.marketSignal || 0)
-    };
-    audit.warnings!.push('Used AI fallback due to no market data');
+    // Return error - no AI fallback
+    audit.confidence_score = 0;
+    audit.finalValue = 0;
+    audit.warnings!.push('Unable to complete valuation without market data');
 
     // Save audit log
-    const auditId = await saveAuditLog({ ...audit, aiFallback });
-
-    console.log('🎯 AI fallback valuation completed:', aiFallback.estimated_value);
+    const auditId = await saveAuditLog(audit);
 
     return {
-      success: true,
+      success: false,
       valuation: {
-        estimatedValue: aiFallback.estimated_value || 25000,
-        confidenceScore: aiFallback.confidence_score || 25,
-        basePrice: aiFallback.value_breakdown?.base_value || 25000,
-        adjustments: aiFallback.value_breakdown ? [
-          {
-            factor: 'Depreciation (AI)',
-            impact: aiFallback.value_breakdown.depreciation || 0,
-            percentage: ((aiFallback.value_breakdown.depreciation || 0) / (aiFallback.value_breakdown.base_value || 25000)) * 100,
-            description: 'AI-estimated depreciation'
-          },
-          {
-            factor: 'Mileage (AI)',
-            impact: aiFallback.value_breakdown.mileage || 0,
-            percentage: ((aiFallback.value_breakdown.mileage || 0) / (aiFallback.value_breakdown.base_value || 25000)) * 100,
-            description: 'AI-estimated mileage adjustment'
-          }
-        ] : [],
-        priceRange: [(aiFallback.estimated_value || 25000) * 0.85, (aiFallback.estimated_value || 25000) * 1.15],
+        estimatedValue: 0,
+        confidenceScore: 0,
+        basePrice: 0,
+        adjustments: [],
+        priceRange: [0, 0],
         marketAnalysis: {
-          dataSource: 'ai_estimation',
+          dataSource: 'no_data',
           listingCount: 0,
-          sources: ['openai'],
-          confidence: 'low'
+          sources: [],
+          confidence: 'none'
         },
-        recommendations: ['Consider getting a professional appraisal due to limited market data']
+        recommendations: ['Unable to generate valuation without market data. Try again when market listings become available.']
       },
-      audit_id: auditId
+      audit_id: auditId,
+      error: 'No market data available for valuation'
     };
 
   } catch (error) {
