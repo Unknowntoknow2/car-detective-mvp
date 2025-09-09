@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { computeValuation } from '@/services/valuation/computeValuation';
+import { calculateUnifiedValuation } from '@/services/valuation/valuationEngine';
 import { type UnifiedValuationResult as EngineResult, type ValuationEngineInput } from '@/services/valuation/valuationEngine';
 import type { ValuationInput } from '@/types/valuation';
 import { toast } from 'sonner';
@@ -109,7 +109,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
 
       try {
         const t0 = performance.now();
-        const freshResult = await computeValuation(engineInput);
+        const freshResult = await calculateUnifiedValuation(engineInput);
         console.info("ain.val.ms", Math.round(performance.now()-t0), { via: import.meta.env.USE_AIN_VALUATION });
         console.log('✅ Fresh valuation result:', freshResult);
         setValuationData(freshResult);
@@ -168,7 +168,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
         }
       };
       const t0 = performance.now();
-      const result = await computeValuation(validatedInput);
+      const result = await calculateUnifiedValuation(validatedInput);
       console.info("ain.val.ms", Math.round(performance.now()-t0), { via: import.meta.env.USE_AIN_VALUATION });
       
       console.log('✅ Real-time valuation completed:', result);
