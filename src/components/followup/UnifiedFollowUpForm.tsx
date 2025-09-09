@@ -18,7 +18,7 @@ interface UnifiedFollowUpFormProps {
 }
 
 export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFollowUpFormProps) {
-  const { formData, updateFormData, submitForm, isLoading } = useFollowUpForm(vehicleData.vin);
+  const { formData, updateFormData, submitForm, isLoading, formMethods } = useFollowUpForm(vehicleData.vin);
   
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -43,7 +43,8 @@ export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFo
   };
 
   const handleSubmit = async () => {
-    const success = await submitForm();
+    const currentFormData = formMethods.getValues();
+    const success = await submitForm(currentFormData);
     if (success) {
       onComplete(formData);
     }

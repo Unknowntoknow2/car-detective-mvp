@@ -45,33 +45,18 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     }
   }, [loadedData, setValue, isInitialized]);
 
-  // Auto-save configuration using the dedicated hook
-  const { debouncedSave, isSavingDebounced } = useFollowUpAutoSave({
+  // Auto-save configuration
+  const { debouncedSave } = useFollowUpAutoSave({
     formData: watchedData,
-    setFormData,
-    onSaveStart: () => {
-      setIsSaving(true);
-      setSaveError(null);
-    },
-    onSaveSuccess: (timestamp) => {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('💾 Auto-save completed at:', timestamp.toLocaleTimeString());
-      }
-      setIsSaving(false);
-      setLastSaveTime(timestamp);
-    },
-    onSaveError: (error) => {
-      console.error('❌ Auto-save failed:', error);
-      setSaveError(error);
-      setIsSaving(false);
-      toast.error('Failed to save progress. Please try again.');
-    }
+    setSaveError,
+    setIsSaving,
+    setLastSaveTime
   });
 
   // Trigger auto-save when form data changes
   useEffect(() => {
     if (isInitialized && watchedData) {
-      debouncedSave();
+      debouncedSave(watchedData);
     }
   }, [watchedData, debouncedSave, isInitialized]);
 
@@ -245,14 +230,20 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
     // Data and state
     formData: watchedData,
     isLoading: isLoading || !isInitialized,
-    isSaving: isSaving || isSavingDebounced,
+    isSaving: isSaving,
     saveError,
     lastSaveTime,
     progressPercentage,
     
     // Actions
     saveForm,
+    submitForm: submitCompleteForm,
     submitCompleteForm,
+    updateFormData: (data: Partial<FollowUpAnswers>) => {
+      Object.entries(data).forEach(([key, value]) => {
+        setValue(key as keyof FollowUpAnswers, value);
+      });
+    },
     getValidationState,
     
     // Field helpers
