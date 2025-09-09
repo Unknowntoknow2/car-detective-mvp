@@ -57,6 +57,11 @@ jobs:
 
       - name: Run Dealer Offer Flow E2E tests
         run: npx playwright test e2e/dealer-offer-flow.spec.ts --reporter=github
+        
+      - name: Run AIN Integration Smoke Tests
+        run: npx playwright test e2e/ain-integration-smoke.spec.ts --reporter=github
+        env:
+          UPSTREAM_HOST: ${{ secrets.AIN_UPSTREAM_HOST || 'jsonplaceholder.typicode.com' }}
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v3

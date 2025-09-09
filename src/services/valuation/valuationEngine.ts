@@ -6,6 +6,7 @@ import { MarketDataService } from './marketDataService';
 import { MarketListing } from '@/utils/types/unifiedTypes';
 import { supabase } from '@/integrations/supabase/client';
 import { valuationLogger } from '@/utils/valuationLogger';
+import { safeValidateAINResponse } from '@/schemas/ainResponseSchema';
 
 export interface ValuationEngineInput {
   vin: string;
@@ -153,7 +154,16 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
       throw new Error(`AIN edge error: ${error.message}`);
     }
 
-    const ain = data;
+    // Validate AIN response schema
+    const validation = safeValidateAINResponse(data);
+    
+    if (!validation.success) {
+      log('error', '❌ AIN response validation failed:', { error: validation.error });
+      emit('err', { error: validation.error, latency });
+      throw new Error(`AIN response validation failed: ${validation.error}`);
+    }
+    
+    const ain = validation.data!;
 
     // Emit telemetry
     emit('ok', { 
@@ -166,27 +176,24 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
 
     // Normalize to UnifiedValuationResult shape
     const normalized: UnifiedValuationResult = {
-      finalValue: ain.finalValue ?? 0,
-      priceRange: ain.priceRange ?? [
-        Math.round((ain.finalValue ?? 0) * 0.9),
-        Math.round((ain.finalValue ?? 0) * 1.1)
-      ],
-      confidenceScore: ain.confidenceScore ?? 0,
+      finalValue: ain.finalValue,
+      priceRange: ain.priceRange as [number, number],
+      confidenceScore: ain.confidenceScore,
       marketListings: [],
       zipAdjustment: 0,
       mileagePenalty: 0,
       conditionDelta: 0,
       titlePenalty: 0,
       aiExplanation: ain.explanation || `AIN AI valuation with ${ain.marketListingsCount || 'multiple'} market comparables`,
-      sourcesUsed: ain.sourcesUsed || ['AIN_API'],
+      sourcesUsed: ain.sourcesUsed,
       adjustments: (ain.adjustments || []).map((adj: any) => ({
         factor: adj.factor,
         impact: adj.impact || adj.amount || 0,
         explanation: adj.description || adj.explanation || ''
       })),
       baseValue: ain.finalValue,
-      explanation: ain.explanation || `Valuation provided by AIN API`,
-      marketListingsCount: ain.marketListingsCount || 0,
+      explanation: ain.explanation,
+      marketListingsCount: ain.marketListingsCount,
       dataQuality: ain.confidenceScore >= 90 ? 'excellent' : 
                    ain.confidenceScore >= 70 ? 'good' : 'fair'
     };
