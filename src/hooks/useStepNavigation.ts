@@ -1,6 +1,15 @@
 
 import { useState, useCallback } from "react";
-import { ManualEntryFormData } from "@/types/manual-entry";
+// Inline interface since manual entry types were removed
+interface ManualEntryFormData {
+  make: string;
+  model: string;
+  year: string;
+  mileage: string;
+  condition: string;
+  zipCode: string;
+  [key: string]: any;
+}
 
 type LookupType = "vin" | "plate" | "manual" | "photo";
 

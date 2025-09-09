@@ -104,55 +104,10 @@ export async function lookupByPlate(plate: string, options: PlateLookupOptions):
   }
 }
 
-// Manual entry processing
-export async function processManualEntry(vehicleData: Partial<UnifiedVehicleData>): Promise<LookupResult> {
-  try {
-    // Validate required fields
-    if (!vehicleData.year || !vehicleData.make || !vehicleData.model) {
-      throw new Error('Year, make, and model are required');
-    }
-
-    // Simulate processing
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const processedData: UnifiedVehicleData = {
-      year: vehicleData.year,
-      make: vehicleData.make,
-      model: vehicleData.model,
-      trim: vehicleData.trim || 'Base',
-      mileage: vehicleData.mileage || 50000,
-      condition: vehicleData.condition || 'Good',
-      zipCode: vehicleData.zipCode,
-      fuelType: vehicleData.fuelType || 'Gasoline',
-      transmission: vehicleData.transmission || 'Automatic',
-      bodyType: vehicleData.bodyType || 'Sedan',
-      drivetrain: vehicleData.drivetrain || 'FWD',
-      doors: vehicleData.doors || '4',
-      seats: vehicleData.seats || '5',
-      exteriorColor: vehicleData.exteriorColor || 'Unknown',
-      interiorColor: vehicleData.interiorColor || 'Unknown',
-      estimatedValue: vehicleData.estimatedValue || 20000,
-      confidenceScore: vehicleData.confidenceScore || 75
-    };
-
-    return {
-      success: true,
-      data: processedData,
-      source: 'manual'
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Manual entry processing failed',
-      source: 'manual'
-    };
-  }
-}
-
-// Unified lookup function that can handle any type
+// Unified lookup function that can handle VIN and plate lookups
 export async function unifiedLookup(
   identifier: string,
-  type: 'vin' | 'plate' | 'manual',
+  type: 'vin' | 'plate',
   options: any = {}
 ): Promise<LookupResult> {
   switch (type) {
@@ -160,8 +115,6 @@ export async function unifiedLookup(
       return lookupByVin(identifier, options);
     case 'plate':
       return lookupByPlate(identifier, options);
-    case 'manual':
-      return processManualEntry(options);
     default:
       return {
         success: false,
@@ -174,4 +127,3 @@ export async function unifiedLookup(
 // Legacy exports for backward compatibility
 export const vinLookup = lookupByVin;
 export const plateLookup = lookupByPlate;
-export const manualLookup = processManualEntry;

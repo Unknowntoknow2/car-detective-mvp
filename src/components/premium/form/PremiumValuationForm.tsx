@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import MakeAndModelSelector from "@/components/lookup/form-parts/MakeAndModelSelector";
 import { ZipCodeInput } from "@/components/common/ZipCodeInput";
 import { ConditionLevel } from "@/components/lookup/ConditionSelectorSegmented";
-import { ManualEntryFormData } from '@/types/manual-entry';
+// Removed manual entry dependency
 
 const premiumValuationSchema = z.object({
   make: z.string().min(1, "Make is required"),

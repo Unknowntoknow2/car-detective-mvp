@@ -13,8 +13,7 @@ export {
 
 export { 
   lookupByVin as vinLookup,
-  lookupByPlate as plateLookup,
-  processManualEntry as manualLookup 
+  lookupByPlate as plateLookup
 } from './lookupService';
 
 // Legacy valuation exports removed - use unifiedValuationEngine.ts directly

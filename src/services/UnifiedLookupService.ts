@@ -169,8 +169,7 @@ export class UnifiedLookupService {
       };
     }
   }
-
-  static processManualEntry(data: any, options: LookupOptions): UnifiedVehicleLookupResult {
+}
     try {
       const vehicle: DecodedVehicleInfo = {
         year: parseInt(data.year),

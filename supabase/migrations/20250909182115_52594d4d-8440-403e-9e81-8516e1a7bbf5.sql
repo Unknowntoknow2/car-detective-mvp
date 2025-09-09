@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS manual_entry_valuations CASCADE;

@@ -1,7 +1,19 @@
-
 import { useState } from 'react';
 import { VehicleData, LookupMethod } from '@/types/vehicle-lookup';
-import { ManualEntryFormData } from '@/types/manual-entry';
+import { ConditionOption } from '@/types/condition';
+
+// Inline interface since manual entry types were removed
+interface ManualEntryFormData {
+  make: string;
+  model: string; 
+  year: string;
+  mileage: string;
+  condition: ConditionOption;
+  zipCode: string;
+  trim?: string;
+  fuelType?: string;
+  transmission?: string;
+}
 
 export function useVehicleLookup() {
   const [isLoading, setIsLoading] = useState(false);
