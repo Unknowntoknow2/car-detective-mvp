@@ -1,0 +1,64 @@
+name: AIN Route Validation
+
+on:
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'src/**/*'
+      - 'supabase/functions/**/*'
+      - 'e2e/**/*'
+
+jobs:
+  validate-ain-route:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        
+      - name: Build application
+        run: npm run build
+        
+      - name: Start preview server
+        run: npm run preview &
+        
+      - name: Wait for server
+        run: |
+          timeout 60 bash -c 'until curl -s http://localhost:4173 > /dev/null; do sleep 1; done'
+        
+      - name: Run AIN route validation test
+        run: npx playwright test e2e/ain-integration-smoke.spec.ts --project=chromium --grep="should successfully call AIN edge function"
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:4173
+          UPSTREAM_HOST: api.ain.ai
+          
+      - name: Check for AIN route usage
+        run: |
+          if npx playwright test e2e/ain-integration-smoke.spec.ts --project=chromium --grep="x-ain-route=ain" --reporter=json | grep -q '"status": "passed"'; then
+            echo "✅ AIN route validation passed - using real AIN API"
+          else
+            echo "❌ AIN route validation failed - not using real AIN API"
+            echo "This PR will be blocked until AIN integration is properly configured"
+            exit 1
+          fi
+          
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ain-route-validation-results
+          path: |
+            test-results/
+            playwright-report/

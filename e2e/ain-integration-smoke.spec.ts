@@ -26,6 +26,14 @@ test.describe("AIN Integration Smoke Tests", () => {
   });
 
   test("should successfully call AIN edge function and receive normalized payload", async ({ page }) => {
+    let ainRouteHeader: string | null = null;
+    
+    // Intercept AIN API responses to capture headers
+    page.on('response', (response) => {
+      if (response.url().includes('/functions/v1/ain-valuation')) {
+        ainRouteHeader = response.headers()['x-ain-route'] || null;
+      }
+    });
     // Navigate to valuation form
     await page.goto("/");
     
@@ -67,6 +75,9 @@ test.describe("AIN Integration Smoke Tests", () => {
     
     // Ensure it's not obviously mock/local data
     expect(estimatedValue).not.toContain("$15,000"); // Common local fallback value
+    
+    // Verify we got the AIN route header indicating real API usage
+    expect(ainRouteHeader).toBe("ain");
   });
 
   test("should handle upstream timeout gracefully", async ({ page }) => {
