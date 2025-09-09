@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Phase2AuditPanel } from '@/components/admin/Phase2AuditPanel';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function AuditPage() {
   return (
@@ -11,7 +10,14 @@ export default function AuditPage() {
           Comprehensive validation of market data and valuation systems
         </p>
         
-        <Phase2AuditPanel />
+        <Card>
+          <CardHeader>
+            <CardTitle>System Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Audit system temporarily disabled during refactoring.</p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -185,6 +185,24 @@ export class TabValidation {
     };
   }
 
+  static validateTab(tabName: string, formData: FollowUpAnswers): TabValidationResult {
+    const tabMap: Record<string, () => TabValidationResult> = {
+      'vehicle': () => this.validateBasicInfo(formData),
+      'basic': () => this.validateBasicInfo(formData),
+      'condition': () => this.validateCondition(formData),
+      'issues': () => this.validateIssues(formData),
+      'service': () => this.validateServiceHistory(formData),
+      'accidents': () => this.validateAccidents(formData),
+      'modifications': () => this.validateModifications(formData),
+      'features': () => this.validateFeatures(formData),
+      'ownership': () => this.validateBasicInfo(formData),
+      'final': () => this.validateBasicInfo(formData)
+    };
+
+    const validator = tabMap[tabName];
+    return validator ? validator() : { isValid: true, errors: [], warnings: [] };
+  }
+
   static validateAllTabs(formData: FollowUpAnswers): Record<string, TabValidationResult> {
     return {
       basic: this.validateBasicInfo(formData),
