@@ -3,7 +3,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 // Core pages
-import HomePage from './pages/HomePage';
+import ProfessionalHomePage from './pages/ProfessionalHomePage';
 import Dashboard from './pages/Dashboard';
 import DealerDashboard from './pages/DealerDashboard';
 import OffersPage from './pages/OffersPage';
@@ -37,7 +37,7 @@ const routes = [
     children: [
       {
         index: true,
-        element: <HomePage />,
+        element: <ProfessionalHomePage />,
       },
       {
         path: "dashboard",
