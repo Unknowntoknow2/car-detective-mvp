@@ -110,19 +110,7 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
 
   if (!USE_AIN) return localCalculation();
 
-  // Env guards - throw clear error if required vars missing
-  const BASE = import.meta.env.VITE_AIN_VALUATION_URL;
-  const KEY = import.meta.env.VITE_AIN_API_KEY;
-  const TIMEOUT = Number(import.meta.env.VITE_AIN_TIMEOUT_MS ?? 30000);
-
-  if (!BASE) {
-    throw new Error('AIN valuation enabled but VITE_AIN_VALUATION_URL not configured');
-  }
-  if (!KEY) {
-    throw new Error('AIN valuation enabled but VITE_AIN_API_KEY not configured');
-  }
-
-  log('info', '🔍 Using AIN Valuation API for calculation...');
+  log('info', '🔍 Using AIN Valuation API via secure edge function...');
 
   // Input null safety - guard decodedVehicle properties
   const vehicle = input.decodedVehicle;
@@ -131,7 +119,7 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
     return localCalculation();
   }
 
-  // Adapters to avoid type drift with proper zip mapping
+  // Prepare payload for secure edge function
   const ainPayload = {
     vin: input.vin,
     make: vehicle.make,
@@ -139,34 +127,39 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
     year: vehicle.year,
     mileage: input.mileage,
     condition: input.condition ?? "good",
-    zip: input.zipCode, // Use zipCode from interface
-    trim: vehicle.trim
+    zip: input.zipCode
   };
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT);
 
   const startTime = performance.now();
 
   try {
-    const res = await fetch(`${BASE}/valuation`, {
-      method: "POST",
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${KEY}`,
-      },
-      body: JSON.stringify(ainPayload),
-      signal: controller.signal,
+    // Call secure edge function instead of direct API
+    const { data, error } = await supabase.functions.invoke('ain-valuation', {
+      body: ainPayload
     });
 
-    if (!res.ok) throw new Error(`AIN ${res.status}`);
-
-    const ain = await res.json();
     const latency = Math.round(performance.now() - startTime);
 
+    if (error) {
+      log('error', '❌ AIN edge function error:', error);
+      emit('err', { error: error.message, latency });
+      throw new Error(`AIN service error: ${error.message}`);
+    }
+
+    if (!data?.success) {
+      log('error', '❌ AIN API returned error:', data);
+      emit('err', { error: data?.error || 'Unknown AIN error', latency });
+      throw new Error(data?.error || 'AIN API returned error');
+    }
+
+    const ain = data.data;
     // Emit telemetry
-    emit('ok', { latency_ms: latency });
+    emit('ok', { 
+      value: ain.estimated_value, 
+      confidence: ain.confidence_score,
+      latency_ms: latency,
+      comparables: ain.market_data?.comparables_count || 0
+    });
     emit('latency.ms', latency);
 
     // Normalize to UnifiedValuationResult shape
@@ -209,7 +202,5 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
     
     // Per-request graceful degradation
     return localCalculation();
-  } finally {
-    clearTimeout(timer);
   }
 }
