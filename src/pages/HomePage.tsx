@@ -8,7 +8,6 @@ import { ProofPointsSection } from '@/components/home/ProofPointsSection';
 import { SocialProofSection } from '@/components/home/SocialProofSection';
 import { FinalCTA } from '@/components/home/FinalCTA';
 import { TrendingUp } from 'lucide-react';
-import { LiveMarketTestComponent } from '@/components/test/LiveMarketTestComponent';
 
 export default function HomePage() {
   return (
@@ -68,13 +67,6 @@ export default function HomePage() {
       
       {/* Final Call to Action */}
       <FinalCTA />
-      
-      {/* Live Market Testing Component */}
-      <section className="py-16 px-4 bg-muted/30">
-        <div className="container mx-auto max-w-6xl">
-          <LiveMarketTestComponent />
-        </div>
-      </section>
     </div>
   );
 }

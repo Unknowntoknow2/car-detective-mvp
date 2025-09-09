@@ -8,7 +8,6 @@ import { ValuationEngineTestComponent } from '@/components/test/ValuationEngineT
 // import { ListingAnchoringValidationComponent } from '@/components/test/ListingAnchoringValidationComponent';
 import { UIResultsDisplayValidationComponent } from '@/components/test/UIResultsDisplayValidationComponent';
 import { PDFShareValidationComponent } from '@/components/test/PDFShareValidationComponent';
-import { MarketSearchTest } from '@/components/debug/MarketSearchTest';
 
 
 export default function ValuationPage() {
@@ -66,19 +65,6 @@ export default function ValuationPage() {
         </CardHeader>
         <CardContent>
           <PDFShareValidationComponent />
-        </CardContent>
-      </Card>
-
-      {/* Market Search Debug Test */}
-      <Card className="border-dashed border-2 border-red-300 bg-red-50">
-        <CardHeader>
-          <CardTitle className="text-red-700">🧪 Market Search Debug</CardTitle>
-          <p className="text-red-600 text-sm">
-            FIFTH: If previous validations pass, test the full market search flow.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <MarketSearchTest />
         </CardContent>
       </Card>
 

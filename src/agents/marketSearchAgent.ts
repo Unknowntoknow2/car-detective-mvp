@@ -158,61 +158,11 @@ function validateListing(listing: MarketListing): boolean {
 }
 
 /**
- * Attempt live web search using OpenAI-powered edge function
+ * Live search disabled - no external API calls for listings
  */
 async function attemptLiveSearch(params: { make: string; model: string; year: number; zipCode?: string }): Promise<MarketListing[]> {
-  try {
-    console.log('🌐 Attempting live web search...');
-    
-    const response = await supabase.functions.invoke('live-market-search', {
-      body: {
-        make: params.make,
-        model: params.model,
-        year: params.year,
-        zipCode: params.zipCode,
-        maxResults: 5
-      }
-    });
-
-    if (response.error) {
-      console.warn('⚠️ Live search error:', response.error);
-      return [];
-    }
-
-    const { listings = [] } = response.data || {};
-    
-    // Convert raw live listings to canonical MarketListing format
-    return listings.map((listing: any): MarketListing => ({
-      id: `live-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      price: Number(listing.price) || 0,
-      mileage: Number(listing.mileage) || undefined,
-      year: Number(listing.year) || params.year,
-      make: listing.make || params.make,
-      model: listing.model || params.model,
-      trim: listing.trim || undefined,
-      condition: listing.condition || 'used',
-      vin: listing.vin || undefined,
-      zipCode: listing.zipCode || params.zipCode,
-      location: listing.location || undefined,
-      source: listing.source || 'Live Web Search',
-      
-      // Live format fields
-      link: listing.link || listing.url || undefined,
-      sourceType: 'live',
-      dealerName: listing.dealer || listing.dealerName || undefined,
-      isCpo: Boolean(listing.isCpo || listing.is_cpo),
-      titleStatus: listing.titleStatus || undefined,
-      photos: listing.photos || listing.images || undefined,
-      
-      // Timestamps
-      fetchedAt: listing.fetchedAt || new Date().toISOString(),
-      confidenceScore: Number(listing.confidenceScore) || 85 // High confidence for live data
-    }));
-
-  } catch (error) {
-    console.warn('⚠️ Live search failed:', error);
-    return [];
-  }
+  console.log('🌐 Live search disabled - no external API calls for listings');
+  return [];
 }
 
 /**
