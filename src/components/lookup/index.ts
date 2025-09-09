@@ -19,6 +19,5 @@ export { ConfidenceScore } from './scoring/ConfidenceScore';
 // Legacy re-exports for backward compatibility
 export { 
   lookupByVin as vinLookup,
-  lookupByPlate as plateLookup,
-  processManualEntry as manualLookup 
+  lookupByPlate as plateLookup
 } from '@/utils/lookupService';

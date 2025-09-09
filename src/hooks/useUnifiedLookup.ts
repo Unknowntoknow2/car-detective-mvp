@@ -84,36 +84,6 @@ export const useUnifiedLookup = (props: UseUnifiedLookupProps = {}) => {
     }
   }, [tier, mode]);
 
-  const processManualEntry = useCallback((data: any): UnifiedVehicleLookupResult | null => {
-    setError(null);
-    
-    const options: LookupOptions = {
-      tier,
-      mode,
-      includeHistory: false,
-      includeMarketData: tier === 'premium'
-    };
-
-    try {
-      const lookupResult = UnifiedLookupService.processManualEntry(data, options);
-      setResult(lookupResult);
-      
-      if (lookupResult.success) {
-        toast.success('Manual entry processed successfully');
-      } else {
-        setError(lookupResult.error || 'Manual entry processing failed');
-        toast.error(lookupResult.error || 'Manual entry processing failed');
-      }
-      
-      return lookupResult;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Manual entry processing failed';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      return null;
-    }
-  }, [tier, mode]);
-
   const clearData = useCallback(() => {
     setResult(null);
     setError(null);
@@ -125,7 +95,6 @@ export const useUnifiedLookup = (props: UseUnifiedLookupProps = {}) => {
     error,
     lookupByVin,
     lookupByPlate,
-    processManualEntry,
     clearData
   };
 };

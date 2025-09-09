@@ -1,6 +1,5 @@
 // src/api/vehicleApi.ts
 
-import { ManualEntryFormData } from '@/types/manual-entry';
 import { Make, Model } from "@/hooks/types/vehicle";
 import { toast } from "sonner";
 import { createClient } from "@supabase/supabase-js";
@@ -28,24 +27,6 @@ export interface VehicleData {
   makes: Make[];
   models: Model[];
 }
-
-// Supabase insert
-export const insertManualEntryValuation = async (
-  formData: ManualEntryFormData,
-) => {
-  const { data: user } = await supabase.auth.getUser();
-  const userId = user?.user?.id;
-
-  if (!userId) {
-    throw new Error("User not authenticated");
-  }
-
-  const { data, error } = await supabase
-    .from("manual_entry_valuations")
-    .insert([{ ...formData, user_id: userId }]);
-
-  return { data, error };
-};
 
 // API fetch helpers
 export async function fetchVehicleData(): Promise<VehicleData> {

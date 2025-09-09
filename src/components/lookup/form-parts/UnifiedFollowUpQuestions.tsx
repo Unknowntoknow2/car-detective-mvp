@@ -1,7 +1,30 @@
 import React from 'react';
 import { TitleStatusSection } from './TitleStatusSection';
 import { AdditionalDetailsSection } from './AdditionalDetailsSection';
-import { ManualEntryFormData } from '@/types/manual-entry';
+// Manual entry types (inline since we removed the separate file)
+interface ManualEntryFormData {
+  year: string;
+  make: string;
+  model: string;
+  trim?: string;
+  mileage: string;
+  condition: string;
+  zipCode: string;
+  fuelType?: string;
+  transmission?: string;
+  accidentDetails?: AccidentDetails;
+  titleStatus?: 'clean' | 'salvage' | 'rebuilt' | 'branded' | 'lemon';
+  previousOwners?: number;
+  previousUse?: 'personal' | 'commercial' | 'rental' | 'emergency';
+  serviceHistory?: 'dealer' | 'independent' | 'owner' | 'unknown';
+  hasRegularMaintenance?: boolean;
+  maintenanceNotes?: string;
+  tireCondition?: TireConditionOption;
+  dashboardLights?: string[];
+  hasModifications?: boolean;
+  modificationTypes?: string[];
+  [key: string]: any;
+}
 import { AccidentDetails } from '@/types/follow-up-answers';
 import { TireConditionOption } from '@/types/condition';
 

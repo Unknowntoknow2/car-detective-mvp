@@ -1513,66 +1513,6 @@ export type Database = {
         }
         Relationships: []
       }
-      manual_entry_valuations: {
-        Row: {
-          accident: boolean | null
-          accident_severity: string | null
-          condition: string
-          confidence_score: number | null
-          created_at: string | null
-          fuel_type: string
-          id: string
-          make: string
-          mileage: number
-          model: string
-          selected_features: string[] | null
-          transmission: string
-          user_id: string | null
-          valuation_id: string | null
-          vin: string | null
-          year: number
-          zip_code: string
-        }
-        Insert: {
-          accident?: boolean | null
-          accident_severity?: string | null
-          condition: string
-          confidence_score?: number | null
-          created_at?: string | null
-          fuel_type: string
-          id?: string
-          make: string
-          mileage: number
-          model: string
-          selected_features?: string[] | null
-          transmission: string
-          user_id?: string | null
-          valuation_id?: string | null
-          vin?: string | null
-          year: number
-          zip_code: string
-        }
-        Update: {
-          accident?: boolean | null
-          accident_severity?: string | null
-          condition?: string
-          confidence_score?: number | null
-          created_at?: string | null
-          fuel_type?: string
-          id?: string
-          make?: string
-          mileage?: number
-          model?: string
-          selected_features?: string[] | null
-          transmission?: string
-          user_id?: string | null
-          valuation_id?: string | null
-          vin?: string | null
-          year?: number
-          zip_code?: string
-        }
-        Relationships: []
-      }
       market_adjustments: {
         Row: {
           last_updated: string
@@ -2777,6 +2717,69 @@ export type Database = {
           model?: string
           recalls_data?: Json
           year?: number
+        }
+        Relationships: []
+      }
+      reference_body_styles: {
+        Row: {
+          body_style: string | null
+          make: string | null
+          model: string | null
+          year: number | null
+        }
+        Insert: {
+          body_style?: string | null
+          make?: string | null
+          model?: string | null
+          year?: number | null
+        }
+        Update: {
+          body_style?: string | null
+          make?: string | null
+          model?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
+      reference_features: {
+        Row: {
+          feature: string | null
+          make: string | null
+          model: string | null
+          year: number | null
+        }
+        Insert: {
+          feature?: string | null
+          make?: string | null
+          model?: string | null
+          year?: number | null
+        }
+        Update: {
+          feature?: string | null
+          make?: string | null
+          model?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
+      reference_trims: {
+        Row: {
+          make: string | null
+          model: string | null
+          trim: string | null
+          year: number | null
+        }
+        Insert: {
+          make?: string | null
+          model?: string | null
+          trim?: string | null
+          year?: number | null
+        }
+        Update: {
+          make?: string | null
+          model?: string | null
+          trim?: string | null
+          year?: number | null
         }
         Relationships: []
       }
@@ -4177,6 +4180,39 @@ export type Database = {
         }
         Relationships: []
       }
+      vin_audit_log: {
+        Row: {
+          comment: string | null
+          field_changed: string
+          id: number
+          new_value: string | null
+          old_value: string | null
+          timestamp: string
+          user_id: string
+          vin: string
+        }
+        Insert: {
+          comment?: string | null
+          field_changed: string
+          id?: number
+          new_value?: string | null
+          old_value?: string | null
+          timestamp?: string
+          user_id: string
+          vin: string
+        }
+        Update: {
+          comment?: string | null
+          field_changed?: string
+          id?: number
+          new_value?: string | null
+          old_value?: string | null
+          timestamp?: string
+          user_id?: string
+          vin?: string
+        }
+        Relationships: []
+      }
       vin_cache: {
         Row: {
           fetched_at: string | null
@@ -4191,6 +4227,30 @@ export type Database = {
         Update: {
           fetched_at?: string | null
           nicb_data?: Json
+          vin?: string
+        }
+        Relationships: []
+      }
+      vin_decodes: {
+        Row: {
+          corrected_fields: Json | null
+          created_at: string
+          decoded_fields: Json
+          updated_at: string
+          vin: string
+        }
+        Insert: {
+          corrected_fields?: Json | null
+          created_at?: string
+          decoded_fields: Json
+          updated_at?: string
+          vin: string
+        }
+        Update: {
+          corrected_fields?: Json | null
+          created_at?: string
+          decoded_fields?: Json
+          updated_at?: string
           vin?: string
         }
         Relationships: []

@@ -1,5 +1,5 @@
 import React from "react";
-import { ManualVehicleInfo } from "@/hooks/useManualValuation";
+// Removed manual valuation dependency - using inline interface
 
 interface VehicleInfo {
   year?: number;
@@ -13,6 +13,16 @@ interface VehicleInfo {
   bodyType?: string;
   transmission?: string;
   color?: string;
+}
+
+interface ManualVehicleInfo {
+  make?: string;
+  model?: string;
+  year?: number;
+  mileage?: number;
+  condition?: string;
+  zipCode?: string;
+  vin?: string;
 }
 
 interface VehicleDataTableProps {

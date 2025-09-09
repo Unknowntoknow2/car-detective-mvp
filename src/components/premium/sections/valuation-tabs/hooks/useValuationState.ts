@@ -1,9 +1,18 @@
 
 import { useState } from "react";
 import { useVehicleLookup } from "@/hooks/useVehicleLookup";
-import { ManualEntryFormData } from "@/types/manual-entry";
 import { ConditionLevel } from "@/types/condition";
 import { VehicleData } from "@/types/vehicle-lookup";
+
+// Inline manual entry interface since original was removed
+interface ManualEntryFormData {
+  make: string;
+  model: string;
+  year: string;
+  mileage: string;
+  condition: ConditionLevel;
+  zipCode: string;
+}
 
 export function useValuationState() {
   const [activeTab, setActiveTab] = useState("vin");
