@@ -29,5 +29,6 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     'process.env.ROLLUP_NATIVE': 'false',
+    '__REQUIRE_AIN__': mode === 'production',
   },
 }))

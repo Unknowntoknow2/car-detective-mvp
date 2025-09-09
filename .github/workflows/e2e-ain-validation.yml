@@ -10,6 +10,14 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+permissions:
+  pull-requests: write
+  contents: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -45,11 +53,18 @@ jobs:
             fi
           fi
         
-      - name: Run E2E AIN Tests
+        - name: Run E2E AIN Tests
         env:
           BASE_URL: ${{ steps.base-url.outputs.url }}
           VALUATION_TRIGGER_TIMEOUT_MS: 45000
-        run: npm run test:e2e
+        run: |
+          npm run test:e2e
+          
+      - name: Run negative test (USE_AIN=false)
+        env:
+          BASE_URL: ${{ steps.base-url.outputs.url }}
+          VALUATION_TRIGGER_TIMEOUT_MS: 45000
+        run: npx playwright test --grep "blocks local path"
         
       - name: Upload test artifacts
         if: always()
