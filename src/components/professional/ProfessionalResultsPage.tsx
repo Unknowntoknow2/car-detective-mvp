@@ -358,7 +358,7 @@ export default function ProfessionalResultsPage() {
           {/* Valuation Insights */}
           <FeatureSection
             title="Valuation Insights"
-            subtitle="Understanding the factors that contribute to your vehicle's market value."
+            description="Understanding the factors that contribute to your vehicle's market value."
             features={insights}
             className="max-w-6xl mx-auto mb-12"
           />
