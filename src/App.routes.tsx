@@ -16,6 +16,7 @@ import AuditPage from './pages/admin/AuditPage';
 import ValuationInsightsPage from './pages/admin/ValuationInsightsPage';
 import ValuationFollowUpPage from './pages/ValuationFollowUpPage';
 import PlateValuationPage from './pages/valuation/plate/PlateValuationPage';
+import ModalShowcase from './pages/ModalShowcase';
 
 // Auth pages
 import AuthPage from './pages/AuthPage';
@@ -72,6 +73,10 @@ const routes = [
       {
         path: "premium",
         element: <PremiumPage />,
+      },
+      {
+        path: "modals",
+        element: <ModalShowcase />,
       },
       {
         path: "valuation-result/:id",
