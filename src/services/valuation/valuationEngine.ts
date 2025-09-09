@@ -44,19 +44,34 @@ export interface UnifiedValuationResult {
 
 export async function calculateUnifiedValuation(input: ValuationEngineInput): Promise<UnifiedValuationResult> {
   const USE_AIN = (import.meta.env.USE_AIN_VALUATION ?? "false") === "true";
+  const AUDIT_MODE = import.meta.env.VITE_FEATURE_AUDIT === "1";
+
+  // Logger function gated behind audit flag
+  const log = (level: 'info' | 'error' | 'warn', message: string, data?: any) => {
+    if (AUDIT_MODE) {
+      console[level](message, data);
+    }
+  };
+
+  // Telemetry counters
+  const emit = (event: string, data?: any) => {
+    if (AUDIT_MODE) {
+      console.info(`ain.${event}`, data);
+    }
+  };
 
   // Local path kept intact behind flag
   async function localCalculation(): Promise<UnifiedValuationResult> {
-    console.log('🔍 Using Real Valuation Engine for calculation...');
+    log('info', '🔍 Using Real Valuation Engine for calculation...');
     
     try {
       const { RealValuationEngine } = await import('@/services/valuation/realValuationEngine');
       
       const realResult = await RealValuationEngine.calculateValuation({
         vin: input.vin,
-        make: input.decodedVehicle.make,
-        model: input.decodedVehicle.model,
-        year: input.decodedVehicle.year,
+        make: input.decodedVehicle?.make || '',
+        model: input.decodedVehicle?.model || '',
+        year: input.decodedVehicle?.year || 0,
         mileage: input.mileage,
         condition: input.condition,
         zipCode: input.zipCode
@@ -65,6 +80,8 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
       if (!realResult.success) {
         throw new Error(realResult.error || 'Valuation calculation failed');
       }
+
+      emit('fallback.used', { reason: 'ain_disabled_or_failed' });
 
       return {
         finalValue: realResult.estimatedValue,
@@ -86,34 +103,50 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
       };
 
     } catch (error) {
-      console.error('❌ Unified valuation error:', error);
+      log('error', '❌ Unified valuation error:', error);
       throw error;
     }
   }
 
   if (!USE_AIN) return localCalculation();
 
-  // AIN path with timeout and safe fallback
-  const BASE = import.meta.env.VITE_AIN_VALUATION_URL!;
-  const KEY = import.meta.env.VITE_AIN_API_KEY!;
+  // Env guards - throw clear error if required vars missing
+  const BASE = import.meta.env.VITE_AIN_VALUATION_URL;
+  const KEY = import.meta.env.VITE_AIN_API_KEY;
   const TIMEOUT = Number(import.meta.env.VITE_AIN_TIMEOUT_MS ?? 30000);
 
-  console.log('🔍 Using AIN Valuation API for calculation...');
+  if (!BASE) {
+    throw new Error('AIN valuation enabled but VITE_AIN_VALUATION_URL not configured');
+  }
+  if (!KEY) {
+    throw new Error('AIN valuation enabled but VITE_AIN_API_KEY not configured');
+  }
 
-  // Adapters to avoid type drift
+  log('info', '🔍 Using AIN Valuation API for calculation...');
+
+  // Input null safety - guard decodedVehicle properties
+  const vehicle = input.decodedVehicle;
+  if (!vehicle?.make || !vehicle?.model || !vehicle?.year) {
+    log('warn', 'Missing required vehicle data, falling back to local engine');
+    return localCalculation();
+  }
+
+  // Adapters to avoid type drift with proper zip mapping
   const ainPayload = {
     vin: input.vin,
-    make: input.decodedVehicle.make,
-    model: input.decodedVehicle.model,
-    year: input.decodedVehicle.year,
+    make: vehicle.make,
+    model: vehicle.model,
+    year: vehicle.year,
     mileage: input.mileage,
     condition: input.condition ?? "good",
-    zip: input.zipCode,
-    trim: input.decodedVehicle?.trim
+    zip: input.zipCode, // Use zipCode from interface
+    trim: vehicle.trim
   };
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT);
+
+  const startTime = performance.now();
 
   try {
     const res = await fetch(`${BASE}/valuation`, {
@@ -130,6 +163,11 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
     if (!res.ok) throw new Error(`AIN ${res.status}`);
 
     const ain = await res.json();
+    const latency = Math.round(performance.now() - startTime);
+
+    // Emit telemetry
+    emit('ok', { latency_ms: latency });
+    emit('latency.ms', latency);
 
     // Normalize to UnifiedValuationResult shape
     const normalized: UnifiedValuationResult = {
@@ -154,11 +192,21 @@ export async function calculateUnifiedValuation(input: ValuationEngineInput): Pr
                    (ain.confidence_score ?? 0) >= 60 ? 'good' : 'fair'
     };
 
-    console.log('✅ AIN valuation completed:', normalized);
+    log('info', '✅ AIN valuation completed:', normalized);
     return normalized;
 
   } catch (error) {
-    console.warn('❌ AIN API failed, falling back to local engine:', error);
+    const latency = Math.round(performance.now() - startTime);
+    
+    // Abort handling - treat AbortError as retryable
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      emit('err', { reason: 'timeout', latency_ms: latency });
+      log('warn', '⏱️ AIN API timeout, falling back to local engine');
+    } else {
+      emit('err', { reason: 'network', latency_ms: latency });
+      log('warn', '❌ AIN API failed, falling back to local engine:', error);
+    }
+    
     // Per-request graceful degradation
     return localCalculation();
   } finally {
