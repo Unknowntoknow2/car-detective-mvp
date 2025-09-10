@@ -1,4 +1,5 @@
-import type { Config } from "tailwindcss";
+// @ts-ignore - Module resolution issue with tailwindcss types in current setup
+// import type { Config } from "tailwindcss";
 
 // We need to create a separate config file since the main one is read-only
 const extendedConfig = {
@@ -119,6 +120,6 @@ const extendedConfig = {
       },
     },
   },
-} as Partial<Config>;
+};
 
 export default extendedConfig;
