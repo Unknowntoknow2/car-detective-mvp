@@ -5,6 +5,7 @@ import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { TabValidation } from '@/components/followup/validation/TabValidation';
 import { runValuation } from '@/lib/ainClient';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 import { useFollowUpDataLoader } from './useFollowUpDataLoader';
 import { useFollowUpAutoSave } from './useFollowUpAutoSave';
 
@@ -142,7 +143,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
         
         console.log('✅ [AIN] Follow-up valuation completed');
         console.log('🔍 [AIN] Route metadata:', meta);
-        console.info("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
+        logger.log("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
         
         // Convert AIN result to expected format with all required fields
         const valuationResult = {

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { runValuation, type AinResponse, type AinMeta } from '@/lib/ainClient';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 // Define the result type that our context will use
 interface ValuationResult {
@@ -157,7 +158,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
       
       console.log('✅ [AIN] Professional valuation completed via AIN API');
       console.log('🔍 [AIN] Route metadata:', meta);
-      console.info("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
+      logger.log("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
       
       // Convert AIN result to our expected format
       const result: ValuationResult = {

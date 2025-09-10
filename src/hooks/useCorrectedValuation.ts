@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { runValuation } from '@/lib/ainClient';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface CorrectedValuationParams {
   vin: string;
@@ -53,7 +54,7 @@ export function useCorrectedValuation() {
       
       console.log('✅ [AIN] Corrected valuation completed');
       console.log('🔍 [AIN] Route metadata:', meta);
-      console.info("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
+      logger.log("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
       
       // Convert to expected format
       const formattedResults: CorrectedValuationResults = {

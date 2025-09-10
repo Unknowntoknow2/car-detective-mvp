@@ -5,6 +5,7 @@
  */
 
 import { appConfig } from '@/config';
+import { logger } from '@/lib/logger';
 
 export const initSentry = () => {
   try {
@@ -15,9 +16,9 @@ export const initSentry = () => {
       //   tracesSampleRate: 0.5,
       //   environment: appConfig.MODE
       // });
-      console.info('Sentry would be initialized for production');
+      logger.log('Sentry would be initialized for production');
     } else {
-      console.info('Sentry init skipped: Not enabled or missing DSN');
+      logger.log('Sentry init skipped: Not enabled or missing DSN');
     }
   } catch (error) {
     console.warn('Failed to initialize Sentry:', error);
@@ -28,7 +29,7 @@ export const initSentry = () => {
 export const Sentry = appConfig.SENTRY_ENABLED ? {
   // Real Sentry methods would go here when package is installed
   captureException: (error: any) => console.error('Sentry capture:', error),
-  captureMessage: (message: string) => console.info('Sentry message:', message),
+  captureMessage: (message: string) => logger.log('Sentry message:', message),
   setUser: () => {},
   setTag: () => {},
   setTags: () => {},
