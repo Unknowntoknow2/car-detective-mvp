@@ -6,6 +6,7 @@ import { diagnoseVehicleData, logDiagnosticsReport, VehicleDataDiagnostics } fro
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle, RefreshCw, Database } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export function VehicleDataDebug() {
   const [diagnostics, setDiagnostics] = useState<VehicleDataDiagnostics | null>(null);
@@ -38,7 +39,7 @@ export function VehicleDataDebug() {
   const testConnection = async () => {
     setIsRunning(true);
     try {
-      console.log('Testing database connection...');
+      logger.log('Testing database connection...');
       
       // Test makes table
       const { data: makes, error: makesError, count: makesCount } = await supabase
@@ -66,7 +67,7 @@ export function VehicleDataDebug() {
         `)
         .limit(3);
       
-      console.log('Connection test results:', {
+      logger.log('Connection test results:', {
         makesCount,
         modelsCount,
         makes: makes?.slice(0, 3),

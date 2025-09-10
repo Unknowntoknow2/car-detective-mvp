@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface TaskStatus {
   id: string;
@@ -200,7 +201,7 @@ export default function FANGOrchestrationDashboard() {
                 }
               }
             }).then(result => {
-              console.log('AIN Protocol Result:', result);
+              logger.log('AIN Protocol Result:', result);
               toast.success('AIN Full Market Protocol completed');
               setTimeout(loadDashboardData, 2000);
             }).catch(error => {

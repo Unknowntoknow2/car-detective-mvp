@@ -118,7 +118,7 @@ export async function searchMarketListings(input: MarketSearchInput): Promise<Ma
   }
 
   // Step 2: Fallback to database search
-  console.info("🔄 Market listings fallback used: enhanced_market_listings (no live data found)");
+  logger.log("🔄 Market listings fallback used: enhanced_market_listings (no live data found)");
   const dbListings = await fallbackDatabaseSearch({ make, model, year, zipCode });
   
   logger.log(`📊 Database fallback returned: ${dbListings.length} listings`);

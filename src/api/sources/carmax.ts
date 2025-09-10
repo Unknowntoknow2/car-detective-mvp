@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export interface CarMaxSearchQuery {
   year: number;
@@ -41,7 +42,7 @@ export class CarMaxSource {
     requestId: string
   ): Promise<CarMaxListing[]> {
     try {
-      console.log('🔍 Searching CarMax for:', query);
+      logger.log('🔍 Searching CarMax for:', query);
 
       // Log the search attempt
       await supabase

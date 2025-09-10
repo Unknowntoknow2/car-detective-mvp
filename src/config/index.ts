@@ -1,7 +1,7 @@
 /**
  * Application Configuration
  * 
- * Centralized configuration management that replaces import.meta.env.VITE_* usage.
+ * Centralized configuration management that replaces all env usage.
  * Reads from process.env first, then window.__APP_CONFIG__ fallback.
  */
 
