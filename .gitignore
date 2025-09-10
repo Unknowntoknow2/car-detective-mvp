@@ -34,3 +34,7 @@ coverage/
 **/tsconfig.tsbuildinfo
 *.tmp
 package.json.broken.*
+coverage/
+**/tsconfig.tsbuildinfo
+*.tmp
+package.json.broken.*
