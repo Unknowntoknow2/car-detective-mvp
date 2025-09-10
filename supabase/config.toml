@@ -19,6 +19,7 @@ verify_jwt = true
 
 [functions.valuation]
 verify_jwt = false
+# AIN valuation function - handles all vehicle valuations via AIN API
 
 [db]
 port = 54322
