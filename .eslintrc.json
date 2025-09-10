@@ -8,7 +8,11 @@
         },
         {
           "name": "@/services/valuation/valuationEngine",
-          "message": "Use AIN client (runValuation) for live flows."
+          "message": "Use '@/lib/ainClient' only - local engine removed"
+        },
+        {
+          "name": "@/services/valuation/realValuationEngine",
+          "message": "Removed - use AIN API only"
         }
       ]
     }]

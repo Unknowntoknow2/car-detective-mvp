@@ -3,8 +3,7 @@ import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { TabValidation } from '@/components/followup/validation/TabValidation';
-import { calculateUnifiedValuation } from '@/services/valuation/valuationEngine';
-import { type ValuationEngineInput } from '@/services/valuation/valuationEngine';
+import { runValuation } from '@/lib/ainClient';
 import { toast } from 'sonner';
 import { useFollowUpDataLoader } from './useFollowUpDataLoader';
 import { useFollowUpAutoSave } from './useFollowUpAutoSave';
@@ -126,26 +125,38 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
       if (decodedVehicle) {
         console.log('🧮 Running valuation with complete follow-up data');
         
-        // Run valuation with complete follow-up data, using decoded vehicle year
-        const engineInput: ValuationEngineInput = {
-          vin,
-          zipCode: currentFormData.zip_code,
-          mileage: currentFormData.mileage,
-          condition: currentFormData.condition,
-          decodedVehicle: {
-            year: decodedVehicle.year || currentFormData.year || new Date().getFullYear(),
-            make: decodedVehicle.make || 'Unknown',
-            model: decodedVehicle.model || 'Unknown',
-            trim: decodedVehicle.trim,
-            bodyType: decodedVehicle.bodyType
-          },
-          fuelType: decodedVehicle.fueltype,
-          titleStatus: currentFormData.title_status
-        };
+        // Run valuation with complete follow-up data via AIN API
+        console.log('🧮 [useFollowUpForm] Calling AIN API for follow-up valuation');
         
         const t0 = performance.now();
-        const valuationResult = await calculateUnifiedValuation(engineInput);
-        console.info("ain.val.ms", Math.round(performance.now()-t0), { via: import.meta.env.USE_AIN_VALUATION });
+        const { data: ainResult, meta } = await runValuation({
+          vin,
+          make: decodedVehicle.make || 'Unknown',
+          model: decodedVehicle.model || 'Unknown',
+          year: decodedVehicle.year || currentFormData.year || new Date().getFullYear(),
+          mileage: currentFormData.mileage,
+          zip_code: currentFormData.zip_code,
+          condition: currentFormData.condition as "poor" | "fair" | "good" | "very_good" | "excellent",
+          requested_by: 'followup_form'
+        });
+        
+        console.log('✅ [AIN] Follow-up valuation completed');
+        console.log('🔍 [AIN] Route metadata:', meta);
+        console.info("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
+        
+        // Convert AIN result to expected format with all required fields
+        const valuationResult = {
+          finalValue: ainResult.estimated_value || 0,
+          estimatedValue: ainResult.estimated_value || 0,
+          confidenceScore: ainResult.confidence_score || 0,
+          breakdown: ainResult.breakdown || [],
+          marketData: ainResult.market_data || {},
+          explanation: ainResult.explanation || 'Professional valuation from AIN API',
+          source: 'ain',
+          metadata: meta,
+          priceRange: [ainResult.price_range_low || 0, ainResult.price_range_high || 0] as [number, number],
+          adjustments: ainResult.adjustments || []
+        };
 
         if (valuationResult.finalValue > 0) {
           // Update the valuation result in database

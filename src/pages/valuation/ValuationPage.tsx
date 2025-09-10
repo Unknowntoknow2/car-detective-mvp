@@ -3,7 +3,7 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UnifiedLookupTabs } from '@/components/lookup/UnifiedLookupTabs';
-import { ValuationEngineTestComponent } from '@/components/test/ValuationEngineTestComponent';
+// ValuationEngineTestComponent removed - engine deleted
 // import { OpenAIMarketSearchTestComponent } from '@/components/test/OpenAIMarketSearchTestComponent';
 // import { ListingAnchoringValidationComponent } from '@/components/test/ListingAnchoringValidationComponent';
 import { UIResultsDisplayValidationComponent } from '@/components/test/UIResultsDisplayValidationComponent';
@@ -77,7 +77,7 @@ export default function ValuationPage() {
           </p>
         </CardHeader>
         <CardContent>
-          <ValuationEngineTestComponent />
+          <p className="text-center text-muted-foreground">Valuation engine test component removed - now using AIN API only</p>
         </CardContent>
       </Card>
 

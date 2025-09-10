@@ -1,7 +1,5 @@
-
 import { useState } from 'react';
-import { calculateUnifiedValuation } from '@/services/valuation/valuationEngine';
-import { type ValuationEngineInput } from '@/services/valuation/valuationEngine';
+import { runValuation } from '@/lib/ainClient';
 import { toast } from 'sonner';
 
 interface CorrectedValuationParams {
@@ -15,7 +13,7 @@ interface CorrectedValuationParams {
   zipCode: string;
 }
 
-// Updated to match the actual return type from the pipeline
+// Updated to match the actual return type from AIN API
 interface CorrectedValuationResults {
   success: boolean;
   valuation: {
@@ -38,39 +36,37 @@ export function useCorrectedValuation() {
   const runCorrection = async (params: CorrectedValuationParams) => {
     setIsRunning(true);
     try {
-      console.log('🔧 Starting corrected valuation pipeline...');
+      console.log('🔧 [useCorrectedValuation] Starting corrected valuation via AIN API...');
       toast.info('Recalculating valuation with corrected data...');
       
-      // Convert to ValuationEngineInput format
-      const engineInput: ValuationEngineInput = {
-        vin: params.vin,
-        zipCode: params.zipCode,
-        mileage: params.mileage,
-        condition: params.condition,
-        decodedVehicle: {
-          year: params.year,
-          make: params.make,
-          model: params.model,
-          trim: params.trim
-        }
-      };
-      
       const t0 = performance.now();
-      const result = await calculateUnifiedValuation(engineInput);
-      console.info("ain.val.ms", Math.round(performance.now()-t0), { via: import.meta.env.USE_AIN_VALUATION });
+      const { data: ainResult, meta } = await runValuation({
+        vin: params.vin,
+        make: params.make,
+        model: params.model,
+        year: params.year,
+        mileage: params.mileage,
+        zip_code: params.zipCode,
+        condition: params.condition as "poor" | "fair" | "good" | "very_good" | "excellent",
+        requested_by: 'corrected_valuation'
+      });
+      
+      console.log('✅ [AIN] Corrected valuation completed');
+      console.log('🔍 [AIN] Route metadata:', meta);
+      console.info("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
       
       // Convert to expected format
       const formattedResults: CorrectedValuationResults = {
         success: true,
         valuation: {
-          estimatedValue: result.finalValue,
-          confidenceScore: result.confidenceScore,
-          basePrice: result.baseValue,
-          adjustments: result.adjustments || [],
-          priceRange: result.priceRange,
+          estimatedValue: ainResult.estimated_value || 0,
+          confidenceScore: ainResult.confidence_score || 0,
+          basePrice: ainResult.base_value || ainResult.estimated_value || 0,
+          adjustments: ainResult.adjustments || [],
+          priceRange: [ainResult.price_range_low || 0, ainResult.price_range_high || 0],
           marketAnalysis: {
-            dataSource: result.sourcesUsed?.join(', ') || 'market_data',
-            listingCount: result.marketListingsCount || 0
+            dataSource: 'ain',
+            listingCount: 0
           }
         }
       };
@@ -80,7 +76,7 @@ export function useCorrectedValuation() {
       
       return formattedResults;
     } catch (error) {
-      console.error('Error running corrected valuation:', error);
+      console.error('❌ [useCorrectedValuation] Error:', error);
       toast.error('Failed to correct valuation');
       throw error;
     } finally {

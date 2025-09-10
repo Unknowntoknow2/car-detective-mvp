@@ -5,6 +5,7 @@ import App from './App';
 import { AppProviders } from './providers/AppProviders';
 import './styles/index.css';
 import { validateAINConfiguration } from './utils/buildTimeChecks';
+import './utils/startupValidation'; // Enforce AIN in production
 
 const renderApp = () => {
   try {
