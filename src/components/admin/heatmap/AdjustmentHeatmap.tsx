@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAdjustmentBreakdownHeatmap, HeatmapData } from '@/services/supabase/heatmapService';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks';
 import { TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 
 type ViewType = 'condition' | 'fuel' | 'market';

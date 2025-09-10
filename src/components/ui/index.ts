@@ -17,7 +17,7 @@ export * from './separator';
 export * from './skeleton';
 export * from './spinner';
 export * from './toast';
-export * from './use-toast';
+// Toast functionality is now in @/hooks
 export * from './sonner';
 
 // Layout & Navigation

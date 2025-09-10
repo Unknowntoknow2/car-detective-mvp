@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, TrendingUp, Database, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks';
 
 interface ValuationRequest {
   id: string;
