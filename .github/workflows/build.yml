@@ -16,8 +16,11 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      # install ONLY the ain-valuation-engine workspace
-      - run: npm ci --workspace apps/ain-valuation-engine --include-workspace-root=false --ignore-scripts --no-audit --fund=false
+      - name: Install (root, all workspaces)
+        run: npm ci --workspaces --include-workspace-root --ignore-scripts --no-audit --fund=false
 
-      - run: npm run -w apps/ain-valuation-engine build
-      - run: npm run -w apps/ain-valuation-engine test || echo "no tests"
+      - name: Build target workspace
+        run: npm run -w ain-valuation-engine build
+
+      - name: Test target workspace
+        run: npm run -w ain-valuation-engine test || echo "no tests"
