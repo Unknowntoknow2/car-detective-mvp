@@ -1,1 +1,1 @@
-/// <reference types="vite/client" />
+// Vite environment type definitions
