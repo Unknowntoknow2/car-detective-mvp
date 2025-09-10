@@ -17,6 +17,9 @@ verify_jwt = false
 # Require JWT auth for security
 verify_jwt = true
 
+[functions.valuation]
+verify_jwt = false
+
 [db]
 port = 54322
 
