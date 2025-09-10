@@ -1,13 +1,37 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { calculateUnifiedValuation } from '@/services/valuation/valuationEngine';
-import { type UnifiedValuationResult as EngineResult, type ValuationEngineInput } from '@/services/valuation/valuationEngine';
-import type { ValuationInput } from '@/types/valuation';
+import { runValuation, type AinResponse, type AinMeta } from '@/lib/ainClient';
 import { toast } from 'sonner';
 
+// Define the result type that our context will use
+interface ValuationResult {
+  estimatedValue: number;
+  finalValue: number;
+  confidenceScore: number;
+  breakdown?: any[];
+  marketData?: Record<string, unknown>;
+  explanation?: string;
+  priceRange?: [number, number];
+  baseValue?: number;
+  adjustments?: any[];
+  source: string;
+  metadata?: AinMeta;
+}
+
+interface ValuationInput {
+  vin?: string;
+  year?: number;
+  make?: string;
+  model?: string;
+  trim?: string;
+  mileage?: number;
+  zipCode?: string;
+  condition?: string;
+  fuelType?: string;
+}
+
 interface ValuationContextType {
-  valuationData?: EngineResult | null;
+  valuationData?: ValuationResult | null;
   isPremium: boolean;
   isLoading: boolean;
   error?: string | null;
@@ -17,7 +41,7 @@ interface ValuationContextType {
   isEmailSending: boolean;
   onDownloadPdf: () => Promise<void>;
   onEmailPdf: () => Promise<void>;
-  rerunValuation: (input: ValuationInput) => Promise<EngineResult>;
+  rerunValuation: (input: ValuationInput) => Promise<ValuationResult>;
 }
 
 // Singleton pattern to prevent duplicate contexts even with HMR
@@ -32,7 +56,7 @@ interface ValuationProviderProps {
 }
 
 export function ValuationProvider({ children, valuationId }: ValuationProviderProps) {
-  const [valuationData, setValuationData] = useState<EngineResult | null>(null);
+  const [valuationData, setValuationData] = useState<ValuationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -52,97 +76,57 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
     setError(null);
 
     try {
-      let data, fetchError;
-      
-      // Check if ID is a UUID (valuation ID) or a VIN
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-      
-      if (isUuid) {
-        // Query by valuation ID
-        const response = await supabase
+      // First try to get valuation by VIN
+      const { data: valuationByVin, error: vinError } = await supabase
+        .from('valuations')
+        .select('*')
+        .eq('vin', id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (vinError) {
+        console.error('❌ Error fetching valuation by VIN:', vinError);
+        throw vinError;
+      }
+
+      let data = valuationByVin?.[0];
+
+      // If not found by VIN, try by ID
+      if (!data) {
+        const { data: valuationById, error: idError } = await supabase
           .from('valuations')
           .select('*')
           .eq('id', id)
           .single();
-        data = response.data;
-        fetchError = response.error;
-      } else {
-        // Query by VIN (get most recent valuation for this VIN)
-        const response = await supabase
-          .from('valuations')
-          .select('*')
-          .eq('vin', id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-        data = response.data;
-        fetchError = response.error;
+
+        if (idError && idError.code !== 'PGRST116') {
+          console.error('❌ Error fetching valuation by ID:', idError);
+          throw idError;
+        }
+
+        data = valuationById;
       }
 
-      if (fetchError) {
-        console.error('❌ Failed to fetch valuation:', fetchError);
-        setError('Failed to load valuation data');
-        return;
-      }
-
-      if (!data) {
-        console.error('❌ No valuation data found for ID:', id);
-        setError('Valuation not found');
-        return;
-      }
-
-      console.log('✅ Loaded valuation data:', data);
-
-      // Run fresh valuation with the new engine using the stored vehicle data
-      console.log('🔄 Running fresh valuation with new engine...');
-      
-      const engineInput: ValuationEngineInput = {
-        vin: data.vin || id,
-        zipCode: data.zip_code || '95821',
-        mileage: data.mileage || 100000, // Default mileage if not available
-        condition: data.condition || 'good',
-        decodedVehicle: {
-          year: data.year,
-          make: data.make,
-          model: data.model,
-          trim: data.body_type || undefined,
-          bodyType: data.body_style || undefined
-        },
-        fuelType: data.fuel_type || 'gasoline'
-      };
-
-      try {
-        const t0 = performance.now();
-        const freshResult = await calculateUnifiedValuation(engineInput);
-        console.info("ain.val.ms", Math.round(performance.now()-t0), { via: import.meta.env.USE_AIN_VALUATION });
-        console.log('✅ Fresh valuation result:', freshResult);
-        setValuationData(freshResult);
-      } catch (engineError) {
-        console.error('❌ Failed to run fresh valuation, falling back to legacy data:', engineError);
-        
-        // Fallback to legacy data if engine fails
-        const legacyResult: EngineResult = {
-          finalValue: data.estimated_value,
-          priceRange: [
-            Math.round(data.estimated_value * 0.9),
-            Math.round(data.estimated_value * 1.1)
-          ],
-          confidenceScore: data.confidence_score || 40,
-          marketListings: [],
-          zipAdjustment: 0,
-          mileagePenalty: 0,
-          conditionDelta: 0,
-          titlePenalty: 0,
-          aiExplanation: data.explanation || 'Legacy valuation data (engine failed)',
-          sourcesUsed: ['legacy_database'],
+      if (data) {
+        // Convert database data to our context format
+        const legacyResult: ValuationResult = {
+          estimatedValue: data.estimated_value || 0,
+          finalValue: data.estimated_value || 0,
+          confidenceScore: data.confidence_score || 0,
+          breakdown: data.adjustments || [],
+          marketData: data.data_source || {},
+          priceRange: data.price_range_low && data.price_range_high 
+            ? [data.price_range_low, data.price_range_high] 
+            : [0, 0],
           adjustments: [],
           baseValue: data.estimated_value,
-          explanation: 'Legacy valuation data from database'
+          explanation: 'Legacy valuation data from database',
+          source: 'database'
         };
 
         setValuationData(legacyResult);
       }
-      setIsPremium(data.premium_unlocked || false);
+      setIsPremium(data?.premium_unlocked || false);
 
     } catch (err) {
       console.error('❌ Error loading valuation:', err);
@@ -158,18 +142,16 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
     setError(null);
 
     try {
-      // Call the real AIN API via our hardened endpoint
-      const { runValuation } = await import('@/lib/ainClient');
-      
       const t0 = performance.now();
       const { data: ainResult, meta } = await runValuation({
         vin: input.vin,
+        year: input.year,
         make: input.make,
         model: input.model,
-        year: input.year,
-        mileage: input.mileage || 0,
+        trim: input.trim,
+        mileage: input.mileage ?? 0,
         zip_code: input.zipCode,
-        condition: input.condition || 'good',
+        condition: (input.condition as "poor" | "fair" | "good" | "very_good" | "excellent") ?? "good",
         requested_by: 'rerun_valuation'
       });
       
@@ -178,55 +160,34 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
       console.info("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
       
       // Convert AIN result to our expected format
-      const result = {
-        estimatedValue: (ainResult as any)?.estimated_value || 0,
-        finalValue: (ainResult as any)?.estimated_value || 0,
-        confidenceScore: (ainResult as any)?.confidence_score || 0,
-        priceRange: [(ainResult as any)?.price_range_low || 0, (ainResult as any)?.price_range_high || 0] as [number, number],
-        breakdown: (ainResult as any)?.breakdown || [],
-        marketData: (ainResult as any)?.market_data || {},
-        marketListings: (ainResult as any)?.market_listings || [],
-        zipAdjustment: 0,
-        baseValue: (ainResult as any)?.base_value || 0,
-        adjustments: (ainResult as any)?.adjustments || [],
-        mileagePenalty: 0,
-        conditionDelta: 0,
-        titlePenalty: 0,
-        aiExplanation: (ainResult as any)?.explanation || 'Professional valuation from AIN API',
-        confidence: (ainResult as any)?.confidence_score || 0,
-        sourcesUsed: ['ain'],
-        explanation: (ainResult as any)?.explanation || 'Professional valuation from AIN API',
-        executionTimeMs: Math.round(performance.now()-t0),
+      const result: ValuationResult = {
+        estimatedValue: ainResult.estimated_value || 0,
+        finalValue: ainResult.estimated_value || 0,
+        confidenceScore: ainResult.confidence_score || 0,
+        priceRange: [ainResult.price_range_low || 0, ainResult.price_range_high || 0],
+        breakdown: ainResult.breakdown || [],
+        marketData: ainResult.market_data || {},
+        baseValue: ainResult.base_value || 0,
+        adjustments: ainResult.adjustments || [],
+        explanation: ainResult.explanation || 'Professional valuation from AIN API',
         source: 'ain',
         metadata: meta
       };
       
       // Set the engine result directly - no conversion needed
-      setValuationData(result as any);
+      setValuationData(result);
 
       // Save the valuation result to database
       try {
-        // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
-        console.log('💾 [DEBUG] Saving valuation with user:', user?.id || 'anonymous');
-        
-        const valuationId = crypto.randomUUID();
-        console.log('💾 [DEBUG] Valuation data to save:', {
-          id: valuationId,
-          vin: input.vin,
-          make: input.make,
-          model: input.model,
-          year: input.year,
-          estimated_value: result.finalValue
-        });
-        
-        // First insert the new valuation record with all required fields
+        const userId = 'anonymous';
+        console.log('💾 [DEBUG] Saving valuation with user:', userId);
+        console.log('💾 [DEBUG] Valuation data to save:', result);
+
         const { data: savedValuation, error: insertError } = await supabase
           .from('valuations')
           .insert({
-            id: valuationId,
-            user_id: user?.id || null,  // Allow anonymous valuations
-            vin: input.vin,
+            vin: input.vin || null,
+            user_id: userId,
             make: input.make,
             model: input.model,
             year: input.year,
@@ -249,38 +210,35 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
         } else {
           console.log('✅ Valuation saved to database successfully:', savedValuation);
         }
-      } catch (saveErr) {
-        console.error('❌ Error saving valuation to database:', saveErr);
-        console.error('❌ Save error details:', JSON.stringify(saveErr, null, 2));
+      } catch (saveError) {
+        console.error('❌ Database save error:', saveError);
       }
 
-      toast.success(`New estimate: $${result.finalValue.toLocaleString()} (${result.confidenceScore}% confidence)`);
-      
       return result;
-
-    } catch (err) {
-      console.error('❌ Real-time valuation failed:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Real-time valuation failed';
+    } catch (error) {
+      console.error('❌ [ValuationContext] Rerun valuation error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       setError(errorMessage);
-      
-      toast.error(errorMessage);
-      throw err;
+      toast.error(`Failed to calculate valuation: ${errorMessage}`);
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
   const onUpgrade = () => {
-    window.location.href = '/premium';
+    console.log('🚀 Upgrade requested');
+    // Implementation will be added when premium features are implemented
   };
 
   const onDownloadPdf = async () => {
     setIsDownloading(true);
     try {
-      // PDF download logic here
-      toast.success('Your valuation report has been downloaded');
-    } catch (err) {
-      toast.error('Failed to download PDF report');
+      // Implementation for PDF download
+      console.log('📄 PDF download requested');
+    } catch (error) {
+      console.error('❌ PDF download failed:', error);
+      toast.error('Failed to download PDF');
     } finally {
       setIsDownloading(false);
     }
@@ -289,33 +247,32 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
   const onEmailPdf = async () => {
     setIsEmailSending(true);
     try {
-      // Email logic here
-      toast.success('Your valuation report has been emailed');
-    } catch (err) {
-      toast.error('Failed to send email');
+      // Implementation for email PDF
+      console.log('📧 Email PDF requested');
+    } catch (error) {
+      console.error('❌ Email PDF failed:', error);
+      toast.error('Failed to email PDF');
     } finally {
       setIsEmailSending(false);
     }
   };
 
-  const value: ValuationContextType = {
+  const contextValue: ValuationContextType = {
     valuationData,
     isPremium,
     isLoading,
     error,
-    estimatedValue: valuationData?.finalValue || 0,
+    estimatedValue: valuationData?.estimatedValue || 0,
     onUpgrade,
     isDownloading,
     isEmailSending,
     onDownloadPdf,
     onEmailPdf,
-    rerunValuation
+    rerunValuation,
   };
 
-  console.log('✅ ValuationProvider rendering with context value:', !!value);
-
   return (
-    <ValuationContext.Provider value={value}>
+    <ValuationContext.Provider value={contextValue}>
       {children}
     </ValuationContext.Provider>
   );
