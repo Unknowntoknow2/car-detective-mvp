@@ -3,6 +3,7 @@
 
 import { MarketListing, normalizeListing } from "@/types/marketListing";
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export interface MarketSearchInput {
   vin?: string;
@@ -34,7 +35,7 @@ export interface MarketSearchResult {
 
 export async function fetchMarketComps(input: MarketSearchInput): Promise<MarketSearchResult> {
   const startTime = Date.now();
-  console.log('🎯 Starting market comp search for:', input);
+  logger.log('🎯 Starting market comp search for:', input);
   
   const listings = await searchMarketListings(input);
   const processingTime = Date.now() - startTime;
@@ -103,16 +104,16 @@ export async function fetchMarketComps(input: MarketSearchInput): Promise<Market
 export async function searchMarketListings(input: MarketSearchInput): Promise<MarketListing[]> {
   const { make, model, year, zipCode } = input;
 
-  console.log('🎯 UNIFIED Market Search Agent - Starting search:', { make, model, year, zipCode });
+  logger.log('🎯 UNIFIED Market Search Agent - Starting search:', { make, model, year, zipCode });
 
   // Step 1: Attempt live web search first
   const liveListings = await attemptLiveSearch({ make, model, year, zipCode });
   
   if (liveListings.length > 0) {
-    console.log(`✅ Live search successful: ${liveListings.length} listings found`);
+    logger.log(`✅ Live search successful: ${liveListings.length} listings found`);
     // Validate and normalize live listings
     const validatedListings = liveListings.filter(validateListing).map(normalizeListing);
-    console.log(`📊 After validation: ${validatedListings.length} valid listings`);
+    logger.log(`📊 After validation: ${validatedListings.length} valid listings`);
     return validatedListings;
   }
 
@@ -120,10 +121,10 @@ export async function searchMarketListings(input: MarketSearchInput): Promise<Ma
   console.info("🔄 Market listings fallback used: enhanced_market_listings (no live data found)");
   const dbListings = await fallbackDatabaseSearch({ make, model, year, zipCode });
   
-  console.log(`📊 Database fallback returned: ${dbListings.length} listings`);
+  logger.log(`📊 Database fallback returned: ${dbListings.length} listings`);
   // Validate and normalize database listings
   const validatedDbListings = dbListings.filter(validateListing).map(normalizeListing);
-  console.log(`📊 After validation: ${validatedDbListings.length} valid database listings`);
+  logger.log(`📊 After validation: ${validatedDbListings.length} valid database listings`);
   return validatedDbListings;
 }
 
@@ -161,7 +162,7 @@ function validateListing(listing: MarketListing): boolean {
  * Live search disabled - no external API calls for listings
  */
 async function attemptLiveSearch(params: { make: string; model: string; year: number; zipCode?: string }): Promise<MarketListing[]> {
-  console.log('🌐 Live search disabled - no external API calls for listings');
+  logger.log('🌐 Live search disabled - no external API calls for listings');
   return [];
 }
 
@@ -170,7 +171,7 @@ async function attemptLiveSearch(params: { make: string; model: string; year: nu
  */
 async function fallbackDatabaseSearch(params: { make: string; model: string; year: number; zipCode?: string }): Promise<MarketListing[]> {
   try {
-    console.log('💾 Fallback: Searching database listings...');
+    logger.log('💾 Fallback: Searching database listings...');
 
     // Build database query with comprehensive filtering
     let query = supabase

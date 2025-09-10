@@ -1,4 +1,5 @@
 import { MarketListing } from '@/types/marketListing';
+import { logger } from '@/lib/logger';
 
 // Helper functions for listing processing and deduplication
 
@@ -15,11 +16,11 @@ function removeDuplicateListings(listings: MarketListing[]): MarketListing[] {
       seen.add(key);
       uniqueListings.push(listing);
     } else {
-      console.log('🗑️ Removed duplicate listing:', { price: listing.price, source: listing.source });
+      logger.log('🗑️ Removed duplicate listing:', { price: listing.price, source: listing.source });
     }
   }
 
-  console.log(`🔍 Deduplication: ${listings.length} → ${uniqueListings.length} listings`);
+  logger.log(`🔍 Deduplication: ${listings.length} → ${uniqueListings.length} listings`);
   return uniqueListings;
 }
 
