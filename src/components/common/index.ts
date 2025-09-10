@@ -18,8 +18,7 @@ export { TireConditionSelectorBar } from './TireConditionSelectorBar';
 // Header Components
 export { CarFinderQaherHeader } from './CarFinderQaherHeader';
 
-// Loading Components - alias for backward compatibility
-export { LoadingButton as UnifiedLoadingSystem } from './UnifiedLoadingSystem';
+// Remove duplicate LoadingButton export
 
 // Legacy re-exports for backward compatibility
 export { EnhancedErrorBoundary as ErrorBoundary } from './EnhancedErrorBoundary';
