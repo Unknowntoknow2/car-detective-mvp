@@ -1,0 +1,10 @@
+{
+  "rules": {
+    "no-restricted-imports": ["error", {
+      "paths": [{ 
+        "name": "@/context/ValuationContext", 
+        "message": "Use @/contexts/ValuationContext (plural) - enforces single import path" 
+      }]
+    }]
+  }
+}
