@@ -20,7 +20,11 @@ interface ValuationContextType {
   rerunValuation: (input: ValuationInput) => Promise<EngineResult>;
 }
 
-const ValuationContext = createContext<ValuationContextType | undefined>(undefined);
+// Singleton pattern to prevent duplicate contexts even with HMR
+const GLOBAL_KEY = "__AIN_VALUATION_CONTEXT__";
+const g = globalThis as any;
+export const ValuationContext: React.Context<ValuationContextType | undefined> =
+  g[GLOBAL_KEY] ?? (g[GLOBAL_KEY] = createContext<ValuationContextType | undefined>(undefined));
 
 interface ValuationProviderProps {
   children: React.ReactNode;
@@ -320,18 +324,10 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
 export function useValuationContext() {
   const context = useContext(ValuationContext);
   if (context === undefined) {
-    // Enhanced error message to catch import path mismatches
-    console.error('❌ useValuationContext error: Context is undefined');
-    console.error('❌ Check that you are importing from @/contexts/ValuationContext (plural)');
-    console.error('❌ Ensure the component is wrapped with ValuationProvider');
-    
-    throw new Error(
-      'useValuationContext must be used within a ValuationProvider. ' +
-      'Make sure you are importing from @/contexts/ValuationContext (plural) ' +
-      'and that your component is wrapped with <ValuationProvider>'
-    );
+    // Include module URL to catch mismatched imports fast
+    throw new Error(`useValuationContext must be used within a ValuationProvider (module: ${import.meta.url})`);
   }
   return context;
 }
 
-export { ValuationContext };
+// ValuationContext already exported above as singleton
