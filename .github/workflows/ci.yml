@@ -25,8 +25,34 @@ jobs:
 
       - name: Validate no banned patterns
         run: |
-          chmod +x scripts/validate-no-banned-patterns.sh
-          ./scripts/validate-no-banned-patterns.sh
+          set -e
+          echo "🔍 Checking for banned patterns..."
+          
+          # Check for VITE_ usage (exit 1 if found)
+          if git grep -n "import\.meta\.env\.VITE_" -- "src" 2>/dev/null; then
+            echo "❌ Found import.meta.env.VITE_ usage"
+            exit 1
+          fi
+          
+          # Check for localhost URLs (exit 1 if found)
+          if git grep -n "localhost:" -- "src" 2>/dev/null; then
+            echo "❌ Found hardcoded localhost URLs"
+            exit 1
+          fi
+          
+          # Check for console.log statements (exit 1 if found)
+          if git grep -n "console\.log(" -- "src" 2>/dev/null; then
+            echo "❌ Found console.log statements"
+            exit 1
+          fi
+          
+          # Check for debugger statements (exit 1 if found)
+          if git grep -n "debugger;" -- "src" 2>/dev/null; then
+            echo "❌ Found debugger statements" 
+            exit 1
+          fi
+          
+          echo "✅ No banned patterns found!"
 
       - name: Lint
         run: npm run lint
@@ -65,6 +91,9 @@ jobs:
 
       - name: Run Dealer Offer Flow E2E tests
         run: npx playwright test e2e/dealer-offer-flow.spec.ts --reporter=github
+        
+      - name: Run Configuration Smoke Tests
+        run: npx playwright test e2e/smoke-config.spec.ts --reporter=github
         
       - name: Run AIN Integration Smoke Tests
         run: npx playwright test e2e/ain-integration-smoke.spec.ts --reporter=github

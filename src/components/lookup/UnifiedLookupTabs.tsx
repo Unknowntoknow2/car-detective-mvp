@@ -10,11 +10,12 @@ import { Search, FileText, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useUnifiedLookup } from '@/hooks/useUnifiedLookup';
+import { logger } from '@/lib/logger';
 import { valuationLogger } from '@/utils/valuationLogger';
 import { fetchVehicleByVin } from '@/services/vehicleLookupService';
 
 export function UnifiedLookupTabs() {
-  console.log('🔍 UnifiedLookupTabs rendering v2.0 - FIXED - no context dependencies - ' + Date.now());
+  logger.log('🔍 UnifiedLookupTabs rendering v2.0 - FIXED - no context dependencies - ' + Date.now());
   const [vin, setVin] = useState('');
   
   // Plate lookup states
@@ -100,13 +101,13 @@ export function UnifiedLookupTabs() {
       return;
     }
 
-    console.log('🏷️ Plate Lookup: Processing license plate lookup');
+    logger.log('🏷️ Plate Lookup: Processing license plate lookup');
     
     try {
       const result = await lookupByPlate(plateData.plate, plateData.state);
       
       if (result && result.success && result.vehicle) {
-        console.log('✅ Plate Lookup: Successfully found vehicle:', result.vehicle);
+        logger.log('✅ Plate Lookup: Successfully found vehicle:', result.vehicle);
         
         // Navigate to follow-up questions with vehicle data INCLUDING plate info
         const params = new URLSearchParams({
