@@ -40,11 +40,11 @@ import {
   Shield
 } from 'lucide-react';
 import { AuditAndSourcesAccordion } from './AuditAndSourcesAccordion';
-import type { UnifiedValuationResult as EngineResult } from '@/services/valuation/valuationEngine';
+// Using generic result type since we removed the engine
 import { valuationLogger } from '@/utils/valuationLogger';
 
 interface ValuationResultCardProps {
-  result: EngineResult;
+  result: any; // Generic result type
   onDownloadPdf?: () => void;
   onShareReport?: () => void;
   vin?: string;
@@ -128,14 +128,14 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport, vin 
     <TooltipProvider>
       <div className="space-y-6">
         {/* Warning Banner for Data Quality Issues */}
-        {(marketListings.length === 0 || confidenceScore < 65 || sourcesUsed?.some(source => source.includes('openai') || source.includes('fallback'))) && (
+        {(marketListings.length === 0 || confidenceScore < 65 || sourcesUsed?.some((source: any) => source.includes('openai') || source.includes('fallback'))) && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
               <strong>Data Quality Warning:</strong>
               {marketListings.length === 0 && ' No market listings found. '}
               {confidenceScore < 65 && ' Low confidence score due to limited data. '}
-              {sourcesUsed?.some(source => source.includes('openai') || source.includes('fallback')) && ' AI-generated or fallback data used. '}
+              {sourcesUsed?.some((source: any) => source.includes('openai') || source.includes('fallback')) && ' AI-generated or fallback data used. '}
               Results may be less accurate than usual.
             </AlertDescription>
           </Alert>
@@ -156,7 +156,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport, vin 
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Method-specific disclosure for fallback */}
-            {sourcesUsed?.some(source => source.includes('fallback') || source.includes('depreciation')) && (
+            {sourcesUsed?.some((source: any) => source.includes('fallback') || source.includes('depreciation')) && (
               <Alert variant="default" className="border-orange-200 bg-orange-50">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
@@ -177,7 +177,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport, vin 
                 </p>
               )}
               {/* Show range percentage for fallback method */}
-              {sourcesUsed?.some(source => source.includes('fallback')) && (
+              {sourcesUsed?.some((source: any) => source.includes('fallback')) && (
                 <p className="text-xs text-orange-600 mt-1">
                   ±15% range due to model-based pricing
                 </p>
@@ -208,7 +208,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport, vin 
                   Data Sources Used
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {sourcesUsed.map((source, idx) => (
+                  {sourcesUsed.map((source: any, idx: number) => (
                     <Badge key={idx} variant="outline" className="text-xs">
                       {source}
                     </Badge>
@@ -368,7 +368,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport, vin 
                 <div className="space-y-2">
                   <Separator />
                   <h4 className="font-medium text-sm">Additional Factors</h4>
-                  {adjustments.map((adj, idx) => (
+                  {adjustments.map((adj: any, idx: number) => (
                     <div key={idx} className="flex items-center justify-between py-1 text-sm">
                       <span>{adj.factor}</span>
                       <span className={`font-medium ${adj.impact >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -410,7 +410,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport, vin 
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {marketListings.slice(0, 10).map((listing, idx) => (
+                  {marketListings.slice(0, 10).map((listing: any, idx: number) => (
                     <TableRow key={idx}>
                       <TableCell className="font-medium">{listing.source}</TableCell>
                       <TableCell>${listing.price.toLocaleString()}</TableCell>
