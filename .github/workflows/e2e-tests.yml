@@ -29,7 +29,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Build the app
-        run: npm run build
+        run: npm -w apps/ain-valuation-engine run build
 
       - name: Run Playwright tests
         run: npx playwright test --project=chromium

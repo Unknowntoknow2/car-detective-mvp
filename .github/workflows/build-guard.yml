@@ -42,13 +42,13 @@ jobs:
           AIN_API_KEY: ${{ secrets.AIN_API_KEY || 'required-but-not-exposed' }}
         run: |
           echo "🔐 Building with AIN enforcement for production..."
-          npm run build
+          npm -w apps/ain-valuation-engine run build
           
       - name: Build without enforcement (dev)
         if: steps.check-prod.outputs.is_prod == 'false'
         run: |
           echo "🧪 Building development version..."
-          npm run build
+          npm -w apps/ain-valuation-engine run build
           
       - name: Verify headers in build output
         if: steps.check-prod.outputs.is_prod == 'true'

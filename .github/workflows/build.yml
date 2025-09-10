@@ -25,10 +25,10 @@ jobs:
         run: npm install
 
       - name: Build project
-        run: npm run build
+        run: npm -w apps/ain-valuation-engine run build
 
       - name: Lint project
-        run: npm run lint || true
+        run: npm -w apps/ain-valuation-engine run lint || true
 
       - name: Docker build test
         run: docker build -t car-detective-app .

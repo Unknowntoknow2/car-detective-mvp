@@ -57,7 +57,7 @@ jobs:
           echo "✅ No banned patterns found!"
 
       - name: Lint
-        run: npm run lint
+        run: npm -w apps/ain-valuation-engine run lint
 
       - name: Production lint check
         run: npx eslint src/ --config .eslintrc.production.json
@@ -66,7 +66,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Build
-        run: npm run build
+        run: npm -w apps/ain-valuation-engine run build
 
       - name: Run unit tests
         run: npm test
