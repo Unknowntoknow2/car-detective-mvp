@@ -29,3 +29,8 @@ apps/ain-valuation-engine/.codespaces/
 **/.env*
 **/*.pem
 **/user-secrets*.json
+# build/test artifacts
+coverage/
+**/tsconfig.tsbuildinfo
+*.tmp
+package.json.broken.*
