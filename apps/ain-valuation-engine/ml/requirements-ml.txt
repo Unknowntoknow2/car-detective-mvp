@@ -1,0 +1,9 @@
+xgboost
+scikit-learn
+pandas
+shap
+mlflow
+evidently
+boto3
+pydantic
+openai

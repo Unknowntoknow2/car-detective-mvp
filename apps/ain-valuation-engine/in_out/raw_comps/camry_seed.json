@@ -1,0 +1,11 @@
+{
+  "listings": [
+    {"source":"CarGurus","year":2023,"make":"Toyota","model":"Camry","trim":"Hybrid SE","price":19277,"mileage":123603,"zip":"95757","city":"Elk Grove","state":"CA","vin":"4T1G31AK7PU616238"},
+    {"source":"CarGurus","year":2023,"make":"Toyota","model":"Camry","trim":"Hybrid XSE","price":26999,"mileage":46537,"zip":"94611","city":"Oakland","state":"CA","vin":"4T1K31AK6PU613244"},
+    {"source":"CarGurus","year":2023,"make":"Toyota","model":"Camry","trim":"Hybrid XSE","price":23299,"mileage":97104,"zip":"95661","city":"Roseville","state":"CA","vin":"4T1K31AK5PU607399"},
+    {"source":"CarGurus","year":2023,"make":"Toyota","model":"Camry","trim":"Hybrid LE","price":28438,"mileage":18494,"zip":"95993","city":"Yuba City","state":"CA","vin":"4T1C31AK7PU612060"},
+    {"source":"AutoNation","year":2023,"make":"Toyota","model":"Camry","trim":"Hybrid XLE","price":30333,"mileage":20948,"city":"Hayward","state":"CA","vin":"4T1F31AK5PU601202"},
+    {"source":"ManualSeed","year":2023,"make":"Toyota","model":"Camry","trim":"XSE","price":28999,"mileage":28000,"city":"Sacramento","state":"CA","vin":"SEEDGASXSE001"},
+    {"source":"ManualSeed","year":2023,"make":"Toyota","model":"Camry","trim":"XSE","price":26950,"mileage":46500,"city":"Modesto","state":"CA","vin":"SEEDGASXSE002"}
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/scripts",
+    "rootDir": "src/scripts",
+    "module": "nodenext",
+  "moduleResolution": "nodenext",
+  "allowImportingTsExtensions": true
+  },
+  "include": ["src/scripts/**/*.mts", "src/services/**/*.ts"]
+}

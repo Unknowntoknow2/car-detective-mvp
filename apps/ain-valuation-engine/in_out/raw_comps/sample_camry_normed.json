@@ -1,0 +1,30 @@
+[
+  {
+    "vin": "4T1G11AK7MU123456",
+    "year": 2021,
+    "make": "TOYOTA",
+    "model": "CAMRY",
+    "trim": "SE",
+    "mileage": 21000,
+    "city": "Los Angeles",
+    "price": 24500,
+    "owners": 1,
+    "accidents": 0,
+    "condition": "good",
+    "title_status": "clean"
+  },
+  {
+    "vin": "4T1C11AK0LU987654",
+    "year": 2020,
+    "make": "TOYOTA",
+    "model": "CAMRY",
+    "trim": "LE",
+    "mileage": 30000,
+    "city": "San Diego",
+    "price": 22000,
+    "owners": 1,
+    "accidents": 0,
+    "condition": "good",
+    "title_status": "clean"
+  }
+]

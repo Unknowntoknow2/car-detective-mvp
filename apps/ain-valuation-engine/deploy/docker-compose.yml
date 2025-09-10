@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  valuation-engine:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: valuation-engine
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_DIR=/app/models
+      - PIPELINE_DIR=/app/pipelines
+    volumes:
+      - ../models:/app/models:ro
+      - ../pipelines:/app/pipelines:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # Uncomment for GPU support:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]

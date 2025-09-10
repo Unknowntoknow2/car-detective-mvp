@@ -1,0 +1,27 @@
+groups:
+  - name: vehicle-price-api-alerts
+    rules:
+      - alert: HighPredictionErrorRate
+        expr: increase(vehicle_price_predictions[5m]) < 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No vehicle price predictions served in the last 5 minutes"
+          description: "Check API health and model status."
+      - alert: VINDecodeFailureSpike
+        expr: increase(vin_decode_failure[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Spike in VIN decode failures"
+          description: "Investigate provider/API issues."
+      - alert: ComplianceEventDetected
+        expr: increase(vin_compliance_events[5m]) > 0
+        for: 1m
+        labels:
+          severity: info
+        annotations:
+          summary: "Compliance event detected (ToS/robots.txt change)"
+          description: "Review compliance logs and provider status."

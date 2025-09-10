@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+  "module": "NodeNext",
+    
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@backend/*": [
+        "src/ain-backend/*"
+      ]
+    },
+    "strict": true,
+  "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+  "allowJs": false,
+  "downlevelIteration": true,
+  "allowSyntheticDefaultImports": true,
+  "esModuleInterop": true,
+  "moduleResolution": "nodenext"
+  },
+  "include": [
+    "src",
+    "env.d.ts"
+  ]
+}

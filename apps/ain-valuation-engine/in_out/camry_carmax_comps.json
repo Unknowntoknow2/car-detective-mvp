@@ -1,0 +1,54 @@
+{
+  "vin_target": "4T1G11AK5LU897892",
+  "zip": "95821",
+  "radius_miles": 200,
+  "listings": [
+    {
+      "source": "CarMax",
+      "year": 2020, "make": "Toyota", "model": "Camry", "trim": "SE",
+      "price": 22998, "miles": 39000,
+      "location": "Sacramento/Roseville, CA",
+      "notes": "Price drop from 23998; FWD; Auto; 2.5L"
+    },
+    {
+      "source": "CarMax",
+      "year": 2020, "make": "Toyota", "model": "Camry", "trim": "LE",
+      "price": 22998, "miles": 36000,
+      "location": "Sacramento South, CA"
+    },
+    {
+      "source": "CarMax",
+      "year": 2020, "make": "Toyota", "model": "Camry", "trim": "SE",
+      "price": 22998, "miles": 50000,
+      "location": "Capitol Expressway, CA"
+    },
+    {
+      "source": "CarMax",
+      "year": 2019, "make": "Toyota", "model": "Camry", "trim": "SE",
+      "price": 23998, "miles": 30000,
+      "location": "Sacramento South, CA",
+      "role": "nearby-year anchor"
+    },
+    {
+      "source": "CarMax",
+      "year": 2021, "make": "Toyota", "model": "Camry", "trim": "LE",
+      "price": 23998, "miles": 38000,
+      "location": "Modesto, CA",
+      "role": "newer-year anchor"
+    },
+    {
+      "source": "CarMax",
+      "year": 2023, "make": "Toyota", "model": "Camry", "trim": "SE",
+      "price": 25998, "miles": 39000,
+      "location": "Sacramento/Roseville, CA",
+      "role": "upper bound"
+    },
+    {
+      "source": "CarMax",
+      "year": 2023, "make": "Toyota", "model": "Camry", "trim": "LE",
+      "price": 24998, "miles": 28000,
+      "location": "Sacramento South, CA",
+      "role": "upper bound"
+    }
+  ]
+}
