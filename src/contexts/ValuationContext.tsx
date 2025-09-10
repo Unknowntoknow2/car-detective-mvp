@@ -149,32 +149,56 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
   };
 
   const rerunValuation = async (input: ValuationInput) => {
-    console.log('🔄 Rerunning valuation with real-time engine:', input);
+    console.log('🔄 [ValuationContext] Calling AIN API for professional valuation via rerunValuation:', input);
     setIsLoading(true);
     setError(null);
 
     try {
-      // Call the NEW real-time valuation engine
-      const validatedInput = {
-        vin: input.vin,
-        zipCode: input.zipCode,
-        mileage: input.mileage || 0,
-        condition: input.condition || 'good',
-        decodedVehicle: {
-          year: input.year,
-          make: input.make,
-          model: input.model,
-          trim: input.trim
-        }
-      };
-      const t0 = performance.now();
-      const result = await calculateUnifiedValuation(validatedInput);
-      console.info("ain.val.ms", Math.round(performance.now()-t0), { via: import.meta.env.USE_AIN_VALUATION });
+      // Call the real AIN API via our hardened endpoint
+      const { runValuation } = await import('@/lib/ainClient');
       
-      console.log('✅ Real-time valuation completed:', result);
+      const t0 = performance.now();
+      const { data: ainResult, meta } = await runValuation({
+        vin: input.vin,
+        make: input.make,
+        model: input.model,
+        year: input.year,
+        mileage: input.mileage || 0,
+        zip_code: input.zipCode,
+        condition: input.condition || 'good',
+        requested_by: 'rerun_valuation'
+      });
+      
+      console.log('✅ [AIN] Professional valuation completed via AIN API');
+      console.log('🔍 [AIN] Route metadata:', meta);
+      console.info("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
+      
+      // Convert AIN result to our expected format
+      const result = {
+        estimatedValue: (ainResult as any)?.estimated_value || 0,
+        finalValue: (ainResult as any)?.estimated_value || 0,
+        confidenceScore: (ainResult as any)?.confidence_score || 0,
+        priceRange: [(ainResult as any)?.price_range_low || 0, (ainResult as any)?.price_range_high || 0] as [number, number],
+        breakdown: (ainResult as any)?.breakdown || [],
+        marketData: (ainResult as any)?.market_data || {},
+        marketListings: (ainResult as any)?.market_listings || [],
+        zipAdjustment: 0,
+        baseValue: (ainResult as any)?.base_value || 0,
+        adjustments: (ainResult as any)?.adjustments || [],
+        mileagePenalty: 0,
+        conditionDelta: 0,
+        titlePenalty: 0,
+        aiExplanation: (ainResult as any)?.explanation || 'Professional valuation from AIN API',
+        confidence: (ainResult as any)?.confidence_score || 0,
+        sourcesUsed: ['ain'],
+        explanation: (ainResult as any)?.explanation || 'Professional valuation from AIN API',
+        executionTimeMs: Math.round(performance.now()-t0),
+        source: 'ain',
+        metadata: meta
+      };
       
       // Set the engine result directly - no conversion needed
-      setValuationData(result);
+      setValuationData(result as any);
 
       // Save the valuation result to database
       try {
