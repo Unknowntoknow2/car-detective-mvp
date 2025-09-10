@@ -21,7 +21,7 @@ import {
 
 interface FeatureCategory {
   name: string;
-  icon: JSX.Element;
+  icon: React.ReactElement;
   features: Feature[];
 }
 

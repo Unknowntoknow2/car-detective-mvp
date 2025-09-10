@@ -16,7 +16,7 @@ export function useFollowUpAutoSave({
   setIsSaving,
   setLastSaveTime
 }: UseFollowUpAutoSaveProps) {
-  const saveTimeoutRef = useRef<NodeJS.Timeout>();
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isSavingRef = useRef(false);
   const lastSavedDataRef = useRef<string>('');

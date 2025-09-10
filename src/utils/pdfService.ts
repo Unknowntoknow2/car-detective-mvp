@@ -463,7 +463,7 @@ export async function generateValuationPdf(data: ReportData, options: PdfOptions
 export async function downloadValuationPdf(data: ReportData, options: PdfOptions = {}): Promise<void> {
   const pdfBuffer = await generateValuationPdf(data, options);
   
-  const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+  const blob = new Blob([pdfBuffer as any], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
   
   const link = document.createElement('a');

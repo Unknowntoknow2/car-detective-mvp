@@ -13,9 +13,9 @@ export const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(({
   className,
   ...props
 }, ref) => {
-  const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+  const Tag = `h${level}` as keyof React.JSX.IntrinsicElements;
 
-  return React.createElement(Tag, {
+  return React.createElement(Tag as string, {
     className: cn("font-bold", className),
     ref,
     ...props,

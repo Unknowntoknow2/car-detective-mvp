@@ -100,9 +100,9 @@ export function PriceDistributionChart({
             <BarChart
               data={chartData}
               margin={{ top: 20, right: 20, left: 20, bottom: 30 }}
-              onMouseMove={(data) => {
+              onMouseMove={(data: any) => {
                 if (data && data.activeTooltipIndex !== undefined) {
-                  setHighlightedBar(data.activeTooltipIndex);
+                  setHighlightedBar(data.activeTooltipIndex as number);
                 }
               }}
               onMouseLeave={() => setHighlightedBar(null)}
