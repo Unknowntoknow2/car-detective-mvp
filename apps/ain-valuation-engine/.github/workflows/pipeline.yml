@@ -1,0 +1,55 @@
+name: ci-cd
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r api/requirements.txt
+      - run: pip install ruff pytest
+      - run: ruff check api/
+      - run: pytest -q
+      - name: Build images
+        run: |
+          docker build -t valuation-api:$(git rev-parse --short HEAD) api/
+          docker build -t market-fetcher:$(git rev-parse --short HEAD) jobs/market/
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: "valuation-api:$(git rev-parse --short HEAD)"
+
+  deploy-stage:
+    needs: build-test
+    runs-on: ubuntu-latest
+    environment: stage
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+      - run: ./infra/scripts/deploy.sh stage
+
+  promote-prod:
+    needs: deploy-stage
+    runs-on: ubuntu-latest
+    environment:
+      name: prod
+      url: https://api.ain.example
+    steps:
+      - name: Manual approval
+        uses: trstringer/manual-approval@v1
+        with:
+          approvers: "cto,head-of-devops"
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE }}
+      - run: ./infra/scripts/deploy.sh prod

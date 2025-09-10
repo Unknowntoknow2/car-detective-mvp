@@ -22,3 +22,19 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+apps/ain-valuation-engine/.env
+apps/ain-valuation-engine/.codespaces/
+apps/ain-valuation-engine/.env
+apps/ain-valuation-engine/.codespaces/
+**/.env*
+**/*.pem
+**/user-secrets*.json
+# build/test artifacts
+coverage/
+**/tsconfig.tsbuildinfo
+*.tmp
+package.json.broken.*
+coverage/
+**/tsconfig.tsbuildinfo
+*.tmp
+package.json.broken.*

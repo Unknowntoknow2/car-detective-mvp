@@ -1,0 +1,197 @@
+src/ain-backend/conversationApi.ts:44 - default
+src/ain-backend/gpt4oService.ts:47 - getAIResponse
+src/ain-backend/logger.ts:9 - default
+src/ain-backend/supabaseClient.ts:11 - storeSession
+src/ain-backend/supabaseClient.ts:29 - retrieveSession
+src/ain-backend/supabaseClient.ts:45 - storeVehicleData
+src/ain-backend/supabaseClient.ts:63 - retrieveVehicleData
+src/ain-backend/supabaseClient.ts:8 - supabase (used in module)
+src/ain-backend/vinDecoder.ts:3 - decodeVIN
+src/ain-backend/visionService.ts:8 - analyzeImage
+src/ain-backend/whisperService.ts:10 - transcribeAudio
+src/api/decodeVin.ts:14 - decodeVin (used in module)
+src/components/CarFindCard.tsx:194 - default
+src/components/JokeGenerator.tsx:3 - JokeGenerator
+src/data/autoDataSources.ts:68 - getSourcesByTier
+src/data/autoDataSources.ts:73 - getApiSources
+src/data/autoDataSources.ts:78 - getScrapingSources
+src/data/autoDataSources.ts:5 - DataSourceTier (used in module)
+src/pages/fuel-test.tsx:5 - default
+src/services/centralizedApi.ts:10 - apiClient (used in module)
+src/services/centralizedApi.ts:13 - VinService
+src/services/centralizedApi.ts:56 - SupabaseService
+src/services/fuelEconomyService.ts:15 - FuelEconomyApiResponse (used in module)
+src/services/fuelEconomyService.ts:19 - VehicleDetailsResponse (used in module)
+src/services/fuelEconomyService.ts:100 - EIAApiResponse (used in module)
+src/services/index.ts:9 - DecodedVinData
+src/services/index.ts:10 - VinDecodeOptions
+src/services/index.ts:13 - getVinField
+src/services/index.ts:20 - isValidVinFormat (used in module)
+src/services/index.ts:21 - parseVinComponents
+src/services/index.ts:22 - normalizeVin (used in module)
+src/services/index.ts:23 - VinValidationResult
+src/services/index.ts:31 - VinServices
+src/services/marketListingsService.ts:82 - MarketListingsService (used in module)
+src/services/marketListingsService.ts:418 - marketListingsService
+src/services/marketValuationUnified.ts:19 - marketValuationFromVin
+src/services/marketValuationUnified.ts:5 - MarketValuationResult (used in module)
+src/services/multiTierSearchAgent.ts:9 - multiTierSearch
+src/services/multiTierSearchAgent.ts:4 - MultiTierInput (used in module)
+src/services/multiTierSearchAgent.ts:15 - fetchMarketListings (used in module)
+src/services/normalizeListing.ts:6 - makeIdFromUrl (used in module)
+src/services/normalizeListing.ts:12 - normalizeCurrency
+src/services/testUnifiedDecoder.ts:66 - runQuickTest (used in module)
+src/services/unifiedSupabase.ts:60 - SessionManager
+src/services/unifiedSupabase.ts:144 - VehicleDataManager
+src/services/unifiedSupabase.ts:189 - SupabaseManager (used in module)
+src/services/unifiedSupabase.ts:190 - supabase (used in module)
+src/services/unifiedSupabase.ts:191 - supabaseService
+src/services/unifiedSupabase.ts:194 - default
+src/services/vehicleHistoryService.ts:60 - VehicleHistoryService (used in module)
+src/services/vehicleHistoryService.ts:375 - vehicleHistoryService
+src/services/vinExamples.ts:11 - basicVinExample (used in module)
+src/services/vinExamples.ts:49 - advancedVinExample (used in module)
+src/services/vinExamples.ts:84 - fallbackExample (used in module)
+src/services/vinExamples.ts:111 - batchVinExample (used in module)
+src/services/vinExamples.ts:151 - errorHandlingExample (used in module)
+src/services/vinExamples.ts:185 - VinExamples
+src/services/vinMigration.ts:41 - legacyDecodeVin (used in module)
+src/services/vinMigration.ts:75 - enhancedDecodeVin (used in module)
+src/services/vinMigration.ts:156 - testMigration (used in module)
+src/services/vinMigration.ts:12 - LegacyVinResponse (used in module)
+src/services/vinMigration.ts:65 - centralizedApiWrapper (used in module)
+src/services/vinMigration.ts:103 - MIGRATION_CHECKLIST (used in module)
+src/services/vinMigration.ts:189 - MigrationUtils
+src/types/api.d.ts:3 - ApiResponse
+src/types/api.d.ts:9 - Id
+src/types/index.ts:15 - makeApiResponse
+src/types/index.ts:2 - ValuationResult
+src/types/index.ts:3 - VehicleData
+src/types/index.ts:4 - DataGap
+src/types/index.ts:5 - ApiResponse
+src/types/index.ts:18 - RateLimit
+src/types/index.ts:19 - VehicleHistory
+src/types/index.ts:20 - AccidentRecord
+src/types/index.ts:21 - ServiceRecord
+src/types/index.ts:22 - OwnershipRecord
+src/types/index.ts:23 - TitleRecord
+src/types/index.ts:24 - RecallRecord
+src/types/index.ts:26 - UUID
+src/types/index.ts:29 - VehicleCondition
+src/types/index.ts:40 - TitleStatus
+src/types/index.ts:53 - EnhancedValuationResult
+src/types/index.ts:71 - VehicleDataForValuation
+src/types/index.ts:2 - VariablePrimitive
+src/types/index.ts:3 - VariableValue
+src/types/index.ts:10 - DefaultVariableValue
+src/types/index.ts:12 - TypedVariable
+src/types/index.ts:2 - AdjustmentBreakdown
+src/types/index.ts:9 - DefaultAdjustmentBreakdown
+src/types/index.ts:14 - ValuationInput
+src/types/index.ts:26 - ValuationOutput
+src/types/index.ts:33 - EnrichedVehicleProfile
+src/types/index.ts:34 - ValuationInputs
+src/types_custom/api.ts:3 - ApiError (used in module)
+src/types_custom/api.ts:9 - ApiRequestOptions
+src/types_custom/api.ts:17 - ApiResponse
+src/types_custom/api.ts:28 - RateLimit (used in module)
+src/types_custom/api.ts:35 - SessionData
+src/types_custom/api.ts:43 - ConversationState (used in module)
+src/types_custom/api.ts:57 - DecodedVinResult (used in module)
+src/types_custom/api.ts:63 - UserPreferences (used in module)
+src/types_custom/api.ts:69 - VehicleData (used in module)
+src/types_custom/api.ts:82 - VehicleFeature (used in module)
+src/types_custom/api.ts:88 - VehicleHistory (used in module)
+src/types_custom/api.ts:95 - AccidentRecord (used in module)
+src/types_custom/api.ts:102 - ServiceRecord (used in module)
+src/types_custom/api.ts:110 - OwnerRecord (used in module)
+src/types_custom/api.ts:116 - RecallRecord (used in module)
+src/types_custom/api.ts:123 - MarketComparable (used in module)
+src/types_custom/api.ts:134 - AIContext
+src/types_custom/decoded-vehicle.ts:1 - DecodedVehicle
+src/types_custom/valuation.ts:1 - ValuationInputs
+src/types_custom/valuation.ts:16 - NHTSARecall (used in module)
+src/types_custom/valuation.ts:27 - VehicleSpecification
+src/types_custom/valuation.ts:37 - EnrichedVehicleProfile
+src/types_custom/valuationAuditLog.ts:4 - ValuationAuditLog
+src/types_custom/ValuationTypes.ts:3 - VehicleData (used in module)
+src/types_custom/ValuationTypes.ts:21 - VehicleCondition (used in module)
+src/types_custom/ValuationTypes.ts:29 - TitleStatus (used in module)
+src/types_custom/ValuationTypes.ts:40 - VehicleHistory
+src/types_custom/ValuationTypes.ts:49 - AccidentRecord (used in module)
+src/types_custom/ValuationTypes.ts:56 - ServiceRecord (used in module)
+src/types_custom/ValuationTypes.ts:65 - OwnershipRecord (used in module)
+src/types_custom/ValuationTypes.ts:72 - TitleRecord (used in module)
+src/types_custom/ValuationTypes.ts:79 - RecallRecord (used in module)
+src/types_custom/ValuationTypes.ts:86 - AuctionResult
+src/types_custom/ValuationTypes.ts:100 - PricingHistory
+src/types_custom/ValuationTypes.ts:110 - PricePoint (used in module)
+src/types_custom/ValuationTypes.ts:117 - DepreciationData (used in module)
+src/types_custom/ValuationTypes.ts:123 - MarketDemand
+src/types_custom/ValuationTypes.ts:135 - SeasonalFactor (used in module)
+src/types_custom/ValuationTypes.ts:141 - ValuationResult
+src/types_custom/ValuationTypes.ts:157 - ValuationAdjustment (used in module)
+src/types_custom/ValuationTypes.ts:164 - MarketFactor (used in module)
+src/types_custom/ValuationTypes.ts:170 - AccuracyMetrics (used in module)
+src/types_custom/ValuationTypes.ts:178 - ApiResponse
+src/types_custom/ValuationTypes.ts:189 - RateLimit (used in module)
+src/types_custom/ValuationTypes.ts:195 - DataGap
+src/types_custom/ValuationTypes.ts:203 - ValidationRule (used in module)
+src/types_custom/VariableValue.ts:1 - VariableValue
+src/types_custom/VehicleDataForValuation.ts:183 - VehicleDataForValuation (used in module)
+src/types_custom/VehicleDataForValuation.ts:183 - VideoAnalysisRequest (used in module)
+src/types_custom/VehicleDataForValuation.ts:183 - VideoAnalysisResponse (used in module)
+src/utils/errorHandling.ts:8 - AppError (used in module)
+src/utils/errorHandling.ts:30 - ErrorHandler (used in module)
+src/utils/errorHandling.ts:173 - StandardResponse (used in module)
+src/utils/errorHandling.ts:184 - ResponseBuilder (used in module)
+src/utils/metrics.ts:2 - default
+src/utils/metricsMiddleware.ts:13 - metricsMiddleware
+src/utils/metricsMiddleware.ts:47 - valuationMetricsWrapper
+src/components/enhanced-ui/EnhancedUIDashboard.tsx:452 - PanelConfig (used in module)
+src/components/enhanced-ui/EnhancedUIExample.tsx:360 - default
+src/components/enhanced-ui/EnhancedUIExample.tsx:363 - EnhancedUIUsageExample
+src/components/enhanced-ui/index.ts:5 - EnhancedUIDashboard
+src/components/enhanced-ui/index.ts:8 - MarketIntelligencePanel
+src/components/enhanced-ui/index.ts:9 - AdjusterBreakdownPanel
+src/components/enhanced-ui/index.ts:10 - ConfidenceMetricsPanel
+src/components/enhanced-ui/index.ts:13 - createMockVehicleData
+src/components/enhanced-ui/index.ts:21 - ENHANCED_UI_VERSION
+src/components/result/ValuationResultCard.tsx:14 - ValuationResultCard
+src/components/result/ValuationResults.tsx:9 - ValuationResults
+src/components/result/ValuationResultsDisplay.tsx:252 - default
+src/components/result/VinDecodedDetails.tsx:13 - VinDecodedDetails
+src/components/result/VinDecodedDisplay.tsx:33 - default
+src/engines/enrichment/index.ts:62 - getEnrichedVehicleProfile
+src/lib/vin/validateVin.ts:58 - isValidVin
+src/lib/vin/validateVin.ts:4 - VinValidationErrorCode (used in module)
+src/lib/vin/validateVin.ts:8 - VinValid (used in module)
+src/lib/vin/validateVin.ts:16 - VinInvalid (used in module)
+src/lib/vin/validateVin.ts:22 - VinValidationResult (used in module)
+src/services/geo/ZipGeo.ts:3 - ZipPoint (used in module)
+src/services/marketAgents/OpenAIListingsFetcher.ts:12 - fetchAndExtract
+src/services/marketAgents/openaiSearchStructured.ts:6 - fetchListingsForTier
+src/services/marketAgents/router.ts:5 - routeDomains
+src/services/marketAgents/router.ts:3 - RouteParams (used in module)
+src/services/valuation/CohortStats.ts:5 - getCohortStats
+src/tools/audit/AuditRunner.mts:164 - default
+src/components/enhanced-ui/panels/AdjusterBreakdownPanel.tsx:497 - AdjusterFactor (used in module)
+src/components/enhanced-ui/panels/ConfidenceMetricsPanel.tsx:556 - ConfidenceBreakdown (used in module)
+src/components/enhanced-ui/panels/ConfidenceMetricsPanel.tsx:556 - DataSource (used in module)
+src/services/marketAgents/base/BaseMarketAgent.ts:2 - BaseMarketAgent
+src/services/marketAgents/config/policy.ts:7 - getPolicyForHost (used in module)
+src/services/marketAgents/config/policy.ts:21 - isAllowed
+src/services/marketAgents/config/policy.ts:4 - Tier (used in module)
+src/services/marketAgents/config/policy.ts:5 - Policy (used in module)
+src/services/marketAgents/config/sources.master.ts:17 - loadSourceRegistry
+src/services/marketAgents/config/sources.master.ts:4 - SourcePolicy (used in module)
+src/services/marketAgents/config/sources.master.ts:15 - SourceRegistry (used in module)
+src/services/marketAgents/config/sources.ts:4 - SourcePolicy (used in module)
+src/services/marketAgents/config/sources.ts:31 - SOURCE_POLICIES (used in module)
+src/services/marketAgents/extractors/openaiExtractor.ts:29 - ExtractResult (used in module)
+src/services/marketAgents/prompts/kit.ts:20 - systemForTier
+src/services/marketAgents/prompts/kit.ts:25 - userQuery
+src/services/marketAgents/schemas/ListingSchema.ts:2 - ListingJsonSchema
+src/services/marketAgents/utils/dedupe.ts:11 - dedupeByStableKey
+src/services/marketAgents/utils/sanity.ts:23 - normalizeZip (used in module)
+src/services/marketAgents/utils/sanity.ts:4 - FilterReport (used in module)

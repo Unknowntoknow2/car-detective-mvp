@@ -1,0 +1,51 @@
+name: AIN Valuation CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Retrain bundle (deterministic)
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=. python val_engine/train_tabular.py
+
+
+      - name: Inspect artifact
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=. python scripts/inspect_artifact.py artifacts/model_bundle.joblib
+
+      - name: Write checksum
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=. python scripts/write_artifact_checksum.py
+
+      - name: Verify checksum
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=. python scripts/verify_artifact_checksum.py
+
+      - name: Smoke predict
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=. python scripts/smoke_predict.py

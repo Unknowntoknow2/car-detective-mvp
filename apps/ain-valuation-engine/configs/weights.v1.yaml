@@ -1,0 +1,54 @@
+version: "1.0"
+factor_weights_100pt:
+  live_market_anchor: 30
+  accident_title_history: 15
+  mileage_vs_cohort: 12
+  condition: 11
+  ymm_trim_powertrain: 9
+  options_packages: 4
+  region_zip_residual: 3
+  owners_usage: 3
+  fine_tuning_misc: 13  # seasonality, CPO/warranty, color, recalls, mods, macro
+
+blend_weights:
+  # Reliability-driven weights (computed at runtime). These are clamps.
+  w_ml_min: 0.30
+  w_ml_max: 0.70
+  w_comp_min: 0.30
+  w_comp_max: 0.70
+
+reliability:
+  # Scoring inputs → [0..1]
+  k_comps_breakpoints: [0, 3, 5, 8]           # piecewise
+  freshness_days_breakpoints: [0, 7, 14, 30]  # lower is better
+  dispersion_mad_breakpoints: [0, 500, 1500, 3000]  # lower is better
+
+fallback_curve:
+  base_method: "msrp_depreciation_v1"
+  ev_penalty_if_no_soh: 0.05
+  salvage_discount_floor: 0.25
+  rebuilt_discount_floor: 0.15
+
+confidence:
+  high_threshold: 0.80
+  medium_threshold: 0.60
+  bands_pct:
+    high: [0.06, 0.08]
+    medium: [0.08, 0.12]
+    low: [0.12, 0.18]
+  cap_low_confidence: 0.60
+
+filters:
+  comps:
+    radius_km_ladder: [25, 50, 100, 300, 1000]
+    min_k: 3
+    outlier_filter: "IQR"     # IQR or MAD
+    iqr_multiplier: 1.5
+    mad_multiplier: 3.5
+    min_freshness_days: 30    # drop older comps first
+    max_mileage_delta_pct: 0.40
+
+latency_targets_ms:
+  p95_live_cached: 1500
+  p95_fresh_fetch: 3000
+  p95_fallback: 600

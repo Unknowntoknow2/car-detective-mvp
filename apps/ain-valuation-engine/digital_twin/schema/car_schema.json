@@ -1,0 +1,8 @@
+{
+  "car_id": "integer",
+  "make": "string",
+  "model": "string",
+  "year": "integer",
+  "price": "float",
+  "mileage": "integer"
+}

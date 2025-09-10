@@ -1,0 +1,30 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "API p95 Latency",
+        "metrics": [["AIN/${ENV}", "latency_p95", "Service", "valuation-api"]],
+        "region": "us-east-1",
+        "stat": "p95",
+        "view": "timeSeries",
+        "period": 60
+      }
+    },
+    {
+      "type": "metric",
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "title": "5xx Error Rate",
+        "metrics": [["AWS/ApiGateway", "5XXError", "ApiName", "valuation-api-${ENV}"]],
+        "region": "us-east-1",
+        "stat": "Sum",
+        "view": "timeSeries",
+        "period": 60
+      }
+    }
+  ]
+}

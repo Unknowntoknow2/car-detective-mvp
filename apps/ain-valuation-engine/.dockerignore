@@ -1,0 +1,26 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sqlite3
+*.db
+*.db-journal
+*.swp
+*.tmp
+*.bak
+.DS_Store
+.env
+.venv
+.idea/
+.vscode/
+tests/
+test_*.py
+engine/api_tests.py
+engine/batch_api_tests.py
+engine/explain_api_tests.py
+.git/
+.gitignore
+# If your models/pipelines are large, use mounted volumes instead of copying into image
+# models/
+# pipelines/

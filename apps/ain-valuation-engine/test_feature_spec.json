@@ -1,0 +1,1 @@
+{"columns": ["year", "mileage", "make"], "dtypes": {"year": "int64", "mileage": "int64", "make": "object"}}

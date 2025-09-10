@@ -1,0 +1,25 @@
+Unused dependencies
+* @react-pdf/renderer
+* express-rate-limit
+* got
+* papaparse
+* path
+* prom-client
+Unused devDependencies
+* @testing-library/jest-dom
+* @testing-library/react
+* @types/got
+* @types/jest
+* depcheck
+* istanbul-reports
+* madge
+* nodemon
+* supertest
+* ts-node
+* ts-prune
+* vite-tsconfig-paths
+* vitest
+* xml
+Missing dependencies
+* @jest/globals: ./tests/codeQuality.test.ts
+* k6: ./k6/decode_vin.js

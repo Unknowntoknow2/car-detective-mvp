@@ -1,0 +1,131 @@
+{
+  "estimated_value": 18944.997687623152,
+  "original_predicted_value": 18944.997687623152,
+  "mode_adjustment_amount": 0.0,
+  "mode": "sell",
+  "adjustments": {
+    "feature_contributions": [],
+    "feature_names": [
+      "year",
+      "mileage",
+      "make",
+      "model",
+      "zipcode",
+      "condition",
+      "trim_level",
+      "body_style",
+      "drive_type",
+      "fuel_type",
+      "transmission",
+      "exterior_damage_count",
+      "interior_wear_count",
+      "mechanical_issues_count",
+      "accident_count",
+      "title_type",
+      "number_of_owners",
+      "service_history_available",
+      "market_saturation",
+      "listing_velocity_days",
+      "time_on_market",
+      "premium_features_count",
+      "epa_mpg_combined",
+      "factory_warranty_months",
+      "certified_pre_owned",
+      "video_ai_condition_score",
+      "has_video_analysis",
+      "video_verified",
+      "data_confidence_score",
+      "vehicle_age",
+      "age_mileage_ratio",
+      "composite_condition_score",
+      "popular_color",
+      "is_electric"
+    ],
+    "expected_base_value": 18944.997687623152
+  },
+  "summary": "**Vehicle Valuation Summary**\n\nThis 2020 Honda Civic has been valued at **$18,945.00** for selling purposes using our comprehensive AI-powered analysis system.\n\n**Key Value Drivers:**\n\u2022 **Good Overall Condition**: Advanced condition assessment confirms vehicle quality\n\u2022 **Mileage Analysis**: 45,000 miles relative to vehicle age and market standards\n\u2022 **Verified History**: verified accident-free history, clean title, remaining factory warranty\n\u2022 **Market Position**: Valuation reflects current market conditions and regional pricing trends\n\n**Analysis Confidence:**\nThis valuation incorporates multiple verified data sources including OEM specifications, third-party history reports, and comprehensive condition assessment.\n\n**Market Context:**\nThe estimated value reflects current market dynamics, comparable vehicle analysis, and buyer demand patterns in your region. This vehicle represents strong value in today's market.\n\n*Note: This valuation is based on available data and current market conditions. Actual selling price may vary depending on specific buyer negotiations and market timing.*",
+  "confidence_score": 92,
+  "valuation_id": "5e90b003-e2e3-4535-90dd-b37171318239",
+  "timestamp": "2025-08-20T02:45:21.906645",
+  "api_version": "3.0",
+  "input_data": {
+    "vin": {
+      "value": "1HGCM82633A004352",
+      "verified": true,
+      "source_origin": "NHTSA"
+    },
+    "year": {
+      "value": 2020,
+      "verified": true,
+      "source_origin": "OEM"
+    },
+    "mileage": {
+      "value": 45000,
+      "verified": true,
+      "source_origin": "Odometer"
+    },
+    "make": {
+      "value": "Honda",
+      "verified": true,
+      "source_origin": "OEM"
+    },
+    "model": {
+      "value": "Civic",
+      "verified": true,
+      "source_origin": "OEM"
+    },
+    "overall_condition_rating": {
+      "value": "Good",
+      "verified": false,
+      "source_origin": "User"
+    },
+    "zipcode": {
+      "value": 94107,
+      "verified": true,
+      "source_origin": "User"
+    },
+    "photo_ai_score": {
+      "value": 84,
+      "verified": true,
+      "source_origin": "AI_Photo"
+    },
+    "ai_video_condition_score": {
+      "value": 77,
+      "verified": true,
+      "source_origin": "AI_Video"
+    },
+    "accident_history": {
+      "value": [],
+      "verified": true,
+      "source_origin": "Carfax"
+    },
+    "title_type": {
+      "value": "Clean",
+      "verified": true,
+      "source_origin": "Carfax"
+    },
+    "factory_warranty_remaining_months": {
+      "value": 24,
+      "verified": true,
+      "source_origin": "OEM"
+    },
+    "features_options": {
+      "value": {
+        "sunroof_moonroof": true,
+        "advanced_safety_systems": true
+      },
+      "verified": false,
+      "source_origin": "User"
+    },
+    "exterior_color": {
+      "value": "Blue",
+      "verified": true,
+      "source_origin": "OEM"
+    },
+    "market_confidence_score": {
+      "value": 92,
+      "verified": true,
+      "source_origin": "AIN_Engine"
+    }
+  }
+}

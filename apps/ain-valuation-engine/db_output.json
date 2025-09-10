@@ -1,0 +1,40 @@
+{
+  "Make": "TOYOTA",
+  "Manufacturer Name": "TOYOTA MOTOR MANUFACTURING, INDIANA, INC.",
+  "Model": "Highlander",
+  "Model Year": "2021",
+  "Plant City": "PRINCETON",
+  "Series": "GSU75L",
+  "Trim": "Platinum",
+  "Vehicle Type": "MULTIPURPOSE PASSENGER VEHICLE (MPV)",
+  "Plant Country": "UNITED STATES (USA)",
+  "Plant Company Name": "Toyota Motor Manufacturing, Indiana, Inc.",
+  "Plant State": "INDIANA",
+  "Body Class": "Sport Utility Vehicle (SUV)/Multi-Purpose Vehicle (MPV)",
+  "Doors": "5",
+  "Transmission Style": "Automatic",
+  "Transmission Speeds": "8",
+  "Drive Type": "4WD/4-Wheel Drive/4x4",
+  "Engine Stroke Cycles": null,
+  "Engine Model": "2GR-FKS",
+  "Valve Train Design": null,
+  "Engine Configuration": "V-Shaped",
+  "Engine Manufacturer": null,
+  "Pretensioner": null,
+  "Seat Belt Type": "Manual",
+  "VIN": "5TDFZRBH4MS152373",
+  "provider": "NHTSA",
+  "provenance": [
+    {
+      "provider": "NHTSA",
+      "success": true,
+      "error": null
+    }
+  ],
+  "recalls": [],
+  "explainability": {
+    "confidence": 0.99,
+    "provider": "NHTSA",
+    "rationale": "Decoded using provider and mapped to canonical schema."
+  }
+}

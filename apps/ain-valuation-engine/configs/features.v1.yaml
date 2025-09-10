@@ -1,0 +1,119 @@
+version: "1.0"
+description: "Deterministic feature set for AIN Valuation Core v1.0"
+
+inputs:
+  required:
+    - vin
+    - year
+    - make
+    - model
+    - body_style
+    - engine_fuel        # gas/diesel/hybrid/ev
+    - drivetrain         # fwd/awd/rwd/4x4
+    - transmission
+    - mileage
+    - zip
+    - sale_dt
+  optional:
+    - trim
+    - condition_grade
+    - title_brand        # clean/salvage/rebuilt/lemon/flood/other
+    - accidents
+    - owners
+    - cpo
+    - msrp
+    - photos_count
+    - ext_color
+    - int_color
+    - listing_source
+
+joins:
+  fuel_price:
+    key: [zip, sale_dt]
+    columns: [eia_gas_price_usd]
+    missing_policy: zero_center   # use (value - 90d_SMA), if missing -> 0
+  weather:
+    key: [zip, sale_dt]
+    columns: [avg_temp_c, precip_mm, snow_cm]
+    missing_policy: bucket_none
+  demand:
+    key: [zip, sale_dt]
+    columns: [search_index]
+    missing_policy: median_by_region
+  region_cluster:
+    key: [zip]
+    columns: [region_id]
+    missing_policy: most_common
+
+encoders:
+  categorical_onehot:
+    - make
+    - model
+    - body_style
+    - drivetrain
+    - transmission
+  categorical_bucket:
+    title_brand: [clean, salvage, rebuilt, lemon, flood, other]
+    listing_source: [auction, dealer, private, other]
+  binary_flags:
+    - cpo
+    - engine_fuel_gas
+    - engine_fuel_diesel
+    - engine_fuel_hybrid
+    - engine_fuel_ev
+
+derivations:
+  - name: vehicle_age_years
+    expr: "max(0, year(sale_dt) - year)"
+  - name: mileage_per_year
+    expr: "mileage / max(1.0, vehicle_age_years)"
+  - name: mileage_z
+    expr: "zscore(mileage, group=['make','model','year'])"
+  - name: condition_proxy
+    expr: "ifnull(condition_grade, clamp(0.5 + 0.03*(cpo==True) - 0.01*(accidents>0) - 0.02*(photos_count<5), 0.3, 0.9))"
+  - name: fuel_price_resid
+    expr: "eia_gas_price_usd - sma(eia_gas_price_usd, window=90d, group=['region_id'])"
+  - name: cold_weather
+    expr: "avg_temp_c < 0"
+  - name: heavy_snow
+    expr: "snow_cm > 5.0"
+  - name: demand_idx
+    expr: "ifnull(search_index, median(search_index, group=['region_id']))"
+  - name: powertrain_score
+    expr: "1.0*(drivetrain in ['awd','4x4']) + 0.5*(engine_fuel in ['diesel','hybrid','ev'])"
+
+imputation:
+  numeric:
+    default: median_by_segment  # segment=['body_style','engine_fuel','region_id']
+  categorical:
+    default: mode
+
+outputs:
+  feature_list:
+    - vehicle_age_years
+    - mileage
+    - mileage_per_year
+    - mileage_z
+    - condition_proxy
+    - accidents
+    - owners
+    - cpo
+    - title_brand
+    - body_style
+    - drivetrain
+    - transmission
+    - powertrain_score
+    - fuel_price_resid
+    - avg_temp_c
+    - precip_mm
+    - snow_cm
+    - cold_weather
+    - heavy_snow
+    - demand_idx
+    - region_id
+    - make
+    - model
+    - engine_fuel_gas
+    - engine_fuel_diesel
+    - engine_fuel_hybrid
+    - engine_fuel_ev

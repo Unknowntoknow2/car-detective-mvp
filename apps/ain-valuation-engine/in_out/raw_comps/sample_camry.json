@@ -1,0 +1,24 @@
+[
+  {
+    "source": "CarGurus",
+    "year": 2021,
+    "make": "TOYOTA",
+    "model": "CAMRY",
+    "trim": "SE",
+    "price": 24500,
+  "mileage": 21000,
+    "city": "Los Angeles",
+    "vin": "4T1G11AK7MU123456"
+  },
+  {
+    "source": "AutoNation",
+    "year": 2020,
+    "make": "TOYOTA",
+    "model": "CAMRY",
+    "trim": "LE",
+    "price": 22000,
+  "mileage": 30000,
+    "city": "San Diego",
+    "vin": "4T1C11AK0LU987654"
+  }
+]

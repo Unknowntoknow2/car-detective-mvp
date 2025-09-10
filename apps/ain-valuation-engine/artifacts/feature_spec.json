@@ -1,0 +1,41 @@
+{
+  "feature_order": [
+    "year",
+    "make",
+    "model",
+    "mileage",
+    "region",
+    "state",
+    "fuel_type",
+    "transmission",
+    "drive_type",
+    "vin",
+    "condition",
+    "title_status",
+    "epa_mpg_combined",
+    "epa_fuel_type",
+    "epa_body",
+    "fuel_cost_index"
+  ],
+  "numeric_cols": [
+    "year",
+    "mileage",
+    "epa_mpg_combined",
+    "fuel_cost_index"
+  ],
+  "cat_cols": [
+    "make",
+    "model",
+    "region",
+    "state",
+    "fuel_type",
+    "transmission",
+    "drive_type",
+    "vin",
+    "condition",
+    "title_status",
+    "epa_fuel_type",
+    "epa_body"
+  ],
+  "version": "v1"
+}

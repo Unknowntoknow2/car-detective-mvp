@@ -1,0 +1,62 @@
+name: Production Build Guard
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  validate-ain-config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+      with:
+        node-version-file: .nvmrc
+        with: 
+          node-version: 20
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Check if this is a production build
+        id: check-prod
+        run: |
+          if [[ "$GITHUB_REF" =~ ^refs/tags/ ]] || [[ "$GITHUB_BASE_REF" == "main" ]] || [[ "$GITHUB_BASE_REF" == "master" ]]; then
+            echo "is_prod=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prod=false" >> $GITHUB_OUTPUT
+          fi
+        
+      - name: Build with AIN enforcement
+        if: steps.check-prod.outputs.is_prod == 'true'
+        env:
+          USE_AIN_VALUATION: true
+          AIN_UPSTREAM_URL: ${{ secrets.AIN_UPSTREAM_URL || 'https://api.ain.ai' }}
+          AIN_API_KEY: ${{ secrets.AIN_API_KEY || 'required-but-not-exposed' }}
+        run: |
+          echo "🔐 Building with AIN enforcement for production..."
+          npm -w apps/ain-valuation-engine run build
+          
+      - name: Build without enforcement (dev)
+        if: steps.check-prod.outputs.is_prod == 'false'
+        run: |
+          echo "🧪 Building development version..."
+          npm -w apps/ain-valuation-engine run build
+          
+      - name: Verify headers in build output
+        if: steps.check-prod.outputs.is_prod == 'true'
+        run: |
+          echo "🔍 Checking for AIN configuration in build..."
+          if grep -r "AIN_ENABLED" dist/ || grep -r "__REQUIRE_AIN__" dist/; then
+            echo "✅ AIN configuration found in build"
+          else
+            echo "❌ AIN configuration missing from production build"
+            exit 1
+          fi
