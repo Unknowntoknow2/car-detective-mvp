@@ -1,9 +1,24 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-correlation-id',
+// Dynamic CORS headers based on request origin
+const getAllowedOrigins = () => [
+  'https://41200850-3625-4819-9176-e531ed23d3db.sandbox.lovable.dev',
+  'http://localhost:5173',
+  'http://localhost:8080',
+  'https://xltxqqzattxogxtqrggt.supabase.co'
+];
+
+const getCorsHeaders = (request: Request) => {
+  const origin = request.headers.get('origin');
+  const allowedOrigins = getAllowedOrigins();
+  
+  return {
+    'Access-Control-Allow-Origin': allowedOrigins.includes(origin || '') ? origin : '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-correlation-id',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin'
+  };
 };
 
 // AIN API configuration
@@ -35,6 +50,8 @@ interface AINResponse {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -60,7 +77,10 @@ serve(async (req) => {
     // Validate AIN configuration
     if (!AIN_API_KEY) {
       console.error('❌ [AIN] API key not configured');
-      return new Response(JSON.stringify({ error: 'AIN service not configured' }), {
+      return new Response(JSON.stringify({ 
+        error: 'AIN service not configured',
+        hint: 'Missing AIN_API_KEY environment variable'
+      }), {
         status: 501,
         headers: { 
           ...corsHeaders, 
