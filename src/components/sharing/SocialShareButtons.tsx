@@ -11,7 +11,7 @@ import {
   Mail,
   MessageSquare
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks';
 
 interface SocialShareButtonsProps {
   valuationId: string;

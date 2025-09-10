@@ -18,7 +18,7 @@ export { Progress } from './ui/progress';
 export { Separator } from './ui/separator';
 export { Skeleton } from './ui/skeleton';
 export { Spinner } from './ui/spinner';
-export { toast, useToast } from './ui/use-toast';
+export { toast, useToast } from '@/hooks';
 export { Toaster } from './ui/toaster';
 export { Sonner } from './ui/sonner';
 
