@@ -18,5 +18,5 @@ jobs:
           cache: npm
           cache-dependency-path: apps/ain-valuation-engine/package-lock.json
       - run: npm ci
-      - run: npm run build || echo "build optional"
-      - run: npm run test || echo "no tests"
+      - run: npm run build
+      - run: npm run test
