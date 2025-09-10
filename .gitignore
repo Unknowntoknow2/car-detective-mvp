@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 apps/ain-valuation-engine/.env
 apps/ain-valuation-engine/.codespaces/
+apps/ain-valuation-engine/.env
+apps/ain-valuation-engine/.codespaces/
+**/.env*
+**/*.pem
+**/user-secrets*.json
