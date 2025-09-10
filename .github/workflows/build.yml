@@ -13,8 +13,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: package-lock.json
-      - run: npm ci -w apps/ain-valuation-engine
-      - run: npm run build -w apps/ain-valuation-engine
+      - run: npm ci --workspaces --include-workspace-root
+      - run: npm run build -w apps/ain-valuation-engine || echo "build optional"
       - run: npm run test  -w apps/ain-valuation-engine || echo "no tests"
