@@ -3,13 +3,11 @@
 import { Make, Model } from "@/hooks/types/vehicle";
 import { toast } from "sonner";
 import { createClient } from "@supabase/supabase-js";
+import { appConfig } from "@/config";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(appConfig.SUPABASE_URL, appConfig.SUPABASE_ANON_KEY);
 
-const API_BASE_URL = import.meta.env.VITE_VEHICLE_API_URL ||
-  "http://localhost:3000/api";
+const API_BASE_URL = appConfig.API_BASE_URL;
 
 interface VehicleDetails {
   year: number;

@@ -4,15 +4,17 @@
  * This file handles Sentry initialization with proper error handling
  */
 
+import { appConfig } from '@/config';
+
 export const initSentry = () => {
   try {
-    if (import.meta.env.MODE === 'production' && import.meta.env.VITE_SENTRY_DSN) {
+    if (appConfig.SENTRY_ENABLED) {
       console.log('Sentry initialization skipped: Will be enabled in production with proper DSN');
       // In a real implementation with the proper packages installed:
       // Sentry.init({
-      //   dsn: import.meta.env.VITE_SENTRY_DSN,
+      //   dsn: appConfig.SENTRY_DSN,
       //   tracesSampleRate: 0.5,
-      //   environment: import.meta.env.MODE
+      //   environment: appConfig.MODE
       // });
     } else {
       console.info('Sentry init skipped: Not in production or missing DSN');

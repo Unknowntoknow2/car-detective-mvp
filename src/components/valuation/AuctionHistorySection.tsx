@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { appConfig } from "@/config";
 
 export interface AuctionHistorySectionProps {
   vin: string;
@@ -33,7 +34,7 @@ export const AuctionHistorySection: React.FC<AuctionHistorySectionProps> = (
             headers: {
               "Content-Type": "application/json",
               "Authorization":
-                `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                `Bearer ${appConfig.SUPABASE_ANON_KEY}`,
             },
             body: JSON.stringify({ vin }),
           },
