@@ -1,9 +1,9 @@
 name: Build and Test App
 on:
   pull_request:
-    paths:
-      - "apps/ain-valuation-engine/**"
-      - ".github/workflows/build.yml"
+  push:
+    branches: [ merge/ain-valuation-engine-into-car-detective-mvp ]
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,5 +18,5 @@ jobs:
           cache: npm
           cache-dependency-path: apps/ain-valuation-engine/package-lock.json
       - run: npm ci
-      - run: npm run build || echo "build step optional; continuing"
-      - run: npm run test || echo "no tests; continuing"
+      - run: npm run build || echo "build optional"
+      - run: npm run test || echo "no tests"
