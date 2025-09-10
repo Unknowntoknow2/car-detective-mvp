@@ -34,7 +34,6 @@ export const CDMotionCard: React.FC<CDMotionCardProps> = ({
       transition: {
         duration: 0.5,
         delay: reduceMotion ? 0 : delay,
-        ease: "easeOut",
       },
     },
   };
