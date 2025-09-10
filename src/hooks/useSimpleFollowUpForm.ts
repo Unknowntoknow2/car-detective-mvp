@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
+import { runValuation } from '@/lib/ainClient';
 import { supabase } from '@/integrations/supabase/client';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 
@@ -392,27 +393,29 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
         console.log('🧮 [FOLLOW-UP] Triggering valuation calculation...');
         
         try {
-          // Call valuation creation via the valuation-request edge function
-          const { data: valuationRequestResult, error: requestError } = await supabase.functions.invoke('valuation-request', {
-            body: {
-              vin: vin,
-              make: decodedVehicle?.make || formData.make || 'Unknown',
-              model: decodedVehicle?.model || formData.model || 'Unknown',
-              year: decodedVehicle?.year || formData.year || new Date().getFullYear(),
-              mileage: formData.mileage,
-              zip_code: formData.zip_code,
-              condition: formData.condition,
-              requested_by: 'followup_form'
-            }
+          // Call the real AIN valuation API via our hardened endpoint
+          const { data: ainResult, meta } = await runValuation({
+            vin: vin,
+            make: decodedVehicle?.make || formData.make || 'Unknown',
+            model: decodedVehicle?.model || formData.model || 'Unknown',
+            year: decodedVehicle?.year || formData.year || new Date().getFullYear(),
+            mileage: formData.mileage,
+            zip_code: formData.zip_code,
+            condition: formData.condition,
+            requested_by: 'followup_form'
           });
 
-          if (requestError) {
-            console.error('⚠️ [FOLLOW-UP] Valuation request failed:', requestError);
-          } else {
-            console.log('✅ [FOLLOW-UP] Valuation request submitted successfully');
+          console.log('✅ [AIN] Valuation completed:', ainResult);
+          console.log('🔍 [AIN] Route metadata:', meta);
+          
+          // Store the AIN result in the database
+          if (ainResult && typeof ainResult === 'object' && 'estimated_value' in ainResult) {
+            console.log('📊 [AIN] Professional valuation received');
           }
+
         } catch (calcError) {
-          console.error('⚠️ [FOLLOW-UP] Error during valuation calculation:', calcError);
+          const errorMessage = calcError instanceof Error ? calcError.message : 'AIN valuation failed';
+          console.error('❌ [AIN] Valuation error:', errorMessage);
         }
       }
 
