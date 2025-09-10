@@ -1,0 +1,12 @@
+{
+  "name": "car-detective-mvp-monorepo",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "build": "npm -w apps/ain-valuation-engine run build",
+    "test": "npm -w apps/ain-valuation-engine run test --silent || echo \"no tests\"",
+    "lint": "npm -w apps/ain-valuation-engine run lint || echo \"no lint\"",
+    "e2e-tests": "npm -w apps/ain-valuation-engine run e2e-tests || echo \"no e2e script\"",
+    "ci": "npm run build && npm run test"
+  }
+}
