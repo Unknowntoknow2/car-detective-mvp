@@ -1,10 +1,16 @@
 {
   "rules": {
     "no-restricted-imports": ["error", {
-      "paths": [{ 
-        "name": "@/context/ValuationContext", 
-        "message": "Use @/contexts/ValuationContext (plural) - enforces single import path" 
-      }]
+      "paths": [
+        { 
+          "name": "@/context/ValuationContext", 
+          "message": "Use @/contexts/ValuationContext (plural) - enforces single import path" 
+        },
+        {
+          "name": "@/services/valuation/valuationEngine",
+          "message": "Use AIN client (runValuation) for live flows."
+        }
+      ]
     }]
   }
 }

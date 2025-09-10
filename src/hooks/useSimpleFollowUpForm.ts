@@ -401,7 +401,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
             year: decodedVehicle?.year || formData.year || new Date().getFullYear(),
             mileage: formData.mileage,
             zip_code: formData.zip_code,
-            condition: formData.condition,
+            condition: formData.condition as "poor" | "fair" | "good" | "very_good" | "excellent",
             requested_by: 'followup_form'
           });
 

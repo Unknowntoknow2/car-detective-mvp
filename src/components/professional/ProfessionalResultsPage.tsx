@@ -126,10 +126,9 @@ export default function ProfessionalResultsPage() {
             model: valuationData.model,
             year: valuationData.year,
             mileage: valuationData.mileage || 60000,
-            condition: valuationData.condition || 'good',
-            zipCode: valuationData.state || '95821',
-            accidents: 0,
-            titleStatus: 'clean'
+            condition: valuationData.condition as "poor" | "fair" | "good" | "very_good" | "excellent" || 'good',
+            zip_code: valuationData.state || '95821',
+            requested_by: 'professional_results'
           });
 
           console.log('✅ [AIN] Professional valuation completed');
