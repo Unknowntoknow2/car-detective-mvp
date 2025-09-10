@@ -3,13 +3,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import ProcessAuditTrail from './ProcessAuditTrail';
 import { WhyNotCountedCard } from './WhyNotCountedCard';
 import { EnhancedValuationResult } from '@/types/valuation';
+import { appConfig } from '@/config';
 
 interface AuditAndSourcesAccordionProps {
   result: EnhancedValuationResult;
 }
 
 export function AuditAndSourcesAccordion({ result }: AuditAndSourcesAccordionProps) {
-  const featureAuditEnabled = import.meta.env.VITE_FEATURE_AUDIT === '1';
+  const featureAuditEnabled = appConfig.AUDIT_ENABLED;
   
   if (!featureAuditEnabled || !result.processAuditTrail) {
     return null;

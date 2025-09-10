@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { appConfig } from '@/config';
 import { 
   Accordion, 
   AccordionContent, 
@@ -511,7 +512,7 @@ export function ValuationResultCard({ result, onDownloadPdf, onShareReport, vin 
         </Card>
 
         {/* Audit & Sources Section */}
-        {import.meta.env.VITE_FEATURE_AUDIT === '1' && (
+        {appConfig.AUDIT_ENABLED && (
           <div>
             <AuditAndSourcesAccordion result={result as any} />
           </div>

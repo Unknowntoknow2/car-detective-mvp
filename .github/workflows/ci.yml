@@ -23,8 +23,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate no banned patterns
+        run: |
+          chmod +x scripts/validate-no-banned-patterns.sh
+          ./scripts/validate-no-banned-patterns.sh
+
       - name: Lint
         run: npm run lint
+
+      - name: Production lint check
+        run: npx eslint src/ --config .eslintrc.production.json
 
       - name: Type check
         run: npx tsc --noEmit

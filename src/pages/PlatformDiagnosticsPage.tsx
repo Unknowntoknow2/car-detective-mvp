@@ -5,6 +5,7 @@ import { SEO } from '@/components/layout/seo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { Sentry } from '@/lib/sentry';
+import { appConfig } from '@/config';
 
 export default function PlatformDiagnosticsPage() {
   const [fontLoaded, setFontLoaded] = useState<boolean>(false);
@@ -35,8 +36,8 @@ export default function PlatformDiagnosticsPage() {
         const { data } = await supabase.from('_diagnose').select('project_id').limit(1).single();
         setSupabaseProject(data?.project_id || 'Connected (no project ID available)');
       } catch (error) {
-        // Use environment variable instead of accessing protected property
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://xltxqqzattxogxtqrggt.supabase.co';
+        // Use config instead of environment variable
+        const supabaseUrl = appConfig.SUPABASE_URL;
         const projectRef = supabaseUrl.replace('https://', '').split('.')[0];
         setSupabaseProject(`Connected to: ${projectRef}`);
       }

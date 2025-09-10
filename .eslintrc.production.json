@@ -1,0 +1,16 @@
+{
+  "extends": ["./.eslintrc.json"],
+  "rules": {
+    "no-console": ["error", { 
+      "allow": ["warn", "error"] 
+    }],
+    "no-debugger": "error",
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "CallExpression[callee.object.name='console'][callee.property.name!=/^(warn|error)$/]",
+        "message": "Unexpected console statement - use logger from @/lib/logger instead"
+      }
+    ]
+  }
+}
