@@ -16,7 +16,7 @@ export {
   lookupByPlate as plateLookup
 } from './lookupService';
 
-// Legacy valuation exports removed - use unifiedValuationEngine.ts directly
+// AIN-only implementation - no legacy valuation engines
 
 export { 
   uploadAndAnalyzePhoto as uploadPhoto,
