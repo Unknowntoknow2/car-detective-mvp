@@ -115,12 +115,12 @@ export default function ProfessionalResultsPage() {
 
         // Only use real valuations - no fake data generation
         if (!valuationData.estimated_value || valuationData.estimated_value <= 0) {
-          // Use the real valuation engine
-          console.log('🔍 Using Real Valuation Engine for calculation...');
+          // Use the AIN valuation API
+          console.log('🔍 Using AIN API for professional valuation...');
           
-          const { RealValuationEngine } = await import('@/services/valuation/realValuationEngine');
+          const { runValuation } = await import('@/lib/ainClient');
           
-          const realValuationResult = await RealValuationEngine.calculateValuation({
+          const ainResult = await runValuation({
             vin: valuationData.vin,
             make: valuationData.make,
             model: valuationData.model,
@@ -132,28 +132,32 @@ export default function ProfessionalResultsPage() {
             titleStatus: 'clean'
           });
 
-          if (!realValuationResult.success) {
-            throw new Error(realValuationResult.error || 'Failed to calculate real valuation');
-          }
-
-          // Update database with real valuation
-          const { error: updateError } = await supabase
-            .from('valuations')
-            .update({
-              estimated_value: realValuationResult.estimatedValue,
-              confidence_score: realValuationResult.confidenceScore
-            })
-            .eq('id', valuationData.id);
+          console.log('✅ [AIN] Professional valuation completed');
+          
+          // Update database with AIN results
+          if (ainResult?.data && typeof ainResult.data === 'object' && 'estimated_value' in ainResult.data) {
+            const ainData = ainResult.data as any;
             
-          if (!updateError) {
-            valuationData.estimated_value = realValuationResult.estimatedValue;
-            valuationData.confidence_score = realValuationResult.confidenceScore;
-            
-            toast.success('Valuation completed with real market data!', {
-              description: `$${realValuationResult.estimatedValue.toLocaleString()} (${realValuationResult.confidenceScore}% confidence)`
-            });
+            const { error: updateError } = await supabase
+              .from('valuations')
+              .update({
+                estimated_value: ainData.estimated_value,
+                confidence_score: ainData.confidence_score || 75
+              })
+              .eq('id', valuationData.id);
+              
+            if (!updateError) {
+              valuationData.estimated_value = ainData.estimated_value;
+              valuationData.confidence_score = ainData.confidence_score || 75;
+              
+              toast.success('Professional AIN valuation completed!', {
+                description: `$${ainData.estimated_value.toLocaleString()} (${ainData.confidence_score || 75}% confidence)`
+              });
+            } else {
+              throw new Error('Failed to save AIN valuation to database');
+            }
           } else {
-            throw new Error('Failed to save valuation to database');
+            throw new Error('AIN API returned invalid data format');
           }
         }
 
