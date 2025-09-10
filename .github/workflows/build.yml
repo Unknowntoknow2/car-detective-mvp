@@ -2,7 +2,7 @@ name: Build and Test App
 on:
   pull_request:
   push:
-    branches: [ merge/ain-valuation-engine-into-car-detective-mvp ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
