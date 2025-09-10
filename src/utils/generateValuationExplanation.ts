@@ -1,6 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-// Note: This file needs refactoring to use unifiedValuationEngine.ts
-// Temporarily removed calculateFinalValuation dependency
+// AIN-only implementation - no legacy dependencies
 
 interface ExplanationParams {
   make: string;

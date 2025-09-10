@@ -6,10 +6,16 @@ test.describe('AIN API Integration Validation', () => {
     page.on('console', (msg) => {
       const text = msg.text();
       
-      // These logs should NOT appear (fallback indicators)
+      // These logs should NEVER appear (fallback indicators)
       expect(text).not.toMatch(/ain\.fallback\.used/);
       expect(text).not.toMatch(/Using fallback valuation/);
       expect(text).not.toMatch(/RealValuationEngine/);
+      expect(text).not.toMatch(/Real Valuation Engine/);
+      expect(text).not.toMatch(/Using Real Valuation Engine/);
+      expect(text).not.toMatch(/Real-time valuation completed/);
+      expect(text).not.toMatch(/🔄 Rerunning valuation with real-time engine/);
+      expect(text).not.toMatch(/⚠️ Using fallback valuation/);
+      expect(text).not.toMatch(/🔄 Using fallback MSRP-based valuation/);
       
       // Log AIN-related messages for debugging
       if (text.includes('AIN') || text.includes('ain.')) {
