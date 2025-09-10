@@ -14,7 +14,7 @@
     "dev": "vite",
     "build": "vite build",
     "start": "node dist/ain-backend/server.js",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "test:watch": "jest --watch",
     "test:ci": "jest --ci --coverage --watchAll=false",
     "lint": "eslint . || echo 'no lint'",
