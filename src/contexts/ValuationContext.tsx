@@ -284,6 +284,8 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
     rerunValuation
   };
 
+  console.log('✅ ValuationProvider rendering with context value:', !!value);
+
   return (
     <ValuationContext.Provider value={value}>
       {children}
@@ -294,7 +296,16 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
 export function useValuationContext() {
   const context = useContext(ValuationContext);
   if (context === undefined) {
-    throw new Error('useValuationContext must be used within a ValuationProvider');
+    // Enhanced error message to catch import path mismatches
+    console.error('❌ useValuationContext error: Context is undefined');
+    console.error('❌ Check that you are importing from @/contexts/ValuationContext (plural)');
+    console.error('❌ Ensure the component is wrapped with ValuationProvider');
+    
+    throw new Error(
+      'useValuationContext must be used within a ValuationProvider. ' +
+      'Make sure you are importing from @/contexts/ValuationContext (plural) ' +
+      'and that your component is wrapped with <ValuationProvider>'
+    );
   }
   return context;
 }
