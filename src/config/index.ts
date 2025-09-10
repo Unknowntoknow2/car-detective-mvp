@@ -7,9 +7,6 @@
 
 import { z } from 'zod';
 
-// Import global types
-import '../global.d.ts';
-
 // Configuration interface
 export interface Config {
   SUPABASE_URL: string;
