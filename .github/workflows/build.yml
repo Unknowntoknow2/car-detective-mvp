@@ -8,9 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      CI: true
-      HUSKY: 0
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -18,15 +15,6 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
           cache-dependency-path: package-lock.json
-      - name: Versions
-        run: |
-          node -v
-          npm -v
-      - name: Show npm config (head)
-        run: npm config list -l | sed -n '1,120p'
-      - name: Install (workspaces, no hooks)
-        run: npm ci --workspaces --include-workspace-root --ignore-scripts
-      - name: Build app
-        run: npm run build -w apps/ain-valuation-engine || echo "build optional"
-      - name: Test app
-        run: npm run test  -w apps/ain-valuation-engine || echo "no tests"
+      - run: npm ci --ignore-scripts --no-audit --fund=false
+      - run: npm -w apps/ain-valuation-engine run build
+      - run: npm -w apps/ain-valuation-engine run test || echo "no tests"
