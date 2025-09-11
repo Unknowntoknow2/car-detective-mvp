@@ -1,9 +1,13 @@
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Navigate } from 'react-router-dom';
 
 // Core pages
 import ProfessionalHomePage from './pages/ProfessionalHomePage';
+
+// Lazy loaded pages
+const GetValuationPage = React.lazy(() => import('./pages/GetValuationPage'));
+const ValuationPage = React.lazy(() => import('./pages/ValuationPage'));
 import Dashboard from './pages/Dashboard';
 import DealerDashboard from './pages/DealerDashboard';
 import OffersPage from './pages/OffersPage';
@@ -39,6 +43,22 @@ const routes = [
       {
         index: true,
         element: <ProfessionalHomePage />,
+      },
+      {
+        path: "get-valuation", 
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <GetValuationPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "valuation",
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <ValuationPage />
+          </Suspense>
+        ),
       },
       {
         path: "dashboard",
