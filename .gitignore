@@ -38,3 +38,6 @@ coverage/
 **/tsconfig.tsbuildinfo
 *.tmp
 package.json.broken.*
+.env
+.env.local
+.env.*
