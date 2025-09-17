@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "npm run -w apps/ain-valuation-engine build",
+    "typecheck:fast": "tsc -p apps/ain-valuation-engine/tsconfig.json --noEmit --pretty false",
     "test": "npm -w apps/ain-valuation-engine run test --silent || echo \"no tests\"",
     "lint": "npm run -w apps/ain-valuation-engine lint",
     "e2e-tests": "npm -w apps/ain-valuation-engine run e2e-tests || echo \"no e2e script\"",
