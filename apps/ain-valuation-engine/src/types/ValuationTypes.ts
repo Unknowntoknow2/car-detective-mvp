@@ -12,6 +12,54 @@ export type LegacyVehicleData = VehicleDataCanonical;
  */
 export type ValuationResult = ValuationResultCanonical;
 
+/**
+ * Runtime-friendly vehicle condition options used throughout the valuation UI.
+ */
+export const VehicleCondition = {
+  EXCELLENT: "excellent",
+  VERY_GOOD: "very_good",
+  GOOD: "good",
+  FAIR: "fair",
+  POOR: "poor",
+} as const;
+
+export type VehicleCondition = (typeof VehicleCondition)[keyof typeof VehicleCondition];
+
+/**
+ * Canonical title status values for valuation workflows.
+ */
+export const TitleStatus = {
+  CLEAN: "clean",
+  SALVAGE: "salvage",
+  REBUILT: "rebuilt",
+  FLOOD: "flood",
+  LEMON: "lemon",
+  MANUFACTURER_BUYBACK: "manufacturer_buyback",
+} as const;
+
+export type TitleStatus = (typeof TitleStatus)[keyof typeof TitleStatus];
+
+/**
+ * Validation rule definition for data collection prompts.
+ */
+export type ValidationRule =
+  | { type: "required"; message: string }
+  | { type: "min" | "max"; message: string; value: number }
+  | { type: "pattern"; message: string; value: RegExp };
+
+/**
+ * Data gap descriptor used to drive progressive user prompts.
+ */
+export interface DataGap {
+  field: keyof VehicleData | string;
+  required: boolean;
+  prompt: string;
+  validationRules?: ValidationRule[];
+  defaultValue?: unknown;
+}
+
+export type VehicleData = VehicleDataCanonical;
+
 // ---
 // 📋 Core Required Fields
 // ---

@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { VariableValue } from '../../types/VariableValue';
-import { VehicleData, VehicleCondition, TitleStatus, DataGap, ValuationResult } from '../../types/ValuationTypes';
-import { valuateVehicle } from '@/ain-backend/valuationEngine';
+import { useEffect, useState } from "react";
+import { valuateVehicle } from "@/ain-backend/valuationEngine";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import type { VariableValue } from "../../types/VariableValue";
+import {
+  TitleStatus,
+  VehicleCondition,
+  type DataGap,
+  type ValuationResult,
+  type VehicleData,
+} from "../../types/ValuationTypes";
 
 interface DataCollectionFormProps {
   decodedVin: VariableValue[];

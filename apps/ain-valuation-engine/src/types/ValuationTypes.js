@@ -1,4 +1,17 @@
-// src/types/ValuationTypes.ts
-// Canonical schema for AIN Valuation Engine (Google-level, 40+ factors)
-// All legacy types are deprecated and aliased to canonical.
-export {};
+// Runtime exports mirroring src/types/ValuationTypes.ts for non-TypeScript consumers.
+export const VehicleCondition = {
+  EXCELLENT: "excellent",
+  VERY_GOOD: "very_good",
+  GOOD: "good",
+  FAIR: "fair",
+  POOR: "poor",
+};
+
+export const TitleStatus = {
+  CLEAN: "clean",
+  SALVAGE: "salvage",
+  REBUILT: "rebuilt",
+  FLOOD: "flood",
+  LEMON: "lemon",
+  MANUFACTURER_BUYBACK: "manufacturer_buyback",
+};
