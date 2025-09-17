@@ -5,11 +5,12 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "npm -w apps/ain-valuation-engine run build",
+    "build": "npm run -w apps/ain-valuation-engine build",
     "test": "npm -w apps/ain-valuation-engine run test --silent || echo \"no tests\"",
-    "lint": "npm -w apps/ain-valuation-engine run lint || echo \"no lint\"",
+    "lint": "npm run -w apps/ain-valuation-engine lint",
     "e2e-tests": "npm -w apps/ain-valuation-engine run e2e-tests || echo \"no e2e script\"",
-    "ci": "npm run build && npm run test"
+    "ci": "npm run build && npm run test",
+    "typecheck": "npm run -w apps/ain-valuation-engine typecheck"
   },
   "dependencies": {
     "@faker-js/faker": "^10.0.0",

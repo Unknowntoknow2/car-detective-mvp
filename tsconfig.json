@@ -5,15 +5,26 @@
     "moduleResolution": "node",
     "baseUrl": "src",
     "paths": {
-      "@/*": ["*"]
+      "@/*": [
+        "*"
+      ]
     },
     "jsx": "react-jsx",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["vite/client", "node", "react", "react-dom"]
+    "types": [
+      "vite/client",
+      "node",
+      "react",
+      "react-dom"
+    ]
   },
-  "include": ["src"],
-  "exclude": ["node_modules"]
+  "include": [
+    "nonexistent.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
