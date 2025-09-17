@@ -1,18 +1,6 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "apps/ain-valuation-engine/api/**/*.py", "use": "@vercel/python" },
-    {
-      "src": "apps/ain-valuation-engine/package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
-    }
-  ],
-  "routes": [
-    { "src": "^/api$", "dest": "/apps/ain-valuation-engine/api/app.py" },
-    { "src": "^/api/(.*)$", "dest": "/apps/ain-valuation-engine/api/app.py" }
-  ],
-  "installCommand": "npm install",
+  "installCommand": "npm ci",
   "buildCommand": "npm run build --workspace apps/ain-valuation-engine",
   "outputDirectory": "apps/ain-valuation-engine/dist"
 }
