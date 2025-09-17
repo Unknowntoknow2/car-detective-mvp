@@ -5,8 +5,13 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
   test: {
-    environment: 'node',
     globals: true,
-    setupFiles: ['./tests/setup.ts'],
+    environment: 'node',
+    setupFiles: ['./test/setup.ts'],
+    restoreMocks: true,
+    mockReset: true,
+    clearMocks: true,
+    timeout: 15_000,
+    exclude: ['supabase/functions/**/__tests__/**'],
   },
 })
