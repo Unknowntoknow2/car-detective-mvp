@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import logger from "./utils/logger";
+import { useState } from "react";
 import { GlobalErrorBoundary } from "@/components/security/GlobalErrorBoundary";
 import { VinLookupForm } from "@/components/lookup/vin/VinLookupForm";
 import { DataCollectionForm } from "@/components/followup/DataCollectionForm";
 import { ValuationResultsDisplay } from "@/components/result/ValuationResultsDisplay";
-import { VariableValue } from "./types/VariableValue";
-import { ValuationResult } from "./types/ValuationTypes";
+import logger from "./utils/logger";
+import type { VariableValue } from "./types/VariableValue";
+import type { ValuationResult } from "./types/ValuationTypes";
 
 /** Application state defining the current step in the valuation workflow */
 type AppState = 'vin-lookup' | 'data-collection' | 'valuation-results';
