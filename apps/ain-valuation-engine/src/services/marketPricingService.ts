@@ -2,6 +2,13 @@ import fetch from "node-fetch";
 
 const RAPIDAPI_HOST = "vehicle-pricing-api.p.rapidapi.com";
 
+type MarketPricingApiResponse = {
+  retail?: number | null;
+  wholesale?: number | null;
+  tradeIn?: number | null;
+  [key: string]: unknown;
+};
+
 export async function fetchMarketPricing(make: string, model: string, year: number) {
   if (!process.env.RAPIDAPI_KEY) {
     console.warn("⚠️ Missing RAPIDAPI_KEY, skipping market pricing");
@@ -22,7 +29,7 @@ export async function fetchMarketPricing(make: string, model: string, year: numb
     return null;
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as MarketPricingApiResponse;
   return {
     retail: data?.retail || null,
     wholesale: data?.wholesale || null,

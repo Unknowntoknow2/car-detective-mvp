@@ -38,7 +38,6 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
     const data: Partial<VehicleData> = { vin };
     // Google-level: log all decoded fields for mapping
     if (decoded && decoded.length > 0) {
-      // eslint-disable-next-line no-console
       console.log('[VIN DECODE] All decoded fields:', decoded);
     }
     decoded.forEach(item => {
@@ -162,10 +161,11 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
     return gaps;
   }
 
-  const handleInputChange = (field: string, value: string | number | boolean) => {
-    setVehicleData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+  const handleInputChange = (field: keyof VehicleData | string, value: string | number | boolean) => {
+    const key = String(field);
+    setVehicleData((prev: Partial<VehicleData>) => ({ ...prev, [key]: value }));
+    if (errors[key]) {
+      setErrors(prev => ({ ...prev, [key]: '' }));
     }
   };
 
@@ -230,14 +230,14 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
       // Always build a complete VehicleData object from decoded VIN and user input
       const vd: VehicleData = {
         vin: vehicleData.vin!,
-        year: vehicleData.year,
-        make: vehicleData.make,
-        model: vehicleData.model,
+        year: vehicleData.year ?? 0,
+        make: vehicleData.make ?? '',
+        model: vehicleData.model ?? '',
         trim: vehicleData.trim || undefined,
-        mileage: Number(vehicleData.mileage),
+        mileage: Number(vehicleData.mileage ?? 0),
         zip: vehicleData.zip,
-        condition: vehicleData.condition,
-        titleStatus: vehicleData.titleStatus,
+        condition: vehicleData.condition ?? '',
+        titleStatus: vehicleData.titleStatus ?? '',
         color: vehicleData.color || vehicleData.exteriorColor || undefined,
         fuelType: vehicleData.fuelType,
         transmission: vehicleData.transmission,
@@ -254,7 +254,6 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
         return false;
       });
       // Log the full vehicleData for debugging
-      // eslint-disable-next-line no-console
       console.log('[Valuation Submission] vehicleData:', vd);
       if (missing.length > 0) {
         alert('Missing or invalid required fields: ' + missing.join(', '));
@@ -287,7 +286,7 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
     if (!currentGap) return null;
 
     const value = vehicleData[currentGap.field as keyof VehicleData];
-    const error = errors[currentGap.field];
+    const error = errors[String(currentGap.field)];
 
     switch (currentGap.field) {
       case 'mileage':

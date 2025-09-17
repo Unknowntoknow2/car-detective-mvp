@@ -2,6 +2,7 @@ import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from './un
 import { fetchVinLookup } from './vinLookupService'
 import { fetchMarketPricing } from './vehiclePricingService'
 import { fetchResidualForecast } from './residualValueService'
+import type { VehicleData } from '@/types/ValuationTypes'
 
 /**
  * Executes a complete vehicle valuation process for a given VIN number.
@@ -32,7 +33,7 @@ import { fetchResidualForecast } from './residualValueService'
  * - Measures valuation duration for performance monitoring
  * - Records database operation metrics for audit purposes
  */
-export async function runValuation(vehicle) {
+export async function runValuation(vehicle: VehicleData) {
   // vehicle: normalized and enriched VehicleData
   // 1. VIN Lookup API enrichment
   let vinLookup = null;

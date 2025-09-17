@@ -15,3 +15,13 @@ export async function residualValueService(
     },
   };
 }
+
+export async function fetchResidualForecast(vin: string): Promise<Record<string, unknown> | null> {
+  try {
+    const response = await residualValueService({ vin } as NormalizedVehicle);
+    return response?.data ?? null;
+  } catch (error) {
+    logger.warn?.('Residual value lookup failed', { vin, error });
+    return null;
+  }
+}

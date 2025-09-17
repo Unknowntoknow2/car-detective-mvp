@@ -200,6 +200,7 @@ export class VehicleHistoryService {
     return data.accidents.map((accident: CarfaxAccident) => ({
       date: accident.date,
       severity: this.mapSeverity(accident.severity),
+      description: accident.damageDescription,
       damageDescription: accident.damageDescription,
       estimatedCost: accident.estimatedCost,
     }));
@@ -248,6 +249,7 @@ export class VehicleHistoryService {
       .map((accident: any) => ({
         date: accident.date,
         severity: this.mapSeverity(accident.severity || 'unknown'),
+        description: accident.description,
         damageDescription: accident.description,
       }));
   }
@@ -334,7 +336,8 @@ export class VehicleHistoryService {
   private deduplicateAccidents(accidents: AccidentRecord[]): AccidentRecord[] {
     const seen = new Set();
     return accidents.filter(accident => {
-      const key = `${accident.date}-${accident.damageDescription}`;
+      const descriptor = accident.damageDescription ?? accident.description ?? '';
+      const key = `${accident.date}-${descriptor}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -354,7 +357,7 @@ export class VehicleHistoryService {
   private deduplicateOwnership(records: OwnershipRecord[]): OwnershipRecord[] {
     const seen = new Set();
     return records.filter(record => {
-      const key = `${record.startDate}-${record.type}-${record.state}`;
+      const key = `${record.startDate}-${record.type}-${record.state ?? ''}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -364,7 +367,7 @@ export class VehicleHistoryService {
   private deduplicateTitles(records: TitleRecord[]): TitleRecord[] {
     const seen = new Set();
     return records.filter(record => {
-      const key = `${record.date}-${record.state}-${record.type}`;
+      const key = `${record.date}-${record.state}-${record.type ?? record.status ?? ''}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;

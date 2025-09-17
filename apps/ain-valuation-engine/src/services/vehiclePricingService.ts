@@ -16,3 +16,20 @@ export async function vehiclePricingService(
     },
   };
 }
+
+export async function fetchMarketPricing(make: string, model: string, year: number): Promise<Record<string, unknown> | null> {
+  const placeholderVehicle = {
+    vin: 'VINPLACEHOLDER1234',
+    make,
+    model,
+    year,
+  } as NormalizedVehicle;
+
+  try {
+    const response = await vehiclePricingService(placeholderVehicle);
+    return response?.data ?? null;
+  } catch (error) {
+    logger.warn?.('Market pricing lookup failed', { make, model, year, error });
+    return null;
+  }
+}
