@@ -1,13 +1,31 @@
 
 import * as React from "react";
+import type * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Drawer as DrawerPrimitive } from "vaul";
 
 import { cn } from "@/lib/utils";
 
+type DrawerRootProps = React.ComponentProps<typeof DrawerPrimitive.Root>;
+type DrawerTriggerType = typeof DialogPrimitive.Trigger;
+type DrawerPortalType = typeof DialogPrimitive.Portal;
+type DrawerCloseType = typeof DialogPrimitive.Close;
+
+type DrawerOverlayElement = React.ElementRef<typeof DialogPrimitive.Overlay>;
+type DrawerOverlayProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>;
+
+type DrawerContentElement = React.ElementRef<typeof DialogPrimitive.Content>;
+type DrawerContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>;
+
+type DrawerTitleElement = React.ElementRef<typeof DialogPrimitive.Title>;
+type DrawerTitleProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>;
+
+type DrawerDescriptionElement = React.ElementRef<typeof DialogPrimitive.Description>;
+type DrawerDescriptionProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>;
+
 const Drawer = ({
   shouldScaleBackground = true,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
+}: DrawerRootProps) => (
   <DrawerPrimitive.Root
     shouldScaleBackground={shouldScaleBackground}
     {...props}
@@ -15,15 +33,15 @@ const Drawer = ({
 );
 Drawer.displayName = "Drawer";
 
-const DrawerTrigger = DrawerPrimitive.Trigger;
+const DrawerTrigger: DrawerTriggerType = DrawerPrimitive.Trigger;
 
-const DrawerPortal = DrawerPrimitive.Portal;
+const DrawerPortal: DrawerPortalType = DrawerPrimitive.Portal;
 
-const DrawerClose = DrawerPrimitive.Close;
+const DrawerClose: DrawerCloseType = DrawerPrimitive.Close;
 
 const DrawerOverlay = React.forwardRef<
-  React.ElementRef<typeof DrawerPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Overlay>
+  DrawerOverlayElement,
+  DrawerOverlayProps
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
@@ -34,8 +52,8 @@ const DrawerOverlay = React.forwardRef<
 DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName;
 
 const DrawerContent = React.forwardRef<
-  React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
+  DrawerContentElement,
+  DrawerContentProps
 >(({ className, children, ...props }, ref) => (
   <DrawerPortal>
     <DrawerOverlay />
@@ -77,8 +95,8 @@ const DrawerFooter = ({
 DrawerFooter.displayName = "DrawerFooter";
 
 const DrawerTitle = React.forwardRef<
-  React.ElementRef<typeof DrawerPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Title>
+  DrawerTitleElement,
+  DrawerTitleProps
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Title
     ref={ref}
@@ -92,8 +110,8 @@ const DrawerTitle = React.forwardRef<
 DrawerTitle.displayName = DrawerPrimitive.Title.displayName;
 
 const DrawerDescription = React.forwardRef<
-  React.ElementRef<typeof DrawerPrimitive.Description>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Description>
+  DrawerDescriptionElement,
+  DrawerDescriptionProps
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Description
     ref={ref}
