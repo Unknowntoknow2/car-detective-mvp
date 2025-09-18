@@ -11,6 +11,8 @@ import {
   type VehicleData,
 } from "../../types/ValuationTypes";
 
+type StringKeys<T> = Extract<keyof T, string>;
+
 // Narrow a possibly-undefined value with a clear runtime error in dev/test.
 function assertDefined<T>(value: T | undefined, name: string | number | symbol): T {
   if (value === undefined) {
@@ -32,7 +34,15 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
   const [isCollecting, setIsCollecting] = useState(true);
   const [isGeneratingValuation, setIsGeneratingValuation] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const requiredFields: (keyof VehicleData)[] = ['vin', 'year', 'make', 'model', 'mileage', 'condition', 'titleStatus'];
+  const requiredFields: StringKeys<VehicleData>[] = [
+    'vin',
+    'year',
+    'make',
+    'model',
+    'mileage',
+    'condition',
+    'titleStatus',
+  ];
 
   useEffect(() => {
     // Extract basic vehicle data from decoded VIN
@@ -242,25 +252,26 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
     setIsGeneratingValuation(true);
     try {
       // Always build a complete VehicleData object from decoded VIN and user input
-      const vd: VehicleData = {
+      const payload: VehicleData = {
         vin: assertDefined(vehicleData.vin, "vin"),
         year: assertDefined(vehicleData.year, "year"),
         make: assertDefined(vehicleData.make, "make"),
         model: assertDefined(vehicleData.model, "model"),
-        trim: vehicleData.trim || undefined,
-        mileage: Number(vehicleData.mileage),
+        mileage: Number(assertDefined(vehicleData.mileage, "mileage")),
         zip: assertDefined(vehicleData.zip, "zip"),
         condition: assertDefined(vehicleData.condition, "condition"),
         titleStatus: assertDefined(vehicleData.titleStatus, "titleStatus"),
-        color: vehicleData.color || vehicleData.exteriorColor || undefined,
+        trim: vehicleData.trim ?? undefined,
+        color: vehicleData.color ?? vehicleData.exteriorColor ?? undefined,
+        exteriorColor: vehicleData.exteriorColor ?? vehicleData.color ?? undefined,
         fuelType: vehicleData.fuelType,
         transmission: vehicleData.transmission,
-        driveType: vehicleData.drivetrain,
+        drivetrain: vehicleData.drivetrain ?? undefined,
       };
       // Strict validation: all required fields must be present, non-empty, and valid
-      const required = ['vin','year','make','model','mileage','condition','titleStatus'];
-      const missing = required.filter(f => {
-        const v = vd[f as keyof VehicleData];
+      const required = requiredFields;
+      const missing = required.filter((f) => {
+        const v = payload[f];
         if (v === undefined || v === null) return true;
         if (typeof v === 'string' && v.trim() === '') return true;
         if (f === 'mileage' && (typeof v !== 'number' || isNaN(v) || v <= 0)) return true;
@@ -269,13 +280,13 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
       });
       // Log the full vehicleData for debugging
       // eslint-disable-next-line no-console
-      console.log('[Valuation Submission] vehicleData:', vd);
+      console.log('[Valuation Submission] vehicleData:', payload);
       if (missing.length > 0) {
         alert('Missing or invalid required fields: ' + missing.join(', '));
         setIsGeneratingValuation(false);
         return;
       }
-      const result = await valuateVehicle(vd);
+      const result = await valuateVehicle(payload);
       if (result) {
         // Normalize the result to ensure camelCase and required fields
         const normalizeResult = (val: any): ValuationResult => ({

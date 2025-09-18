@@ -1,17 +1,9 @@
 import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from '../services/unifiedVinDecoder.js';
+import type { VehicleData, VehicleDataCanonical } from '@/types/ValuationTypes';
+import { toCanonicalVehicleData } from '@/types/canonical';
 // Inline types for backend
 type ConversationState = Record<string, any>;
 type VehicleFeature = any;
-type VehicleData = {
-  vin: string;
-  year: number;
-  make: string;
-  model: string;
-  mileage: number;
-  zip?: string;
-  condition: string;
-  titleStatus: string;
-};
 type ValuationResult = any;
 import { valuateVehicle } from './valuationEngine.js';
 
@@ -60,16 +52,18 @@ export class ConversationEngine {
 
   async runValuation() {
     // Build canonical VehicleData from state
-    const vehicleData: VehicleData = {
+    const vehicle: Partial<VehicleData> = {
       vin: this.state.vin,
       year: this.state.year,
       make: this.state.make,
       model: this.state.model,
-  mileage: isNaN(Number(this.state.mileage)) ? 0 : Number(this.state.mileage),
+      mileage: isNaN(Number(this.state.mileage)) ? 0 : Number(this.state.mileage),
+      zip: this.state.zip ?? this.state.zipCode,
       condition: this.state.condition,
       titleStatus: this.state.titleStatus
     };
-    const valuation: ValuationResult = await valuateVehicle(vehicleData);
+    const canonical: VehicleDataCanonical = toCanonicalVehicleData(vehicle);
+    const valuation: ValuationResult = await valuateVehicle(canonical);
     this.state.valuation = valuation;
     return this.state;
   }
