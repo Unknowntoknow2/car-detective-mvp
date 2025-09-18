@@ -21,13 +21,13 @@ interface VehicleDetails {
   driveType?: string;
 }
 
-export interface VehicleData {
+export interface VehicleCatalog {
   makes: Make[];
   models: Model[];
 }
 
 // API fetch helpers
-export async function fetchVehicleData(): Promise<VehicleData> {
+export async function fetchVehicleData(): Promise<VehicleCatalog> {
   try {
     const makesResponse = await fetch(`${API_BASE_URL}/makes`);
     const modelsResponse = await fetch(`${API_BASE_URL}/models`);

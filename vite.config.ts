@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'), // Single source of truth, no trailing slash
+      '@shared': path.resolve(__dirname, './shared')
     },
   },
   server: {

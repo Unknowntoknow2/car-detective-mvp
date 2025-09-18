@@ -1,19 +1,12 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import type { VehicleData } from '@shared/types/vehicle-data';
 
-export interface VehicleData {
-  vin?: string;
-  year: number;
-  make: string;
-  model: string;
-  trim?: string;
-  mileage?: number;
-  fuelType?: string;
-  transmission?: string;
+export type VehicleSnapshot = Partial<VehicleData> & {
   zipCode?: string;
-}
+};
 
-export async function getVehicleDataByVin(vin: string): Promise<VehicleData | null> {
+export async function getVehicleDataByVin(vin: string): Promise<VehicleSnapshot | null> {
   try {
     // First try to get from VIN decoding service
     const { data: vinData, error: vinError } = await supabase.functions.invoke('vin-decoder', {
@@ -27,6 +20,7 @@ export async function getVehicleDataByVin(vin: string): Promise<VehicleData | nu
 
     if (vinData?.success && vinData?.vehicleData) {
       const vehicle = vinData.vehicleData;
+      const zip = vehicle.zipCode || '95821';
       return {
         vin,
         year: vehicle.year || 2018,
@@ -36,7 +30,8 @@ export async function getVehicleDataByVin(vin: string): Promise<VehicleData | nu
         fuelType: vehicle.fuelType || 'gasoline',
         transmission: vehicle.transmission || 'automatic',
         mileage: vehicle.mileage || 0,
-        zipCode: vehicle.zipCode || '95821'
+        zip,
+        zipCode: zip
       };
     }
 
@@ -54,6 +49,7 @@ export async function getVehicleDataByVin(vin: string): Promise<VehicleData | nu
       return null;
     }
 
+    const zip = requestData.zip_code || '95821';
     return {
       vin,
       year: requestData.year || 2018,
@@ -62,7 +58,8 @@ export async function getVehicleDataByVin(vin: string): Promise<VehicleData | nu
       trim: requestData.trim || 'Unknown',
       fuelType: 'gasoline',
       mileage: requestData.mileage || 0,
-      zipCode: requestData.zip_code || '95821'
+      zip,
+      zipCode: zip
     };
 
   } catch (error) {
@@ -71,7 +68,7 @@ export async function getVehicleDataByVin(vin: string): Promise<VehicleData | nu
   }
 }
 
-export async function getVehicleDataByValuationId(valuationId: string): Promise<VehicleData | null> {
+export async function getVehicleDataByValuationId(valuationId: string): Promise<VehicleSnapshot | null> {
   try {
     const { data, error } = await supabase
       .from('valuation_requests')
@@ -84,6 +81,7 @@ export async function getVehicleDataByValuationId(valuationId: string): Promise<
       return null;
     }
 
+    const zip = data.zip_code || '95821';
     return {
       vin: data.vin || undefined,
       year: data.year || 2018,
@@ -92,7 +90,8 @@ export async function getVehicleDataByValuationId(valuationId: string): Promise<
       trim: data.trim || 'Unknown',
       fuelType: 'gasoline',
       mileage: data.mileage || 0,
-      zipCode: data.zip_code || '95821'
+      zip,
+      zipCode: zip
     };
 
   } catch (error) {

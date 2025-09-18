@@ -2,7 +2,7 @@
 import { AccidentDetails } from "./follow-up-answers";
 import { ConditionOption, TireConditionOption } from "./condition";
 
-export interface VehicleData {
+export interface VehicleLookupData {
   make: string;
   model: string;
   year: number;
@@ -28,7 +28,7 @@ export interface LookupFormData {
 }
 
 export interface VehicleLookupResult {
-  vehicle: VehicleData;
+  vehicle: VehicleLookupData;
   valuation?: number;
   confidence?: number;
   sources?: string[];
