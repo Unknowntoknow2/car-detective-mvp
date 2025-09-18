@@ -31,7 +31,7 @@ export function toCanonicalVehicleData(input: Partial<VehicleData>): VehicleData
     make: req(input.make, 'make'),
     model: req(input.model, 'model'),
     mileage: req(input.mileage, 'mileage'),
-    zip: req(input.zip, 'zip'),
+    zip: req((input as any).zip ?? (input as any).zipCode, 'zip'),
     condition: req(input.condition, 'condition'),
     titleStatus: req(input.titleStatus, 'titleStatus'),
     trim: input.trim,

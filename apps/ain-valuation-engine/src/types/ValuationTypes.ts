@@ -1,19 +1,12 @@
 
 // src/types/ValuationTypes.ts
 // Canonical schema. Single source of truth comes from ./canonical.
-import type { VehicleDataCanonical } from './canonical'
-export type { VehicleDataCanonical } from './canonical'
-
+import type { VehicleData, VehicleDataCanonical } from './canonical'
+export type { VehicleData, VehicleDataCanonical } from './canonical'
+export { toCanonicalVehicleData } from './canonical'
 // Keep alias for legacy imports
-export type VehicleData = VehicleDataCanonical;
-/**
- * @deprecated Use VehicleDataCanonical instead.
- */
-export type LegacyVehicleData = VehicleDataCanonical;
-/**
- * @deprecated Use ValuationResultCanonical instead.
- */
-export type ValuationResult = ValuationResultCanonical;
+export type LegacyVehicleData = VehicleDataCanonical
+export type ValuationResult = ValuationResultCanonical
 
 /**
  * Runtime-friendly vehicle condition options used throughout the valuation UI.
@@ -161,3 +154,5 @@ export interface VehicleHistory {
   titleHistory: TitleRecord[];
   recallHistory: RecallRecord[];
 }
+
+// Do not redeclare VehicleData/VehicleDataCanonical here. They come from ./canonical.
