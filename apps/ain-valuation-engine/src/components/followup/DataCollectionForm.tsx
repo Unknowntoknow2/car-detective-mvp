@@ -1,138 +1,132 @@
-import { useEffect, useState } from "react";
-import { valuateVehicle } from "@/ain-backend/valuationEngine";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import type { VariableValue } from "../../types/VariableValue";
+import { useEffect, useState } from "react"
+import { valuateVehicle } from "@/ain-backend/valuationEngine"
+import { Button } from "../ui/button"
+import { Input } from "../ui/input"
+import type { VariableValue } from "../../types/VariableValue"
 import {
   TitleStatus,
   VehicleCondition,
   type DataGap,
   type ValuationResult,
   type VehicleData,
-} from "../../types/ValuationTypes";
+} from "../../types/ValuationTypes"
 
-type StringKeys<T> = Extract<keyof T, string>;
+type StringKeys<T> = Extract<keyof T, string>
 
 // Narrow a possibly-undefined value with a clear runtime error in dev/test.
 function assertDefined<T>(value: T | undefined, name: string | number | symbol): T {
   if (value === undefined) {
-    throw new Error(`${String(name)} is required but was undefined`);
+    throw new Error(`${String(name)} is required but was undefined`)
   }
-  return value;
+  return value
 }
 
 interface DataCollectionFormProps {
-  decodedVin: VariableValue[];
-  vin: string;
-  onComplete: (valuation: ValuationResult) => void;
+  decodedVin: VariableValue[]
+  vin: string
+  onComplete: (valuation: ValuationResult) => void
 }
 
-type VehicleDataDraft = Partial<VehicleData> & Record<string, unknown>;
+type VehicleDataDraft = Partial<VehicleData> & Record<string, unknown>
 
 export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollectionFormProps) {
-  const [vehicleData, setVehicleData] = useState<VehicleDataDraft>({});
-  const [dataGaps, setDataGaps] = useState<DataGap[]>([]);
-  const [currentGapIndex, setCurrentGapIndex] = useState(0);
-  const [isCollecting, setIsCollecting] = useState(true);
-  const [isGeneratingValuation, setIsGeneratingValuation] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [vehicleData, setVehicleData] = useState<VehicleDataDraft>({})
+  const [dataGaps, setDataGaps] = useState<DataGap[]>([])
+  const [currentGapIndex, setCurrentGapIndex] = useState(0)
+  const [isCollecting, setIsCollecting] = useState(true)
+  const [isGeneratingValuation, setIsGeneratingValuation] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const requiredFields: StringKeys<VehicleData>[] = [
-    'vin',
-    'year',
-    'make',
-    'model',
-    'mileage',
-    'condition',
-    'titleStatus',
-  ];
+    'vin','year','make','model','mileage','condition','titleStatus'
+  ]
 
   useEffect(() => {
     // Extract basic vehicle data from decoded VIN
-    const extractedData = extractVehicleDataFromVin(decodedVin, vin);
-    setVehicleData(extractedData);
+    const extractedData = extractVehicleDataFromVin(decodedVin, vin)
+    setVehicleData(extractedData)
 
     // Identify data gaps that need user input
-    const gaps = identifyDataGaps(extractedData);
-    setDataGaps(gaps);
+    const gaps = identifyDataGaps(extractedData)
+    setDataGaps(gaps)
 
     if (gaps.length === 0) {
-      setIsCollecting(false);
+      setIsCollecting(false)
     }
-  }, [decodedVin, vin]);
+  }, [decodedVin, vin])
 
   function extractVehicleDataFromVin(decoded: VariableValue[], vin: string): VehicleDataDraft {
-    const data: VehicleDataDraft = { vin };
+    const data: VehicleDataDraft = { vin }
     // Google-level: log all decoded fields for mapping
     if (decoded && decoded.length > 0) {
       // eslint-disable-next-line no-console
-      console.log('[VIN DECODE] All decoded fields:', decoded);
+      console.log('[VIN DECODE] All decoded fields:', decoded)
     }
     decoded.forEach(item => {
       const val = item.Value !== undefined && item.Value !== null ? String(item.Value) : undefined;
       switch (item.Variable) {
         case 'Make':
-          data.make = val;
-          break;
+          data.make = val
+          break
         case 'Model':
-          data.model = val;
-          break;
+          data.model = val
+          break
         case 'Model Year':
-          data.year = val ? parseInt(val) : undefined;
-          break;
+          data.year = val ? parseInt(val) : undefined
+          break
         case 'Trim':
-          data.trim = val;
-          break;
+          data.trim = val
+          break
         case 'Engine Number of Cylinders':
         case 'Engine Displacement (L)':
         case 'Engine Model':
-          data.engineSize = val;
-          break;
+          data.engineSize = val
+          break
         case 'Fuel Type - Primary':
         case 'Fuel Type':
-          data.fuelType = val;
-          break;
+          data.fuelType = val
+          break
         case 'Drive Type':
         case 'Drive':
-          data.drivetrain = val;
-          break;
+          data.drivetrain = val
+          break
         case 'Transmission Style':
         case 'Transmission':
-          data.transmission = val;
-          break;
+          data.transmission = val
+          break
         case 'Body Class':
-          data.body = val;
-          break;
+          data.body = val
+          break
         case 'Doors':
         case 'Number of Doors':
-          data.doors = val ? parseInt(val) : undefined;
-          break;
+          data.doors = val ? parseInt(val) : undefined
+          break
         case 'Exterior Color':
         case 'Color':
-          data.exteriorColor = val;
-          break;
+          data.exteriorColor = val
+          break
         case 'Interior Color':
-          data.interiorColor = val;
-          break;
+          data.interiorColor = val
+          break
         case 'Plant Country':
-          data.plantCountry = val;
-          break;
+          data.plantCountry = val
+          break
         case 'Plant State':
-          data.plantState = val;
-          break;
+          data.plantState = val
+          break
         case 'Plant City':
-          data.plantCity = val;
-          break;
+          data.plantCity = val
+          break
         // Add more mappings as needed
         default:
           // Optionally, collect unmapped fields for future mapping
-          break;
+          break
       }
-    });
-    return data;
+    })
+    return data
   }
 
   function identifyDataGaps(data: VehicleDataDraft): DataGap[] {
-    const gaps: DataGap[] = [];
+    const gaps: DataGap[] = []
     if (!data.mileage) {
       gaps.push({
         field: 'mileage',
@@ -143,18 +137,18 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
           { type: 'min', value: 0, message: 'Mileage cannot be negative' },
           { type: 'max', value: 999999, message: 'Please enter a valid mileage' }
         ]
-      });
+      })
     }
-    if (!data.zipCode) {
+    if (!data.zip) {
       gaps.push({
-        field: 'zipCode',
+        field: 'zip',
         required: true,
         prompt: 'What is your ZIP code? (This helps us find local market comparisons)',
         validationRules: [
           { type: 'required', message: 'ZIP code is required' },
           { type: 'pattern', value: /^\d{5}(-\d{4})?$/, message: 'Please enter a valid ZIP code' }
         ]
-      });
+      })
     }
     if (!data.condition) {
       gaps.push({
@@ -164,7 +158,7 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
         validationRules: [
           { type: 'required', message: 'Vehicle condition is required' }
         ]
-      });
+      })
     }
     if (!data.titleStatus) {
       gaps.push({
@@ -175,7 +169,7 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
         validationRules: [
           { type: 'required', message: 'Title status is required' }
         ]
-      });
+      })
     }
     if (!data.exteriorColor) {
       gaps.push({
@@ -183,79 +177,79 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
         required: false,
         prompt: 'What is the exterior color of your vehicle? (Optional)',
         validationRules: []
-      });
+      })
     }
-    return gaps;
+    return gaps
   }
 
   const handleInputChange = (field: string, value: string | number | boolean) => {
-    setVehicleData(prev => ({ ...prev, [field]: value }));
+    setVehicleData(prev => ({ ...prev, [field]: value }))
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors(prev => ({ ...prev, [field]: '' }))
     }
-  };
+  }
 
   const validateCurrentInput = (): boolean => {
-    const currentGap = dataGaps[currentGapIndex];
-    if (!currentGap) return true;
+    const currentGap = dataGaps[currentGapIndex]
+    if (!currentGap) return true
 
-    const value = vehicleData[currentGap.field as keyof VehicleDataDraft];
-    const newErrors: Record<string, string> = {};
+    const value = vehicleData[currentGap.field as keyof VehicleDataDraft]
+    const newErrors: Record<string, string> = {}
 
     for (const rule of currentGap.validationRules || []) {
       switch (rule.type) {
         case 'required':
           if (!value || (typeof value === 'string' && value.trim() === '')) {
-            newErrors[currentGap.field] = rule.message;
+            newErrors[currentGap.field] = rule.message
           }
-          break;
+          break
         case 'min':
           if (typeof value === 'number' && typeof rule.value === 'number' && value < rule.value) {
-            newErrors[currentGap.field] = rule.message;
+            newErrors[currentGap.field] = rule.message
           }
-          break;
+          break
         case 'max':
           if (typeof value === 'number' && typeof rule.value === 'number' && value > rule.value) {
-            newErrors[currentGap.field] = rule.message;
+            newErrors[currentGap.field] = rule.message
           }
-          break;
+          break
         case 'pattern':
           if (typeof value === 'string' && rule.value instanceof RegExp && !rule.value.test(value)) {
-            newErrors[currentGap.field] = rule.message;
+            newErrors[currentGap.field] = rule.message
           }
-          break;
+          break
       }
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleNext = () => {
     if (!validateCurrentInput()) {
-      return;
+      return
     }
 
     if (currentGapIndex < dataGaps.length - 1) {
-      setCurrentGapIndex(prev => prev + 1);
+      setCurrentGapIndex(prev => prev + 1)
     } else {
-      setIsCollecting(false);
-      generateValuation();
+      setIsCollecting(false)
+      generateValuation()
     }
-  };
+  }
 
   const handlePrevious = () => {
     if (currentGapIndex > 0) {
-      setCurrentGapIndex(prev => prev - 1);
+      setCurrentGapIndex(prev => prev - 1)
     }
-  };
+  }
 
   const generateValuation = async () => {
-    setIsGeneratingValuation(true);
+    setIsGeneratingValuation(true)
     try {
       // Always build a complete VehicleData object from decoded VIN and user input
-      const mileageInput = vehicleData.mileage as number | string | undefined;
-      const zipInput = (vehicleData.zip as string | undefined) ?? (vehicleData['zipCode'] as string | undefined);
+      const mileageInput = vehicleData.mileage as number | string | undefined
+      const zipInput = vehicleData.zip as string | undefined
       const payload: VehicleData = {
         vin: assertDefined(vehicleData.vin as string | undefined, "vin"),
         year: assertDefined(vehicleData.year as number | undefined, "year"),
@@ -269,8 +263,8 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
         color: vehicleData.color ?? vehicleData.exteriorColor ?? undefined,
         fuelType: vehicleData.fuelType as string | undefined,
         transmission: vehicleData.transmission as string | undefined,
-        drivetrain: vehicleData.drivetrain as string | undefined,
-      };
+        drivetrain: (vehicleData.drivetrain as string | undefined) ?? (vehicleData['driveType'] as string | undefined),
+      }
       // Strict validation: all required fields must be present, non-empty, and valid
       const missing = requiredFields.filter((f: StringKeys<VehicleData>) => {
         const v = payload[f];
@@ -282,13 +276,13 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
       });
       // Log the full vehicleData for debugging
       // eslint-disable-next-line no-console
-      console.log('[Valuation Submission] vehicleData:', payload);
+      console.log('[Valuation Submission] vehicleData:', payload)
       if (missing.length > 0) {
-        alert('Missing or invalid required fields: ' + missing.join(', '));
-        setIsGeneratingValuation(false);
-        return;
+        alert('Missing or invalid required fields: ' + missing.join(', '))
+        setIsGeneratingValuation(false)
+        return
       }
-      const result = await valuateVehicle(payload);
+      const result = await valuateVehicle(payload)
       if (result) {
         // Normalize the result to ensure camelCase and required fields
         const normalizeResult = (val: any): ValuationResult => ({
@@ -297,24 +291,24 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
           priceRange: val.priceRange ?? val.range ?? { low: null, high: null },
           confidence: val.confidence ?? val.confidenceScore ?? null,
           timestamp: val.timestamp ?? val.createdAt ?? Date.now(),
-        });
-        onComplete(normalizeResult(result));
+        })
+        onComplete(normalizeResult(result))
       } else {
-        console.error('Valuation failed');
+        console.error('Valuation failed')
       }
     } catch (error) {
-      console.error('Valuation error:', error);
+      console.error('Valuation error:', error)
     } finally {
-      setIsGeneratingValuation(false);
+      setIsGeneratingValuation(false)
     }
-  };
+  }
 
   const renderCurrentInput = () => {
-    const currentGap = dataGaps[currentGapIndex];
-    if (!currentGap) return null;
+    const currentGap = dataGaps[currentGapIndex]
+    if (!currentGap) return null
 
-    const value = vehicleData[currentGap.field as keyof VehicleDataDraft];
-    const error = errors[currentGap.field];
+    const value = vehicleData[currentGap.field as keyof VehicleDataDraft]
+    const error = errors[currentGap.field]
 
     switch (currentGap.field) {
       case 'mileage':
@@ -331,7 +325,7 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
           </div>
         );
 
-      case 'zipCode':
+      case 'zip':
         return (
           <div className="space-y-2">
             <Input
@@ -404,9 +398,9 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
             onChange={(e) => handleInputChange(currentGap.field, e.target.value)}
             className={error ? 'border-red-500' : ''}
           />
-        );
+        )
     }
-  };
+  }
 
   if (isGeneratingValuation) {
     return (
@@ -417,12 +411,12 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
           We're analyzing market data and vehicle history to provide you with the most accurate valuation...
         </p>
       </div>
-    );
+    )
   }
 
   if (!isCollecting) {
     // Check for missing required fields
-    const missing = requiredFields.filter(f => !vehicleData[f]);
+    const missing = requiredFields.filter(f => !vehicleData[f])
     return (
       <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg text-center">
         <h3 className="text-lg font-semibold mb-4">Data Collection Complete</h3>
@@ -436,11 +430,11 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
           Generate Valuation Report
         </Button>
       </div>
-    );
+    )
   }
 
-  const currentGap = dataGaps[currentGapIndex];
-  const progress = ((currentGapIndex) / dataGaps.length) * 100;
+  const currentGap = dataGaps[currentGapIndex]
+  const progress = ((currentGapIndex) / dataGaps.length) * 100
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
@@ -482,7 +476,7 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
         
         <Button
           onClick={handleNext}
-          disabled={currentGap?.required && !vehicleData[currentGap.field as keyof VehicleData]}
+          disabled={currentGap?.required && !vehicleData[currentGap.field as keyof VehicleDataDraft]}
         >
           {currentGapIndex === dataGaps.length - 1 ? 'Complete' : 'Next'}
         </Button>
@@ -502,5 +496,5 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
         )}
       </div>
     </div>
-  );
+  )
 }

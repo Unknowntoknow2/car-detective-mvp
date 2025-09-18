@@ -1,11 +1,10 @@
-import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from '../services/unifiedVinDecoder.js';
-import { valuateVehicle } from './valuationEngine.js';
-import type { VehicleData, VehicleDataCanonical } from '@/types/ValuationTypes';
-import { toCanonicalVehicleData } from '@/types/canonical';
+import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from '../services/unifiedVinDecoder.js'
+import { valuateVehicle } from '@/ain-backend/valuationEngine'
+import type { VehicleData, VehicleDataCanonical, ValuationResult } from '@/types/ValuationTypes'
+import { toCanonicalVehicleData } from '@/types/canonical'
 // Inline types for backend
-type ConversationState = Record<string, any>;
-type VehicleFeature = any;
-type ValuationResult = any;
+type ConversationState = Record<string, any>
+type VehicleFeature = any
 
 export class ConversationEngine {
   state: ConversationState;
@@ -61,10 +60,10 @@ export class ConversationEngine {
       condition: this.state.condition,
       titleStatus: this.state.titleStatus,
       zip: this.state.zip,
-    };
-    const canonical: VehicleDataCanonical = toCanonicalVehicleData(vehicleData);
-    const valuation: ValuationResult = await valuateVehicle(canonical);
-    this.state.valuation = valuation;
-    return this.state;
+    }
+    const canonical: VehicleDataCanonical = toCanonicalVehicleData(vehicleData)
+    const valuation: ValuationResult = await valuateVehicle(canonical)
+    this.state.valuation = valuation
+    return this.state
   }
 }
