@@ -1,11 +1,11 @@
-import { searchInBatches } from "../aggregateSearch.js";
-import { dedupeListings } from "../utils/dedupeIngest.js";
-import { filterFresh } from "../filters.js";
-import { carsDotCom, carGurus, autoTrader, trueCar, edmunds } from "../utils/urls.js";
-import type { Listing } from "../schemas/ListingSchema.js";
-import { upsertListings } from "../persistence/upsertListings.js";
-import { createRunLog, finishRunLog } from "../persistence/runLogs.js";
-import { filterForValuation } from "../utils/sanity.js";
+import { searchInBatches } from "../aggregateSearch";
+import { dedupeListings } from "../utils/dedupeIngest";
+import { filterFresh } from "../filters";
+import { carsDotCom, carGurus, autoTrader, trueCar, edmunds } from "../utils/urls";
+import type { Listing } from "../schemas/ListingSchema";
+import { upsertListings } from "../persistence/upsertListings";
+import { createRunLog, finishRunLog } from "../persistence/runLogs";
+import { filterForValuation } from "../utils/sanity";
 
 export class OpenAIListingsAgent {
   async run({ zip="94103", radius=100, make, model, year }: {

@@ -1,13 +1,13 @@
 import express from "express";
 import cors from "cors";
-import { normalizeVehicleData } from "./normalizeVehicleData.js";
-import logger from "./logger.js";
-import { carApiService } from "./carApiService.js";
-import { vinLookupService } from "./vinLookupService.js";
-import { vehiclePricingService } from "./vehiclePricingService.js";
-import { residualValueService } from "./residualValueService.js";
-import { carSpecsService } from "./carSpecsService.js";
-import { decodeVinAndEstimate } from "./vinValuationService.js";
+import { normalizeVehicleData } from "./normalizeVehicleData";
+import logger from "./logger";
+import { carApiService } from "./carApiService";
+import { vinLookupService } from "./vinLookupService";
+import { vehiclePricingService } from "./vehiclePricingService";
+import { residualValueService } from "./residualValueService";
+import { carSpecsService } from "./carSpecsService";
+import { decodeVinAndEstimate } from "./vinValuationService";
 
 const app = express();
 app.use(cors());

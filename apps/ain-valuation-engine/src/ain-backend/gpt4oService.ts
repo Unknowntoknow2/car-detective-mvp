@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import logger from '../utils/logger.js';
+import logger from '../utils/logger';
 type AIContext = any;
 
 const openai = new OpenAI({
