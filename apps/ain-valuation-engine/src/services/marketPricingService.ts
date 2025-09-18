@@ -22,10 +22,20 @@ export async function fetchMarketPricing(make: string, model: string, year: numb
     return null;
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as Record<string, unknown>;
+  const toNumber = (value: unknown): number | null => {
+    const numeric =
+      typeof value === "string"
+        ? Number(value)
+        : typeof value === "number"
+          ? value
+          : null;
+    return typeof numeric === "number" && !Number.isNaN(numeric) ? numeric : null;
+  };
+
   return {
-    retail: data?.retail || null,
-    wholesale: data?.wholesale || null,
-    tradeIn: data?.tradeIn || null
+    retail: toNumber(data.retail),
+    wholesale: toNumber(data.wholesale),
+    tradeIn: toNumber(data.tradeIn),
   };
 }

@@ -25,6 +25,14 @@ interface CarGurusListing {
 import { apiClient } from './apiClient';
 import { VehicleData, VehicleCondition, ApiResponse } from '../types/ValuationTypes';
 
+function resolveVehicleZip(vehicle: Partial<VehicleData>): string | undefined {
+  const candidate =
+    vehicle.zip ??
+    (vehicle as Record<string, unknown>).zipCode ??
+    (vehicle as Record<string, unknown>).postalCode;
+  return typeof candidate === 'string' ? candidate : undefined;
+}
+
 // Proper typing for external API responses
 interface AutotraderListing {
   id: string;
@@ -151,7 +159,7 @@ export class MarketListingsService {
       make: vehicle.make || '',
       model: vehicle.model || '',
       year: vehicle.year?.toString() || '',
-      zip: vehicle.zipCode || '90210',
+      zip: resolveVehicleZip(vehicle) || '90210',
       radius: radius.toString(),
       limit: maxResults.toString(),
     });
@@ -192,7 +200,7 @@ export class MarketListingsService {
       make: vehicle.make || '',
       model: vehicle.model || '',
       year: vehicle.year?.toString() || '',
-      zip: vehicle.zipCode || '90210',
+      zip: resolveVehicleZip(vehicle) || '90210',
       radius: radius.toString(),
       limit: maxResults.toString(),
     });
@@ -233,7 +241,7 @@ export class MarketListingsService {
       make: vehicle.make || '',
       model: vehicle.model || '',
       year: vehicle.year?.toString() || '',
-      zip: vehicle.zipCode || '90210',
+      zip: resolveVehicleZip(vehicle) || '90210',
       radius: radius.toString(),
       limit: maxResults.toString(),
     });

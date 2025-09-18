@@ -1,4 +1,5 @@
-import { VehicleDataCanonical } from "@/types/ValuationTypes";
+import type { VehicleDataCanonical } from "@/types/ValuationTypes";
+import { toCanonicalVehicleData, type VehicleData } from "@/types/canonical";
 
 export function normalizeVehicleData(input: any): VehicleDataCanonical {
   if (!input) throw new Error("Missing vehicle input");
@@ -40,47 +41,29 @@ export function normalizeVehicleData(input: any): VehicleDataCanonical {
   if (!validTitles.includes(titleStatus)) throw new Error(`Title status must be one of: ${validTitles.join(", ")}`);
 
   // --- Optional fields (no autofill, just pass or null/empty) ---
-  const normalized: VehicleDataCanonical = {
+  const base: Partial<VehicleData> = {
     vin,
     year,
     make,
     model,
-    trim: input.trim ?? null,
-    bodyStyle: input.bodyStyle ?? null,
-    engineType: input.engineType ?? null,
-    transmission: input.transmission ?? null,
-    drivetrain: input.drivetrain ?? null,
-    fuelType: input.fuelType ?? null,
-
     mileage,
-    lastServiceDate: input.lastServiceDate ?? null,
-    serviceHistoryCount: input.serviceHistoryCount ?? null,
-
-    condition: condition as VehicleDataCanonical["condition"],
-    titleStatus: titleStatus as VehicleDataCanonical["titleStatus"],
-    ownershipHistory: input.ownershipHistory ?? null,
-    accidentsReported: input.accidentsReported ?? null,
-
     zip,
-    region: input.region ?? null,
-    regionDemandIndex: input.regionDemandIndex ?? null,
-    fuelPriceTrend: input.fuelPriceTrend ?? null,
-    seasonalityIndex: input.seasonalityIndex ?? null,
-
-    optionalPackages: Array.isArray(input.optionalPackages) ? input.optionalPackages : [],
-    features: Array.isArray(input.features) ? input.features : [],
-    color: input.color ?? null,
-    interiorColor: input.interiorColor ?? null,
-    warrantyStatus: input.warrantyStatus ?? null,
-
-    photoConditionScore: input.photoConditionScore ?? null,
-    photoConditionBreakdown: input.photoConditionBreakdown ?? null,
-    batteryHealth: input.batteryHealth ?? null,
-    trustScore: input.trustScore ?? null,
-
-    vinDecodeSource: input.vinDecodeSource ?? null,
-    createdAt: new Date().toISOString(),
+    condition,
+    titleStatus,
+    trim: typeof input.trim === "string" ? input.trim : undefined,
+    color: (input.color ?? input.exteriorColor) ?? undefined,
+    exteriorColor: typeof input.exteriorColor === "string" ? input.exteriorColor : undefined,
+    fuelType: typeof input.fuelType === "string" ? input.fuelType : undefined,
+    transmission: typeof input.transmission === "string" ? input.transmission : undefined,
+    drivetrain:
+      typeof input.drivetrain === "string"
+        ? input.drivetrain
+        : typeof input.driveType === "string"
+          ? input.driveType
+          : typeof input.drive === "string"
+            ? input.drive
+            : undefined,
   };
 
-  return normalized;
+  return toCanonicalVehicleData(base);
 }
