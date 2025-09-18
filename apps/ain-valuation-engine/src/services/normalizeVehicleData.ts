@@ -1,28 +1,33 @@
 import * as z from "zod";
+import type { VehicleData } from "@/types/ValuationTypes";
 
-// Define the Zod schema for vehicle data (MVP, minimal fields)
-export const VehicleDataSchema = z.object({
-  vin: z.string()
+// Zod draft used for input validation; canonical TS type remains VehicleData
+export const vehicleDataSchema = z.object({
+  vin: z
+    .string()
     .length(17, "VIN must be 17 characters")
     .regex(/^[A-HJ-NPR-Z0-9]+$/, "VIN contains invalid characters"),
-  year: z.number().int().gte(1980).lte(new Date().getFullYear() + 1).optional(),
+  year: z
+    .number()
+    .int()
+    .gte(1980)
+    .lte(new Date().getFullYear() + 1)
+    .optional(),
   make: z.string().optional(),
   model: z.string().optional(),
   trim: z.string().optional(),
-  color: z.string().optional(),
-  plate: z.string().length(5).optional(),
-  mileage: z.number().int().gte(0).optional(),
-  // Add any other fields as needed
+  mileage: z.number().int().min(0).optional(),
+  fuelType: z.string().optional(),
+  transmission: z.string().optional(),
+  zipCode: z.string().optional(),
+  zip: z.string().optional(),
 });
 
-// TypeScript type inferred from schema
-export type VehicleData = z.infer<typeof VehicleDataSchema>;
+export type NormalizedVehicleDraft = z.infer<typeof vehicleDataSchema>;
+export type NormalizedVehicleData = Partial<VehicleData> & NormalizedVehicleDraft;
 
-// Normalization function: validates and returns typed object
-export function normalizeVehicleData(input: unknown): VehicleData {
-  try {
-    return VehicleDataSchema.parse(input);
-  } catch (err: any) {
-    throw new Error(`Invalid vehicle data: ${err.message}`);
-  }
+export function normalizeVehicleData(input: unknown): NormalizedVehicleData {
+  const parsed = vehicleDataSchema.parse(input);
+  const zip = (parsed as any).zip ?? (parsed as any).zipCode;
+  return (zip ? { ...parsed, zip } : parsed) as NormalizedVehicleData;
 }

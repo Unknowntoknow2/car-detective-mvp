@@ -1,5 +1,5 @@
-import { NormalizedVehicle } from "../utils/normalizeVehicleData.js";
-import logger from "../utils/logger.js";
+import { NormalizedVehicleData as NormalizedVehicle } from "../services/normalizeVehicleData";
+import logger from "../utils/logger";
 
 export async function vehiclePricingService(
   vehicle: NormalizedVehicle

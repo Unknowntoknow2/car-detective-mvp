@@ -1,5 +1,5 @@
 import * as crypto from "crypto";
-import type { Listing } from "../schemas/ListingSchema.js";
+import type { Listing } from "../schemas/ListingSchema";
 
 export function stableKey(l: Listing) {
   const approxPrice = l.price == null ? "" : Math.round(l.price / 100) * 100;

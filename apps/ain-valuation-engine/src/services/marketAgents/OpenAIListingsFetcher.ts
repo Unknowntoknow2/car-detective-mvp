@@ -1,13 +1,12 @@
 // @ts-nocheck
 import got = require("got");
-import { extractListingsFromHtml } from "./extractors/openaiExtractor.js";
-import { extractListingsFromHtml } from "./extractors/openaiExtractor.js";
-import type { Listing } from "./schemas/ListingSchema.js";
-import { cleanNumbers } from "./utils/numbers.js";
-import { toIso } from "./utils/time.js";
-import { isAllowedHost, getHostPolicy, getHostCacheTtlMs } from "./config/sources.js";
-import { limiterFor } from "./utils/throttle.js";
-import { getCached, setCached } from "./utils/cache.js";
+import { extractListingsFromHtml } from "./extractors/openaiExtractor";
+import type { Listing } from "./schemas/ListingSchema";
+import { cleanNumbers } from "./utils/numbers";
+import { toIso } from "./utils/time";
+import { isAllowedHost, getHostPolicy, getHostCacheTtlMs } from "./config/sources";
+import { limiterFor } from "./utils/throttle";
+import { getCached, setCached } from "./utils/cache";
 
 export async function fetchAndExtract(urls: string[], model = "gpt-4o-mini"): Promise<Listing[]> {
 

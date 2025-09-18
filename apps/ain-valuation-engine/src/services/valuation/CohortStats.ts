@@ -1,6 +1,6 @@
-import { supabase } from "../../db/supabaseClient.js";
-import { median } from "../marketAgents/utils/stats.js";
-import { getZipPoint, haversineMiles } from "../geo/ZipGeo.js";
+import { supabase } from "../../db/supabaseClient";
+import { median } from "../marketAgents/utils/stats";
+import { getZipPoint, haversineMiles } from "../geo/ZipGeo";
 
 export async function getCohortStats(params: {
   make: string;

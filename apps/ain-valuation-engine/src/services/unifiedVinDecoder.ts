@@ -3,7 +3,7 @@
  * Consolidates all VIN decoding logic with proper fallback handling
  */
 
-import { validateVIN } from './vinValidation.js';
+import { validateVIN } from './vinValidation';
 
 // Types for VIN decoding response
 export interface DecodedVinData {

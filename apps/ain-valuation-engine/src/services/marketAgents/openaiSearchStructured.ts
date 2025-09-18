@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { MarketListingArraySchema } from "./prompts/kit.js";
+import { MarketListingArraySchema } from "./prompts/kit";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 

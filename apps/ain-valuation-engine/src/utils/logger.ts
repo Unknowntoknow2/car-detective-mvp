@@ -1,2 +1,2 @@
-import logger from './logger-browser.js';
+import logger from './logger-browser';
 export default logger;

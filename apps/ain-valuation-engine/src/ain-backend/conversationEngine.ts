@@ -1,10 +1,10 @@
-import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from '../services/unifiedVinDecoder.js'
-import { valuateVehicle } from '@/ain-backend/valuationEngine'
-import type { VehicleData, VehicleDataCanonical, ValuationResult } from '@/types/ValuationTypes'
-import { toCanonicalVehicleData } from '@/types/canonical'
+import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from "../services/unifiedVinDecoder";
+import { valuateVehicle } from "@/ain-backend/valuationEngine";
+import type { VehicleData, VehicleDataCanonical, ValuationResult } from "@/types/ValuationTypes";
+import { toCanonicalVehicleData } from "@/types/canonical";
 // Inline types for backend
-type ConversationState = Record<string, any>
-type VehicleFeature = any
+type ConversationState = Record<string, any>;
+type VehicleFeature = any;
 
 export class ConversationEngine {
   state: ConversationState;
