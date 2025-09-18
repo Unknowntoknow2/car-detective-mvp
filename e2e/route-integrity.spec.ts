@@ -1,22 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-// Define the critical pages and some content that must appear on each
+// Define the critical pages and key content that must appear on each
 const criticalPages = [
-<<<<<<< HEAD
-  { path: '/', contentCheck: /get started|valuation/i },
-  { path: '/auth', contentCheck: /sign in|log in/i },
-  { path: '/auth/individual', contentCheck: /sign in|log in|individual/i },
-  { path: '/auth/dealer', contentCheck: /sign in|log in|dealer/i },
-  { path: '/dealer', contentCheck: /dealer|dashboard|leads/i },
-  { path: '/dealer/dashboard', contentCheck: /dealer|dashboard|leads/i },
-  { path: '/premium-valuation', contentCheck: /premium|valuation|features/i },
-=======
-  { path: "/", contentCheck: /get started|valuation/i },
-  { path: "/login", contentCheck: /sign in|log in/i },
-  { path: "/dealer-dashboard", contentCheck: /dealer|dashboard|leads/i },
-  { path: "/dealer-insights", contentCheck: /insights|analytics|performance/i },
-  { path: "/premium", contentCheck: /premium|valuation|features/i },
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+  { path: "/", contentCheck: /Car Price Perfector/i },
+  { path: "/auth", contentCheck: /Authentication/i },
+  { path: "/premium", contentCheck: /Premium Valuation|Premium/i },
+  { path: "/get-valuation", contentCheck: /Free Vehicle Valuation/i },
+  { path: "/valuation", contentCheck: /Get Your Vehicle Valuation/i },
 ];
 
 test.describe("Route Integrity Tests", () => {
@@ -27,60 +17,47 @@ test.describe("Route Integrity Tests", () => {
       await page.goto(path);
 
       // Check that the page doesn't show an error boundary
-      await expect(page.locator('text="Something went wrong"')).not
-        .toBeVisible();
+      await expect(page.locator('text="Something went wrong"')).not.toBeVisible();
 
       // Check that expected content is present
-      await expect(page.locator(`text=${contentCheck}`)).toBeVisible();
+      await expect(page.getByText(contentCheck)).toBeVisible();
     });
   });
 
   // Test navigation paths between critical pages
   test("Navigation between critical pages should work", async ({ page }) => {
     // Start at home
-<<<<<<< HEAD
-    await page.goto('/');
-    
-    // Navigate to the auth page
-    await page.getByRole('link', { name: /sign in|log in/i }).click();
-    await expect(page).toHaveURL(/.*auth/);
-    
-=======
     await page.goto("/");
 
-    // Navigate to the dealer dashboard (this would require login in a real test)
-    await page.getByRole("link", { name: /dashboard/i }).click();
-    await expect(page).toHaveURL(/.*login/);
+    // Navigate to the auth page
+    await page.getByRole("link", { name: "Sign In" }).click();
+    await expect(page).toHaveURL(/\/auth/);
+    await expect(page.getByRole("heading", { name: /Authentication/i })).toBeVisible();
 
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
-    // If we had a test user, we would login here
-    // await page.fill('input[name="email"]', 'test@example.com');
-    // await page.fill('input[name="password"]', 'password');
-    // await page.click('button[type="submit"]');
-<<<<<<< HEAD
-    
-    // After login, check we can navigate to dashboard
-    // await expect(page).toHaveURL(/.*dashboard/);
-  });
-  
-  // Test redirects from legacy routes
-  test('Legacy routes should redirect correctly', async ({ page }) => {
-    // Test login redirect
-    await page.goto('/login');
-    await expect(page).toHaveURL('/auth');
-    
-    // Test signup redirect
-    await page.goto('/signup');
-    await expect(page).toHaveURL('/auth');
-    
-    // Test dealer signup redirect
-    await page.goto('/dealer-signup');
-    await expect(page).toHaveURL('/auth/dealer');
-=======
+    // Move to the premium page from the header navigation
+    await page.getByRole("link", { name: "Premium" }).click();
+    await expect(page).toHaveURL(/\/premium/);
+    await expect(
+      page.getByRole("heading", { name: /Start Your Premium Valuation/i })
+    ).toBeVisible();
 
-    // After login, check we can navigate to insights
-    // await page.getByRole('link', { name: /insights/i }).click();
-    // await expect(page).toHaveURL(/.*insights/);
->>>>>>> 17b22333 (Committing 1400+ updates: bug fixes, file sync, cleanup)
+    // Use the premium CTA to visit the free valuation flow
+    await page.getByRole("button", { name: "Try Basic Version (FREE)" }).click();
+    await expect(page).toHaveURL(/\/get-valuation/);
+    await expect(
+      page.getByRole("heading", { name: /Free Vehicle Valuation/i })
+    ).toBeVisible();
+
+    // Hop over to the valuation landing page
+    await page.getByRole("link", { name: "Valuation" }).click();
+    await expect(page).toHaveURL(/\/valuation/);
+    await expect(
+      page.getByRole("heading", { name: /Get Your Vehicle Valuation/i })
+    ).toBeVisible();
+
+    // Return to the home page to complete the flow
+    await page.getByRole("link", { name: "Home" }).click();
+    await expect(page).toHaveURL("/");
+    await expect(page.getByText(/Car Price Perfector/i)).toBeVisible();
   });
 });
