@@ -1,8 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { VehicleData } from '@shared/types/vehicle-data';
+import type { VehicleData } from '@/types/vehicle';
 
 export type VehicleSnapshot = Partial<VehicleData> & {
+  zip?: string;
   zipCode?: string;
 };
 
