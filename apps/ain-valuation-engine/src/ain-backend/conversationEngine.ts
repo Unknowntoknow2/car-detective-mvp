@@ -60,10 +60,10 @@ export class ConversationEngine {
       condition: this.state.condition,
       titleStatus: this.state.titleStatus,
       zip: this.state.zip,
-    }
-    const canonical: VehicleDataCanonical = toCanonicalVehicleData(vehicleData)
-    const valuation: ValuationResult = await valuateVehicle(canonical)
-    this.state.valuation = valuation
-    return this.state
+    };
+    const canonical: VehicleDataCanonical = toCanonicalVehicleData(vehicleData);
+    const valuation: ValuationResult = await valuateVehicle(canonical);
+    this.state.valuation = valuation;
+    return this.state;
   }
 }

@@ -37,7 +37,13 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
   const [isGeneratingValuation, setIsGeneratingValuation] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const requiredFields: StringKeys<VehicleData>[] = [
-    'vin','year','make','model','mileage','condition','titleStatus'
+    'vin',
+    'year',
+    'make',
+    'model',
+    'mileage',
+    'condition',
+    'titleStatus',
   ]
 
   useEffect(() => {
