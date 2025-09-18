@@ -104,3 +104,9 @@ export interface UnifiedVehicleData {
   estimatedValue?: number;
   confidenceScore?: number;
 }
+
+export type {
+  VehicleData,
+  VehicleDataCanonical,
+} from '../../apps/ain-valuation-engine/src/types/canonical';
+export { toCanonicalVehicleData } from '../../apps/ain-valuation-engine/src/types/canonical';

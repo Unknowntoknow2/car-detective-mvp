@@ -3,19 +3,14 @@
  * Used when primary valuation methods fail or return invalid results
  */
 
-interface VehicleData {
-  make?: string;
-  model?: string;
-  year?: number;
-  trim?: string;
-  fuelType?: string;
-}
+type VehicleData =
+  import('../../../apps/ain-valuation-engine/src/types/canonical').VehicleData
 
 /**
  * Generate emergency fallback value when primary valuation fails
  */
 export function generateEmergencyFallbackValue(
-  vehicleData: VehicleData,
+  vehicleData: Partial<VehicleData>,
   mileage: number,
   condition: string
 ): number {
