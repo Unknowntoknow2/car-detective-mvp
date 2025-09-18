@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PartialVehicleData, LookupMethod } from '@/types/vehicle-lookup';
+import { LookupMethod, PartialVehicleData } from '@/types/vehicle-lookup';
 import { ConditionOption } from '@/types/condition';
 
 // Inline interface since manual entry types were removed
@@ -38,7 +38,6 @@ export function useVehicleLookup() {
           year: parseInt(manualData.year),
           mileage: parseInt(manualData.mileage),
           condition: manualData.condition,
-          zip: manualData.zipCode,
           zipCode: manualData.zipCode,
           trim: manualData.trim,
           fuelType: manualData.fuelType,

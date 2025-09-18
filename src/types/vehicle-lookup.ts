@@ -1,13 +1,10 @@
 
 import { AccidentDetails } from "./follow-up-answers";
 import { ConditionOption, TireConditionOption } from "./condition";
-import type { VehicleData } from "./vehicle";
-export type { VehicleData } from "./vehicle";
 
-export type PartialVehicleData = Partial<VehicleData> & {
-  zip?: string;
-  zipCode?: string;
-};
+export type VehicleData =
+  import('../../apps/ain-valuation-engine/src/types/canonical').VehicleData;
+export type PartialVehicleData = Partial<VehicleData> & { zipCode?: string };
 
 export interface LookupFormData {
   vin?: string;

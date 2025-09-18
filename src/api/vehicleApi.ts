@@ -5,6 +5,9 @@ import { toast } from "sonner";
 import { createClient } from "@supabase/supabase-js";
 import { appConfig } from "@/config";
 
+export type VehicleData =
+  import('../../apps/ain-valuation-engine/src/types/canonical').VehicleData;
+
 export const supabase = createClient(appConfig.SUPABASE_URL, appConfig.SUPABASE_ANON_KEY);
 
 const API_BASE_URL = appConfig.API_BASE_URL;
