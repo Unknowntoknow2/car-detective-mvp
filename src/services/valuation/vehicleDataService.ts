@@ -1,17 +1,10 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export interface VehicleData {
-  vin?: string;
-  year: number;
-  make: string;
-  model: string;
-  trim?: string;
-  mileage?: number;
-  fuelType?: string;
-  transmission?: string;
-  zipCode?: string;
-}
+export type VehicleData =
+  import('../../apps/ain-valuation-engine/src/types/canonical').VehicleData
+export type VehicleDataCanonical =
+  import('../../apps/ain-valuation-engine/src/types/canonical').VehicleDataCanonical
 
 export async function getVehicleDataByVin(vin: string): Promise<VehicleData | null> {
   try {
@@ -27,17 +20,34 @@ export async function getVehicleDataByVin(vin: string): Promise<VehicleData | nu
 
     if (vinData?.success && vinData?.vehicleData) {
       const vehicle = vinData.vehicleData;
-      return {
+      const normalized = {
         vin,
         year: vehicle.year || 2018,
         make: vehicle.make || 'TOYOTA',
         model: vehicle.model || 'Camry',
         trim: vehicle.trim || 'Unknown',
+        mileage: vehicle.mileage || 0,
+        zip: vehicle.zipCode || vehicle.zip || '95821',
+        condition: vehicle.condition || 'unknown',
+        titleStatus: vehicle.titleStatus || 'unknown',
         fuelType: vehicle.fuelType || 'gasoline',
         transmission: vehicle.transmission || 'automatic',
-        mileage: vehicle.mileage || 0,
-        zipCode: vehicle.zipCode || '95821'
-      };
+        drivetrain: vehicle.drivetrain,
+        color: vehicle.color || vehicle.exteriorColor,
+        exteriorColor: vehicle.exteriorColor || vehicle.color
+      } satisfies Partial<VehicleData>;
+      return {
+        ...normalized,
+        vin: normalized.vin ?? vin,
+        year: normalized.year ?? 2018,
+        make: normalized.make ?? 'TOYOTA',
+        model: normalized.model ?? 'Camry',
+        mileage: normalized.mileage ?? 0,
+        condition: normalized.condition ?? 'unknown',
+        titleStatus: normalized.titleStatus ?? 'unknown',
+        zip: normalized.zip ?? '95821',
+        zipCode: normalized.zip ?? '95821'
+      } as VehicleData;
     }
 
     // Fallback: try to get from valuation requests table
@@ -54,16 +64,22 @@ export async function getVehicleDataByVin(vin: string): Promise<VehicleData | nu
       return null;
     }
 
+    const fallbackZip = requestData.zip_code || '95821';
     return {
       vin,
       year: requestData.year || 2018,
       make: requestData.make || 'TOYOTA',
       model: requestData.model || 'Camry',
       trim: requestData.trim || 'Unknown',
-      fuelType: 'gasoline',
       mileage: requestData.mileage || 0,
-      zipCode: requestData.zip_code || '95821'
-    };
+      condition: requestData.condition || 'unknown',
+      titleStatus: requestData.title_status || 'unknown',
+      fuelType: 'gasoline',
+      transmission: requestData.transmission || 'automatic',
+      drivetrain: requestData.drivetrain || undefined,
+      zip: fallbackZip,
+      zipCode: fallbackZip
+    } as VehicleData;
 
   } catch (error) {
     console.error('Error getting vehicle data:', error);
@@ -84,16 +100,22 @@ export async function getVehicleDataByValuationId(valuationId: string): Promise<
       return null;
     }
 
+    const fallbackZip = data.zip_code || '95821';
     return {
-      vin: data.vin || undefined,
+      vin: data.vin || '',
       year: data.year || 2018,
       make: data.make || 'TOYOTA',
       model: data.model || 'Camry',
       trim: data.trim || 'Unknown',
-      fuelType: 'gasoline',
       mileage: data.mileage || 0,
-      zipCode: data.zip_code || '95821'
-    };
+      condition: data.condition || 'unknown',
+      titleStatus: data.title_status || 'unknown',
+      fuelType: data.fuel_type || 'gasoline',
+      transmission: data.transmission || 'automatic',
+      drivetrain: data.drivetrain || undefined,
+      zip: fallbackZip,
+      zipCode: fallbackZip
+    } as VehicleData;
 
   } catch (error) {
     console.error('Error getting valuation data:', error);

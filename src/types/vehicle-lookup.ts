@@ -2,18 +2,9 @@
 import { AccidentDetails } from "./follow-up-answers";
 import { ConditionOption, TireConditionOption } from "./condition";
 
-export interface VehicleData {
-  make: string;
-  model: string;
-  year: number;
-  vin?: string;
-  mileage?: number;
-  condition?: ConditionOption;
-  zipCode?: string;
-  trim?: string;
-  fuelType?: string;
-  transmission?: string;
-}
+export type VehicleData =
+  import('../../apps/ain-valuation-engine/src/types/canonical').VehicleData
+export type PartialVehicleData = Partial<VehicleData> & { zipCode?: string };
 
 export interface LookupFormData {
   vin?: string;
@@ -28,7 +19,7 @@ export interface LookupFormData {
 }
 
 export interface VehicleLookupResult {
-  vehicle: VehicleData;
+  vehicle: PartialVehicleData;
   valuation?: number;
   confidence?: number;
   sources?: string[];

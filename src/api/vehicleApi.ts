@@ -9,6 +9,9 @@ export const supabase = createClient(appConfig.SUPABASE_URL, appConfig.SUPABASE_
 
 const API_BASE_URL = appConfig.API_BASE_URL;
 
+export type VehicleData =
+  import('../../apps/ain-valuation-engine/src/types/canonical').VehicleData
+
 interface VehicleDetails {
   year: number;
   make: string;
@@ -21,13 +24,13 @@ interface VehicleDetails {
   driveType?: string;
 }
 
-export interface VehicleData {
+interface VehicleCatalogData {
   makes: Make[];
   models: Model[];
 }
 
 // API fetch helpers
-export async function fetchVehicleData(): Promise<VehicleData> {
+export async function fetchVehicleData(): Promise<VehicleCatalogData> {
   try {
     const makesResponse = await fetch(`${API_BASE_URL}/makes`);
     const modelsResponse = await fetch(`${API_BASE_URL}/models`);
