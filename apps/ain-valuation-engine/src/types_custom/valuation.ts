@@ -6,7 +6,7 @@ export interface ValuationInputs {
   trim?: string;
   currentMileage?: number;
   condition?: string;
-  zipCode?: string;
+  zip?: string;
 }
 
 // Main valuation interfaces and types
@@ -51,5 +51,5 @@ export interface EnrichedVehicleProfile {
 
   currentMileage?: number;
   condition?: string;
-  zipCode?: string;
+  zip?: string;
 }

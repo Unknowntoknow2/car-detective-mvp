@@ -126,7 +126,7 @@ export function ValuationResultsDisplay(props: ValuationResultsProps) {
             <strong>Title Status:</strong> {String(valuation.vehicleData?.titleStatus ?? 'N/A')}
           </div>
           <div>
-            <strong>Location:</strong> {valuation.vehicleData?.zipCode || 'N/A'}
+            <strong>Location:</strong> {valuation.vehicleData?.zip ?? 'N/A'}
           </div>
         </div>
       </div>
