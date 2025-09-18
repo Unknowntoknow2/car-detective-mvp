@@ -1,4 +1,4 @@
-import { listHostsByTier } from "./config/policy.js";
+import { listHostsByTier } from "./config/policy";
 
 export type RouteParams = { locale?: "us"|"intl"; vin?: string|null; make?:string; model?:string; year?:number; zip?:string; radius?:number };
 

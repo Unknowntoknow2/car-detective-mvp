@@ -1,6 +1,6 @@
-import { supabase } from "../../../db/supabaseClient.js";
-import type { Listing } from "../schemas/ListingSchema.js";
-import { stableKey } from "../utils/dedupe.js";
+import { supabase } from "../../../db/supabaseClient";
+import type { Listing } from "../schemas/ListingSchema";
+import { stableKey } from "../utils/dedupe";
 
 export async function upsertListings(rows: Listing[]): Promise<number> {
   if (!rows.length) return 0;

@@ -1,4 +1,4 @@
-import { supabase } from "../../../db/supabaseClient.js";
+import { supabase } from "../../../db/supabaseClient";
 
 export async function createRunLog(params: {
   run_id: string;

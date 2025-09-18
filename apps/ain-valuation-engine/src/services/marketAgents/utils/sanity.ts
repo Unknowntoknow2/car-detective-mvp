@@ -1,5 +1,5 @@
-import type { Listing } from "../schemas/ListingSchema.js";
-import { iqrBounds, median } from "./stats.js";
+import type { Listing } from "../schemas/ListingSchema";
+import { iqrBounds, median } from "./stats";
 
 export type FilterReport = {
   kept: Listing[];
