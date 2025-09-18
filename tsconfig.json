@@ -7,6 +7,9 @@
     "paths": {
       "@/*": [
         "*"
+      ],
+      "@shared/*": [
+        "../shared/*"
       ]
     },
     "jsx": "react-jsx",

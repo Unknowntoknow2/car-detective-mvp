@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useVehicleLookup } from "@/hooks/useVehicleLookup";
 import { ConditionLevel } from "@/types/condition";
-import { VehicleData } from "@/types/vehicle-lookup";
+import { VehicleLookupData } from "@/types/vehicle-lookup";
 
 // Inline manual entry interface since original was removed
 interface ManualEntryFormData {
@@ -26,7 +26,7 @@ export function useValuationState() {
     condition: ConditionLevel.Good,
     zipCode: "",
   });
-  const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
+  const [vehicleData, setVehicleData] = useState<VehicleLookupData | null>(null);
 
   const { lookupVehicle, isLoading, vehicle, error } = useVehicleLookup();
 

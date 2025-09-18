@@ -80,6 +80,6 @@ export type LookupSource = 'vin' | 'plate' | 'manual' | 'vpic' | 'carfax' | 'fai
 
 // Legacy type aliases for backwards compatibility
 export type DecodedVehicleInfo = UnifiedVehicleData;
-export type VehicleData = UnifiedVehicleData;
+export type LegacyVehicleData = UnifiedVehicleData;
 export type LookupFormData = UnifiedLookupFormData;
 export type VehicleLookupResult = UnifiedLookupResult;

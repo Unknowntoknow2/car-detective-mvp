@@ -1,21 +1,15 @@
+import type { VehicleData } from '@shared/types/vehicle-data';
+
 /**
  * Emergency fallback utilities for valuation system
  * Used when primary valuation methods fail or return invalid results
  */
 
-interface VehicleData {
-  make?: string;
-  model?: string;
-  year?: number;
-  trim?: string;
-  fuelType?: string;
-}
-
 /**
  * Generate emergency fallback value when primary valuation fails
  */
 export function generateEmergencyFallbackValue(
-  vehicleData: VehicleData,
+  vehicleData: Partial<VehicleData>,
   mileage: number,
   condition: string
 ): number {
