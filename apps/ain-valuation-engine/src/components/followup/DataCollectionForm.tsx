@@ -11,6 +11,14 @@ import {
   type VehicleData,
 } from "../../types/ValuationTypes";
 
+// Narrow a possibly-undefined value with a clear runtime error in dev/test.
+function assertDefined<T>(value: T | undefined, name: string | number | symbol): T {
+  if (value === undefined) {
+    throw new Error(`${String(name)} is required but was undefined`);
+  }
+  return value;
+}
+
 interface DataCollectionFormProps {
   decodedVin: VariableValue[];
   vin: string;
@@ -235,15 +243,15 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }: DataCollecti
     try {
       // Always build a complete VehicleData object from decoded VIN and user input
       const vd: VehicleData = {
-        vin: vehicleData.vin!,
-        year: vehicleData.year,
-        make: vehicleData.make,
-        model: vehicleData.model,
+        vin: assertDefined(vehicleData.vin, "vin"),
+        year: assertDefined(vehicleData.year, "year"),
+        make: assertDefined(vehicleData.make, "make"),
+        model: assertDefined(vehicleData.model, "model"),
         trim: vehicleData.trim || undefined,
         mileage: Number(vehicleData.mileage),
-        zip: vehicleData.zip,
-        condition: vehicleData.condition,
-        titleStatus: vehicleData.titleStatus,
+        zip: assertDefined(vehicleData.zip, "zip"),
+        condition: assertDefined(vehicleData.condition, "condition"),
+        titleStatus: assertDefined(vehicleData.titleStatus, "titleStatus"),
         color: vehicleData.color || vehicleData.exteriorColor || undefined,
         fuelType: vehicleData.fuelType,
         transmission: vehicleData.transmission,
