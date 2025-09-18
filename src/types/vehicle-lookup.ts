@@ -36,3 +36,4 @@ export interface VehicleLookupResult {
 
 export type LookupMethod = 'vin' | 'plate' | 'manual';
 export type LookupTier = 'free' | 'premium';
+export type PartialVehicleData = Partial<VehicleData>;
