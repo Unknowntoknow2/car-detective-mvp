@@ -1,7 +1,8 @@
 import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from './unifiedVinDecoder'
-import { fetchVinLookup } from './vinLookupService'
-import { fetchMarketPricing } from './vehiclePricingService'
-import { fetchResidualForecast } from './residualValueService'
+import { vinLookupService } from './vinLookupService'
+import { vehiclePricingService } from './vehiclePricingService'
+import { residualValueService } from './residualValueService'
+import type { VehicleData } from '@/types/ValuationTypes'
 
 /**
  * Executes a complete vehicle valuation process for a given VIN number.
@@ -32,12 +33,12 @@ import { fetchResidualForecast } from './residualValueService'
  * - Measures valuation duration for performance monitoring
  * - Records database operation metrics for audit purposes
  */
-export async function runValuation(vehicle) {
+export async function runValuation(vehicle: VehicleData) {
   // vehicle: normalized and enriched VehicleData
   // 1. VIN Lookup API enrichment
   let vinLookup = null;
   try {
-    vinLookup = await fetchVinLookup(vehicle.vin);
+    vinLookup = await vinLookupService(vehicle as any);
   } catch (e) {
     vinLookup = null;
   }
@@ -45,7 +46,7 @@ export async function runValuation(vehicle) {
   // 2. Market Pricing API
   let marketPricing = null;
   try {
-    marketPricing = await fetchMarketPricing(vehicle.make, vehicle.model, vehicle.year);
+    marketPricing = await vehiclePricingService(vehicle as any);
   } catch (e) {
     marketPricing = null;
   }
@@ -53,7 +54,7 @@ export async function runValuation(vehicle) {
   // 3. Residual Value API
   let residualForecast = null;
   try {
-    residualForecast = await fetchResidualForecast(vehicle.vin);
+    residualForecast = await residualValueService(vehicle as any);
   } catch (e) {
     residualForecast = null;
   }
@@ -82,21 +83,20 @@ export async function runValuation(vehicle) {
       confidence
     },
     enrichment: {
-      vinLookup: vinLookup ? {
-        trim: vinLookup.trim,
-        engine: vinLookup.engine,
-        drivetrain: vinLookup.drive,
-        fuelType: vinLookup.fuelType
+      vinLookup: vinLookup && (vinLookup as any).data ? {
+        trim: (vinLookup as any).data?.trim,
+        engine: (vinLookup as any).data?.engine,
+        drivetrain: (vinLookup as any).data?.drive ?? (vinLookup as any).data?.drivetrain,
+        fuelType: (vinLookup as any).data?.fuelType,
       } : null,
-      marketPricing: marketPricing ? {
-        retail: marketPricing.retail,
-        wholesale: marketPricing.wholesale,
-        tradeIn: marketPricing.tradeIn
+      marketPricing: marketPricing && (marketPricing as any).data ? {
+        retail: (marketPricing as any).data?.retail ?? null,
+        wholesale: (marketPricing as any).data?.wholesale ?? null,
+        tradeIn: (marketPricing as any).data?.tradeIn ?? null,
       } : null,
-      residualForecast: residualForecast ? {
-        "1yr": residualForecast["1yr"],
-        "2yr": residualForecast["2yr"],
-        "3yr": residualForecast["3yr"]
+      residualForecast: residualForecast && (residualForecast as any).data ? {
+        residualPercent: (residualForecast as any).data?.residualPercent,
+        months: (residualForecast as any).data?.months,
       } : null
     }
   };

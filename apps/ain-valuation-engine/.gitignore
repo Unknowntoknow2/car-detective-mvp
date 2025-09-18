@@ -42,6 +42,9 @@ deno.lock
 
 # Data, outputs, and ML artifacts
 data/
+!src/
+!src/data/
+!src/data/autoDataSources.ts
 datasets/
 runs/
 output/
