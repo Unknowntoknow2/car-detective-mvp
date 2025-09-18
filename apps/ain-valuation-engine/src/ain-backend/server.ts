@@ -2,7 +2,7 @@
 
 import express from "express";
 import cors from "cors";
-import { normalizeVehicleData } from "../services/normalizeVehicleData.js";
+import { normalizeVehicleData, type NormalizedVehicleData } from "../services/normalizeVehicleData.js";
 import logger from "../utils/logger.js";
 import { carApiService } from "../services/carApiService.js";
 import { vinLookupService } from "../services/vinLookupService.js";
@@ -47,7 +47,16 @@ app.post("/api/valuate", async (req, res) => {
     logger.info(`[AUDIT] Validation OK`);
 
     // Normalize vehicle data for all services
-    const vehicle = normalizeVehicleData({ vin, year, make, model, mileage, zip, condition, titleStatus });
+    const vehicle: NormalizedVehicleData = normalizeVehicleData({
+      vin,
+      year,
+      make,
+      model,
+      mileage,
+      zip,
+      condition,
+      titleStatus
+    });
 
     // Decode VINs (pass vehicle object)
     let decodeSource = 'NONE';
