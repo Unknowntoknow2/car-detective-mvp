@@ -1,19 +1,13 @@
 
 import { AccidentDetails } from "./follow-up-answers";
 import { ConditionOption, TireConditionOption } from "./condition";
+import type { VehicleData } from "./vehicle";
+export type { VehicleData } from "./vehicle";
 
-export interface VehicleLookupData {
-  make: string;
-  model: string;
-  year: number;
-  vin?: string;
-  mileage?: number;
-  condition?: ConditionOption;
+export type PartialVehicleData = Partial<VehicleData> & {
+  zip?: string;
   zipCode?: string;
-  trim?: string;
-  fuelType?: string;
-  transmission?: string;
-}
+};
 
 export interface LookupFormData {
   vin?: string;
@@ -28,7 +22,7 @@ export interface LookupFormData {
 }
 
 export interface VehicleLookupResult {
-  vehicle: VehicleLookupData;
+  vehicle: PartialVehicleData;
   valuation?: number;
   confidence?: number;
   sources?: string[];

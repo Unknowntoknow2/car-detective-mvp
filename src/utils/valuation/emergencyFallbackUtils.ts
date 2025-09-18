@@ -1,4 +1,4 @@
-import type { VehicleData } from '@shared/types/vehicle-data';
+import type { VehicleData } from '@/types/vehicle';
 
 /**
  * Emergency fallback utilities for valuation system

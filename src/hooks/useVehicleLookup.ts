@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { VehicleLookupData, LookupMethod } from '@/types/vehicle-lookup';
+import { PartialVehicleData, LookupMethod } from '@/types/vehicle-lookup';
 import { ConditionOption } from '@/types/condition';
 
 // Inline interface since manual entry types were removed
@@ -17,7 +17,7 @@ interface ManualEntryFormData {
 
 export function useVehicleLookup() {
   const [isLoading, setIsLoading] = useState(false);
-  const [vehicle, setVehicle] = useState<VehicleLookupData | null>(null);
+  const [vehicle, setVehicle] = useState<PartialVehicleData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const lookupVehicle = async (
@@ -32,12 +32,13 @@ export function useVehicleLookup() {
     try {
       // Mock implementation - replace with actual lookup logic
       if (method === 'manual' && manualData) {
-        const vehicleData: VehicleLookupData = {
+        const vehicleData: PartialVehicleData = {
           make: manualData.make,
           model: manualData.model,
           year: parseInt(manualData.year),
           mileage: parseInt(manualData.mileage),
           condition: manualData.condition,
+          zip: manualData.zipCode,
           zipCode: manualData.zipCode,
           trim: manualData.trim,
           fuelType: manualData.fuelType,
