@@ -1,10 +1,11 @@
 
 // src/types/ValuationTypes.ts
-// Canonical schema for AIN Valuation Engine (Google-level, 40+ factors)
-// All legacy types are deprecated and aliased to canonical.
-import type { VehicleData, VehicleDataCanonical } from './canonical'
-export type { VehicleData, VehicleDataCanonical } from './canonical'
+// Canonical schema. Single source of truth comes from ./canonical.
+import type { VehicleDataCanonical } from './canonical'
+export type { VehicleDataCanonical } from './canonical'
 
+// Keep alias for legacy imports
+export type VehicleData = VehicleDataCanonical;
 /**
  * @deprecated Use VehicleDataCanonical instead.
  */
