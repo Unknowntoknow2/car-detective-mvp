@@ -1,2 +1,5 @@
-import runAudit from "../tools/audit/AuditRunner";
-(async () => { await runAudit(); })();
+import runAudit from "../tools/audit/AuditRunner.ts";
+
+(async () => {
+  await runAudit();
+})();
