@@ -2,14 +2,14 @@
 
 import express from "express";
 import cors from "cors";
-import { normalizeVehicleData, type NormalizedVehicleData } from "../services/normalizeVehicleData.js";
-import logger from "../utils/logger.js";
-import { carApiService } from "../services/carApiService.js";
-import { vinLookupService } from "../services/vinLookupService.js";
 import axios from "axios";
-import { residualValueService } from "../services/residualValueService.js";
-import { carSpecsService } from "../services/carSpecsService.js";
-import { decodeVinAndEstimate } from "../services/vinValuationService.js";
+import { normalizeVehicleData, type NormalizedVehicleData } from "../services/normalizeVehicleData";
+import logger from "../utils/logger";
+import { carApiService } from "../services/carApiService";
+import { vinLookupService } from "../services/vinLookupService";
+import { residualValueService } from "../services/residualValueService";
+import { carSpecsService } from "../services/carSpecsService";
+import { decodeVinAndEstimate } from "../services/vinValuationService";
 
 
 const app = express();
