@@ -1,6 +1,6 @@
 // Lightweight loader for the allowlisted sources.
 // Only domains with allowed=true will be queried.
-import { SOURCES_DATA } from "./sourcesData.js";
+import { SOURCES_DATA } from "./sourcesData";
 export type SourcePolicy = { allowed: boolean; maxConcurrent?: number; minDelayMs?: number; freshnessDays?: number; cacheTtlMs?: number };
 export function getHostFreshnessDays(hostname: string): number {
   const h = hostname.replace(/^www\./, "");

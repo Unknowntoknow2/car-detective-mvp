@@ -1,5 +1,5 @@
-import { NormalizedVehicle } from "../utils/normalizeVehicleData.js";
-import logger from "../utils/logger.js";
+import { NormalizedVehicle } from "../utils/normalizeVehicleData";
+import logger from "../utils/logger";
 
 export async function vinLookupService(
   vehicle: NormalizedVehicle

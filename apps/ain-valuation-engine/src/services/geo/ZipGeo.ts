@@ -1,4 +1,4 @@
-import { supabase } from "../../db/supabaseClient.js";
+import { supabase } from "../../db/supabaseClient";
 
 export type ZipPoint = { zip: string; lat: number; lon: number };
 const cache = new Map<string, ZipPoint>();

@@ -1,7 +1,7 @@
 
 import axios from 'axios';
 
-import logger from '../utils/logger.js';
+import logger from '../utils/logger';
 export async function decodeVinAndEstimate(vin: string) {
   const cleanVin = vin.trim().toUpperCase();
   if (!cleanVin || cleanVin.length !== 17) throw new Error('Invalid VIN');

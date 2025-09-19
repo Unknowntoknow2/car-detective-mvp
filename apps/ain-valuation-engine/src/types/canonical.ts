@@ -1,11 +1,22 @@
-import type {
-  VehicleData as SharedVehicleData,
-  VehicleDataCanonical as SharedVehicleDataCanonical
-} from '@shared/types/vehicle-data'
+export type VehicleData = {
+  vin: string
+  year: number
+  make: string
+  model: string
+  mileage: number
+  zip?: string
+  condition: string
+  titleStatus: string
+  trim?: string
+  color?: string
+  exteriorColor?: string
+  fuelType?: string
+  transmission?: string
+  drivetrain?: string
+}
 
-export type VehicleData = SharedVehicleData
 // Downstream requires zip mandatory.
-export type VehicleDataCanonical = SharedVehicleDataCanonical
+export type VehicleDataCanonical = Omit<VehicleData, 'zip'> & { zip: string }
 
 export function toCanonicalVehicleData(input: Partial<VehicleData>): VehicleDataCanonical {
   const req = <T>(v: T | undefined, name: string): T => {
