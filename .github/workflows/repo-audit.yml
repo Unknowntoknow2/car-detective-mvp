@@ -8,22 +8,40 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: true   # ✅ this ensures pnpm is installed and deps are fetched
+      - name: Install deps (pnpm if present, else npm)
+        run: |
+          set -e
+          if [ -f pnpm-lock.yaml ] || [ -f pnpm-workspace.yaml ]; then
+            echo "→ Using pnpm"
+            corepack enable
+            corepack prepare pnpm@9 --activate
+            pnpm --version
+            pnpm install --no-frozen-lockfile
+          elif [ -f package-lock.json ]; then
+            echo "→ Using npm"
+            npm ci
+          else
+            echo "No lockfile found. Running npm install (best-effort)."
+            npm install
+          fi
 
-      - name: Run audit script
-        run: pnpm exec tsx apps/ain-valuation-engine/src/scripts/run-audit.mts
+      - name: Run audit script via tsx
+        run: |
+          set -e
+          if command -v pnpm >/dev/null 2>&1 && ( [ -f pnpm-lock.yaml ] || [ -f pnpm-workspace.yaml ] ); then
+            pnpm exec tsx apps/ain-valuation-engine/src/scripts/run-audit.mts || npx -y tsx apps/ain-valuation-engine/src/scripts/run-audit.mts
+          else
+            npx -y tsx apps/ain-valuation-engine/src/scripts/run-audit.mts
+          fi
 
       - name: Upload audit artifacts
         if: always()
