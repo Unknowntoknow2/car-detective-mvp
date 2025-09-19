@@ -1,4 +1,5 @@
 name: Repo Audit
+
 on:
   workflow_dispatch:
   pull_request:
@@ -9,18 +10,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - name: Install deps
+          cache: pnpm
+
+      # Enable pnpm on the runner
+      - name: Enable pnpm via Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@9 --activate
+          pnpm -v
+
+      - name: Install dependencies
         run: pnpm -w install --frozen-lockfile
-      - name: Run audit
-        run: pnpm tsx apps/ain-valuation-engine/src/scripts/run-audit.mts
-      - name: Upload artifacts
+
+      - name: Run audit script
+        run: pnpm exec tsx apps/ain-valuation-engine/src/scripts/run-audit.mts
+
+      - name: Upload audit artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
