@@ -85,7 +85,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
           // If no data by VIN, try to link to existing valuation
           console.log('🔗 No follow-up data found, checking for valuation to link');
           const { data: valuationData } = await supabase
-            .from('valuations')
+            .from('valuation_results')
             .select('id')
             .eq('vin', vin)
             .order('created_at', { ascending: false })
@@ -179,7 +179,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       if (!saveData.valuation_id) {
         console.log('🔗 Attempting to link follow-up to valuation via VIN:', vin);
         const { data: valuationData } = await supabase
-          .from('valuations')
+          .from('valuation_results')
           .select('id')
           .eq('vin', vin)
           .order('created_at', { ascending: false })
@@ -325,7 +325,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       
       // 1. Check for existing valuation by VIN
       const { data: existingValuations } = await supabase
-        .from('valuations')
+        .from('valuation_results')
         .select('id, estimated_value')
         .eq('vin', vin)
         .order('created_at', { ascending: false })
@@ -337,21 +337,29 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       if (!valuation_id) {
         console.log('🚀 [FOLLOW-UP] Creating new valuation record for VIN:', vin);
         
+        const { data: userData } = await supabase.auth.getUser();
+        const userId = userData?.user?.id ?? null;
+
         const { data: newValuation, error: valuationError } = await supabase
-          .from('valuations')
+          .from('valuation_results')
           .insert({
             vin: vin,
             make: decodedVehicle?.make || formData.make || 'Unknown',
-            model: decodedVehicle?.model || formData.model || 'Unknown', 
+            model: decodedVehicle?.model || formData.model || 'Unknown',
             year: decodedVehicle?.year || formData.year || new Date().getFullYear(),
-            trim: decodedVehicle?.trim || undefined,
             mileage: formData.mileage,
             condition: formData.condition,
-            state: formData.zip_code,
-            user_id: (await supabase.auth.getUser()).data.user?.id || null,
-            estimated_value: 0, // Will be calculated
-            confidence_score: 0, // Will be calculated
-            created_at: new Date().toISOString()
+            zip_code: formData.zip_code,
+            user_id: userId,
+            estimated_value: 0,
+            confidence_score: 0,
+            adjustments: null,
+            vehicle_data: {
+              trim: decodedVehicle?.trim || undefined,
+              source: 'followup_form'
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           })
           .select('id')
           .single();
@@ -407,9 +415,10 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
           console.log('✅ [AIN] Valuation completed:', ainResult);
           console.log('🔍 [AIN] Route metadata:', meta);
-          
+
           // Store the AIN result in the database
-          if (ainResult && typeof ainResult === 'object' && 'estimated_value' in ainResult) {
+          const finalValue = ainResult?.finalValue ?? ainResult?.estimated_value ?? 0;
+          if (finalValue > 0) {
             console.log('📊 [AIN] Professional valuation received');
           }
 

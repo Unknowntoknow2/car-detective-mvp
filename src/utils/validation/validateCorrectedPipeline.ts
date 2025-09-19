@@ -16,7 +16,7 @@ export async function validateCorrectedPipeline(vin: string) {
   try {
     // Check updated valuation record
     const { data: valuation } = await supabase
-      .from('valuations')
+      .from('valuation_results')
       .select('*')
       .eq('vin', vin)
       .single();

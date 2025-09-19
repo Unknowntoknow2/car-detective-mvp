@@ -19,7 +19,7 @@ export interface ValuationResult {
   id: string;
   estimated_value: number;
   confidence_score: number;
-  base_price: number;
+  base_price?: number;
   year: number;
   make: string;
   model: string;
@@ -28,7 +28,7 @@ export interface ValuationResult {
   state?: string;
   vin?: string;
   plate?: string;
-  created_at: string;
+  created_at?: string;
   user_id?: string | null;
 }
 
@@ -38,7 +38,7 @@ export interface ValuationResult {
 export async function getValuationById(id: string): Promise<ValuationResult | null> {
   try {
     const { data, error } = await supabase
-      .from('valuations')
+      .from('valuation_results')
       .select('*')
       .eq('id', id)
       .single();
@@ -98,18 +98,21 @@ export async function createVinValuation(vin: string, userId?: string | null): P
 
     // Create legacy valuation record for backward compatibility
     const { data, error } = await supabase
-      .from('valuations')
+      .from('valuation_results')
       .insert({
         vin,
         user_id: userId,
-        is_vin_lookup: true,
-        estimated_value: 0, // Will be calculated by valuation engine
-        confidence_score: 0, // Will be calculated by valuation engine
-        base_price: 0,
+        estimated_value: 0,
+        confidence_score: 0,
         year: decodedVehicle.year,
         make: decodedVehicle.make,
         model: decodedVehicle.model,
         mileage: null,
+        vehicle_data: {
+          source: 'vin_lookup'
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
       .select('*')
       .single();
@@ -151,21 +154,26 @@ export async function createManualValuation(details: ValuationDetails, userId?: 
     
     const valuationData = {
       user_id: userId,
-      is_vin_lookup: false,
       estimated_value: estimatedValue,
       confidence_score: 75, // Slightly lower confidence for manual entry
-      base_price: estimatedValue * 0.8, // Base price as 80% of estimated value
       year: details.year,
       make: details.make,
       model: details.model,
       mileage: details.mileage,
       condition: details.condition,
-      state: details.zipCode?.substring(0, 2), // Using first two digits of ZIP as state (for demo)
+      zip_code: details.zipCode || null,
     };
     
     const { data, error } = await supabase
-      .from('valuations')
-      .insert(valuationData)
+      .from('valuation_results')
+      .insert({
+        ...valuationData,
+        vehicle_data: {
+          source: 'manual_entry'
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
       .select('*')
       .single();
     

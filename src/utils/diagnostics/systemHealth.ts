@@ -16,7 +16,7 @@ export async function runSystemHealthCheck(): Promise<SystemHealthCheck[]> {
   const dbStart = performance.now();
   try {
     const { data, error } = await supabase
-      .from('valuations')
+      .from('valuation_results')
       .select('count')
       .limit(1);
     
@@ -46,8 +46,8 @@ export async function runSystemHealthCheck(): Promise<SystemHealthCheck[]> {
 
   // 2. Check critical tables exist and have data
   const criticalTables = [
-    'valuations',
-    'decoded_vehicles', 
+    'valuation_results',
+    'decoded_vehicles',
     'auction_results_by_vin',
     'scraped_listings',
     'follow_up_answers'
@@ -85,7 +85,7 @@ export async function runSystemHealthCheck(): Promise<SystemHealthCheck[]> {
   try {
     const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const { count } = await supabase
-      .from('valuations')
+      .from('valuation_results')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', yesterday);
 
