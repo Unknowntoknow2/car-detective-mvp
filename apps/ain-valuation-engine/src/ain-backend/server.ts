@@ -1,15 +1,13 @@
-
-
 import express from "express";
 import cors from "cors";
-import { normalizeVehicleData, type NormalizedVehicleData } from "../services/normalizeVehicleData.js";
-import logger from "../utils/logger.js";
-import { carApiService } from "../services/carApiService.js";
-import { vinLookupService } from "../services/vinLookupService.js";
 import axios from "axios";
-import { residualValueService } from "../services/residualValueService.js";
-import { carSpecsService } from "../services/carSpecsService.js";
-import { decodeVinAndEstimate } from "../services/vinValuationService.js";
+import { normalizeVehicleData, type NormalizedVehicleData } from "../services/normalizeVehicleData";
+import logger from "../utils/logger";
+import { carApiService } from "../services/carApiService";
+import { vinLookupService } from "../services/vinLookupService";
+import { residualValueService } from "../services/residualValueService";
+import { carSpecsService } from "../services/carSpecsService";
+import { decodeVinAndEstimate } from "../services/vinValuationService";
 
 
 const app = express();
@@ -55,19 +53,21 @@ app.post("/api/valuate", async (req, res) => {
       mileage,
       zip,
       condition,
-      titleStatus
+      titleStatus,
     });
 
     // Decode VINs (pass vehicle object)
     let decodeSource = 'NONE';
-    let carSpecsData = null, carApiData = null, lookupData = null;
-  carSpecsData = await carSpecsService(vehicle).catch(() => null);
-  if (carSpecsData) decodeSource = 'Car Specs';
-  carApiData = await carApiService(vehicle).catch(() => null);
-  if (carApiData && !carSpecsData) decodeSource = 'Car API';
-  lookupData = await vinLookupService(vehicle).catch(() => null);
-  if (lookupData && !carSpecsData && !carApiData) decodeSource = 'VIN Lookup';
-  logger.info(`[AUDIT] VIN decoded via ${decodeSource}`);
+    let carSpecsData = null,
+      carApiData = null,
+      lookupData = null;
+    carSpecsData = await carSpecsService(vehicle).catch(() => null);
+    if (carSpecsData) decodeSource = 'Car Specs';
+    carApiData = await carApiService(vehicle).catch(() => null);
+    if (carApiData && !carSpecsData) decodeSource = 'Car API';
+    lookupData = await vinLookupService(vehicle).catch(() => null);
+    if (lookupData && !carSpecsData && !carApiData) decodeSource = 'VIN Lookup';
+    logger.info(`[AUDIT] VIN decoded via ${decodeSource}`);
 
 
     // Valuation (Google-level, real ML/SHAP/LLM via Python API)
