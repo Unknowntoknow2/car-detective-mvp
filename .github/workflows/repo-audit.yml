@@ -3,27 +3,24 @@ name: Repo Audit
 on:
   workflow_dispatch:
   pull_request:
-    types: [opened, synchronize, reopened]
 
 jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
 
-      # ✅ Install pnpm on the runner (most reliable)
-      - uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
           version: 9
-          run_install: false
-
-      - name: Install dependencies
-        run: pnpm -w install --frozen-lockfile
+          run_install: true   # ✅ this ensures pnpm is installed and deps are fetched
 
       - name: Run audit script
         run: pnpm exec tsx apps/ain-valuation-engine/src/scripts/run-audit.mts
