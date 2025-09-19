@@ -11,7 +11,7 @@ export default async function submitFollowUp(followUpData: FollowUpAnswers) {
 
     // Create a valuation record first
     const { data: valuation, error: valuationError } = await supabase
-      .from('valuations')
+      .from('valuation_results')
       .insert({
         vin: followUpData.vin,
         zip_code: followUpData.zip_code,
@@ -20,7 +20,8 @@ export default async function submitFollowUp(followUpData: FollowUpAnswers) {
         estimated_value: 25000, // This would be calculated based on the follow-up data
         confidence_score: 85,
         user_id: null, // For now, allowing anonymous submissions
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
       .select('id')
       .single();

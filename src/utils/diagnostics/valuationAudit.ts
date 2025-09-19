@@ -24,7 +24,7 @@ export async function runValuationAudit(vin: string): Promise<AuditResult> {
     }
 
     const { data: valuation, error: valErr } = await supabase
-      .from('valuations')
+      .from('valuation_results')
       .select('*')
       .eq('vin', vin)
       .order('created_at', { ascending: false })

@@ -79,7 +79,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
     try {
       // First try to get valuation by VIN
       const { data: valuationByVin, error: vinError } = await supabase
-        .from('valuations')
+        .from('valuation_results')
         .select('*')
         .eq('vin', id)
         .order('created_at', { ascending: false })
@@ -95,7 +95,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
       // If not found by VIN, try by ID
       if (!data) {
         const { data: valuationById, error: idError } = await supabase
-          .from('valuations')
+          .from('valuation_results')
           .select('*')
           .eq('id', id)
           .single();
@@ -110,17 +110,22 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
 
       if (data) {
         // Convert database data to our context format
+        const estimatedValue = data.estimated_value ?? 0;
+        const priceRange: [number, number] = [
+          data.price_range_low ?? estimatedValue,
+          data.price_range_high ?? estimatedValue,
+        ];
+        const adjustments = Array.isArray(data.adjustments) ? data.adjustments : [];
+
         const legacyResult: ValuationResult = {
-          estimatedValue: data.estimated_value || 0,
-          finalValue: data.estimated_value || 0,
-          confidenceScore: data.confidence_score || 0,
-          breakdown: data.adjustments || [],
-          marketData: data.data_source || {},
-          priceRange: data.price_range_low && data.price_range_high 
-            ? [data.price_range_low, data.price_range_high] 
-            : [0, 0],
-          adjustments: [],
-          baseValue: data.estimated_value,
+          estimatedValue,
+          finalValue: estimatedValue,
+          confidenceScore: data.confidence_score ?? 0,
+          breakdown: adjustments,
+          marketData: (data.vehicle_data as Record<string, unknown> | null) ?? {},
+          priceRange,
+          adjustments,
+          baseValue: estimatedValue,
           explanation: 'Legacy valuation data from database',
           source: 'database'
         };
@@ -161,15 +166,29 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
       logger.log("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
       
       // Convert AIN result to our expected format
+      const finalValue = ainResult.finalValue ?? ainResult.estimated_value ?? 0;
+      const confidenceScore = ainResult.confidenceScore ?? ainResult.confidence_score ?? 0;
+      const priceRange: [number, number] = ainResult.priceRange
+        ? [ainResult.priceRange[0] ?? finalValue, ainResult.priceRange[1] ?? finalValue]
+        : [ainResult.price_range_low ?? finalValue, ainResult.price_range_high ?? finalValue];
+      const adjustments = ainResult.adjustments ?? ainResult.breakdown ?? [];
+      const marketData = ainResult.market_data
+        ?? ((ainResult.marketListingsCount !== undefined || ainResult.sourcesUsed)
+          ? {
+              market_listings_count: ainResult.marketListingsCount,
+              sources_used: ainResult.sourcesUsed,
+            }
+          : {});
+
       const result: ValuationResult = {
-        estimatedValue: ainResult.estimated_value || 0,
-        finalValue: ainResult.estimated_value || 0,
-        confidenceScore: ainResult.confidence_score || 0,
-        priceRange: [ainResult.price_range_low || 0, ainResult.price_range_high || 0],
-        breakdown: ainResult.breakdown || [],
-        marketData: ainResult.market_data || {},
-        baseValue: ainResult.base_value || 0,
-        adjustments: ainResult.adjustments || [],
+        estimatedValue: finalValue,
+        finalValue,
+        confidenceScore,
+        priceRange,
+        breakdown: adjustments,
+        marketData,
+        baseValue: ainResult.base_value ?? finalValue,
+        adjustments,
         explanation: ainResult.explanation || 'Professional valuation from AIN API',
         source: 'ain',
         metadata: meta
@@ -180,25 +199,31 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
 
       // Save the valuation result to database
       try {
-        const userId = 'anonymous';
-        console.log('💾 [DEBUG] Saving valuation with user:', userId);
+        const { data: authData } = await supabase.auth.getUser();
+        const userId = authData?.user?.id ?? null;
+        console.log('💾 [DEBUG] Saving valuation with user:', userId ?? 'anonymous');
         console.log('💾 [DEBUG] Valuation data to save:', result);
 
         const { data: savedValuation, error: insertError } = await supabase
-          .from('valuations')
+          .from('valuation_results')
           .insert({
             vin: input.vin || null,
             user_id: userId,
-            make: input.make,
-            model: input.model,
-            year: input.year,
-            mileage: input.mileage,
+            make: input.make || 'Unknown',
+            model: input.model || 'Unknown',
+            year: input.year || new Date().getFullYear(),
+            mileage: input.mileage ?? null,
             condition: input.condition,
             zip_code: input.zipCode,
-            fuel_type: input.fuelType,
             estimated_value: result.finalValue,
             confidence_score: result.confidenceScore,
-            is_vin_lookup: true,  // Required field with default
+            price_range_low: result.priceRange[0],
+            price_range_high: result.priceRange[1],
+            adjustments: result.adjustments,
+            vehicle_data: {
+              fuel_type: input.fuelType,
+              source: 'rerun_valuation'
+            },
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })

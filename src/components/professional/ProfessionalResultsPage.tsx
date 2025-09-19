@@ -73,7 +73,7 @@ export default function ProfessionalResultsPage() {
         
         if (isVin) {
           const { data: vinData, error: vinError } = await supabase
-            .from('valuations')
+            .from('valuation_results')
             .select('*')
             .eq('vin', identifier)
             .order('created_at', { ascending: false })
@@ -96,7 +96,7 @@ export default function ProfessionalResultsPage() {
             valuationData = uuidData;
           } else {
             const { data: regData, error: regError } = await supabase
-              .from('valuations')
+              .from('valuation_results')
               .select('*')
               .eq('id', identifier)
               .maybeSingle();
@@ -127,30 +127,40 @@ export default function ProfessionalResultsPage() {
             year: valuationData.year,
             mileage: valuationData.mileage || 60000,
             condition: valuationData.condition as "poor" | "fair" | "good" | "very_good" | "excellent" || 'good',
-            zip_code: valuationData.state || '95821',
+            zip_code: valuationData.zip_code || '95821',
             requested_by: 'professional_results'
           });
 
           console.log('✅ [AIN] Professional valuation completed');
           
           // Update database with AIN results
-          if (ainResult?.data && typeof ainResult.data === 'object' && 'estimated_value' in ainResult.data) {
+          if (ainResult?.data && typeof ainResult.data === 'object') {
             const ainData = ainResult.data as any;
-            
+
+            const finalValue = ainData.finalValue ?? ainData.estimated_value ?? 0;
+            const confidence = ainData.confidenceScore ?? ainData.confidence_score ?? 75;
+            const priceRange = ainData.priceRange ?? [ainData.price_range_low ?? finalValue, ainData.price_range_high ?? finalValue];
+
             const { error: updateError } = await supabase
-              .from('valuations')
+              .from('valuation_results')
               .update({
-                estimated_value: ainData.estimated_value,
-                confidence_score: ainData.confidence_score || 75
+                estimated_value: finalValue,
+                confidence_score: confidence,
+                price_range_low: priceRange[0],
+                price_range_high: priceRange[1],
+                adjustments: ainData.adjustments ?? ainData.breakdown ?? null
               })
               .eq('id', valuationData.id);
-              
+
             if (!updateError) {
-              valuationData.estimated_value = ainData.estimated_value;
-              valuationData.confidence_score = ainData.confidence_score || 75;
-              
+              valuationData.estimated_value = finalValue;
+              valuationData.confidence_score = confidence;
+              valuationData.price_range_low = priceRange[0];
+              valuationData.price_range_high = priceRange[1];
+              valuationData.adjustments = ainData.adjustments ?? ainData.breakdown ?? [];
+
               toast.success('Professional AIN valuation completed!', {
-                description: `$${ainData.estimated_value.toLocaleString()} (${ainData.confidence_score || 75}% confidence)`
+                description: `$${finalValue.toLocaleString()} (${confidence}% confidence)`
               });
             } else {
               throw new Error('Failed to save AIN valuation to database');
@@ -191,7 +201,7 @@ export default function ProfessionalResultsPage() {
           condition: valuationData.condition || 'good',
           estimatedValue: valuationData.estimated_value,
           confidenceScore: valuationData.confidence_score || 0,
-          zipCode: valuationData.state || 'Unknown',
+          zipCode: valuationData.zip_code || 'Unknown',
           marketListings: finalListings,
           valuationMethod: finalListings.length > 0 ? 'database_verified' : 'real_calculation_only',
           isUsingFallbackMethod: false

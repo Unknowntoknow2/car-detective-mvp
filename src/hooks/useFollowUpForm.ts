@@ -146,17 +146,24 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
         logger.log("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
         
         // Convert AIN result to expected format with all required fields
+        const finalValue = ainResult.finalValue ?? ainResult.estimated_value ?? 0;
+        const confidenceScore = ainResult.confidenceScore ?? ainResult.confidence_score ?? 0;
+        const priceRange = (ainResult.priceRange && ainResult.priceRange.length === 2)
+          ? [ainResult.priceRange[0] ?? finalValue, ainResult.priceRange[1] ?? finalValue] as [number, number]
+          : [ainResult.price_range_low ?? finalValue, ainResult.price_range_high ?? finalValue] as [number, number];
+        const adjustments = ainResult.adjustments ?? ainResult.breakdown ?? [];
+
         const valuationResult = {
-          finalValue: ainResult.estimated_value || 0,
-          estimatedValue: ainResult.estimated_value || 0,
-          confidenceScore: ainResult.confidence_score || 0,
-          breakdown: ainResult.breakdown || [],
+          finalValue,
+          estimatedValue: finalValue,
+          confidenceScore,
+          breakdown: adjustments,
           marketData: ainResult.market_data || {},
           explanation: ainResult.explanation || 'Professional valuation from AIN API',
           source: 'ain',
           metadata: meta,
-          priceRange: [ainResult.price_range_low || 0, ainResult.price_range_high || 0] as [number, number],
-          adjustments: ainResult.adjustments || []
+          priceRange,
+          adjustments
         };
 
         if (valuationResult.finalValue > 0) {

@@ -57,17 +57,23 @@ export function useCorrectedValuation() {
       logger.log("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
       
       // Convert to expected format
+      const finalValue = ainResult.finalValue ?? ainResult.estimated_value ?? 0;
+      const confidenceScore = ainResult.confidenceScore ?? ainResult.confidence_score ?? 0;
+      const priceRange: [number, number] = ainResult.priceRange
+        ? [ainResult.priceRange[0] ?? finalValue, ainResult.priceRange[1] ?? finalValue]
+        : [ainResult.price_range_low ?? finalValue, ainResult.price_range_high ?? finalValue];
+
       const formattedResults: CorrectedValuationResults = {
         success: true,
         valuation: {
-          estimatedValue: ainResult.estimated_value || 0,
-          confidenceScore: ainResult.confidence_score || 0,
-          basePrice: ainResult.base_value || ainResult.estimated_value || 0,
-          adjustments: ainResult.adjustments || [],
-          priceRange: [ainResult.price_range_low || 0, ainResult.price_range_high || 0],
+          estimatedValue: finalValue,
+          confidenceScore,
+          basePrice: ainResult.base_value ?? finalValue,
+          adjustments: ainResult.adjustments ?? ainResult.breakdown ?? [],
+          priceRange,
           marketAnalysis: {
             dataSource: 'ain',
-            listingCount: 0
+            listingCount: ainResult.marketListingsCount ?? 0
           }
         }
       };

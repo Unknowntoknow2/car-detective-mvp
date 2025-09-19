@@ -59,7 +59,7 @@ export function useDealerOfferActions() {
       // Optional: Log acceptance for AIN learning
       if (options.valuationId) {
         const { data: valuationData } = await supabase
-          .from('valuations')
+          .from('valuation_results')
           .select('estimated_value, zip_code')
           .eq('id', options.valuationId)
           .single();
