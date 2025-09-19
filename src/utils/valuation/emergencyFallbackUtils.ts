@@ -1,4 +1,5 @@
-import type { VehicleData } from '@/types/vehicle';
+type VehicleData =
+  import('../../../apps/ain-valuation-engine/src/types/canonical').VehicleData;
 
 /**
  * Emergency fallback utilities for valuation system
