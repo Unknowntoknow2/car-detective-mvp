@@ -14,7 +14,8 @@
     "lint": "npm run -w apps/ain-valuation-engine lint",
     "e2e-tests": "npm -w apps/ain-valuation-engine run e2e-tests || echo \"no e2e script\"",
     "ci": "npm run build && npm run test",
-    "typecheck": "npm run -w apps/ain-valuation-engine typecheck"
+    "typecheck": "npm run -w apps/ain-valuation-engine typecheck",
+    "repo:audit": "tsx apps/ain-valuation-engine/src/scripts/run-audit.mts"
   },
   "dependencies": {
     "@faker-js/faker": "^10.0.0",
@@ -77,5 +78,8 @@
     "uuid": "^13.0.0",
     "vaul": "^1.1.2",
     "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0"
   }
 }
