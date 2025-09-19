@@ -1,13 +1,8 @@
 
 import { AccidentDetails } from "./follow-up-answers";
 import { ConditionOption, TireConditionOption } from "./condition";
-import type { VehicleData } from "./vehicle";
-export type { VehicleData } from "./vehicle";
-
-export type PartialVehicleData = Partial<VehicleData> & {
-  zip?: string;
-  zipCode?: string;
-};
+import type { PartialVehicleData, VehicleData } from "@shared/types/vehicle-data";
+export type { PartialVehicleData, VehicleData } from "@shared/types/vehicle-data";
 
 export interface LookupFormData {
   vin?: string;

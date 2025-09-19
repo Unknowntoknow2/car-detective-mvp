@@ -1,18 +1,7 @@
-export type VehicleData = {
-  vin: string
-  year: number
-  make: string
-  model: string
-  mileage: number
-  zip?: string
-  condition: string
-  titleStatus: string
-  trim?: string
-  color?: string
-  exteriorColor?: string
-  fuelType?: string
-  transmission?: string
-  drivetrain?: string
-}
+import type { VehicleData, VehicleDataCanonical } from '../../apps/ain-valuation-engine/src/types/canonical'
 
-export type VehicleDataCanonical = Omit<VehicleData, 'zip'> & { zip: string }
+export type { VehicleData, VehicleDataCanonical }
+
+export type PartialVehicleData = Partial<VehicleData> & {
+  zipCode?: string
+}

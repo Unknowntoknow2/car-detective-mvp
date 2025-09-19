@@ -1,4 +1,4 @@
-import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from '../services/unifiedVinDecoder.js'
+import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from '../services/unifiedVinDecoder'
 import { valuateVehicle } from '@/ain-backend/valuationEngine'
 import type { VehicleData, VehicleDataCanonical, ValuationResult } from '@/types/ValuationTypes'
 import { toCanonicalVehicleData } from '@/types/canonical'

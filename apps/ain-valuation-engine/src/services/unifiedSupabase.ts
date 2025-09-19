@@ -3,7 +3,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ConfigService } from './centralizedApi';
 import { VehicleData, SessionData } from '@/types/ValuationTypes';
-import logger from '../utils/logger.js';
+import logger from '../utils/logger';
 
 // Singleton pattern for client instances
 class SupabaseManager {

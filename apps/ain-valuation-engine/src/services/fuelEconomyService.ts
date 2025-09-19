@@ -1,7 +1,7 @@
 // src/services/fuelEconomyService.ts
 import { ExternalApiService } from './centralizedApi';
 import { ConfigService } from './centralizedApi';
-import logger from '../utils/logger.js';
+import logger from '../utils/logger';
 import { apiCallsTotal } from '../utils/metrics';
 
 export interface FuelEconomyData {
