@@ -1,12 +1,14 @@
 name: Repo Audit
-
 on:
   workflow_dispatch:
   pull_request:
+    branches: [ main ]
 
 jobs:
   audit:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,33 +17,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
 
-      - name: Install deps (pnpm if present, else npm)
+      - name: Install dependencies (workspaces)
+        shell: bash
         run: |
-          set -e
-          if [ -f pnpm-lock.yaml ] || [ -f pnpm-workspace.yaml ]; then
-            echo "→ Using pnpm"
-            corepack enable
-            corepack prepare pnpm@9 --activate
-            pnpm --version
-            pnpm install --no-frozen-lockfile
-          elif [ -f package-lock.json ]; then
-            echo "→ Using npm"
+          if [ -f package-lock.json ]; then
             npm ci
           else
-            echo "No lockfile found. Running npm install (best-effort)."
-            npm install
+            npm install --workspaces --include-workspace-root
           fi
 
-      - name: Run audit script via tsx
-        run: |
-          set -e
-          if command -v pnpm >/dev/null 2>&1 && ( [ -f pnpm-lock.yaml ] || [ -f pnpm-workspace.yaml ] ); then
-            pnpm exec tsx apps/ain-valuation-engine/src/scripts/run-audit.mts || npx -y tsx apps/ain-valuation-engine/src/scripts/run-audit.mts
-          else
-            npx -y tsx apps/ain-valuation-engine/src/scripts/run-audit.mts
-          fi
+      - name: Run audit
+        run: npx --yes tsx apps/ain-valuation-engine/src/scripts/run-audit.mts
 
       - name: Upload audit artifacts
         if: always()
@@ -49,8 +37,21 @@ jobs:
         with:
           name: repo-audit
           path: |
-            .audit/**
-            **/AUDIT_REPORT.md
-            **/AUDIT_PROGRESS.txt
-            **/audit-duplicates-report.txt
             logs/**
+            **/AUDIT*.md
+            **/audit/*.md
+          if-no-files-found: ignore
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Repo Audit";
+            echo;
+            if [ -f "apps/ain-valuation-engine/FULL_REPOSITORY_AUDIT_REPORT.md" ]; then
+              sed -n '1,400p' apps/ain-valuation-engine/FULL_REPOSITORY_AUDIT_REPORT.md
+            else
+              echo "_No full report file found; check the uploaded artifact._"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
