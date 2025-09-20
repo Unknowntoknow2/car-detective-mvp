@@ -7,6 +7,9 @@
     "paths": {
       "@/*": [
         "*"
+      ],
+      "@/services/valuationEngine": [
+        "src/services/valuationEngine.ts"
       ]
     },
     "jsx": "react-jsx",
