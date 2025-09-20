@@ -3,3 +3,6 @@ supabase/functions/**
 dist/**
 **/node_modules/**
 **/*.min.js
+
+src/scripts/**
+
