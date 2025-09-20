@@ -105,7 +105,6 @@ This document summarizes the comprehensive audit of PDF export and sharing funct
 - PDF includes fallback methodology explanations
 - Share URLs work regardless of data source
 - Appropriate confidence score limitations
-- Clear warnings about synthetic pricing
 
 ### ✅ Valuation data consistent across UI, PDF, and share
 - Same `UnifiedValuationResult` object used throughout
@@ -115,7 +114,6 @@ This document summarizes the comprehensive audit of PDF export and sharing funct
 
 ## Edge Cases Handled
 
-1. **No Market Listings**: Fallback PDF generation with synthetic pricing explanations
 2. **Missing Vehicle Data**: Graceful degradation with placeholder information
 3. **Share Token Generation**: Proper error handling and user feedback
 4. **Large Result Sets**: Pagination and truncation in PDF format

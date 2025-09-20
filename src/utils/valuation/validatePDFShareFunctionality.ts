@@ -145,7 +145,7 @@ export async function validatePDFShareFunctionality(vin: string): Promise<PDFSha
       finalValue: testCase.expectedFallback ? 35000 : 45428,
       confidenceScore: testCase.expectedConfidence,
       aiExplanation: testCase.expectedFallback ? 
-        "This valuation uses synthetic pricing due to limited market data. Confidence is capped at 60%." :
+        "" :
         "Based on analysis of 5 market listings and vehicle condition assessment.",
       sources: testCase.expectedFallback ? ["MSRP", "Depreciation Model"] : ["AutoTrader", "CarGurus", "Facebook Marketplace"],
       listingCount: testCase.expectedListings,
