@@ -6,12 +6,8 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { appConfig } from '@/config';
-import { 
-  Accordion, 
-  AccordionContent, 
-  AccordionItem, 
-  AccordionTrigger 
-} from "@/components/ui/accordion";
+
+
 import { 
   Table,
   TableBody,
@@ -23,7 +19,6 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   ExternalLink, 
-  FileText, 
   AlertTriangle, 
   CheckCircle, 
   TrendingUp, 

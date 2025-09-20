@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { MapPin, ExternalLink, Star, Calendar, Gauge, Fuel, Settings } from 'lucide-react';
+import { MapPin, ExternalLink, Star, Calendar, Gauge, Fuel } from 'lucide-react';
 
 interface GoogleStyleListingsProps {
   listings: MarketListing[];

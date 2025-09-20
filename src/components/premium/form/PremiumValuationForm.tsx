@@ -8,7 +8,6 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import MakeAndModelSelector from "@/components/lookup/form-parts/MakeAndModelSelector";
-import { ZipCodeInput } from "@/components/common/ZipCodeInput";
 import { ConditionLevel } from "@/components/lookup/ConditionSelectorSegmented";
 // Removed manual entry dependency
 

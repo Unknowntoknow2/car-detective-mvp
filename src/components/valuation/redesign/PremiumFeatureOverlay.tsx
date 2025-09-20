@@ -5,9 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Lock, 
   Crown, 
-  Download, 
   Share2, 
-  QrCode, 
   FileText,
   BarChart3,
   Zap,

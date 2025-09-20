@@ -2,7 +2,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDealerInsights } from '@/hooks/useDealerInsights';
-import { DealerInsights } from '@/types/valuation';
 
 const DealerInsightsPage = () => {
   const { data, isLoading, error, refetch } = useDealerInsights();

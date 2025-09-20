@@ -1,7 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ProfessionalButton } from './ProfessionalButton';
 
 interface ProfessionalModalProps {
   isOpen: boolean;

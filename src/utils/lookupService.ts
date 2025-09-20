@@ -1,6 +1,6 @@
 
 // Consolidated lookup service combining VIN, plate, and manual lookup functionality
-import { DecodedVehicleInfo, PlateLookupInfo, UnifiedVehicleData } from '@/types/vehicle';
+import { UnifiedVehicleData } from '@/types/vehicle';
 
 export interface LookupResult {
   success: boolean;

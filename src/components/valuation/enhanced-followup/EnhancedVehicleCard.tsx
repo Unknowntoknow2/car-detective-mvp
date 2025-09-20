@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Car, Calendar, Gauge, Wrench, Fuel, Palette, Users, ArrowUp } from 'lucide-react';
+import { CheckCircle, Car, Gauge, Wrench, Fuel, Palette, Users, ArrowUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 

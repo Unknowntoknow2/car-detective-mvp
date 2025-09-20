@@ -29,7 +29,6 @@ import DealerSignup from './pages/DealerSignup';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
 // Auth components
-import { AuthProvider } from '@/hooks/useAuth';
 import { DealerGuard } from '@/guards/DealerGuard';
 
 // Layout components

@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { FormData } from "@/types/premium-valuation";
 
 interface StepConfig {

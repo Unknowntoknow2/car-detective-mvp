@@ -5,8 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   BarChart3, 
   TrendingUp, 
-  MapPin, 
-  FileCheck,
+  MapPin,
   Bot,
   Database,
   Search

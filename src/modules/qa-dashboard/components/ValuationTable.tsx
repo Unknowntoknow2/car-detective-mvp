@@ -2,13 +2,12 @@ import React from "react";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { ValuationRow } from "./ValuationRow";
-import { Valuation, ValuationRowProps } from "../types";
+import { Valuation } from "../types";
 
 interface ValuationTableProps {
   valuations: Valuation[];

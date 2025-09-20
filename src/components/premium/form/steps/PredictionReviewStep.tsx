@@ -110,7 +110,7 @@ export function PredictionReviewStep({
     if (!prediction && !isLoading) {
       handleGeneratePrediction();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   // Update prediction if the valuation result changes

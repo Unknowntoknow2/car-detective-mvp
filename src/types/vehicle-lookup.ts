@@ -1,6 +1,5 @@
 
-import { AccidentDetails } from "./follow-up-answers";
-import { ConditionOption, TireConditionOption } from "./condition";
+import { ConditionOption } from "./condition";
 
 export interface VehicleData {
   make: string;

@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertCircle, Download, FileText } from "lucide-react";
+import { CheckCircle, AlertCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface VinDecoderResultsProps {

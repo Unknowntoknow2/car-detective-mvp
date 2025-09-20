@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Wrench, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { Wrench, CheckCircle } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface ServiceMaintenanceTabProps {

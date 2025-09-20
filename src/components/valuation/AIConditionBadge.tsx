@@ -1,6 +1,6 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Info } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,

@@ -8,7 +8,6 @@ import { MapPin } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { MileageInput } from '../inputs/MileageInput';
 import { ZipCodeInput } from '../inputs/ZipCodeInput';
-import { ConditionSelector } from '../inputs/ConditionSelector';
 
 interface BasicInfoTabProps {
   formData: FollowUpAnswers;

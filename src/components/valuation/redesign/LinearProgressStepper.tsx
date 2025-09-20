@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -9,14 +9,7 @@ import {
   ArrowRight, 
   ArrowLeft, 
   Send,
-  Clock,
-  AlertCircle,
-  MapPin,
-  Car,
-  Wrench,
-  AlertTriangle,
-  Settings,
-  Star
+  AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

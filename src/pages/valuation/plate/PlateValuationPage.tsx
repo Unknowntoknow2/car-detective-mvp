@@ -11,7 +11,7 @@ import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 import { convertDecodedVehicleToVehicle } from '@/utils/vehicleConversion';
 import { toast } from 'sonner';
-import { Search, Camera, Zap } from 'lucide-react';
+import { Search, Camera } from 'lucide-react';
 
 export default function PlateValuationPage() {
   const [vehicleData, setVehicleData] = useState<DecodedVehicleInfo | null>(null);

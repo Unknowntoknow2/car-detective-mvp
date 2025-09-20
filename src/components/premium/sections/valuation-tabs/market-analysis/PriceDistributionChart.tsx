@@ -4,7 +4,6 @@ import {
   CartesianGrid,
   Cell,
   Label,
-  Legend,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,

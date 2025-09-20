@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ProfessionalModal, StepProgress } from '@/components/ui/enhanced/ProfessionalModal';
 import { ProfessionalButton } from '@/components/ui/enhanced/ProfessionalButton';
 import { ProfessionalCard, CardContent } from '@/components/ui/enhanced/ProfessionalCard';
-import { CheckCircle, Star, Award, Clock, FileText } from 'lucide-react';
+import { CheckCircle, Star, Award, Clock } from 'lucide-react';
 
 interface ValuationStepsModalProps {
   isOpen: boolean;

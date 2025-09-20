@@ -1,5 +1,5 @@
 
-import { AICondition, Photo, PhotoAnalysisResult, PhotoScore, PhotoScoringResult } from '@/types/photo';
+import { AICondition, PhotoAnalysisResult, PhotoScore, PhotoScoringResult } from '@/types/photo';
 
 // Mock photo scoring service implementation
 export const scorePhotos = async (

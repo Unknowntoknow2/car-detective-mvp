@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CheckCircle, Zap, BarChart3, Shield, Award, Clock } from 'lucide-react';
+import { CheckCircle, BarChart3, Shield, Award } from 'lucide-react';
 
 export const PremiumFeatures: React.FC = () => {
   const features = [

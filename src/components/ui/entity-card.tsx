@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Edit, FileText, Trash2 } from "lucide-react";
+import { FileText } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

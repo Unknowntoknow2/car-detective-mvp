@@ -1,4 +1,4 @@
-import { PDFFont, PDFPage, rgb } from 'pdf-lib';
+import { PDFFont, PDFPage } from 'pdf-lib';
 
 export interface ReportData {
   id: string;

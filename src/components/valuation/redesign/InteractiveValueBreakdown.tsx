@@ -15,8 +15,7 @@ import {
   Fuel,
   Gauge,
   MapPin,
-  Package,
-  Star
+  Package
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import CDButton from "@/components/ui-kit/button/CDButton";
 import { toast } from "sonner";
-import { ArrowRight, KeyRound, Mail } from "lucide-react";
+import { ArrowRight, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({

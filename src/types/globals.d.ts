@@ -1,8 +1,7 @@
 
 // src/types/globals.d.ts
-import type { BoundFunction, queries, Queries } from "@testing-library/dom";
+import type { BoundFunction, Queries } from "@testing-library/dom";
 import type { ReactTestingLibraryRenderOptions } from "@testing-library/react";
-import type { vi } from "vitest";
 
 // Define the proper screen type with all methods
 interface Screen extends BoundFunction<Queries> {

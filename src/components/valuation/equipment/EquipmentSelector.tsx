@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, PlusCircle, Settings } from "lucide-react";
+import { Loader2, Settings } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,

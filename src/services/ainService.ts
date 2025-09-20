@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { VehicleContext, AssistantContext, AskAIRequest } from '@/types/assistant';
+import { VehicleContext } from '@/types/assistant';
 
 export interface AINResponse {
   answer: string;

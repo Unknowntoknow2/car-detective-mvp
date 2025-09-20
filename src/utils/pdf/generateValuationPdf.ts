@@ -1,8 +1,8 @@
-import { PDFDocument, PDFPage, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { formatCurrency } from '@/utils/formatters/formatCurrency';
 import { formatDate } from '@/utils/formatters/formatDate';
 import type { UnifiedValuationResult } from '@/types/valuation';
-import { MarketListing, getNormalizedUrl, getNormalizedSourceType, normalizeListing } from '@/types/marketListing';
+import { normalizeListing } from '@/types/marketListing';
 
 export async function generateValuationPdf(result: UnifiedValuationResult): Promise<Blob> {
   const pdfDoc = await PDFDocument.create();

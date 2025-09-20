@@ -2,7 +2,7 @@ import React from 'react';
 import { MarketListing } from '@/types/marketListing';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Car, MapPin, Star } from 'lucide-react';
+import { ExternalLink, Car, MapPin } from 'lucide-react';
 
 interface SimilarListingsSectionProps {
   listings: MarketListing[];

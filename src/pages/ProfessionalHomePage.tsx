@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ProfessionalCard, CardContent, CardHeader, CardTitle } from '@/components/ui/enhanced/ProfessionalCard';
+import { ProfessionalCard, CardContent } from '@/components/ui/enhanced/ProfessionalCard';
 import { ProfessionalButton } from '@/components/ui/enhanced/ProfessionalButton';
 import { UnifiedLookupTabs } from '@/components/lookup/UnifiedLookupTabs';
 import { cn } from '@/lib/utils';
@@ -13,15 +13,13 @@ import {
   FileText, 
   Clock, 
   Award,
-  Zap,
   Globe,
   Camera,
   DollarSign,
   CheckCircle,
   XCircle,
   ArrowRight,
-  Briefcase,
-  Users
+  Briefcase
 } from 'lucide-react';
 
 export default function ProfessionalHomePage() {

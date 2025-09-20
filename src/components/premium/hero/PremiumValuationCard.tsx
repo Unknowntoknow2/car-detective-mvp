@@ -1,8 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { FileBarChart } from "lucide-react";
 import { CarfaxHighlights } from "./CarfaxHighlights";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface PremiumValuationCardProps {
   vin?: string;

@@ -1,5 +1,5 @@
 
-import { VehicleContext, AssistantContext } from '@/types/assistant';
+import { VehicleContext } from '@/types/assistant';
 
 export function extractVehicleContext(conversation: { role: string; content: string }[]): VehicleContext {
   try {

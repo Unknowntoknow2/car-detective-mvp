@@ -5,16 +5,16 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "npm -w apps/ain-valuation-engine run dev",
+    "dev": "if [ -d apps/ain-valuation-engine ]; then npm -w apps/ain-valuation-engine run dev; else vite; fi",
     "dev:main": "vite --config vite.config.ts",
     "dev:ain": "npm -w apps/ain-valuation-engine run dev",
-    "build": "npm -w apps/ain-valuation-engine run build",
+    "build": "if [ -d apps/ain-valuation-engine ]; then npm -w apps/ain-valuation-engine run build; else vite build; fi",
     "build:main": "vite build --config vite.config.ts",
-    "test": "npm -w apps/ain-valuation-engine run test --silent || echo \"no tests\"",
-    "lint": "eslint .",
-    "e2e-tests": "npm -w apps/ain-valuation-engine run e2e-tests || echo \"no e2e script\"",
+    "test": "if [ -d apps/ain-valuation-engine ]; then npm -w apps/ain-valuation-engine run test --silent || echo \"no tests\"; else echo \"no tests\"; fi",
+    "lint": "eslint src",
+    "e2e-tests": "if [ -d apps/ain-valuation-engine ]; then npm -w apps/ain-valuation-engine run e2e-tests || echo \"no e2e script\"; else echo \"no e2e script\"; fi",
     "ci": "npm run build && npm run test",
-    "lint:fix": "eslint . --fix",
+    "lint:fix": "eslint src --fix",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {

@@ -1,25 +1,20 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ProfessionalCard, CardContent, CardHeader, CardTitle } from '@/components/ui/enhanced/ProfessionalCard';
+import { ProfessionalCard, CardContent, CardHeader } from '@/components/ui/enhanced/ProfessionalCard';
 import { ProfessionalButton } from '@/components/ui/enhanced/ProfessionalButton';
 import { UnifiedLookupTabs } from '@/components/lookup/UnifiedLookupTabs';
 import { cn } from '@/lib/utils';
 import { 
-  Search, 
   FileText, 
   BarChart, 
   Shield, 
-  Award, 
-  Zap,
+  Award,
   TrendingUp,
-  Camera,
-  Globe,
   DollarSign,
   CheckCircle,
   XCircle,
   ArrowRight,
-  Clock,
-  Star
+  Clock
 } from 'lucide-react';
 
 const PremiumPage = () => {

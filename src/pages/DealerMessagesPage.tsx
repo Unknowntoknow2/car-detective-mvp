@@ -1,6 +1,5 @@
 
-import React, { useEffect, useState } from "react";
-import { useMediaQuery } from "@/hooks/use-mobile";
+import React, { useEffect } from "react";
 import { DealerMessagesLayout } from "@/components/dealer-messages/DealerMessagesLayout";
 import { LeadsProvider } from "@/components/dealer-messages/context/LeadsContext";
 import { Toaster } from "@/components/ui/sonner";

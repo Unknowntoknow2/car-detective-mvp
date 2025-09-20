@@ -1,5 +1,4 @@
 
-import { InputFactors } from './confidenceCalculator';
 
 /**
  * A unified interface for confidence scoring inputs that combines all possible factors

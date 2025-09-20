@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
-import { ValuationStep, EngineeringPhase, ENGINEERING_PHASES, getOverallEngineeringProgress } from '@/utils/valuation/progressTracker';
+import { ValuationStep, ENGINEERING_PHASES, getOverallEngineeringProgress } from '@/utils/valuation/progressTracker';
 
 interface ValuationProgressDisplayProps {
   currentProgress: number;

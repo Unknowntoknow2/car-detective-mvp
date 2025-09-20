@@ -1,6 +1,6 @@
 
 import React from "react";
-import { ProfessionalButton, buttonVariants } from "@/components/ui/enhanced/ProfessionalButton";
+import { ProfessionalButton } from "@/components/ui/enhanced/ProfessionalButton";
 import { 
   ProfessionalCard, 
   CardContent, 

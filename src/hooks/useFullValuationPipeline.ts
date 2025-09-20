@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useValuationPipeline } from "./valuation-pipeline";
 
 // Define the interface for what the hook returns

@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Settings, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Settings, CheckCircle } from 'lucide-react';
 import { FollowUpAnswers } from '@/types/follow-up-answers';
 
 interface ModificationsTabProps {

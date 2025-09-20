@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from 'react';
 
 export interface UseVehicleDataReturn {
   getYearOptions: (startYear?: number) => number[];

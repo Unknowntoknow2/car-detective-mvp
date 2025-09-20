@@ -11,7 +11,6 @@ import {
   CheckCircle, 
   Grid3X3,
   List,
-  Filter,
   ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

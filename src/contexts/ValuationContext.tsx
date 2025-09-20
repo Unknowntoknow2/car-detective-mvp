@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { runValuation, type AinResponse, type AinMeta } from '@/lib/ainClient';
+import { runValuation, type AinMeta } from '@/lib/ainClient';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 

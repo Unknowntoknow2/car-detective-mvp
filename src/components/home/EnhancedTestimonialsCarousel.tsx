@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 // import { useInView } from 'react-intersection-observer'; // Disabled for MVP
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 
 interface Testimonial {

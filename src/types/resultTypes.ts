@@ -1,4 +1,3 @@
-import { MarketListing } from './marketListing';
 
 export interface ValidatedAdjustment {
   label: string;

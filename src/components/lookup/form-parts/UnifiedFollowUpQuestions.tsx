@@ -1,6 +1,5 @@
 import React from 'react';
 import { TitleStatusSection } from './TitleStatusSection';
-import { AdditionalDetailsSection } from './AdditionalDetailsSection';
 // Manual entry types (inline since we removed the separate file)
 interface ManualEntryFormData {
   year: string;

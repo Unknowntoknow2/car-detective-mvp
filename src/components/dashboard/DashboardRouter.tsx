@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
 import { ProfessionalCard, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/enhanced/ProfessionalCard';
 import { ProfessionalButton } from '@/components/ui/enhanced/ProfessionalButton';
 import { FeatureSection } from '@/components/ui/enhanced/FeatureSection';

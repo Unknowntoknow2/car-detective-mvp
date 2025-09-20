@@ -10,7 +10,6 @@
  * - Share & PDF export options
  */
 
-import { MarketListing } from '@/types/marketListing';
 
 export interface UIValidationTestCase {
   name: string;

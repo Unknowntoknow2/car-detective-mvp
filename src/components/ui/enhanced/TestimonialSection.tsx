@@ -1,7 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { ProfessionalCard, CardContent } from './ProfessionalCard';
-import { Badge } from '@/components/ui/badge';
 import { Quote } from 'lucide-react';
 
 interface Testimonial {

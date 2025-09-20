@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from "react";
-import { Photo, PhotoScore } from "@/types/photo";
+import { Photo } from "@/types/photo";
 import { v4 as uuidv4 } from "uuid";
 
 interface UsePhotoUploadReturn {

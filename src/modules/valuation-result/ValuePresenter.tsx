@@ -7,7 +7,6 @@ import {
 } from "@/components/animations/utils";
 import { ProgressRing } from "@/components/animations/ProgressRing";
 import { CDCard } from "@/components/ui-kit/CDCard";
-import { formatCurrency } from "@/utils/formatters";
 
 interface ValuePresenterProps {
   value: number;

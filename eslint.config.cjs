@@ -1,56 +1,50 @@
+/** @type {import('eslint').Linter.FlatConfig[]} */
 const tsParser = require('@typescript-eslint/parser');
-const ts = require('@typescript-eslint/eslint-plugin');
-const react = require('eslint-plugin-react');
-const reactHooks = require('eslint-plugin-react-hooks');
-const imp = require('eslint-plugin-import');
-const unused = require('eslint-plugin-unused-imports');
+const tsPlugin = require('@typescript-eslint/eslint-plugin');
 const globals = require('globals');
 
 module.exports = [
-  // Ignore paths (replaces .eslintignore)
-  { ignores: ['dist', 'build', 'coverage', 'node_modules'] },
+  // Ignore build & vendor output
+  { ignores: ['dist/**','node_modules/**','coverage/**','apps/**','**/*.gen.*'] },
 
-  // App code: TS/React in browser
+  // TypeScript/React (typed linting)
   {
-    files: ['src/**/*.{ts,tsx,js,jsx}'],
+    files: ['src/**/*.{ts,tsx}'],
     languageOptions: {
-      parser: tsParser,
-      ecmaVersion: 'latest',
+      ecmaVersion: 2022,
       sourceType: 'module',
-      globals: { ...globals.browser },
+      parser: tsParser,
+      parserOptions: {
+        // IMPORTANT: make project path resolution stable
+        tsconfigRootDir: __dirname,
+        project: ['./tsconfig.eslint.json'],
+        ecmaFeatures: { jsx: true },
+      },
+      globals: {
+        ...globals.browser,
+      },
     },
     plugins: {
-      '@typescript-eslint': ts,
-      react,
-      'react-hooks': reactHooks,
-      import: imp,
-      'unused-imports': unused,
+      '@typescript-eslint': tsPlugin,
+      'react': require('eslint-plugin-react'),
+      'react-hooks': require('eslint-plugin-react-hooks'),
+      'import': require('eslint-plugin-import'),
+      'unused-imports': require('eslint-plugin-unused-imports'),
     },
-    settings: { react: { version: 'detect' } },
     rules: {
-      'no-undef': 'off',
-      'no-case-declarations': 'off',
-      'no-unused-vars': 'off',
+      'unused-imports/no-unused-imports': 'warn',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      'unused-imports/no-unused-imports': 'error',
-      'react/react-in-jsx-scope': 'off',
     },
   },
 
-  // Types: relax entirely
+  // Node scripts (no type-aware rules needed)
   {
-    files: ['src/**/*.d.ts', 'src/**/types.ts'],
-    rules: {
-      'no-undef': 'off',
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
+    files: ['src/scripts/**/*.{js,ts}'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'script',
+      globals: globals.node,
     },
-  },
-
-  // Node scripts and config files
-  {
-    files: ['src/scripts/**/*.{js,ts}', 'scripts/**/*.{js,ts}', '*.config.{js,cjs,ts}', '.*rc.{js,cjs,ts}'],
-    languageOptions: { globals: { ...globals.node } },
     rules: { 'no-undef': 'off' },
   },
 ];

@@ -156,3 +156,12 @@ export const AdjustmentTransparency: React.FC<AdjustmentTransparencyProps> = ({
             <Info className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-xs text-red-700">
+                ⚠️ Estimated value adjustments - not market-derived
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

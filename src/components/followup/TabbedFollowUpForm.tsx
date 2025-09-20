@@ -3,7 +3,6 @@ import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { CheckCircle, Clock, AlertCircle, MapPin, Car, Wrench, AlertTriangle, Settings, Star } from 'lucide-react';
-import { FollowUpAnswers } from '@/types/follow-up-answers';
 import { useSimpleFollowUpForm } from '@/hooks/useSimpleFollowUpForm';
 import { SilentSaveIndicator } from './SilentSaveIndicator';
 

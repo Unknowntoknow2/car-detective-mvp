@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Gauge, MapPin, Fuel, Car } from 'lucide-react';
+import { Calendar, Gauge, MapPin, Fuel } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 
 interface VehicleHeroCardProps {

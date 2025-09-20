@@ -7,17 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { 
   CheckCircle, 
   AlertTriangle, 
   Info, 
-  MapPin, 
   Car, 
   DollarSign, 
-  Camera, 
-  FileText,
-  Settings,
+  Camera,
   Target,
   RefreshCw
 } from 'lucide-react';

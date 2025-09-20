@@ -1,5 +1,5 @@
 
-import { ConditionRatingOption, ConditionTipsProps } from "./types";
+import { ConditionRatingOption } from "./types";
 
 // Condition improvement tips based on selected rating categories
 export const getConditionTips = (

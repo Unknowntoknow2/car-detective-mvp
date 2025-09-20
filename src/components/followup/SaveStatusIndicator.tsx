@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Wifi, WifiOff, Save, Clock, CheckCircle, RefreshCw } from 'lucide-react';
+import { WifiOff, Save, Clock, CheckCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface SaveStatusIndicatorProps {

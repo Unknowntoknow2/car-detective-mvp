@@ -10,7 +10,6 @@ import {
   Car, 
   TrendingUp, 
   Shield, 
-  FileText, 
   Award, 
   BarChart,
   MapPin,

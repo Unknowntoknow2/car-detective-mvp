@@ -3,7 +3,7 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut, UserCircle, GaugeCircle } from 'lucide-react';
+import { Menu, LogOut, GaugeCircle } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const { user, userDetails, signOut } = useAuth();

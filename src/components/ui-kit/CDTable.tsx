@@ -1,6 +1,5 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { BodyS, Caption } from "./typography";
 
 export type TableData = {
   id: string | number;

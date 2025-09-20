@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ProfessionalModal, StepProgress, OptionCard } from '@/components/ui/enhanced/ProfessionalModal';
 import { ProfessionalButton } from '@/components/ui/enhanced/ProfessionalButton';
-import { Camera, Mail, Globe, ChevronRight } from 'lucide-react';
+import { Camera, Mail, Globe } from 'lucide-react';
 
 interface PhotoToolModalProps {
   isOpen: boolean;

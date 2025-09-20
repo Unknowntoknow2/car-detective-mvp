@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, TrendingUp, DollarSign, Target, BarChart3 } from 'lucide-react';
+import { ExternalLink, Target, BarChart3 } from 'lucide-react';
 import type { UnifiedValuationResult } from '@/types/valuation';
 
 interface MarketBreakdownPanelProps {

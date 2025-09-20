@@ -1,6 +1,4 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { openai } from '@/integrations/openai/client';
 
 interface TrimData {
   id: string;

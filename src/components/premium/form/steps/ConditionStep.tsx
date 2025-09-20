@@ -1,8 +1,7 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { FormData } from "@/types/premium-valuation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 

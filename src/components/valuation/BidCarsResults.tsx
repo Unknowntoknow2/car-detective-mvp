@@ -4,7 +4,7 @@ import { fetchBidCarsByVin } from '@/utils/auctionFetcher';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Gauge, MapPin, Tag } from 'lucide-react';
+import { Calendar, Gauge, Tag } from 'lucide-react';
 
 interface BidCarsRecord {
   vin: string;

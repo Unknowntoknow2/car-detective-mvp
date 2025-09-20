@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { VehicleDecodeResponse, DecodedVehicleInfo } from '@/types/vehicle-decode';
+import { VehicleDecodeResponse } from '@/types/vehicle-decode';
 import { parseVehicleMetadataWithMpg } from '@/utils/vehicleMetaParser';
 
 export async function decodeVin(vin: string): Promise<VehicleDecodeResponse> {

@@ -6,17 +6,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { 
   Play, 
-  Pause, 
   RefreshCw, 
   AlertTriangle, 
-  CheckCircle, 
-  XCircle,
+  CheckCircle,
   BarChart3,
   Database,
   Shield,
-  Clock,
-  TrendingUp,
-  Eye
+  TrendingUp
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
