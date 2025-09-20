@@ -1,12 +1,15 @@
-import { defineConfig } from 'vitest/config'
-import tsconfigPaths from 'vite-tsconfig-paths'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vitest/config';
+import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
-  plugins: [react(), tsconfigPaths()],
   test: {
-    environment: 'node',
-    globals: true,
-    setupFiles: ['./tests/setup.ts'],
+    globals: true,           // <-- make describe/it/expect available
+    environment: 'node',     // or 'jsdom' if your tests need DOM
+    setupFiles: ['tests/setup.ts'],
   },
-})
+  resolve: {
+    alias: {
+      openai: fileURLToPath(new URL('./tests/mocks/openai.ts', import.meta.url)),
+    },
+  },
+});

@@ -1,4 +1,5 @@
-import { fetchVinLookup } from './vinLookupService';
+import { fetchVinLookup } from './vinLo        } catch (error) {
+            throw new Error('VIN decoding failed');pService';
 import { fetchMarketPricing } from './vehiclePricingService';
 import { fetchResidualForecast } from './residualValueService';
 /**
@@ -19,9 +20,9 @@ import { fetchResidualForecast } from './residualValueService';
  * ```typescript
  * try {
  *   const result = await runValuation('1HGBH41JXMN109186');
- *   console.log('Valuation complete:', result);
+ *   
  * } catch (error) {
- *   console.error('Valuation failed:', error);
+ *   
  * }
  * ```
  *

@@ -1,0 +1,10 @@
+path,bytes,lines
+apps/ain-valuation-engine/ain-valuation-frontend/index.html,361,13
+apps/ain-valuation-engine/ain-valuation-frontend/package-lock.json,90702,2599
+apps/ain-valuation-engine/ain-valuation-frontend/package.json,618,27
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.css,5362,315
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx,10572,249
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.css,3885,226
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx,4892,170
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VehicleDataPanels.jsx,0,0
+apps/ain-valuation-engine/ain-valuation-frontend/src/index.css,59,3

@@ -1,0 +1,821 @@
+src/hooks/usePremiumStatus.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useOsmGeocode.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useOsmGeocode.ts:34:        const { data, error } = await supabase.functions.invoke(
+src/integrations/supabase/auditLogClient.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/integrations/supabase/auditLogClient.ts:14:    const { data, error } = await supabase
+src/integrations/supabase/auditLogClient.ts:15:      .from('valuation_audit_logs')
+src/integrations/supabase/auditLogClient.ts:60:    const { data, error } = await supabase
+src/integrations/supabase/auditLogClient.ts:61:      .from('valuation_audit_logs')
+src/integrations/supabase/auditLogClient.ts:81:    const { data, error } = await supabase
+src/integrations/supabase/auditLogClient.ts:82:      .from('valuation_audit_logs')
+src/integrations/supabase/client.ts:2:import { createClient } from '@supabase/supabase-js';
+src/integrations/supabase/client.ts:4:const supabaseUrl = 'https://xltxqqzattxogxtqrggt.supabase.co';
+src/integrations/supabase/client.ts:5:const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsdHhxcXphdHR4b2d4dHFyZ2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NTYxMjYsImV4cCI6MjA2MTAzMjEyNn0.kUPmsyUdpcpnPLHWlnP7vODQiRgzCrWjOBfLib3lpvY';
+src/integrations/supabase/client.ts:7:export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+src/integrations/supabase/client.ts:15:export const getSupabaseClient = () => supabase;
+src/integrations/supabase/types.ts:10:  // Allows to automatically instantiate createClient with right options
+src/integrations/supabase/types.ts:11:  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+src/hooks/useDealerOfferActions.ts:3:import { supabase } from '@/integrations/supabase/client';
+src/hooks/useDealerOfferActions.ts:27:      const { data: { user }, error: userError } = await supabase.auth.getUser();
+src/hooks/useDealerOfferActions.ts:33:      const { error: updateError } = await supabase
+src/hooks/useDealerOfferActions.ts:34:        .from('dealer_offers')
+src/hooks/useDealerOfferActions.ts:43:      const { data: acceptedOffer, error: acceptedError } = await supabase
+src/hooks/useDealerOfferActions.ts:44:        .from('accepted_offers')
+src/hooks/useDealerOfferActions.ts:61:        const { data: valuationData } = await supabase
+src/hooks/useDealerOfferActions.ts:62:          .from('valuations')
+src/hooks/useDealerOfferActions.ts:68:          await supabase
+src/hooks/useDealerOfferActions.ts:69:            .from('offer_acceptance_log')
+src/hooks/useDealerOfferActions.ts:105:      const { error } = await supabase
+src/hooks/useDealerOfferActions.ts:106:        .from('dealer_offers')
+src/hooks/useDealerOfferActions.ts:130:      const { error: cancelError } = await supabase
+src/hooks/useDealerOfferActions.ts:131:        .from('accepted_offers')
+src/hooks/useDealerOfferActions.ts:140:      const { data: acceptedOffer } = await supabase
+src/hooks/useDealerOfferActions.ts:141:        .from('accepted_offers')
+src/hooks/useDealerOfferActions.ts:147:        await supabase
+src/hooks/useDealerOfferActions.ts:148:          .from('dealer_offers')
+src/integrations/ai/serverClient.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/integrations/ai/serverClient.ts:26:      const { data, error } = await supabase.functions.invoke('ask-ain', {
+src/hooks/useFollowUpDataLoader.ts:3:import { supabase } from '@/integrations/supabase/client';
+src/hooks/useFollowUpDataLoader.ts:69:        const { data: existingAnswers } = await supabase
+src/hooks/useFollowUpDataLoader.ts:70:          .from('follow_up_answers')
+src/hooks/useFollowUpDataLoader.ts:84:            const { data: valuationData } = await supabase
+src/hooks/useFollowUpDataLoader.ts:85:              .from('valuation_results')
+src/hooks/useFollowUpDataLoader.ts:97:              await supabase
+src/hooks/useFollowUpDataLoader.ts:98:                .from('follow_up_answers')
+src/hooks/useFollowUpDataLoader.ts:123:          const { data: valuationData } = await supabase
+src/hooks/useFollowUpDataLoader.ts:124:            .from('valuation_results')
+src/agents/marketSearchAgent.ts:5:import { supabase } from '@/integrations/supabase/client';
+src/agents/marketSearchAgent.ts:83:    searchSources: Array.from(new Set(listings.map(l => l.source))),
+src/agents/marketSearchAgent.ts:177:    let query = supabase
+src/agents/marketSearchAgent.ts:178:      .from('enhanced_market_listings')
+src/hooks/useMakeModels.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/hooks/useMakeModels.ts:60:      const { data, error: fetchError } = await supabase
+src/hooks/useMakeModels.ts:61:        .from('makes')
+src/hooks/useMakeModels.ts:119:      const { data, error: fetchError } = await supabase
+src/hooks/useMakeModels.ts:120:        .from('models')
+src/hooks/useMakeModels.ts:197:      let query = supabase
+src/hooks/useMakeModels.ts:198:        .from('model_trims')
+src/hooks/useMakeModels.ts:240:      let filteredTrims = Array.from(uniqueTrimsMap.values());
+src/hooks/useVehicleHistory.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useVehicleHistory.ts:34:        const { data, error: fnError } = await supabase.functions.invoke(
+src/hooks/useAuctionIndex.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useAuctionIndex.ts:23:        const { data, error } = await supabase.functions.invoke(
+src/__tests__/rls-access.test.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/__tests__/rls-access.test.ts:27:    const { data: userAData, error: userAError } = await supabase.auth
+src/__tests__/rls-access.test.ts:39:    const { data: userBData, error: userBError } = await supabase.auth
+src/__tests__/rls-access.test.ts:52:    const { data: userAValuation, error: userAValuationError } = await supabase
+src/__tests__/rls-access.test.ts:53:      .from("valuations")
+src/__tests__/rls-access.test.ts:74:    const { data: userBValuation, error: userBValuationError } = await supabase
+src/__tests__/rls-access.test.ts:75:      .from("valuations")
+src/__tests__/rls-access.test.ts:99:    await supabase
+src/__tests__/rls-access.test.ts:100:      .from("valuations")
+src/__tests__/rls-access.test.ts:105:    await supabase
+src/__tests__/rls-access.test.ts:106:      .from("valuations")
+src/__tests__/rls-access.test.ts:113:    // Initialize supabase client with User A's token
+src/__tests__/rls-access.test.ts:114:    const userAClient = supabase.auth.setSession({
+src/__tests__/rls-access.test.ts:120:    const { data, error } = await supabase
+src/__tests__/rls-access.test.ts:121:      .from("valuations")
+src/__tests__/rls-access.test.ts:133:    // Initialize supabase client with User A's token
+src/__tests__/rls-access.test.ts:134:    const userAClient = supabase.auth.setSession({
+src/__tests__/rls-access.test.ts:140:    const { data, error } = await supabase
+src/__tests__/rls-access.test.ts:141:      .from("valuations")
+src/__tests__/rls-access.test.ts:158:      const { data: valuation } = await supabase
+src/__tests__/rls-access.test.ts:159:        .from("valuations")
+src/api/vehicleApi.ts:5:import { createClient } from "@supabase/supabase-js";
+src/api/vehicleApi.ts:8:export const supabase = createClient(appConfig.SUPABASE_URL, appConfig.SUPABASE_ANON_KEY);
+src/api/sources/carmax.ts:1:import { supabase } from '@/integrations/supabase/client';
+src/api/sources/carmax.ts:48:      await supabase
+src/api/sources/carmax.ts:49:        .from('valuation_audit_logs')
+src/api/sources/carmax.ts:58:      const { data, error } = await supabase.functions.invoke('valuation-aggregate', {
+src/api/sources/carmax.ts:74:      await supabase
+src/api/sources/carmax.ts:75:        .from('valuation_audit_logs')
+src/api/sources/carmax.ts:94:      await supabase
+src/api/sources/carmax.ts:95:        .from('valuation_audit_logs')
+src/api/sources/carmax.ts:171:      const { data: recentLogs } = await supabase
+src/api/sources/carmax.ts:172:        .from('valuation_audit_logs')
+src/hooks/useValuationFactors.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useValuationFactors.ts:38:        const { data, error } = await supabase
+src/hooks/useValuationFactors.ts:39:          .from("valuation_factors")
+src/hooks/useVehicleSelectors.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useVehicleSelectors.ts:29:        const { data, error } = await supabase
+src/hooks/useVehicleSelectors.ts:30:          .from("makes")
+src/hooks/useVehicleSelectors.ts:59:        const { data, error } = await supabase
+src/hooks/useVehicleSelectors.ts:60:          .from("models")
+src/hooks/useNhtsaRecalls.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useNhtsaRecalls.ts:40:        const { data, error } = await supabase.functions.invoke(
+src/hooks/usePremiumDealer.ts:3:import { supabase } from "@/integrations/supabase/client";
+src/hooks/usePremiumDealer.ts:28:        const { data, error } = await supabase
+src/hooks/usePremiumDealer.ts:29:          .from("profiles")
+src/hooks/useMarketListings.ts:3:import { supabase } from '@/integrations/supabase/client';
+src/hooks/useMarketListings.ts:43:          const { data: vinMatches, error: vinError } = await supabase
+src/hooks/useMarketListings.ts:44:            .from('market_listings')
+src/hooks/useMarketListings.ts:58:        let query = supabase
+src/hooks/useMarketListings.ts:59:          .from('market_listings')
+src/hooks/useMarketListings.ts:95:          let broadQuery = supabase
+src/hooks/useMarketListings.ts:96:            .from('market_listings')
+src/hooks/useAuth.tsx:3:import { User, Session } from '@supabase/supabase-js';
+src/hooks/useAuth.tsx:4:import { supabase } from '@/integrations/supabase/client';
+src/hooks/useAuth.tsx:42:      const { data: profile } = await supabase
+src/hooks/useAuth.tsx:43:        .from('profiles')
+src/hooks/useAuth.tsx:48:      const { data: userRole } = await supabase
+src/hooks/useAuth.tsx:49:        .from('user_roles')
+src/hooks/useAuth.tsx:80:    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+src/hooks/useAuth.tsx:103:    supabase.auth.getSession().then(({ data: { session } }) => {
+src/hooks/useAuth.tsx:128:      const { error } = await supabase.auth.signInWithPassword({
+src/hooks/useAuth.tsx:146:      const { error } = await supabase.auth.signUp({
+src/hooks/useAuth.tsx:169:      const { data, error } = await supabase.auth.signInWithOAuth({
+src/hooks/useAuth.tsx:191:      await supabase.auth.signOut();
+src/hooks/useAuth.tsx:204:      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+src/scraping/brightdata/getStatVinData.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/scraping/brightdata/getStatVinData.ts:41:    const { data, error } = await supabase.functions.invoke('fetch-statvin-data', {
+src/hooks/useProfile.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useProfile.ts:5:import { User } from "@supabase/supabase-js";
+src/hooks/useProfile.ts:40:    const user = await supabase.auth.getUser();
+src/hooks/useProfile.ts:75:    const user = await supabase.auth.getUser();
+src/hooks/useProfile.ts:86:      const { error: uploadError } = await supabase.storage
+src/hooks/useProfile.ts:87:        .from("avatars")
+src/hooks/useProfile.ts:98:      const { data: { publicUrl } } = supabase.storage
+src/hooks/useProfile.ts:99:        .from("avatars")
+src/hooks/useSimpleFollowUpForm.ts:4:import { supabase } from '@/integrations/supabase/client';
+src/hooks/useSimpleFollowUpForm.ts:69:        let { data, error } = await supabase
+src/hooks/useSimpleFollowUpForm.ts:70:          .from('follow_up_answers')
+src/hooks/useSimpleFollowUpForm.ts:87:          const { data: valuationData } = await supabase
+src/hooks/useSimpleFollowUpForm.ts:88:            .from('valuations')
+src/hooks/useSimpleFollowUpForm.ts:181:        const { data: valuationData } = await supabase
+src/hooks/useSimpleFollowUpForm.ts:182:          .from('valuations')
+src/hooks/useSimpleFollowUpForm.ts:208:      const { error } = await supabase
+src/hooks/useSimpleFollowUpForm.ts:209:        .from('follow_up_answers')
+src/hooks/useSimpleFollowUpForm.ts:327:      const { data: existingValuations } = await supabase
+src/hooks/useSimpleFollowUpForm.ts:328:        .from('valuations')
+src/hooks/useSimpleFollowUpForm.ts:340:        const { data: newValuation, error: valuationError } = await supabase
+src/hooks/useSimpleFollowUpForm.ts:341:          .from('valuations')
+src/hooks/useSimpleFollowUpForm.ts:351:            user_id: (await supabase.auth.getUser()).data.user?.id || null,
+src/hooks/useAuctionIntelligence.ts:3:import { supabase } from '@/integrations/supabase/client';
+src/hooks/useAuctionIntelligence.ts:23:        const { data: existingData, error: fetchError } = await supabase
+src/hooks/useAuctionIntelligence.ts:24:          .from('auction_intelligence_by_vin')
+src/hooks/useAuctionIntelligence.ts:44:          const { error: functionError } = await supabase.functions.invoke('generate-auction-intelligence', {
+src/hooks/useAuctionIntelligence.ts:61:          const { data: newData, error: refetchError } = await supabase
+src/hooks/useAuctionIntelligence.ts:62:            .from('auction_intelligence_by_vin')
+src/hooks/useFeatureFlags.ts:3:import { supabase } from '@/integrations/supabase/client';
+src/hooks/useFeatureFlags.ts:37:          const { data: userFlags, error: userError } = await supabase
+src/hooks/useFeatureFlags.ts:38:            .from('user_feature_flags')
+src/hooks/useFeatureFlags.ts:54:        const { data: globalFlags, error: globalError } = await supabase
+src/hooks/useFeatureFlags.ts:55:          .from('feature_flags')
+src/hooks/useServiceHistory.ts:3:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useServiceHistory.ts:30:      const { data, error: fetchError } = await supabase
+src/hooks/useServiceHistory.ts:31:        .from("service_records")
+src/hooks/useServiceHistory.ts:63:      const { data, error: insertError } = await supabase
+src/hooks/useServiceHistory.ts:64:        .from("service_records")
+src/hooks/useServiceHistory.ts:85:      const { error: deleteError } = await supabase
+src/hooks/useServiceHistory.ts:86:        .from("service_records")
+src/hooks/usePublicShare.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/hooks/usePublicShare.ts:13:      const { data, error } = await supabase.functions.invoke('create-public-token', {
+src/hooks/usePublicShare.ts:33:      const { data, error } = await supabase
+src/hooks/usePublicShare.ts:34:        .from('public_tokens')
+src/hooks/useScrapedListings.ts:3:import { supabase } from '@/integrations/supabase/client'
+src/hooks/useScrapedListings.ts:26:      const { data, error } = await supabase
+src/hooks/useScrapedListings.ts:27:        .from('scraped_listings')
+src/hooks/useMarketplaceComparison.ts:4:import { supabase } from '@/integrations/supabase/client';
+src/hooks/useMarketplaceComparison.ts:46:        const { data: enhancedListings, error: enhancedError } = await supabase
+src/hooks/useMarketplaceComparison.ts:47:          .from('enhanced_market_listings')
+src/hooks/useMarketplaceComparison.ts:74:          const { data: vinData, error: vinError } = await supabase
+src/hooks/useMarketplaceComparison.ts:75:            .from('scraped_listings')
+src/hooks/useMarketplaceComparison.ts:90:          const { data, error } = await supabase
+src/hooks/useMarketplaceComparison.ts:91:            .from('scraped_listings')
+src/hooks/useCensus.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useCensus.ts:26:        const { data, error } = await supabase.functions.invoke(
+src/hooks/useFollowUpForm.ts:3:import { supabase } from '@/integrations/supabase/client';
+src/hooks/useFollowUpForm.ts:73:      const { error } = await supabase
+src/hooks/useFollowUpForm.ts:74:        .from('follow_up_answers')
+src/hooks/useFollowUpForm.ts:107:      const { error: saveError } = await supabase
+src/hooks/useFollowUpForm.ts:108:        .from('follow_up_answers')
+src/hooks/useFollowUpForm.ts:120:      const { data: decodedVehicle } = await supabase
+src/hooks/useFollowUpForm.ts:121:        .from('decoded_vehicles')
+src/hooks/useFollowUpForm.ts:164:          const { data: existingValuation } = await supabase
+src/hooks/useFollowUpForm.ts:165:            .from('valuation_results')
+src/hooks/useFollowUpForm.ts:171:            await supabase
+src/hooks/useFollowUpForm.ts:172:              .from('valuation_results')
+src/hooks/useFollowUpForm.ts:186:            const { data: newValuation } = await supabase
+src/hooks/useFollowUpForm.ts:187:              .from('valuation_results')
+src/hooks/usePremiumPayment.ts:3:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useValuationData.ts:103:  return Array.from(deduped.values());
+src/hooks/usePrediction.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/usePrediction.ts:15:      const { data: existingPrediction, error: fetchError } = await supabase
+src/hooks/usePrediction.ts:16:        .from("valuations")
+src/hooks/useFollowUpAutoSave.ts:3:import { supabase } from '@/integrations/supabase/client';
+src/hooks/useFollowUpAutoSave.ts:51:      const { data: { user } } = await supabase.auth.getUser();
+src/hooks/useFollowUpAutoSave.ts:59:      const { error } = await supabase
+src/hooks/useFollowUpAutoSave.ts:60:        .from('follow_up_answers')
+src/hooks/useConsolidatedForecast.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useConsolidatedForecast.ts:49:        const { data, error: invokeError } = await supabase.functions.invoke(
+src/data/vehicle-data.ts:46:export const VEHICLE_YEARS = Array.from(
+src/hooks/useVehicleDBData.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useVehicleDBData.ts:24:        const { data, error } = await supabase
+src/hooks/useVehicleDBData.ts:25:          .from("makes")
+src/hooks/useVehicleDBData.ts:60:      const { data, error } = await supabase
+src/hooks/useVehicleDBData.ts:61:        .from("models")
+src/hooks/useVehicleDBData.ts:98:      const { data, error } = await supabase
+src/hooks/useVehicleDBData.ts:99:        .from("makes")
+src/hooks/useVehicleDBData.ts:116:      const { data, error } = await supabase
+src/hooks/useVehicleDBData.ts:117:        .from("models")
+src/scripts/populateMsrpFromWeb.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/scripts/generate-test-data.ts:1:import { createClient } from "@supabase/supabase-js";
+src/scripts/generate-test-data.ts:30:  const supabaseUrl = process.env.SUPABASE_URL;
+src/scripts/generate-test-data.ts:31:  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+src/scripts/generate-test-data.ts:33:  if (!supabaseUrl || !supabaseServiceKey) {
+src/scripts/generate-test-data.ts:40:  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+src/scripts/generate-test-data.ts:51:    const { data, error } = await supabase
+src/hooks/useZipValidation.ts:3:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useDealerValuations.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useDealerValuations.ts:38:        let query = supabase
+src/hooks/useDealerValuations.ts:39:          .from("valuations")
+src/hooks/useEpaMpg.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useEpaMpg.ts:24:        const { data, error } = await supabase.functions.invoke(
+src/hooks/useAdminAnalytics.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/hooks/useAdminAnalytics.ts:41:        const { count: totalValuations, error: valuationError } = await supabase
+src/hooks/useAdminAnalytics.ts:42:          .from("valuations")
+src/hooks/useAdminAnalytics.ts:49:        const { data: methodData, error: methodError } = await supabase
+src/hooks/useAdminAnalytics.ts:50:          .from("valuations")
+src/hooks/useAdminAnalytics.ts:74:        const { data: dailyData, error: dailyError } = await supabase
+src/hooks/useAdminAnalytics.ts:75:          .from("valuations")
+src/hooks/useAdminAnalytics.ts:94:        const { data: photoData, error: photoError } = await supabase
+src/hooks/useAdminAnalytics.ts:95:          .from("photo_scores")
+src/hooks/useAdminAnalytics.ts:119:        const { data: orderData, error: orderError } = await supabase
+src/hooks/useAdminAnalytics.ts:120:          .from("orders")
+src/hooks/useAdminAnalytics.ts:134:          await supabase
+src/hooks/useAdminAnalytics.ts:135:            .from("orders")
+src/hooks/useAdminAnalytics.ts:149:        const { data: zipData, error: zipError } = await supabase
+src/hooks/useAdminAnalytics.ts:150:          .from("valuations")
+src/enrichment/sources/statvin.ts:34:    const response = await fetch(`https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/fetch-auction-data`, {
+src/contexts/ValuationContext.tsx:2:import { supabase } from '@/integrations/supabase/client';
+src/contexts/ValuationContext.tsx:81:      const { data: valuationByVin, error: vinError } = await supabase
+src/contexts/ValuationContext.tsx:82:        .from('valuations')
+src/contexts/ValuationContext.tsx:97:        const { data: valuationById, error: idError } = await supabase
+src/contexts/ValuationContext.tsx:98:          .from('valuations')
+src/contexts/ValuationContext.tsx:187:        const { data: savedValuation, error: insertError } = await supabase
+src/contexts/ValuationContext.tsx:188:          .from('valuations')
+src/services/supabase/feedbackService.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/services/supabase/feedbackService.ts:22:    const { data, error } = await supabase
+src/services/supabase/feedbackService.ts:23:      .from('user_valuation_feedback')
+src/services/supabase/feedbackService.ts:55:    let query = supabase
+src/services/supabase/feedbackService.ts:56:      .from('valuation_feedback')
+src/services/supabase/shareTrackingService.ts:1:import { supabase } from '@/integrations/supabase/client';
+src/services/supabase/shareTrackingService.ts:18:    const { data: result, error } = await supabase
+src/services/supabase/shareTrackingService.ts:19:      .from('saved_valuations')
+src/services/supabase/shareTrackingService.ts:45:    const { data, error } = await supabase
+src/services/supabase/shareTrackingService.ts:46:      .from('saved_valuations')
+src/services/supabase/valuationRequestTracker.ts:1:import { supabase } from '@/integrations/supabase/client';
+src/services/supabase/valuationRequestTracker.ts:34:    const { data, error } = await supabase
+src/services/supabase/valuationRequestTracker.ts:35:      .from('valuation_requests')
+src/services/supabase/valuationRequestTracker.ts:75:    const { error } = await supabase
+src/services/supabase/valuationRequestTracker.ts:76:      .from('valuation_requests')
+src/services/supabase/valuationRequestTracker.ts:107:    const { error } = await supabase
+src/services/supabase/valuationRequestTracker.ts:108:      .from('valuation_requests')
+src/services/supabase/heatmapService.ts:1:import { supabase } from '@/integrations/supabase/client';
+src/services/supabase/heatmapService.ts:17:    const { data, error } = await supabase.rpc('get_adjustment_breakdown_heatmap');
+src/services/supabase/valuationRequestService.ts:1:import { supabase } from '@/integrations/supabase/client';
+src/services/supabase/valuationRequestService.ts:19:    const { data: result, error } = await supabase
+src/services/supabase/valuationRequestService.ts:20:      .from('valuation_requests')
+src/services/supabase/valuationRequestService.ts:53:    const { data, error } = await supabase
+src/services/supabase/valuationRequestService.ts:54:      .from('valuation_requests')
+src/services/supabase/explanationService.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/services/supabase/explanationService.ts:31:    const { data: result, error } = await supabase
+src/services/supabase/explanationService.ts:32:      .from('valuation_explanations')
+src/components/title-ownership/VehicleHistorySection.tsx:5:import { supabase } from "@/integrations/supabase/client";
+src/components/title-ownership/VehicleHistorySection.tsx:43:      const { data, error } = await supabase
+src/components/title-ownership/VehicleHistorySection.tsx:44:        .from("vehicles")
+src/components/title-ownership/VehicleHistorySection.tsx:58:          await supabase.from("vehicles").insert({
+src/components/title-ownership/VehicleHistorySection.tsx:95:      const { error } = await supabase
+src/components/title-ownership/VehicleHistorySection.tsx:96:        .from("vehicles")
+src/services/marketSearchAgent.ts:99:    const response = await fetch(`https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/fetch-marketplace-data?query=${year} ${make} ${model}&zip=${zipCode}&platform=all`, {
+src/services/marketListings.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/services/marketListings.ts:42:  const { data, error } = await (supabase.from("market_listings") as any)
+src/services/marketListings.ts:62:  return await supabase.functions.invoke("fetch-market-listings", {
+src/services/marketListings.ts:93:  await (supabase.from("market_listings") as any).insert(inserts);
+src/services/auctionDataService.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/services/auctionDataService.ts:22:    const { data: existingData } = await supabase
+src/services/auctionDataService.ts:23:      .from('auction_results_by_vin')
+src/services/auctionDataService.ts:46:    const { data: freshData } = await supabase.functions.invoke('fetch-auction-history', {
+src/services/auctionDataService.ts:67:        const { data } = await supabase.functions.invoke('fetch-marketplace-data', {
+src/services/auctionDataService.ts:94:    const { data } = await supabase.functions.invoke('fetch-competitor-prices', {
+src/services/scrapedListingsService.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/services/scrapedListingsService.ts:23:    const { data, error } = await supabase
+src/services/scrapedListingsService.ts:24:      .from('scraped_listings')
+src/services/ValuationApiService.ts:1:import { supabase } from '@/integrations/supabase/client';
+src/services/ValuationApiService.ts:49:      const { data, error } = await supabase.functions.invoke('valuation-request', {
+src/services/ValuationApiService.ts:87:      const { data: requestData } = await supabase
+src/services/ValuationApiService.ts:88:        .from('valuation_requests')
+src/services/ValuationApiService.ts:125:      const { data, error } = await supabase.functions.invoke('valuation-result', {
+src/services/ValuationApiService.ts:175:      const { data, error } = await supabase.functions.invoke('valuation-sources');
+src/services/ValuationApiService.ts:283:      const { data: recentRequests } = await supabase
+src/services/ValuationApiService.ts:284:        .from('valuation_requests')
+src/services/valuationAuditLogger.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/services/valuationAuditLogger.ts:55:    const { data, error } = await supabase.functions.invoke('log-valuation-audit', {
+src/services/aiExplanationService.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/services/aiExplanationService.ts:51:    const { data, error } = await supabase.functions.invoke('generate-explanation', {
+src/services/ainService.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/services/ainService.ts:29:    const { data, error } = await supabase.functions.invoke('ask-ain', {
+src/services/carPricePredictionService.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/services/carPricePredictionService.ts:41:    const { data, error } = await supabase.functions.invoke('car-price-prediction', {
+src/services/historyCheckService.ts:16:    const response = await fetch('https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/fetch_nicb_vincheck', {
+src/services/historyCheckService.ts:84:      'https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/fetch_nhtsa_recalls',
+src/components/admin/SystemHealthDashboard.tsx:134:              href="https://supabase.com/dashboard/project/xltxqqzattxogxtqrggt/functions" 
+src/components/admin/SystemHealthDashboard.tsx:195:                href="https://supabase.com/dashboard/project/xltxqqzattxogxtqrggt/editor" 
+src/components/admin/SystemHealthDashboard.tsx:205:                href="https://supabase.com/dashboard/project/xltxqqzattxogxtqrggt/settings/functions" 
+src/services/persistence/persistenceMonitor.ts:1:import { supabase } from '@/integrations/supabase/client';
+src/services/persistence/persistenceMonitor.ts:25:    const { data: auditData, error: auditError } = await supabase
+src/services/persistence/persistenceMonitor.ts:26:      .from('valuation_audit_logs')
+src/services/persistence/persistenceMonitor.ts:32:    const { data: requestData, error: requestError } = await supabase
+src/services/persistence/persistenceMonitor.ts:33:      .from('valuation_requests')
+src/services/persistence/persistenceMonitor.ts:39:    const { count: auditCount } = await supabase
+src/services/persistence/persistenceMonitor.ts:40:      .from('valuation_audit_logs')
+src/services/persistence/persistenceMonitor.ts:43:    const { count: requestCount } = await supabase
+src/services/persistence/persistenceMonitor.ts:44:      .from('valuation_requests')
+src/services/persistence/persistenceMonitor.ts:104:    const { data, error } = await supabase
+src/services/persistence/persistenceMonitor.ts:105:      .from('valuation_audit_logs')
+src/services/persistence/persistenceMonitor.ts:140:    const { data, error } = await supabase
+src/services/persistence/persistenceMonitor.ts:141:      .from('valuation_requests')
+src/components/admin/heatmap/AdjustmentHeatmap.tsx:6:import { getAdjustmentBreakdownHeatmap, HeatmapData } from '@/services/supabase/heatmapService';
+src/components/admin/ValuationDebugDashboard.tsx:10:import { supabase } from '@/integrations/supabase/client';
+src/components/admin/ValuationDebugDashboard.tsx:39:        supabase.from('valuation_requests').select('*', { count: 'exact', head: true }),
+src/components/admin/ValuationDebugDashboard.tsx:40:        supabase.from('market_listings').select('*', { count: 'exact', head: true }),
+src/components/admin/ValuationDebugDashboard.tsx:41:        supabase.from('valuation_audit_logs').select('*', { count: 'exact', head: true }),
+src/components/admin/ValuationDebugDashboard.tsx:42:        supabase.from('user_valuation_feedback').select('*', { count: 'exact', head: true })
+src/components/admin/ValuationDebugDashboard.tsx:52:        supabase.from('valuation_requests').select('*').order('created_at', { ascending: false }).limit(1).single(),
+src/components/admin/ValuationDebugDashboard.tsx:53:        supabase.from('market_listings').select('*').order('created_at', { ascending: false }).limit(1).single(),
+src/components/admin/ValuationDebugDashboard.tsx:54:        supabase.from('valuation_audit_logs').select('*').order('created_at', { ascending: false }).limit(1).single(),
+src/components/admin/ValuationDebugDashboard.tsx:55:        supabase.from('user_valuation_feedback').select('*').order('created_at', { ascending: false }).limit(1).single()
+src/services/__tests__/photoScoring.test.ts:3:import { supabase } from "@/integrations/supabase/client";
+src/services/__tests__/photoScoring.test.ts:5:vi.mock("@/integrations/supabase/client", () => ({
+src/services/__tests__/photoScoring.test.ts:6:  supabase: {
+src/services/__tests__/photoScoring.test.ts:36:    (supabase.functions.invoke as any).mockResolvedValue({
+src/services/__tests__/photoScoring.test.ts:45:    expect(supabase.functions.invoke).toHaveBeenCalledWith("score-image", {
+src/services/__tests__/photoScoring.test.ts:66:    (supabase.functions.invoke as any).mockResolvedValue({
+src/services/__tests__/photoScoring.test.ts:75:    expect(supabase.functions.invoke).toHaveBeenCalledWith("score-image", {
+src/services/__tests__/photoScoring.test.ts:85:    (supabase.functions.invoke as any).mockResolvedValue({
+src/services/__tests__/photoScoring.test.ts:94:    expect(supabase.functions.invoke).toHaveBeenCalledWith("score-image", {
+src/services/__tests__/photoScoring.test.ts:104:    (supabase.functions.invoke as any).mockResolvedValue({
+src/services/__tests__/photoScoring.test.ts:117:    expect(supabase.functions.invoke).toHaveBeenCalledWith("score-image", {
+src/components/admin/DataAggregationDashboard.tsx:22:import { supabase } from '@/integrations/supabase/client';
+src/components/admin/DataAggregationDashboard.tsx:64:      const { data: sources, error: sourcesError } = await supabase
+src/components/admin/DataAggregationDashboard.tsx:65:        .from('data_sources')
+src/components/admin/DataAggregationDashboard.tsx:94:      const { error } = await supabase
+src/components/admin/DataAggregationDashboard.tsx:95:        .from('data_sources')
+src/services/confidenceExplainer.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/services/confidenceExplainer.ts:37:    const { data, error } = await supabase.functions.invoke('generate-explanation', {
+src/components/admin/FANGOrchestrationDashboard.tsx:21:import { supabase } from '@/integrations/supabase/client';
+src/components/admin/FANGOrchestrationDashboard.tsx:75:        supabase.from('data_fetch_tasks').select('*').order('priority', { ascending: false }),
+src/components/admin/FANGOrchestrationDashboard.tsx:76:        supabase.from('qa_reports').select('*').order('created_at', { ascending: false }).limit(10),
+src/components/admin/FANGOrchestrationDashboard.tsx:77:        supabase.from('source_intelligence').select('*').order('success_rate', { ascending: false })
+src/components/admin/FANGOrchestrationDashboard.tsx:94:      const { data, error } = await supabase.functions.invoke('fang-task-orchestrator', {
+src/components/admin/FANGOrchestrationDashboard.tsx:190:            onClick={() => supabase.functions.invoke('ain-full-market-orchestrator', {
+src/services/vinForecastService.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/services/vinForecastService.ts:21:    const { data: existingForecast } = await supabase
+src/services/vinForecastService.ts:22:      .from('vin_forecasts')
+src/services/vinForecastService.ts:40:    const { data: newForecast, error } = await supabase
+src/services/vinForecastService.ts:41:      .from('vin_forecasts')
+src/services/marketplaceService.ts:2:import { supabase } from '@/integrations/supabase/client'
+src/services/marketplaceService.ts:38:    const { data, error } = await supabase.functions.invoke('fetch-marketplace-data', {
+src/services/marketplaceService.ts:71:    let query = supabase
+src/services/marketplaceService.ts:72:      .from('scraped_listings')
+src/services/marketplaceService.ts:113:    const { data, error } = await supabase
+src/services/marketplaceService.ts:114:      .from('scraped_listings')
+src/services/auction.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/services/auction.ts:6:  const { data, error } = await supabase
+src/services/auction.ts:7:    .from("auction_results_by_vin")
+src/services/photo/analyzePhotos.ts:41:    const response = await fetch(`https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/analyze-photos`, {
+src/services/photo/fetchPhotos.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/services/photo/fetchPhotos.ts:16:    const { data, error } = await supabase
+src/services/photo/fetchPhotos.ts:17:      .from("valuation_photos")
+src/services/photo/uploadPhotoService.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/services/photo/uploadPhotoService.ts:21:      const { data, error } = await supabase.storage
+src/services/photo/uploadPhotoService.ts:22:        .from("vehicle-photos")
+src/services/photo/deletePhotos.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/services/photo/deletePhotos.ts:22:        await supabase.storage
+src/services/photo/deletePhotos.ts:23:          .from("vehicle-photos")
+src/services/photo/deletePhotos.ts:30:        await supabase
+src/services/photo/deletePhotos.ts:31:          .from("valuation_photos" as any)
+src/services/UnifiedLookupService.ts:3:import { supabase } from '@/integrations/supabase/client';
+src/services/UnifiedLookupService.ts:40:      const response = await supabase.functions.invoke('unified-decode', {
+src/services/vehicleLookupService.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/services/vehicleLookupService.ts:9:    const { data, error } = await supabase.functions.invoke('unified-decode', {
+src/services/ValuationIntegrationService.ts:1:import { supabase } from '@/integrations/supabase/client';
+src/services/ValuationIntegrationService.ts:95:        const { data: existingEnrichment } = await supabase
+src/services/ValuationIntegrationService.ts:96:          .from('vin_enrichment_data')
+src/services/ValuationIntegrationService.ts:121:          await supabase.functions.invoke('data-quality-orchestrator', {
+src/services/ValuationIntegrationService.ts:291:      const { data, error } = await supabase
+src/services/ValuationIntegrationService.ts:292:        .from('vin_enrichment_data')
+src/services/ValuationIntegrationService.ts:327:      const { error } = await supabase
+src/services/ValuationIntegrationService.ts:328:        .from('vin_enrichment_data')
+src/services/ValuationIntegrationService.ts:355:      const { data: recentRequest } = await supabase
+src/services/ValuationIntegrationService.ts:356:        .from('valuation_requests')
+src/services/ValuationIntegrationService.ts:385:      await supabase
+src/services/ValuationIntegrationService.ts:386:        .from('compliance_audit_log')
+src/services/valuation/vehicleDataService.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/services/valuation/vehicleDataService.ts:19:    const { data: vinData, error: vinError } = await supabase.functions.invoke('vin-decoder', {
+src/services/valuation/vehicleDataService.ts:44:    const { data: requestData, error: requestError } = await supabase
+src/services/valuation/vehicleDataService.ts:45:      .from('valuation_requests')
+src/services/valuation/vehicleDataService.ts:76:    const { data, error } = await supabase
+src/services/valuation/vehicleDataService.ts:77:      .from('valuation_requests')
+src/services/valuation/errorHandler.ts:112:  if (errorMessage.includes('supabase') || errorMessage.includes('database') || errorMessage.includes('relation')) {
+src/services/valuation/marketListingService.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/services/valuation/marketListingService.ts:86:    const { data, error } = await supabase
+src/services/valuation/marketListingService.ts:87:      .from('market_listings')
+src/services/valuation/marketListingService.ts:133:      const { error } = await supabase
+src/services/valuation/marketListingService.ts:134:        .from('market_listings')
+src/services/valuation/marketListingService.ts:163:    let query = supabase
+src/services/valuation/marketListingService.ts:164:      .from('market_listings')
+src/services/valuation/listingAuditService.ts:1:import { supabase } from '@/integrations/supabase/client';
+src/services/valuation/listingAuditService.ts:17:  return await supabase.from('market_search_audit').insert(payload).select().single();
+src/services/valuation/listingAuditService.ts:26:  return await supabase.from('listing_audit_snapshots').insert({
+src/services/valuation/listingAuditService.ts:39:  return await supabase.from('valuation_audit_logs').update({
+src/services/valuation/enhancedMarketListingService.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/services/valuation/enhancedMarketListingService.ts:55:      let query = supabase
+src/services/valuation/enhancedMarketListingService.ts:56:        .from('market_listings')
+src/services/valuation/vehicleDecodeService.ts:1:import { supabase } from '@/integrations/supabase/client';
+src/services/valuation/vehicleDecodeService.ts:24:    const { data, error } = await supabase.functions.invoke('unified-decode', {
+src/services/valuation/vehicleDecodeService.ts:47:    const { data: savedVehicle, error: verifyError } = await supabase
+src/services/valuation/vehicleDecodeService.ts:48:      .from('decoded_vehicles')
+src/services/valuation/vehicleDecodeService.ts:82:    const { data, error } = await supabase
+src/services/valuation/vehicleDecodeService.ts:83:      .from('decoded_vehicles')
+src/services/valuation/msrpLookupService.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/services/valuation/msrpLookupService.ts:56:    let query = supabase
+src/services/valuation/msrpLookupService.ts:57:      .from('model_trims')
+src/services/valuation/msrpLookupService.ts:83:    const { data: generalData, error: generalError } = await supabase
+src/services/valuation/msrpLookupService.ts:84:      .from('model_trims')
+src/services/valuation/msrpLookupService.ts:116:    const { data: similarVehicles, error } = await supabase
+src/services/valuation/msrpLookupService.ts:117:      .from('model_trims')
+src/services/valuation/marketDataService.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/services/valuation/marketDataService.ts:115:      const { data, error } = await supabase
+src/services/valuation/marketDataService.ts:116:        .from('market_listings')
+src/services/valuation/marketDataService.ts:183:      const { error } = await supabase
+src/services/valuation/marketDataService.ts:184:        .from('enhanced_market_listings')
+src/services/vehicleDecodeService.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/services/vehicleDecodeService.ts:10:    const { data, error } = await supabase.functions.invoke('unified-decode', {
+src/services/vehicleDecodeService.ts:123:    const { data: failures, error } = await supabase
+src/services/vehicleDecodeService.ts:124:      .from('vin_failures')
+src/services/vehicleDecodeService.ts:148:    const { count: successfulDecodes } = await supabase
+src/services/vehicleDecodeService.ts:149:      .from('decoded_vehicles')
+src/services/competitorPriceService.ts:2:import { supabase } from '@/integrations/supabase/client'
+src/services/competitorPriceService.ts:37:    const { data, error } = await supabase.functions.invoke('fetch-competitor-prices', {
+src/services/competitorPriceService.ts:61:    const { data, error } = await supabase
+src/services/competitorPriceService.ts:62:      .from('competitor_prices')
+src/services/realMarketplaceService.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/services/realMarketplaceService.ts:54:      let query = supabase
+src/services/realMarketplaceService.ts:55:        .from('scraped_listings')
+src/services/realMarketplaceService.ts:114:      let query = supabase
+src/services/realMarketplaceService.ts:115:        .from('enhanced_market_listings')
+src/services/followUpService.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/services/followUpService.ts:23:      const { error } = await supabase
+src/services/followUpService.ts:24:        .from('follow_up_answers')
+src/services/followUpService.ts:46:      const { data, error } = await supabase
+src/services/followUpService.ts:47:        .from('follow_up_answers')
+src/services/followUpService.ts:133:      let query = supabase
+src/services/followUpService.ts:134:        .from('follow_up_answers')
+src/services/fuelCostService.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/services/fuelCostService.ts:26:    const { data: cachedData, error: cacheError } = await supabase
+src/services/fuelCostService.ts:27:      .from('regional_fuel_costs')
+src/services/fuelCostService.ts:46:    const { data: freshData, error: fetchError } = await supabase.functions.invoke('fetch-eia-fuel-prices', {
+src/services/fuelCostService.ts:60:        await supabase
+src/services/fuelCostService.ts:61:          .from('regional_fuel_costs')
+src/services/plateService.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/services/plateService.ts:8:    const { data, error } = await supabase
+src/services/plateService.ts:9:      .from('plate_lookups')
+src/components/professional/ProfessionalResultsPage.tsx:3:import { supabase } from '@/integrations/supabase/client';
+src/components/professional/ProfessionalResultsPage.tsx:75:          const { data: vinData, error: vinError } = await supabase
+src/components/professional/ProfessionalResultsPage.tsx:76:            .from('valuations')
+src/components/professional/ProfessionalResultsPage.tsx:89:          const { data: uuidData, error: uuidError } = await supabase
+src/components/professional/ProfessionalResultsPage.tsx:90:            .from('valuations_uuid')
+src/components/professional/ProfessionalResultsPage.tsx:98:            const { data: regData, error: regError } = await supabase
+src/components/professional/ProfessionalResultsPage.tsx:99:              .from('valuations')
+src/components/professional/ProfessionalResultsPage.tsx:140:            const { error: updateError } = await supabase
+src/components/professional/ProfessionalResultsPage.tsx:141:              .from('valuations')
+src/components/professional/ProfessionalResultsPage.tsx:164:        const { data: dbListings, error: dbError } = await supabase
+src/components/professional/ProfessionalResultsPage.tsx:165:          .from('enhanced_market_listings')
+src/pages/PlatformDiagnosticsPage.tsx:6:import { supabase } from '@/integrations/supabase/client';
+src/pages/PlatformDiagnosticsPage.tsx:12:  const [supabaseProject, setSupabaseProject] = useState<string>('Checking...');
+src/pages/PlatformDiagnosticsPage.tsx:36:        const { data } = await supabase.from('_diagnose').select('project_id').limit(1).single();
+src/pages/PlatformDiagnosticsPage.tsx:40:        const supabaseUrl = appConfig.SUPABASE_URL;
+src/pages/PlatformDiagnosticsPage.tsx:41:        const projectRef = supabaseUrl.replace('https://', '').split('.')[0];
+src/pages/PlatformDiagnosticsPage.tsx:111:                <div className={`w-4 h-4 rounded-full mr-3 ${supabaseProject !== 'Checking...' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+src/pages/PlatformDiagnosticsPage.tsx:112:                <p>Supabase client: {supabaseProject}</p>
+src/pages/admin/ValuationInsights.tsx:11:import { supabase } from '@/integrations/supabase/client';
+src/pages/admin/ValuationInsights.tsx:76:    const { data, error } = await supabase
+src/pages/admin/ValuationInsights.tsx:77:      .from('regional_fuel_costs')
+src/pages/admin/ValuationInsights.tsx:90:    const { data, error } = await supabase
+src/pages/admin/ValuationInsights.tsx:91:      .from('market_listings')
+src/pages/admin/ValuationInsights.tsx:134:    const { data: requests, error: requestError } = await supabase
+src/pages/admin/ValuationInsights.tsx:135:      .from('valuation_requests')
+src/pages/ResetPasswordPage.tsx:9:import { supabase } from "@/integrations/supabase/client";
+src/pages/ResetPasswordPage.tsx:26:      supabase.auth.setSession({
+src/pages/ResetPasswordPage.tsx:49:      const { error } = await supabase.auth.updateUser({
+src/pages/ValuationFollowUpPage.tsx:11:import { supabase } from '@/integrations/supabase/client';
+src/pages/ValuationFollowUpPage.tsx:63:      const { data: { user }, error: authError } = await supabase.auth.getUser();
+src/components/ui/ColorSwatch.tsx:10:import { supabase } from "@/integrations/supabase/client";
+src/components/ui/ColorSwatch.tsx:39:        const { data, error } = await supabase
+src/components/ui/ColorSwatch.tsx:40:          .from("color_adjustment")
+src/pages/AuthCallback.tsx:3:import { supabase } from '@/integrations/supabase/client';
+src/pages/AuthCallback.tsx:13:        const { data, error } = await supabase.auth.getSession();
+src/pages/api/valuation/submit-followup.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/pages/api/valuation/submit-followup.ts:13:    const { data: valuation, error: valuationError } = await supabase
+src/pages/api/valuation/submit-followup.ts:14:      .from('valuations')
+src/pages/api/valuation/submit-followup.ts:34:    const { error: followUpError } = await supabase
+src/pages/api/valuation/submit-followup.ts:35:      .from('follow_up_answers')
+src/pages/view-offer/ViewOfferPage.tsx:8:import { supabase } from '@/integrations/supabase/client';
+src/pages/view-offer/ViewOfferPage.tsx:53:      const { data: leadData, error: leadError } = await supabase
+src/pages/view-offer/ViewOfferPage.tsx:54:        .from('dealer_leads')
+src/pages/view-offer/ViewOfferPage.tsx:75:      const { data: offerData, error: offerError } = await supabase
+src/pages/view-offer/ViewOfferPage.tsx:76:        .from('dealer_offers')
+src/pages/view-offer/ViewOfferPage.tsx:116:      const { error: acceptError } = await supabase
+src/pages/view-offer/ViewOfferPage.tsx:117:        .from('accepted_offers')
+src/pages/view-offer/ViewOfferPage.tsx:131:      const { error: updateError } = await supabase
+src/pages/view-offer/ViewOfferPage.tsx:132:        .from('dealer_offers')
+src/pages/AuthCallbackPage.tsx:3:import { supabase } from "@/integrations/supabase/client";
+src/pages/AuthCallbackPage.tsx:14:        const { error } = await supabase.auth.getSession();
+src/pages/MyValuationsPage.tsx:6:import { supabase } from "@/integrations/supabase/client";
+src/pages/MyValuationsPage.tsx:21:        const { data, error } = await supabase
+src/pages/MyValuationsPage.tsx:22:          .from("saved_valuations")
+src/pages/EquipmentSelectionPage.tsx:9:import { supabase } from "@/integrations/supabase/client";
+src/pages/EquipmentSelectionPage.tsx:29:      const { data, error } = await supabase
+src/pages/EquipmentSelectionPage.tsx:30:        .from("equipment_options")
+src/components/lookup/form-parts/EnhancedVehicleSelector.tsx:108:  const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
+src/components/lookup/form-parts/MakeAndModelSelector.tsx:3:import { supabase } from "@/integrations/supabase/client";
+src/components/lookup/form-parts/MakeAndModelSelector.tsx:33:      const { data, error } = await supabase.from("makes").select("id, make_name");
+src/components/lookup/form-parts/MakeAndModelSelector.tsx:51:      const { data, error } = await supabase
+src/components/lookup/form-parts/MakeAndModelSelector.tsx:52:        .from("models")
+src/components/lookup/photo/PhotoLookupForm.tsx:18:      const files = Array.from(e.target.files);
+src/components/service-history/ServiceHistoryUploader.tsx:10:import { supabase } from "@/integrations/supabase/client";
+src/components/service-history/ServiceHistoryUploader.tsx:71:      const { data: vehicleData, error: vehicleError } = await supabase
+src/components/service-history/ServiceHistoryUploader.tsx:72:        .from("vehicles")
+src/components/service-history/ServiceHistoryUploader.tsx:81:        const { error: createVehicleError } = await supabase
+src/components/service-history/ServiceHistoryUploader.tsx:82:          .from("vehicles")
+src/components/service-history/ServiceHistoryUploader.tsx:103:        const { error: uploadError } = await supabase.storage
+src/components/service-history/ServiceHistoryUploader.tsx:104:          .from("service_documents")
+src/components/service-history/ServiceHistoryUploader.tsx:110:        const { data } = supabase.storage
+src/components/service-history/ServiceHistoryUploader.tsx:111:          .from("service_documents")
+src/components/service-history/ServiceHistoryUploader.tsx:120:      const { error: serviceHistoryError } = await supabase
+src/components/service-history/ServiceHistoryUploader.tsx:121:        .from("service_history")
+src/components/service-history/ServiceHistoryUploader.tsx:133:      const { error: updateVehicleError } = await supabase
+src/components/service-history/ServiceHistoryUploader.tsx:134:        .from("vehicles")
+src/components/valuation/photo-upload/PhotoUploader.tsx:22:    const files = Array.from(e.target.files || []);
+src/components/valuation/hooks/useValuationData.ts:3:import { supabase } from '@/integrations/supabase/client';
+src/components/valuation/hooks/useValuationData.ts:29:        const { data, error } = await supabase.functions.invoke('valuation-result', {
+src/components/premium/form/steps/PredictionReviewStep.tsx:6:import { supabase } from '@/integrations/supabase/client';
+src/components/premium/form/steps/PredictionReviewStep.tsx:36:      const { data: valuationRequest, error: requestError } = await supabase
+src/components/premium/form/steps/PredictionReviewStep.tsx:37:        .from('valuation_requests')
+src/components/premium/form/steps/PredictionReviewStep.tsx:55:      const { data: resultData, error: resultError } = await supabase.functions.invoke('valuation-result', {
+src/components/valuation/ProcessAuditTrail.tsx:2:import { supabase } from '@/integrations/supabase/client';
+src/components/valuation/ProcessAuditTrail.tsx:9:      const { data } = await supabase
+src/components/valuation/ProcessAuditTrail.tsx:10:        .from('market_search_audit')
+src/components/premium/form/ProgressIndicator.tsx:34:        {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
+src/components/valuation/market-trend/hooks/useForecastData.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/components/valuation/market-trend/hooks/useForecastData.ts:61:        const { data, error } = await supabase.functions.invoke(
+src/components/valuation/GeoMultiplier.tsx:5:import { supabase } from "@/integrations/supabase/client";
+src/components/premium/lookup/PhotoUpload.tsx:24:    const files = Array.from(e.target.files);
+src/components/valuation/equipment/EquipmentSelector.tsx:11:import { supabase } from "@/integrations/supabase/client";
+src/components/valuation/equipment/EquipmentSelector.tsx:38:        const { data, error } = await supabase
+src/components/valuation/equipment/EquipmentSelector.tsx:39:          .from("equipment_options")
+src/components/valuation/equipment/EquipmentSummary.tsx:8:import { supabase } from "@/integrations/supabase/client";
+src/components/valuation/equipment/EquipmentSummary.tsx:27:      const { data, error } = await supabase
+src/components/valuation/equipment/EquipmentSummary.tsx:28:        .from("equipment_options")
+src/components/valuation/AuctionHistorySection.tsx:31:          "https://xltxqqzattxogxtqrggt.functions.supabase.co/fetch-auction-history",
+src/components/valuation/YearScroller.tsx:21:  const years = Array.from(
+src/components/valuation/enterprise/EnterpriseValuationPanel.tsx:7:import { supabase } from '@/integrations/supabase/client';
+src/components/valuation/enterprise/EnterpriseValuationPanel.tsx:61:      const { data: requestData, error: requestError } = await supabase.functions.invoke('valuation-request', {
+src/components/valuation/enterprise/EnterpriseValuationPanel.tsx:78:      const { data: aggregateData, error: aggregateError } = await supabase.functions.invoke('valuation-aggregate', {
+src/components/valuation/enterprise/EnterpriseValuationPanel.tsx:109:      const response = await fetch(`https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/valuation-result/${id}`, {
+src/components/premium/sections/PremiumTestimonials.tsx:43:                  {Array.from({ length: 5 }).map((_, i) => (
+src/components/valuation/StarRating.tsx:32:      {Array.from({ length: 5 }, (_, index) => {
+src/components/premium/sections/valuation-tabs/PhotoUploadTab.tsx:12:      onPhotoUpload(Array.from(files));
+src/components/auth/GoogleAuthButton.tsx:1:import { supabase } from "@/integrations/supabase/client";
+src/components/auth/GoogleAuthButton.tsx:23:      const { data, error } = await supabase.auth.signInWithOAuth({
+src/components/premium/sections/valuation-tabs/form-parts/VehicleDetailsForm.tsx:38:  const years = Array.from({ length: 30 }, (_, i) => String(currentYear - i));
+src/components/debug/VehicleDataDebug.tsx:8:import { supabase } from '@/integrations/supabase/client';
+src/components/debug/VehicleDataDebug.tsx:45:      const { data: makes, error: makesError, count: makesCount } = await supabase
+src/components/debug/VehicleDataDebug.tsx:46:        .from('makes')
+src/components/debug/VehicleDataDebug.tsx:53:      const { data: models, error: modelsError, count: modelsCount } = await supabase
+src/components/debug/VehicleDataDebug.tsx:54:        .from('models')
+src/components/debug/VehicleDataDebug.tsx:61:      const { data: relationship } = await supabase
+src/components/debug/VehicleDataDebug.tsx:62:        .from('makes')
+src/components/premium/insights/AINSummary.tsx:6:import { supabase } from '@/integrations/supabase/client';
+src/components/premium/insights/AINSummary.tsx:51:        const { data, error } = await supabase.functions.invoke('ask-ai', {
+src/components/home/EnhancedTestimonialsCarousel.tsx:72:              {Array.from({ length: currentTestimonial.rating }, (_, i) => (
+src/components/home/PhotoScoringWidget.tsx:27:    const files = Array.from(event.target.files).slice(0, 3); // Limit to 3 photos for demo
+src/components/home/MarketSnapshot.tsx:11:import { supabase } from "@/integrations/supabase/client";
+src/components/home/MarketSnapshot.tsx:61:        const response = await supabase.functions.invoke(
+src/components/home/TestimonialsSection.tsx:73:                  {Array.from({ length: currentTestimonial.rating }, (_, i) => (
+src/components/ui-kit/CDTable.tsx:55:  const loadingData = Array.from({ length: loadingRows }).map((_, index) => ({
+src/utils/forecasting/generateVinForecast.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/utils/forecasting/generateVinForecast.ts:26:    const { data: auctionData } = await supabase
+src/utils/forecasting/generateVinForecast.ts:27:      .from('auction_results_by_vin')
+src/utils/forecasting/generateVinForecast.ts:34:    const { data: marketplaceData } = await supabase
+src/utils/forecasting/generateVinForecast.ts:35:      .from('scraped_listings')
+src/utils/diagnostics/valuationAudit.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/utils/diagnostics/valuationAudit.ts:26:    const { data: valuation, error: valErr } = await supabase
+src/utils/diagnostics/valuationAudit.ts:27:      .from('valuations')
+src/utils/diagnostics/valuationAudit.ts:49:    const { data: decodedVehicle } = await supabase
+src/utils/diagnostics/valuationAudit.ts:50:      .from('decoded_vehicles')
+src/utils/diagnostics/valuationAudit.ts:63:    const { data: followupAnswers } = await supabase
+src/utils/diagnostics/valuationAudit.ts:64:      .from('follow_up_answers')
+src/utils/diagnostics/valuationAudit.ts:82:    const { data: auctionResults } = await supabase
+src/utils/diagnostics/valuationAudit.ts:83:      .from('auction_results_by_vin')
+src/utils/diagnostics/valuationAudit.ts:96:    const { data: marketplaceListings } = await supabase
+src/utils/diagnostics/valuationAudit.ts:97:      .from('scraped_listings')
+src/utils/diagnostics/valuationAudit.ts:110:    const { data: dealerOffers } = await supabase
+src/utils/diagnostics/valuationAudit.ts:111:      .from('dealer_offers')
+src/utils/diagnostics/valuationAudit.ts:124:    const { data: vinForecast } = await supabase
+src/utils/diagnostics/valuationAudit.ts:125:      .from('vin_forecasts')
+src/utils/diagnostics/valuationAudit.ts:140:    const { data: competitorPrices } = await supabase
+src/utils/diagnostics/valuationAudit.ts:141:      .from('competitor_prices')
+src/utils/diagnostics/systemHealth.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/utils/diagnostics/systemHealth.ts:18:    const { data, error } = await supabase
+src/utils/diagnostics/systemHealth.ts:19:      .from('valuations')
+src/utils/diagnostics/systemHealth.ts:58:      const { count, error } = await supabase
+src/utils/diagnostics/systemHealth.ts:59:        .from(table)
+src/utils/diagnostics/systemHealth.ts:87:    const { count } = await supabase
+src/utils/diagnostics/systemHealth.ts:88:      .from('valuations')
+src/utils/diagnostics/vehicleDataDiagnostics.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/utils/diagnostics/vehicleDataDiagnostics.ts:19:    const { data: allMakes, error: makesError } = await supabase
+src/utils/diagnostics/vehicleDataDiagnostics.ts:20:      .from('makes')
+src/utils/diagnostics/vehicleDataDiagnostics.ts:27:    const { data: allModels, error: modelsError } = await supabase
+src/utils/diagnostics/vehicleDataDiagnostics.ts:28:      .from('models')
+src/utils/diagnostics/vehicleDataDiagnostics.ts:37:    const makesWithModels = Array.from(makeIds).filter(makeId => modelMakeIds.has(makeId));
+src/utils/diagnostics/marketDataDiagnostics.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/utils/diagnostics/marketDataDiagnostics.ts:51:    const { data: msrpData } = await supabase
+src/utils/diagnostics/marketDataDiagnostics.ts:52:      .from('model_trims')
+src/utils/diagnostics/marketDataDiagnostics.ts:81:    const { data: auctionResults } = await supabase
+src/utils/diagnostics/marketDataDiagnostics.ts:82:      .from('auction_results_by_vin')
+src/utils/diagnostics/marketDataDiagnostics.ts:102:    const { data: marketListings } = await supabase
+src/utils/diagnostics/marketDataDiagnostics.ts:103:      .from('market_listings')
+src/utils/diagnostics/marketDataDiagnostics.ts:119:    const { data: competitorPrices } = await supabase
+src/utils/diagnostics/marketDataDiagnostics.ts:120:      .from('competitor_prices')
+src/utils/diagnostics/marketDataDiagnostics.ts:154:      const auctionTest = await supabase.functions.invoke('fetch-autoauctions-data', {
+src/utils/diagnostics/marketDataDiagnostics.ts:177:      const marketTest = await supabase.functions.invoke('fetch-market-listings', {
+src/utils/diagnostics/marketDataDiagnostics.ts:200:      const competitorTest = await supabase.functions.invoke('fetch-competitor-prices', {
+src/utils/api-utils.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/utils/api-utils.ts:160:    const { data, error } = await supabase.functions.invoke(functionName, {
+src/utils/pdfService.ts:3:import { supabase } from '@/integrations/supabase/client';
+src/utils/pdfService.ts:133:    const { error } = await supabase
+src/utils/pdfService.ts:134:      .from('pdf_audit_logs')
+src/utils/pdfService.ts:459:  return Buffer.from(pdfBytes);
+src/utils/pdfService.ts:490:    const { error: uploadError } = await supabase.storage
+src/utils/pdfService.ts:491:      .from('valuation-pdfs')
+src/utils/pdfService.ts:502:    const { data: publicUrlData } = supabase.storage
+src/utils/pdfService.ts:503:      .from('valuation-pdfs')
+src/utils/stripeService.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/utils/stripeService.ts:125:    const { data, error } = await supabase.functions.invoke('create-checkout', {
+src/utils/stripeService.ts:171:    const { data, error } = await supabase.functions.invoke('customer-portal', {
+src/utils/stripeService.ts:210:    const { data, error } = await supabase.functions.invoke('verify-payment', {
+src/utils/queryMakesModels.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/utils/queryMakesModels.ts:14:    const { data: makes, error: makesError } = await supabase
+src/utils/queryMakesModels.ts:15:      .from('makes')
+src/utils/queryMakesModels.ts:35:      const { data: models, error: modelsError } = await supabase
+src/utils/queryMakesModels.ts:36:        .from('models')
+src/utils/adjustments/titleStatusAdjustments.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/utils/adjustments/titleStatusAdjustments.ts:17:    const { data, error } = await supabase
+src/utils/adjustments/titleStatusAdjustments.ts:18:      .from("title_status")
+src/utils/valuation.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/utils/valuation.ts:40:    const { data, error } = await supabase
+src/utils/valuation.ts:41:      .from('valuations')
+src/utils/valuation.ts:64:    const { data: decodedData, error: decodeError } = await supabase.functions.invoke('unified-decode', {
+src/utils/valuation.ts:80:    const { data: valuationRequest, error: requestError } = await supabase
+src/utils/valuation.ts:81:      .from('valuation_requests')
+src/utils/valuation.ts:100:    const { data, error } = await supabase
+src/utils/valuation.ts:101:      .from('valuations')
+src/utils/valuation.ts:166:    const { data, error } = await supabase
+src/utils/valuation.ts:167:      .from('valuations')
+src/utils/getValuationContext.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/utils/getValuationContext.ts:11:    const { data, error } = await supabase
+src/utils/getValuationContext.ts:12:      .from("valuations")
+src/utils/valuationAuditLogger.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/utils/valuationAuditLogger.ts:3:import { createClient } from "@supabase/supabase-js";
+src/utils/valuationAuditLogger.ts:5:// Create supabaseAdmin client for service role access
+src/utils/valuationAuditLogger.ts:6:const supabaseAdmin = createClient(
+src/utils/valuationAuditLogger.ts:7:  "https://xltxqqzattxogxtqrggt.supabase.co",
+src/utils/valuationAuditLogger.ts:49:      const { data: safeResponse, error: safeError } = await supabase.functions.invoke('safe-audit-logger', {
+src/utils/valuationAuditLogger.ts:160:      const { data: insertedData, error: dbError } = await supabaseAdmin
+src/utils/valuationAuditLogger.ts:161:        .from('valuation_audit_logs')
+src/utils/valuationAuditLogger.ts:172:        const { data: fallbackData, error: fallbackError } = await supabase
+src/utils/valuationAuditLogger.ts:173:          .from('valuation_audit_logs')
+src/utils/auctionFetcher.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/utils/auctionFetcher.ts:45:  const { data, error } = await supabase
+src/utils/auctionFetcher.ts:46:    .from('auction_results_by_vin')
+src/utils/auctionFetcher.ts:63:    const { count, error } = await supabase
+src/utils/auctionFetcher.ts:64:      .from('auction_results_by_vin')
+src/utils/auctionFetcher.ts:73:      const { data: recentData } = await supabase
+src/utils/auctionFetcher.ts:74:        .from('auction_results_by_vin')
+src/utils/auctionFetcher.ts:87:    const { data, error: functionError } = await supabase.functions.invoke('fetch-auction-data', {
+src/utils/auctionFetcher.ts:106:    const { data, error } = await supabase.functions.invoke('fetch-bidcars-data', {
+src/utils/auctionFetcher.ts:127:    const { data, error } = await supabase.functions.invoke('fetch-autoauctions-data', {
+src/utils/valuation/updateValuationData.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/utils/valuation/updateValuationData.ts:16:    const { data: valuation, error: fetchError } = await supabase
+src/utils/valuation/updateValuationData.ts:17:      .from("valuations")
+src/utils/valuation/updateValuationData.ts:33:    const { error: updateError } = await supabase
+src/utils/valuation/updateValuationData.ts:34:      .from("valuations")
+src/utils/valuation/updateValuationData.ts:61:    const { data: valuation, error: fetchError } = await supabase
+src/utils/valuation/updateValuationData.ts:62:      .from("valuations")
+src/utils/valuation/updateValuationData.ts:73:    const { error: updateError } = await supabase
+src/utils/valuation/updateValuationData.ts:74:      .from("valuations")
+src/utils/valuation/updateValuationData.ts:103:    const { data: valuation, error } = await supabase
+src/utils/valuation/updateValuationData.ts:104:      .from("valuations")
+src/utils/valuation/marketData.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/utils/valuation/marketData.ts:31:    const { data, error } = await supabase
+src/utils/valuation/marketData.ts:32:      .from("market_adjustments")
+src/utils/getListingsWithCondition.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/utils/getListingsWithCondition.ts:28:  let query = supabase
+src/utils/getListingsWithCondition.ts:29:    .from("valuations")
+src/utils/getListingsWithCondition.ts:88:  let query = supabase
+src/utils/getListingsWithCondition.ts:89:    .from("valuations")
+src/utils/valuation/photoUtils.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/utils/valuation/photoUtils.ts:12:    const { data, error } = await supabase
+src/utils/valuation/photoUtils.ts:13:      .from("valuation_photos")
+src/utils/valuation/photoUtils.ts:38:    const { data, error } = await supabase
+src/utils/valuation/photoUtils.ts:39:      .from("valuation_photos")
+src/utils/valuation/photoUtils.ts:67:    const { error } = await supabase
+src/utils/valuation/photoUtils.ts:68:      .from("valuation_photos")
+src/utils/generateValuationExplanation.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/utils/generateValuationExplanation.ts:20:    const { data, error } = await supabase.functions.invoke("generate-explanation", {
+src/utils/getConditionAnalysis.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/utils/getConditionAnalysis.ts:15:    const { data, error } = await supabase
+src/utils/getConditionAnalysis.ts:16:      .from("photo_condition_scores")
+src/utils/stripeClient.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/utils/stripeClient.ts:16:    const { data, error } = await supabase.functions.invoke('create-checkout', {
+src/utils/stripeClient.ts:40:    const { data, error } = await supabase.functions.invoke('verify-payment', {
+src/utils/publicShareService.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/utils/publicShareService.ts:19:    const { data, error } = await supabase
+src/utils/publicShareService.ts:20:      .from("public_tokens")
+src/utils/validation/validateCorrectedPipeline.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/utils/validation/validateCorrectedPipeline.ts:18:    const { data: valuation } = await supabase
+src/utils/validation/validateCorrectedPipeline.ts:19:      .from('valuations')
+src/utils/validation/validateCorrectedPipeline.ts:34:    const { data: listings } = await supabase
+src/utils/validation/validateCorrectedPipeline.ts:35:      .from('scraped_listings')
+src/utils/validation/validateCorrectedPipeline.ts:44:    const { data: auctions } = await supabase
+src/utils/validation/validateCorrectedPipeline.ts:45:      .from('auction_results_by_vin')
+src/utils/validation/__tests__/zipCodeValidator.test.ts:8:// Mock the supabase client
+src/utils/validation/__tests__/zipCodeValidator.test.ts:9:vi.mock("@/integrations/supabase/client", () => ({
+src/utils/validation/__tests__/zipCodeValidator.test.ts:10:  supabase: {
+src/utils/validation/zipCodeValidator.ts:1:import { supabase } from "@/integrations/supabase/client";
+src/utils/validation/zipCodeValidator.ts:59:    const { data: cachedZip, error } = await supabase
+src/utils/validation/zipCodeValidator.ts:60:      .from("zip_validations")
+src/utils/validation/zipCodeValidator.ts:108:      await supabase.from("zip_validations").insert({
+src/utils/scrapers/fetchBidCarsData.ts:4:import { createClient } from "@supabase/supabase-js";
+src/utils/scrapers/fetchBidCarsData.ts:8:const serverSupabase = createClient(
+src/utils/scrapers/fetchBidCarsData.ts:72:      .from("auction_results_by_vin")
+src/utils/profileService.ts:2:import { supabase } from "@/integrations/supabase/client";
+src/utils/profileService.ts:9:    const { data, error } = await supabase
+src/utils/profileService.ts:10:      .from("profiles")
+src/utils/profileService.ts:29:      const { data: createdProfile, error: createError } = await supabase
+src/utils/profileService.ts:30:        .from("profiles")
+src/utils/profileService.ts:58:    const { data, error } = await supabase
+src/utils/profileService.ts:59:      .from("profiles")
+src/lib/supabase/dealer.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/lib/supabase/dealer.ts:15:    const { data, error } = await supabase
+src/lib/supabase/dealer.ts:16:      .from('profiles')
+src/lib/supabase/dealer.ts:38:    const { data: dealersData, error: dealersError } = await supabase
+src/lib/supabase/dealer.ts:39:      .from('dealers')
+src/lib/supabase/dealer.ts:79:    const { error } = await supabase
+src/lib/supabase/dealer.ts:80:      .from('dealer_leads')
+src/lib/notifications/UserValuationAlert.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/lib/notifications/UserValuationAlert.ts:18:    const { data, error } = await supabase.functions.invoke('trigger-email-campaign', {
+src/lib/notifications/UserValuationAlert.ts:59:    const { data, error } = await supabase.functions.invoke('trigger-email-campaign', {
+src/modules/auth/ResetPasswordPage.tsx:26:import { supabase } from "@/integrations/supabase/client";
+src/modules/auth/ResetPasswordPage.tsx:85:      const { error } = await supabase.auth.resetPasswordForEmail(
+src/modules/auth/ResetPasswordPage.tsx:110:      const { error } = await supabase.auth.updateUser({
+src/modules/auth/MagicLinkPage.tsx:26:import { supabase } from "@/integrations/supabase/client";
+src/modules/auth/MagicLinkPage.tsx:48:      const { error } = await supabase.auth.signInWithOtp({
+src/emails/sendValuationPdfToDealer.ts:2:import { supabase } from '@/integrations/supabase/client';
+src/emails/sendValuationPdfToDealer.ts:19:    const { data: result, error } = await supabase.functions.invoke('send-valuation-to-dealer', {
+src/emails/sendValuationPdfToDealer.ts:54:    const { data: dealers, error } = await supabase
+src/emails/sendValuationPdfToDealer.ts:55:      .from('profiles')
+src/emails/sendValuationPdfToDealer.ts:104:    await supabase
+src/emails/sendValuationPdfToDealer.ts:105:      .from('email_logs')
+src/hooks/usePrediction.ts:43:      // const response = await fetch(`/api/predictions/${valuationId}`);
+src/integrations/openai/client.ts:34:    const response = await fetch(`${this.baseURL}/chat/completions`, {
+src/hooks/useVpicVinLookup.ts:13:      const res = await fetch("/functions/v1/unified-decode", {
+src/hooks/useZipValidation.ts:22:      const response = await fetch(`https://api.zippopotam.us/us/${zipCode}`);
+src/api/vehicleApi.ts:32:    const makesResponse = await fetch(`${API_BASE_URL}/makes`);
+src/api/vehicleApi.ts:33:    const modelsResponse = await fetch(`${API_BASE_URL}/models`);
+src/api/vehicleApi.ts:54:    const response = await fetch(`${API_BASE_URL}/vehicle-details?vin=${vin}`);
+src/api/vehicleApi.ts:66:    const response = await fetch(`${API_BASE_URL}/models?make_id=${makeId}`);
+src/api/vehicleApi.ts:88:    const response = await fetch(url.toString());
+src/api/vehicleApi.ts:103:    const response = await fetch(
+src/api/vehicleApi.ts:120:    const response = await fetch(
+src/api/vehicleApi.ts:136:    const response = await fetch(
+src/enrichment/sources/fetchStatVinData.ts:8:    const response = await fetch(brightDataEndpoint, {
+src/enrichment/sources/fetchStatVinData.ts:74:    const response = await fetch(url, {
+src/enrichment/sources/statvin.ts:34:    const response = await fetch(`https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/fetch-auction-data`, {
+src/services/marketSearchAgent.ts:99:    const response = await fetch(`https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/fetch-marketplace-data?query=${year} ${make} ${model}&zip=${zipCode}&platform=all`, {
+src/services/marketSearchAgent.ts:173:      const res = await fetch(url, { 
+src/services/marketSearchAgent.ts:295:    const res = await fetch(url, { 
+src/services/historyCheckService.ts:16:    const response = await fetch('https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/fetch_nicb_vincheck', {
+src/services/historyCheckService.ts:83:    const response = await fetch(
+src/services/photo/analyzePhotos.ts:41:    const response = await fetch(`https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/analyze-photos`, {
+src/pages/api/ask-ai.ts:127:    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+src/components/followup/inputs/EnhancedZipCodeInput.tsx:40:          const response = await fetch(`https://api.zippopotam.us/us/${value}`);
+src/components/valuation/SeasonalAdjustment.tsx:89:      const { data, error } = await fetch(
+src/components/sharing/SocialShareButtons.tsx:124:      const response = await fetch('/functions/v1/export-valuation-json', {
+src/components/valuation/enterprise/EnterpriseValuationPanel.tsx:109:      const response = await fetch(`https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/valuation-result/${id}`, {
+src/components/valuation/AuctionHistorySection.tsx:30:        const res = await fetch(
+src/utils/api-utils.ts:105:    const response = await fetch(endpoint, {
+src/lib/ainClient.ts:32:  const res = await fetch('/functions/v1/valuation', {
+src/utils/validation/zipCodeValidator.ts:80:    const response = await fetch(`https://api.zippopotam.us/us/${zip}`);

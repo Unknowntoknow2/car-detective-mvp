@@ -1,0 +1,39 @@
+
+=== ENV ===
+v22.19.0
+9.8.1
+
+=== WORKSPACES ===
+car-detective-mvp-monorepo
+[
+  "apps/*"
+]
+
+=== SCRIPTS ===
+{
+  "build": "npm -w apps/ain-valuation-engine run build",
+  "test": "npm -w apps/ain-valuation-engine run test --silent || echo \"no tests\"",
+  "lint": "npm -w apps/ain-valuation-engine run lint || echo \"no lint\"",
+  "e2e-tests": "npm -w apps/ain-valuation-engine run e2e-tests || echo \"no e2e script\"",
+  "ci": "npm run build && npm run test"
+}
+WARN: build:dev missing
+
+=== TS CONFIG BLEED ===
+tsconfig.json:15:    "types": ["vite/client", "node", "react", "react-dom"]
+
+=== DEPENDENCY INSTALL ===
+
+added 1429 packages in 1m
+
+=== TYPECHECK ===
+src/__tests__/acceptance/HomeAndPremium.test.tsx(2,18): error TS2305: Module '"@testing-library/react"' has no exported member 'screen'.
+src/__tests__/followUpFormFixTests.test.ts(3,18): error TS2305: Module '"@testing-library/react"' has no exported member 'screen'.
+src/__tests__/followUpFormFixTests.test.ts(3,26): error TS2305: Module '"@testing-library/react"' has no exported member 'fireEvent'.
+src/__tests__/followUpFormFixTests.test.ts(3,37): error TS2305: Module '"@testing-library/react"' has no exported member 'waitFor'.
+src/components/common/__tests__/ZipCodeInput.test.tsx(11,44): error TS2307: Cannot find module '@testing-library/dom' or its corresponding type declarations.
+src/components/ui-kit/tests/components.test.tsx(11,35): error TS2307: Cannot find module '@testing-library/dom' or its corresponding type declarations.
+src/components/valuation/__tests__/EpaMpgTip.test.tsx(2,18): error TS2305: Module '"@testing-library/react"' has no exported member 'screen'.
+src/test-setup.ts(3,10): error TS2305: Module '"@testing-library/react"' has no exported member 'screen'.
+src/test-setup.ts(3,18): error TS2305: Module '"@testing-library/react"' has no exported member 'fireEvent'.
+src/test-setup.ts(3,29): error TS2305: Module '"@testing-library/react"' has no exported member 'waitFor'.

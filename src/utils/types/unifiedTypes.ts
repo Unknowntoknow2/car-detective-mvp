@@ -33,27 +33,8 @@ export interface ValuationResult {
   error?: string;
 }
 
-export interface MarketListing {
-  id: string;
-  vin?: string;
-  make: string;
-  model: string;
-  year: number;
-  trim?: string;
-  price: number;
-  mileage: number;
-  condition?: string;
-  listing_url: string;
-  source: string;
-  dealer_name?: string;
-  location?: string;
-  photos?: string[];
-  listing_date: string;
-  confidence_score: number;
-  created_at: string;
-  updated_at: string;
-  fetched_at: string;
-}
+// MarketListing type moved to canonical location: src/types/marketListing.ts
+// Import with: import { MarketListing } from '@/types/marketListing';
 
 // Adjustment types
 export interface Adjustment {

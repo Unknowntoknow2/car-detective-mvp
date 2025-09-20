@@ -1,0 +1,571 @@
+FOLLOW_UP_FORM_FIX_SUMMARY.md:23:- ✅ Added validation for data linking between follow_up_answers and valuations
+supabase/functions/ask-ai/index.ts:46:    const enhancedSystemPrompt = systemPrompt || `You are AIN — Auto Intelligence Network™, a GPT-4o-powered vehicle valuation assistant built by Car Detective. Your job is to assist users with car valuations, market trends, premium report benefits, dealer offers, and CARFAX® insights. 
+supabase/functions/ask-ai/index.ts:49:- Vehicle valuations and pricing analysis
+supabase/functions/ask-ai/index.ts:74:        content: systemPrompt || `You are AIN — Auto Intelligence Network™, a GPT-4-powered vehicle valuation assistant built by Car Detective. Your job is to assist users with car valuations, market trends, premium report benefits, dealer offers, and CARFAX® insights. 
+supabase/functions/trigger-email-campaign/index.ts:119:      let offerViewUrl = `${Deno.env.get("APP_URL") || "https://car-detective.app"}/my-valuations`;
+supabase/functions/trigger-email-campaign/index.ts:265:        .from("valuations")
+supabase/functions/user-feedback-collector/index.ts:109:          message: 'Thank you for your feedback! This helps us improve our valuations.'
+supabase/functions/email-valuation-pdf/index.ts:82:      .from("valuations")
+supabase/functions/use-premium-credit/index.ts:93:    await serviceClient.from('valuations').update({ 
+supabase/functions/admin-qa-dashboard/index.ts:74:        // Get valuations needing review (high value, low confidence, or flagged)
+scripts/analyzeConfidenceFailures.ts:12:    .from('valuations')
+scripts/analyzeConfidenceFailures.ts:18:    console.error('❌ Error fetching valuations:', error);
+scripts/analyzeConfidenceFailures.ts:23:    console.log('✅ All recent valuations >= 90% confidence.');
+scripts/analyzeConfidenceFailures.ts:27:  console.log(`🔍 Found ${data.length} low-confidence valuations:\n`);
+scripts/analyzeConfidenceFailures.ts:53:      .from('valuations')
+scripts/analyzeConfidenceFailures.ts:84:    .from('valuations')
+scripts/analyzeConfidenceFailures.ts:143:TARGET: 80%+ of valuations should achieve 90%+ confidence
+scripts/analyzeConfidenceFailures.ts:144:CURRENT: ${((stats.above90/stats.total)*100).toFixed(1)}% of valuations achieve 90%+ confidence
+supabase/functions/ask-ain/index.ts:41:    let systemPrompt = `You are AIN (Automotive Intelligence Network), an expert automotive assistant specializing in vehicle valuations, market analysis, and automotive advice. You provide professional, accurate, and helpful information about vehicles, their values, market conditions, and automotive decisions.
+supabase/functions/generate-valuation-pdf/index.ts:77:      .from("valuations")
+supabase/functions/generate-valuation-pdf/index.ts:347:        .from("valuations")
+supabase/functions/analyze-photos/database.ts:49:        .from("valuations")
+supabase/functions/send-referral-email/index.ts:101:              <li>Accurate AI-powered valuations</li>
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:23:-- FIX 2: Secure valuations table (contains customer financial data)
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:27:DROP POLICY IF EXISTS "Public can read valuations" ON public.valuations;
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:28:DROP POLICY IF EXISTS "Anonymous users can create valuations" ON public.valuations;
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:29:DROP POLICY IF EXISTS "Allow anonymous valuation creation" ON public.valuations;
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:32:CREATE POLICY "Users can view their own valuations only" 
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:33:ON public.valuations 
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:37:CREATE POLICY "Authenticated users can create their own valuations" 
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:38:ON public.valuations 
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:42:CREATE POLICY "Users can update their own valuations" 
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:43:ON public.valuations 
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:49:CREATE POLICY "Admins can manage all valuations" 
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:50:ON public.valuations 
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:120:COMMENT ON TABLE public.valuations IS 
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:121:'CONFIDENTIAL: Contains customer financial data and proprietary valuations. Strictly user-owned access only.';
+supabase/migrations/20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql:131:CREATE INDEX IF NOT EXISTS idx_valuations_user_id ON public.valuations(user_id);
+supabase/migrations/20250724155826-df9a8587-4c20-4e1b-9b17-cb38815aa0ec.sql:140:-- Secure valuations table - core business data
+supabase/migrations/20250724155826-df9a8587-4c20-4e1b-9b17-cb38815aa0ec.sql:141:DROP POLICY IF EXISTS "Users can read their own valuations" ON public.valuations;
+supabase/migrations/20250724155826-df9a8587-4c20-4e1b-9b17-cb38815aa0ec.sql:142:DROP POLICY IF EXISTS "Users can view their own valuations" ON public.valuations;
+supabase/migrations/20250724155826-df9a8587-4c20-4e1b-9b17-cb38815aa0ec.sql:144:CREATE POLICY "Users can only access their own valuations" ON public.valuations
+supabase/migrations/20250724155826-df9a8587-4c20-4e1b-9b17-cb38815aa0ec.sql:148:CREATE POLICY "Admins can view all valuations" ON public.valuations
+supabase/migrations/20250709221420-376a1451-f58e-43df-91b2-3be3772a3b2b.sql:1:-- Add missing required columns to valuations table
+supabase/migrations/20250709221420-376a1451-f58e-43df-91b2-3be3772a3b2b.sql:2:ALTER TABLE public.valuations 
+supabase/migrations/20250709221420-376a1451-f58e-43df-91b2-3be3772a3b2b.sql:17:  BEFORE UPDATE ON public.valuations
+supabase/migrations/20250709221420-376a1451-f58e-43df-91b2-3be3772a3b2b.sql:22:CREATE INDEX IF NOT EXISTS idx_valuations_valuation_type ON public.valuations(valuation_type);
+supabase/migrations/20250709221420-376a1451-f58e-43df-91b2-3be3772a3b2b.sql:23:CREATE INDEX IF NOT EXISTS idx_valuations_updated_at ON public.valuations(updated_at DESC);
+supabase/functions/enhanced-car-price-prediction/index.ts:235:        .from('valuations')
+supabase/functions/ask-valuation-bot/index.ts:99:        .from("valuations")
+supabase/functions/ask-valuation-bot/index.ts:161:• Explain valuations in plain, friendly English
+supabase/functions/ask-valuation-bot/index.ts:312:          "No specific valuation data is available for this conversation. Provide general guidance about car valuations based on industry knowledge.",
+supabase/functions/valuation-forecast/index.ts:37:      .from("valuations")
+supabase/functions/car-price-prediction/index.ts:229:      const { data: inserted } = await supabase.from("valuations").insert({
+supabase/functions/predict/index.ts:31:      .from("valuations")
+supabase/functions/valuation-aggregate/index.ts:124:        // PHASE 3 FIX: Ensure minimum value threshold (no more $0 valuations)
+supabase/functions/valuation-aggregate/index.ts:133:      // Emergency fallback - basic calculation to avoid $0 valuations
+supabase/functions/valuation-aggregate/index.ts:162:    // Also update the valuations table if VIN exists
+supabase/functions/valuation-aggregate/index.ts:165:        .from('valuations')
+supabase/functions/valuation-aggregate/index.ts:175:        console.warn('⚠️ Failed to update valuations table:', valuationUpdateError);
+supabase/functions/valuation-aggregate/index.ts:177:        console.log('✅ Updated valuations table');
+supabase/functions/score-image/index.ts:128:      .from("valuations")
+supabase/functions/export-valuation-json/index.ts:79:        valuations (
+supabase/functions/export-valuation-json/index.ts:132:    const valuation = tokenData.valuations;
+supabase/functions/verify-payment/index.ts:80:          .from('valuations')
+supabase/migrations/20250711212309-0f684341-da12-4778-86a7-74adcd0e8781.sql:2:INSERT INTO valuations (
+supabase/migrations/20250624213509-ca8cdeb7-ead5-4ed7-ab49-0ca54dbe8447.sql:5:-- Policy 1: Users can view follow-up answers for any VIN (for public valuations)
+supabase/migrations/20250624213509-ca8cdeb7-ead5-4ed7-ab49-0ca54dbe8447.sql:11:-- Policy 2: Anyone can insert follow-up answers (for anonymous valuations)
+supabase/functions/stripe-webhook/index.ts:239:            await req.supabaseClient.from('valuations').update({ 
+supabase/migrations/20250815230624_2d2a0c28-7666-4edf-ac11-3b241b621758.sql:22:  valuation_id uuid references public.valuations(id) on delete cascade,
+supabase/migrations/20250815230624_2d2a0c28-7666-4edf-ac11-3b241b621758.sql:43:      select 1 from public.valuations v
+supabase/migrations/20250709220449-1fafbb83-9422-41a4-b638-15c8960faef2.sql:2:ALTER TABLE public.valuations 
+supabase/migrations/20250709220449-1fafbb83-9422-41a4-b638-15c8960faef2.sql:6:COMMENT ON COLUMN public.valuations.valuation_notes IS 'Array of valuation notes and AI explanations';
+supabase/migrations/20250724184552-ec91996d-5794-4bf8-b318-5206bb1760c9.sql:50:-- Update any $0 valuations to have a minimum baseline value
+supabase/migrations/20250724184552-ec91996d-5794-4bf8-b318-5206bb1760c9.sql:51:UPDATE public.valuations 
+supabase/migrations/20250506000000_add_json_update_functions.sql:9:  UPDATE valuations
+supabase/migrations/20250506000000_add_json_update_functions.sql:22:  UPDATE valuations
+supabase/migrations/20250506000000_add_json_update_functions.sql:28:-- Ensure valuations have a data JSONB column if it doesn't exist
+supabase/migrations/20250506000000_add_json_update_functions.sql:34:    AND table_name = 'valuations'
+supabase/migrations/20250506000000_add_json_update_functions.sql:37:    ALTER TABLE valuations ADD COLUMN data JSONB;
+supabase/functions/schedule-email-campaigns/index.ts:16:// Helper function to find users with abandoned valuations
+supabase/functions/schedule-email-campaigns/index.ts:22:  // Find valuations that were started but not completed
+supabase/functions/schedule-email-campaigns/index.ts:25:    .from("valuations")
+supabase/functions/schedule-email-campaigns/index.ts:40:    console.error("Error finding abandoned valuations:", error);
+supabase/functions/schedule-email-campaigns/index.ts:58:// Helper function to find users who completed valuations but didn't purchase premium
+supabase/functions/schedule-email-campaigns/index.ts:64:  // Find completed valuations from 3-14 days ago with no premium purchase
+supabase/functions/schedule-email-campaigns/index.ts:66:    .from("valuations")
+supabase/functions/schedule-email-campaigns/index.ts:103:// Helper function to find users with valuations but no photos
+supabase/functions/schedule-email-campaigns/index.ts:109:  // Find completed valuations with no photos
+supabase/functions/schedule-email-campaigns/index.ts:110:  const { data: valuations, error: valError } = await supabase
+supabase/functions/schedule-email-campaigns/index.ts:111:    .from("valuations")
+supabase/functions/schedule-email-campaigns/index.ts:128:      "Error finding photo upload candidates (valuations):",
+supabase/functions/schedule-email-campaigns/index.ts:137:  for (const valuation of valuations) {
+supabase/functions/schedule-email-campaigns/index.ts:217:      valuations!inner(
+supabase/functions/schedule-email-campaigns/index.ts:242:    const valuationId = offer.valuations.id;
+supabase/functions/schedule-email-campaigns/index.ts:256:          make: offer.valuations.make,
+supabase/functions/schedule-email-campaigns/index.ts:257:          model: offer.valuations.model,
+supabase/functions/schedule-email-campaigns/index.ts:258:          year: offer.valuations.year,
+supabase/functions/schedule-email-campaigns/index.ts:334:  // Process abandoned valuations
+supabase/migrations/20250711213954-62e75a42-0e7b-43b6-8c2f-360e4c381831.sql:25:UPDATE valuations 
+supabase/migrations/20250506_add_premium_unlocked_function.sql:2:-- Function to update premium_unlocked field for a user's valuations
+supabase/migrations/20250506_add_premium_unlocked_function.sql:9:  UPDATE public.valuations
+supabase/migrations/20250709215406-8faadc88-e081-4029-9b1b-02b3a581aa03.sql:4:ALTER TABLE public.valuations 
+supabase/migrations/20250709215406-8faadc88-e081-4029-9b1b-02b3a581aa03.sql:9:ALTER TABLE public.valuations 
+supabase/migrations/20250709215406-8faadc88-e081-4029-9b1b-02b3a581aa03.sql:13:CREATE INDEX IF NOT EXISTS idx_valuations_data_source ON public.valuations USING GIN(data_source);
+supabase/migrations/20250702222700-cfe54436-67e9-4e86-8355-64ebb098d139.sql:33:CREATE POLICY "Users can view market listings for their valuations"
+supabase/migrations/20250721184658-86b18843-be33-4eac-bd36-ea3b2364fb5e.sql:7:DROP POLICY IF EXISTS "Users can view market listings for their valuations" ON public.market_listings;
+supabase/migrations/20250702222806-dd627e7a-c757-4d33-a054-65bb16c21ae6.sql:41:CREATE POLICY "Users can view audit logs for their valuations"
+supabase/migrations/20240501_add_driving_profile.sql:2:-- Add driving profile columns to valuations table
+supabase/migrations/20240501_add_driving_profile.sql:3:ALTER TABLE public.valuations
+supabase/migrations/20250702225844-a5be350b-e6be-4706-9c75-bb3a709dd894.sql:74:DROP POLICY IF EXISTS "Users can view market listings for their valuations" ON public.market_listings;
+supabase/migrations/20250702225844-a5be350b-e6be-4706-9c75-bb3a709dd894.sql:75:CREATE POLICY "Users can view market listings for their valuations"
+supabase/config.toml:22:# AIN valuation function - handles all vehicle valuations via AIN API
+supabase/migrations/20250702225651-29c12e11-cde1-4681-985b-878380b7d357.sql:73:DROP POLICY IF EXISTS "Users can view market listings for their valuations" ON public.market_listings;
+supabase/migrations/20250702225651-29c12e11-cde1-4681-985b-878380b7d357.sql:74:CREATE POLICY "Users can view market listings for their valuations"
+supabase/migrations/20250724184325-d5bef872-860a-4ab2-aec8-0638d44181ca.sql:53:CREATE POLICY "Users can manage their own manual valuations" 
+supabase/migrations/20250724184325-d5bef872-860a-4ab2-aec8-0638d44181ca.sql:59:-- Enable anonymous access for follow_up_answers creation (needed for anonymous valuations)
+supabase/migrations/20250724184325-d5bef872-860a-4ab2-aec8-0638d44181ca.sql:72:        AND tablename = 'valuations' 
+supabase/migrations/20250724184325-d5bef872-860a-4ab2-aec8-0638d44181ca.sql:75:        ALTER TABLE public.valuations ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20250709214218-2ea9c2b1-559e-48b8-9a8f-be78676434bb.sql:1:-- Add missing columns to valuations table to match ValuationContext expectations
+supabase/migrations/20250709214218-2ea9c2b1-559e-48b8-9a8f-be78676434bb.sql:2:ALTER TABLE public.valuations 
+supabase/migrations/20250709214218-2ea9c2b1-559e-48b8-9a8f-be78676434bb.sql:12:CREATE INDEX IF NOT EXISTS idx_valuations_condition ON public.valuations(condition);
+supabase/migrations/20250709214218-2ea9c2b1-559e-48b8-9a8f-be78676434bb.sql:13:CREATE INDEX IF NOT EXISTS idx_valuations_zip_code ON public.valuations(zip_code);
+supabase/migrations/20250709214218-2ea9c2b1-559e-48b8-9a8f-be78676434bb.sql:14:CREATE INDEX IF NOT EXISTS idx_valuations_price_range ON public.valuations(price_range_low, price_range_high);
+supabase/migrations/20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql:4:ALTER TABLE public.valuations ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql:8:-- Fix valuations table policies to allow users to access their data and anonymous access
+supabase/migrations/20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql:9:DROP POLICY IF EXISTS "Users can view own valuations" ON public.valuations;
+supabase/migrations/20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql:10:DROP POLICY IF EXISTS "Users can read their own valuations" ON public.valuations;
+supabase/migrations/20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql:11:DROP POLICY IF EXISTS "Service role can manage all valuations" ON public.valuations;
+supabase/migrations/20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql:12:DROP POLICY IF EXISTS "Users can update their own valuations" ON public.valuations;
+supabase/migrations/20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql:13:DROP POLICY IF EXISTS "Users can delete own valuations" ON public.valuations;
+supabase/migrations/20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql:15:-- Create comprehensive valuations policies
+supabase/migrations/20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql:16:CREATE POLICY "Users can view their own valuations" ON public.valuations
+supabase/migrations/20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql:24:CREATE POLICY "Users can insert their own valuations" ON public.valuations
+supabase/migrations/20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql:32:CREATE POLICY "Users can update their own valuations" ON public.valuations
+supabase/migrations/20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql:40:CREATE POLICY "Service role can manage all valuations" ON public.valuations
+supabase/migrations/20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql:45:CREATE POLICY "Users can view market listings for their valuations" ON public.market_listings
+supabase/migrations/20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql:49:      SELECT 1 FROM public.valuations v 
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:23:-- FIX 2: Secure valuations table (contains customer financial data)
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:27:DROP POLICY IF EXISTS "Public can read valuations" ON public.valuations;
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:28:DROP POLICY IF EXISTS "Anonymous users can create valuations" ON public.valuations;
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:29:DROP POLICY IF EXISTS "Allow anonymous valuation creation" ON public.valuations;
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:32:CREATE POLICY "Users can view their own valuations only" 
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:33:ON public.valuations 
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:37:CREATE POLICY "Authenticated users can create their own valuations" 
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:38:ON public.valuations 
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:42:CREATE POLICY "Users can update their own valuations" 
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:43:ON public.valuations 
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:49:CREATE POLICY "Admins can manage all valuations" 
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:50:ON public.valuations 
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:120:COMMENT ON TABLE public.valuations IS 
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:121:'CONFIDENTIAL: Contains customer financial data and proprietary valuations. Strictly user-owned access only.';
+supabase/migrations/20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql:131:CREATE INDEX IF NOT EXISTS idx_valuations_user_id ON public.valuations(user_id);
+supabase/migrations/20250723191832-b405ff37-49ec-4197-a984-1895487683fd.sql:2:DELETE FROM valuations 
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:5:-- FIX 1: Secure valuations table (HAS user_id column)
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:9:DROP POLICY IF EXISTS "Public can read valuations" ON public.valuations;
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:10:DROP POLICY IF EXISTS "Anonymous users can create valuations" ON public.valuations;
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:11:DROP POLICY IF EXISTS "Allow anonymous valuation creation" ON public.valuations;
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:14:CREATE POLICY "Users can view their own valuations only" 
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:15:ON public.valuations 
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:19:CREATE POLICY "Authenticated users can create their own valuations" 
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:20:ON public.valuations 
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:24:CREATE POLICY "Users can update their own valuations" 
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:25:ON public.valuations 
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:31:CREATE POLICY "Admins can manage all valuations" 
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:32:ON public.valuations 
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:48:CREATE POLICY "Users can view market listings for their valuations" 
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:54:      SELECT 1 FROM valuations 
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:55:      WHERE valuations.id = market_listings.valuation_id 
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:56:      AND valuations.user_id = auth.uid()
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:122:COMMENT ON TABLE public.valuations IS 
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:123:'CONFIDENTIAL: Contains customer financial data and proprietary valuations. Strictly user-owned access only.';
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:135:CREATE INDEX IF NOT EXISTS idx_valuations_user_id ON public.valuations(user_id) WHERE user_id IS NOT NULL;
+supabase/migrations/20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql:144:  NULL, '{"tables_secured": ["valuations", "market_listings", "competitor_prices", "plate_lookups"]}',
+supabase/migrations/20250710183726-c54cc779-b497-4a67-8c34-3efda6bf16c3.sql:46:    FROM valuations v
+supabase/migrations/20250711202410-d69dd843-2b80-45ac-abf6-a1c93c17a7f7.sql:20:FROM valuations 
+supabase/migrations/20250711202410-d69dd843-2b80-45ac-abf6-a1c93c17a7f7.sql:37:FROM valuations 
+supabase/migrations/20250711202410-d69dd843-2b80-45ac-abf6-a1c93c17a7f7.sql:54:FROM valuations 
+supabase/migrations/20250724160454-52b4840b-16be-4ef3-84d9-84735cacd0d7.sql:71:-- Secure valuations table
+supabase/migrations/20250724160454-52b4840b-16be-4ef3-84d9-84735cacd0d7.sql:72:DROP POLICY IF EXISTS "Users can read their own valuations" ON public.valuations;
+supabase/migrations/20250724160454-52b4840b-16be-4ef3-84d9-84735cacd0d7.sql:73:DROP POLICY IF EXISTS "Users can view their own valuations" ON public.valuations;
+supabase/migrations/20250724160454-52b4840b-16be-4ef3-84d9-84735cacd0d7.sql:74:DROP POLICY IF EXISTS "Users can view own valuations" ON public.valuations;
+supabase/migrations/20250724160454-52b4840b-16be-4ef3-84d9-84735cacd0d7.sql:76:CREATE POLICY "Users can only access their own valuations" ON public.valuations
+supabase/migrations/20250724160454-52b4840b-16be-4ef3-84d9-84735cacd0d7.sql:81:CREATE POLICY "Admins can view all valuations" ON public.valuations
+supabase/migrations/20250711214204-5c828051-776f-4c41-becd-eb05d478cbcc.sql:2:UPDATE valuations 
+supabase/migrations/20250505_add_premium_unlocked_to_valuations.sql:2:-- Migration: Add premium_unlocked column to valuations table
+supabase/migrations/20250505_add_premium_unlocked_to_valuations.sql:3:ALTER TABLE IF EXISTS public.valuations 
+supabase/migrations/20250724161115-f4d9c37e-1312-4125-bb07-a28e77907919.sql:76:-- Manual entry valuations - users can only access their own
+supabase/migrations/20250724161115-f4d9c37e-1312-4125-bb07-a28e77907919.sql:77:CREATE POLICY "Users can manage their own manual valuations" ON public.manual_entry_valuations
+src/hooks/useDealerOfferActions.ts:62:          .from('valuations')
+supabase/migrations/20250429_create_valuation_photos_table.sql:12:    REFERENCES public.valuations(id)
+supabase/migrations/20250429_create_valuation_photos_table.sql:28:      SELECT 1 FROM public.valuations v
+supabase/migrations/20250429_create_valuation_photos_table.sql:40:      SELECT 1 FROM public.valuations v
+supabase/migrations/20250429_create_valuation_photos_table.sql:52:      SELECT 1 FROM public.valuations v
+supabase/migrations/20250429_create_valuation_photos_table.sql:64:      SELECT 1 FROM public.valuations v
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:5:-- FIX 1: Secure valuations table - Drop all existing policies first
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:8:-- Drop ALL existing policies on valuations table
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:9:DROP POLICY IF EXISTS "Public can read valuations" ON public.valuations;
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:10:DROP POLICY IF EXISTS "Anonymous users can create valuations" ON public.valuations;
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:11:DROP POLICY IF EXISTS "Allow anonymous valuation creation" ON public.valuations;
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:12:DROP POLICY IF EXISTS "Users can view their own valuations only" ON public.valuations;
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:13:DROP POLICY IF EXISTS "Authenticated users can create their own valuations" ON public.valuations;
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:14:DROP POLICY IF EXISTS "Users can update their own valuations" ON public.valuations;
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:15:DROP POLICY IF EXISTS "Admins can manage all valuations" ON public.valuations;
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:16:DROP POLICY IF EXISTS "Users can view own valuations" ON public.valuations;
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:17:DROP POLICY IF EXISTS "Users can insert own valuations" ON public.valuations;
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:19:-- Create NEW secure policies for valuations
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:20:CREATE POLICY "Secure: Users view own valuations only" 
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:21:ON public.valuations 
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:25:CREATE POLICY "Secure: Users create own valuations only" 
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:26:ON public.valuations 
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:30:CREATE POLICY "Secure: Users update own valuations only" 
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:31:ON public.valuations 
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:36:CREATE POLICY "Secure: Admins manage all valuations" 
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:37:ON public.valuations 
+supabase/migrations/20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql:78:  '{"secured_tables": ["valuations", "competitor_prices"], "policies_updated": 6}',
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:1:-- Fix critical security vulnerability: Secure valuations table
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:2:-- Remove dangerous policy that allows access to all non-premium valuations
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:5:DROP POLICY IF EXISTS "Users can only access premium_unlocked valuations they own or s" ON public.valuations;
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:8:DROP POLICY IF EXISTS "Users can create valuations" ON public.valuations;
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:9:DROP POLICY IF EXISTS "Users can insert their own valuations" ON public.valuations; 
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:10:DROP POLICY IF EXISTS "Users can insert valuations" ON public.valuations;
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:11:DROP POLICY IF EXISTS "Users can only access their own valuations" ON public.valuations;
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:12:DROP POLICY IF EXISTS "Users can update own valuations" ON public.valuations;
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:13:DROP POLICY IF EXISTS "Users can update their own valuations" ON public.valuations;
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:14:DROP POLICY IF EXISTS "Users can delete own valuations" ON public.valuations;
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:17:-- "Admins can read all valuations" - OK
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:18:-- "Admins can view all valuations" - OK  
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:19:-- "Service role can manage all valuations" - OK
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:21:-- Create secure policies for valuations table
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:23:-- 1. Users can only view their own valuations (strict user ownership)
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:24:CREATE POLICY "Users can view their own valuations only" 
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:25:ON public.valuations 
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:29:-- 2. Authenticated users can create valuations (with proper ownership)
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:30:CREATE POLICY "Authenticated users can create valuations" 
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:31:ON public.valuations 
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:35:-- 3. Users can update their own valuations only
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:36:CREATE POLICY "Users can update their own valuations only" 
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:37:ON public.valuations 
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:42:-- 4. Users can delete their own valuations only
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:43:CREATE POLICY "Users can delete their own valuations only" 
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:44:ON public.valuations 
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:49:COMMENT ON TABLE public.valuations IS 
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:50:'Vehicle valuations containing sensitive customer data including VINs, license plates, and location information. RLS enabled to prevent unauthorized access to customer vehicle data. Access restricted to data owners, admins, and service operations only. CRITICAL: Never allow public access to this sensitive data.';
+supabase/migrations/20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql:53:ALTER TABLE public.valuations 
+supabase/migrations/20250702222553-7d4334be-42f3-4ef3-822d-323ccc57842a.sql:27:CREATE POLICY "Users can view market listings for their valuations"
+supabase/migrations/20250702222553-7d4334be-42f3-4ef3-822d-323ccc57842a.sql:40:CREATE POLICY "Users can view audit logs for their valuations"
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:5:-- FIX 1: Secure valuations table (HAS user_id column)
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:9:DROP POLICY IF EXISTS "Public can read valuations" ON public.valuations;
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:10:DROP POLICY IF EXISTS "Anonymous users can create valuations" ON public.valuations;
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:11:DROP POLICY IF EXISTS "Allow anonymous valuation creation" ON public.valuations;
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:14:CREATE POLICY "Users can view their own valuations only" 
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:15:ON public.valuations 
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:19:CREATE POLICY "Authenticated users can create their own valuations" 
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:20:ON public.valuations 
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:24:CREATE POLICY "Users can update their own valuations" 
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:25:ON public.valuations 
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:31:CREATE POLICY "Admins can manage all valuations" 
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:32:ON public.valuations 
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:55:CREATE POLICY "Users can view market listings for their valuations" 
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:63:      SELECT 1 FROM valuations 
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:132:COMMENT ON TABLE public.valuations IS 
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:133:'CONFIDENTIAL: Contains customer financial data and proprietary valuations. Strictly user-owned access only.';
+supabase/migrations/20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql:142:CREATE INDEX IF NOT EXISTS idx_valuations_user_id ON public.valuations(user_id);
+supabase/migrations/email_logs.sql:8:  valuation_id UUID REFERENCES public.valuations,
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:5:-- FIX 1: Secure valuations table - Drop all existing policies first
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:8:-- Drop ALL existing policies on valuations table
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:9:DROP POLICY IF EXISTS "Public can read valuations" ON public.valuations;
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:10:DROP POLICY IF EXISTS "Anonymous users can create valuations" ON public.valuations;
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:11:DROP POLICY IF EXISTS "Allow anonymous valuation creation" ON public.valuations;
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:12:DROP POLICY IF EXISTS "Users can view their own valuations only" ON public.valuations;
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:13:DROP POLICY IF EXISTS "Authenticated users can create their own valuations" ON public.valuations;
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:14:DROP POLICY IF EXISTS "Users can update their own valuations" ON public.valuations;
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:15:DROP POLICY IF EXISTS "Admins can manage all valuations" ON public.valuations;
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:16:DROP POLICY IF EXISTS "Users can view own valuations" ON public.valuations;
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:17:DROP POLICY IF EXISTS "Users can insert own valuations" ON public.valuations;
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:19:-- Create NEW secure policies for valuations
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:20:CREATE POLICY "Secure: Users view own valuations only" 
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:21:ON public.valuations 
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:25:CREATE POLICY "Secure: Users create own valuations only" 
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:26:ON public.valuations 
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:30:CREATE POLICY "Secure: Users update own valuations only" 
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:31:ON public.valuations 
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:36:CREATE POLICY "Secure: Admins manage all valuations" 
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:37:ON public.valuations 
+supabase/migrations/20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql:78:  '{"secured_tables": ["valuations", "competitor_prices"], "policies_updated": 6}',
+supabase/migrations/20250702222401-1a8cd70f-46fd-4273-bd61-ed120180d422.sql:115:CREATE POLICY "Users can view market listings for their valuations"
+supabase/migrations/20250702222401-1a8cd70f-46fd-4273-bd61-ed120180d422.sql:128:CREATE POLICY "Users can view audit logs for their valuations"
+src/hooks/useSimpleFollowUpForm.ts:88:            .from('valuations')
+src/hooks/useSimpleFollowUpForm.ts:182:          .from('valuations')
+src/hooks/useSimpleFollowUpForm.ts:328:        .from('valuations')
+src/hooks/useSimpleFollowUpForm.ts:341:          .from('valuations')
+supabase/migrations/20250711212245-a54e4a16-3c87-4d88-9bf2-0ea6321b3040.sql:3:  INSERT INTO valuations (
+supabase/migrations/20250724182445-ae051182-2eae-421d-8b8a-0d8a08356519.sql:21:    valuations.state as zip_code,
+supabase/migrations/20250724182445-ae051182-2eae-421d-8b8a-0d8a08356519.sql:22:    valuations.make,
+supabase/migrations/20250724182445-ae051182-2eae-421d-8b8a-0d8a08356519.sql:23:    valuations.model,
+supabase/migrations/20250724182445-ae051182-2eae-421d-8b8a-0d8a08356519.sql:25:    AVG(valuations.estimated_value) as average_price
+supabase/migrations/20250724182445-ae051182-2eae-421d-8b8a-0d8a08356519.sql:26:  FROM public.valuations
+supabase/migrations/20250724182445-ae051182-2eae-421d-8b8a-0d8a08356519.sql:27:  WHERE valuations.make IS NOT NULL
+supabase/migrations/20250724182445-ae051182-2eae-421d-8b8a-0d8a08356519.sql:28:    AND valuations.model IS NOT NULL
+supabase/migrations/20250724182445-ae051182-2eae-421d-8b8a-0d8a08356519.sql:29:    AND valuations.state IS NOT NULL
+supabase/migrations/20250724182445-ae051182-2eae-421d-8b8a-0d8a08356519.sql:30:  GROUP BY valuations.state, valuations.make, valuations.model;
+supabase/migrations/20250724182445-ae051182-2eae-421d-8b8a-0d8a08356519.sql:194:  FROM public.valuations
+src/hooks/usePublicShare.ts:38:          valuations (
+src/hooks/usePublicShare.ts:63:      return data.valuations;
+src/hooks/useValuationData.ts:12:  valuations: LegacyValuationResult[];
+src/hooks/useValuationData.ts:23:  const [valuations, setValuations] = useState<LegacyValuationResult[]>([]);
+src/hooks/useValuationData.ts:66:    valuations,
+src/hooks/useValuationData.ts:76:export const testDeduplication = (valuations: any[]): any[] => {
+src/hooks/useValuationData.ts:77:  if (!valuations || !Array.isArray(valuations)) {
+src/hooks/useValuationData.ts:83:  valuations.forEach(valuation => {
+src/hooks/useValuationData.ts:89:      // Prefer premium valuations
+src/hooks/useValuationData.ts:110:    valuations: result.valuations,
+src/hooks/useValuationData.ts:119:    valuations: result.savedValuations,
+src/hooks/usePrediction.ts:16:        .from("valuations")
+src/hooks/useDealerValuations.ts:19:  const [valuations, setValuations] = useState<ValuationWithCondition[]>([]);
+src/hooks/useDealerValuations.ts:39:          .from("valuations")
+src/hooks/useDealerValuations.ts:70:        console.error("Error fetching dealer valuations:", err);
+src/hooks/useDealerValuations.ts:99:    valuations,
+src/services/supabase/feedbackService.ts:1:// Valuation Feedback Service - Handles user feedback on valuations
+src/hooks/useAdminAnalytics.ts:40:        // Fetch total valuations
+src/hooks/useAdminAnalytics.ts:42:          .from("valuations")
+src/hooks/useAdminAnalytics.ts:48:        // Fetch valuations by method
+src/hooks/useAdminAnalytics.ts:50:          .from("valuations")
+src/hooks/useAdminAnalytics.ts:56:        // Calculate valuations by method
+src/hooks/useAdminAnalytics.ts:73:        // Fetch daily valuations for the last 30 days
+src/hooks/useAdminAnalytics.ts:75:          .from("valuations")
+src/hooks/useAdminAnalytics.ts:150:          .from("valuations")
+src/services/generateConfidenceScore.ts:2: * Centralized confidence scoring system for valuations
+src/contexts/ValuationContext.tsx:82:        .from('valuations')
+src/contexts/ValuationContext.tsx:98:          .from('valuations')
+src/contexts/ValuationContext.tsx:188:          .from('valuations')
+src/components/audit/AuditChecklist.tsx:207:          text: "premium_unlocked set in valuations",
+src/components/audit/AuditChecklist.tsx:226:          text: "RLS enabled for valuations, orders, photo scores",
+src/pages/ProfessionalHomePage.tsx:44:              Know Your Car's True Value – No More Guesswork! Get precise, data-driven valuations powered by real-time market data.
+src/pages/ProfessionalHomePage.tsx:140:            Our valuations are derived from real-time data, industry benchmarks, and in-depth analytics.
+src/pages/ProfessionalHomePage.tsx:444:                    <span className="text-sm text-orange-800">Unlimited premium valuations</span>
+src/pages/AboutPage.tsx:17:            Our platform uses advanced algorithms and real-time market data to give you the most accurate vehicle valuations available.
+src/pages/DealerDashboard.tsx:64:              Run VIN, plate, or manual valuations and view saved reports.
+src/pages/PremiumPage.tsx:110:                Get comprehensive insights that go far beyond basic valuations.
+src/pages/PremiumPage.tsx:332:            Join thousands of satisfied customers who trust our platform for accurate, data-driven vehicle valuations.
+src/components/referrals/ReferralModal.tsx:32:          text: 'Get free vehicle valuations with Car Detective!',
+src/pages/AuthLandingPage.tsx:61:                  For personal vehicle owners looking to get valuations
+src/pages/AuthLandingPage.tsx:81:                      Get instant vehicle valuations
+src/components/professional/ProfessionalResultsPage.tsx:76:            .from('valuations')
+src/components/professional/ProfessionalResultsPage.tsx:99:              .from('valuations')
+src/components/professional/ProfessionalResultsPage.tsx:116:        // Only use real valuations - no fake data generation
+src/components/professional/ProfessionalResultsPage.tsx:141:              .from('valuations')
+src/pages/PricingPage.tsx:182:            Are you a dealership looking for unlimited valuations, inventory management, and lead tools?
+src/pages/Terms.tsx:24:          information provided by users and market data. These valuations are
+src/pages/Terms.tsx:34:          valuations.
+src/pages/Terms.tsx:42:          regarding the accuracy of valuations. We shall not be liable for any
+src/pages/Terms.tsx:43:          decisions made based on our valuations.
+src/pages/api/ask-ai.ts:83:          `You are AIN — Auto Intelligence Network™, a GPT-4-powered vehicle valuation assistant built by Car Detective. Your job is to assist users with car valuations, market trends, premium report benefits, dealer offers, and CARFAX® insights. 
+src/pages/api/valuation/submit-followup.ts:14:      .from('valuations')
+src/pages/DashboardPage.tsx:63:              View your previous valuations
+src/pages/view-offer/ViewOfferPage.tsx:57:          valuations (
+src/pages/view-offer/ViewOfferPage.tsx:97:        valuation: leadData.valuations
+src/pages/MyValuationsPage.tsx:12:  const [valuations, setValuations] = useState<any[]>([]);
+src/pages/MyValuationsPage.tsx:30:        console.error("Error fetching saved valuations:", error);
+src/pages/MyValuationsPage.tsx:55:          : valuations.length === 0
+src/pages/MyValuationsPage.tsx:61:                  No saved valuations
+src/pages/MyValuationsPage.tsx:64:                  You haven't created any vehicle valuations yet.
+src/pages/MyValuationsPage.tsx:74:              {valuations.map((valuation) => (
+src/pages/Privacy.tsx:25:          We use your information to provide vehicle valuations, improve our
+src/components/ui/UpgradeCTA.tsx:33:          Upgrade to access {feature} and get the most accurate vehicle valuations.
+docs/operator-rollout-checklist.md:34:- No user complaints about slow valuations
+docs/PLATFORM_WORKFLOW_OVERVIEW.md:5:Our car valuation platform provides instant, AI-powered vehicle appraisals using real-time market data, conversational AI, and comprehensive data analysis. The platform combines multiple data sources and advanced algorithms to deliver accurate, transparent valuations.
+docs/PLATFORM_WORKFLOW_OVERVIEW.md:393:**Result:** Transparent, accurate, and defensible vehicle valuations powered by real-time data and advanced AI.
+docs/api/README.md:100:Creates shareable public tokens for valuations.
+docs/DATA_SOURCES_AUDIT.md:4:**Purpose:** Complete transparency of all dynamic data sources used in vehicle valuations
+e2e/stripe-flow.spec.ts:67:    await page.route("**/rest/v1/valuations*", async (route) => {
+e2e/stripe-flow.spec.ts:167:    // Simulate webhook having updated the valuations table
+e2e/stripe-flow.spec.ts:168:    await page.route("**/rest/v1/valuations*", async (route) => {
+e2e/pdfExport.test.ts:161:    // Go to dashboard/valuations
+e2e/pdfExport.test.ts:162:    await page.goto("/dashboard/valuations");
+e2e/dashboard.test.ts:72:    await page.goto("/dashboard/valuations");
+e2e/dashboard.test.ts:83:    await expect(page.getByRole("link", { name: /valuations|history/i }))
+e2e/dashboard.test.ts:90:    // Navigate to valuations section
+e2e/dashboard.test.ts:91:    await page.getByRole("link", { name: /valuations|history/i }).click();
+e2e/dashboard.test.ts:92:    await expect(page).toHaveURL(/\/dashboard\/valuations|\/valuations/);
+e2e/dashboard.test.ts:117:  test("displays empty state when no valuations exist", async ({ page }) => {
+e2e/dashboard.test.ts:132:    // Navigate to valuations
+e2e/dashboard.test.ts:133:    await page.goto("/dashboard/valuations");
+e2e/dashboard.test.ts:136:    await expect(page.getByText(/no valuations|empty|start by getting/i))
+e2e/premium-upgrade-flow.spec.ts:89:    // Mock the API response for the valuations list
+e2e/premium-upgrade-flow.spec.ts:90:    await page.route("**/rest/v1/valuations*", async (route) => {
+e2e/premium-upgrade-flow.spec.ts:107:    await page.goto("/my-valuations");
+e2e/premium-upgrade-flow.spec.ts:143:    await page.route("**/rest/v1/valuations*", async (route) => {
+src/components/layout/seo/index.tsx:15:  description = 'Get accurate vehicle valuations with our AI-powered platform. Professional grade vehicle appraisals for individuals and dealers.',
+src/components/premium/PremiumUpgradeCTA.tsx:67:          Unlock advanced vehicle valuations and detailed reports
+src/components/premium/features/PremiumInfoCards.tsx:13:            valuations
+src/components/premium/sections/PremiumPricing.tsx:68:                  'Three premium vehicle valuations',
+src/components/premium/sections/PremiumPricing.tsx:98:              <p className="text-sm text-muted-foreground">Unlimited valuations</p>
+src/components/premium/sections/PremiumPricing.tsx:103:                  'Unlimited premium valuations',
+src/components/premium/sections/PremiumFaq.tsx:18:      answer: "Our premium valuations achieve a 92-96% accuracy rate when compared to actual selling prices. We use a combination of real-time market data, historical sales, and AI-powered analytics to provide the most accurate value possible."
+src/components/premium/sections/PremiumFaq.tsx:30:      answer: "Premium valuations are typically processed within 2-5 minutes, depending on data availability. Once complete, your report is immediately available for download and is also emailed to you."
+src/components/premium/BuyCreditsModal.tsx:30:    description: "Perfect for individual vehicle valuations"
+src/components/premium/BuyCreditsModal.tsx:64:            Choose a credit package to unlock premium vehicle valuations with detailed reports and market analysis.
+src/components/dashboard/DashboardRouter.tsx:29:      description: 'View your saved valuations',
+src/components/dashboard/DashboardRouter.tsx:30:      action: () => window.location.href = '/saved-valuations',
+src/components/dashboard/DashboardRouter.tsx:44:      description: 'Track and manage all your vehicle valuations in one place with detailed history and insights.',
+src/components/dashboard/DashboardRouter.tsx:66:              Manage your vehicle valuations, track market trends, and access premium features.
+apps/ain-valuation-engine/supabase/functions/enhanced-valuation/index.ts:171:// Cache for base valuations and market data
+src/components/saved/SavedValuationsList.tsx:19:  const { valuations, isLoading, error, deleteValuation } =
+src/components/saved/SavedValuationsList.tsx:32:              Loading your saved valuations...
+src/components/saved/SavedValuationsList.tsx:53:  if (valuations.length === 0) {
+src/components/saved/SavedValuationsList.tsx:62:              You haven't saved any valuations yet.
+src/components/saved/SavedValuationsList.tsx:109:            {valuations.map((item: any) => (
+src/components/home/FinalCTA.tsx:22:            Join thousands of professionals who trust our platform for accurate, instant vehicle valuations.
+src/components/home/PremiumServicesGrid.tsx:25:    description: "Our valuations are backed by extensive market research."
+src/components/home/IndustryProof.tsx:8:      quote: "The accuracy and speed of these valuations has transformed our lending decisions. Professional-grade data we can trust.",
+src/components/home/IndustryProof.tsx:35:            See how automotive and financial professionals use our platform for accurate, compliant valuations.
+src/components/home/SocialProofSection.tsx:38:            See how automotive and financial professionals leverage our platform for accurate, compliant valuations.
+apps/ain-valuation-engine/supabase/migrations/20250822_rls_hardening.sql:20:CREATE POLICY "Users can view own valuations"
+apps/ain-valuation-engine/supabase/migrations/20250822_rls_hardening.sql:25:CREATE POLICY "Users can insert own valuations"
+src/components/home/AiAssistantPreview.tsx:13:    "How accurate are your valuations?",
+src/components/home/AiAssistantPreview.tsx:33:            placeholder="Ask about vehicle valuations..."
+src/components/home/ValuePropositionSection.tsx:15:    description: "Receive valuations in under 60 seconds"
+src/components/home/ValuePropositionSection.tsx:36:            We provide the most accurate and comprehensive vehicle valuations using cutting-edge technology and real market data.
+src/components/home/ValuePropositionGrid.tsx:10:      description: "Get professional valuations in under 30 seconds with our AI-powered analysis engine.",
+src/components/home/ValuePropositionGrid.tsx:16:      description: "Real-time market data and NADA-compliant methodology ensure accurate valuations.",
+src/components/home/EnterpriseHeroSection.tsx:59:                  AI-powered vehicle valuations trusted by automotive professionals, 
+apps/ain-valuation-engine/supabase/migrations/README.md:121:- **User data** (follow-up answers, valuations) - User-specific access only
+src/components/home/EnterpriseFeaturesSection.tsx:29:      description: "Enterprise-grade infrastructure delivering professional valuations with guaranteed uptime.",
+src/components/home/FangHeroSection.tsx:41:                  Professional vehicle valuations powered by AI and real market data. 
+src/components/home/CoreValueProps.tsx:10:      description: "Get professional valuations in under 30 seconds with AI-powered analysis and real-time market data."
+src/components/home/CoreValueProps.tsx:15:      description: "Advanced algorithms analyze thousands of data points to deliver the most accurate valuations available."
+src/components/home/CoreValueProps.tsx:33:              Built for professionals who demand accuracy, speed, and reliability in vehicle valuations.
+src/components/home/PremiumHeroSection.tsx:66:              Instant, accurate vehicle valuations powered by real market data and AI technology. 
+src/components/home/PremiumHeroSection.tsx:98:              <p className="text-muted-foreground">Get precise valuations in under 3 seconds</p>
+src/components/home/EnterpriseTestimonialsSection.tsx:45:            See how automotive and financial professionals leverage our platform for accurate, compliant valuations.
+src/components/common/CarFinderQaherHeader.tsx:16:        Get instant, accurate vehicle valuations powered by AI and real market data
+src/components/followup/tabs/ConditionTab.tsx:286:              Higher ratings result in better valuations.
+src/components/valuation/result/ValuationTransparency.tsx:163:                For high-value decisions, obtain multiple valuations or professional appraisal.
+src/components/valuation/result/AdjustmentTransparency.tsx:161:                we recommend obtaining professional appraisal or multiple valuations.
+src/components/valuation/MarketDataWarning.tsx:80:              Reliable valuations typically require 3+ comparable listings. Current estimate may not reflect actual market conditions.`;
+src/components/valuation/redesign/PremiumFeatureOverlay.tsx:142:                Get the most accurate valuations and exclusive insights
+src/components/auth/AuthGuard.tsx:18:  fallbackDescription = "Access your saved valuations and premium features",
+apps/ain-valuation-engine/src/api/enhanced_valuation_api.py:4:This module provides REST API endpoints for vehicle valuations, integrating
+apps/ain-valuation-engine/src/api/enhanced_valuation_api.py:13:- Support for batch valuations.
+apps/ain-valuation-engine/src/api/enhanced_valuation_api.py:17:- POST /api/v1/valuations - Create new valuation with comprehensive data and mode.
+apps/ain-valuation-engine/src/api/enhanced_valuation_api.py:18:- GET /api/v1/valuations/<valuation_id> - Retrieve valuation results.
+apps/ain-valuation-engine/src/api/enhanced_valuation_api.py:19:- POST /api/v1/valuations/batch - Process multiple valuations in a single request.
+apps/ain-valuation-engine/src/api/enhanced_valuation_api.py:216:@app.route('/api/v1/valuations', methods=['POST'])
+apps/ain-valuation-engine/src/api/enhanced_valuation_api.py:223:        logger.warning("Received non-JSON request to /api/v1/valuations.")
+apps/ain-valuation-engine/src/api/enhanced_valuation_api.py:271:        logger.warning(f"Validation error for /api/v1/valuations: {ve.errors()}")
+apps/ain-valuation-engine/src/api/enhanced_valuation_api.py:279:        logger.error(f"Unexpected error during /api/v1/valuations: {e}", exc_info=True)
+apps/ain-valuation-engine/src/api/enhanced_valuation_api.py:286:# Removed /api/v1/valuations/video as its functionality is covered by the comprehensive /api/v1/valuations endpoint
+apps/ain-valuation-engine/src/api/enhanced_valuation_api.py:288:@app.route('/api/v1/valuations/<valuation_id>', methods=['GET'])
+apps/ain-valuation-engine/src/api/enhanced_valuation_api.py:306:@app.route('/api/v1/valuations/batch', methods=['POST'])
+apps/ain-valuation-engine/src/api/enhanced_valuation_api.py:308:    """Process multiple valuations in a single request"""
+apps/ain-valuation-engine/src/api/enhanced_valuation_api.py:310:        logger.warning("Received non-JSON request to /api/v1/valuations/batch.")
+src/e2e/photo-upload-flow.spec.ts:125:    // await page.route('**/rest/v1/valuations?id=eq.*', (route, request) => {
+src/utils/diagnostics/valuationAudit.ts:27:      .from('valuations')
+src/utils/diagnostics/systemHealth.ts:19:      .from('valuations')
+src/utils/diagnostics/systemHealth.ts:49:    'valuations',
+src/utils/diagnostics/systemHealth.ts:84:  // 3. Check recent valuations (last 24 hours)
+src/utils/diagnostics/systemHealth.ts:88:      .from('valuations')
+src/utils/valuation.ts:41:      .from('valuations')
+src/utils/valuation.ts:101:      .from('valuations')
+src/utils/valuation.ts:167:      .from('valuations')
+src/utils/getValuationContext.ts:12:      .from("valuations")
+src/utils/route-validation/ROUTE_SNAPSHOT.json:13:  "/my-valuations",
+src/utils/getListingsWithCondition.ts:29:    .from("valuations")
+src/utils/getListingsWithCondition.ts:89:    .from("valuations")
+src/utils/assistantContext.ts:142:        response = `I'm Car Detective's AI assistant, specialized in vehicle valuations and market insights. I can help you determine your ${vehicleInfo}'s true market value, understand how accidents impact pricing, develop selling strategies, analyze local market trends, and connect with potential buyers. What specific aspect of your vehicle's valuation would you like to explore today?`;
+src/utils/validation/validateCorrectedPipeline.ts:19:      .from('valuations')
+src/utils/valuation/updateValuationData.ts:17:      .from("valuations")
+src/utils/valuation/updateValuationData.ts:34:      .from("valuations")
+src/utils/valuation/updateValuationData.ts:62:      .from("valuations")
+src/utils/valuation/updateValuationData.ts:74:      .from("valuations")
+src/utils/valuation/updateValuationData.ts:104:      .from("valuations")
+src/utils/emailService.ts:43:        <p>Thank you for signing up for Car Detective. We're excited to help you with your vehicle valuations!</p>
+src/utils/publicShareService.ts:26:        valuations (
+src/utils/publicShareService.ts:45:    if (!data || !data.valuations) {
+src/utils/publicShareService.ts:58:    const valuation = Array.isArray(data.valuations)
+src/utils/publicShareService.ts:60:        id: data.valuations[0].id,
+src/utils/publicShareService.ts:61:        make: data.valuations[0].make,
+src/utils/publicShareService.ts:62:        model: data.valuations[0].model,
+src/utils/publicShareService.ts:63:        year: Number(data.valuations[0].year),
+src/utils/publicShareService.ts:64:        mileage: Number(data.valuations[0].mileage),
+src/utils/publicShareService.ts:65:        condition_score: Number(data.valuations[0].condition_score),
+src/utils/publicShareService.ts:66:        estimated_value: Number(data.valuations[0].estimated_value),
+src/utils/publicShareService.ts:67:        created_at: data.valuations[0].created_at,
+src/utils/publicShareService.ts:69:      : data.valuations as SharedValuation;
+src/lib/ainClient.ts:1:// Hardened AIN client for professional valuations
+apps/ain-valuation-engine/docs/adr/003-api-design-patterns.md:37:POST   /api/v1/valuations           # Single vehicle valuation
+apps/ain-valuation-engine/docs/adr/003-api-design-patterns.md:38:POST   /api/v1/valuations/batch     # Bulk valuations
+apps/ain-valuation-engine/docs/adr/003-api-design-patterns.md:39:GET    /api/v1/valuations/{id}      # Retrieve valuation result
+apps/ain-valuation-engine/docs/adr/003-api-design-patterns.md:96:app.post('/api/v1/valuations', validateRequest, async (req, res) => {
+apps/ain-valuation-engine/docs/adr/001-ai-ml-stack-selection.md:8:The AIN Valuation Engine requires a robust AI/ML stack to deliver accurate vehicle valuations. The system must handle multiple data sources, provide explainable predictions, and scale to enterprise levels. Key requirements include:
+apps/ain-valuation-engine/docs/history/pr-002-safety-ratings.md:10:This PR implemented comprehensive NHTSA safety ratings integration, significantly enhancing the valuation engine's data richness. The implementation includes overall safety ratings, crash test results, and detailed safety equipment specifications that directly impact vehicle valuations.
+src/modules/qa-dashboard/components/ValuationTable.tsx:14:  valuations: Valuation[];
+src/modules/qa-dashboard/components/ValuationTable.tsx:24:  valuations,
+src/modules/qa-dashboard/components/ValuationTable.tsx:33:    return <div className="text-center py-4">Loading valuations...</div>;
+src/modules/qa-dashboard/components/ValuationTable.tsx:36:  if (!valuations || valuations.length === 0) {
+src/modules/qa-dashboard/components/ValuationTable.tsx:39:        <p className="text-muted-foreground">No valuations found</p>
+src/modules/qa-dashboard/components/ValuationTable.tsx:58:          {valuations.map((valuation) => (
+src/i18n/locales/en/common.json:5:    "tagline": "Get accurate vehicle valuations instantly"
+src/integrations/supabase/types.ts:383:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:745:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:805:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:1389:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:1490:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:1873:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:2201:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:2340:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:2501:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:2530:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:2628:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:3452:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:3741:      valuations: {
+src/integrations/supabase/types.ts:4068:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:4100:            referencedRelation: "valuations"
+src/integrations/ai/serverClient.ts:61:        content: 'You are a vehicle valuation expert. Explain valuations clearly and professionally.'
+src/App.routes.tsx:118:        path: "saved-valuations",
+src/__tests__/rls-access.test.ts:4:// with corresponding data in the valuations table
+src/__tests__/rls-access.test.ts:50:    // Create test valuations for both users
+src/__tests__/rls-access.test.ts:53:      .from("valuations")
+src/__tests__/rls-access.test.ts:75:      .from("valuations")
+src/__tests__/rls-access.test.ts:96:  // After all tests, clean up by deleting the test valuations
+src/__tests__/rls-access.test.ts:100:      .from("valuations")
+src/__tests__/rls-access.test.ts:106:      .from("valuations")
+src/__tests__/rls-access.test.ts:111:  // Test 1: A user can access their own valuations
+src/__tests__/rls-access.test.ts:112:  it("should allow a user to access their own valuations", async () => {
+src/__tests__/rls-access.test.ts:121:      .from("valuations")
+src/__tests__/rls-access.test.ts:131:  // Test 2: A user cannot access another user's valuations
+src/__tests__/rls-access.test.ts:132:  it("should prevent a user from accessing another user's valuations", async () => {
+src/__tests__/rls-access.test.ts:141:      .from("valuations")
+src/__tests__/rls-access.test.ts:159:        .from("valuations")
+src/scripts/generate-test-data.ts:66:    console.log("Valuation IDs:", data.valuations);
+index.html:7:    <meta name="description" content="Get accurate car valuations with AI-powered market analysis and vehicle history reports" />
+apps/ain-valuation-engine/val_engine/utils/data_loader.py:111:        # Default values for non-video valuations
+apps/ain-valuation-engine/val_engine/llm_summary.py:2:LLM (Large Language Model) based summary generation for vehicle valuations.
+apps/ain-valuation-engine/val_engine/llm_summary.py:5:vehicle valuations, incorporating both the vehicle's detailed attributes
+apps/ain-valuation-engine/val_engine/main.py:140:This module provides the primary interface for running complete vehicle valuations,
+apps/ain-valuation-engine/val_engine/main.py:380:    This function provides the main entry point for vehicle valuations, handling
+apps/ain-valuation-engine/all-readmes.txt:208936:  Toggle to generate valuations optimized for buyers or sellers.
+apps/ain-valuation-engine/db/migrations/001_init.sql:28:create table if not exists valuations (
+apps/ain-valuation-engine/db/migrations/001_init.sql:41:  valuation_id uuid references valuations(id),
+apps/ain-valuation-engine/db/migrations/001_init.sql:50:  valuation_id uuid references valuations(id),
+apps/ain-valuation-engine/runbooks/RB-002-Valuation-Fallback.md:4:- High rate of fallback valuations (method = 'fallback')
+apps/ain-valuation-engine/runbooks/RB-002-Valuation-Fallback.md:6:- User reports of less precise valuations
+apps/ain-valuation-engine/runbooks/RB-003-Valuation-Accuracy.md:5:- User or partner reports of inaccurate valuations
+apps/ain-valuation-engine/AIN_Enterprise_Development_Manual.md:103:- **Market Differentiation:** Offer unique features like buyer/seller specific valuations to provide a more nuanced and realistic market perspective than competitors.
+apps/ain-valuation-engine/FULL_REPOSITORY_AUDIT_REPORT.md:121:-- 2. valuations table  
+apps/ain-valuation-engine/VIDEO_ANALYSIS_IMPLEMENTATION.md:102:@app.route('/api/v1/valuations/video', methods=['POST'])
+apps/ain-valuation-engine/VIDEO_ANALYSIS_IMPLEMENTATION.md:116:- Transparent, explainable valuations
+apps/ain-valuation-engine/VIDEO_ANALYSIS_IMPLEMENTATION.md:151:curl -X POST http://localhost:5000/api/v1/valuations/video \
+apps/ain-valuation-engine/VIDEO_ANALYSIS_IMPLEMENTATION.md:192:2. **Phase 2**: A/B testing with traditional valuations
+apps/ain-valuation-engine/VIDEO_ANALYSIS_IMPLEMENTATION.md:227:The AIN Video Analysis Integration represents a significant technological advancement that positions AIN as the industry leader in AI-powered vehicle valuations. The comprehensive implementation provides:
+apps/ain-valuation-engine/VIDEO_ANALYSIS_IMPLEMENTATION.md:231:- **User Experience**: Transparent, confident, and reliable valuations
+apps/ain-valuation-engine/VIDEO_ANALYSIS_IMPLEMENTATION.md:236:The video analysis integration is fully implemented, tested, and ready for deployment. All components work seamlessly together to provide enhanced vehicle valuations with AI-powered visual verification.
+apps/ain-valuation-engine/README.md:20:  Toggle to generate valuations optimized for buyers or sellers.
+apps/ain-valuation-engine/PR_E_VALUATION_ADJUSTERS_PLAN.md:301:- Compare enhanced vs base valuations
+apps/ain-valuation-engine/PR_E_VALUATION_ADJUSTERS_PLAN.md:344:- **API Performance**: <500ms response time for enhanced valuations
+apps/ain-valuation-engine/examples/video_analysis_examples.py:45:        response = requests.post(f"{API_BASE_URL}/valuations", json=vehicle_data)
+apps/ain-valuation-engine/examples/video_analysis_examples.py:85:        response = requests.post(f"{API_BASE_URL}/valuations/video", json=vehicle_data)
+apps/ain-valuation-engine/examples/video_analysis_examples.py:162:        response = requests.post(f"{API_BASE_URL}/valuations/batch", json={"vehicles": vehicles})
+apps/ain-valuation-engine/examples/video_analysis_examples.py:227:        response = requests.post(f"{API_BASE_URL}/valuations/video", json=comprehensive_vehicle)
+apps/ain-valuation-engine/PR_F_UI_ENHANCEMENT_PLAN.md:450:      .channel(`enhanced-valuations:${vehicleId}`)
+apps/ain-valuation-engine/TROUBLESHOOTING_GUIDE.md:395:#### Issue: Browser becomes slow after multiple valuations
+apps/ain-valuation-engine/TROUBLESHOOTING_GUIDE.md:683:- Zero successful valuations in 15 minutes
+apps/ain-valuation-engine/SYSTEM_DOCUMENTATION.md:5:The AIN Valuation Engine is a comprehensive vehicle valuation system that provides accurate, real-time market valuations using advanced AI analysis and multiple data sources. The system integrates with various automotive data APIs to deliver industry-leading accuracy with ±2% precision.
+apps/ain-valuation-engine/SYSTEM_DOCUMENTATION.md:249:- **User Accounts**: Save and track valuations
+apps/ain-valuation-engine/SYSTEM_DOCUMENTATION.md:250:- **Batch Processing**: Multiple vehicle valuations
+apps/ain-valuation-engine/CHANGELOG.md:37:- **Safety-Enhanced Valuations**: Safety ratings now contribute 5-8% to final valuations
+apps/ain-valuation-engine/CHANGELOG.md:75:- `POST /api/v1/valuations` - Single vehicle valuation
+apps/ain-valuation-engine/CHANGELOG.md:76:- `GET /api/v1/valuations/{id}` - Retrieve valuation result
+apps/ain-valuation-engine/CHANGELOG.md:77:- `POST /api/v1/valuations/batch` - Bulk valuations

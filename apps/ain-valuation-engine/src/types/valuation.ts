@@ -1,35 +1,29 @@
-// Stub for valuation
-export interface AdjustmentBreakdown {
-  label: string;
-  amount: number;
-  reason?: string;
+export type NHTSARecall = { number: string; description: string };
+export type VehicleSpecification = { make: string; model: string; year: number };
+
+export interface FuelEconomy {
+  cityMpg?: number;
+  highwayMpg?: number;
+  combinedMpg?: number;
+  fuelCostPerYearUSD?: number;
 }
 
-// Example value for Google-level build hygiene
-export const DefaultAdjustmentBreakdown: AdjustmentBreakdown = {
-  label: 'Base',
-  amount: 0,
+export type EnrichedVehicleProfile = VehicleSpecification & { 
+  vin?: string;
+  trim?: string;
+  fuelEconomy?: FuelEconomy;
+  marketValueUSD?: number;
+  recalls?: NHTSARecall[];
 };
 
-export interface ValuationInput {
-  vin?: string;
-  make?: string;
-  model?: string;
-  year?: number;
+export interface ValuationInputs {
+  vin: string;
+  year: number;
+  make: string;
+  model: string;
   mileage?: number;
-  zip?: string;
-  radius?: number;
-  condition_grade?: number;
-  [k: string]: unknown;
+  zipCode?: string;
 }
 
-export interface ValuationOutput {
-  value: number;
-  confidence?: number; // 0..1
-  breakdown?: AdjustmentBreakdown[];
-}
-// Stub for valuation
-declare module "@/types/valuation" {
-  export type EnrichedVehicleProfile = any;
-  export type ValuationInputs = any;
-}
+export const DefaultAdjustmentBreakdown = { mileage: 0, condition: 0 };
+export const DefaultValuationResult = { value: 0, confidence: 0.0 };

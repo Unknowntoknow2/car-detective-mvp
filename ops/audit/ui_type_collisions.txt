@@ -1,0 +1,11 @@
+src/services/valuationEngine.ts:4:export interface EnhancedValuationResult {
+src/components/valuation/ValuationResultsProps.ts:2:export interface ValuationResultsProps {
+src/components/valuation/types.ts:2:export interface ValuationResultProps {
+src/utils/valuation.ts:18:export interface ValuationResult {
+src/utils/types/unifiedTypes.ts:19:export interface ValuationResult {
+src/utils/valuation/types.ts:39:export interface ValuationResult {
+src/utils/valuation/types.ts:67:export interface EnhancedValuationParams extends ValuationParams {
+src/modules/valuation-result/types.ts:18:export interface ValuationResultProps {
+src/types/valuation.ts:136:export interface ValuationResult {
+src/types/valuation.ts:226:export interface UnifiedValuationResult {
+src/types/valuation.ts:320:export interface EnhancedValuationResult {

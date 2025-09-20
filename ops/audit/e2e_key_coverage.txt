@@ -1,0 +1,291 @@
+e2e/valuation-flow.spec.ts:4:  test("should complete manual valuation flow and display results", async ({ page }) => {
+e2e/valuation-flow.spec.ts:5:    // Visit the free valuation page
+e2e/valuation-flow.spec.ts:6:    await page.goto("/valuation");
+e2e/valuation-flow.spec.ts:17:    await page.getByRole("button", { name: /get valuation/i }).click();
+e2e/valuation-flow.spec.ts:19:    // Wait for valuation to complete
+e2e/valuation-flow.spec.ts:22:    // Check that the valuation result displays the correct vehicle info
+e2e/valuation-flow.spec.ts:34:  test("VIN lookup should return correct vehicle information", async ({ page }) => {
+e2e/valuation-flow.spec.ts:35:    // Go to the VIN lookup page
+e2e/valuation-flow.spec.ts:36:    await page.goto("/valuation/vin");
+e2e/valuation-flow.spec.ts:38:    // Enter a test VIN
+e2e/valuation-flow.spec.ts:41:    // Submit the VIN lookup
+e2e/valuation-flow.spec.ts:53:    // Go to the manual valuation page
+e2e/valuation-flow.spec.ts:54:    await page.goto("/valuation/manual");
+e2e/valuation-flow.spec.ts:57:    await page.getByRole("button", { name: /submit|get valuation/i }).click();
+e2e/free-valuation-flow.spec.ts:4:  test("should complete the free valuation form and display results", async ({ page }) => {
+e2e/free-valuation-flow.spec.ts:9:    // Navigate to the valuation section
+e2e/free-valuation-flow.spec.ts:10:    const valuationSection = page.locator("text=Get Your Vehicle Valuation");
+e2e/free-valuation-flow.spec.ts:11:    await valuationSection.scrollIntoViewIfNeeded();
+e2e/free-valuation-flow.spec.ts:58:    // Verify valuation card is visible
+e2e/free-valuation-flow.spec.ts:59:    const valuationCard = page.locator('h3:has-text("Estimated Value")')
+e2e/free-valuation-flow.spec.ts:61:    await expect(valuationCard).toBeVisible();
+e2e/free-valuation-flow.spec.ts:84:    // Optionally, verify download PDF button exists
+e2e/free-valuation-flow.spec.ts:85:    const downloadButton = page.getByTestId("download-valuation-pdf");
+e2e/free-valuation-flow.spec.ts:93:    // Navigate to the valuation section
+e2e/free-valuation-flow.spec.ts:94:    const valuationSection = page.locator("text=Get Your Vehicle Valuation");
+e2e/free-valuation-flow.spec.ts:95:    await valuationSection.scrollIntoViewIfNeeded();
+e2e/free-valuation-flow.spec.ts:147:  test("should complete the VIN lookup flow and show results", async ({ page }) => {
+e2e/free-valuation-flow.spec.ts:151:    // Navigate to the valuation section
+e2e/free-valuation-flow.spec.ts:152:    const valuationSection = page.locator("text=Get Your Vehicle Valuation");
+e2e/free-valuation-flow.spec.ts:153:    await valuationSection.scrollIntoViewIfNeeded();
+e2e/free-valuation-flow.spec.ts:160:    // Select VIN tab (should be default)
+e2e/free-valuation-flow.spec.ts:161:    await page.locator('button[role="tab"]').filter({ hasText: "VIN" }).click();
+e2e/free-valuation-flow.spec.ts:163:    // Wait for VIN input field to appear
+e2e/free-valuation-flow.spec.ts:164:    await page.waitForSelector('input[placeholder*="VIN"]');
+e2e/free-valuation-flow.spec.ts:166:    // Enter a sample VIN (this is a valid Toyota Camry VIN)
+e2e/free-valuation-flow.spec.ts:167:    await page.getByPlaceholder(/Enter 17-character VIN/).fill(
+e2e/free-valuation-flow.spec.ts:180:    // Verify valuation card is visible
+e2e/free-valuation-flow.spec.ts:181:    const valuationCard = page.locator('h3:has-text("Estimated Value")')
+e2e/free-valuation-flow.spec.ts:183:    await expect(valuationCard).toBeVisible();
+e2e/free-valuation-flow.spec.ts:185:    // Verify the valuation result components are displayed
+e2e/lookup.spec.ts:4:const TEST_VIN = "1HGCM82633A004352"; // Valid VIN format for testing
+e2e/lookup.spec.ts:20:  test("VIN lookup flow should work correctly", async ({ page }) => {
+e2e/lookup.spec.ts:21:    // Navigate to VIN lookup page
+e2e/lookup.spec.ts:22:    await page.getByRole("link", { name: /VIN/i, exact: false }).first()
+e2e/lookup.spec.ts:25:    // Verify we're on the VIN page
+e2e/lookup.spec.ts:28:    // Fill in the VIN input
+e2e/lookup.spec.ts:29:    await page.getByPlaceholder(/enter.*vin/i).fill(TEST_VIN);
+e2e/lookup.spec.ts:40:    // Check if VIN is displayed in the results
+e2e/lookup.spec.ts:41:    await expect(page.getByText(TEST_VIN, { exact: false })).toBeVisible();
+e2e/lookup.spec.ts:63:    await page.getByRole("button", { name: /submit|get valuation/i }).click();
+e2e/lookup.spec.ts:65:    // Wait for valuation result to appear
+e2e/lookup.spec.ts:68:    // Verify that valuation results appear
+e2e/lookup.spec.ts:69:    await expect(page.getByText(/valuation result/i)).toBeVisible();
+e2e/lookup.spec.ts:82:  test("Premium valuation flow should work correctly", async ({ page }) => {
+e2e/lookup.spec.ts:83:    // Navigate to the premium valuation page
+e2e/lookup.spec.ts:84:    await page.goto("/premium-valuation");
+e2e/lookup.spec.ts:87:    await expect(page.getByText(/premium valuation/i, { exact: false }))
+e2e/lookup.spec.ts:122:    // Submit the premium valuation form
+e2e/lookup.spec.ts:123:    await page.getByRole("button", { name: /get.*premium.*valuation|submit/i })
+e2e/lookup.spec.ts:126:    // Wait for the premium valuation result
+e2e/lookup.spec.ts:136:  test("PDF download should work from valuation result", async ({ page }) => {
+e2e/lookup.spec.ts:137:    // Navigate to manual lookup page since it's the quickest way to get a valuation
+e2e/lookup.spec.ts:148:    await page.getByRole("button", { name: /submit|get valuation/i }).click();
+e2e/lookup.spec.ts:150:    // Wait for valuation result to appear
+e2e/lookup.spec.ts:173:    // Fill in the VIN input
+e2e/lookup.spec.ts:174:    await page.getByPlaceholder(/enter.*vin/i).fill(TEST_VIN);
+e2e/lookup.spec.ts:180:    await page.waitForSelector("text=VIN Lookup Results", { timeout: 10000 });
+e2e/lookup.spec.ts:193:  test("Should show validation error for invalid VIN", async ({ page }) => {
+e2e/lookup.spec.ts:196:    // Enter an invalid VIN (too short)
+e2e/lookup.spec.ts:210:    await page.getByRole("button", { name: /submit|get valuation/i }).click();
+e2e/premium-upgrade-flow.spec.ts:6:const MOCK_VALUATION_ID = "test-valuation-id";
+e2e/premium-upgrade-flow.spec.ts:21:    // Navigate to a valuation result page
+e2e/premium-upgrade-flow.spec.ts:22:    await page.goto(`/valuation/${MOCK_VALUATION_ID}`);
+e2e/premium-upgrade-flow.spec.ts:52:          valuationId: MOCK_VALUATION_ID,
+e2e/premium-upgrade-flow.spec.ts:57:    // Navigate to a valuation result
+e2e/premium-upgrade-flow.spec.ts:58:    await page.goto(`/valuation/${MOCK_VALUATION_ID}`);
+e2e/premium-upgrade-flow.spec.ts:81:      `/valuation/${MOCK_VALUATION_ID}/premium`,
+e2e/premium-upgrade-flow.spec.ts:89:    // Mock the API response for the valuations list
+e2e/premium-upgrade-flow.spec.ts:90:    await page.route("**/rest/v1/valuations*", async (route) => {
+e2e/premium-upgrade-flow.spec.ts:107:    await page.goto("/my-valuations");
+e2e/premium-upgrade-flow.spec.ts:109:    // Verify the premium badge appears for the valuation
+e2e/premium-upgrade-flow.spec.ts:125:    // Navigate to valuation
+e2e/premium-upgrade-flow.spec.ts:126:    await page.goto(`/valuation/${MOCK_VALUATION_ID}`);
+e2e/premium-upgrade-flow.spec.ts:141:  test("should reflect premium status in PDF generation", async ({ page }) => {
+e2e/premium-upgrade-flow.spec.ts:142:    // Mock the API response for a premium valuation
+e2e/premium-upgrade-flow.spec.ts:143:    await page.route("**/rest/v1/valuations*", async (route) => {
+e2e/premium-upgrade-flow.spec.ts:164:    await page.goto(`/valuation/${MOCK_VALUATION_ID}/premium`);
+e2e/premium-upgrade-flow.spec.ts:166:    // Download button should generate proper PDF
+e2e/auth-access-flow.spec.ts:28:    // Try to access premium valuation
+e2e/stripe-flow.spec.ts:44:    // Navigate to a valuation result page
+e2e/stripe-flow.spec.ts:45:    await page.goto("/valuation/result/test-valuation-id");
+e2e/stripe-flow.spec.ts:67:    await page.route("**/rest/v1/valuations*", async (route) => {
+e2e/stripe-flow.spec.ts:72:          id: "test-valuation-id",
+e2e/stripe-flow.spec.ts:78:    // Navigate back to valuation
+e2e/stripe-flow.spec.ts:83:    await page.getByRole("button", { name: /Download PDF/i }).isEnabled();
+e2e/stripe-flow.spec.ts:105:    // Navigate to valuation
+e2e/stripe-flow.spec.ts:106:    await page.goto("/valuation/result/test-valuation-id");
+e2e/stripe-flow.spec.ts:122:    // Navigate back to valuation
+e2e/stripe-flow.spec.ts:131:    await page.goto("/valuation/result/test-valuation-id");
+e2e/stripe-flow.spec.ts:161:          valuation_id: "test-valuation-id",
+e2e/stripe-flow.spec.ts:167:    // Simulate webhook having updated the valuations table
+e2e/stripe-flow.spec.ts:168:    await page.route("**/rest/v1/valuations*", async (route) => {
+e2e/stripe-flow.spec.ts:173:          id: "test-valuation-id",
+e2e/ain-validation.test.ts:11:      expect(text).not.toMatch(/Using fallback valuation/);
+e2e/ain-validation.test.ts:15:      expect(text).not.toMatch(/Real-time valuation completed/);
+e2e/ain-validation.test.ts:16:      expect(text).not.toMatch(/🔄 Rerunning valuation with real-time engine/);
+e2e/ain-validation.test.ts:17:      expect(text).not.toMatch(/⚠️ Using fallback valuation/);
+e2e/ain-validation.test.ts:18:      expect(text).not.toMatch(/🔄 Using fallback MSRP-based valuation/);
+e2e/ain-validation.test.ts:26:    // Track network requests to valuation endpoint
+e2e/ain-validation.test.ts:27:    const valuationRequests: any[] = [];
+e2e/ain-validation.test.ts:29:      if (response.url().includes('/functions/v1/valuation')) {
+e2e/ain-validation.test.ts:30:        valuationRequests.push({
+e2e/ain-validation.test.ts:47:    // If there were valuation requests, validate them
+e2e/ain-validation.test.ts:48:    if (valuationRequests.length > 0) {
+e2e/ain-validation.test.ts:49:      for (const req of valuationRequests) {
+e2e/ain-validation.test.ts:120:      const response = await request.post('/functions/v1/valuation', {
+e2e/pdfExport.test.ts:19:test.describe("PDF Export Functionality", () => {
+e2e/pdfExport.test.ts:34:    // Create a valuation to export
+e2e/pdfExport.test.ts:36:    await page.getByRole("link", { name: /valuation|estimate|appraisal/i })
+e2e/pdfExport.test.ts:50:    await page.getByRole("button", { name: /submit|get valuation|next/i })
+e2e/pdfExport.test.ts:54:    await expect(page.getByText(/valuation result|estimate|value/i))
+e2e/pdfExport.test.ts:58:  test("downloads PDF report from valuation result page", async ({ page }) => {
+e2e/pdfExport.test.ts:77:    // Find and click the download/export PDF button
+e2e/pdfExport.test.ts:126:    // Download PDF
+e2e/pdfExport.test.ts:137:  test("shows error message if PDF generation fails", async ({ page }) => {
+e2e/pdfExport.test.ts:138:    // Intercept PDF generation API call and make it fail
+e2e/pdfExport.test.ts:146:    // Try to download PDF
+e2e/pdfExport.test.ts:160:  test("validates PDF is accessible from valuation history", async ({ page }) => {
+e2e/pdfExport.test.ts:161:    // Go to dashboard/valuations
+e2e/pdfExport.test.ts:162:    await page.goto("/dashboard/valuations");
+e2e/pdfExport.test.ts:164:    // Find the recent valuation
+e2e/pdfExport.test.ts:175:    // Verify we're on the valuation result page
+e2e/pdfExport.test.ts:176:    await expect(page.getByText(/valuation result|estimate|value/i))
+e2e/pdfExport.test.ts:179:    // Check PDF download button is available
+e2e/premium-payment-flow.spec.ts:14:    // Navigate to a valuation result page
+e2e/premium-payment-flow.spec.ts:15:    await page.goto("/valuation/premium?id=test-valuation-id");
+e2e/premium-payment-flow.spec.ts:26:          url: "/valuation/premium-success?session_id=mock_session_123",
+e2e/premium-payment-flow.spec.ts:53:    // Navigate to a valuation result
+e2e/premium-payment-flow.spec.ts:54:    await page.goto("/valuation/premium?id=test-valuation-id");
+e2e/premium-payment-flow.spec.ts:61:          url: "/valuation/premium?id=test-valuation-id&canceled=true",
+e2e/premium-payment-flow.spec.ts:70:    await expect(page).toHaveURL(/valuation\/premium/);
+e2e/premium-valuation-flow.spec.ts:4:  test("should complete premium valuation form and display results", async ({ page }) => {
+e2e/premium-valuation-flow.spec.ts:85:    await page.getByTestId("submit-valuation").click();
+e2e/premium-valuation-flow.spec.ts:87:    // 4. Wait for valuation result
+e2e/premium-valuation-flow.spec.ts:91:    // Check if valuation amount is shown (number with $ sign)
+e2e/premium-valuation-flow.spec.ts:92:    const valuationAmount = page.locator("text=/\\$[0-9,]+/");
+e2e/premium-valuation-flow.spec.ts:93:    await expect(valuationAmount.first()).toBeVisible();
+e2e/premium-valuation-flow.spec.ts:105:    // Verify PDF download option exists
+e2e/premium-valuation-flow.spec.ts:111:    // Optional: Test downloading the PDF (might not actually download in test)
+e2e/pdf-generation.spec.ts:5:test.describe("PDF Generation", () => {
+e2e/pdf-generation.spec.ts:15:  test("Free valuation PDF downloads and contains base details", async ({ page }) => {
+e2e/pdf-generation.spec.ts:16:    // Navigate to VIN lookup page
+e2e/pdf-generation.spec.ts:19:    // Fill in VIN lookup form
+e2e/pdf-generation.spec.ts:45:    expect(fileStats.size).toBeGreaterThan(10000); // At least 10KB for a basic PDF
+e2e/pdf-generation.spec.ts:49:    expect(download.suggestedFilename()).toMatch(/(Honda|Acura)/i); // Known brands for this VIN pattern
+e2e/pdf-generation.spec.ts:52:  test("Premium PDF contains enhanced content and is accessible after payment", async ({ page }) => {
+e2e/pdf-generation.spec.ts:53:    // Navigate to VIN lookup page
+e2e/pdf-generation.spec.ts:56:    // Fill in VIN lookup form
+e2e/pdf-generation.spec.ts:66:      localStorage.setItem("premium_valuation_JH4KA4650MC012345", "true");
+e2e/pdf-generation.spec.ts:92:    expect(fileStats.size).toBeGreaterThan(30000); // Premium PDFs should be larger (30KB+)
+e2e/pdf-generation.spec.ts:98:  test("AI Condition Assessment appears in the PDF when available", async ({ page }) => {
+e2e/pdf-generation.spec.ts:99:    // Navigate to VIN lookup page with a VIN known to have AI condition data
+e2e/pdf-generation.spec.ts:102:    // Fill in VIN for a vehicle with AI condition data
+e2e/pdf-generation.spec.ts:103:    // Using a VIN pattern that is known to trigger AI condition data in the test environment
+e2e/pdf-generation.spec.ts:112:    // Download the PDF report
+e2e/pdf-generation.spec.ts:128:    // Future enhancement: Use a PDF parsing library to verify text content
+e2e/pdf-generation.spec.ts:132:  test("PDF generation shows loading state and success toast", async ({ page }) => {
+e2e/pdf-generation.spec.ts:144:    await page.getByRole("button", { name: /submit|get valuation/i }).click();
+e2e/pdf-generation.spec.ts:146:    // Wait for valuation result
+e2e/pdf-generation.spec.ts:153:    await page.waitForSelector("text=Generating PDF", { timeout: 5000 });
+e2e/pdf-generation.spec.ts:159:    await page.waitForSelector("text=PDF Generated Successfully", {
+e2e/pdf-generation.spec.ts:165:    // Navigate to a valuation result page
+e2e/ain-integration-smoke.spec.ts:33:      if (response.url().includes('/functions/v1/ain-valuation')) {
+e2e/ain-integration-smoke.spec.ts:37:    // Navigate to valuation form
+e2e/ain-integration-smoke.spec.ts:43:    // Start valuation process
+e2e/ain-integration-smoke.spec.ts:44:    await page.click('[data-testid="start-valuation"]');
+e2e/ain-integration-smoke.spec.ts:46:    // Wait for valuation to complete (with extended timeout for API calls)
+e2e/ain-integration-smoke.spec.ts:47:    await page.waitForSelector('[data-testid="valuation-result"]', { timeout: 45000 });
+e2e/ain-integration-smoke.spec.ts:50:    const result = await page.locator('[data-testid="valuation-result"]');
+e2e/ain-integration-smoke.spec.ts:68:    // Extract valuation data from page
+e2e/ain-integration-smoke.spec.ts:85:    await page.route("**/functions/v1/ain-valuation", async (route) => {
+e2e/ain-integration-smoke.spec.ts:93:    await page.click('[data-testid="start-valuation"]');
+e2e/ain-integration-smoke.spec.ts:96:    await page.waitForSelector('[data-testid="valuation-result"]', { timeout: 60000 });
+e2e/ain-integration-smoke.spec.ts:108:    await page.route("**/functions/v1/ain-valuation", async (route) => {
+e2e/ain-integration-smoke.spec.ts:132:    await page.click('[data-testid="start-valuation"]');
+e2e/ain-integration-smoke.spec.ts:134:    await page.waitForSelector('[data-testid="valuation-result"]');
+e2e/ain-integration-smoke.spec.ts:143:    await page.route("**/functions/v1/ain-valuation", async (route) => {
+e2e/ain-integration-smoke.spec.ts:159:    await page.click('[data-testid="start-valuation"]');
+e2e/ain-integration-smoke.spec.ts:162:    await page.waitForSelector('[data-testid="valuation-result"]');
+e2e/ain-integration-smoke.spec.ts:181:          .then(() => page.click('[data-testid="start-valuation"]'))
+e2e/valuationFlow.test.ts:37:  test("completes a free valuation flow successfully", async ({ page }) => {
+e2e/valuationFlow.test.ts:38:    // Go to home page or valuation entry point
+e2e/valuationFlow.test.ts:41:    // Navigate to the valuation form
+e2e/valuationFlow.test.ts:42:    await page.getByRole("link", { name: /valuation|estimate|appraisal/i })
+e2e/valuationFlow.test.ts:57:    // Submit valuation request
+e2e/valuationFlow.test.ts:58:    await page.getByRole("button", { name: /submit|get valuation|next/i })
+e2e/valuationFlow.test.ts:61:    // Check if valuation results display
+e2e/valuationFlow.test.ts:62:    await expect(page.getByText(/valuation result|estimate|value/i))
+e2e/valuationFlow.test.ts:74:  test("offers premium upgrade option on valuation results", async ({ page }) => {
+e2e/valuationFlow.test.ts:78:    // Navigate to valuation
+e2e/valuationFlow.test.ts:79:    await page.getByRole("link", { name: /valuation|estimate|appraisal/i })
+e2e/valuationFlow.test.ts:95:    await page.getByRole("button", { name: /submit|get valuation|next/i })
+e2e/valuationFlow.test.ts:99:    await expect(page.getByText(/valuation result|estimate|value/i))
+e2e/valuationFlow.test.ts:111:    // Go to valuation result page
+e2e/valuationFlow.test.ts:113:    await page.getByRole("link", { name: /valuation|estimate|appraisal/i })
+e2e/valuationFlow.test.ts:125:    await page.getByRole("button", { name: /submit|get valuation|next/i })
+e2e/valuationFlow.test.ts:129:    await expect(page.getByText(/valuation result|estimate|value/i))
+e2e/valuationFlow.test.ts:147:  test("includes explanation for the valuation result", async ({ page }) => {
+e2e/valuationFlow.test.ts:148:    // Go to valuation page
+e2e/valuationFlow.test.ts:150:    await page.getByRole("link", { name: /valuation|estimate|appraisal/i })
+e2e/valuationFlow.test.ts:162:    await page.getByRole("button", { name: /submit|get valuation|next/i })
+e2e/valuationFlow.test.ts:166:    await expect(page.getByText(/valuation result|estimate|value/i))
+e2e/valuationFlow.test.ts:173:    // Check for specific valuation factors
+e2e/download-and-premium.spec.ts:4:  test("should complete a full valuation flow with manual entry", async ({ page }) => {
+e2e/download-and-premium.spec.ts:5:    // Navigate to the valuation form
+e2e/download-and-premium.spec.ts:6:    await page.goto("/valuation");
+e2e/download-and-premium.spec.ts:19:    // Verify that the valuation result appears
+e2e/download-and-premium.spec.ts:36:    // Navigate to the premium valuation page
+e2e/download-and-premium.spec.ts:37:    await page.goto("/premium-valuation");
+e2e/vinLookup.test.ts:3:// Valid and invalid test VINs
+e2e/vinLookup.test.ts:4:const validVin = "JH4DA9380PS000111"; // Test sample VIN
+e2e/vinLookup.test.ts:8:test.describe("VIN Lookup Functionality", () => {
+e2e/vinLookup.test.ts:9:  test("successfully looks up vehicle with valid VIN", async ({ page }) => {
+e2e/vinLookup.test.ts:10:    // Navigate to VIN lookup page
+e2e/vinLookup.test.ts:13:    // Fill in the VIN input
+e2e/vinLookup.test.ts:27:  test("shows appropriate error for invalid VIN", async ({ page }) => {
+e2e/vinLookup.test.ts:28:    // Navigate to VIN lookup page
+e2e/vinLookup.test.ts:31:    // Fill in an invalid VIN
+e2e/vinLookup.test.ts:37:    // Check for error message about invalid VIN
+e2e/vinLookup.test.ts:42:  test("validates VIN length before submission", async ({ page }) => {
+e2e/vinLookup.test.ts:43:    // Navigate to VIN lookup page
+e2e/vinLookup.test.ts:46:    // Fill in a VIN with invalid length
+e2e/vinLookup.test.ts:61:    // Navigate to VIN lookup page
+e2e/download-report.spec.ts:13:test.describe("PDF Download Feature", () => {
+e2e/download-report.spec.ts:14:  test("should download PDF from valuation result", async ({ page }) => {
+e2e/download-report.spec.ts:15:    // Navigate to the manual lookup page (quickest way to get to a valuation result)
+e2e/download-report.spec.ts:28:    // Submit the form to get valuation
+e2e/download-report.spec.ts:29:    await page.getByRole("button", { name: /submit|get valuation/i }).click();
+e2e/download-report.spec.ts:31:    // Wait for valuation result to appear
+e2e/download-report.spec.ts:34:    // Wait for the explanation to load (since it's needed for the PDF)
+e2e/download-report.spec.ts:67:  test("should show loading state during PDF generation", async ({ page }) => {
+e2e/download-report.spec.ts:79:    await page.getByRole("button", { name: /submit|get valuation/i }).click();
+e2e/download-report.spec.ts:81:    // Wait for valuation result to appear
+e2e/download-report.spec.ts:88:    await page.waitForSelector("text=Generating PDF", { timeout: 5000 });
+e2e/dealer-offer-flow.spec.ts:10:const TEST_VALUATION_ID = "test-valuation-id";
+e2e/dashboard.test.ts:43:  test("shows valuation history for the user", async ({ page }) => {
+e2e/dashboard.test.ts:44:    // First create a valuation to have history
+e2e/dashboard.test.ts:47:    // Navigate to valuation
+e2e/dashboard.test.ts:48:    await page.getByRole("link", { name: /valuation|estimate|appraisal/i })
+e2e/dashboard.test.ts:64:    await page.getByRole("button", { name: /submit|get valuation|next/i })
+e2e/dashboard.test.ts:68:    await expect(page.getByText(/valuation result|estimate|value/i))
+e2e/dashboard.test.ts:72:    await page.goto("/dashboard/valuations");
+e2e/dashboard.test.ts:74:    // Verify valuation appears in history
+e2e/dashboard.test.ts:83:    await expect(page.getByRole("link", { name: /valuations|history/i }))
+e2e/dashboard.test.ts:90:    // Navigate to valuations section
+e2e/dashboard.test.ts:91:    await page.getByRole("link", { name: /valuations|history/i }).click();
+e2e/dashboard.test.ts:92:    await expect(page).toHaveURL(/\/dashboard\/valuations|\/valuations/);
+e2e/dashboard.test.ts:117:  test("displays empty state when no valuations exist", async ({ page }) => {
+e2e/dashboard.test.ts:132:    // Navigate to valuations
+e2e/dashboard.test.ts:133:    await page.goto("/dashboard/valuations");
+e2e/dashboard.test.ts:136:    await expect(page.getByText(/no valuations|empty|start by getting/i))
+e2e/dashboard.test.ts:139:    // Verify CTA to create valuation exists
+e2e/dashboard.test.ts:140:    await expect(page.getByRole("link", { name: /get valuation|start now/i }))
+e2e/smoke-config.spec.ts:42:    // Try to trigger a valuation call (if possible)
+e2e/smoke-config.spec.ts:44:      const vinInput = page.locator('input[name="vin"], input[placeholder*="VIN"]');
+e2e/smoke-config.spec.ts:57:      console.log('ℹ️  Could not trigger valuation - testing basic load only');
+e2e/route-integrity.spec.ts:6:  { path: '/', contentCheck: /get started|valuation/i },
+e2e/route-integrity.spec.ts:12:  { path: '/premium-valuation', contentCheck: /premium|valuation|features/i },
+e2e/route-integrity.spec.ts:14:  { path: "/", contentCheck: /get started|valuation/i },
+e2e/route-integrity.spec.ts:18:  { path: "/premium", contentCheck: /premium|valuation|features/i },
+e2e/explanation.spec.ts:4:  test("should generate and display valuation explanation", async ({ page }) => {
+e2e/explanation.spec.ts:5:    // Navigate to the valuation form
+e2e/explanation.spec.ts:6:    await page.goto("/valuation");
+e2e/explanation.spec.ts:18:    // Verify valuation result appears
+e2e/explanation.spec.ts:48:    // Navigate to the premium valuation page with mock data
+e2e/explanation.spec.ts:49:    await page.goto("/premium-valuation");
+e2e/explanation.spec.ts:51:    // Mock completion of premium valuation with AI condition
+e2e/explanation.spec.ts:53:      // Simulate successful premium valuation
+e2e/explanation.spec.ts:63:            valuation: 35000,
+e2e/explanation.spec.ts:85:    await expect(page.locator("text=This valuation has been AI-verified"))
+e2e/explanation.spec.ts:90:    // Navigate to the valuation page
+e2e/explanation.spec.ts:91:    await page.goto("/valuation");
+e2e/ain-route-validation.spec.ts:10:      if (response.url().includes('/functions/v1/ain-valuation')) {
+e2e/ain-route-validation.spec.ts:16:    // Navigate and trigger valuation
+e2e/ain-route-validation.spec.ts:19:    await page.click('[data-testid="start-valuation"]');
+e2e/ain-route-validation.spec.ts:21:    // Wait for valuation to complete
+e2e/ain-route-validation.spec.ts:22:    await page.waitForSelector('[data-testid="valuation-result"]', { timeout: 45000 });
+e2e/ain-route-validation.spec.ts:44:      if (response.url().includes('/functions/v1/ain-valuation')) {
+e2e/ain-route-validation.spec.ts:50:    await page.route("**/functions/v1/ain-valuation", async (route) => {
+e2e/ain-route-validation.spec.ts:60:    await page.click('[data-testid="start-valuation"]');
+e2e/ain-route-validation.spec.ts:62:    await page.waitForSelector('[data-testid="valuation-result"]', { timeout: 45000 });

@@ -1,0 +1,37 @@
+supabase/functions/admin-qa-dashboard/index.ts:86:            valuation_results!left(
+supabase/functions/admin-qa-dashboard/index.ts:106:          .or('valuation_results.estimated_value.gte.50000,valuation_results.confidence_score.lt.70')
+supabase/functions/admin-qa-dashboard/index.ts:145:          .from('valuation_results')
+supabase/functions/admin-qa-dashboard/index.ts:177:            .from('valuation_results')
+supabase/migrations/20250707162042-7b3c22d1-af45-4bbc-a942-63023116f5e4.sql:8:-- Also update the valuation_results to have the correct VIN for proper linking
+supabase/migrations/20250707162042-7b3c22d1-af45-4bbc-a942-63023116f5e4.sql:9:UPDATE valuation_results 
+supabase/migrations/20250702231639-2abb15ee-8e93-459f-ab0c-f4ff2e0faebc.sql:49:-- Create valuation_results table for final calculations
+supabase/migrations/20250702231639-2abb15ee-8e93-459f-ab0c-f4ff2e0faebc.sql:50:CREATE TABLE IF NOT EXISTS public.valuation_results (
+supabase/migrations/20250702231639-2abb15ee-8e93-459f-ab0c-f4ff2e0faebc.sql:82:ALTER TABLE public.valuation_results ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20250702231639-2abb15ee-8e93-459f-ab0c-f4ff2e0faebc.sql:111:-- RLS Policies for valuation_results
+supabase/migrations/20250702231639-2abb15ee-8e93-459f-ab0c-f4ff2e0faebc.sql:112:CREATE POLICY "Users can view their own results" ON public.valuation_results
+supabase/migrations/20250702231639-2abb15ee-8e93-459f-ab0c-f4ff2e0faebc.sql:116:      WHERE vr.id = valuation_results.valuation_request_id 
+supabase/migrations/20250702231639-2abb15ee-8e93-459f-ab0c-f4ff2e0faebc.sql:121:CREATE POLICY "Service role can manage all results" ON public.valuation_results
+supabase/migrations/20250702231639-2abb15ee-8e93-459f-ab0c-f4ff2e0faebc.sql:143:CREATE INDEX IF NOT EXISTS idx_valuation_results_request_id ON public.valuation_results(valuation_request_id);
+supabase/migrations/20250702231639-2abb15ee-8e93-459f-ab0c-f4ff2e0faebc.sql:160:  BEFORE UPDATE ON public.valuation_results
+supabase/migrations/20250620182106-26e154a8-d7ff-4e8e-83ae-e22970bce305.sql:3:CREATE TABLE public.valuation_results (
+supabase/migrations/20250620182106-26e154a8-d7ff-4e8e-83ae-e22970bce305.sql:25:ALTER TABLE public.valuation_results ENABLE ROW LEVEL SECURITY;
+supabase/migrations/20250620182106-26e154a8-d7ff-4e8e-83ae-e22970bce305.sql:29:  ON public.valuation_results 
+supabase/migrations/20250620182106-26e154a8-d7ff-4e8e-83ae-e22970bce305.sql:34:  ON public.valuation_results 
+supabase/migrations/20250620182106-26e154a8-d7ff-4e8e-83ae-e22970bce305.sql:39:  ON public.valuation_results 
+supabase/migrations/20250620182106-26e154a8-d7ff-4e8e-83ae-e22970bce305.sql:53:  BEFORE UPDATE ON public.valuation_results
+supabase/migrations/20250707161917-bfe1375e-ca37-464d-b158-46356130e4b2.sql:9:-- Also update the valuation_results to have the correct VIN for proper linking
+supabase/migrations/20250707161917-bfe1375e-ca37-464d-b158-46356130e4b2.sql:10:UPDATE valuation_results 
+supabase/migrations/20250724161115-f4d9c37e-1312-4125-bb07-a28e77907919.sql:44:        'valuation_results',
+supabase/migrations/20250724161115-f4d9c37e-1312-4125-bb07-a28e77907919.sql:97:CREATE POLICY "Users can only access their own valuation results" ON public.valuation_results
+supabase/migrations/20250724161115-f4d9c37e-1312-4125-bb07-a28e77907919.sql:108:CREATE POLICY "Admins can view valuation results for support" ON public.valuation_results
+supabase/functions/explainable-ai-engine/index.ts:68:      .from('valuation_results')
+src/hooks/useFollowUpDataLoader.ts:85:              .from('valuation_results')
+src/hooks/useFollowUpDataLoader.ts:124:            .from('valuation_results')
+src/hooks/useFollowUpForm.ts:165:            .from('valuation_results')
+src/hooks/useFollowUpForm.ts:172:              .from('valuation_results')
+src/hooks/useFollowUpForm.ts:187:              .from('valuation_results')
+apps/ain-valuation-engine/supabase/migrations/20250822_rls_hardening.sql:4:ALTER TABLE public.valuation_results ENABLE ROW LEVEL SECURITY;
+apps/ain-valuation-engine/supabase/migrations/20250822_rls_hardening.sql:21:ON public.valuation_results
+apps/ain-valuation-engine/supabase/migrations/20250822_rls_hardening.sql:26:ON public.valuation_results
+apps/ain-valuation-engine/supabase/migrations/20250822_rls_hardening.sql:62:CREATE INDEX IF NOT EXISTS idx_valuation_results_user_id ON public.valuation_results(user_id);
+src/integrations/supabase/types.ts:3648:      valuation_results: {

@@ -1,0 +1,6 @@
+src/hooks/useFollowUpDataLoader.ts:85:              .from('valuation_results')
+src/hooks/useFollowUpDataLoader.ts:124:            .from('valuation_results')
+src/hooks/useFollowUpForm.ts:165:            .from('valuation_results')
+src/hooks/useFollowUpForm.ts:172:              .from('valuation_results')
+src/hooks/useFollowUpForm.ts:187:              .from('valuation_results')
+src/integrations/supabase/types.ts:3648:      valuation_results: {

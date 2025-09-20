@@ -1,2 +1,21 @@
+dist/
+node_modules/
 coverage/
+supabase/.temp/
+*.d.ts
+# Bundle files - all server bundles
+mvp-backend/server.js
+mvp-backend/server.mjs
+mvp-backend/carApiService.js
+mvp-backend/logger.js
+mvp-backend/vinValuationService.js
+# Test files with mocked data
+test_*.mjs
+test_*.cjs
+test_*.js
+.next/
+build/
+out/
+test-results/
+playwright-report/
 **/tsconfig.tsbuildinfo

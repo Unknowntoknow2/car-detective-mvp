@@ -11,7 +11,7 @@ export async function fetchListingsForTier(systemMsg: string, userMsg: string, m
   });
   const text = res.output_text || "{}";
   let parsed:any = {};
-  try { parsed = JSON.parse(text); } catch {}
+  try { parsed = JSON.parse(text); } catch (e) { /* Ignore parse errors */ }
   const listings = Array.isArray(parsed?.listings) ? parsed.listings : [];
   return { listings, tokensIn: res.usage?.input_tokens || 0, tokensOut: res.usage?.output_tokens || 0 };
 }

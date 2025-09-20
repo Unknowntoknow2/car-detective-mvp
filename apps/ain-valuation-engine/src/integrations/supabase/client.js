@@ -24,6 +24,6 @@ function makeStub() {
 const url = import.meta.env?.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const key = import.meta.env?.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 const supabase = (!url || !key)
-    ? (console.warn('[supabase] Missing VITE_SUPABASE_URL/KEY — using browser stub.'), makeStub())
+    ? (, makeStub())
     : createClient(url, key);
 export default supabase;

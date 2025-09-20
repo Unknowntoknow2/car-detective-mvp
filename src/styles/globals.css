@@ -1,9 +1,9 @@
 
+@import url("./premium-effects.css");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url("./premium-effects.css");
 
 /* FANG-Level Design System - Tesla/Apple Inspired */
 @layer base {
@@ -104,7 +104,8 @@
   }
 
   * {
-    @apply border-border;
+    /* @apply border-border; */
+    border-color: hsl(var(--border));
   }
 
   html {
@@ -175,7 +176,12 @@
 @layer components {
   /* FANG-Level Glass Morphism Cards */
   .card {
-    @apply bg-card/90 rounded-2xl border border-border/30 transition-all duration-500 ease-out p-6;
+    /* @apply bg-card/90 rounded-2xl border border-border/30 transition-all duration-500 ease-out p-6; */
+    background-color: hsl(var(--card) / 0.9);
+    border-radius: 1rem;
+    border: 1px solid hsl(var(--border) / 0.3);
+    transition: all 0.5s ease-out;
+    padding: 1.5rem;
     backdrop-filter: blur(20px);
     box-shadow: 
       0 8px 32px -12px hsl(var(--glass-shadow)),

@@ -1,0 +1,1943 @@
+src/index.ts:2 - ValuationIntegrationService
+src/index.ts:3 - useValuationIntegration
+src/index.ts:6 - DecodedVehicleInfo
+src/index.ts:6 - UnifiedVehicleData
+src/index.ts:7 - ValuationResult
+src/index.ts:7 - LegacyValuationResult
+src/tailwind.config.extended.ts:125 - default
+src/__archive__/auction-utils.ts:10 - ArchivedAuctionResult
+src/agents/marketPriceEstimator.ts:6 - estimateMarketPrice
+src/agents/marketSearchAgent.ts:8 - MarketSearchInput (used in module)
+src/agents/marketSearchAgent.ts:19 - MarketSearchResult (used in module)
+src/api/vehicleApi.ts:30 - fetchVehicleData
+src/api/vehicleApi.ts:50 - fetchVehicleDetails
+src/api/vehicleApi.ts:64 - getModelsByMakeId
+src/api/vehicleApi.ts:75 - fetchAverageMarketValue
+src/api/vehicleApi.ts:97 - fetchFuelEfficiency
+src/api/vehicleApi.ts:114 - fetchSafetyRatings
+src/api/vehicleApi.ts:130 - fetchRecalls
+src/api/vehicleApi.ts:8 - supabase
+src/api/vehicleApi.ts:24 - VehicleData (used in module)
+src/components/AinRouteBadge.tsx:3 - AinRouteBadge
+src/components/index.ts:5 - Button
+src/components/index.ts:6 - Input
+src/components/index.ts:7 - Label
+src/components/index.ts:8 - Card
+src/components/index.ts:8 - CardContent
+src/components/index.ts:8 - CardHeader
+src/components/index.ts:8 - CardTitle
+src/components/index.ts:9 - Badge
+src/components/index.ts:10 - Tabs
+src/components/index.ts:10 - TabsContent
+src/components/index.ts:10 - TabsList
+src/components/index.ts:10 - TabsTrigger
+src/components/index.ts:11 - Select
+src/components/index.ts:11 - SelectContent
+src/components/index.ts:11 - SelectItem
+src/components/index.ts:11 - SelectTrigger
+src/components/index.ts:11 - SelectValue
+src/components/index.ts:12 - Textarea
+src/components/index.ts:13 - Checkbox
+src/components/index.ts:14 - RadioGroup
+src/components/index.ts:14 - RadioGroupItem
+src/components/index.ts:15 - Switch
+src/components/index.ts:16 - Slider
+src/components/index.ts:17 - Progress
+src/components/index.ts:18 - Separator
+src/components/index.ts:19 - Skeleton
+src/components/index.ts:20 - Spinner
+src/components/index.ts:21 - toast
+src/components/index.ts:21 - useToast
+src/components/index.ts:22 - Toaster
+src/components/index.ts:23 - Sonner
+src/components/index.ts:26 - Popover
+src/components/index.ts:26 - PopoverContent
+src/components/index.ts:26 - PopoverTrigger
+src/components/index.ts:27 - DropdownMenu
+src/components/index.ts:27 - DropdownMenuContent
+src/components/index.ts:27 - DropdownMenuItem
+src/components/index.ts:27 - DropdownMenuTrigger
+src/components/index.ts:28 - Dialog
+src/components/index.ts:28 - DialogContent
+src/components/index.ts:28 - DialogHeader
+src/components/index.ts:28 - DialogTitle
+src/components/index.ts:28 - DialogTrigger
+src/components/index.ts:29 - AlertDialog
+src/components/index.ts:29 - AlertDialogAction
+src/components/index.ts:29 - AlertDialogCancel
+src/components/index.ts:29 - AlertDialogContent
+src/components/index.ts:29 - AlertDialogDescription
+src/components/index.ts:29 - AlertDialogFooter
+src/components/index.ts:29 - AlertDialogHeader
+src/components/index.ts:29 - AlertDialogTitle
+src/components/index.ts:29 - AlertDialogTrigger
+src/components/index.ts:30 - Sheet
+src/components/index.ts:30 - SheetContent
+src/components/index.ts:30 - SheetHeader
+src/components/index.ts:30 - SheetTitle
+src/components/index.ts:30 - SheetTrigger
+src/components/index.ts:31 - Accordion
+src/components/index.ts:31 - AccordionContent
+src/components/index.ts:31 - AccordionItem
+src/components/index.ts:31 - AccordionTrigger
+src/components/index.ts:32 - Collapsible
+src/components/index.ts:32 - CollapsibleContent
+src/components/index.ts:32 - CollapsibleTrigger
+src/components/index.ts:35 - Alert
+src/components/index.ts:35 - AlertDescription
+src/components/index.ts:35 - AlertTitle
+src/components/index.ts:36 - Tooltip
+src/components/index.ts:36 - TooltipContent
+src/components/index.ts:36 - TooltipProvider
+src/components/index.ts:36 - TooltipTrigger
+src/components/index.ts:37 - HoverCard
+src/components/index.ts:37 - HoverCardContent
+src/components/index.ts:37 - HoverCardTrigger
+src/components/index.ts:38 - Avatar
+src/components/index.ts:38 - AvatarFallback
+src/components/index.ts:38 - AvatarImage
+src/components/index.ts:39 - Calendar
+src/components/index.ts:40 - Command
+src/components/index.ts:40 - CommandEmpty
+src/components/index.ts:40 - CommandGroup
+src/components/index.ts:40 - CommandInput
+src/components/index.ts:40 - CommandItem
+src/components/index.ts:40 - CommandList
+src/components/index.ts:41 - ContextMenu
+src/components/index.ts:42 - Menubar
+src/components/index.ts:43 - NavigationMenu
+src/components/index.ts:44 - Pagination
+src/components/index.ts:45 - ScrollArea
+src/components/index.ts:46 - Table
+src/components/index.ts:46 - TableBody
+src/components/index.ts:46 - TableCell
+src/components/index.ts:46 - TableHead
+src/components/index.ts:46 - TableHeader
+src/components/index.ts:46 - TableRow
+src/components/index.ts:49 - ThemeProvider
+src/components/index.ts:50 - PremiumBadge
+src/components/index.ts:51 - UIEmptyState
+src/components/index.ts:52 - NoResults
+src/components/index.ts:53 - ResourceHeader
+src/components/index.ts:54 - SkeletonSelect
+src/components/index.ts:82 - ValuationEmptyState
+src/components/index.ts:83 - ValuationPhotoUpload
+src/components/index.ts:10 - EmptyState
+src/components/index.ts:13 - ErrorState
+src/components/index.ts:11 - PhotoUpload
+src/components/index.ts:12 - PlateLookup
+src/components/index.ts:13 - VinSubmitButton
+src/components/index.ts:16 - PremiumFeatureCard
+src/components/index.ts:17 - EnhancedPremiumFeaturesTabs
+src/components/index.ts:18 - PremiumFeaturesTabs
+src/components/index.ts:21 - FormSteps
+src/components/index.ts:24 - CarfaxBadge
+src/components/index.ts:27 - PremiumConditionSection
+src/components/index.ts:28 - ConditionAssessmentSection
+src/components/index.ts:29 - PremiumFeaturesSection
+src/components/index.ts:30 - ValueEstimateCard
+src/components/index.ts:33 - TabHeader
+src/components/index.ts:34 - TabContentWrapper
+src/components/index.ts:37 - SectionCard
+src/components/index.ts:38 - SubmitButton
+src/components/index.ts:39 - FeatureValueDisplay
+src/components/index.ts:42 - CarfaxErrorAlert
+src/components/index.ts:3 - PremiumAccount
+src/components/index.ts:5 - PremiumCheckout
+src/components/index.ts:9 - PremiumCheckoutButton
+src/components/index.ts:16 - CheckoutSummary
+src/components/index.ts:3 - PremiumHero
+src/components/index.ts:14 - VehicleFoundCard
+src/components/index.ts:8 - UnifiedLookupTabs
+src/components/index.ts:9 - VehicleDetailsGrid
+src/components/index.ts:10 - VehicleInfoCard
+src/components/index.ts:11 - UnifiedPlateLookup
+src/components/index.ts:14 - BreakdownList
+src/components/index.ts:15 - BreakdownItem
+src/components/index.ts:16 - VehicleScoreInfo
+src/components/index.ts:17 - ConfidenceScore
+src/components/index.ts:21 - vinLookup
+src/components/index.ts:22 - plateLookup
+src/components/index.ts:23 - lookupByVin
+src/components/index.ts:65 - lookupByPlate
+src/components/index.ts:108 - unifiedLookup
+src/components/index.ts:5 - LookupResult
+src/components/index.ts:12 - VinLookupOptions
+src/components/index.ts:17 - PlateLookupOptions
+src/components/index.ts:15 - DealerModule
+src/components/index.ts:4 - UnifiedFollowUpForm
+src/components/index.ts:10 - FollowUpForm
+src/components/index.ts:2 - BasicInfoTab
+src/components/index.ts:3 - ConditionTab
+src/components/index.ts:4 - VehicleIssuesTab
+src/components/index.ts:5 - DashboardLightsTab
+src/components/index.ts:6 - TitleOwnershipTab
+src/components/index.ts:7 - ServiceMaintenanceTab
+src/components/index.ts:8 - AccidentHistoryTab
+src/components/index.ts:9 - ModificationsTab
+src/components/index.ts:10 - FeaturesTab
+src/components/index.ts:13 - TechnologyTab
+src/components/index.ts:14 - SafetySecurityTab
+src/components/index.ts:15 - ClimateControlTab
+src/components/index.ts:16 - AudioEntertainmentTab
+src/components/index.ts:17 - InteriorMaterialsTab
+src/components/index.ts:18 - ExteriorFeaturesTab
+src/components/index.ts:19 - LuxuryMaterialsTab
+src/components/index.ts:20 - DriverAssistanceTab
+src/components/index.ts:21 - PerformancePackagesTab
+src/components/index.ts:8 - Header
+src/components/index.ts:9 - Navbar
+src/components/index.ts:7 - MobileMenu
+src/components/index.ts:5 - EnhancedErrorBoundary
+src/components/index.ts:6 - LoadingButton
+src/components/index.ts:6 - LoadingSpinner
+src/components/index.ts:6 - LoadingGrid
+src/components/index.ts:6 - LoadingState
+src/components/index.ts:7 - ZipCodeInput
+src/components/index.ts:8 - RouteRedirect
+src/components/index.ts:9 - SEO
+src/components/index.ts:13 - UnifiedConditionSelector
+src/components/index.ts:14 - ExteriorConditionSelectorBar
+src/components/index.ts:15 - InteriorConditionSelectorBar
+src/components/index.ts:16 - TireConditionSelectorBar
+src/components/index.ts:19 - CarFinderQaherHeader
+src/components/index.ts:24 - ErrorBoundary
+src/components/index.ts:25 - ZipInput
+src/components/index.ts:4 - FeatureBanner
+src/components/index.ts:5 - AnnouncementBar
+src/components/index.ts:6 - MarketingBanner
+src/components/index.ts:9 - Banner
+src/components/index.ts:10 - Announcement
+src/components/index.ts:5 - CDButton
+src/components/index.ts:7 - spacing
+src/components/index.ts:18 - colors
+src/components/index.ts:70 - radii
+src/components/index.ts:78 - typography
+src/components/index.ts:106 - shadows
+src/components/index.ts:115 - animation
+src/components/index.ts:130 - breakpoints
+src/components/index.ts:139 - zIndices
+src/components/index.ts:10 - Heading
+src/components/index.ts:28 - HeadingXL
+src/components/index.ts:29 - HeadingL
+src/components/index.ts:30 - HeadingM
+src/components/index.ts:31 - HeadingS
+src/components/index.ts:40 - Body
+src/components/index.ts:66 - BodyS
+src/components/index.ts:69 - BodyM
+src/components/index.ts:72 - BodyL
+src/components/index.ts:82 - Caption
+src/components/index.ts:130 - Paragraph
+src/components/index.ts:30 - CDCard
+src/components/index.ts:91 - CDCardHeader
+src/components/index.ts:102 - CDCardBody
+src/components/index.ts:109 - CDCardFooter
+src/components/index.ts:5 - InputProps
+src/components/index.ts:24 - CDInput
+src/components/index.ts:21 - CDTooltip
+src/components/index.ts:5 - BadgeProps
+src/components/index.ts:17 - CDBadge
+src/components/index.ts:7 - ModalProps
+src/components/index.ts:19 - ModalHeaderProps
+src/components/index.ts:24 - ModalBodyProps
+src/components/index.ts:29 - ModalFooterProps
+src/components/index.ts:34 - CDModal
+src/components/index.ts:123 - CDModalHeader
+src/components/index.ts:134 - CDModalBody
+src/components/index.ts:142 - CDModalFooter
+src/components/index.ts:36 - CDTable
+src/components/index.ts:5 - TableData
+src/components/index.ts:10 - TableColumn
+src/components/index.ts:17 - TableProps
+src/components/index.ts:5 - TabItem
+src/components/index.ts:13 - TabsProps
+src/components/index.ts:28 - CDTabs
+src/components/index.ts:5 - NavItem
+src/components/index.ts:12 - NavbarProps
+src/components/index.ts:26 - CDNavbar
+src/components/index.ts:5 - FooterLink
+src/components/index.ts:12 - FooterSection
+src/components/index.ts:17 - FooterProps
+src/components/index.ts:28 - CDFooter
+src/components/index.ts:15 - CDMobileCard
+src/components/index.ts:53 - CDMobileActionCard
+src/components/index.ts:86 - CDMobileBottomSheet
+src/components/index.ts:136 - CDMobileList
+src/components/index.ts:160 - CDMobileListItem
+src/components/SimilarListingsSection.tsx:11 - SimilarListingsSection
+src/config/index.ts:11 - Config (used in module)
+src/config/index.ts:94 - default (used in module)
+src/contexts/ReferralContext.tsx:5 - Referral
+src/contexts/ReferralContext.tsx:24 - ReferralProvider
+src/contexts/ReferralContext.tsx:44 - useReferral
+src/contexts/ValuationContext.tsx:51 - ValuationContext (used in module)
+src/data/us-states.ts:1 - State (used in module)
+src/data/us-states.ts:6 - states
+src/data/vehicle-data.ts:2 - VEHICLE_MAKES
+src/data/vehicle-data.ts:9 - VEHICLE_MODELS (used in module)
+src/data/vehicle-data.ts:41 - getModelsForMake
+src/data/vehicle-data.ts:45 - CURRENT_YEAR (used in module)
+src/data/vehicle-data.ts:46 - VEHICLE_YEARS
+src/data/vehicle-data.ts:51 - CONDITION_OPTIONS
+src/data/vehicle-features.ts:1 - VEHICLE_FEATURES
+src/emails/sendValuationPdfToDealer.ts:17 - sendValuationPdfToDealer (used in module)
+src/emails/sendValuationPdfToDealer.ts:46 - sendPdfToVerifiedDealers
+src/emails/sendValuationPdfToDealer.ts:4 - DealerEmailData (used in module)
+src/enrichment/getEnrichedVehicleData.ts:5 - getEnrichedVehicleData
+src/enrichment/types.ts:70 - FacebookListing (used in module)
+src/enrichment/types.ts:81 - CraigslistListing (used in module)
+src/enrichment/types.ts:92 - EbayListing (used in module)
+src/guards/DealerGuard.tsx:24 - default
+src/hooks/index.ts:3 - useAuth
+src/hooks/index.ts:4 - useDealerNotifications
+src/hooks/index.ts:5 - useDownloadPdf
+src/hooks/index.ts:6 - useFullValuationPipeline
+src/hooks/index.ts:7 - useValuationFallback
+src/hooks/use-toast.tsx:4 - ToastProps (used in module)
+src/hooks/useAccidentImpact.ts:6 - AccidentImpact (used in module)
+src/hooks/useAccidentImpact.ts:17 - AccidentHistory
+src/hooks/useAdminAnalytics.ts:24 - useAdminAnalytics
+src/hooks/useAdminAnalytics.ts:5 - AdminAnalytics (used in module)
+src/hooks/useAnimatedInView.ts:10 - useAnimatedInView
+src/hooks/useAuctionIndex.ts:18 - useAuctionIndex
+src/hooks/useAuctionIndex.ts:5 - AuctionIndexEntry (used in module)
+src/hooks/useAuth.tsx:7 - UserDetails (used in module)
+src/hooks/useAuth.tsx:17 - AuthContextType (used in module)
+src/hooks/useAuthTests.ts:6 - useAuthTests
+src/hooks/useAuthTests.ts:4 - TestResult (used in module)
+src/hooks/useCensus.ts:5 - CensusData (used in module)
+src/hooks/useCensus.ts:11 - CensusResult (used in module)
+src/hooks/useConsolidatedForecast.ts:21 - useConsolidatedForecast
+src/hooks/useConsolidatedForecast.ts:4 - ConsolidatedForecastData (used in module)
+src/hooks/useConsolidatedForecast.ts:15 - ConsolidatedForecastResult (used in module)
+src/hooks/useDealerOfferActions.ts:17 - useDealerOfferActions
+src/hooks/useDealerOfferActions.ts:7 - OfferActionOptions (used in module)
+src/hooks/useDealerOffers.ts:5 - useDealerOffers
+src/hooks/useDealerValuations.ts:18 - useDealerValuations
+src/hooks/useDealerValuations.ts:7 - ValuationWithVehicle
+src/hooks/useDealerValuations.ts:11 - ConditionFilterOption (used in module)
+src/hooks/useDealerVehicles.ts:5 - useDealerVehicles
+src/hooks/useDownloadPdf.ts:39 - default
+src/hooks/useEpaMpg.ts:5 - EpaMpgResult (used in module)
+src/hooks/useFeatureFlags.ts:17 - useFeatureFlags
+src/hooks/useForecast.ts:5 - useForecast
+src/hooks/useFormAutosave.ts:4 - useFormAutosave
+src/hooks/useFormSteps.ts:3 - useFormSteps
+src/hooks/useFormValidation.ts:3 - useFormValidation
+src/hooks/useLocalStorage.ts:4 - useLocalStorage
+src/hooks/useMarketListings.ts:15 - useMarketListings
+src/hooks/useMarketplaceComparison.ts:28 - useMarketplaceComparison
+src/hooks/useMissingFieldAnalysis.ts:22 - useMissingFieldAnalysis
+src/hooks/useNhtsaRecalls.ts:5 - RecallRecord (used in module)
+src/hooks/useNhtsaRecalls.ts:16 - UseNhtsaRecallsResult (used in module)
+src/hooks/useOsmGeocode.ts:5 - OsmGeocodeFeature (used in module)
+src/hooks/useOsmGeocode.ts:19 - OsmGeocodeResult (used in module)
+src/hooks/usePersistenceHealth.ts:4 - usePersistenceHealth
+src/hooks/usePrediction.ts:5 - usePrediction
+src/hooks/usePremiumDealer.ts:12 - usePremiumDealer
+src/hooks/usePremiumStatus.ts:11 - usePremiumStatus
+src/hooks/useProfile.ts:11 - useProfile
+src/hooks/useSaveValuation.ts:4 - useSaveValuation
+src/hooks/useScrapedListings.ts:5 - ScrapedListing (used in module)
+src/hooks/useServiceHistory.ts:20 - useServiceHistory
+src/hooks/useServiceHistory.ts:6 - ServiceRecord (used in module)
+src/hooks/useServiceHistory.ts:16 - UseServiceHistoryProps (used in module)
+src/hooks/useShareReport.ts:4 - useShareReport (used in module)
+src/hooks/useShareReport.ts:55 - default
+src/hooks/useStepNavigation.ts:22 - useStepNavigation
+src/hooks/useStepTransition.ts:11 - useStepTransition
+src/hooks/useUnifiedDecoder.ts:6 - useUnifiedDecoder
+src/hooks/useUserPlan.ts:12 - useUserPlan
+src/hooks/useUserPlan.ts:5 - UserPlan (used in module)
+src/hooks/useValidation.ts:10 - useValidation
+src/hooks/useValuationApi.ts:5 - UseValuationApiReturn (used in module)
+src/hooks/useValuationApi.ts:231 - default
+src/hooks/useValuationChat.ts:6 - useValuationChat
+src/hooks/useValuationData.ts:20 - useValuationData (used in module)
+src/hooks/useValuationData.ts:5 - UseValuationDataOptions (used in module)
+src/hooks/useValuationData.ts:11 - UseValuationDataReturn (used in module)
+src/hooks/useValuationData.ts:76 - testDeduplication
+src/hooks/useValuationData.ts:107 - useValuationHistory
+src/hooks/useValuationFactors.ts:4 - ValuationFactor (used in module)
+src/hooks/useValuationFactors.ts:13 - ConditionOption (used in module)
+src/hooks/useValuationFallback.ts:5 - FallbackState (used in module)
+src/hooks/useValuationIntegration.ts:192 - default
+src/hooks/useVehicleData.ts:4 - UseVehicleDataReturn (used in module)
+src/hooks/useVehicleDBData.ts:9 - useVehicleDBData
+src/hooks/useVehicleDBData.ts:4 - MakeModel (used in module)
+src/hooks/useVehicleHistory.ts:18 - useVehicleHistory
+src/hooks/useVehicleSelector.ts:37 - useVehicleSelector
+src/hooks/useVehicleSelector.ts:5 - UseVehicleSelectorReturn (used in module)
+src/hooks/useVehicleSelectors.ts:15 - useVehicleSelectors
+src/hooks/useVinForecast.ts:5 - useVinForecast
+src/hooks/useVinInput.ts:9 - useVinInput
+src/hooks/useVinLookup.ts:6 - useVinLookup
+src/hooks/useVpicVinLookup.ts:3 - useVinLookup
+src/hooks/useZipValidation.ts:14 - useZipValidation
+src/hooks/useZipValidation.ts:6 - ZipLocation (used in module)
+src/i18n/config.ts:2 - i18n (used in module)
+src/i18n/config.ts:21 - t
+src/i18n/config.ts:25 - default
+src/i18n/useLocalization.ts:4 - useLocalization
+src/layouts/AuthLayout.tsx:38 - default
+src/layouts/DealerLayout.tsx:8 - DealerLayout (used in module)
+src/lib/constants.ts:60 - VEHICLE_CONDITIONS
+src/lib/constants.ts:68 - FUEL_TYPES
+src/lib/constants.ts:77 - TRANSMISSION_TYPES
+src/lib/constants.ts:85 - BODY_TYPES
+src/lib/constants.ts:97 - DRIVETRAIN_TYPES
+src/lib/designSystem.ts:9 - colors (used in module)
+src/lib/designSystem.ts:99 - typography (used in module)
+src/lib/designSystem.ts:148 - spacing (used in module)
+src/lib/designSystem.ts:187 - borderRadius (used in module)
+src/lib/designSystem.ts:200 - shadows (used in module)
+src/lib/designSystem.ts:220 - transitions (used in module)
+src/lib/designSystem.ts:240 - zIndex (used in module)
+src/lib/designSystem.ts:256 - components (used in module)
+src/lib/designSystem.ts:347 - default
+src/lib/initPlatform.ts:104 - initPlatform
+src/lib/logger.ts:38 - default
+src/lib/monitoring.ts:205 - useMonitoring
+src/lib/monitoring.ts:215 - withErrorMonitoring
+src/lib/monitoring.ts:202 - monitoring (used in module)
+src/lib/monitoring.ts:233 - default
+src/lib/states.ts:2 - US_STATES
+src/lib/states.ts:56 - State
+src/pages/AboutPage.tsx:5 - default
+src/pages/AccessDeniedPage.tsx:92 - default
+src/pages/AccountPage.tsx:5 - default
+src/pages/AccountSettingsPage.tsx:8 - default
+src/pages/AdminDashboardPage.tsx:7 - default
+src/pages/AdminPage.tsx:5 - default
+src/pages/AuthCallbackPage.tsx:6 - default
+src/pages/AuthLandingPage.tsx:245 - default
+src/pages/AuthTestPage.tsx:4 - default
+src/pages/Contact.tsx:76 - default
+src/pages/ContactPage.tsx:60 - default
+src/pages/DashboardPage.tsx:75 - default
+src/pages/DealerInsightsPage.tsx:107 - default
+src/pages/DealerMessagesPage.tsx:24 - default
+src/pages/DealerProfileSettings.tsx:365 - default
+src/pages/DealerSubscriptionPage.tsx:338 - default
+src/pages/DebugMakesModels.tsx:5 - default
+src/pages/DesignSystem.tsx:427 - default
+src/pages/EquipmentPage.tsx:96 - default
+src/pages/EquipmentSelectionPage.tsx:18 - default
+src/pages/ForgotPasswordPage.tsx:109 - default
+src/pages/HomePage.tsx:12 - default
+src/pages/NicbVinCheckPage.tsx:63 - default
+src/pages/NotFound.tsx:7 - default
+src/pages/NotFoundPage.tsx:20 - default
+src/pages/PaymentCancelledPage.tsx:19 - default
+src/pages/PaymentSuccessPage.tsx:19 - default
+src/pages/PhotoAnalysisPage.tsx:20 - default
+src/pages/PlatformDiagnosticsPage.tsx:10 - default
+src/pages/Premium.tsx:6 - default
+src/pages/PremiumConditionPage.tsx:53 - default
+src/pages/PremiumResultsPage.tsx:5 - default
+src/pages/PremiumValuationPage.tsx:5 - default
+src/pages/PricingPage.tsx:11 - default
+src/pages/Privacy.tsx:49 - default
+src/pages/PrivacyPolicyPage.tsx:6 - default
+src/pages/ReferralDashboardPage.tsx:11 - default
+src/pages/ServiceHistoryPage.tsx:5 - default
+src/pages/SettingsPage.tsx:116 - default
+src/pages/StatsPage.tsx:5 - default
+src/pages/Terms.tsx:50 - default
+src/pages/TermsOfServicePage.tsx:56 - default
+src/pages/VehicleDetailsPage.tsx:20 - default
+src/pages/VehicleHistoryPage.tsx:6 - default
+src/providers/AppProviders.tsx:27 - default
+src/schemas/ainResponseSchema.ts:24 - validateAINResponse (used in module)
+src/schemas/ainResponseSchema.ts:41 - safeValidateAINResponse
+src/schemas/ainResponseSchema.ts:7 - AINResponseSchema (used in module)
+src/schemas/ainResponseSchema.ts:17 - AINResponse (used in module)
+src/scrapers/index.ts:5 - ScraperResult
+src/scrapers/index.ts:15 - availableScrapers
+src/scrapers/types.ts:2 - MarketplaceListing (used in module)
+src/scrapers/types.ts:19 - ScraperConfig
+src/scrapers/types.ts:25 - ScraperResult
+src/scripts/populateMsrpFromWeb.ts:54 - default
+src/services/adjustmentEngine.ts:8 - AdjustmentEngine
+src/services/adjustmentHelpers.ts:7 - getDepreciationAdjustment
+src/services/adjustmentHelpers.ts:42 - getMileageAdjustment
+src/services/adjustmentHelpers.ts:61 - getConditionAdjustment
+src/services/adjustmentHelpers.ts:77 - getFuelCostAdjustment
+src/services/aiExplanationService.ts:28 - generateAIExplanation
+src/services/aiExplanationService.ts:4 - ExplanationInput (used in module)
+src/services/ainService.ts:15 - askAIN
+src/services/ainService.ts:5 - AINResponse (used in module)
+src/services/ainService.ts:10 - ChatMessage (used in module)
+src/services/auction.ts:5 - fetchAuctionResultsByVin
+src/services/auctionDataService.ts:19 - fetchAuctionHistory
+src/services/auctionDataService.ts:4 - AuctionData (used in module)
+src/services/carPricePredictionService.ts:35 - getCarPricePrediction
+src/services/carPricePredictionService.ts:4 - CarPricePredictionRequest (used in module)
+src/services/carPricePredictionService.ts:18 - CarPricePredictionResponse (used in module)
+src/services/competitorPriceService.ts:24 - fetchCompetitorPrices
+src/services/confidenceExplainer.ts:32 - generateValuationExplanation
+src/services/confidenceExplainer.ts:3 - ValuationExplanationInput (used in module)
+src/services/fuelCostService.ts:191 - computeFuelCostImpact
+src/services/fuelCostService.ts:231 - fetchRegionalFuelPrice
+src/services/fuelCostService.ts:3 - FuelCostData (used in module)
+src/services/fuelCostService.ts:10 - FuelCostImpact
+src/services/generateConfidenceScore.ts:47 - generateConfidenceScore
+src/services/generateConfidenceScore.ts:160 - extractTrustedSources
+src/services/generateConfidenceScore.ts:6 - ConfidenceScoreParams (used in module)
+src/services/generateConfidenceScore.ts:15 - ConfidenceScoreResult (used in module)
+src/services/historyCheckService.ts:7 - lookupTitleStatus
+src/services/historyCheckService.ts:73 - lookupOpenRecalls
+src/services/marketListings.ts:37 - fetchMarketListings
+src/services/marketListings.ts:56 - fetchNewListings
+src/services/marketListings.ts:67 - storeMarketListings
+src/services/marketplaceService.ts:26 - fetchMarketplaceData
+src/services/marketplaceService.ts:65 - getScrapedListings
+src/services/marketplaceService.ts:105 - searchListingsByVehicle
+src/services/marketplaceService.ts:4 - MarketplaceListing (used in module)
+src/services/marketplaceService.ts:17 - MarketplaceSearchParams (used in module)
+src/services/marketSearchAgent.ts:399 - searchMarketListings
+src/services/marketSearchAgent.ts:4 - MarketSearchInput (used in module)
+src/services/marketSearchAgent.ts:14 - MarketSearchResult (used in module)
+src/services/photoScoringService.ts:5 - scorePhotos
+src/services/photoScoringService.ts:55 - convertToPhotoAnalysisResult
+src/services/photoScoringService.ts:71 - enhancedPhotoScoring
+src/services/plateService.ts:5 - lookupPlate
+src/services/realMarketplaceService.ts:4 - RealMarketplaceParams (used in module)
+src/services/realMarketplaceService.ts:16 - RealMarketplaceService
+src/services/scrapedListingsService.ts:17 - getScrapedListingsByVin
+src/services/scrapedListingsService.ts:42 - calculateAverageListingPrice (used in module)
+src/services/scrapedListingsService.ts:53 - formatListingsForPdf
+src/services/scrapedListingsService.ts:82 - generateMarketplaceAnalysisText
+src/services/scrapedListingsService.ts:4 - ScrapedListing (used in module)
+src/services/UnifiedLookupService.ts:342 - lookupByVin (used in module)
+src/services/UnifiedLookupService.ts:347 - lookupByPlate (used in module)
+src/services/ValuationApiService.ts:305 - default
+src/services/valuationAuditLogger.ts:18 - logValuationAudit
+src/services/valuationAuditLogger.ts:82 - logPipelineStage
+src/services/valuationAuditLogger.ts:4 - ValuationAuditPayload (used in module)
+src/services/valuationEngine.ts:46 - processValuation (used in module)
+src/services/valuationEngine.ts:4 - EnhancedValuationResult (used in module)
+src/services/valuationEngine.ts:31 - ValuationInput (used in module)
+src/services/valuationEngine.ts:162 - runValuation
+src/services/ValuationIntegrationService.ts:6 - EnrichmentData (used in module)
+src/services/ValuationIntegrationService.ts:430 - default
+src/services/vehicleDecodeService.ts:6 - decodeVin (used in module)
+src/services/vehicleDecodeService.ts:75 - retryDecode (used in module)
+src/services/vehicleDecodeService.ts:110 - auditDecodeSystem
+src/services/vehicleLookupService.ts:59 - fetchVehicleByPlate
+src/services/vehicleLookupService.ts:97 - fetchTrimOptions
+src/services/VinLookupService.ts:6 - VinLookupService
+src/services/VinLookupService.ts:19 - UnifiedLookupService (used in module)
+src/services/VinLookupService.ts:22 - VinServiceResponse (used in module)
+src/services/VinLookupService.ts:29 - vinService (used in module)
+src/services/VinLookupService.ts:41 - decodeVin (used in module)
+src/services/VinLookupService.ts:42 - default
+src/stores/useAINStore.ts:5 - ChatMessage (used in module)
+src/stores/useAINStore.ts:27 - useAINStore
+src/types/adjustments.ts:1 - AdjustmentSource (used in module)
+src/types/assistant.ts:2 - ChatMessage (used in module)
+src/types/assistant.ts:39 - AskAIResponse
+src/types/auction.ts:22 - AuctionInsight
+src/types/auctionIntelligence.ts:2 - AuctionIntelligencePriceTrend (used in module)
+src/types/auctionIntelligence.ts:12 - AuctionIntelligenceFlipFlags (used in module)
+src/types/audit.ts:1 - PipelineStage
+src/types/audit.ts:10 - StageStatus (used in module)
+src/types/audit.ts:14 - ApiOutcome (used in module)
+src/types/auth.ts:3 - User
+src/types/auth.ts:10 - UserDetails
+src/types/condition.ts:4 - BrakeConditionOption
+src/types/dealer.ts:2 - Dealer
+src/types/dealer.ts:13 - DealerOffer
+src/types/dealer.ts:28 - DealerValuation (used in module)
+src/types/dealerVehicle.ts:1 - DealerVehicle
+src/types/follow-up-answers.ts:42 - BrakeConditionOption
+src/types/listing.ts:25 - RawListing
+src/types/listings.ts:2 - BaseListing (used in module)
+src/types/listings.ts:17 - CarMaxListing
+src/types/listings.ts:28 - CraigslistListing
+src/types/listings.ts:37 - AutotraderListing
+src/types/listings.ts:45 - NormalizedListing
+src/types/lookup.ts:13 - DecodedVehicleInfo
+src/types/lookup.ts:39 - ManualEntryFormData
+src/types/market-orchestration.ts:3 - VehicleParams (used in module)
+src/types/market-orchestration.ts:14 - OrchestrationRequest
+src/types/market-orchestration.ts:20 - MarketComp
+src/types/market-orchestration.ts:45 - OrchestrationResult
+src/types/market-orchestration.ts:56 - CompSummary (used in module)
+src/types/market-orchestration.ts:73 - SourceResult (used in module)
+src/types/market-orchestration.ts:80 - SourceDistribution (used in module)
+src/types/market-orchestration.ts:85 - MarketSource
+src/types/marketListing.ts:70 - isDatabaseListing
+src/types/marketListing.ts:75 - isLiveSearchListing
+src/types/marketListing.ts:90 - getNormalizedDealerName (used in module)
+src/types/marketListing.ts:95 - getNormalizedTimestamp (used in module)
+src/types/premium-valuation.ts:2 - FeatureOption
+src/types/premium-valuation.ts:97 - FormDataKey
+src/types/resultTypes.ts:3 - ValidatedAdjustment
+src/types/resultTypes.ts:13 - MarketIntelligence
+src/types/section-header.ts:2 - SectionHeaderProps
+src/types/serviceRecord.d.ts:1 - ServiceRecord
+src/types/steps.ts:1 - StepConfig
+src/types/steps.ts:7 - VehicleInfo
+src/types/ui-components.ts:2 - ComboBoxItem
+src/types/unified-lookup.ts:45 - UnifiedLookupFormData (used in module)
+src/types/unified-lookup.ts:65 - UnifiedLookupResult (used in module)
+src/types/unified-lookup.ts:77 - LookupMethod
+src/types/unified-lookup.ts:78 - LookupTier
+src/types/unified-lookup.ts:79 - LookupSource
+src/types/unified-lookup.ts:82 - DecodedVehicleInfo
+src/types/unified-lookup.ts:83 - VehicleData
+src/types/unified-lookup.ts:84 - LookupFormData
+src/types/unified-lookup.ts:85 - VehicleLookupResult
+src/types/unified.ts:3 - Vehicle (used in module)
+src/types/unified.ts:14 - ValuationAdjustment (used in module)
+src/types/unified.ts:38 - TitleRecallInfo (used in module)
+src/types/unified.ts:53 - UserProfile
+src/types/unified.ts:63 - DealerOffer
+src/types/user.ts:2 - User
+src/types/user.ts:16 - UserDetails
+src/types/valuation-history.ts:2 - Valuation
+src/types/valuation.ts:3 - ReportData (used in module)
+src/types/valuation.ts:41 - AIConditionResult (used in module)
+src/types/valuation.ts:61 - SectionParams
+src/types/valuation.ts:82 - PdfOptions
+src/types/valuation.ts:95 - AICondition
+src/types/valuation.ts:207 - ValuationInput
+src/types/valuation.ts:311 - ValuationAdjustment (used in module)
+src/types/valuation.ts:372 - ValueBreakdown
+src/types/valuation.ts:420 - ValuationPipeline
+src/types/valuationTypes.ts:4 - MarketSearchInput
+src/types/vehicle-lookup.ts:18 - LookupFormData
+src/types/vehicle-lookup.ts:30 - VehicleLookupResult
+src/types/vehicle-lookup.ts:38 - LookupTier
+src/types/vpic.ts:1 - VpicVehicleData (used in module)
+src/types/vpic.ts:29 - VpicResponse
+src/types/vpic.ts:35 - VpicError
+src/utils/animations.ts:16 - fadeInAnimation
+src/utils/animations.ts:21 - slideInAnimation
+src/utils/api-utils.ts:31 - handleApiError (used in module)
+src/utils/api-utils.ts:96 - apiRequest
+src/utils/api-utils.ts:149 - invokeFunction
+src/utils/api-utils.ts:4 - ApiResponse (used in module)
+src/utils/api-utils.ts:11 - ApiErrorType (used in module)
+src/utils/api-utils.ts:21 - EnhancedApiError (used in module)
+src/utils/assistantContext.ts:4 - VehicleContext (used in module)
+src/utils/assistantContext.ts:22 - AssistantContext (used in module)
+src/utils/assistantContext.ts:37 - ChatMessage (used in module)
+src/utils/assistantContext.ts:42 - AskAIRequest
+src/utils/assistantContext.ts:50 - AskAIResponse
+src/utils/auctionFetcher.ts:44 - getAuctionResultsByVin
+src/utils/auctionFetcher.ts:60 - triggerAuctionDataFetch
+src/utils/auditLogger.ts:6 - ValuationAuditEntry (used in module)
+src/utils/auditLogger.ts:22 - ValuationAuditLogger (used in module)
+src/utils/auditLogger.ts:182 - auditLogger
+src/utils/buildTimeChecks.ts:63 - _buildTimeAssertion (used in module)
+src/utils/confidenceRules.ts:4 - fetchRules
+src/utils/confidenceScore.ts:20 - calculateConfidenceScore
+src/utils/confidenceScore.ts:64 - getConfidenceLevel
+src/utils/confidenceScore.ts:4 - ConfidenceScoreInputs (used in module)
+src/utils/constants.ts:1 - US_STATES
+src/utils/dateUtils.ts:6 - safeDateParse (used in module)
+src/utils/dateUtils.ts:17 - formatDate
+src/utils/dealerSources.ts:83 - getDealerTier (used in module)
+src/utils/dealerSources.ts:97 - getDealerTrustWeight
+src/utils/dealerSources.ts:103 - getDealerDomain
+src/utils/dealerSources.ts:4 - RetailDealerSources (used in module)
+src/utils/dealerSources.ts:19 - dealerTierWeights (used in module)
+src/utils/dealerSources.ts:25 - dealerDomainMap (used in module)
+src/utils/dealerSources.ts:61 - DealerSourceResult
+src/utils/dealerSources.ts:70 - WeightedListing
+src/utils/dealerSources.ts:108 - AllDealerSources
+src/utils/emailService.ts:15 - sendEmail (used in module)
+src/utils/emailService.ts:37 - sendWelcomeEmail
+src/utils/emailService.ts:61 - sendPasswordResetEmail
+src/utils/error-handling.ts:6 - ErrorReport (used in module)
+src/utils/error-handling.ts:86 - errorToString
+src/utils/errorClassification.ts:74 - shouldShowRetryButton
+src/utils/errorClassification.ts:78 - getRetryDelay
+src/utils/errorClassification.ts:2 - ClassifiedError (used in module)
+src/utils/errorHandling.ts:74 - errorToString
+src/utils/errorHandling.ts:125 - setupPuppeteerErrorHandler (used in module)
+src/utils/followUpDataHelpers.ts:5 - getCompletionPercentage (used in module)
+src/utils/followUpDataHelpers.ts:49 - shouldShowNextStep
+src/utils/followUpDataHelpers.ts:64 - getStepValidation
+src/utils/followUpDataHelpers.ts:74 - calculateAdjustments
+src/utils/followUpDataHelpers.ts:137 - processModifications
+src/utils/followUpFormValidation.ts:69 - sanitizeCondition
+src/utils/followUpFormValidation.ts:2 - ValidationResult (used in module)
+src/utils/followUpFormValidation.ts:9 - ValidCondition (used in module)
+src/utils/format.ts:16 - formatDate
+src/utils/format.ts:28 - formatNumber
+src/utils/formatters.ts:11 - formatNumber
+src/utils/formatters.ts:15 - formatPercentage
+src/utils/formatters.ts:32 - formatDateTime
+src/utils/generateValuationExplanation.ts:14 - generateValuationExplanation
+src/utils/getConditionAnalysis.ts:11 - getConditionAnalysis
+src/utils/getConditionAnalysis.ts:4 - AIConditionResult (used in module)
+src/utils/getListingsWithCondition.ts:19 - getListingsWithCondition
+src/utils/getListingsWithCondition.ts:85 - getListingsCount
+src/utils/getListingsWithCondition.ts:4 - ConditionFilterOption (used in module)
+src/utils/getListingsWithCondition.ts:10 - ValuationWithCondition (used in module)
+src/utils/getValuationContext.ts:5 - getValuationContext
+src/utils/helpers.ts:7 - generateUniqueId
+src/utils/helpers.ts:17 - truncateString
+src/utils/helpers.ts:27 - capitalizeFirstLetter
+src/utils/index.ts:9 - generatePdf
+src/utils/index.ts:10 - downloadPdf
+src/utils/index.ts:11 - uploadPdf
+src/utils/index.ts:15 - vinLookup
+src/utils/index.ts:16 - plateLookup
+src/utils/index.ts:22 - uploadPhoto
+src/utils/index.ts:23 - analyzePhoto
+src/utils/index.ts:48 - convertVehicleInfoToReportData
+src/utils/index.ts:151 - generateValuationPdf
+src/utils/index.ts:463 - downloadValuationPdf
+src/utils/index.ts:480 - uploadValuationPdf
+src/utils/index.ts:8 - ReportData
+src/utils/index.ts:41 - PdfOptions
+src/utils/index.ts:520 - generateReport
+src/utils/index.ts:23 - lookupByVin
+src/utils/index.ts:65 - lookupByPlate
+src/utils/index.ts:108 - unifiedLookup
+src/utils/index.ts:5 - LookupResult
+src/utils/index.ts:12 - VinLookupOptions
+src/utils/index.ts:17 - PlateLookupOptions
+src/utils/index.ts:20 - uploadAndAnalyzePhoto
+src/utils/index.ts:54 - analyzePhotoCondition
+src/utils/index.ts:107 - calculatePhotoScore
+src/utils/index.ts:130 - analyzeBatchPhotos
+src/utils/index.ts:139 - getBestPhoto
+src/utils/index.ts:152 - getConditionAdjustment
+src/utils/index.ts:3 - PhotoAnalysisResult
+src/utils/index.ts:12 - PhotoUploadResult
+src/utils/index.ts:166 - scorePhoto
+src/utils/p2pSources.ts:59 - getP2PTier (used in module)
+src/utils/p2pSources.ts:73 - getP2PTrustWeight
+src/utils/p2pSources.ts:79 - getP2PDomain
+src/utils/p2pSources.ts:4 - PrivateMarketplaces (used in module)
+src/utils/p2pSources.ts:10 - p2pTierWeights (used in module)
+src/utils/p2pSources.ts:16 - p2pDomainMap (used in module)
+src/utils/p2pSources.ts:35 - P2PSourceResult
+src/utils/p2pSources.ts:45 - P2PListing
+src/utils/p2pSources.ts:84 - AllP2PSources
+src/utils/premiumService.ts:2 - checkPremiumAccess
+src/utils/publicShareService.ts:17 - getValuationByToken
+src/utils/publicShareService.ts:3 - SharedValuation (used in module)
+src/utils/qrCodeGenerator.ts:2 - generateQRCode
+src/utils/queryMakesModels.ts:9 - queryAllMakesWithModels (used in module)
+src/utils/responsive-testing.ts:1 - DeviceSize (used in module)
+src/utils/responsive-testing.ts:7 - breakpoints (used in module)
+src/utils/responsive-testing.ts:19 - responsiveUtils (used in module)
+src/utils/route-validation.ts:7 - extractRoutePaths (used in module)
+src/utils/route-validation.ts:37 - validateCriticalRoutes
+src/utils/safeDataAccess.ts:2 - safeGet (used in module)
+src/utils/safeDataAccess.ts:6 - safeGetNested
+src/utils/safeDataAccess.ts:40 - withDefaults
+src/utils/schemas.ts:5 - VehicleLookupSchema (used in module)
+src/utils/schemas.ts:19 - VehicleLookupFormData
+src/utils/schemas.ts:22 - PlateSchema
+src/utils/schemas.ts:23 - VinSchema
+src/utils/shareUtils.ts:18 - generateShareLinkAndQR
+src/utils/shareUtils.ts:69 - extractDataFromShareToken
+src/utils/shareUtils.ts:87 - generateQRCodeOnly
+src/utils/shareUtils.ts:3 - ShareLinkData (used in module)
+src/utils/shareUtils.ts:12 - GeneratedShareData (used in module)
+src/utils/storage.ts:5 - uploadToS3
+src/utils/stripe-error-handling.ts:76 - getStripeErrorDetails (used in module)
+src/utils/stripe-error-handling.ts:122 - formatStripeError
+src/utils/stripeClient.ts:11 - createCheckoutSession
+src/utils/stripeClient.ts:37 - verifyPaymentSession
+src/utils/stripeClient.ts:4 - CheckoutOptions (used in module)
+src/utils/stripeService.ts:50 - checkoutSingleReport
+src/utils/stripeService.ts:60 - checkoutBundle3Reports
+src/utils/stripeService.ts:70 - checkoutBundle5Reports
+src/utils/stripeService.ts:80 - checkoutDealerSubscription
+src/utils/stripeService.ts:98 - createCheckoutSession (used in module)
+src/utils/stripeService.ts:169 - getStripePortalLink
+src/utils/stripeService.ts:207 - verifyPaymentSession
+src/utils/stripeService.ts:5 - STRIPE_PRODUCTS (used in module)
+src/utils/stripeService.ts:88 - CheckoutResponse (used in module)
+src/utils/unifiedConfidenceCalculator.ts:70 - calculateUnifiedConfidence
+src/utils/unifiedConfidenceCalculator.ts:171 - getConfidenceLevel
+src/utils/unifiedConfidenceCalculator.ts:181 - generateConfidenceExplanation
+src/utils/unifiedConfidenceCalculator.ts:7 - UnifiedConfidenceInput (used in module)
+src/utils/unifiedConfidenceCalculator.ts:55 - ConfidenceBreakdown (used in module)
+src/utils/validation.ts:4 - validateVin
+src/utils/validation.ts:17 - validatePlate
+src/utils/validation.ts:32 - validateMileage
+src/utils/validation.ts:43 - validateZipCode
+src/utils/valuation.ts:61 - createVinValuation
+src/utils/valuation.ts:132 - createPlateValuation
+src/utils/valuation.ts:147 - createManualValuation
+src/utils/valuation.ts:5 - ValuationDetails (used in module)
+src/utils/valuation.ts:18 - ValuationResult (used in module)
+src/utils/valuationAuditLogger.ts:40 - logValuationAudit (used in module)
+src/utils/valuationAuditLogger.ts:103 - logValuationStep (used in module)
+src/utils/valuationAuditLogger.ts:196 - logValuationError
+src/utils/valuationAuditLogger.ts:221 - logAdjustmentStep
+src/utils/valuationAuditLogger.ts:11 - AuditLogData (used in module)
+src/utils/valuationAuditLogger.ts:25 - ValuationStepMetadata
+src/utils/valuationErrorHandler.ts:108 - withRetry
+src/utils/valuationErrorHandler.ts:5 - ValuationError (used in module)
+src/utils/valuationErrorHandler.ts:13 - ValuationErrorHandler (used in module)
+src/utils/valuationLogger.ts:6 - ValuationLogEntry (used in module)
+src/utils/vehicleImages.ts:5 - getVehicleImageUrl
+src/utils/vehicleMetaParser.ts:13 - parseVehicleMetadata (used in module)
+src/utils/vehicleMetaParser.ts:64 - estimateMpgFromMetadata (used in module)
+src/utils/vehicleMetaParser.ts:3 - VehicleMetadata (used in module)
+src/valuation/calculateVehicleValue.ts:28 - calculatePriceRange
+src/valuation/calculateVehicleValue.ts:2 - AdjustmentItem (used in module)
+src/valuation/types.ts:5 - CalculateVehicleValueInput
+src/valuation/types.ts:12 - VehicleValuationResult
+src/valuation/types.ts:43 - MarketData
+src/api/sources/carmax.ts:4 - CarMaxSearchQuery (used in module)
+src/api/sources/carmax.ts:15 - CarMaxListing (used in module)
+src/api/sources/carmax.ts:32 - CarMaxSource (used in module)
+src/api/sources/carmax.ts:205 - default
+src/components/admin/MsrpPopulationPanel.tsx:10 - MsrpPopulationPanel
+src/components/admin/PersistenceHealthDashboard.tsx:8 - PersistenceHealthDashboard
+src/components/admin/SystemHealthDashboard.tsx:27 - SystemHealthDashboard (used in module)
+src/components/admin/SystemHealthDashboard.tsx:220 - default
+src/components/admin/ValuationDebugDashboard.tsx:23 - ValuationDebugDashboard
+src/components/animations/index.ts:6 - ValuePresenter
+src/components/animations/index.ts:16 - AnimatedCounter
+src/components/animations/index.ts:17 - ProgressRing
+src/components/animations/index.ts:15 - EmptyStateAnimation
+src/components/animations/index.ts:4 - containerVariants
+src/components/animations/index.ts:15 - itemVariants
+src/components/animations/index.ts:27 - fadeInVariants
+src/components/animations/index.ts:37 - scaleInVariants
+src/components/animations/index.ts:49 - slideInRightVariants
+src/components/animations/index.ts:61 - slideInLeftVariants
+src/components/animations/index.ts:74 - createPressAnimation
+src/components/animations/index.ts:79 - shouldReduceMotion
+src/components/animations/index.ts:85 - getConfidenceColor
+src/components/animations/index.ts:94 - getConfidenceLabel
+src/components/audit/AuditChecklist.tsx:33 - AuditChecklist
+src/components/auth/AuthGuard.tsx:15 - AuthGuard
+src/components/auth/AuthGuard.tsx:83 - UserProfile
+src/components/chat/AIChatBubble.tsx:10 - AIChatBubble
+src/components/chat/AINAssistantTrigger.tsx:15 - default
+src/components/common/EnhancedErrorBoundary.tsx:133 - default
+src/components/common/ExteriorConditionSelectorBar.tsx:5 - ExteriorConditionSelectorBarProps (used in module)
+src/components/common/InteriorConditionSelectorBar.tsx:5 - InteriorConditionSelectorBarProps (used in module)
+src/components/common/SEO.tsx:53 - default
+src/components/common/TireConditionSelectorBar.tsx:5 - TireConditionSelectorBarProps (used in module)
+src/components/common/UnifiedConditionSelector.tsx:13 - ConditionType (used in module)
+src/components/common/UnifiedConditionSelector.tsx:170 - default
+src/components/common/ZipCodeInput.tsx:98 - default
+src/components/comprehensive/ComprehensiveValuationReport.tsx:17 - ComprehensiveValuationReport
+src/components/comprehensive/IndustryLeaderDataSection.tsx:16 - IndustryLeaderDataSection
+src/components/comprehensive/MarketplaceDataSection.tsx:16 - MarketplaceDataSection
+src/components/dashboard/PremiumBadge.tsx:10 - PremiumBadge (used in module)
+src/components/dashboard/PremiumBadge.tsx:18 - default
+src/components/dealer/AcceptedOfferCard.tsx:8 - AcceptedOfferCardProps (used in module)
+src/components/dealer/AcceptedOfferCard.tsx:60 - default
+src/components/dealer/DealerOffersList.tsx:7 - DealerOffersListProps (used in module)
+src/components/dealer/DealerOffersList.tsx:85 - default
+src/components/dealer/DealerSidebar.tsx:4 - DealerSidebar (used in module)
+src/components/dealer/DealerSidebar.tsx:23 - default
+src/components/dealer/OfferAcceptanceModal.tsx:13 - OfferAcceptanceModalProps (used in module)
+src/components/dealer/OfferAcceptanceModal.tsx:22 - OfferAcceptanceModal (used in module)
+src/components/dealer/OfferAcceptanceModal.tsx:65 - default
+src/components/dealer/OfferScoreBadge.tsx:5 - OfferScoreBadgeProps (used in module)
+src/components/dealer/OfferScoreBadge.tsx:61 - default
+src/components/debug/VehicleDataDebug.tsx:11 - VehicleDataDebug
+src/components/dev/ComponentVisibilityHelper.tsx:15 - ComponentVisibilityHelper (used in module)
+src/components/dev/ComponentVisibilityHelper.tsx:39 - default
+src/components/effects/ConfettiEffect.tsx:10 - ConfettiEffect (used in module)
+src/components/effects/ConfettiEffect.tsx:31 - default
+src/components/enriched/EnrichedDataCard.tsx:25 - EnrichedDataCard (used in module)
+src/components/enriched/EnrichedDataCard.tsx:88 - default
+src/components/enriched/PremiumEnrichmentGate.tsx:13 - PremiumEnrichmentGate
+src/components/features/EnhancedFeaturesSelector.tsx:12 - EnhancedFeaturesSelector
+src/components/features/FeatureCard.tsx:81 - FeatureCard
+src/components/followup/FollowUpProgress.tsx:12 - FollowUpProgress
+src/components/followup/QuickOverviewCard.tsx:18 - QuickOverviewCard
+src/components/followup/SaveStatusIndicator.tsx:13 - SaveStatusIndicator
+src/components/followup/TabNavigation.tsx:19 - TabNavigation
+src/components/followup/TabProgressHeader.tsx:12 - TabProgressHeader
+src/components/followup/TabValidationAlerts.tsx:18 - TabValidationAlerts
+src/components/form/index.ts:62 - validateForm
+src/components/form/index.ts:7 - vinSchema
+src/components/form/index.ts:20 - plateSchema
+src/components/form/index.ts:31 - manualEntrySchema
+src/components/form/index.ts:55 - ValidationResult
+src/components/form/index.ts:49 - FreeValuationForm
+src/components/form/index.ts:13 - VehicleFormTooltip
+src/components/home/AiAssistantPreview.tsx:8 - AiAssistantPreview (used in module)
+src/components/home/AiAssistantPreview.tsx:64 - default
+src/components/home/CarCard.tsx:19 - CarCard
+src/components/home/ComparisonTable.tsx:7 - ComparisonTable
+src/components/home/CoreValueProps.tsx:5 - CoreValueProps
+src/components/home/EnhancedFeatures.tsx:23 - EnhancedFeatures
+src/components/home/EnhancedTestimonialsCarousel.tsx:40 - EnhancedTestimonialsCarousel
+src/components/home/EnterpriseFeaturesSection.tsx:6 - EnterpriseFeaturesSection
+src/components/home/EnterpriseHeroSection.tsx:11 - EnterpriseHeroSection
+src/components/home/EnterpriseStatsSection.tsx:5 - EnterpriseStatsSection
+src/components/home/EnterpriseTestimonialsSection.tsx:6 - EnterpriseTestimonialsSection
+src/components/home/FeaturesOverview.tsx:24 - FeaturesOverview
+src/components/home/IndustryProof.tsx:5 - IndustryProof
+src/components/home/InstantTrustBar.tsx:5 - InstantTrustBar
+src/components/home/KeyFeatures.tsx:4 - KeyFeatures
+src/components/home/LookupTabs.tsx:12 - LookupTabs
+src/components/home/MarketSnapshot.tsx:23 - MarketSnapshot
+src/components/home/OnboardingTour.tsx:11 - OnboardingTour
+src/components/home/PdfPreview.tsx:11 - PdfPreview
+src/components/home/PhotoScoringWidget.tsx:15 - PhotoScoringWidget
+src/components/home/PremiumFeatures.tsx:5 - PremiumFeatures
+src/components/home/PremiumHeroSection.tsx:6 - PremiumHeroSection
+src/components/home/PremiumServicesGrid.tsx:29 - PremiumServicesGrid
+src/components/home/TestimonialsSection.tsx:39 - TestimonialsSection (used in module)
+src/components/home/TestimonialsSection.tsx:99 - default
+src/components/home/ValuePropositionSection.tsx:29 - ValuePropositionSection
+src/components/home/WelcomeBanner.tsx:4 - WelcomeBanner
+src/components/layout/index.ts:2 - Navbar
+src/components/layout/index.ts:3 - Header
+src/components/layout/index.ts:4 - Footer
+src/components/layout/ReactNodeWrapper.tsx:7 - ReactNodeWrapper
+src/components/lookup/ConditionSelectorSegmented.tsx:25 - ConditionSelectorSegmented
+src/components/lookup/VehicleHistory.tsx:13 - VehicleHistory
+src/components/lookup/VehicleInfoCard.tsx:22 - VehicleInfoCard (used in module)
+src/components/lookup/VehicleScoring.tsx:6 - VehicleScoringProps (used in module)
+src/components/lookup/VehicleScoring.tsx:18 - VehicleScoring
+src/components/market/GoogleStyleListings.tsx:20 - GoogleStyleListings
+src/components/marketing/MarketingBanner.tsx:6 - MarketingBannerProps (used in module)
+src/components/marketing/MarketingBanner.tsx:62 - default
+src/components/modals/index.ts:13 - PhotoToolModal
+src/components/modals/index.ts:29 - ConfirmOfferModal
+src/components/modals/index.ts:13 - ValuationStepsModal
+src/components/notifications/DealerOfferNotification.tsx:27 - DealerOfferNotification (used in module)
+src/components/notifications/DealerOfferNotification.tsx:84 - showDealerOfferNotification
+src/components/pdf/PDFPreview.tsx:23 - PDFPreview
+src/components/premium/BuyCreditsModal.tsx:50 - BuyCreditsModal (used in module)
+src/components/premium/BuyCreditsModal.tsx:123 - default
+src/components/premium/ComparisonSection.tsx:9 - ComparisonSection
+src/components/premium/ComparisonSection.tsx:5 - ComparisonSectionProps (used in module)
+src/components/premium/FeaturesSection.tsx:17 - FeaturesSection
+src/components/premium/MarketOffersTab.tsx:42 - MarketOffersTab
+src/components/premium/MarketTrends.tsx:22 - MarketTrends
+src/components/premium/PremiumAccessGate.tsx:15 - PremiumAccessGate
+src/components/premium/PremiumAccessRequired.tsx:20 - PremiumAccessRequired
+src/components/premium/PremiumCard.tsx:17 - PremiumCard (used in module)
+src/components/premium/PremiumSuccessPage.tsx:8 - PremiumSuccessPage
+src/components/premium/PremiumUpgradeCTA.tsx:13 - PremiumUpgradeCTA (used in module)
+src/components/premium/PremiumUpgradeCTA.tsx:95 - default
+src/components/premium/PremiumValuationSection.tsx:54 - default
+src/components/premium/types.ts:4 - ValuationSummaryProps
+src/components/premium/ValuationBreakdown.tsx:12 - ValuationBreakdown (used in module)
+src/components/premium/ValuationBreakdown.tsx:76 - default
+src/components/premium/VehicleDataInfo.tsx:8 - VehicleDataInfo (used in module)
+src/components/premium/VehicleDataInfo.tsx:57 - default
+src/components/privacy/CookieBanner.tsx:7 - CookieBanner
+src/components/profile/AvatarUpload.tsx:15 - AvatarUpload
+src/components/profile/ProfileForm.tsx:21 - ProfileForm
+src/components/referrals/ReferralHistoryList.tsx:11 - ReferralHistoryList
+src/components/referrals/ReferralStatusCard.tsx:13 - ReferralStatusCard
+src/components/result/ResultHeader.tsx:10 - ResultHeader
+src/components/result/useValuationId.ts:3 - useValuationId
+src/components/result/VehicleDetailsCard.tsx:20 - VehicleDetailsCard (used in module)
+src/components/result/VehicleDetailsCard.tsx:111 - default
+src/components/results/SimilarListingsSection.tsx:11 - SimilarListingsSection
+src/components/saved/SavedValuationsList.tsx:18 - SavedValuationsList
+src/components/service-history/AddServiceForm.tsx:142 - default
+src/components/service-history/EmptyState.tsx:4 - EmptyState
+src/components/service-history/index.ts:3 - ServiceHistoryDisplay
+src/components/service-history/index.ts:4 - ServiceHistoryUploader
+src/components/service-history/index.ts:5 - AddServiceForm
+src/components/service-history/index.ts:6 - ServiceRecordsList
+src/components/service-history/ServiceHistoryDisplay.tsx:7 - ServiceHistoryDisplayProps (used in module)
+src/components/service-history/ServiceRecordsEmpty.tsx:4 - ServiceRecordsEmpty (used in module)
+src/components/service-history/ServiceRecordsList.tsx:9 - ServiceRecord (used in module)
+src/components/service-history/ServiceRecordsList.tsx:21 - ServiceRecordsListProps (used in module)
+src/components/service-history/ServiceRecordsList.tsx:91 - default
+src/components/stats/index.ts:2 - StatCard
+src/components/stats/index.ts:3 - StatsCard
+src/components/stats/index.ts:4 - LeaderboardRow
+src/components/stats/index.ts:5 - AnimatedCounter
+src/components/steps/VehicleLookup.tsx:14 - VehicleLookup
+src/components/testing/AuthTestPanel.tsx:8 - TestResult (used in module)
+src/components/testing/AuthTestPanel.tsx:20 - AuthTestPanel
+src/components/theme/index.ts:2 - ThemeToggle
+src/components/theme/ThemeProvider.tsx:24 - ThemeProvider
+src/components/theme/ThemeProvider.tsx:67 - useTheme
+src/components/title-ownership/index.ts:3 - OwnershipHistory
+src/components/title-ownership/index.ts:4 - TitleStatusSelector
+src/components/title-ownership/index.ts:5 - VehicleHistorySection
+src/components/ui/animated-button.tsx:18 - AnimatedButton (used in module)
+src/components/ui/animated-card.tsx:18 - AnimatedCard (used in module)
+src/components/ui/badge-enhanced.tsx:41 - BadgeProps (used in module)
+src/components/ui/badge-enhanced.tsx:97 - BadgeEnhanced (used in module)
+src/components/ui/badge-enhanced.tsx:97 - badgeVariants (used in module)
+src/components/ui/breadcrumb.tsx:109 - Breadcrumb (used in module)
+src/components/ui/breadcrumb.tsx:110 - BreadcrumbEllipsis (used in module)
+src/components/ui/breadcrumb.tsx:111 - BreadcrumbItem (used in module)
+src/components/ui/breadcrumb.tsx:112 - BreadcrumbLink (used in module)
+src/components/ui/breadcrumb.tsx:113 - BreadcrumbList (used in module)
+src/components/ui/breadcrumb.tsx:114 - BreadcrumbPage (used in module)
+src/components/ui/breadcrumb.tsx:115 - BreadcrumbSeparator (used in module)
+src/components/ui/button-enhanced.tsx:56 - ButtonProps (used in module)
+src/components/ui/button-enhanced.tsx:116 - ButtonEnhanced (used in module)
+src/components/ui/button-enhanced.tsx:116 - buttonVariants (used in module)
+src/components/ui/card-enhanced.tsx:111 - Card (used in module)
+src/components/ui/card-enhanced.tsx:112 - CardContent (used in module)
+src/components/ui/card-enhanced.tsx:113 - CardDescription (used in module)
+src/components/ui/card-enhanced.tsx:114 - CardFooter (used in module)
+src/components/ui/card-enhanced.tsx:115 - CardHeader (used in module)
+src/components/ui/card-enhanced.tsx:116 - CardImage (used in module)
+src/components/ui/card-enhanced.tsx:117 - CardTitle (used in module)
+src/components/ui/carousel.tsx:254 - Carousel (used in module)
+src/components/ui/carousel.tsx:255 - CarouselApi (used in module)
+src/components/ui/carousel.tsx:256 - CarouselContent (used in module)
+src/components/ui/carousel.tsx:257 - CarouselItem (used in module)
+src/components/ui/carousel.tsx:258 - CarouselNext (used in module)
+src/components/ui/carousel.tsx:259 - CarouselPrevious (used in module)
+src/components/ui/chart.tsx:9 - ChartConfig (used in module)
+src/components/ui/chart.tsx:363 - ChartContainer (used in module)
+src/components/ui/chart.tsx:364 - ChartLegend (used in module)
+src/components/ui/chart.tsx:365 - ChartLegendContent (used in module)
+src/components/ui/chart.tsx:366 - ChartStyle (used in module)
+src/components/ui/chart.tsx:367 - ChartTooltip (used in module)
+src/components/ui/chart.tsx:368 - ChartTooltipContent (used in module)
+src/components/ui/ColorSwatch.tsx:27 - ColorSwatch
+src/components/ui/ColorSwatch.tsx:13 - ColorOption (used in module)
+src/components/ui/combo-box.tsx:19 - ComboBoxItem (used in module)
+src/components/ui/combo-box.tsx:24 - ComboBoxProps (used in module)
+src/components/ui/combobox.tsx:39 - ComboBox (used in module)
+src/components/ui/combobox.tsx:163 - Combobox
+src/components/ui/condition-badge.tsx:21 - ConditionBadge
+src/components/ui/container.tsx:18 - default
+src/components/ui/custom-button.tsx:7 - ButtonProps (used in module)
+src/components/ui/custom-button.tsx:12 - Button (used in module)
+src/components/ui/custom-button.tsx:39 - PremiumButton
+src/components/ui/data-table.tsx:15 - DataTable
+src/components/ui/delete-confirmation-dialog.tsx:24 - DeleteConfirmationDialog
+src/components/ui/drawer.tsx:107 - Drawer (used in module)
+src/components/ui/drawer.tsx:108 - DrawerClose (used in module)
+src/components/ui/drawer.tsx:109 - DrawerContent (used in module)
+src/components/ui/drawer.tsx:110 - DrawerDescription (used in module)
+src/components/ui/drawer.tsx:111 - DrawerFooter (used in module)
+src/components/ui/drawer.tsx:112 - DrawerHeader (used in module)
+src/components/ui/drawer.tsx:113 - DrawerOverlay (used in module)
+src/components/ui/drawer.tsx:114 - DrawerPortal (used in module)
+src/components/ui/drawer.tsx:115 - DrawerTitle (used in module)
+src/components/ui/drawer.tsx:116 - DrawerTrigger (used in module)
+src/components/ui/entity-card.tsx:9 - EntityStatus (used in module)
+src/components/ui/entity-card.tsx:11 - EntityCardAction (used in module)
+src/components/ui/entity-card.tsx:42 - EntityCard (used in module)
+src/components/ui/entity-card.tsx:152 - default
+src/components/ui/icons.tsx:3 - CheckCircleIcon
+src/components/ui/icons.tsx:24 - XCircleIcon
+src/components/ui/icons.tsx:44 - Check3DIcon
+src/components/ui/index.ts:55 - Toaster
+src/components/ui/index.ts:58 - Skeleton
+src/components/ui/index.ts:59 - Spinner
+src/components/ui/index.ts:60 - EmptyState
+src/components/ui/index.ts:61 - NoResults
+src/components/ui/index.ts:62 - ResourceHeader
+src/components/ui/index.ts:37 - ButtonProps
+src/components/ui/index.ts:57 - Button
+src/components/ui/index.ts:57 - buttonVariants
+src/components/ui/index.ts:6 - InputProps
+src/components/ui/index.ts:26 - Input
+src/components/ui/index.ts:25 - Label
+src/components/ui/index.ts:68 - Card
+src/components/ui/index.ts:68 - CardHeader
+src/components/ui/index.ts:68 - CardFooter
+src/components/ui/index.ts:68 - CardTitle
+src/components/ui/index.ts:68 - CardDescription
+src/components/ui/index.ts:68 - CardContent
+src/components/ui/index.ts:27 - BadgeProps
+src/components/ui/index.ts:37 - Badge
+src/components/ui/index.ts:37 - badgeVariants
+src/components/ui/index.ts:20 - Tabs
+src/components/ui/index.ts:51 - TabsList
+src/components/ui/index.ts:65 - TabsTrigger
+src/components/ui/index.ts:97 - TabsContent
+src/components/ui/index.ts:149 - Select
+src/components/ui/index.ts:150 - SelectGroup
+src/components/ui/index.ts:151 - SelectValue
+src/components/ui/index.ts:152 - SelectTrigger
+src/components/ui/index.ts:153 - SelectContent
+src/components/ui/index.ts:154 - SelectLabel
+src/components/ui/index.ts:155 - SelectItem
+src/components/ui/index.ts:156 - SelectSeparator
+src/components/ui/index.ts:157 - SelectScrollUpButton
+src/components/ui/index.ts:158 - SelectScrollDownButton
+src/components/ui/index.ts:6 - TextareaProps
+src/components/ui/index.ts:25 - Textarea
+src/components/ui/index.ts:28 - Checkbox
+src/components/ui/index.ts:43 - RadioGroup
+src/components/ui/index.ts:43 - RadioGroupItem
+src/components/ui/index.ts:49 - Switch
+src/components/ui/index.ts:58 - Slider
+src/components/ui/index.ts:26 - Progress
+src/components/ui/index.ts:26 - Separator
+src/components/ui/index.ts:117 - ToastProps
+src/components/ui/index.ts:118 - ToastActionElement
+src/components/ui/index.ts:119 - ToastProvider
+src/components/ui/index.ts:120 - ToastViewport
+src/components/ui/index.ts:121 - Toast
+src/components/ui/index.ts:122 - ToastTitle
+src/components/ui/index.ts:123 - ToastDescription
+src/components/ui/index.ts:124 - ToastClose
+src/components/ui/index.ts:125 - ToastAction
+src/components/ui/index.ts:28 - Sonner
+src/components/ui/index.ts:30 - Popover
+src/components/ui/index.ts:30 - PopoverContent
+src/components/ui/index.ts:30 - PopoverTrigger
+src/components/ui/index.ts:175 - DropdownMenu
+src/components/ui/index.ts:176 - DropdownMenuTrigger
+src/components/ui/index.ts:177 - DropdownMenuContent
+src/components/ui/index.ts:178 - DropdownMenuItem
+src/components/ui/index.ts:179 - DropdownMenuCheckboxItem
+src/components/ui/index.ts:180 - DropdownMenuRadioItem
+src/components/ui/index.ts:181 - DropdownMenuLabel
+src/components/ui/index.ts:182 - DropdownMenuSeparator
+src/components/ui/index.ts:183 - DropdownMenuShortcut
+src/components/ui/index.ts:184 - DropdownMenuGroup
+src/components/ui/index.ts:185 - DropdownMenuPortal
+src/components/ui/index.ts:186 - DropdownMenuSub
+src/components/ui/index.ts:187 - DropdownMenuSubContent
+src/components/ui/index.ts:188 - DropdownMenuSubTrigger
+src/components/ui/index.ts:189 - DropdownMenuRadioGroup
+src/components/ui/index.ts:111 - Dialog
+src/components/ui/index.ts:112 - DialogPortal
+src/components/ui/index.ts:113 - DialogOverlay
+src/components/ui/index.ts:114 - DialogClose
+src/components/ui/index.ts:115 - DialogTrigger
+src/components/ui/index.ts:116 - DialogContent
+src/components/ui/index.ts:117 - DialogHeader
+src/components/ui/index.ts:118 - DialogFooter
+src/components/ui/index.ts:119 - DialogTitle
+src/components/ui/index.ts:120 - DialogDescription
+src/components/ui/index.ts:128 - AlertDialog
+src/components/ui/index.ts:129 - AlertDialogAction
+src/components/ui/index.ts:130 - AlertDialogCancel
+src/components/ui/index.ts:131 - AlertDialogContent
+src/components/ui/index.ts:132 - AlertDialogDescription
+src/components/ui/index.ts:133 - AlertDialogFooter
+src/components/ui/index.ts:134 - AlertDialogHeader
+src/components/ui/index.ts:135 - AlertDialogOverlay
+src/components/ui/index.ts:136 - AlertDialogPortal
+src/components/ui/index.ts:137 - AlertDialogTitle
+src/components/ui/index.ts:138 - AlertDialogTrigger
+src/components/ui/index.ts:129 - Sheet
+src/components/ui/index.ts:130 - SheetPortal
+src/components/ui/index.ts:131 - SheetOverlay
+src/components/ui/index.ts:132 - SheetTrigger
+src/components/ui/index.ts:133 - SheetClose
+src/components/ui/index.ts:134 - SheetContent
+src/components/ui/index.ts:135 - SheetHeader
+src/components/ui/index.ts:136 - SheetFooter
+src/components/ui/index.ts:137 - SheetTitle
+src/components/ui/index.ts:138 - SheetDescription
+src/components/ui/index.ts:57 - Accordion
+src/components/ui/index.ts:57 - AccordionContent
+src/components/ui/index.ts:57 - AccordionItem
+src/components/ui/index.ts:57 - AccordionTrigger
+src/components/ui/index.ts:10 - Collapsible
+src/components/ui/index.ts:10 - CollapsibleTrigger
+src/components/ui/index.ts:10 - CollapsibleContent
+src/components/ui/index.ts:60 - Alert
+src/components/ui/index.ts:60 - AlertTitle
+src/components/ui/index.ts:60 - AlertDescription
+src/components/ui/index.ts:8 - TooltipProvider
+src/components/ui/index.ts:16 - Tooltip
+src/components/ui/index.ts:25 - TooltipTrigger
+src/components/ui/index.ts:34 - TooltipContent
+src/components/ui/index.ts:27 - HoverCard
+src/components/ui/index.ts:27 - HoverCardContent
+src/components/ui/index.ts:27 - HoverCardTrigger
+src/components/ui/index.ts:48 - Avatar
+src/components/ui/index.ts:48 - AvatarFallback
+src/components/ui/index.ts:48 - AvatarImage
+src/components/ui/index.ts:9 - CalendarProps
+src/components/ui/index.ts:68 - Calendar
+src/components/ui/index.ts:145 - Command
+src/components/ui/index.ts:146 - CommandDialog
+src/components/ui/index.ts:147 - CommandInput
+src/components/ui/index.ts:148 - CommandList
+src/components/ui/index.ts:149 - CommandEmpty
+src/components/ui/index.ts:150 - CommandGroup
+src/components/ui/index.ts:151 - CommandItem
+src/components/ui/index.ts:152 - CommandShortcut
+src/components/ui/index.ts:153 - CommandSeparator
+src/components/ui/index.ts:184 - ContextMenu
+src/components/ui/index.ts:185 - ContextMenuCheckboxItem
+src/components/ui/index.ts:186 - ContextMenuContent
+src/components/ui/index.ts:187 - ContextMenuGroup
+src/components/ui/index.ts:188 - ContextMenuItem
+src/components/ui/index.ts:189 - ContextMenuLabel
+src/components/ui/index.ts:190 - ContextMenuPortal
+src/components/ui/index.ts:191 - ContextMenuRadioGroup
+src/components/ui/index.ts:192 - ContextMenuRadioItem
+src/components/ui/index.ts:193 - ContextMenuSeparator
+src/components/ui/index.ts:194 - ContextMenuShortcut
+src/components/ui/index.ts:195 - ContextMenuSub
+src/components/ui/index.ts:196 - ContextMenuSubContent
+src/components/ui/index.ts:197 - ContextMenuSubTrigger
+src/components/ui/index.ts:198 - ContextMenuTrigger
+src/components/ui/index.ts:214 - Menubar
+src/components/ui/index.ts:215 - MenubarMenu
+src/components/ui/index.ts:216 - MenubarTrigger
+src/components/ui/index.ts:217 - MenubarContent
+src/components/ui/index.ts:218 - MenubarItem
+src/components/ui/index.ts:219 - MenubarCheckboxItem
+src/components/ui/index.ts:220 - MenubarRadioItem
+src/components/ui/index.ts:221 - MenubarLabel
+src/components/ui/index.ts:222 - MenubarSeparator
+src/components/ui/index.ts:223 - MenubarShortcut
+src/components/ui/index.ts:224 - MenubarGroup
+src/components/ui/index.ts:225 - MenubarPortal
+src/components/ui/index.ts:226 - MenubarSub
+src/components/ui/index.ts:227 - MenubarSubContent
+src/components/ui/index.ts:228 - MenubarSubTrigger
+src/components/ui/index.ts:229 - MenubarRadioGroup
+src/components/ui/index.ts:128 - navigationMenuTriggerStyle
+src/components/ui/index.ts:129 - NavigationMenu
+src/components/ui/index.ts:130 - NavigationMenuList
+src/components/ui/index.ts:131 - NavigationMenuItem
+src/components/ui/index.ts:132 - NavigationMenuContent
+src/components/ui/index.ts:133 - NavigationMenuTrigger
+src/components/ui/index.ts:134 - NavigationMenuLink
+src/components/ui/index.ts:135 - NavigationMenuIndicator
+src/components/ui/index.ts:136 - NavigationMenuViewport
+src/components/ui/index.ts:112 - Pagination
+src/components/ui/index.ts:113 - PaginationContent
+src/components/ui/index.ts:114 - PaginationEllipsis
+src/components/ui/index.ts:115 - PaginationItem
+src/components/ui/index.ts:116 - PaginationLink
+src/components/ui/index.ts:117 - PaginationNext
+src/components/ui/index.ts:118 - PaginationPrevious
+src/components/ui/index.ts:46 - ScrollArea
+src/components/ui/index.ts:46 - ScrollBar
+src/components/ui/index.ts:109 - Table
+src/components/ui/index.ts:110 - TableBody
+src/components/ui/index.ts:111 - TableCaption
+src/components/ui/index.ts:112 - TableCell
+src/components/ui/index.ts:113 - TableFooter
+src/components/ui/index.ts:114 - TableHead
+src/components/ui/index.ts:115 - TableHeader
+src/components/ui/index.ts:116 - TableRow
+src/components/ui/index.ts:15 - ThemeProvider
+src/components/ui/index.ts:13 - PremiumBadge
+src/components/ui/index.ts:10 - SkeletonSelect
+src/components/ui/input-enhanced.tsx:6 - InputProps (used in module)
+src/components/ui/input-enhanced.tsx:102 - InputEnhanced (used in module)
+src/components/ui/input-otp.tsx:69 - InputOTP (used in module)
+src/components/ui/input-otp.tsx:69 - InputOTPGroup (used in module)
+src/components/ui/input-otp.tsx:69 - InputOTPSeparator (used in module)
+src/components/ui/input-otp.tsx:69 - InputOTPSlot (used in module)
+src/components/ui/MarkdownRenderer.tsx:8 - MarkdownRenderer
+src/components/ui/modal.tsx:110 - Modal (used in module)
+src/components/ui/modal.tsx:111 - ModalPortal (used in module)
+src/components/ui/modal.tsx:112 - ModalOverlay (used in module)
+src/components/ui/modal.tsx:113 - ModalClose (used in module)
+src/components/ui/modal.tsx:114 - ModalTrigger (used in module)
+src/components/ui/modal.tsx:115 - ModalContent (used in module)
+src/components/ui/modal.tsx:116 - ModalHeader (used in module)
+src/components/ui/modal.tsx:117 - ModalFooter (used in module)
+src/components/ui/modal.tsx:118 - ModalTitle (used in module)
+src/components/ui/modal.tsx:119 - ModalDescription (used in module)
+src/components/ui/resizable.tsx:43 - ResizableHandle (used in module)
+src/components/ui/resizable.tsx:43 - ResizablePanel (used in module)
+src/components/ui/resizable.tsx:43 - ResizablePanelGroup (used in module)
+src/components/ui/search-and-filter-bar.tsx:12 - SortOption (used in module)
+src/components/ui/search-and-filter-bar.tsx:28 - SearchAndFilterBar (used in module)
+src/components/ui/search-and-filter-bar.tsx:96 - default
+src/components/ui/sidebar.tsx:18 - Sidebar
+src/components/ui/stepper.tsx:15 - Stepper
+src/components/ui/stepper.tsx:6 - StepItem (used in module)
+src/components/ui/stepper.tsx:8 - StepperProps (used in module)
+src/components/ui/table-enhanced.tsx:110 - Table (used in module)
+src/components/ui/table-enhanced.tsx:111 - TableBody (used in module)
+src/components/ui/table-enhanced.tsx:112 - TableCaption (used in module)
+src/components/ui/table-enhanced.tsx:113 - TableCell (used in module)
+src/components/ui/table-enhanced.tsx:114 - TableFooter (used in module)
+src/components/ui/table-enhanced.tsx:115 - TableHead (used in module)
+src/components/ui/table-enhanced.tsx:116 - TableHeader (used in module)
+src/components/ui/table-enhanced.tsx:117 - TableRow (used in module)
+src/components/ui/tabs-improved.tsx:146 - Tabs (used in module)
+src/components/ui/tabs-improved.tsx:147 - TabsContent (used in module)
+src/components/ui/tabs-improved.tsx:148 - TabsList (used in module)
+src/components/ui/tabs-improved.tsx:149 - TabsListUnderlined (used in module)
+src/components/ui/tabs-improved.tsx:150 - TabsTrigger (used in module)
+src/components/ui/tabs-improved.tsx:151 - TabsTriggerUnderlined (used in module)
+src/components/ui/tabs-improved.tsx:152 - TabsUnderlined (used in module)
+src/components/ui/toggle-group.tsx:62 - ToggleGroup (used in module)
+src/components/ui/toggle-group.tsx:62 - ToggleGroupItem (used in module)
+src/components/ui/toggle.tsx:58 - Toggle (used in module)
+src/components/ui/UpgradeCTA.tsx:13 - UpgradeCTA
+src/components/ui-kit/CDMotionCard.tsx:17 - CDMotionCard
+src/components/ui-kit/CDMotionCard.tsx:84 - CDCardBody (used in module)
+src/components/ui-kit/CDMotionCard.tsx:84 - CDCardFooter (used in module)
+src/components/ui-kit/CDMotionCard.tsx:84 - CDCardHeader (used in module)
+src/components/valuation/AccidentImpactCard.tsx:20 - AccidentImpactCard
+src/components/valuation/AIConditionBadge.tsx:16 - AIConditionBadge
+src/components/valuation/AuctionHistorySection.tsx:5 - AuctionHistorySectionProps (used in module)
+src/components/valuation/AuctionHistorySection.tsx:19 - AuctionHistorySection
+src/components/valuation/AuctionInsightCard.tsx:14 - AuctionInsightCard
+src/components/valuation/AuctionIntelligenceCard.tsx:16 - AuctionIntelligenceCard
+src/components/valuation/AuctionResults.tsx:12 - AuctionResults
+src/components/valuation/AutoAuctionsResults.tsx:27 - AutoAuctionsResults
+src/components/valuation/BidCarsResults.tsx:26 - BidCarsResults
+src/components/valuation/CarFinderQaherCard.tsx:146 - default
+src/components/valuation/CensusIncomeTip.tsx:10 - CensusIncomeTip
+src/components/valuation/CompetitorPriceCard.tsx:13 - CompetitorPriceCard
+src/components/valuation/CompetitorPriceComparison.tsx:14 - CompetitorPriceComparison (used in module)
+src/components/valuation/CompetitorPriceComparison.tsx:145 - default
+src/components/valuation/ConfidenceExplanationBadge.tsx:16 - ConfidenceExplanationBadge
+src/components/valuation/ConfidenceScore.tsx:17 - ConfidenceScore
+src/components/valuation/CorrectionTrigger.tsx:18 - CorrectionTrigger
+src/components/valuation/DataIntegrityPanel.tsx:180 - default
+src/components/valuation/DealerOffersSection.tsx:11 - DealerOffersSection (used in module)
+src/components/valuation/DealerOffersSection.tsx:54 - default
+src/components/valuation/DrivingBehaviorInput.tsx:12 - DrivingBehaviorInput (used in module)
+src/components/valuation/DrivingBehaviorInput.tsx:109 - default
+src/components/valuation/EpaMpgTip.tsx:12 - EpaMpgTip
+src/components/valuation/FollowUpQuestions.tsx:17 - FollowUpQuestions
+src/components/valuation/GeoMultiplier.tsx:15 - GeoMultiplier
+src/components/valuation/ListingProcessAuditForm.tsx:87 - ListingProcessAuditForm (used in module)
+src/components/valuation/ListingProcessAuditForm.tsx:597 - default
+src/components/valuation/MarketBreakdownPanel.tsx:23 - MarketBreakdownPanel (used in module)
+src/components/valuation/MarketBreakdownPanel.tsx:370 - default
+src/components/valuation/MarketDataWarning.tsx:14 - MarketDataWarning
+src/components/valuation/MarketForecastCard.tsx:14 - MarketForecastCard
+src/components/valuation/MarketListingCard.tsx:13 - MarketListingCard
+src/components/valuation/MarketplaceComparisonCard.tsx:31 - MarketplaceComparisonCard
+src/components/valuation/MarketplaceInsightCard.tsx:12 - MarketplaceInsightCard (used in module)
+src/components/valuation/MarketplaceInsightCard.tsx:151 - default
+src/components/valuation/MarketTrendSection.tsx:66 - default
+src/components/valuation/MissingInfoPrompt.tsx:53 - MissingInfoPrompt
+src/components/valuation/NhtsaRecalls.tsx:17 - NhtsaRecalls
+src/components/valuation/NicbVinCheck.tsx:145 - default
+src/components/valuation/PhotoConditionScore.tsx:13 - PhotoConditionScore
+src/components/valuation/PredictionResult.tsx:17 - PredictionResult
+src/components/valuation/PremiumPdfSection.tsx:16 - PremiumPdfSection
+src/components/valuation/QrCodeDownload.tsx:12 - QrCodeDownload (used in module)
+src/components/valuation/QrCodeDownload.tsx:36 - default
+src/components/valuation/RerunValuationButton.tsx:6 - RerunValuationButton
+src/components/valuation/SeasonalAdjustment.tsx:42 - SeasonalAdjustment
+src/components/valuation/SeasonalFactorDisplay.tsx:12 - SeasonalFactorDisplay
+src/components/valuation/TitleRecallPanel.tsx:24 - TitleRecallPanel
+src/components/valuation/types.ts:2 - ValuationResultProps
+src/components/valuation/types.ts:8 - ValuationData
+src/components/valuation/UnifiedValuationResult.tsx:17 - UnifiedValuationResult (used in module)
+src/components/valuation/ValuationAuditTrail.tsx:22 - ValuationAuditTrail (used in module)
+src/components/valuation/ValuationAuditTrail.tsx:114 - default
+src/components/valuation/ValuationDetailsForm.tsx:32 - ValuationDetailsForm
+src/components/valuation/ValuationEmptyState.tsx:33 - EmptyState
+src/components/valuation/ValuationProgressDisplay.tsx:15 - ValuationProgressDisplay (used in module)
+src/components/valuation/ValuationProgressDisplay.tsx:147 - default
+src/components/valuation/ValuationResultCard.tsx:54 - ValuationResultCard
+src/components/valuation/ValuationResultsProps.ts:2 - ValuationResultsProps
+src/components/valuation/ValueBreakdown.tsx:26 - ValueBreakdown
+src/components/valuation/VehicleFoundCard.tsx:23 - VehicleFoundCard (used in module)
+src/components/valuation/VehicleFoundCard.tsx:138 - default
+src/components/valuation/YearScroller.tsx:13 - YearScroller
+src/components/valuation/ZipMarketAnalysis.tsx:18 - ZipMarketAnalysis
+src/components/vehicle/EpaMpgDisplay.tsx:12 - EpaMpgDisplay
+src/enrichment/parsers/normalizeAuction.ts:29 - normalizeStatVinData (used in module)
+src/enrichment/parsers/normalizeAuction.ts:56 - normalizeAuctionData
+src/enrichment/parsers/normalizeAuction.ts:4 - NormalizedAuctionData (used in module)
+src/enrichment/sources/fetchStatVinData.ts:4 - fetchStatVinData
+src/enrichment/sources/statvin.ts:2 - AuctionData (used in module)
+src/hooks/types/savedValuation.ts:1 - SavedValuation
+src/hooks/valuation-pipeline/index.ts:1 - ValuationConditionData
+src/hooks/valuation-pipeline/index.ts:13 - ValuationPipelineStep
+src/hooks/valuation-pipeline/index.ts:21 - ValuationPipelineData
+src/hooks/valuation-pipeline/index.ts:30 - ValuationPipelineState
+src/hooks/valuation-pipeline/index.ts:40 - ValuationPipelineReducerAction
+src/hooks/valuation-pipeline/index.ts:46 - ValuationPipelineAction
+src/hooks/valuation-pipeline/index.ts:48 - PipelineActions
+src/hooks/valuation-pipeline/index.ts:61 - valuationPipelineReducer
+src/hooks/valuation-pipeline/index.ts:7 - initialValuationPipelineState
+src/integrations/ai/serverClient.ts:4 - AICompletionRequest (used in module)
+src/integrations/ai/serverClient.ts:14 - AICompletionResponse (used in module)
+src/integrations/ai/serverClient.ts:23 - ServerAIClient (used in module)
+src/integrations/ai/serverClient.ts:75 - serverAI
+src/integrations/openai/client.ts:56 - default
+src/integrations/supabase/auditLogClient.ts:5 - saveAuditLog
+src/integrations/supabase/auditLogClient.ts:58 - getAuditLog
+src/integrations/supabase/auditLogClient.ts:79 - getValuationAuditHistory
+src/integrations/supabase/client.ts:15 - getSupabaseClient
+src/integrations/supabase/types.ts:1 - Json (used in module)
+src/integrations/supabase/types.ts:9 - Database (used in module)
+src/integrations/supabase/types.ts:4691 - Tables (used in module)
+src/integrations/supabase/types.ts:4720 - TablesInsert
+src/integrations/supabase/types.ts:4745 - TablesUpdate
+src/integrations/supabase/types.ts:4770 - Enums (used in module)
+src/integrations/supabase/types.ts:4787 - CompositeTypes (used in module)
+src/integrations/supabase/types.ts:4804 - Constants
+src/lib/notifications/DealerNotification.ts:4 - notifyDealersOfNewValuation
+src/lib/notifications/UserValuationAlert.ts:4 - notifyUserOfDealerOffer
+src/lib/supabase/dealer.ts:12 - getVerifiedDealersInZip
+src/lib/supabase/dealer.ts:73 - markDealerAsNotified
+src/lib/supabase/dealer.ts:4 - VerifiedDealer (used in module)
+src/lib/valuation/extractVehicleContext.ts:4 - extractVehicleContext
+src/lib/valuation/extractVehicleContext.ts:95 - extractLocationContext
+src/lib/valuation/extractVehicleContext.ts:133 - detectIntent
+src/lib/valuation/extractVehicleContext.ts:133 - generateResponse
+src/modules/auth/ConfirmationPage.tsx:4 - ConfirmationPageProps (used in module)
+src/modules/auth/ConfirmationPage.tsx:49 - default
+src/modules/auth/MagicLinkPage.tsx:32 - MagicLinkPage (used in module)
+src/modules/auth/MagicLinkPage.tsx:162 - default
+src/modules/auth/ResetPasswordPage.tsx:51 - ResetPasswordPage (used in module)
+src/modules/auth/ResetPasswordPage.tsx:282 - default
+src/modules/qa-dashboard/types.ts:31 - ValuationFilter
+src/modules/qa-dashboard/types.ts:38 - DateRangeOption
+src/modules/valuation-homepage/layout.tsx:12 - ValuationHomepageLayout (used in module)
+src/modules/valuation-homepage/layout.tsx:83 - default
+src/modules/valuation-result/logic.ts:5 - ValuationData (used in module)
+src/modules/valuation-result/logic.ts:40 - PremiumCheckoutResult
+src/modules/valuation-result/logic.ts:53 - useValuationLogic
+src/modules/valuation-result/MobileLayout.tsx:19 - MobileLayout (used in module)
+src/modules/valuation-result/MobileLayout.tsx:78 - default
+src/modules/valuation-result/styles.ts:2 - resultStyles (used in module)
+src/modules/valuation-result/types.ts:5 - ValuationContextProps
+src/modules/valuation-result/types.ts:18 - ValuationResultProps
+src/modules/valuation-result/types.ts:40 - HeaderProps
+src/modules/valuation-result/types.ts:51 - SummaryProps
+src/modules/valuation-result/types.ts:58 - PhotoAnalysisProps
+src/modules/valuation-result/types.ts:66 - BreakdownProps
+src/modules/valuation-result/types.ts:76 - ExplanationProps
+src/modules/valuation-result/types.ts:82 - PDFActionsProps
+src/modules/valuation-result/types.ts:91 - MobileLayoutProps
+src/modules/valuation-result/ValuePresenter.tsx:20 - ValuePresenter (used in module)
+src/pages/api/ask-ai.ts:8 - default
+src/pages/valuation/ValuationPage.tsx:13 - default
+src/scraping/brightdata/getStatVinData.ts:36 - getStatVinData
+src/scraping/brightdata/getStatVinData.ts:4 - StatVinData (used in module)
+src/services/persistence/persistenceMonitor.ts:83 - testAuditLogging (used in module)
+src/services/persistence/persistenceMonitor.ts:126 - testValuationRequestCreation (used in module)
+src/services/photo/analyzePhotos.ts:2 - PhotoAnalysisResult (used in module)
+src/services/photo/deletePhotos.ts:7 - deletePhotos
+src/services/photo/fetchPhotos.ts:7 - fetchValuationPhotos
+src/services/photo/uploadPhotoService.ts:6 - uploadPhotos
+src/services/supabase/explanationService.ts:29 - saveValuationExplanation
+src/services/supabase/explanationService.ts:3 - ValuationExplanationData (used in module)
+src/services/supabase/feedbackService.ts:18 - saveValuationFeedback (used in module)
+src/services/supabase/feedbackService.ts:53 - getFeedbackStats
+src/services/supabase/feedbackService.ts:4 - ValuationFeedback (used in module)
+src/services/supabase/feedbackService.ts:51 - submitValuationFeedback
+src/services/supabase/shareTrackingService.ts:14 - saveSharedValuation
+src/services/supabase/shareTrackingService.ts:43 - getSharedValuation
+src/services/supabase/shareTrackingService.ts:63 - incrementShareView
+src/services/supabase/shareTrackingService.ts:3 - SharedValuationData (used in module)
+src/services/supabase/valuationRequestService.ts:15 - saveValuationRequest
+src/services/supabase/valuationRequestService.ts:51 - getValuationRequest
+src/services/supabase/valuationRequestService.ts:3 - ValuationRequestData (used in module)
+src/services/supabase/valuationRequestTracker.ts:30 - createValuationRequest
+src/services/supabase/valuationRequestTracker.ts:66 - completeValuationRequest
+src/services/supabase/valuationRequestTracker.ts:103 - failValuationRequest
+src/services/supabase/valuationRequestTracker.ts:3 - ValuationRequestInput (used in module)
+src/services/supabase/valuationRequestTracker.ts:15 - ValuationRequestRecord (used in module)
+src/services/valuation/enhancedMarketListingService.ts:34 - EnhancedMarketListingFilters (used in module)
+src/services/valuation/errorHandler.ts:32 - handleValuationError
+src/services/valuation/errorHandler.ts:168 - generateEmergencyFallback
+src/services/valuation/errorHandler.ts:4 - ValuationError (used in module)
+src/services/valuation/errorHandler.ts:13 - ResilientValuationError (used in module)
+src/services/valuation/index.ts:2 - getDynamicMSRP
+src/services/valuation/index.ts:3 - MSRPResult
+src/services/valuation/index.ts:5 - calculateAdvancedConfidence
+src/services/valuation/index.ts:5 - getConfidenceBreakdown
+src/services/valuation/index.ts:8 - validateVin
+src/services/valuation/index.ts:9 - validateMileage
+src/services/valuation/index.ts:10 - validateZipCode
+src/services/valuation/index.ts:11 - validateMarketListings
+src/services/valuation/index.ts:12 - validateFuelPrice
+src/services/valuation/index.ts:15 - ValidationResult
+src/services/valuation/listingAuditService.ts:20 - snapshotListing
+src/services/valuation/listingAuditService.ts:34 - recordValuationOutcome
+src/services/valuation/marketDataService.ts:6 - MarketDataResult (used in module)
+src/services/valuation/marketDataService.ts:14 - MarketDataFilters (used in module)
+src/services/valuation/marketDataService.ts:27 - MarketDataService
+src/services/valuation/marketListingService.ts:38 - saveMarketListings
+src/services/valuation/marketListingService.ts:153 - getRecentMarketListings
+src/services/valuation/vehicleDataService.ts:16 - getVehicleDataByVin
+src/services/valuation/vehicleDataService.ts:74 - getVehicleDataByValuationId
+src/services/valuation/vehicleDataService.ts:4 - VehicleData (used in module)
+src/utils/adjustments/descriptions.ts:1 - getMileageDescription
+src/utils/adjustments/index.ts:1 - VehicleCondition
+src/utils/adjustments/index.ts:3 - VehicleFeature
+src/utils/adjustments/index.ts:9 - TrimAdjustment
+src/utils/adjustments/index.ts:21 - getConditionMultiplier
+src/utils/adjustments/index.ts:35 - getConditionDescription
+src/utils/adjustments/index.ts:59 - getConditionAdjustment
+src/utils/adjustments/index.ts:12 - mileageAdjustmentCurve
+src/utils/adjustments/index.ts:43 - getMileageDescription
+src/utils/adjustments/index.ts:69 - getMileageAdjustment
+src/utils/adjustments/index.ts:9 - getLocationAdjustment
+src/utils/adjustments/index.ts:28 - getZipAdjustment
+src/utils/adjustments/index.ts:33 - getRegionNameFromZip
+src/utils/adjustments/index.ts:3 - LocationAdjustment
+src/utils/adjustments/index.ts:1 - getAccidentHistoryAdjustment
+src/utils/adjustments/index.ts:8 - getTitleStatusAdjustmentFromDB
+src/utils/adjustments/index.ts:48 - getTitleStatusAdjustment
+src/utils/adjustments/index.ts:1 - getTrimAdjustment
+src/utils/adjustments/index.ts:5 - FeatureValue
+src/utils/adjustments/index.ts:16 - MAX_FEATURE_ADJUSTMENT_PERCENT
+src/utils/adjustments/index.ts:16 - PREMIUM_FEATURES
+src/utils/adjustments/index.ts:10 - getFeatureAdjustments
+src/utils/adjustments/index.ts:44 - getFeatureInfo
+src/utils/adjustments/index.ts:52 - getPremiumFeaturesAdjustment
+src/utils/adjustments/index.ts:2 - formatFeatureValue
+src/utils/adjustments/index.ts:6 - formatFeatureName
+src/utils/adjustments/packageAdjustments.ts:12 - getPackageAdjustments (used in module)
+src/utils/adjustments/packageAdjustments.ts:114 - getTotalPackageValue
+src/utils/adjustments/packageAdjustments.ts:3 - PackageAdjustment (used in module)
+src/utils/ain/generateSummaryForPdf.ts:4 - generateSummaryForPdf
+src/utils/ain/scoreDealerOffers.ts:18 - scoreDealerOffers
+src/utils/ain/scoreDealerOffers.ts:63 - getBestOffer (used in module)
+src/utils/ain/scoreDealerOffers.ts:71 - getOfferInsights
+src/utils/ain/scoreDealerOffers.ts:2 - DealerOffer (used in module)
+src/utils/ain/scoreDealerOffers.ts:11 - ScoredOffer (used in module)
+src/utils/diagnostics/marketDataDiagnostics.ts:33 - runMarketDataDiagnostics
+src/utils/diagnostics/marketDataDiagnostics.ts:229 - logMarketDataSummary
+src/utils/diagnostics/marketDataDiagnostics.ts:4 - MarketDataDiagnosticResult (used in module)
+src/utils/diagnostics/systemHealth.ts:12 - runSystemHealthCheck
+src/utils/diagnostics/systemHealth.ts:108 - printSystemHealth
+src/utils/diagnostics/systemHealth.ts:4 - SystemHealthCheck (used in module)
+src/utils/diagnostics/valuationAudit.ts:13 - runValuationAudit (used in module)
+src/utils/diagnostics/valuationAudit.ts:183 - runBatchAudit
+src/utils/diagnostics/valuationAudit.ts:197 - printAuditReport
+src/utils/diagnostics/valuationAudit.ts:4 - AuditResult (used in module)
+src/utils/forecasting/valuation-forecast.ts:24 - generateForecast
+src/utils/forecasting/valuation-forecast.ts:45 - generateValuationForecast
+src/utils/forecasting/valuation-forecast.ts:3 - ForecastData (used in module)
+src/utils/formatters/adjustment-formatter.ts:4 - formatAdjustmentValue
+src/utils/formatters/adjustment-formatter.ts:15 - formatAdjustmentPercentage
+src/utils/formatters/adjustment-formatter.ts:20 - convertNewAdjustmentsToLegacyFormat
+src/utils/formatters/adjustment-formatter.ts:37 - convertLegacyAdjustmentsToNewFormat
+src/utils/formatters/formatRelativeTime.ts:10 - formatRelativeTime
+src/utils/formatters/index.ts:3 - formatCurrency
+src/utils/formatters/index.ts:4 - formatNumber
+src/utils/formatters/index.ts:5 - formatDate
+src/utils/formatters/index.ts:6 - formatPercent
+src/utils/formatters/index.ts:7 - formatPhone
+src/utils/formatters/index.ts:8 - formatVin
+src/utils/formatters/index.ts:4 - capitalize
+src/utils/formatters/index.ts:12 - truncate
+src/utils/formatters/index.ts:21 - titleCase
+src/utils/marketListings/processListings.ts:17 - processExistingListings
+src/utils/normalization/normalizeListings.ts:22 - normalizeListing (used in module)
+src/utils/normalization/normalizeListings.ts:43 - normalizeListings
+src/utils/normalization/normalizeListings.ts:4 - NormalizedListing (used in module)
+src/utils/parsers/listingParser.ts:12 - parseVehicleListingsFromWeb
+src/utils/parsers/listingParser.ts:158 - formatListingsForExplanation
+src/utils/parsers/listingParser.ts:3 - ParsedListing (used in module)
+src/utils/pdf/defaultReportOptions.ts:4 - defaultReportOptions
+src/utils/pdf/generateDebugInfo.ts:13 - generateDebugInfo
+src/utils/pdf/generateDebugInfo.ts:57 - formatDebugInfoForPdf
+src/utils/pdf/generateDebugInfo.ts:4 - DebugInfo (used in module)
+src/utils/pdf/generateValuationPdf.ts:448 - downloadValuationPdf
+src/utils/pdf/index.ts:7 - generateValuationPdf
+src/utils/pdf/index.ts:8 - downloadValuationPdf
+src/utils/pdf/index.ts:9 - uploadValuationPdf
+src/utils/pdf/index.ts:14 - PdfOptions
+src/utils/pdf/index.ts:520 - generateReport
+src/utils/pdf/styles.ts:67 - drawStyledHeading
+src/utils/pdf/styles.ts:97 - drawStyledBox
+src/utils/pdf/styles.ts:132 - drawPremiumBadge
+src/utils/pdf/styles.ts:3 - PdfStyles (used in module)
+src/utils/pdf/styles.ts:35 - mvpPdfStyles (used in module)
+src/utils/rules/RulesEngine.ts:8 - RulesEngine
+src/utils/rules/types.ts:9 - Calculator
+src/utils/scrapers/fetchBidCarsData.ts:27 - fetchBidCarsData
+src/utils/scrapers/fetchBidCarsData.ts:25 - AuctionData (used in module)
+src/utils/types/unifiedTypes.ts:4 - ValuationInput
+src/utils/types/unifiedTypes.ts:19 - ValuationResult
+src/utils/types/unifiedTypes.ts:40 - Adjustment
+src/utils/validation/CarDetectiveValidator.ts:1 - CarDetectiveValidator
+src/utils/validation/enhanced-vin-validation.ts:33 - validateVin (used in module)
+src/utils/validation/enhanced-vin-validation.ts:5 - VIN_REGEX
+src/utils/validation/enhanced-vin-validation.ts:10 - EnhancedManualEntrySchema
+src/utils/validation/enhanced-vin-validation.ts:27 - VinValidationResult (used in module)
+src/utils/validation/enhanced-vin-validation.ts:50 - validateVIN
+src/utils/validation/enhanced-vin-validation.ts:51 - isValidVIN
+src/utils/validation/plate-validation-helpers.ts:64 - getStateFormat (used in module)
+src/utils/validation/plate-validation-helpers.ts:75 - validateStatePlate
+src/utils/validation/plate-validation-helpers.ts:2 - PlateFormat (used in module)
+src/utils/validation/plate-validation-helpers.ts:7 - StateFormats (used in module)
+src/utils/validation/plate-validation-helpers.ts:11 - STATE_PLATE_FORMATS (used in module)
+src/utils/validation/schemas.ts:4 - vehicleSchema
+src/utils/validation/types.ts:2 - ValidationResult
+src/utils/validation/validateCorrectedPipeline.ts:4 - validateCorrectedPipeline
+src/utils/validation/validateCorrectedPipeline.ts:65 - printValidationReport
+src/utils/validation/vin-validation-helpers.tsx:7 - VinInfoMessage
+src/utils/validation/vin-validation.ts:8 - validateVin (used in module)
+src/utils/validation/vin-validation.ts:2 - VinValidationResult (used in module)
+src/utils/validation/vin-validation.ts:25 - validateVIN
+src/utils/validation/vin-validation.ts:26 - isValidVIN
+src/utils/validation/zipCodeValidator.ts:27 - debounce
+src/utils/validation/zipCodeValidator.ts:16 - ZipValidationResult (used in module)
+src/utils/valuation/aggregateValuationSources.ts:14 - aggregateValuationSources
+src/utils/valuation/aggregateValuationSources.ts:7 - EnrichedDataSource (used in module)
+src/utils/valuation/calculateAccidentImpact.ts:9 - calculateAccidentImpact
+src/utils/valuation/calculateUnifiedConfidence.ts:15 - calculateUnifiedConfidence
+src/utils/valuation/calculateUnifiedConfidence.ts:6 - ConfidenceContext (used in module)
+src/utils/valuation/conditionAdjustment.ts:1 - calculateConditionAdjustment
+src/utils/valuation/conditionHelpers.ts:4 - getConditionTips
+src/utils/valuation/conditionHelpers.ts:24 - getConditionValueImpact
+src/utils/valuation/conditionHelpers.ts:48 - getConditionColorClass
+src/utils/valuation/confidence.ts:1 - getConfidenceForResult
+src/utils/valuation/confidenceExplainer.ts:14 - explainConfidenceScore
+src/utils/valuation/confidenceExplainer.ts:104 - getConfidenceText
+src/utils/valuation/confidenceExplainer.ts:3 - ConfidenceExplanation (used in module)
+src/utils/valuation/depreciation.ts:1 - calculateDepreciation
+src/utils/valuation/emergencyFallbackUtils.ts:17 - generateEmergencyFallbackValue
+src/utils/valuation/emergencyFallbackUtils.ts:356 - trackValuationFallback
+src/utils/valuation/examples.ts:9 - baseMarketValue (used in module)
+src/utils/valuation/examples.ts:12 - mileage (used in module)
+src/utils/valuation/examples.ts:15 - condition (used in module)
+src/utils/valuation/examples.ts:18 - zipCode (used in module)
+src/utils/valuation/examples.ts:21 - premiumFeatures (used in module)
+src/utils/valuation/examples.ts:24 - valuationParams
+src/utils/valuation/examples.ts:36 - valuationResult
+src/utils/valuation/examples.ts:87 - enhancedValuationParams
+src/utils/valuation/examples.ts:110 - finalValuationResult
+src/utils/valuation/featureAdjustments.ts:36 - getFeatureValue (used in module)
+src/utils/valuation/featureAdjustments.ts:45 - calculateTotalFeatureValue
+src/utils/valuation/featureAdjustments.ts:56 - getFeatureValueBreakdown
+src/utils/valuation/featureAdjustments.ts:12 - featureValueMap (used in module)
+src/utils/valuation/fuelAdjustment.ts:1 - calculateFuelAdjustment (used in module)
+src/utils/valuation/fuelAdjustment.ts:13 - calculateFuelTypeAdjustment
+src/utils/valuation/legacyConverter.ts:35 - convertLegacyToUnified
+src/utils/valuation/listingInclusionAnalyzer.ts:3 - scoreListingQuality
+src/utils/valuation/mileageAdjustment.ts:1 - calculateMileageAdjustment
+src/utils/valuation/missingFieldAnalyzer.ts:250 - getMissingFieldMessage
+src/utils/valuation/missingFieldAnalyzer.ts:4 - MissingFieldImpact (used in module)
+src/utils/valuation/msrpInflationNormalizer.ts:38 - normalizeMsrpForInflation (used in module)
+src/utils/valuation/msrpInflationNormalizer.ts:103 - applyMarketAdjustments (used in module)
+src/utils/valuation/msrpInflationNormalizer.ts:167 - getFullyNormalizedMsrp
+src/utils/valuation/photoUtils.ts:8 - getBestPhotoUrl
+src/utils/valuation/photoUtils.ts:36 - getValuationPhotos
+src/utils/valuation/photoUtils.ts:59 - updateValuationWithPhotoMetadata
+src/utils/valuation/progressTracker.ts:167 - getCurrentPhase
+src/utils/valuation/progressTracker.ts:21 - ValuationProgressTracker
+src/utils/valuation/quickValidateMarketSearch.ts:8 - validateMarketSearchOutput (used in module)
+src/utils/valuation/quickValidateMarketSearch.ts:66 - runValidation
+src/utils/valuation/rulesEngine.ts:4 - calculateAdjustments
+src/utils/valuation/rulesEngine.ts:92 - calculateFinalValue
+src/utils/valuation/rulesEngine.ts:101 - calculateTotalAdjustment
+src/utils/valuation/specializedAdjustments.ts:6 - getMpgAdjustment
+src/utils/valuation/specializedAdjustments.ts:22 - getLocationDensityAdjustment
+src/utils/valuation/specializedAdjustments.ts:56 - getIncomeAdjustment
+src/utils/valuation/testMarketSearchNormalization.ts:8 - testMarketSearchAgentNormalization
+src/utils/valuation/testMarketSearchNormalization.ts:99 - validateFieldMappings
+src/utils/valuation/testResultsAndPdfIntegration.ts:9 - testResultsPageAndPdfIntegration
+src/utils/valuation/testResultsAndPdfIntegration.ts:183 - testUIFieldMappings
+src/utils/valuation/titleAdjustment.ts:1 - calculateTitleAdjustment
+src/utils/valuation/types.ts:2 - ValuationAdjustment (used in module)
+src/utils/valuation/types.ts:106 - ValuationInput
+src/utils/valuation/updateValuationData.ts:9 - updateValuationDataField
+src/utils/valuation/updateValuationData.ts:55 - updateValuationDataFields
+src/utils/valuation/updateValuationData.ts:96 - getValuationDataField
+src/utils/valuation/validateMarketListingIntegration.ts:8 - validateMarketListingIntegration
+src/utils/valuation/validateMarketListingIntegration.ts:105 - testConfidenceCalculation
+src/utils/valuation/validatePDFShareFunctionality.ts:11 - PDFShareTestCase (used in module)
+src/utils/valuation/validateUIResultsDisplay.ts:15 - UIValidationTestCase (used in module)
+src/utils/valuation/validateUnifiedPipeline.ts:7 - validateUnifiedMarketListingPipeline (used in module)
+src/utils/valuation/validateUnifiedPipeline.ts:135 - quickValidation
+src/utils/valuation-adjustments/DrivingBehaviorCalculator.ts:4 - DrivingBehaviorCalculator (used in module)
+src/utils/valuation-adjustments/DrivingBehaviorCalculator.ts:14 - drivingBehaviorCalculator
+src/utils/valuation-adjustments/MarketDemandCalculator.ts:4 - MarketDemandCalculator (used in module)
+src/utils/valuation-adjustments/MarketDemandCalculator.ts:27 - marketDemandCalculator
+src/utils/valuation-adjustments/SeasonalCalculator.ts:4 - SeasonalCalculator (used in module)
+src/utils/valuation-adjustments/SeasonalCalculator.ts:30 - seasonalCalculator
+src/utils/vehicle/cacheUtils.ts:8 - saveToCache
+src/utils/vehicle/cacheUtils.ts:24 - loadFromCache
+src/utils/vehicle/cacheUtils.ts:67 - clearCache (used in module)
+src/utils/vehicle/enhancedCacheUtils.ts:37 - enhancedCache
+src/components/admin/heatmap/AdjustmentHeatmap.tsx:44 - AdjustmentHeatmap
+src/components/admin/testing/AuthTestPanel.tsx:9 - TestResult (used in module)
+src/components/auth/forms/SharedLoginForm.tsx:29 - SharedLoginForm
+src/components/dealer-messages/context/LeadsContext.tsx:45 - useLeads
+src/components/followup/inputs/SimpleZipCodeInput.tsx:14 - SimpleZipCodeInput
+src/components/followup/tabs/AccidentsTab.tsx:39 - AccidentsTab
+src/components/followup/tabs/FinalReviewTab.tsx:12 - FinalReviewTab
+src/components/followup/tabs/PhysicalFeaturesTab.tsx:140 - PhysicalFeaturesTab
+src/components/followup/tabs/ReviewTab.tsx:12 - ReviewTab
+src/components/followup/tabs/ServiceHistoryTab.tsx:48 - ServiceHistoryTab
+src/components/followup/tabs/TiresBrakesTab.tsx:26 - TiresBrakesTab
+src/components/followup/tabs/VehicleBasicsTab.tsx:14 - VehicleBasicsTab
+src/components/followup/tabs/VehicleConditionTab.tsx:69 - VehicleConditionTab
+src/components/followup/validation/TabValidation.ts:4 - TabValidationResult (used in module)
+src/components/layout/seo/index.tsx:42 - default
+src/components/lookup/followup/FollowupStep.tsx:24 - FollowupStep
+src/components/lookup/followup/FollowupStepManager.tsx:23 - FollowupStepManager
+src/components/lookup/forecast/ForecastMetrics.tsx:8 - ForecastMetrics
+src/components/lookup/forecast/ForecastTrendIndicator.tsx:7 - ForecastTrendIndicator
+src/components/lookup/form-parts/ConditionAndFuelInputs.tsx:13 - ConditionLevel (used in module)
+src/components/lookup/form-parts/ConditionAndFuelInputs.tsx:30 - ConditionAndFuelInputs
+src/components/lookup/form-parts/EnhancedVehicleSelector.tsx:26 - EnhancedVehicleSelector
+src/components/lookup/form-parts/EnhancedVehicleSelectorWithLogos.tsx:20 - EnhancedVehicleSelectorWithLogos
+src/components/lookup/form-parts/FormSelect.tsx:31 - FormSelect
+src/components/lookup/form-parts/MakeAndModelSelector.tsx:109 - MakeAndModelSelector (used in module)
+src/components/lookup/form-parts/TrimSelector.tsx:14 - TrimSelector
+src/components/lookup/form-parts/UnifiedFollowUpQuestions.tsx:39 - UnifiedFollowUpQuestions
+src/components/lookup/form-parts/ValuationFormActions.tsx:25 - ValuationFormActions
+src/components/lookup/form-parts/VehicleConditionSlider.tsx:14 - VehicleConditionSlider
+src/components/lookup/form-parts/VehicleDetailsInputs.tsx:27 - VehicleDetailsInputs
+src/components/lookup/form-parts/VehicleFeatureSelect.tsx:12 - VehicleFeatureSelect
+src/components/lookup/photo/PhotoLookupForm.tsx:10 - PhotoLookupForm
+src/components/lookup/plate/PlateInfoCard.tsx:23 - PlateInfoCard
+src/components/lookup/types/valuation.ts:2 - ValuationFormProps
+src/components/lookup/types/valuation.ts:9 - ManualValuationData (used in module)
+src/components/premium/common/FormErrorBoundary.tsx:14 - FormErrorBoundary
+src/components/premium/condition/DetailedConditionRating.tsx:6 - DetailedConditionRatingProps (used in module)
+src/components/premium/features/ComprehensiveFeatureSelector.tsx:34 - ComprehensiveFeatureSelector
+src/components/premium/features/FeatureGrid.tsx:18 - FeatureGrid
+src/components/premium/features/PremiumCondition.tsx:9 - PremiumCondition (used in module)
+src/components/premium/features/PremiumCondition.tsx:24 - default
+src/components/premium/features/PremiumFeaturesGrid.tsx:18 - PremiumFeaturesGrid
+src/components/premium/features/PremiumHistory.tsx:5 - PremiumHistory (used in module)
+src/components/premium/features/PremiumHistory.tsx:18 - default
+src/components/premium/features/PremiumInfoCards.tsx:4 - PremiumInfoCards
+src/components/premium/form/AccuracyMeter.tsx:15 - AccuracyMeter
+src/components/premium/form/FormStepLayout.tsx:19 - FormStepLayout
+src/components/premium/form/FormStepNavigation.tsx:13 - FormStepNavigation
+src/components/premium/form/PremiumValuationForm.tsx:39 - PremiumValuationForm
+src/components/premium/form/ProgressIndicator.tsx:10 - ProgressIndicator
+src/components/premium/hero/CarfaxHighlights.tsx:6 - CarfaxHighlightsProps (used in module)
+src/components/premium/hero/FeatureCards.tsx:4 - FeatureCards
+src/components/premium/hero/PremiumValuationCard.tsx:18 - PremiumValuationCard
+src/components/premium/insights/AINSummary.tsx:19 - AINSummary
+src/components/premium/insights/CarfaxSummary.tsx:17 - CarfaxSummary
+src/components/premium/sections/FreeVsPremiumComparison.tsx:4 - FreeVsPremiumComparison
+src/components/premium/sections/PremiumFaq.tsx:10 - PremiumFaq
+src/components/premium/sections/PremiumFeaturesSection.tsx:37 - default
+src/components/premium/sections/PremiumPricing.tsx:11 - PremiumPricing
+src/components/premium/sections/PremiumTestimonials.tsx:6 - PremiumTestimonials
+src/components/ui/design-system/DesignCard.tsx:5 - DesignCardProps (used in module)
+src/components/ui/design-system/DesignCard.tsx:33 - default
+src/components/ui/design-system/SectionHeader.tsx:14 - SectionHeader (used in module)
+src/components/ui/design-system/SectionHeader.tsx:57 - default
+src/components/ui/enhanced/index.ts:45 - ButtonProps
+src/components/ui/enhanced/index.ts:101 - ProfessionalButton
+src/components/ui/enhanced/index.ts:101 - buttonVariants
+src/components/ui/enhanced/index.ts:39 - CardProps
+src/components/ui/enhanced/index.ts:120 - ProfessionalCard
+src/components/ui/enhanced/index.ts:121 - CardHeader
+src/components/ui/enhanced/index.ts:122 - CardFooter
+src/components/ui/enhanced/index.ts:123 - CardTitle
+src/components/ui/enhanced/index.ts:124 - CardDescription
+src/components/ui/enhanced/index.ts:125 - CardContent
+src/components/ui/enhanced/index.ts:126 - cardVariants
+src/components/ui/enhanced/index.ts:29 - ProfessionalHero
+src/components/ui/enhanced/index.ts:20 - TestimonialSection
+src/components/ui/enhanced/index.ts:19 - FeatureSection
+src/components/ui/enhanced/index.ts:35 - PricingSection
+src/components/ui/enhanced/index.ts:17 - ProfessionalModal
+src/components/ui/enhanced/index.ts:89 - StepProgress
+src/components/ui/enhanced/index.ts:148 - OptionCard
+src/components/ui/enhanced/index.ts:208 - ToggleButton
+src/components/ui-kit/button/CDButton.tsx:4 - CDButtonVariant (used in module)
+src/components/ui-kit/button/CDButton.tsx:13 - CDButtonSize (used in module)
+src/components/ui-kit/button/CDButton.tsx:15 - CDButtonProps (used in module)
+src/components/ui-kit/demo/Demo.tsx:10 - Demo
+src/components/valuation/comprehensive/ComprehensiveValuationForm.tsx:29 - ComprehensiveValuationForm
+src/components/valuation/condition/ConditionCategory.tsx:25 - ConditionCategory
+src/components/valuation/condition/ConditionCategory.tsx:13 - ConditionCategoryProps (used in module)
+src/components/valuation/condition/conditionData.ts:2 - ConditionItem (used in module)
+src/components/valuation/condition/conditionData.ts:9 - exteriorCategories (used in module)
+src/components/valuation/condition/conditionData.ts:18 - interiorCategories (used in module)
+src/components/valuation/condition/conditionData.ts:31 - mechanicalCategories (used in module)
+src/components/valuation/condition/conditionData.ts:60 - tiresCategories (used in module)
+src/components/valuation/condition/conditionData.ts:67 - allCategories
+src/components/valuation/condition/conditionData.ts:75 - categoryMetadata
+src/components/valuation/condition/conditionDescriptions.ts:5 - getConditionDescription
+src/components/valuation/condition/ConditionSlider.tsx:4 - ConditionSliderProps (used in module)
+src/components/valuation/condition/conditionTips.ts:5 - getConditionTips
+src/components/valuation/condition/conditionTips.ts:20 - conditionDescriptions
+src/components/valuation/condition/conditionTips.ts:32 - conditionImprovementTips
+src/components/valuation/condition/index.ts:2 - ConditionSlider
+src/components/valuation/condition/index.ts:3 - FactorSlider
+src/components/valuation/condition/index.ts:4 - ConditionOption
+src/components/valuation/condition/index.ts:5 - ConditionEvaluationGrid
+src/components/valuation/condition/types.ts:38 - ConditionRating
+src/components/valuation/condition/ValuationFactorEngine.tsx:12 - ValuationFactorEngine
+src/components/valuation/condition/ValuationFactorExterior.tsx:12 - ValuationFactorExterior
+src/components/valuation/condition/ValuationFactorInterior.tsx:12 - ValuationFactorInterior
+src/components/valuation/condition/ValuationFactorPaint.tsx:12 - ValuationFactorPaint
+src/components/valuation/condition/ValuationFactorTires.tsx:12 - ValuationFactorTires
+src/components/valuation/condition/ValuationFactorTransmission.tsx:12 - ValuationFactorTransmission
+src/components/valuation/detail/VehicleDataTable.tsx:33 - VehicleDataTable
+src/components/valuation/enhanced-followup/EnhancedVehicleCard.tsx:14 - EnhancedVehicleCard
+src/components/valuation/enterprise/EnterpriseValuationPanel.tsx:46 - EnterpriseValuationPanel
+src/components/valuation/equipment/EquipmentSummary.tsx:16 - EquipmentSummary
+src/components/valuation/free/FeaturesIncluded.tsx:4 - FeaturesIncluded
+src/components/valuation/free/UpsellBanner.tsx:4 - UpsellBanner
+src/components/valuation/header/index.ts:3 - ValuationHeader
+src/components/valuation/header/index.ts:4 - UnifiedValuationHeader
+src/components/valuation/header/index.ts:9 - VehicleInfoProps
+src/components/valuation/header/types.ts:1 - ValuationHeaderProps
+src/components/valuation/header/types.ts:7 - VehicleInfoProps
+src/components/valuation/hooks/useValuationData.ts:18 - useValuationData
+src/components/valuation/market-trend/index.ts:7 - LoadingState
+src/components/valuation/market-trend/index.ts:9 - TrendIndicator
+src/components/valuation/market-trend/index.ts:17 - MarketTrendChart
+src/components/valuation/market-trend/index.ts:8 - AnalysisSection
+src/components/valuation/market-trend/PremiumLockSection.tsx:41 - PremiumLockSection
+src/components/valuation/offers/DealerOfferList.tsx:18 - DealerOfferList
+src/components/valuation/photo-upload/PhotoGrid.tsx:10 - PhotoGrid
+src/components/valuation/photo-upload/PhotoGuidance.tsx:5 - PhotoGuidance
+src/components/valuation/photo-upload/PhotoHeader.tsx:8 - PhotoHeader
+src/components/valuation/photo-upload/PhotoPreview.tsx:11 - PhotoPreview
+src/components/valuation/photo-upload/PhotoUploadDropzone.tsx:13 - PhotoUploadDropzone
+src/components/valuation/photo-upload/PhotoUploader.tsx:13 - PhotoUploader (used in module)
+src/components/valuation/photo-upload/PhotoUploader.tsx:113 - default
+src/components/valuation/photo-upload/PhotoUploadError.tsx:7 - PhotoUploadError
+src/components/valuation/photo-upload/PhotoUploadList.tsx:17 - PhotoUploadList
+src/components/valuation/photo-upload/usePhotoUpload.ts:15 - usePhotoUpload
+src/components/valuation/premium/AuctionSummary.tsx:26 - default
+src/components/valuation/premium/DealerOffers.tsx:26 - default
+src/components/valuation/premium/EmailReportSection.tsx:23 - default
+src/components/valuation/premium/PDFDownloadSection.tsx:23 - default
+src/components/valuation/redesign/PremiumFeatureOverlay.tsx:35 - PremiumFeatureOverlay
+src/components/valuation/redesign/TabbedResultsPanels.tsx:31 - TabbedResultsPanels
+src/components/valuation/redesign/VehicleHeroCard.tsx:26 - VehicleHeroCard
+src/components/valuation/report/index.ts:2 - ValuationReport
+src/components/valuation/report/index.ts:3 - ValuationReportHeader
+src/components/valuation/report/ValuationReport.tsx:8 - ValuationReport (used in module)
+src/components/valuation/report/ValuationReportHeader.tsx:9 - ValuationReportHeader (used in module)
+src/components/valuation/result/EnhancedValuationResult.tsx:17 - EnhancedValuationResult (used in module)
+src/components/valuation/result/EnhancedValuationResult.tsx:75 - default
+src/components/valuation/result/index.ts:2 - UnifiedValuationResult
+src/components/valuation/result/index.ts:3 - ValuationActions
+src/components/valuation/result/index.ts:4 - MarketDataStatus
+src/components/valuation/result/index.ts:5 - FallbackMethodDisclosure
+src/components/valuation/result/index.ts:6 - EnhancedConfidenceScore
+src/components/valuation/result/MarketComparison.tsx:7 - MarketComparisonProps (used in module)
+src/components/valuation/result/MarketComparison.tsx:18 - MarketComparison
+src/components/valuation/result/PremiumFeatures.tsx:6 - PremiumFeaturesProps (used in module)
+src/components/valuation/result/PremiumFeatures.tsx:10 - PremiumFeatures
+src/components/valuation/result/PriceRangeChart.tsx:5 - PriceRangeChartProps (used in module)
+src/components/valuation/result/PriceRangeChart.tsx:10 - PriceRangeChart
+src/components/valuation/result/useValuationPdf.ts:12 - useValuationPdf
+src/components/valuation/result/ValuationSummary.tsx:9 - ValuationSummaryProps (used in module)
+src/components/valuation/result/ValuationSummary.tsx:40 - ValuationSummary
+src/components/valuation/result/ValuationTransparency.tsx:26 - ValuationTransparency
+src/components/valuation/valuation-complete/ValuationComplete.tsx:9 - ValuationComplete (used in module)
+src/components/valuation/valuation-complete/ValuationComplete.tsx:22 - default
+src/components/valuation/valuation-core/ValuationFactorsGrid.tsx:5 - ValuationFactors (used in module)
+src/components/valuation/valuation-core/ValuationFactorsGrid.tsx:12 - ValuationFactorsGridProps (used in module)
+src/components/valuation/valuation-core/ValuationFactorsGrid.tsx:17 - ValuationFactorsGrid (used in module)
+src/components/valuation/valuation-core/ValuationFactorsGrid.tsx:63 - default
+src/components/valuation/valuation-core/ValuationReport.tsx:12 - default
+src/components/valuation/valuation-core/ValuationReportHeader.tsx:12 - default
+src/components/valuation/valuation-core/ValuationResult.tsx:77 - default
+src/components/valuation/valuation-core/ValuationScoreBar.tsx:13 - ValuationScoreBar
+src/modules/auth/animations/index.ts:4 - fadeIn
+src/modules/auth/animations/index.ts:13 - fadeInFrom
+src/modules/auth/animations/index.ts:41 - scaleIn
+src/modules/auth/animations/index.ts:55 - staggerContainer
+src/modules/auth/animations/index.ts:67 - formField
+src/modules/auth/animations/index.ts:81 - success
+src/modules/auth/animations/index.ts:95 - contentSwitch
+src/modules/auth/animations/index.ts:111 - buttonHover
+src/modules/auth/animations/index.ts:116 - buttonTap
+src/modules/qa-dashboard/components/ValuationRow.tsx:32 - ValuationRowProps (used in module)
+src/modules/qa-dashboard/components/ValuationRow.tsx:41 - Valuation (used in module)
+src/modules/qa-dashboard/components/ValuationTable.tsx:23 - ValuationTable
+src/modules/valuation-result/hooks/useValuationPdfHelper.ts:12 - useValuationPdfHelper (used in module)
+src/modules/valuation-result/hooks/useValuationPdfHelper.ts:6 - UseValuationPdfHelperProps (used in module)
+src/modules/valuation-result/hooks/useValuationPdfHelper.ts:45 - default
+src/modules/valuation-result/sections/Breakdown.tsx:20 - Breakdown (used in module)
+src/modules/valuation-result/sections/Breakdown.tsx:125 - default
+src/modules/valuation-result/sections/PhotoAnalysis.tsx:12 - PhotoAnalysis
+src/modules/valuation-result/sections/Summary.tsx:18 - Summary (used in module)
+src/modules/valuation-result/sections/Summary.tsx:158 - default
+src/pages/api/valuation/submit-followup.ts:5 - default
+src/pages/valuation/result/ValuationResultPage.tsx:5 - default
+src/utils/rules/calculators/accidentCalculator.ts:24 - accidentCalculator
+src/utils/rules/calculators/adjustmentCalculator.ts:3 - AdjustmentCalculator
+src/utils/rules/calculators/carfaxCalculator.ts:5 - carfaxCalculator
+src/utils/rules/calculators/colorCalculator.ts:5 - colorCalculator
+src/utils/rules/calculators/conditionCalculator.ts:35 - conditionCalculator
+src/utils/rules/calculators/equipmentCalculator.ts:10 - calculateEquipmentAdjustment
+src/utils/rules/calculators/equipmentCalculator.ts:30 - findMaxValue
+src/utils/rules/calculators/featuresCalculator.ts:5 - featuresCalculator
+src/utils/rules/calculators/fuelTypeCalculator.ts:5 - fuelTypeCalculator
+src/utils/rules/calculators/helpers.ts:3 - calculateBaseValue
+src/utils/rules/calculators/helpers.ts:19 - applyAdjustment
+src/utils/rules/calculators/helpers.ts:33 - average
+src/utils/rules/calculators/helpers.ts:41 - max (used in module)
+src/utils/rules/calculators/helpers.ts:48 - min (used in module)
+src/utils/rules/calculators/locationCalculator.ts:4 - LocationCalculator (used in module)
+src/utils/rules/calculators/locationCalculator.ts:27 - locationCalculator
+src/utils/rules/calculators/photoScoreCalculator.ts:5 - photoScoreCalculator
+src/utils/rules/calculators/recallCalculator.ts:5 - recallCalculator
+src/utils/rules/calculators/transmissionCalculator.ts:5 - transmissionCalculator
+src/utils/rules/calculators/trimCalculator.ts:5 - trimCalculator
+src/utils/rules/calculators/warrantyCalculator.ts:5 - warrantyCalculator
+src/utils/scrapers/utils/normalizeVehicleData.ts:9 - normalizeVehicleData
+src/components/lookup/form-parts/fields/FuelTypeSelect.tsx:55 - FuelTypeSelect
+src/components/premium/features/data/premium-features.ts:83 - getCategoryFeatures
+src/components/premium/form/initialization/FormInitializer.tsx:14 - FormInitializer
+src/components/premium/form/steps/AccidentHistoryStep.tsx:19 - AccidentHistoryStep
+src/components/premium/form/steps/ConditionStep.tsx:16 - default
+src/components/premium/form/steps/DrivingBehaviorStep.tsx:16 - DrivingBehaviorStep
+src/components/premium/form/steps/FeatureSelectionStep.tsx:14 - FeatureSelectionStep
+src/components/premium/form/steps/FuelTypeStep.tsx:67 - FuelTypeStep
+src/components/premium/form/steps/MaintenanceHistoryStep.tsx:16 - MaintenanceHistoryStep
+src/components/premium/form/steps/MileageStep.tsx:15 - default
+src/components/premium/form/steps/PredictionReviewStep.tsx:92 - PredictionReviewStep (used in module)
+src/components/premium/form/steps/PredictionReviewStep.tsx:246 - default
+src/components/premium/form/steps/StateSelect.tsx:70 - StateSelect
+src/components/premium/form/steps/VehicleDetailsStep.tsx:16 - VehicleDetailsStep
+src/components/premium/form/steps/VehicleIdentificationStep.tsx:17 - VehicleIdentificationStep
+src/components/premium/form/vehicle-details/RecallToggle.tsx:18 - RecallToggle
+src/components/premium/form/vehicle-details/TransmissionSelect.tsx:50 - TransmissionSelect
+src/components/premium/form/vehicle-details/WarrantySelect.tsx:24 - WarrantySelect
+src/components/premium/lookup/form-parts/BasicVehicleInfo.tsx:20 - BasicVehicleInfo
+src/components/premium/lookup/form-parts/FormHeader.tsx:19 - FormHeader
+src/components/premium/lookup/plate/EnhancedPlateForm.tsx:15 - EnhancedPlateForm (used in module)
+src/components/premium/lookup/plate/EnhancedPlateForm.tsx:80 - default
+src/components/premium/lookup/shared/ValuationErrorState.tsx:19 - ValuationErrorState
+src/components/premium/lookup/shared/ValuationStages.tsx:4 - ValuationStage (used in module)
+src/components/premium/lookup/shared/ValuationStages.tsx:16 - ValuationStages
+src/components/premium/lookup/vin/VinDecoderResults.tsx:148 - default
+src/components/premium/sections/valuation-tabs/CarfaxReportTab.tsx:10 - CarfaxReportTab
+src/components/premium/sections/valuation-tabs/DealerOffersTab.tsx:21 - DealerOffersTab
+src/components/premium/sections/valuation-tabs/PhotoLookupTab.tsx:14 - PhotoLookupTab
+src/components/premium/sections/valuation-tabs/PhotoUploadTab.tsx:8 - PhotoUploadTab
+src/components/premium/sections/valuation-tabs/services.ts:13 - ValuationServiceId (used in module)
+src/components/premium/sections/valuation-tabs/services.ts:23 - ValuationService (used in module)
+src/components/premium/sections/valuation-tabs/services.ts:30 - valuationServices
+src/components/premium/sections/valuation-tabs/TabContent.tsx:16 - TabContent
+src/components/premium/sections/valuation-tabs/TwelveMonthForecastTab.tsx:16 - TwelveMonthForecastTab
+src/components/premium/sections/valuation-tabs/TwelveMonthForecastTab.tsx:6 - TwelveMonthForecastTabProps (used in module)
+src/components/premium/sections/valuation-tabs/UnauthorizedRedirectTab.tsx:52 - default
+src/components/valuation/condition/factors/TitleStatusFactorCard.tsx:24 - TitleStatusFactorCard
+src/components/valuation/result/sections/Explanation.tsx:14 - Explanation (used in module)
+src/components/valuation/result/sections/Explanation.tsx:66 - default
+src/components/valuation/result/sections/PDFActions.tsx:17 - PDFActions (used in module)
+src/components/valuation/result/sections/PDFActions.tsx:96 - default
+src/components/premium/form/steps/accident-history/AccidentHistoryForm.tsx:16 - AccidentHistoryForm
+src/components/premium/form/steps/features/FeaturesGrid.tsx:19 - FeaturesGrid
+src/components/premium/form/steps/features/FeaturesTotalValue.tsx:5 - FeaturesTotalValue
+src/components/premium/form/steps/prediction-review/FeaturesDisplay.tsx:9 - FeaturesDisplay
+src/components/premium/form/steps/prediction-review/GetValuationButton.tsx:12 - GetValuationButton
+src/components/premium/form/steps/prediction-review/VehicleSummaryCard.tsx:10 - VehicleSummaryCard
+src/components/premium/form/steps/review/DrivingBehaviorSummary.tsx:9 - DrivingBehaviorSummary
+src/components/premium/form/steps/review/FeaturesSummary.tsx:9 - FeaturesSummary
+src/components/premium/form/steps/review/PhotosSummary.tsx:9 - PhotosSummary
+src/components/premium/form/steps/review/ReviewActions.tsx:11 - ReviewActions
+src/components/premium/form/steps/review/VehicleDetailsSummary.tsx:9 - VehicleDetailsSummary
+src/components/premium/form/steps/review/VehicleSummary.tsx:9 - VehicleSummary
+src/components/premium/form/steps/vehicle-details/AccidentHistorySection.tsx:14 - AccidentHistorySection
+src/components/premium/form/steps/vehicle-details/VehicleDetailsFields.tsx:13 - VehicleDetailsFields
+src/components/premium/sections/valuation-tabs/forecast/ForecastChart.tsx:23 - ForecastChart
+src/components/premium/sections/valuation-tabs/forecast/ForecastSummary.tsx:11 - ForecastSummary
+src/components/premium/sections/valuation-tabs/form-parts/AccidentDetailsForm.tsx:19 - AccidentDetailsForm
+src/components/premium/sections/valuation-tabs/form-parts/AccidentDetailsForm.tsx:8 - AccidentDetails (used in module)
+src/components/premium/sections/valuation-tabs/form-parts/AccidentDetailsForm.tsx:14 - AccidentDetailsFormProps (used in module)
+src/components/premium/sections/valuation-tabs/form-parts/VehicleDetailsForm.tsx:29 - VehicleDetailsForm
+src/components/premium/sections/valuation-tabs/hooks/useValuationState.ts:17 - useValuationState
+src/components/premium/sections/valuation-tabs/market-analysis/ComparableListingsTable.tsx:8 - ComparableListing (used in module)
+src/components/premium/sections/valuation-tabs/market-analysis/MarketAnalysisTab.tsx:20 - MarketAnalysisTab
+src/components/premium/sections/valuation-tabs/market-analysis/MarketInsightsTab.tsx:36 - MarketInsightsTab
+src/components/premium/sections/valuation-tabs/market-analysis/MarketPriceRange.tsx:10 - MarketPriceRange
+src/components/premium/sections/valuation-tabs/market-analysis/PriceDistributionChart.tsx:35 - PriceDistributionChart

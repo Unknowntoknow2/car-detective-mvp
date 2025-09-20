@@ -1,0 +1,99 @@
+src/hooks/useVehicleLookup.ts:2:import { VehicleData, LookupMethod } from '@/types/vehicle-lookup';
+src/hooks/useVehicleLookup.ts:20:  const [vehicle, setVehicle] = useState<VehicleData | null>(null);
+src/hooks/useVehicleLookup.ts:35:        const vehicleData: VehicleData = {
+src/services/valuation/vehicleDataService.ts:4:export interface VehicleData {
+src/services/valuation/vehicleDataService.ts:16:export async function getVehicleDataByVin(vin: string): Promise<VehicleData | null> {
+src/services/valuation/vehicleDataService.ts:74:export async function getVehicleDataByValuationId(valuationId: string): Promise<VehicleData | null> {
+src/components/premium/sections/valuation-tabs/hooks/useValuationState.ts:5:import { VehicleData } from "@/types/vehicle-lookup";
+src/components/premium/sections/valuation-tabs/hooks/useValuationState.ts:29:  const [vehicleData, setVehicleData] = useState<VehicleData | null>(null);
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.js:211:            // Always build a complete VehicleData object from decoded VIN and user input
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx:5:import { VehicleData, VehicleCondition, TitleStatus, DataGap, ValuationResult } from '../../types/ValuationTypes';
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx:15:  const [vehicleData, setVehicleData] = useState<Partial<VehicleData>>({});
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx:21:  const requiredFields: (keyof VehicleData)[] = ['vin', 'year', 'make', 'model', 'mileage', 'condition', 'titleStatus'];
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx:37:  function extractVehicleDataFromVin(decoded: VariableValue[], vin: string): Partial<VehicleData> {
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx:38:    const data: Partial<VehicleData> = { vin };
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx:108:  function identifyDataGaps(data: Partial<VehicleData>): DataGap[] {
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx:176:    const value = vehicleData[currentGap.field as keyof VehicleData];
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx:230:      // Always build a complete VehicleData object from decoded VIN and user input
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx:231:      const vd: VehicleData = {
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx:249:        const v = vd[f as keyof VehicleData];
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx:289:    const value = vehicleData[currentGap.field as keyof VehicleData];
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx:458:          disabled={currentGap?.required && !vehicleData[currentGap.field as keyof VehicleData]}
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx.bak.navigate:5:import { VehicleData, VehicleCondition, TitleStatus, DataGap, ValuationResult } from '../../types/ValuationTypes';
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx.bak.navigate:15:  const [vehicleData, setVehicleData] = useState<Partial<VehicleData>>({});
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx.bak.navigate:36:  function extractVehicleDataFromVin(decoded: VariableValue[], vin: string): Partial<VehicleData> {
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx.bak.navigate:37:    const data: Partial<VehicleData> = { vin };
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx.bak.navigate:71:  function identifyDataGaps(data: Partial<VehicleData>): DataGap[] {
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx.bak.navigate:139:    const value = vehicleData[currentGap.field as keyof VehicleData];
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx.bak.navigate:217:    const value = vehicleData[currentGap.field as keyof VehicleData];
+apps/ain-valuation-engine/src/components/followup/DataCollectionForm.tsx.bak.navigate:381:          disabled={currentGap?.required && !vehicleData[currentGap.field as keyof VehicleData]}
+apps/ain-valuation-engine/src/types/ValuationTypes.ts:26:export interface VehicleData {
+apps/ain-valuation-engine/src/types/ValuationTypes.ts:82:  vehicleData: VehicleData;
+apps/ain-valuation-engine/src/types/ValuationTypes.ts:129:export interface VehicleDataCanonical extends VehicleData {
+apps/ain-valuation-engine/src/types/api.d.ts:8:// DO NOT DEFINE VehicleData HERE. Import from ValuationTypes.ts
+apps/ain-valuation-engine/src/types/api.js:5:export const VehicleData = {};
+apps/ain-valuation-engine/src/types_custom/VehicleDataForValuation.ts:1:// 🔒 Deprecated. Use canonical VehicleData from src/types/ValuationTypes.ts
+apps/ain-valuation-engine/src/types_custom/VehicleDataForValuation.ts:2:/** @deprecated Use VehicleData from src/types/ValuationTypes.ts */
+apps/ain-valuation-engine/src/types_custom/VehicleDataForValuation.ts:3:export type VehicleDataForValuation = import('../types/ValuationTypes').VehicleData;
+apps/ain-valuation-engine/src/types_custom/api.ts:2:/** @deprecated Use VehicleData from src/types/ValuationTypes.ts */
+apps/ain-valuation-engine/src/types_custom/api.ts:3:export type VehicleData = import('../types/ValuationTypes').VehicleData;
+apps/ain-valuation-engine/src/types_custom/api.ts:58:  vehicleData?: Partial<VehicleData>;
+apps/ain-valuation-engine/src/types_custom/api.ts:130:  vehicleData?: Partial<VehicleData>;
+apps/ain-valuation-engine/src/types_custom/ValuationTypes.ts:2:/** @deprecated Use VehicleData from src/types/ValuationTypes.ts */
+apps/ain-valuation-engine/src/types_custom/ValuationTypes.ts:3:export type VehicleData = import('../types/ValuationTypes').VehicleData;
+apps/ain-valuation-engine/src/ain-backend/conversationEngine.js:48:        // Build canonical VehicleData from state
+apps/ain-valuation-engine/src/ain-backend/valuationEngine.ts:2:type VehicleData = {
+apps/ain-valuation-engine/src/ain-backend/valuationEngine.ts:19:  vehicleData: VehicleData;
+apps/ain-valuation-engine/src/ain-backend/valuationEngine.ts:23:export async function valuateVehicle(vehicleData: VehicleData): Promise<ValuationResult> {
+apps/ain-valuation-engine/src/ain-backend/valuationEngine.ts:57:    let normalizedCondition: VehicleData['condition'] = 'good';
+apps/ain-valuation-engine/src/ain-backend/supabaseClient.ts:3:type VehicleData = any; type SessionData = any;
+apps/ain-valuation-engine/src/ain-backend/supabaseClient.ts:45:export async function storeVehicleData(vehicleId: string, vehicleData: VehicleData) {
+apps/ain-valuation-engine/src/ain-backend/conversationEngine.ts:5:type VehicleData = {
+apps/ain-valuation-engine/src/ain-backend/conversationEngine.ts:62:    // Build canonical VehicleData from state
+apps/ain-valuation-engine/src/ain-backend/conversationEngine.ts:63:    const vehicleData: VehicleData = {
+apps/ain-valuation-engine/src/services/valuationEngine.ts:36:  // vehicle: normalized and enriched VehicleData
+apps/ain-valuation-engine/src/services/unifiedSupabase.ts:5:import { VehicleData, SessionData } from '@/types/ValuationTypes';
+apps/ain-valuation-engine/src/services/unifiedSupabase.ts:147:  static async storeVehicleData(vin: string, vehicleData: VehicleData) {
+apps/ain-valuation-engine/src/services/unifiedSupabase.ts:168:  static async getVehicleData(vin: string): Promise<{ success: boolean; data?: VehicleData; error?: string }> {
+apps/ain-valuation-engine/src/services/normalizeVehicleData.ts:19:export type VehicleData = z.infer<typeof VehicleDataSchema>;
+apps/ain-valuation-engine/src/services/normalizeVehicleData.ts:22:export function normalizeVehicleData(input: unknown): VehicleData {
+apps/ain-valuation-engine/src/services/valuationNormalizer.ts:1:import { VehicleDataCanonical } from "@/types/ValuationTypes";
+apps/ain-valuation-engine/src/services/valuationNormalizer.ts:3:export function normalizeVehicleData(input: any): VehicleDataCanonical {
+apps/ain-valuation-engine/src/services/valuationNormalizer.ts:43:  const normalized: VehicleDataCanonical = {
+apps/ain-valuation-engine/src/services/valuationNormalizer.ts:59:    condition: condition as VehicleDataCanonical["condition"],
+apps/ain-valuation-engine/src/services/valuationNormalizer.ts:60:    titleStatus: titleStatus as VehicleDataCanonical["titleStatus"],
+apps/ain-valuation-engine/src/services/marketListingsService.ts:26:import { VehicleData, VehicleCondition, ApiResponse } from '../types/ValuationTypes';
+apps/ain-valuation-engine/src/services/marketListingsService.ts:88:    vehicle: Partial<VehicleData>,
+apps/ain-valuation-engine/src/services/marketListingsService.ts:142:    vehicle: Partial<VehicleData>,
+apps/ain-valuation-engine/src/services/marketListingsService.ts:183:    vehicle: Partial<VehicleData>,
+apps/ain-valuation-engine/src/services/marketListingsService.ts:224:    vehicle: Partial<VehicleData>,
+apps/ain-valuation-engine/src/services/marketListingsService.ts:265:    vehicle: Partial<VehicleData>,
+apps/ain-valuation-engine/src/services/marketListingsService.ts:301:  private estimateBasePrice(vehicle: Partial<VehicleData>): number {
+apps/ain-valuation-engine/src/services/marketListingsService.ts:397:  private sortByRelevance(listings: MarketListing[], vehicle: Partial<VehicleData>): MarketListing[] {
+apps/ain-valuation-engine/src/services/valuationEngine.js:35:    // vehicle: normalized and enriched VehicleData
+src/utils/valuation/emergencyFallbackUtils.ts:6:interface VehicleData {
+src/utils/valuation/emergencyFallbackUtils.ts:18:  vehicleData: VehicleData,
+src/types/unified-lookup.ts:83:export type VehicleData = UnifiedVehicleData;
+src/types/vehicle-lookup.ts:5:export interface VehicleData {
+src/types/vehicle-lookup.ts:31:  vehicle: VehicleData;
+src/api/vehicleApi.ts:24:export interface VehicleData {
+src/api/vehicleApi.ts:30:export async function fetchVehicleData(): Promise<VehicleData> {
+ops/audit/ts_prune.txt:20:src/api/vehicleApi.ts:24 - VehicleData (used in module)
+ops/audit/ts_prune.txt:589:src/types/unified-lookup.ts:83 - VehicleData
+ops/audit/ts_prune.txt:1460:src/services/valuation/vehicleDataService.ts:4 - VehicleData (used in module)
+ops/audit/all_files.txt:721:apps/ain-valuation-engine/src/types/VehicleData.js
+ops/audit/all_files.txt:728:apps/ain-valuation-engine/src/types/VehicleData.ts
+ops/audit/main_frontend_files.txt:412:apps/ain-valuation-engine/src/types/VehicleData.js
+ops/audit/main_frontend_files.txt:419:apps/ain-valuation-engine/src/types/VehicleData.ts
+apps/ain-valuation-engine/tests/codeQuality.test.ts:184:      expect(types).toHaveProperty('VehicleData');
+apps/ain-valuation-engine/API_INTEGRATION_GUIDE.md:234:const vehicleData: VehicleData = {
+apps/ain-valuation-engine/API_INTEGRATION_GUIDE.md:381:private getMockListings(vehicle: Partial<VehicleData>, source: string, count: number) {
+apps/ain-valuation-engine/ts-prune-report.txt:69:src/types/index.ts:3 - VehicleData
+apps/ain-valuation-engine/ts-prune-report.txt:102:src/types_custom/api.ts:69 - VehicleData (used in module)
+apps/ain-valuation-engine/ts-prune-report.txt:117:src/types_custom/ValuationTypes.ts:3 - VehicleData (used in module)
+apps/ain-valuation-engine/data_collection_debug.ts:3:import { VehicleData } from "./src/types/ValuationTypes";
+apps/ain-valuation-engine/data_collection_debug.ts:19:  const vehicleData: VehicleData = {
+apps/ain-valuation-engine/TROUBLESHOOTING_GUIDE.md:32:   import { VehicleData, ValuationResult } from '@/types/ValuationTypes';
+apps/ain-valuation-engine/TROUBLESHOOTING_GUIDE.md:39:     data: VehicleData;  // Must match exactly
+apps/ain-valuation-engine/valuation_computation_debug.ts:3:import { VehicleData } from "./src/types/ValuationTypes";
+apps/ain-valuation-engine/valuation_computation_debug.ts:13:  const vehicleData: VehicleData = {

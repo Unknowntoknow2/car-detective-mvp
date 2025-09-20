@@ -13,7 +13,7 @@ export class VinService {
      * This method now redirects to the unified decoder for consistency
      */
     static async decodeVin(vin) {
-        console.warn('⚠️ centralizedApi.VinService.decodeVin is DEPRECATED. Use unifiedVinDecoder.decodeVin instead.');
+        
         try {
             const result = await decodeVin(vin);
             if (!isVinDecodeSuccessful(result)) {
@@ -38,7 +38,7 @@ export class VinService {
      * This method now redirects to the unified decoder for consistency
      */
     static async decodeVinValues(vin) {
-        console.warn('⚠️ centralizedApi.VinService.decodeVinValues is DEPRECATED. Use unifiedVinDecoder.decodeVin instead.');
+        
         return this.decodeVin(vin); // Same implementation as decodeVin
     }
 }

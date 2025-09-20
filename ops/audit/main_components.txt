@@ -1,0 +1,668 @@
+src/layouts/DealerLayout.tsx:8:export function DealerLayout({ children }: DealerLayoutProps) {
+src/hooks/usePremiumCredits.ts:5:export function usePremiumCredits() {
+src/hooks/usePremiumStatus.ts:11:export function usePremiumStatus(valuationId?: string) {
+src/hooks/useCorrectedValuation.ts:33:export function useCorrectedValuation() {
+src/hooks/useStepNavigation.ts:22:export function useStepNavigation({ 
+src/hooks/useOsmGeocode.ts:24:export function useOsmGeocode(zip: string) {
+src/hooks/useDealerOfferActions.ts:17:export function useDealerOfferActions() {
+src/hooks/useUserRole.ts:5:export function useUserRole() {
+src/hooks/useFollowUpDataLoader.ts:11:export function useFollowUpDataLoader({ vin, initialData }: UseFollowUpDataLoaderProps) {
+src/hooks/useUser.ts:10:export function useUser() {
+src/hooks/useVinForecast.ts:5:export function useVinForecast(vin: string) {
+src/hooks/useValuationApi.ts:26:export function useValuationApi(): UseValuationApiReturn {
+src/hooks/useFullValuationPipeline.ts:16:export function useFullValuationPipeline(): FullValuationPipelineReturn {
+src/hooks/useNicbVinCheck.ts:5:export function useNicbVinCheck() {
+src/hooks/useMakeModels.ts:32:export function useMakeModels(): UseMakeModelsReturn {
+src/hooks/valuation-pipeline/service.ts:61:export function valuationPipelineReducer(
+src/hooks/valuation-pipeline/useValuationPipeline.ts:32:export function useValuationPipeline(): ValuationPipelineHook {
+src/hooks/usePlateLookup.ts:15:export function usePlateLookup() {
+src/hooks/useVehicleHistory.ts:18:export function useVehicleHistory(vin: string, valuationId: string) {
+src/hooks/useAuctionIndex.ts:18:export function useAuctionIndex(startDate?: string, endDate?: string) {
+src/hooks/useFormAutosave.ts:4:export function useFormAutosave(formData: FormData) {
+src/hooks/useStepTransition.ts:11:export function useStepTransition(
+src/hooks/use-mobile.ts:4:export function useIsMobile() {
+src/hooks/useAuthTests.ts:6:export function useAuthTests(userId?: string) {
+src/hooks/useMarketInsights.ts:35:export function useMarketInsights(params: MarketInsightsParams) {
+src/hooks/useNhtsaRecalls.ts:22:export function useNhtsaRecalls(
+src/hooks/useFormSteps.ts:3:export function useFormSteps(totalSteps: number) {
+src/hooks/useDealerVehicles.ts:5:export function useDealerVehicles() {
+src/hooks/useDealerOfferComparison.ts:15:export function useDealerOfferComparison(reportId?: string) {
+src/hooks/useMarketListings.ts:15:export function useMarketListings({
+src/hooks/useProfile.ts:11:export function useProfile() {
+src/hooks/useSimpleFollowUpForm.ts:12:export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFormProps) {
+src/hooks/useAuctionIntelligence.ts:6:export function useAuctionIntelligence(vin: string) {
+src/hooks/useVehicleData.ts:9:export function useVehicleData(): UseVehicleDataReturn {
+src/hooks/useValidation.ts:10:export function useValidation<T>(schema: ZodSchema<T>) {
+src/hooks/useFeatureFlags.ts:17:export function useFeatureFlags() {
+src/hooks/use-mobile.tsx:5:export function useIsMobile() {
+src/hooks/useVehicleSelector.ts:37:export function useVehicleSelector(props?: UseVehicleSelectorProps): UseVehicleSelectorReturn {
+src/hooks/useServiceHistory.ts:20:export function useServiceHistory({ vin }: UseServiceHistoryProps) {
+src/hooks/usePublicShare.ts:4:export function usePublicShare() {
+src/hooks/useScrapedListings.ts:18:export function useScrapedListings(vin: string) {
+src/hooks/useMarketplaceComparison.ts:28:export function useMarketplaceComparison({
+src/hooks/useCensus.ts:16:export function useCensus(zip: string) {
+src/hooks/useValuationFallback.ts:15:export function useValuationFallback(): ValuationFallbackHook {
+src/hooks/useFollowUpForm.ts:12:export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswers>) {
+src/hooks/useUserPlan.ts:12:export function useUserPlan(): UserPlan {
+src/valuation/calculateVehicleValue.ts:14:export function calculateVehicleValue(
+src/valuation/calculateVehicleValue.ts:28:export function calculatePriceRange(
+src/hooks/useDealerNotifications.ts:10:export function useDealerNotifications() {
+src/hooks/useCompetitorPrices.ts:5:export function useCompetitorPrices(vin: string) {
+src/hooks/usePremiumPayment.ts:14:export function usePremiumPayment(): UsePremiumPaymentResult {
+src/hooks/useValuationData.ts:20:export function useValuationData(options: UseValuationDataOptions = {}): UseValuationDataReturn {
+src/hooks/useLocalStorage.ts:4:export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+src/hooks/usePrediction.ts:5:export function usePrediction() {
+src/hooks/useFollowUpAutoSave.ts:13:export function useFollowUpAutoSave({
+src/hooks/useFormValidation.ts:3:export function useFormValidation(totalSteps: number) {
+src/hooks/useVehicleLookup.ts:18:export function useVehicleLookup() {
+src/hooks/useConsolidatedForecast.ts:21:export function useConsolidatedForecast(
+src/hooks/useVpicVinLookup.ts:3:export function useVinLookup() {
+src/hooks/useMissingFieldAnalysis.ts:22:export function useMissingFieldAnalysis({
+src/hooks/useForecast.ts:5:export function useForecast(valuationId: string) {
+src/hooks/useVehicleDBData.ts:9:export function useVehicleDBData() {
+src/hooks/useZipValidation.ts:14:export function useZipValidation() {
+src/hooks/useDealerValuations.ts:18:export function useDealerValuations(dealerId?: string) {
+src/hooks/useEpaMpg.ts:14:export function useEpaMpg(year: number, make: string, model: string) {
+src/hooks/useAnimatedInView.ts:10:export function useAnimatedInView(
+src/hooks/useAdminAnalytics.ts:24:export function useAdminAnalytics() {
+src/enrichment/parsers/normalizeAuction.ts:29:export function normalizeStatVinData(data: StatVinData): NormalizedAuctionData {
+src/enrichment/parsers/normalizeAuction.ts:56:export function normalizeAuctionData(data: any, source: string): NormalizedAuctionData {
+src/App.tsx:16:function Layout() {
+src/App.tsx:38:function App() {
+src/contexts/ValuationContext.tsx:59:export function ValuationProvider({ children, valuationId }: ValuationProviderProps) {
+src/contexts/ValuationContext.tsx:282:export function useValuationContext() {
+src/docs/prompt-2-5-validation-summary.md:49:  - Includes JSON export functionality
+src/components/result/VehicleDetailsCard.tsx:20:export function VehicleDetailsCard({
+src/components/result/VehicleDetailsCard.tsx:96:function DetailItem(
+src/components/result/useValuationId.ts:3:export function useValuationId(searchParamsId?: string | null) {
+src/components/title-ownership/VinInputSection.tsx:16:export function VinInputSection({
+src/components/title-ownership/VehicleHistoryForm.tsx:16:export function VehicleHistoryForm({
+src/components/title-ownership/OwnershipHistory.tsx:18:export function OwnershipHistory(
+src/components/title-ownership/TitleStatusSelector.tsx:67:export function TitleStatusSelector(
+src/components/title-ownership/VehicleHistorySection.tsx:18:export function VehicleHistorySection() {
+src/components/comprehensive/IndustryLeaderDataSection.tsx:16:export function IndustryLeaderDataSection({ 
+src/components/comprehensive/MarketplaceDataSection.tsx:16:export function MarketplaceDataSection({ make, model, year, zipCode }: MarketplaceDataSectionProps) {
+src/components/comprehensive/ComprehensiveValuationReport.tsx:17:export function ComprehensiveValuationReport({ 
+src/components/marketing/AnnouncementBar.tsx:5:export function AnnouncementBar() {
+src/services/scrapedListingsService.ts:42:export function calculateAverageListingPrice(listings: ScrapedListing[]): number | null {
+src/services/scrapedListingsService.ts:53:export function formatListingsForPdf(listings: ScrapedListing[]): string {
+src/services/scrapedListingsService.ts:82:export function generateMarketplaceAnalysisText(
+src/services/generateConfidenceScore.ts:47:export function generateConfidenceScore(params: ConfidenceScoreParams): ConfidenceScoreResult {
+src/services/generateConfidenceScore.ts:160:export function extractTrustedSources(sources: string[]): string[] {
+src/services/adjustmentHelpers.ts:7:export function getDepreciationAdjustment(year: number, make?: string, fuelType?: string): number {
+src/services/adjustmentHelpers.ts:42:export function getMileageAdjustment(mileage: number, basePrice?: number): number {
+src/services/adjustmentHelpers.ts:61:export function getConditionAdjustment(condition: string, basePrice?: number): number {
+src/components/audit/AuditChecklist.tsx:33:export function AuditChecklist() {
+src/components/notifications/DealerOfferNotification.tsx:27:export function DealerOfferNotification({
+src/components/notifications/DealerOfferNotification.tsx:84:export function showDealerOfferNotification(
+src/services/vinForecastService.ts:68:export function formatForecastText(forecast: VinForecast): string {
+src/components/theme/ThemeProvider.tsx:24:export function ThemeProvider({
+src/components/form/VehicleFormToolTip.tsx:13:export function VehicleFormTooltip({ content }: VehicleFormTooltipProps) {
+src/components/form/validation.ts:62:export function validateForm<T>(
+src/components/admin/SystemHealthDashboard.tsx:27:export function SystemHealthDashboard({ className = '' }: SystemHealthDashboardProps) {
+src/components/admin/heatmap/AdjustmentHeatmap.tsx:18:function AdjustmentCell({ value, maxValue, minValue }: AdjustmentCellProps) {
+src/components/admin/heatmap/AdjustmentHeatmap.tsx:44:export function AdjustmentHeatmap() {
+src/components/admin/ValuationDebugDashboard.tsx:23:export function ValuationDebugDashboard() {
+src/components/admin/DataAggregationDashboard.tsx:44:export function DataAggregationDashboard() {
+src/components/admin/MsrpPopulationPanel.tsx:10:export function MsrpPopulationPanel() {
+src/components/admin/FANGOrchestrationDashboard.tsx:58:export default function FANGOrchestrationDashboard() {
+src/components/vehicle/EpaMpgDisplay.tsx:12:export function EpaMpgDisplay({ year, make, model }: EpaMpgDisplayProps) {
+src/components/referrals/ReferralHistoryList.tsx:11:export function ReferralHistoryList({ referrals }: ReferralHistoryListProps) {
+src/components/referrals/ReferralStatusCard.tsx:13:export function ReferralStatusCard({
+src/components/referrals/ReferralModal.tsx:15:export function ReferralModal({ isOpen, onClose, referralCode }: ReferralModalProps) {
+src/components/SimilarListingsSection.tsx:11:export function SimilarListingsSection({ listings }: SimilarListingsSectionProps) {
+src/services/valuation/dataValidation.ts:8:export function validateVin(vin: string): ValidationResult {
+src/services/valuation/dataValidation.ts:38:export function validateMileage(mileage: number): ValidationResult {
+src/services/valuation/dataValidation.ts:66:export function validateZipCode(zipCode: string): ValidationResult {
+src/services/valuation/dataValidation.ts:88:export function validateMarketListings(listings: any[]): ValidationResult {
+src/services/valuation/dataValidation.ts:118:export function validateFuelPrice(price: number): ValidationResult {
+src/components/steps/VehicleLookup.tsx:14:export function VehicleLookup({ onVehicleFound, isLoading = false }: VehicleLookupProps) {
+src/components/professional/ProfessionalResultsPage.tsx:48:export default function ProfessionalResultsPage() {
+src/services/valuation/confidenceEngine.ts:33:export function calculateAdvancedConfidence(inputs: ConfidenceInputs): number {
+src/services/valuation/confidenceEngine.ts:190:export function getConfidenceBreakdown(inputs: ConfidenceInputs): ConfidenceBreakdown {
+src/services/competitorPriceService.ts:88:export function calculateAverageCompetitorPrice(prices: CompetitorPrice): number | null {
+src/services/fuelCostService.ts:112:export function computeFuelTypeAdjustment(
+src/services/fuelCostService.ts:191:export function computeFuelCostImpact(
+src/components/ui/sidebar.tsx:18:export function Sidebar({ items, isMobile }: SidebarProps) {
+src/components/ui/premium-badge.tsx:13:export function PremiumBadge({
+src/components/ui/skeleton.tsx:3:function Skeleton({
+src/components/ui/tooltip.tsx:8:export function TooltipProvider({ children }: TooltipProviderProps) {
+src/components/ui/tooltip.tsx:16:export function Tooltip({ children }: TooltipProps) {
+src/components/ui/tooltip.tsx:25:export function TooltipTrigger({ children }: TooltipTriggerProps) {
+src/components/ui/tooltip.tsx:34:export function TooltipContent({ children }: TooltipContentProps) {
+src/components/ui/condition-badge.tsx:21:export function ConditionBadge({
+src/pages/StatsPage.tsx:5:export default function StatsPage() {
+src/components/ui/combobox.tsx:39:export function ComboBox({
+src/pages/PlatformDiagnosticsPage.tsx:10:export default function PlatformDiagnosticsPage() {
+src/components/ui/data-table.tsx:15:export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
+src/pages/admin/ValuationInsightsPage.tsx:6:export default function ValuationInsightsPage() {
+src/components/ui/badge.tsx:31:function Badge({ className, variant, ...props }: BadgeProps) {
+src/components/ui/toaster.tsx:4:export function Toaster() {
+src/pages/admin/AuditPage.tsx:4:export default function AuditPage() {
+src/pages/admin/ValuationInsights.tsx:44:export default function ValuationInsights() {
+src/components/ui/ColorSwatch.tsx:27:export function ColorSwatch(
+src/pages/ProfessionalHomePage.tsx:27:export default function ProfessionalHomePage() {
+src/pages/AboutPage.tsx:5:export default function AboutPage() {
+src/components/ui/icons.tsx:3:export function CheckCircleIcon(
+src/components/ui/icons.tsx:24:export function XCircleIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
+src/components/ui/icons.tsx:44:export function Check3DIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
+src/components/ui/calendar.tsx:11:function Calendar({
+src/pages/OffersPage.tsx:9:export default function OffersPage() {
+src/pages/DebugMakesModels.tsx:5:export default function DebugMakesModels() {
+src/pages/ProfilePage.tsx:5:export default function ProfilePage() {
+src/components/ui/enhanced/PricingSection.tsx:35:export function PricingSection({
+src/pages/PrivacyPolicyPage.tsx:6:export default function PrivacyPolicyPage() {
+src/components/ui/enhanced/ProfessionalHero.tsx:29:export function ProfessionalHero({
+src/pages/AccountPage.tsx:5:export default function AccountPage() {
+src/pages/ReferralDashboardPage.tsx:11:export default function ReferralDashboardPage() {
+src/pages/ServiceHistoryPage.tsx:5:export default function ServiceHistoryPage() {
+src/pages/VehicleHistoryPage.tsx:6:export default function VehicleHistoryPage() {
+src/pages/PremiumResultsPage.tsx:5:export default function PremiumResultsPage() {
+src/pages/ValuationFollowUpPage.tsx:14:export default function ValuationFollowUpPage() {
+src/pages/AuthTestPage.tsx:4:export default function AuthTestPage() {
+src/pages/PricingPage.tsx:11:export default function PricingPage() {
+src/pages/PremiumValuationPage.tsx:5:export default function PremiumValuationPage() {
+src/pages/GetValuationPage.tsx:8:export default function GetValuationPage() {
+src/pages/ModalShowcase.tsx:9:export default function ModalShowcase() {
+src/pages/AuthCallback.tsx:6:export default function AuthCallback() {
+src/components/ui/enhanced/FeatureSection.tsx:19:export function FeatureSection({
+src/pages/AdminPage.tsx:5:export default function AdminPage() {
+src/pages/AccountSettingsPage.tsx:8:export default function AccountSettingsPage() {
+src/pages/ResultsPage.tsx:3:export default function ResultsPage() {
+src/pages/ValuationPage.tsx:5:export default function ValuationPage() {
+src/pages/DealerSignup.tsx:18:export default function DealerSignup() {
+src/pages/NotFound.tsx:7:export default function NotFound() {
+src/components/ui/enhanced/ProfessionalModal.tsx:17:export function ProfessionalModal({
+src/components/ui/enhanced/ProfessionalModal.tsx:89:export function StepProgress({ currentStep, totalSteps, steps }: StepProgressProps) {
+src/components/ui/enhanced/ProfessionalModal.tsx:148:export function OptionCard({
+src/components/ui/enhanced/ProfessionalModal.tsx:208:export function ToggleButton({ options, value, onChange, className }: ToggleButtonProps) {
+src/pages/view-offer/ViewOfferPage.tsx:34:export default function ViewOfferPage() {
+src/components/ui/enhanced/TestimonialSection.tsx:20:export function TestimonialSection({
+src/pages/valuation/result/ValuationResultPage.tsx:5:export default function ValuationResultPage() {
+src/pages/valuation/ValuationPage.tsx:13:export default function ValuationPage() {
+src/components/ui/combo-box.tsx:37:export function ComboBox({
+src/components/ui/UpgradeCTA.tsx:13:export function UpgradeCTA({ feature = "premium features", className }: UpgradeCTAProps) {
+src/pages/valuation/plate/PlateValuationPage.tsx:16:export default function PlateValuationPage() {
+src/components/ui/badge-enhanced.tsx:51:function BadgeEnhanced({
+src/pages/AuthCallbackPage.tsx:6:export default function AuthCallbackPage() {
+src/pages/HomePage.tsx:12:export default function HomePage() {
+src/pages/AdminDashboardPage.tsx:7:export default function AdminDashboardPage() {
+src/pages/EquipmentSelectionPage.tsx:18:export default function EquipmentSelectionPage() {
+src/pages/Premium.tsx:6:export default function Premium() {
+src/components/ui/delete-confirmation-dialog.tsx:24:export function DeleteConfirmationDialog({
+src/components/ui/stepper.tsx:15:export function Stepper(
+src/components/AinRouteBadge.tsx:3:export function AinRouteBadge({ meta }: { 
+src/components/ui/theme-provider.tsx:15:export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
+src/components/followup/UnifiedFollowUpForm.tsx:20:export function UnifiedFollowUpForm({ vehicleData, onComplete, tier }: UnifiedFollowUpFormProps) {
+src/components/followup/FollowUpProgress.tsx:12:export function FollowUpProgress({ completionPercentage, isComplete, isSaving }: FollowUpProgressProps) {
+src/components/ui/sonner.tsx:5:export function Toaster() {
+src/components/followup/tabs/PerformancePackagesTab.tsx:16:export function PerformancePackagesTab({ formData, updateFormData, baseValue }: PerformancePackagesTabProps) {
+src/components/followup/tabs/ServiceHistoryTab.tsx:48:export function ServiceHistoryTab({ formData, updateFormData, onServiceHistoryChange }: ServiceHistoryTabProps) {
+src/components/followup/tabs/LuxuryMaterialsTab.tsx:16:export function LuxuryMaterialsTab({ formData, updateFormData, baseValue }: LuxuryMaterialsTabProps) {
+src/components/followup/tabs/ConditionTab.tsx:173:export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
+src/components/followup/tabs/VehicleBasicsTab.tsx:14:export function VehicleBasicsTab({ formData, updateFormData }: VehicleBasicsTabProps) {
+src/components/followup/tabs/SafetySecurityTab.tsx:16:export function SafetySecurityTab({ formData, updateFormData, baseValue }: SafetySecurityTabProps) {
+src/components/followup/tabs/AccidentHistoryTab.tsx:17:export function AccidentHistoryTab({ formData, updateFormData }: AccidentHistoryTabProps) {
+src/components/followup/tabs/ModificationsTab.tsx:27:export function ModificationsTab({ formData, updateFormData }: ModificationsTabProps) {
+src/components/followup/tabs/ServiceMaintenanceTab.tsx:17:export function ServiceMaintenanceTab({ formData, updateFormData }: ServiceMaintenanceTabProps) {
+src/components/followup/tabs/ClimateControlTab.tsx:16:export function ClimateControlTab({ formData, updateFormData, baseValue }: ClimateControlTabProps) {
+src/components/followup/tabs/TiresBrakesTab.tsx:26:export function TiresBrakesTab({ formData, updateFormData }: TiresBrakesTabProps) {
+src/components/followup/tabs/TitleOwnershipTab.tsx:14:export function TitleOwnershipTab({ formData, updateFormData }: TitleOwnershipTabProps) {
+src/components/lookup/scoring/ConfidenceScore.tsx:12:export function ConfidenceScore({ 
+src/components/followup/tabs/ExteriorFeaturesTab.tsx:16:export function ExteriorFeaturesTab({ formData, updateFormData, baseValue }: ExteriorFeaturesTabProps) {
+src/components/followup/tabs/FinalReviewTab.tsx:12:export function FinalReviewTab({ formData }: FinalReviewTabProps) {
+src/components/followup/tabs/VehicleIssuesTab.tsx:28:export function VehicleIssuesTab({ formData, updateFormData }: VehicleIssuesTabProps) {
+src/components/followup/tabs/SimplifiedBasicInfoTab.tsx:23:export function SimplifiedBasicInfoTab({ formData, updateFormData }: SimplifiedBasicInfoTabProps) {
+src/components/followup/tabs/FeaturesTab.tsx:66:export function FeaturesTab({ formData, updateFormData }: FeaturesTabProps) {
+src/components/lookup/VehicleDetailsGrid.tsx:10:export function VehicleDetailsGrid({ vehicle }: VehicleDetailsGridProps) {
+src/components/followup/tabs/ReviewTab.tsx:12:export function ReviewTab({ formData }: ReviewTabProps) {
+src/components/lookup/VehicleHistory.tsx:13:export function VehicleHistory({ vin, carfaxData }: VehicleHistoryProps) {
+src/components/followup/tabs/DashboardLightsTab.tsx:104:export function DashboardLightsTab({ formData, updateFormData }: DashboardLightsTabProps) {
+src/components/lookup/UnifiedLookupTabs.tsx:17:export function UnifiedLookupTabs() {
+src/components/followup/tabs/InteriorMaterialsTab.tsx:16:export function InteriorMaterialsTab({ formData, updateFormData, baseValue }: InteriorMaterialsTabProps) {
+src/components/followup/tabs/DriverAssistanceTab.tsx:16:export function DriverAssistanceTab({ formData, updateFormData, baseValue }: DriverAssistanceTabProps) {
+src/components/followup/tabs/TechnologyTab.tsx:16:export function TechnologyTab({ formData, updateFormData, baseValue }: TechnologyTabProps) {
+src/components/followup/tabs/PhysicalFeaturesTab.tsx:140:export function PhysicalFeaturesTab({ formData, updateFormData }: PhysicalFeaturesTabProps) {
+src/components/followup/tabs/VehicleConditionTab.tsx:69:export function VehicleConditionTab({ formData, updateFormData }: VehicleConditionTabProps) {
+src/components/followup/tabs/AccidentsTab.tsx:39:export function AccidentsTab({ formData, updateFormData }: AccidentsTabProps) {
+src/components/followup/tabs/AudioEntertainmentTab.tsx:16:export function AudioEntertainmentTab({ formData, updateFormData, baseValue }: AudioEntertainmentTabProps) {
+src/components/followup/tabs/BasicInfoTab.tsx:53:export function BasicInfoTab({ formData, updateFormData }: BasicInfoTabProps) {
+src/components/followup/TabNavigation.tsx:19:export function TabNavigation({
+src/components/lookup/form-parts/UnifiedFollowUpQuestions.tsx:39:export function UnifiedFollowUpQuestions({
+src/components/followup/inputs/ConditionSelector.tsx:25:export function ConditionSelector({ 
+src/components/lookup/form-parts/TrimSelector.tsx:14:export function TrimSelector({ trims, selectedTrim, onTrimChange, isLoading }: TrimSelectorProps) {
+src/components/followup/inputs/SimpleZipCodeInput.tsx:14:export function SimpleZipCodeInput({ 
+src/components/lookup/form-parts/VehicleFeatureSelect.tsx:12:export function VehicleFeatureSelect({
+src/components/followup/inputs/SimpleMileageInput.tsx:14:export function SimpleMileageInput({ 
+src/components/lookup/form-parts/EnhancedVehicleSelectorWithLogos.tsx:20:export function EnhancedVehicleSelectorWithLogos({
+src/components/followup/inputs/ZipCodeInput.tsx:14:export function ZipCodeInput({ 
+src/components/followup/inputs/MileageInput.tsx:14:export function MileageInput({ 
+src/components/lookup/form-parts/EnhancedVehicleSelector.tsx:26:export function EnhancedVehicleSelector({
+src/components/followup/inputs/EnhancedZipCodeInput.tsx:15:export function EnhancedZipCodeInput({ 
+src/components/lookup/form-parts/ValuationFormActions.tsx:25:export function ValuationFormActions({
+src/components/lookup/form-parts/TitleStatusSection.tsx:16:export function TitleStatusSection({
+src/components/followup/SaveStatusIndicator.tsx:13:export function SaveStatusIndicator({ 
+src/components/lookup/form-parts/AdditionalDetailsSection.tsx:25:export function AdditionalDetailsSection({
+src/components/followup/TabProgressHeader.tsx:12:export function TabProgressHeader({
+src/components/lookup/form-parts/VehicleConditionSlider.tsx:14:export function VehicleConditionSlider({
+src/components/followup/TabbedFollowUpForm.tsx:91:export function TabbedFollowUpForm({
+src/components/followup/QuickOverviewCard.tsx:18:export function QuickOverviewCard({
+src/components/followup/TabValidationAlerts.tsx:18:export function TabValidationAlerts({
+src/components/followup/SilentSaveIndicator.tsx:11:export function SilentSaveIndicator({ 
+src/components/lookup/UnifiedPlateLookup.tsx:18:export function UnifiedPlateLookup({ 
+src/components/lookup/forecast/ForecastMetrics.tsx:8:export function ForecastMetrics({
+src/components/lookup/forecast/ForecastTrendIndicator.tsx:7:export function ForecastTrendIndicator({ trend }: ForecastTrendIndicatorProps) {
+src/components/stats/StatCard.tsx:19:export function StatCard({
+src/components/stats/AnimatedCounter.tsx:11:export function AnimatedCounter({ 
+src/components/stats/StatsCard.tsx:19:export function StatsCard({
+src/components/stats/LeaderboardRow.tsx:14:export function LeaderboardRow({
+src/components/valuation/result/MarketDataStatus.tsx:12:export function MarketDataStatus({ totalListings, searchMethod, trustScore }: MarketDataStatusProps) {
+src/components/valuation/result/ValuationActions.tsx:10:export function ValuationActions({ onGeneratePDF, onShare }: ValuationActionsProps) {
+src/components/service-history/EmptyState.tsx:4:export function EmptyState() {
+src/components/service-history/UploadStatusButton.tsx:12:export function UploadStatusButton(
+src/components/service-history/FileDropzone.tsx:11:export function FileDropzone(
+src/components/valuation/result/FallbackMethodDisclosure.tsx:10:export function FallbackMethodDisclosure({ confidenceScore, explanation }: FallbackMethodDisclosureProps) {
+src/components/service-history/ServiceHistoryUploader.tsx:19:export function ServiceHistoryUploader(
+src/components/service-history/ServiceDetailsForm.tsx:16:export function ServiceDetailsForm({
+src/components/valuation/result/EnhancedConfidenceScore.tsx:16:export function EnhancedConfidenceScore({ confidenceScore, confidenceBreakdown }: EnhancedConfidenceScoreProps) {
+src/components/valuation/result/useValuationPdf.ts:12:export function useValuationPdf({ valuationId, valuationData, conditionData }: UseValuationPdfProps) {
+src/components/valuation/photo-upload/PhotoGrid.tsx:10:export function PhotoGrid(
+src/components/valuation/photo-upload/PhotoUploadError.tsx:7:export function PhotoUploadError({ error }: PhotoUploadErrorProps) {
+src/components/valuation/photo-upload/PhotoUploadDropzone.tsx:13:export function PhotoUploadDropzone({
+src/components/valuation/photo-upload/usePhotoUpload.ts:15:export function usePhotoUpload(): UsePhotoUploadReturn {
+src/components/valuation/photo-upload/PhotoUploadList.tsx:17:export function PhotoUploadList({ photos, onRemove }: PhotoUploadListProps) {
+src/components/enriched/EnrichedDataCard.tsx:25:export function EnrichedDataCard({ data, className = '' }: EnrichedDataCardProps) {
+src/components/valuation/photo-upload/PhotoUploader.tsx:13:export function PhotoUploader({
+src/components/valuation/photo-upload/PhotoPreview.tsx:11:export function PhotoPreview(
+src/components/valuation/photo-upload/PhotoHeader.tsx:8:export function PhotoHeader({ isPremium = false }: PhotoHeaderProps) {
+src/components/valuation/photo-upload/PhotoGuidance.tsx:5:export function PhotoGuidance() {
+src/components/premium/form/StepProgressIndicator.tsx:21:export function StepProgressIndicator({
+src/components/valuation/WhyNotCountedCard.tsx:1:export function WhyNotCountedCard({ excluded }: { excluded: Array<{ source:string; url:string; reason:string }> }) {
+src/components/premium/form/FormSteps.tsx:8:export function FormSteps({ currentStep, children }: FormStepsProps) {
+src/components/premium/form/PremiumValuationForm.tsx:39:export function PremiumValuationForm() {
+src/components/valuation/detail/VehicleDataTable.tsx:33:export function VehicleDataTable(
+src/components/valuation/comprehensive/ComprehensiveValuationForm.tsx:29:export function ComprehensiveValuationForm({ onResult }: ComprehensiveValuationFormProps) {
+src/components/premium/form/steps/MileageStep.tsx:15:export default function MileageStep(
+src/components/valuation/hooks/useValuationData.ts:18:export function useValuationData(valuationId: string) {
+src/components/premium/form/steps/PredictionReviewStep.tsx:92:export function PredictionReviewStep({
+src/components/valuation/MarketplaceComparisonCard.tsx:31:export function MarketplaceComparisonCard({ 
+src/components/premium/form/steps/features/FeaturesGrid.tsx:19:export function FeaturesGrid({ features, onFeatureToggle }: FeaturesGridProps) {
+src/components/premium/form/steps/features/FeaturesTotalValue.tsx:5:export function FeaturesTotalValue({ totalValue }: FeaturesTotalValueProps) {
+src/components/valuation/valuation-core/ValuationScoreBar.tsx:13:export function ValuationScoreBar({
+src/components/premium/form/steps/prediction-review/VehicleSummaryCard.tsx:10:export function VehicleSummaryCard({ formData }: VehicleSummaryCardProps) {
+src/components/valuation/ValueBreakdown.tsx:26:export function ValueBreakdown({ 
+src/components/premium/form/steps/prediction-review/FeaturesDisplay.tsx:9:export function FeaturesDisplay({ features }: FeaturesDisplayProps) {
+src/components/valuation/ValuationProgressDisplay.tsx:15:export function ValuationProgressDisplay({ 
+src/components/premium/form/steps/prediction-review/GetValuationButton.tsx:12:export function GetValuationButton({
+src/components/valuation/ProcessAuditTrail.tsx:4:export default function ProcessAuditTrail({ valuationId }: { valuationId: string }) {
+src/components/premium/form/steps/FeatureSelectionStep.tsx:14:export function FeatureSelectionStep({
+src/components/valuation/AuctionResults.tsx:12:export function AuctionResults({ auctionResults }: AuctionResultsProps) {
+src/components/valuation/AuctionIntelligenceCard.tsx:16:export function AuctionIntelligenceCard({ vin }: AuctionIntelligenceCardProps) {
+src/components/premium/form/steps/accident-history/AccidentHistoryForm.tsx:16:export function AccidentHistoryForm({
+src/components/valuation/MarketBreakdownPanel.tsx:23:export function MarketBreakdownPanel({ result }: MarketBreakdownPanelProps) {
+src/components/premium/form/steps/VehicleDetailsStep.tsx:16:export function VehicleDetailsStep({
+src/components/premium/form/steps/StateSelect.tsx:70:export function StateSelect(
+src/components/valuation/BidCarsResults.tsx:26:export function BidCarsResults({ vin }: BidCarsResultsProps) {
+src/components/premium/form/steps/ConditionStep.tsx:16:export default function ConditionStep({
+src/components/valuation/MarketForecastCard.tsx:14:export function MarketForecastCard({ vin, estimatedValue }: MarketForecastCardProps) {
+src/components/premium/form/steps/VehicleIdentificationStep.tsx:17:export function VehicleIdentificationStep({
+src/components/premium/form/steps/MaintenanceHistoryStep.tsx:16:export function MaintenanceHistoryStep({
+src/components/premium/form/steps/DrivingBehaviorStep.tsx:16:export function DrivingBehaviorStep({
+src/components/premium/form/steps/FuelTypeStep.tsx:67:export function FuelTypeStep(
+src/components/premium/form/steps/AccidentHistoryStep.tsx:19:export function AccidentHistoryStep({ form }: AccidentHistoryStepProps) {
+src/components/premium/form/steps/review/ReviewActions.tsx:11:export function ReviewActions(
+src/components/premium/form/steps/review/VehicleDetailsSummary.tsx:9:export function VehicleDetailsSummary({ formData }: VehicleDetailsSummaryProps) {
+src/components/valuation/SeasonalAdjustment.tsx:42:export function SeasonalAdjustment({
+src/components/premium/form/steps/review/FeaturesSummary.tsx:9:export function FeaturesSummary({ formData }: FeaturesSummaryProps) {
+src/components/premium/form/steps/review/DrivingBehaviorSummary.tsx:9:export function DrivingBehaviorSummary({ formData }: DrivingBehaviorSummaryProps) {
+src/components/premium/form/steps/review/VehicleSummary.tsx:9:export function VehicleSummary({ formData }: VehicleSummaryProps) {
+src/components/premium/form/steps/review/PhotosSummary.tsx:9:export function PhotosSummary({ formData }: PhotosSummaryProps) {
+src/components/valuation/AuctionIntelligencePriceChart.tsx:15:export function AuctionIntelligencePriceChart({ data }: AuctionIntelligencePriceChartProps) {
+src/components/valuation/RerunValuationButton.tsx:6:export function RerunValuationButton() {
+src/components/valuation/AccidentImpactCard.tsx:20:export function AccidentImpactCard({
+src/components/premium/form/steps/vehicle-details/AccidentHistorySection.tsx:14:export function AccidentHistorySection({ formData, setFormData }: AccidentHistorySectionProps) {
+src/components/valuation/ValuationDetailsForm.tsx:32:export function ValuationDetailsForm({ onSubmit, isLoading = false }: ValuationDetailsFormProps) {
+src/components/valuation/market-trend/TrendIndicator.tsx:9:export function TrendIndicator({ direction, percentage }: TrendIndicatorProps) {
+src/components/premium/form/steps/vehicle-details/VehicleDetailsFields.tsx:13:export function VehicleDetailsFields({ formData, setFormData }: VehicleDetailsFieldsProps) {
+src/components/valuation/market-trend/hooks/useForecastData.ts:36:export function useForecastData({
+src/components/valuation/market-trend/MarketTrendChart.tsx:17:export function MarketTrendChart({ data }: MarketTrendChartProps) {
+src/components/valuation/market-trend/AnalysisSection.tsx:8:export function AnalysisSection(
+src/components/valuation/market-trend/MarketTrendContent.tsx:21:export function MarketTrendContent(
+src/components/valuation/MarketTrendSection.tsx:21:export function MarketTrendSection({
+src/components/valuation/AutoAuctionsResults.tsx:27:export function AutoAuctionsResults({ vin }: AutoAuctionsResultsProps) {
+src/components/premium/form/ProgressIndicator.tsx:10:export function ProgressIndicator({
+src/components/premium/form/FormStepLayout.tsx:19:export function FormStepLayout({
+src/components/premium/form/FormStepNavigation.tsx:13:export function FormStepNavigation({
+src/components/premium/form/initialization/FormInitializer.tsx:14:export function FormInitializer({
+src/components/valuation/redesign/TabbedResultsPanels.tsx:31:export function TabbedResultsPanels({ result, onUpgrade, isPremium, valuationId }: TabbedResultsPanelsProps) {
+src/components/valuation/redesign/TabbedResultsPanels.tsx:171:function OverviewTab({ result }: { result: UnifiedValuationResult }) {
+src/components/valuation/redesign/TabbedResultsPanels.tsx:238:function AnalysisTab({ result }: { result: UnifiedValuationResult }) {
+src/components/valuation/redesign/TabbedResultsPanels.tsx:271:function MarketTab({ result }: { result: UnifiedValuationResult }) {
+src/components/valuation/redesign/TabbedResultsPanels.tsx:319:function SourcesTab({ result }: { result: UnifiedValuationResult }) {
+src/components/valuation/redesign/TabbedResultsPanels.tsx:346:function ForecastTab({ 
+src/components/valuation/redesign/TabbedResultsPanels.tsx:377:function EnhancedListingsTab({ result }: { result: UnifiedValuationResult }) {
+src/components/premium/form/AccuracyMeter.tsx:15:export function AccuracyMeter(
+src/components/valuation/redesign/InteractiveValueBreakdown.tsx:37:export function InteractiveValueBreakdown({
+src/components/valuation/redesign/MarketListingsGrid.tsx:27:export function MarketListingsGrid({
+src/components/valuation/redesign/MarketListingsGrid.tsx:221:function ListingCard({ listing }: { listing: MarketListing }) {
+src/components/valuation/redesign/MarketListingsGrid.tsx:282:function ListingRow({ listing }: { listing: MarketListing }) {
+src/components/premium/form/vehicle-details/TransmissionSelect.tsx:50:export function TransmissionSelect({
+src/components/valuation/redesign/PremiumFeatureOverlay.tsx:35:export function PremiumFeatureOverlay({
+src/components/premium/form/vehicle-details/WarrantySelect.tsx:24:export function WarrantySelect({
+src/components/valuation/redesign/LinearProgressStepper.tsx:45:export function LinearProgressStepper({
+src/components/premium/form/vehicle-details/RecallToggle.tsx:18:export function RecallToggle({
+src/components/premium/features/PremiumFeatureCard.tsx:21:export function PremiumFeatureCard({
+src/components/premium/features/PremiumInfoCards.tsx:4:export function PremiumInfoCards() {
+src/components/premium/features/PremiumFeaturesGrid.tsx:18:export function PremiumFeaturesGrid({
+src/components/valuation/free/FeaturesIncluded.tsx:4:export function FeaturesIncluded() {
+src/components/premium/features/EnhancedPremiumFeaturesTabs.tsx:7:export function EnhancedPremiumFeaturesTabs() {
+src/components/valuation/free/UpsellBanner.tsx:4:export function UpsellBanner() {
+src/components/premium/features/data/premium-features.ts:83:export function getCategoryFeatures(category: string): PremiumFeature[] {
+src/components/valuation/NicbVinCheck.tsx:11:function VinInfoMessage() {
+src/components/valuation/NicbVinCheck.tsx:23:export function NicbVinCheck() {
+src/components/premium/features/FeatureGrid.tsx:18:export function FeatureGrid(
+src/components/valuation/PhotoConditionScore.tsx:13:export function PhotoConditionScore({
+src/components/premium/features/PremiumFeaturesTabs.tsx:10:export function PremiumFeaturesTabs({ className }: PremiumFeaturesTabsProps) {
+src/components/premium/features/ComprehensiveFeatureSelector.tsx:34:export function ComprehensiveFeatureSelector() {
+src/components/valuation/equipment/EquipmentSelector.tsx:26:export function EquipmentSelector(
+src/components/premium/PremiumAccessGate.tsx:15:export function PremiumAccessGate({ valuationId, children }: PremiumAccessGateProps) {
+src/components/valuation/equipment/EquipmentSummary.tsx:16:export function EquipmentSummary({
+src/components/premium/MarketOffersTab.tsx:42:export function MarketOffersTab({
+src/components/valuation/AuditAndSourcesAccordion.tsx:12:export function AuditAndSourcesAccordion({ result }: AuditAndSourcesAccordionProps) {
+src/components/valuation/YearScroller.tsx:13:export function YearScroller({
+src/components/valuation/PremiumPdfSection.tsx:16:export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSectionProps) {
+src/components/premium/lookup/vin/CarfaxErrorAlert.tsx:10:export function CarfaxErrorAlert({ error }: CarfaxErrorAlertProps) {
+src/components/valuation/enhanced-followup/EnhancedVehicleCard.tsx:14:export function EnhancedVehicleCard({ 
+src/components/premium/lookup/VinSubmitButton.tsx:11:export function VinSubmitButton({
+src/components/valuation/NhtsaRecalls.tsx:17:export function NhtsaRecalls(
+src/components/valuation/AIConditionBadge.tsx:16:export function AIConditionBadge(
+src/components/premium/lookup/form-parts/AccidentSection.tsx:16:export function AccidentSection({
+src/components/valuation/ValuationResultCard.tsx:54:export function ValuationResultCard({ result, onDownloadPdf, onShareReport, vin = 'unknown' }: ValuationResultCardProps) {
+src/components/premium/lookup/form-parts/SubmitButton.tsx:13:export function SubmitButton({
+src/components/valuation/header/UnifiedValuationHeader.tsx:40:export function UnifiedValuationHeader({
+src/components/premium/lookup/form-parts/fields/YearMileageInputs.tsx:16:export function YearMileageInputs({
+src/components/premium/lookup/form-parts/FeatureValueDisplay.tsx:8:export function FeatureValueDisplay(
+src/components/premium/lookup/form-parts/SectionCard.tsx:12:export function SectionCard(
+src/components/valuation/DrivingBehaviorInput.tsx:12:export function DrivingBehaviorInput(
+src/components/premium/lookup/form-parts/FormHeader.tsx:19:export function FormHeader({
+src/components/valuation/SeasonalFactorDisplay.tsx:12:export function SeasonalFactorDisplay({
+src/components/premium/lookup/form-parts/BasicVehicleInfo.tsx:20:export function BasicVehicleInfo({
+src/components/premium/lookup/PlateLookup.tsx:78:export function PlateLookup({
+src/components/premium/lookup/plate/VehicleFoundCard.tsx:14:export function VehicleFoundCard({ vehicle, plateValue, stateValue }: VehicleFoundCardProps) {
+src/components/premium/PremiumHero.tsx:10:export function PremiumHero({ scrollToForm }: PremiumHeroProps) {
+src/components/valuation/ConfidenceExplanationBadge.tsx:16:export function ConfidenceExplanationBadge({
+src/components/premium/checkout/PremiumCheckoutButton.tsx:9:export function PremiumCheckoutButton(
+src/components/premium/checkout/CheckoutSummary.tsx:16:export function CheckoutSummary(
+src/components/valuation/QrCodeDownload.tsx:12:export function QrCodeDownload({ 
+src/components/premium/MarketTrends.tsx:22:export function MarketTrends({ vehicleInfo }: MarketTrendsProps) {
+src/components/premium/PremiumAccessRequired.tsx:20:export function PremiumAccessRequired(
+src/components/valuation/ZipMarketAnalysis.tsx:18:export function ZipMarketAnalysis(
+src/components/valuation/CorrectionTrigger.tsx:18:export function CorrectionTrigger({
+src/components/premium/sections/ValueEstimateCard.tsx:12:export function ValueEstimateCard({
+src/components/premium/sections/FreeVsPremiumComparison.tsx:4:export function FreeVsPremiumComparison() {
+src/components/valuation/condition/ValuationFactorTransmission.tsx:12:export function ValuationFactorTransmission({ value, onChange }: ValuationFactorTransmissionProps) {
+src/components/valuation/condition/FactorSlider.tsx:22:export function FactorSlider({
+src/components/premium/sections/valuation-tabs/hooks/useValuationState.ts:17:export function useValuationState() {
+src/components/valuation/condition/ValuationFactorInterior.tsx:12:export function ValuationFactorInterior({ value, onChange }: ValuationFactorInteriorProps) {
+src/components/valuation/condition/ValuationFactorEngine.tsx:12:export function ValuationFactorEngine({ value, onChange }: ValuationFactorEngineProps) {
+src/components/valuation/condition/ValuationFactorPaint.tsx:12:export function ValuationFactorPaint({ value, onChange }: ValuationFactorPaintProps) {
+src/components/premium/sections/valuation-tabs/PhotoLookupTab.tsx:14:export function PhotoLookupTab({
+src/components/valuation/condition/factors/TitleStatusFactorCard.tsx:24:export function TitleStatusFactorCard(
+src/components/valuation/condition/conditionDescriptions.ts:5:export function getConditionDescription(id: string, score: number): string {
+src/components/valuation/condition/ConditionTips.tsx:7:export function ConditionTips(
+src/components/valuation/condition/ConditionSlider.tsx:16:export function ConditionSlider({
+src/components/premium/sections/valuation-tabs/market-analysis/MarketAnalysisTab.tsx:20:export function MarketAnalysisTab({
+src/components/valuation/condition/ValuationFactorTires.tsx:12:export function ValuationFactorTires({ value, onChange }: ValuationFactorTiresProps) {
+src/components/valuation/condition/ValuationFactorExterior.tsx:12:export function ValuationFactorExterior({ value, onChange }: ValuationFactorExteriorProps) {
+src/components/valuation/condition/ConditionEvaluationGrid.tsx:31:export function ConditionEvaluationGrid(
+src/components/valuation/condition/ConditionCategory.tsx:25:export function ConditionCategory({
+src/components/premium/sections/valuation-tabs/market-analysis/MarketPriceRange.tsx:10:export function MarketPriceRange(
+src/components/valuation/StarRating.tsx:14:export function StarRating({
+src/components/premium/sections/valuation-tabs/market-analysis/LocalMarketCard.tsx:10:export function LocalMarketCard(
+src/components/animations/EmptyStateAnimation.tsx:15:export function EmptyStateAnimation({
+src/components/animations/AnimatedCounter.tsx:16:export function AnimatedCounter({
+src/components/premium/sections/valuation-tabs/market-analysis/PriceDistributionChart.tsx:35:export function PriceDistributionChart({
+src/components/premium/sections/valuation-tabs/market-analysis/MarketInsightsTab.tsx:36:export function MarketInsightsTab({
+src/components/animations/ProgressRing.tsx:17:export function ProgressRing({
+src/components/premium/sections/valuation-tabs/market-analysis/PriceComparisonChart.tsx:28:export function PriceComparisonChart({
+src/components/privacy/CookieBanner.tsx:7:export function CookieBanner() {
+src/components/premium/sections/valuation-tabs/market-analysis/ComparableListingsTable.tsx:25:export function ComparableListingsTable({ listings }: ComparableListingsTableProps) {
+src/components/auth/GoogleAuthButton.tsx:12:export function GoogleAuthButton({ 
+src/components/auth/AuthGuard.tsx:15:export function AuthGuard({ 
+src/components/auth/AuthGuard.tsx:83:export function UserProfile() {
+src/components/premium/sections/valuation-tabs/market-analysis/MarketTrendCard.tsx:12:export function MarketTrendCard({
+src/components/premium/sections/valuation-tabs/CarfaxReportTab.tsx:10:export function CarfaxReportTab({ vin }: CarfaxReportTabProps) {
+src/components/premium/sections/valuation-tabs/PhotoUploadTab.tsx:8:export function PhotoUploadTab({ onPhotoAnalysisComplete, onPhotoUpload, isLoading, vehicle }: PhotoUploadProps) {
+src/components/debug/VehicleDataDebug.tsx:11:export function VehicleDataDebug() {
+src/components/premium/sections/valuation-tabs/form-parts/AccidentDetailsForm.tsx:19:export function AccidentDetailsForm({ accidentInfo, setAccidentInfo }: AccidentDetailsFormProps) {
+src/components/premium/sections/valuation-tabs/form-parts/VehicleDetailsForm.tsx:29:export function VehicleDetailsForm({ vehicleDetails, setVehicleDetails }: VehicleDetailsFormProps) {
+src/components/modals/ValuationStepsModal.tsx:13:export function ValuationStepsModal({
+src/components/modals/ConfirmOfferModal.tsx:29:export function ConfirmOfferModal({
+src/components/modals/PhotoToolModal.tsx:13:export function PhotoToolModal({
+src/components/premium/sections/valuation-tabs/TabContentWrapper.tsx:10:export function TabContentWrapper(
+src/components/premium/sections/valuation-tabs/TabHeader.tsx:3:export function TabHeader() {
+src/components/premium/sections/valuation-tabs/DealerOffersTab.tsx:21:export function DealerOffersTab({
+src/components/premium/sections/valuation-tabs/TwelveMonthForecastTab.tsx:16:export function TwelveMonthForecastTab({ vehicleData }: TwelveMonthForecastTabProps) {
+src/components/premium/sections/valuation-tabs/forecast/ForecastSummary.tsx:11:export function ForecastSummary({
+src/utils/forecasting/valuation-forecast.ts:24:export function generateForecast(data: any[]): ForecastData {
+src/utils/diagnostics/valuationAudit.ts:197:export function printAuditReport(result: AuditResult): void {
+src/utils/diagnostics/systemHealth.ts:108:export function printSystemHealth(checks: SystemHealthCheck[]): void {
+src/utils/diagnostics/vehicleDataDiagnostics.ts:87:export function logDiagnosticsReport(diagnostics: VehicleDataDiagnostics) {
+src/components/premium/sections/valuation-tabs/forecast/ForecastChart.tsx:23:export function ForecastChart(
+src/components/premium/sections/PremiumConditionSection.tsx:15:export function PremiumConditionSection({ formData, setFormData }: PremiumConditionSectionProps) {
+src/components/premium/sections/ConditionAssessmentSection.tsx:4:export function ConditionAssessmentSection() {
+src/components/premium/BuyCreditsModal.tsx:50:export function BuyCreditsModal({ isOpen, onOpenChange, currentCredits = 0 }: BuyCreditsModalProps) {
+src/utils/diagnostics/marketDataDiagnostics.ts:229:export function logMarketDataSummary(result: MarketDataDiagnosticResult) {
+src/utils/formatters/formatRelativeTime.ts:10:export function formatRelativeTime(dateString: string | Date): string {
+src/utils/formatters/stringFormatters.ts:4:export function capitalize(str: string): string {
+src/utils/formatters/stringFormatters.ts:12:export function truncate(str: string, length: number = 50): string {
+src/utils/formatters/stringFormatters.ts:21:export function titleCase(str: string): string {
+src/components/premium/common/FormValidationError.tsx:12:export function FormValidationError({
+src/components/premium/FeaturesSection.tsx:17:export function FeaturesSection({ featuresRef }: FeaturesSectionProps) {
+src/components/premium/hero/CarfaxHighlights.tsx:12:export function CarfaxHighlights({ 
+src/utils/formatters/formatVin.ts:6:export function formatVin(vin: string): string {
+src/utils/formatters/formatCurrency.ts:2:export function formatCurrency(
+src/utils/formatters/adjustment-formatter.ts:4:export function formatAdjustmentValue(value: number): string {
+src/utils/formatters/adjustment-formatter.ts:15:export function formatAdjustmentPercentage(percentage: number): string {
+src/utils/formatters/adjustment-formatter.ts:20:export function convertNewAdjustmentsToLegacyFormat(
+src/utils/formatters/adjustment-formatter.ts:37:export function convertLegacyAdjustmentsToNewFormat(
+src/utils/formatters/formatPhone.ts:6:export function formatPhone(phone: string): string {
+src/utils/formatters/formatPercent.ts:7:export function formatPercent(value: number, decimals: number = 0): string {
+src/utils/formatters/formatDate.ts:4:export function formatDate(
+src/utils/formatters/formatNumber.ts:9:export function formatNumber(number: number, decimals: number = 0): string {
+src/utils/parsers/listingParser.ts:12:export function parseVehicleListingsFromWeb(text: string): ParsedListing[] {
+src/utils/parsers/listingParser.ts:158:export function formatListingsForExplanation(listings: ParsedListing[]): string {
+src/utils/buildTimeChecks.ts:33:export function validateAINConfiguration() {
+src/utils/pdf/styles.ts:67:export function drawStyledHeading(
+src/utils/pdf/styles.ts:97:export function drawStyledBox(
+src/utils/pdf/styles.ts:132:export function drawPremiumBadge(
+src/utils/pdf/generateDebugInfo.ts:13:export function generateDebugInfo(reportData: ReportData): DebugInfo {
+src/utils/pdf/generateDebugInfo.ts:57:export function formatDebugInfoForPdf(debugInfo: DebugInfo): string {
+src/utils/p2pSources.ts:59:export function getP2PTier(sourceName: string): 'Tier1' | 'Tier2' | 'Tier3' {
+src/utils/p2pSources.ts:73:export function getP2PTrustWeight(sourceName: string): number {
+src/utils/p2pSources.ts:79:export function getP2PDomain(sourceName: string): string {
+src/utils/format.ts:4:export function formatCurrency(value: number): string {
+src/utils/format.ts:16:export function formatDate(dateString: string): string {
+src/utils/format.ts:28:export function formatNumber(value: number): string {
+src/utils/animations.ts:5:export function shouldReduceMotion(): boolean {
+src/utils/shareUtils.ts:69:export function extractDataFromShareToken(token: string): { isValid: boolean; data?: any } {
+src/utils/vehicleConversion.ts:4:export function convertDecodedVehicleToVehicle(decoded: DecodedVehicleInfo): Vehicle {
+src/utils/vehicleMetaParser.ts:13:export function parseVehicleMetadata(decoded: Record<string, any>): VehicleMetadata {
+src/utils/vehicleMetaParser.ts:64:export function estimateMpgFromMetadata(
+src/utils/vehicleMetaParser.ts:158:export function parseVehicleMetadataWithMpg(
+src/utils/dateUtils.ts:6:export function safeDateParse(dateString: string | undefined | null): Date | null {
+src/utils/dateUtils.ts:17:export function formatDate(dateString: string | undefined | null, fallback: string = 'N/A'): string {
+src/utils/rules/calculators/helpers.ts:3:export function calculateBaseValue(make: string, model: string, year: number): number {
+src/utils/rules/calculators/helpers.ts:19:export function applyAdjustment(baseValue: number, adjustment: number): number {
+src/components/premium/hero/CarfaxBadge.tsx:4:export function CarfaxBadge() {
+src/components/premium/hero/FeatureCards.tsx:4:export function FeatureCards() {
+src/components/premium/hero/PremiumValuationCard.tsx:18:export function PremiumValuationCard({
+src/components/premium/insights/AINSummary.tsx:19:export function AINSummary({ vin, vehicleData }: AINSummaryProps) {
+src/components/premium/insights/CarfaxSummary.tsx:17:export function CarfaxSummary({ carfaxData }: CarfaxSummaryProps) {
+src/components/premium/condition/DetailedConditionRating.tsx:16:export function DetailedConditionRating({ formData, setFormData }: DetailedConditionRatingProps) {
+src/components/premium/ComparisonSection.tsx:9:export function ComparisonSection({ scrollToForm }: ComparisonSectionProps) {
+src/utils/marketListings/processListings.ts:17:export function processExistingListings(listings: MarketListing[]): MarketData {
+src/components/sharing/SocialShareButtons.tsx:28:export function SocialShareButtons({ 
+src/utils/assistantContext.ts:56:export function detectIntent(message: string): string {
+src/utils/assistantContext.ts:81:export function generateResponse(intent: string, context: AssistantContext, userMessage: string): Promise<string> {
+src/utils/dealerSources.ts:83:export function getDealerTier(sourceName: string): 'Tier1' | 'Tier2' | 'Tier3' {
+src/utils/dealerSources.ts:97:export function getDealerTrustWeight(sourceName: string): number {
+src/utils/dealerSources.ts:103:export function getDealerDomain(sourceName: string): string {
+src/components/results/SimilarListingsSection.tsx:11:export function SimilarListingsSection({ listings }: SimilarListingsSectionProps) {
+src/utils/validation/validateCorrectedPipeline.ts:65:export function printValidationReport(validation: any, vin: string) {
+src/components/home/ComparisonTable.tsx:7:export function ComparisonTable() {
+src/utils/validation/plate-validation-helpers.ts:64:export function getStateFormat(stateCode: string): PlateFormat {
+src/utils/validation/plate-validation-helpers.ts:75:export function validateStatePlate(plate: string, stateCode: string): {
+src/components/home/EnhancedFeatures.tsx:23:export function EnhancedFeatures() {
+src/components/home/EnhancedTestimonialsCarousel.tsx:40:export function EnhancedTestimonialsCarousel() {
+src/components/home/PhotoScoringWidget.tsx:15:export function PhotoScoringWidget() {
+src/components/home/AiAssistantPreview.tsx:8:export function AiAssistantPreview() {
+src/components/home/OnboardingTour.tsx:11:export function OnboardingTour() {
+src/components/home/MarketSnapshot.tsx:23:export function MarketSnapshot() {
+src/components/home/LookupTabs.tsx:12:export function LookupTabs(props: LookupTabsProps) {
+src/components/home/FeaturesOverview.tsx:24:export function FeaturesOverview() {
+src/components/home/WelcomeBanner.tsx:4:export function WelcomeBanner() {
+src/components/home/TestimonialsSection.tsx:39:export function TestimonialsSection() {
+src/utils/validation/zipCodeValidator.ts:27:export function debounce<T extends (...args: any[]) => any>(
+src/utils/validation/vin-validation.ts:8:export function validateVin(vin: string): VinValidationResult {
+src/utils/validation/enhanced-vin-validation.ts:33:export function validateVin(vin: string): VinValidationResult {
+src/utils/enhanced-features-calculator.ts:48:export function getFeaturesByCategory(category: string): Feature[] {
+src/utils/enhanced-features-calculator.ts:52:export function calculateEnhancedFeatureValue(featureIds: string[], baseVehicleValue: number) {
+src/utils/stripe-error-handling.ts:76:export function getStripeErrorDetails(error: any): StripeErrorDetails {
+src/utils/stripe-error-handling.ts:122:export function formatStripeError(error: any): string {
+src/utils/confidenceScore.ts:20:export function calculateConfidenceScore(
+src/utils/confidenceScore.ts:64:export function getConfidenceLevel(score: number): string {
+src/utils/cn.ts:5:export function cn(...inputs: ClassValue[]) {
+src/components/common/ExteriorConditionSelectorBar.tsx:17:export function ExteriorConditionSelectorBar({ value, onChange }: ExteriorConditionSelectorBarProps) {
+src/utils/helpers.ts:7:export function generateUniqueId(): string {
+src/utils/helpers.ts:17:export function truncateString(str: string, maxLength: number): string {
+src/utils/helpers.ts:27:export function capitalizeFirstLetter(str: string): string {
+src/utils/photoService.ts:107:export function calculatePhotoScore(analysisResult: PhotoAnalysisResult): number {
+src/utils/photoService.ts:139:export function getBestPhoto(results: { url: string; analysis: PhotoAnalysisResult }[]): string | null {
+src/utils/photoService.ts:152:export function getConditionAdjustment(condition: string): number {
+src/utils/api-utils.ts:31:export function handleApiError(error: any): EnhancedApiError {
+src/components/common/InteriorConditionSelectorBar.tsx:17:export function InteriorConditionSelectorBar({ value, onChange }: InteriorConditionSelectorBarProps) {
+src/utils/pdfService.ts:48:export function convertVehicleInfoToReportData(vehicleInfo: any, valuationData: any): ReportData {
+src/components/common/TireConditionSelectorBar.tsx:17:export function TireConditionSelectorBar({ value, onChange }: TireConditionSelectorBarProps) {
+src/utils/adjustments/trimAdjustments.ts:1:export function getTrimAdjustment(
+src/utils/adjustments/packageAdjustments.ts:12:export function getPackageAdjustments(
+src/utils/adjustments/packageAdjustments.ts:114:export function getTotalPackageValue(
+src/utils/adjustments/accidentAdjustments.ts:1:export function getAccidentHistoryAdjustment(
+src/components/common/CarFinderQaherHeader.tsx:5:export function CarFinderQaherHeader() {
+src/utils/adjustments/titleStatusAdjustments.ts:48:export function getTitleStatusAdjustment(
+src/components/common/UnifiedLoadingSystem.tsx:11:export function LoadingButton({ 
+src/components/common/UnifiedLoadingSystem.tsx:33:export function LoadingSpinner({ size = "default" }: LoadingSpinnerProps) {
+src/components/common/UnifiedLoadingSystem.tsx:47:export function LoadingGrid({ children }: { children: React.ReactNode }) {
+src/components/common/UnifiedLoadingSystem.tsx:61:export function LoadingState({ message = "Loading...", size = "default", className }: LoadingStateProps) {
+src/utils/adjustments/features/formatters.ts:2:export function formatFeatureValue(value: number): string {
+src/utils/adjustments/features/formatters.ts:6:export function formatFeatureName(name: string): string {
+src/utils/adjustments/features/calculators.ts:10:export function getFeatureAdjustments(
+src/utils/adjustments/features/calculators.ts:44:export function getFeatureInfo(featureName: string) {
+src/utils/adjustments/features/calculators.ts:52:export function getPremiumFeaturesAdjustment(
+src/utils/adjustments/descriptions.ts:1:export function getMileageDescription(mileage: number): string {
+src/utils/adjustments/mileageAdjustments.ts:12:export function mileageAdjustmentCurve(mileage: number): number {
+src/utils/adjustments/mileageAdjustments.ts:43:export function getMileageDescription(mileage: number): string {
+src/utils/adjustments/mileageAdjustments.ts:69:export function getMileageAdjustment(
+src/utils/adjustments/locationAdjustments.ts:9:export function getLocationAdjustment(zipCode: string): LocationAdjustment | null {
+src/utils/adjustments/locationAdjustments.ts:28:export function getZipAdjustment(zipCode: string): number {
+src/utils/adjustments/locationAdjustments.ts:33:export function getRegionNameFromZip(zipCode: string): string {
+src/utils/adjustments/conditionAdjustments.ts:21:export function getConditionMultiplier(condition: string): number {
+src/utils/adjustments/conditionAdjustments.ts:35:export function getConditionDescription(condition: string): string {
+src/utils/adjustments/conditionAdjustments.ts:59:export function getConditionAdjustment(
+src/utils/errorClassification.ts:8:export function classifyError(error: any): ClassifiedError {
+src/utils/errorClassification.ts:74:export function shouldShowRetryButton(error: ClassifiedError): boolean {
+src/utils/errorClassification.ts:78:export function getRetryDelay(attempt: number): number {
+src/utils/followUpFormValidation.ts:11:export function validateCondition(condition: string): ValidationResult {
+src/utils/followUpFormValidation.ts:35:export function validateBasicInfo(data: {
+src/utils/followUpFormValidation.ts:69:export function sanitizeCondition(condition: string): ValidCondition {
+src/utils/followUpFormValidation.ts:80:export function getValidationSummary(data: any): {
+src/utils/confidenceCalculator.ts:17:export function calculateConfidenceScore(input: InputFactors): number {
+src/utils/confidenceCalculator.ts:57:export function getConfidenceLevel(score: number): string {
+src/utils/safeDataAccess.ts:2:export function safeGet<T, K extends keyof T>(obj: T | undefined | null, key: K): T[K] | undefined {
+src/utils/safeDataAccess.ts:6:export function safeGetNested<T>(obj: any, path: string, defaultValue?: T): T | undefined {
+src/utils/safeDataAccess.ts:14:export function safeVehicleData(data: any) {
+src/utils/safeDataAccess.ts:30:export function validateRequiredVehicleData(data: any): { valid: boolean; missing: string[] } {
+src/utils/safeDataAccess.ts:40:export function withDefaults<T>(obj: Partial<T>, defaults: T): T {
+src/components/ui-kit/demo/Demo.tsx:10:export function Demo() {
+src/utils/valuation/fuelAdjustment.ts:1:export function calculateFuelAdjustment(fuelType: string, zipCode: string): number {
+src/utils/valuation/fuelAdjustment.ts:13:export function calculateFuelTypeAdjustment(fuelType: string, zipCode: string): number {
+src/utils/valuation/progressTracker.ts:161:export function getOverallEngineeringProgress(): number {
+src/utils/valuation/progressTracker.ts:167:export function getCurrentPhase(): EngineeringPhase {
+src/components/ui-kit/CDTable.tsx:36:export function CDTable<T extends TableData>({
+src/utils/valuation/confidence.ts:1:export function getConfidenceForResult(r: { method: string; confidence_score: number }) {
+src/utils/valuation/emergencyFallbackUtils.ts:17:export function generateEmergencyFallbackValue(
+src/utils/valuation/calculateAccidentImpact.ts:9:export function calculateAccidentImpact(
+src/utils/valuation/marketData.ts:63:export function getMarketMultiplierDescription(multiplier: number): string {
+src/utils/valuation/mileageAdjustment.ts:1:export function calculateMileageAdjustment(mileage: number, year: number): number {
+src/utils/valuation/generateConfidenceExplanation.ts:1:export function generateConfidenceExplanation(
+src/utils/valuation/conditionAdjustment.ts:1:export function calculateConditionAdjustment(condition: string, baseValue: number): number {
+src/components/test/PDFShareValidationComponent.tsx:31:export function PDFShareValidationComponent() {
+src/components/test/UIResultsDisplayValidationComponent.tsx:26:export function UIResultsDisplayValidationComponent() {
+src/utils/valuation/listingInclusionAnalyzer.ts:3:export function scoreListingQuality(q: ListingQualityInput): { score: number; reason?: ExclusionReason } {
+src/components/dealer/DealerOfferForm.tsx:14:export function DealerOfferForm({ onSubmit, isLoading }: DealerOfferFormProps) {
+src/utils/valuation/testResultsAndPdfIntegration.ts:9:export function testResultsPageAndPdfIntegration() {
+src/utils/valuation/testResultsAndPdfIntegration.ts:183:export function testUIFieldMappings() {
+src/components/profile/ProfileForm.tsx:21:export function ProfileForm({ initialData, onSubmit, isLoading = false }: ProfileFormProps) {
+src/utils/valuation/legacyConverter.ts:35:export function convertLegacyToUnified(
+src/utils/valuation/specializedAdjustments.ts:6:export function getMpgAdjustment(
+src/utils/valuation/specializedAdjustments.ts:22:export function getLocationDensityAdjustment(
+src/utils/valuation/specializedAdjustments.ts:56:export function getIncomeAdjustment(
+src/utils/valuation/confidenceExplainer.ts:14:export function explainConfidenceScore(
+src/utils/valuation/confidenceExplainer.ts:104:export function getConfidenceText(explanation: ConfidenceExplanation): string {
+src/utils/route-validation.ts:7:export function extractRoutePaths(routes: any): string[] {
+src/utils/route-validation.ts:37:export function validateCriticalRoutes(routes: any, criticalRoutes: string[]): {
+src/utils/valuation/testMarketSearchNormalization.ts:99:export function validateFieldMappings() {
+src/utils/valuation/missingFieldAnalyzer.ts:148:export function analyzeMissingFields(
+src/utils/valuation/missingFieldAnalyzer.ts:250:export function getMissingFieldMessage(
+src/utils/valuation/calculateUnifiedConfidence.ts:15:export function calculateUnifiedConfidence(context: ConfidenceContext): number {
+src/utils/valuation/msrpInflationNormalizer.ts:38:export function normalizeMsrpForInflation(
+src/utils/valuation/msrpInflationNormalizer.ts:103:export function applyMarketAdjustments(
+src/utils/valuation/msrpInflationNormalizer.ts:167:export function getFullyNormalizedMsrp(
+src/utils/valuation/titleAdjustment.ts:1:export function calculateTitleAdjustment(titleStatus: string, baseValue: number): number {
+src/utils/valuation/validateMarketListingIntegration.ts:8:export function validateMarketListingIntegration(): boolean {
+src/utils/valuation/validateMarketListingIntegration.ts:105:export function testConfidenceCalculation(): void {
+src/utils/valuation/depreciation.ts:1:export function calculateDepreciation(year: number, make: string, model: string): number {
+src/utils/valuation/featureAdjustments.ts:36:export function getFeatureValue(feature: string): number {
+src/utils/valuation/featureAdjustments.ts:45:export function calculateTotalFeatureValue(features: string[]): number {
+src/utils/valuation/featureAdjustments.ts:56:export function getFeatureValueBreakdown(
+src/utils/ain/generateSummaryForPdf.ts:4:export function generateSummaryForPdf(reportData: ReportData): string {
+src/utils/ain/scoreDealerOffers.ts:18:export function scoreDealerOffers({
+src/utils/ain/scoreDealerOffers.ts:63:export function getBestOffer(scoredOffers: ScoredOffer[]): ScoredOffer | null {
+src/utils/ain/scoreDealerOffers.ts:71:export function getOfferInsights(scoredOffers: ScoredOffer[], valuationPrice: number) {
+src/utils/scrapers/utils/normalizeVehicleData.ts:9:export function normalizeVehicleData(data: {
+src/utils/confidenceRules.ts:4:export function fetchRules() {
+src/utils/unifiedConfidenceCalculator.ts:70:export function calculateUnifiedConfidence(input: UnifiedConfidenceInput): ConfidenceBreakdown {
+src/utils/unifiedConfidenceCalculator.ts:171:export function getConfidenceLevel(score: number): string {
+src/utils/unifiedConfidenceCalculator.ts:181:export function generateConfidenceExplanation(
+src/schemas/ainResponseSchema.ts:24:export function validateAINResponse(data: unknown): AINResponse {
+src/schemas/ainResponseSchema.ts:41:export function safeValidateAINResponse(data: unknown): {
+src/utils/normalization/normalizeListings.ts:22:export function normalizeListing(rawListing: any, source: string): NormalizedListing {
+src/utils/normalization/normalizeListings.ts:43:export function normalizeListings(rawListings: any[], source: string): NormalizedListing[] {
+src/utils/followUpDataHelpers.ts:5:export function getCompletionPercentage(formData: FollowUpAnswers): number {
+src/utils/followUpDataHelpers.ts:49:export function shouldShowNextStep(formData: FollowUpAnswers, currentStep: number): boolean {
+src/utils/followUpDataHelpers.ts:64:export function getStepValidation(formData: FollowUpAnswers): Record<number, boolean> {
+src/utils/followUpDataHelpers.ts:74:export function calculateAdjustments(formData: FollowUpAnswers): Array<{factor: string, impact: number, description: string}> {
+src/utils/followUpDataHelpers.ts:117:export function calculateCompletionPercentage(formData: FollowUpAnswers): number {
+src/utils/followUpDataHelpers.ts:121:export function validateFormData(formData: FollowUpAnswers): boolean {
+src/utils/followUpDataHelpers.ts:125:export function transformForValuation(formData: FollowUpAnswers): any {
+src/utils/followUpDataHelpers.ts:137:export function processModifications(modifications: string | ModificationDetails): ModificationDetails {
+src/agents/marketPriceEstimator.ts:6:export function estimateMarketPrice(listings: MarketListing[]): MarketPriceEstimate {
+src/lib/monitoring.ts:205:export function useMonitoring() {
+src/lib/monitoring.ts:215:export function withErrorMonitoring<P extends object>(
+src/lib/monitoring.ts:219:  return function MonitoredComponent(props: P) {
+src/lib/utils.ts:5:export function cn(...inputs: ClassValue[]) {
+src/lib/utils.ts:9:export function formatCurrency(
+src/modules/valuation-result/hooks/useValuationPdfHelper.ts:12:export function useValuationPdfHelper({
+src/lib/valuation/extractVehicleContext.ts:4:export function extractVehicleContext(conversation: { role: string; content: string }[]): VehicleContext {
+src/lib/valuation/extractVehicleContext.ts:95:export function extractLocationContext(conversation: { role: string; content: string }[]): { region?: string; zipCode?: string } {
+src/modules/qa-dashboard/components/ValuationRow.tsx:62:export function ValuationRow({
+src/modules/qa-dashboard/components/ValuationTable.tsx:23:export function ValuationTable({
+src/modules/auth/ResetPasswordPage.tsx:51:export function ResetPasswordPage() {
+src/modules/auth/MagicLinkPage.tsx:32:export function MagicLinkPage() {
+src/types/marketListing.ts:70:export function isDatabaseListing(listing: MarketListing): boolean {
+src/types/marketListing.ts:75:export function isLiveSearchListing(listing: MarketListing): boolean {
+src/types/marketListing.ts:80:export function getNormalizedUrl(listing: MarketListing): string | undefined {
+src/types/marketListing.ts:85:export function getNormalizedSourceType(listing: MarketListing): string {
+src/types/marketListing.ts:90:export function getNormalizedDealerName(listing: MarketListing): string | undefined {
+src/types/marketListing.ts:95:export function getNormalizedTimestamp(listing: MarketListing): string | undefined {
+src/types/marketListing.ts:100:export function normalizeListing(listing: MarketListing): MarketListing {

@@ -45,29 +45,4 @@ export async function fetchAndExtract(urls, model = "gpt-4o-mini") {
         }
     }
     return { rows, tokensIn, tokensOut };
-    const nowISO = toIso(new Date());
-    for (const url of urls) {
-        try {
-            const host = new URL(url).hostname.replace(/^www\./, "");
-            if (!isAllowedHost(host)) {
-                console.warn(`[skip] ${host} not in allowlist`);
-                continue;
-            }
-            const html = await limiterFor(host).run(() => got(url, {
-                timeout: { request: 15_000 },
-                headers: { "user-agent": "AINValuationBot/1.0 (+contact: support@ain.example)" }
-            }).then(res => res.body));
-            const listings = await extractListingsFromHtml({ html, url, nowISO, model });
-            for (const l of listings) {
-                // light normalization
-                l.price = cleanNumbers(l.price);
-                l.mileage = cleanNumbers(l.mileage);
-            }
-            out.push(...listings);
-        }
-        catch (e) {
-            console.warn(`[fetch] ${url} -> ${e.message}`);
-        }
-    }
-    return out;
 }

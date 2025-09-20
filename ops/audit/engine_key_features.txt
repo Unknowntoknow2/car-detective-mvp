@@ -1,0 +1,56 @@
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.css:1:/* AIN Vehicle Valuation Engine - Main App Styles */
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.css:42:/* VIN Input Section */
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.css:121:/* Results Section */
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.css:1:/* VIN Input Component Styles */
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:2:import { validateVINInput, formatVIN } from '../utils/vinValidation';
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:3:import './VINInput.css';
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:6: * Secure VIN input component with real-time validation
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:9:export default function VINInput({ 
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:10:  onVINChange, 
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:12:  placeholder = "Enter 17-character VIN",
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:24:    const validationResult = validateVINInput(value);
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:32:    if (onVINChange) {
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:33:      onVINChange(value.replace(/[^A-HJ-NPR-Z0-9]/gi, '').toUpperCase());
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:57:    // Format the VIN when user finishes typing
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:59:      const formatted = formatVIN(value);
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:102:  const displayValue = showFormatted && !isFocused ? formatVIN(value) : value;
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:129:            <span className="vin-indicator vin-indicator--valid" aria-label="Valid VIN">
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:134:            <span className="vin-indicator vin-indicator--invalid" aria-label="Invalid VIN">
+apps/ain-valuation-engine/ain-valuation-frontend/src/components/VINInput.jsx:165:          🔒 VIN data is processed securely according to privacy standards
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:2:import VINInput from './components/VINInput'
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:3:import { decodeVin, extractVehicleInfo, assessDataQuality, VINDecodeError, isVinDecodeSuccessful } from './services/unifiedVinDecoder'
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:4:import { fetchValuation } from './services/vehicleDataService'
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:5:import { exportValuationPDF } from './utils/pdfExport'
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:14:  const [valuation, setValuation] = useState(null)
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:18:  const handleVINChange = useCallback((newVin) => {
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:21:    setValuation(null)
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:31:  const handleDecodeVIN = async () => {
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:36:    setValuation(null)
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:38:      console.log('🚗 Starting VIN decode for:', vin)
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:42:        throw new VINDecodeError(
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:43:          'VIN decode returned no data',
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:60:      console.error('❌ VIN decode failed:', err)
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:61:      if (err instanceof VINDecodeError) {
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:64:        setError('Failed to decode VIN. Please try again.')
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:75:    setValuation(null);
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:80:    { key: 'vin', label: 'VIN', value: vin },
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:90:  const isReadyForValuation = missingFields.length === 0;
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:95:    if (!isReadyForValuation) {
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:117:      const result = await fetchValuation(vehicleProfile);
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:119:        setError('Valuation unavailable: missing data or no comparable vehicles. Please check your inputs or try again later.');
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:120:        setValuation(null);
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:123:      setValuation(result);
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:125:      setError(err.message || 'Valuation failed.');
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:126:      setValuation(null);
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:136:          <h1>🚗 AIN Vehicle Valuation Engine</h1>
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:137:          <p>Enterprise-grade VIN decoding with ISO 3779 validation</p>
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:143:            <p>Enter a 17-character VIN to decode vehicle information</p>
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:145:            <VINInput
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:146:              onVINChange={handleVINChange}
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:148:              placeholder="Enter VIN (e.g., 1HGBH41JXMN109186)"
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:154:              onClick={handleDecodeVIN}
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:157:              {loading ? '🔄 Decoding...' : '🔍 Decode VIN'}
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:224:                <button className="valuate-button" type="submit" disabled={!isReadyForValuation || loading}>{loading ? '🔄 Valuating...' : '💰 Get Valuation'}</button>
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:232:                  <button className="pdf-export-btn" onClick={() => exportValuationPDF(valuation, { ...decodedData.vehicleInfo, ...userFields, vin })}>
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:233:                    📄 Export PDF
+apps/ain-valuation-engine/ain-valuation-frontend/src/App.jsx:242:          <p>🔒 Secure VIN processing • 🛡️ Privacy protected • ⚡ Real-time validation</p>

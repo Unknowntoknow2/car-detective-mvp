@@ -1,0 +1,166 @@
+src/hooks/useCorrectedValuation.ts:18:interface CorrectedValuationResults {
+src/hooks/useCorrectedValuation.ts:35:  const [results, setResults] = useState<CorrectedValuationResults | null>(null);
+src/hooks/useCorrectedValuation.ts:60:      const formattedResults: CorrectedValuationResults = {
+src/index.ts:7:export type { ValuationResult, LegacyValuationResult } from './types/valuation';
+src/router.legacy.bak:7:import ValuationPage from './pages/ValuationPage';
+src/router.legacy.bak:9:import ValuationResultPage from './pages/ValuationResultPage';
+src/router.legacy.bak:114:    element: <ValuationResultPage />
+src/router.legacy.bak:118:    element: <ValuationResultPage />
+src/hooks/useValuationApi.ts:2:import { ValuationApiService, ValuationRequest, ValuationResult, SourceStatus } from '@/services/ValuationApiService';
+src/hooks/useValuationApi.ts:9:  result: ValuationResult | null;
+src/hooks/useValuationApi.ts:16:  getResult: (requestId: string) => Promise<ValuationResult | null>;
+src/hooks/useValuationApi.ts:18:  startFullValuation: (request: ValuationRequest) => Promise<ValuationResult | null>;
+src/hooks/useValuationApi.ts:29:  const [result, setResult] = useState<ValuationResult | null>(null);
+src/hooks/useValuationApi.ts:102:  const getResult = useCallback(async (requestId: string): Promise<ValuationResult | null> => {
+src/hooks/useValuationApi.ts:107:      const resultData = await ValuationApiService.getValuationResult(requestId);
+src/hooks/useValuationApi.ts:146:  const startFullValuation = useCallback(async (request: ValuationRequest): Promise<ValuationResult | null> => {
+src/hooks/useValuationIntegration.ts:3:import { ValuationRequest, ValuationResult } from '@/services/ValuationApiService';
+src/valuation/types.ts:12:export interface VehicleValuationResult {
+src/hooks/useValuationResult.ts:3:import { LegacyValuationResult } from '@/types/valuation';
+src/hooks/useValuationResult.ts:6:export const useValuationResult = (valuationId?: string) => {
+src/hooks/useValuationResult.ts:9:  const [result, setResult] = useState<LegacyValuationResult | null>(null);
+src/hooks/useValuationData.ts:3:import { LegacyValuationResult, SavedValuation } from '@/types/valuation';
+src/hooks/useValuationData.ts:12:  valuations: LegacyValuationResult[];
+src/hooks/useValuationData.ts:23:  const [valuations, setValuations] = useState<LegacyValuationResult[]>([]);
+src/services/ValuationApiService.ts:2:import type { ValuationResult, AuditLog } from '@/types/valuation';
+src/services/ValuationApiService.ts:19:// Re-export ValuationResult for backward compatibility
+src/services/ValuationApiService.ts:20:export type { ValuationResult };
+src/services/ValuationApiService.ts:121:  static async getValuationResult(requestId: string): Promise<ValuationResult | null> {
+src/services/ValuationApiService.ts:198:    onProgress?: (result: ValuationResult) => void,
+src/services/ValuationApiService.ts:201:  ): Promise<ValuationResult | null> {
+src/services/ValuationApiService.ts:204:    const poll = async (): Promise<ValuationResult | null> => {
+src/services/ValuationApiService.ts:205:      const result = await this.getValuationResult(requestId);
+src/services/ValuationApiService.ts:280:  static async getCachedValuation(vin: string): Promise<ValuationResult | null> {
+src/services/ValuationApiService.ts:294:        return await this.getValuationResult(recentRequests[0].id);
+src/services/valuationEngine.ts:4:export interface EnhancedValuationResult {
+src/services/valuationEngine.ts:46:export async function processValuation(input: ValuationInput): Promise<EnhancedValuationResult> {
+src/services/valuationEngine.ts:78:    const result: EnhancedValuationResult = {
+src/contexts/ValuationContext.tsx:8:interface ValuationResult {
+src/contexts/ValuationContext.tsx:35:  valuationData?: ValuationResult | null;
+src/contexts/ValuationContext.tsx:45:  rerunValuation: (input: ValuationInput) => Promise<ValuationResult>;
+src/contexts/ValuationContext.tsx:60:  const [valuationData, setValuationData] = useState<ValuationResult | null>(null);
+src/contexts/ValuationContext.tsx:113:        const legacyResult: ValuationResult = {
+src/contexts/ValuationContext.tsx:164:      const result: ValuationResult = {
+src/docs/prompt-2-5-validation-summary.md:34:  - Accepts `UnifiedValuationResult` object
+src/docs/prompt-2-5-validation-summary.md:61:- **File**: `src/pages/ResultsPage.tsx`
+src/docs/prompt-2-5-validation-summary.md:111:- Same `UnifiedValuationResult` object used throughout
+src/docs/prompt-2-5-validation-summary.md:126:- **ResultsPage**: Main entry point for PDF/share actions
+src/docs/prompt-2-3-audit-summary.md:130:- ✅ Proper structure matches `EnhancedValuationResult` interface
+src/services/ValuationIntegrationService.ts:3:import { ValuationApiService, ValuationRequest, ValuationResult } from './ValuationApiService';
+src/services/ValuationIntegrationService.ts:21:  valuationResult?: ValuationResult;
+src/services/ValuationIntegrationService.ts:223:      const valuationResult = await ValuationApiService.getValuationResult(requestId);
+src/services/ValuationIntegrationService.ts:351:  static async getCachedValuationByVin(vin: string, maxAgeHours: number = 168): Promise<ValuationResult | null> {
+src/services/ValuationIntegrationService.ts:366:        return await ValuationApiService.getValuationResult(recentRequest.id);
+src/pages/OffersPage.tsx:4:import { useValuationResult } from '@/hooks/useValuationResult';
+src/pages/OffersPage.tsx:11:  const { result, isLoading, error, calculateValuation } = useValuationResult();
+src/pages/PremiumResultsPage.tsx:5:export default function PremiumResultsPage() {
+src/components/professional/ProfessionalResultsPage.tsx:48:export default function ProfessionalResultsPage() {
+src/pages/ResultsPage.tsx:1:import ProfessionalResultsPage from '@/components/professional/ProfessionalResultsPage';
+src/pages/ResultsPage.tsx:3:export default function ResultsPage() {
+src/pages/ResultsPage.tsx:4:  return <ProfessionalResultsPage />;
+src/pages/valuation/result/ValuationResultPage.tsx:5:export default function ValuationResultPage() {
+src/pages/valuation/ValuationPage.tsx:50:            THIRD: Validate that ResultsPage correctly renders valuation results, market listings, confidence scores, and PDF/share functionality.
+src/components/test/UIResultsDisplayValidationComponent.tsx:4: * Tests that the ResultsPage and child components correctly render:
+src/components/test/UIResultsDisplayValidationComponent.tsx:84:          Validates that ResultsPage correctly renders valuation results, market listings, 
+src/components/valuation/result/EnhancedValuationResult.tsx:8:interface EnhancedValuationResultProps {
+src/components/valuation/result/EnhancedValuationResult.tsx:17:export const EnhancedValuationResult: React.FC<EnhancedValuationResultProps> = ({
+src/components/valuation/result/EnhancedValuationResult.tsx:75:export default EnhancedValuationResult;
+src/components/premium/form/steps/PredictionReviewStep.tsx:17:interface ValuationResult {
+src/components/premium/form/steps/PredictionReviewStep.tsx:25:const useValuation = (): ValuationResult => {
+src/components/valuation/result/index.ts:2:export { default as UnifiedValuationResult } from '../UnifiedValuationResult';
+src/components/valuation/valuation-core/ValuationResult.tsx:5:interface FreeValuationResultProps {
+src/components/valuation/valuation-core/ValuationResult.tsx:20:const UnifiedValuationResult: React.FC<FreeValuationResultProps> = ({
+src/components/valuation/valuation-core/ValuationResult.tsx:77:export default UnifiedValuationResult;
+src/components/valuation/ValuationResultsProps.ts:2:export interface ValuationResultsProps {
+src/components/valuation/MarketBreakdownPanel.tsx:7:import type { UnifiedValuationResult } from '@/types/valuation';
+src/components/valuation/MarketBreakdownPanel.tsx:10:  result: UnifiedValuationResult;
+src/components/valuation/redesign/TabbedResultsPanels.tsx:15:import type { UnifiedValuationResult } from '@/types/valuation';
+src/components/valuation/redesign/TabbedResultsPanels.tsx:25:  result: UnifiedValuationResult;
+src/components/valuation/redesign/TabbedResultsPanels.tsx:171:function OverviewTab({ result }: { result: UnifiedValuationResult }) {
+src/components/valuation/redesign/TabbedResultsPanels.tsx:238:function AnalysisTab({ result }: { result: UnifiedValuationResult }) {
+src/components/valuation/redesign/TabbedResultsPanels.tsx:271:function MarketTab({ result }: { result: UnifiedValuationResult }) {
+src/components/valuation/redesign/TabbedResultsPanels.tsx:319:function SourcesTab({ result }: { result: UnifiedValuationResult }) {
+src/components/valuation/redesign/TabbedResultsPanels.tsx:352:  result: UnifiedValuationResult; 
+src/components/valuation/redesign/TabbedResultsPanels.tsx:377:function EnhancedListingsTab({ result }: { result: UnifiedValuationResult }) {
+src/components/valuation/UnifiedValuationResult.tsx:10:import type { UnifiedValuationResult as ValuationResultType } from '@/types/valuation';
+src/components/valuation/UnifiedValuationResult.tsx:13:interface UnifiedValuationResultProps {
+src/components/valuation/UnifiedValuationResult.tsx:14:  result: ValuationResultType;
+src/components/valuation/UnifiedValuationResult.tsx:17:export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({ result }) => {
+src/components/valuation/UnifiedValuationResult.tsx:23:    console.log('UnifiedValuationResult received data:', {
+src/components/valuation/UnifiedValuationResult.tsx:308:export default UnifiedValuationResult;
+src/components/valuation/AuditAndSourcesAccordion.tsx:5:import { EnhancedValuationResult } from '@/types/valuation';
+src/components/valuation/AuditAndSourcesAccordion.tsx:9:  result: EnhancedValuationResult;
+src/components/valuation/types.ts:2:export interface ValuationResultProps {
+src/components/valuation/ValuationResultCard.tsx:47:interface ValuationResultCardProps {
+src/components/valuation/ValuationResultCard.tsx:54:export function ValuationResultCard({ result, onDownloadPdf, onShareReport, vin = 'unknown' }: ValuationResultCardProps) {
+src/components/premium/types.ts:2:import { ValuationResult } from '@/types/valuation';
+src/components/premium/types.ts:5:  valuation?: ValuationResult;
+src/components/valuation/enterprise/EnterpriseValuationPanel.tsx:37:interface ValuationResult {
+src/App.routes.tsx:10:const ValuationPage = React.lazy(() => import('./pages/ValuationPage'));
+src/App.routes.tsx:16:import ResultsPage from './pages/ResultsPage'; // Use the real ResultsPage
+src/App.routes.tsx:103:        element: <ResultsPage />, // Fixed: Use ResultsPage instead of ValuationResultPage
+src/App.routes.tsx:107:        element: <ResultsPage />, // Fixed: Use ResultsPage instead of ValuationResultPage
+src/utils/valuation.ts:18:export interface ValuationResult {
+src/utils/valuation.ts:38:export async function getValuationById(id: string): Promise<ValuationResult | null> {
+src/utils/valuation.ts:51:    return data as ValuationResult;
+src/utils/valuation.ts:61:export async function createVinValuation(vin: string, userId?: string | null): Promise<ValuationResult | null> {
+src/utils/valuation.ts:122:    return data as ValuationResult;
+src/utils/valuation.ts:132:export async function createPlateValuation(plate: string, state: string, userId?: string | null): Promise<ValuationResult | null> {
+src/utils/valuation.ts:147:export async function createManualValuation(details: ValuationDetails, userId?: string | null): Promise<ValuationResult | null> {
+src/utils/valuation.ts:177:    return data as ValuationResult;
+src/utils/pdf/generateValuationPdf.ts:4:import type { UnifiedValuationResult } from '@/types/valuation';
+src/utils/pdf/generateValuationPdf.ts:7:export async function generateValuationPdf(result: UnifiedValuationResult): Promise<Blob> {
+src/utils/pdf/generateValuationPdf.ts:448:export async function downloadValuationPdf(result: UnifiedValuationResult): Promise<void> {
+src/utils/getValuationContext.ts:3:import { LegacyValuationResult } from "@/types/valuation";
+src/utils/getValuationContext.ts:7:): Promise<Partial<LegacyValuationResult> | null> {
+src/utils/valuation/aggregateValuationSources.ts:2:import { LegacyValuationResult } from "@/types/valuation";
+src/utils/valuation/aggregateValuationSources.ts:17:): Promise<LegacyValuationResult> {
+src/utils/valuation/validateUnifiedPipeline.ts:1:// Final validation script for unified MarketListing type across ResultsPage and PDF Export
+src/utils/valuation/validateUnifiedPipeline.ts:113:    console.log('✅ ResultsPage.tsx properly displays normalized listings');
+src/utils/valuation/testResultsAndPdfIntegration.ts:1:// Integration test for ResultsPage and PDF Export with unified MarketListing type
+src/utils/valuation/testResultsAndPdfIntegration.ts:3:import { EnhancedValuationResult } from '@/types/valuation';
+src/utils/valuation/testResultsAndPdfIntegration.ts:7: * Test that ResultsPage displays and PDF export handles unified MarketListing correctly
+src/utils/valuation/testResultsAndPdfIntegration.ts:9:export function testResultsPageAndPdfIntegration() {
+src/utils/valuation/testResultsAndPdfIntegration.ts:10:  console.log('🧪 Testing ResultsPage and PDF Export Integration');
+src/utils/valuation/testResultsAndPdfIntegration.ts:13:  const mockEnhancedResult: EnhancedValuationResult = {
+src/utils/valuation/testResultsAndPdfIntegration.ts:64:    // Test 1: Validate normalization for ResultsPage display
+src/utils/valuation/testResultsAndPdfIntegration.ts:65:    console.log('\n📊 Testing ResultsPage listing normalization...');
+src/utils/valuation/testResultsAndPdfIntegration.ts:164:      console.log('✅ ResultsPage and PDF Export integration with unified MarketListing type: SUCCESS');
+src/utils/valuation/testResultsAndPdfIntegration.ts:167:      console.log('❌ ResultsPage and PDF Export integration: FAILED');
+src/utils/valuation/legacyConverter.ts:2:import type { UnifiedValuationResult } from '@/types/valuation';
+src/utils/valuation/legacyConverter.ts:38:): UnifiedValuationResult {
+src/utils/valuation/types.ts:38:// Define ValuationResult interface
+src/utils/valuation/types.ts:39:export interface ValuationResult {
+src/utils/valuation/types.ts:87:// Define FinalValuationResult interface
+src/utils/valuation/types.ts:88:export interface FinalValuationResult extends ValuationResult {
+src/utils/types/unifiedTypes.ts:19:export interface ValuationResult {
+src/utils/valuation/validateUIResultsDisplay.ts:4: * Validates that ResultsPage and child components correctly render:
+src/utils/valuation/validateUIResultsDisplay.ts:177:    result.pdfDownloadAvailable = true; // ResultsPage has download button
+src/utils/valuation/validateUIResultsDisplay.ts:178:    result.shareButtonAvailable = true; // ResultsPage has share button  
+src/utils/valuation/validateUIResultsDisplay.ts:184:    result.errorHandling = true; // ResultsPage has error state handling
+src/utils/valuation/validateUIResultsDisplay.ts:185:    result.loadingStateHandled = true; // ResultsPage has loading state
+src/utils/valuation/validatePDFShareFunctionality.ts:8:import type { UnifiedValuationResult } from '@/types/valuation';
+src/utils/valuation/validatePDFShareFunctionality.ts:136:    const mockValuationResult: UnifiedValuationResult = {
+src/utils/valuation/validatePDFShareFunctionality.ts:197:      const pdfBlob = await generateValuationPdf(mockValuationResult);
+src/utils/valuation/validatePDFShareFunctionality.ts:201:      result.pdfContainsListingSummary = mockValuationResult.listingCount > 0;
+src/utils/valuation/validatePDFShareFunctionality.ts:218:    const shareUrl = `${baseUrl}/results/${mockValuationResult.id}`;
+src/utils/valuation/validatePDFShareFunctionality.ts:219:    const shareText = `Check out my ${mockValuationResult.vehicle.year} ${mockValuationResult.vehicle.make} ${mockValuationResult.vehicle.model} valuation: $${mockValuationResult.finalValue.toLocaleString()}`;
+src/utils/valuation/validatePDFShareFunctionality.ts:221:    result.shareUrlConstructed = shareUrl.includes('/results/') && shareUrl.includes(mockValuationResult.id);
+src/utils/valuation/validatePDFShareFunctionality.ts:222:    result.shareUrlContainsValuationId = shareUrl.includes(mockValuationResult.id);
+src/utils/valuation/validatePDFShareFunctionality.ts:226:    result.shareContentPreFilled = shareText.includes(mockValuationResult.vehicle.make) && shareText.includes('$');
+src/utils/valuation/examples.ts:3:  FinalValuationResult,
+src/utils/valuation/examples.ts:5:  ValuationResult,
+src/utils/valuation/examples.ts:35:// Example ValuationResult object
+src/utils/valuation/examples.ts:36:export const valuationResult: ValuationResult = {
+src/utils/valuation/examples.ts:109:// Example FinalValuationResult object
+src/utils/valuation/examples.ts:110:export const finalValuationResult: FinalValuationResult = {
+src/modules/valuation-result/hooks/useValuationPdfHelper.ts:3:import { ValuationResult } from "@/types/valuation";
+src/modules/valuation-result/types.ts:3:import { ValuationResult } from "@/types/valuation";
+src/modules/valuation-result/types.ts:6:  valuationData: ValuationResult | null;
+src/modules/valuation-result/types.ts:18:export interface ValuationResultProps {
+src/types/valuation.ts:104:// Legacy ValuationResult interface (keeping for backward compatibility)
+src/types/valuation.ts:105:export interface LegacyValuationResult {
+src/types/valuation.ts:135:// Modern ValuationResult interface (aligned with API service)
+src/types/valuation.ts:136:export interface ValuationResult {
+src/types/valuation.ts:226:export interface UnifiedValuationResult {
+src/types/valuation.ts:320:export interface EnhancedValuationResult {

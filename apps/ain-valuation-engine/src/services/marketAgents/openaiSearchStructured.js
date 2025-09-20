@@ -11,7 +11,9 @@ export async function fetchListingsForTier(systemMsg, userMsg, model = "gpt-4o-m
     try {
         parsed = JSON.parse(text);
     }
-    catch { }
+    catch (e) { 
+        // Ignore JSON parse errors - return empty listings array
+    }
     const listings = Array.isArray(parsed?.listings) ? parsed.listings : [];
     return { listings, tokensIn: res.usage?.input_tokens || 0, tokensOut: res.usage?.output_tokens || 0 };
 }

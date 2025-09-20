@@ -7,6 +7,6 @@ export async function auditLogger(event, details) {
         });
     }
     catch (e) {
-        console.warn("Audit log failed:", e);
+        
     }
 }

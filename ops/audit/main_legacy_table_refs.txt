@@ -1,0 +1,187 @@
+src/__tests__/rls-access.test.ts:4:// with corresponding data in the valuations table
+src/__tests__/rls-access.test.ts:50:    // Create test valuations for both users
+src/__tests__/rls-access.test.ts:53:      .from("valuations")
+src/__tests__/rls-access.test.ts:75:      .from("valuations")
+src/__tests__/rls-access.test.ts:96:  // After all tests, clean up by deleting the test valuations
+src/__tests__/rls-access.test.ts:100:      .from("valuations")
+src/__tests__/rls-access.test.ts:106:      .from("valuations")
+src/__tests__/rls-access.test.ts:111:  // Test 1: A user can access their own valuations
+src/__tests__/rls-access.test.ts:112:  it("should allow a user to access their own valuations", async () => {
+src/__tests__/rls-access.test.ts:121:      .from("valuations")
+src/__tests__/rls-access.test.ts:131:  // Test 2: A user cannot access another user's valuations
+src/__tests__/rls-access.test.ts:132:  it("should prevent a user from accessing another user's valuations", async () => {
+src/__tests__/rls-access.test.ts:141:      .from("valuations")
+src/__tests__/rls-access.test.ts:159:        .from("valuations")
+src/scripts/generate-test-data.ts:66:    console.log("Valuation IDs:", data.valuations);
+src/hooks/useDealerOfferActions.ts:62:          .from('valuations')
+src/hooks/useSimpleFollowUpForm.ts:88:            .from('valuations')
+src/hooks/useSimpleFollowUpForm.ts:182:          .from('valuations')
+src/hooks/useSimpleFollowUpForm.ts:328:        .from('valuations')
+src/hooks/useSimpleFollowUpForm.ts:341:          .from('valuations')
+src/services/supabase/feedbackService.ts:1:// Valuation Feedback Service - Handles user feedback on valuations
+src/services/generateConfidenceScore.ts:2: * Centralized confidence scoring system for valuations
+src/pages/ProfessionalHomePage.tsx:44:              Know Your Car's True Value – No More Guesswork! Get precise, data-driven valuations powered by real-time market data.
+src/pages/ProfessionalHomePage.tsx:140:            Our valuations are derived from real-time data, industry benchmarks, and in-depth analytics.
+src/pages/ProfessionalHomePage.tsx:444:                    <span className="text-sm text-orange-800">Unlimited premium valuations</span>
+src/pages/AboutPage.tsx:17:            Our platform uses advanced algorithms and real-time market data to give you the most accurate vehicle valuations available.
+src/pages/DealerDashboard.tsx:64:              Run VIN, plate, or manual valuations and view saved reports.
+src/hooks/usePublicShare.ts:38:          valuations (
+src/hooks/usePublicShare.ts:63:      return data.valuations;
+src/pages/PremiumPage.tsx:110:                Get comprehensive insights that go far beyond basic valuations.
+src/pages/PremiumPage.tsx:332:            Join thousands of satisfied customers who trust our platform for accurate, data-driven vehicle valuations.
+src/pages/AuthLandingPage.tsx:61:                  For personal vehicle owners looking to get valuations
+src/pages/AuthLandingPage.tsx:81:                      Get instant vehicle valuations
+src/pages/PricingPage.tsx:182:            Are you a dealership looking for unlimited valuations, inventory management, and lead tools?
+src/pages/Terms.tsx:24:          information provided by users and market data. These valuations are
+src/pages/Terms.tsx:34:          valuations.
+src/pages/Terms.tsx:42:          regarding the accuracy of valuations. We shall not be liable for any
+src/pages/Terms.tsx:43:          decisions made based on our valuations.
+src/hooks/useValuationData.ts:12:  valuations: LegacyValuationResult[];
+src/hooks/useValuationData.ts:23:  const [valuations, setValuations] = useState<LegacyValuationResult[]>([]);
+src/hooks/useValuationData.ts:66:    valuations,
+src/hooks/useValuationData.ts:76:export const testDeduplication = (valuations: any[]): any[] => {
+src/hooks/useValuationData.ts:77:  if (!valuations || !Array.isArray(valuations)) {
+src/hooks/useValuationData.ts:83:  valuations.forEach(valuation => {
+src/hooks/useValuationData.ts:89:      // Prefer premium valuations
+src/hooks/useValuationData.ts:110:    valuations: result.valuations,
+src/hooks/useValuationData.ts:119:    valuations: result.savedValuations,
+src/hooks/usePrediction.ts:16:        .from("valuations")
+src/pages/api/ask-ai.ts:83:          `You are AIN — Auto Intelligence Network™, a GPT-4-powered vehicle valuation assistant built by Car Detective. Your job is to assist users with car valuations, market trends, premium report benefits, dealer offers, and CARFAX® insights. 
+src/pages/api/valuation/submit-followup.ts:14:      .from('valuations')
+src/hooks/useDealerValuations.ts:19:  const [valuations, setValuations] = useState<ValuationWithCondition[]>([]);
+src/hooks/useDealerValuations.ts:39:          .from("valuations")
+src/hooks/useDealerValuations.ts:70:        console.error("Error fetching dealer valuations:", err);
+src/hooks/useDealerValuations.ts:99:    valuations,
+src/hooks/useAdminAnalytics.ts:40:        // Fetch total valuations
+src/hooks/useAdminAnalytics.ts:42:          .from("valuations")
+src/hooks/useAdminAnalytics.ts:48:        // Fetch valuations by method
+src/hooks/useAdminAnalytics.ts:50:          .from("valuations")
+src/hooks/useAdminAnalytics.ts:56:        // Calculate valuations by method
+src/hooks/useAdminAnalytics.ts:73:        // Fetch daily valuations for the last 30 days
+src/hooks/useAdminAnalytics.ts:75:          .from("valuations")
+src/hooks/useAdminAnalytics.ts:150:          .from("valuations")
+src/contexts/ValuationContext.tsx:82:        .from('valuations')
+src/contexts/ValuationContext.tsx:98:          .from('valuations')
+src/contexts/ValuationContext.tsx:188:          .from('valuations')
+src/pages/DashboardPage.tsx:63:              View your previous valuations
+src/pages/view-offer/ViewOfferPage.tsx:57:          valuations (
+src/pages/view-offer/ViewOfferPage.tsx:97:        valuation: leadData.valuations
+src/pages/MyValuationsPage.tsx:12:  const [valuations, setValuations] = useState<any[]>([]);
+src/pages/MyValuationsPage.tsx:30:        console.error("Error fetching saved valuations:", error);
+src/pages/MyValuationsPage.tsx:55:          : valuations.length === 0
+src/pages/MyValuationsPage.tsx:61:                  No saved valuations
+src/pages/MyValuationsPage.tsx:64:                  You haven't created any vehicle valuations yet.
+src/pages/MyValuationsPage.tsx:74:              {valuations.map((valuation) => (
+src/pages/Privacy.tsx:25:          We use your information to provide vehicle valuations, improve our
+src/components/common/CarFinderQaherHeader.tsx:16:        Get instant, accurate vehicle valuations powered by AI and real market data
+src/components/audit/AuditChecklist.tsx:207:          text: "premium_unlocked set in valuations",
+src/components/audit/AuditChecklist.tsx:226:          text: "RLS enabled for valuations, orders, photo scores",
+src/components/referrals/ReferralModal.tsx:32:          text: 'Get free vehicle valuations with Car Detective!',
+src/components/professional/ProfessionalResultsPage.tsx:76:            .from('valuations')
+src/components/professional/ProfessionalResultsPage.tsx:99:              .from('valuations')
+src/components/professional/ProfessionalResultsPage.tsx:116:        // Only use real valuations - no fake data generation
+src/components/professional/ProfessionalResultsPage.tsx:141:              .from('valuations')
+src/components/followup/tabs/ConditionTab.tsx:286:              Higher ratings result in better valuations.
+src/components/valuation/result/ValuationTransparency.tsx:163:                For high-value decisions, obtain multiple valuations or professional appraisal.
+src/components/valuation/result/AdjustmentTransparency.tsx:161:                we recommend obtaining professional appraisal or multiple valuations.
+src/components/ui/UpgradeCTA.tsx:33:          Upgrade to access {feature} and get the most accurate vehicle valuations.
+src/components/layout/seo/index.tsx:15:  description = 'Get accurate vehicle valuations with our AI-powered platform. Professional grade vehicle appraisals for individuals and dealers.',
+src/components/valuation/MarketDataWarning.tsx:80:              Reliable valuations typically require 3+ comparable listings. Current estimate may not reflect actual market conditions.`;
+src/components/premium/PremiumUpgradeCTA.tsx:67:          Unlock advanced vehicle valuations and detailed reports
+src/components/valuation/redesign/PremiumFeatureOverlay.tsx:142:                Get the most accurate valuations and exclusive insights
+src/components/premium/features/PremiumInfoCards.tsx:13:            valuations
+src/components/auth/AuthGuard.tsx:18:  fallbackDescription = "Access your saved valuations and premium features",
+src/components/premium/sections/PremiumPricing.tsx:68:                  'Three premium vehicle valuations',
+src/components/premium/sections/PremiumPricing.tsx:98:              <p className="text-sm text-muted-foreground">Unlimited valuations</p>
+src/components/premium/sections/PremiumPricing.tsx:103:                  'Unlimited premium valuations',
+src/components/premium/sections/PremiumFaq.tsx:18:      answer: "Our premium valuations achieve a 92-96% accuracy rate when compared to actual selling prices. We use a combination of real-time market data, historical sales, and AI-powered analytics to provide the most accurate value possible."
+src/components/premium/sections/PremiumFaq.tsx:30:      answer: "Premium valuations are typically processed within 2-5 minutes, depending on data availability. Once complete, your report is immediately available for download and is also emailed to you."
+src/e2e/photo-upload-flow.spec.ts:125:    // await page.route('**/rest/v1/valuations?id=eq.*', (route, request) => {
+src/components/premium/BuyCreditsModal.tsx:30:    description: "Perfect for individual vehicle valuations"
+src/components/premium/BuyCreditsModal.tsx:64:            Choose a credit package to unlock premium vehicle valuations with detailed reports and market analysis.
+src/components/dashboard/DashboardRouter.tsx:29:      description: 'View your saved valuations',
+src/components/dashboard/DashboardRouter.tsx:30:      action: () => window.location.href = '/saved-valuations',
+src/components/dashboard/DashboardRouter.tsx:44:      description: 'Track and manage all your vehicle valuations in one place with detailed history and insights.',
+src/components/dashboard/DashboardRouter.tsx:66:              Manage your vehicle valuations, track market trends, and access premium features.
+src/components/saved/SavedValuationsList.tsx:19:  const { valuations, isLoading, error, deleteValuation } =
+src/components/saved/SavedValuationsList.tsx:32:              Loading your saved valuations...
+src/components/saved/SavedValuationsList.tsx:53:  if (valuations.length === 0) {
+src/components/saved/SavedValuationsList.tsx:62:              You haven't saved any valuations yet.
+src/components/saved/SavedValuationsList.tsx:109:            {valuations.map((item: any) => (
+src/components/home/FinalCTA.tsx:22:            Join thousands of professionals who trust our platform for accurate, instant vehicle valuations.
+src/components/home/PremiumServicesGrid.tsx:25:    description: "Our valuations are backed by extensive market research."
+src/components/home/IndustryProof.tsx:8:      quote: "The accuracy and speed of these valuations has transformed our lending decisions. Professional-grade data we can trust.",
+src/components/home/IndustryProof.tsx:35:            See how automotive and financial professionals use our platform for accurate, compliant valuations.
+src/components/home/SocialProofSection.tsx:38:            See how automotive and financial professionals leverage our platform for accurate, compliant valuations.
+src/components/home/AiAssistantPreview.tsx:13:    "How accurate are your valuations?",
+src/components/home/AiAssistantPreview.tsx:33:            placeholder="Ask about vehicle valuations..."
+src/components/home/ValuePropositionSection.tsx:15:    description: "Receive valuations in under 60 seconds"
+src/components/home/ValuePropositionSection.tsx:36:            We provide the most accurate and comprehensive vehicle valuations using cutting-edge technology and real market data.
+src/components/home/ValuePropositionGrid.tsx:10:      description: "Get professional valuations in under 30 seconds with our AI-powered analysis engine.",
+src/components/home/ValuePropositionGrid.tsx:16:      description: "Real-time market data and NADA-compliant methodology ensure accurate valuations.",
+src/components/home/EnterpriseHeroSection.tsx:59:                  AI-powered vehicle valuations trusted by automotive professionals, 
+src/components/home/EnterpriseFeaturesSection.tsx:29:      description: "Enterprise-grade infrastructure delivering professional valuations with guaranteed uptime.",
+src/components/home/FangHeroSection.tsx:41:                  Professional vehicle valuations powered by AI and real market data. 
+src/components/home/CoreValueProps.tsx:10:      description: "Get professional valuations in under 30 seconds with AI-powered analysis and real-time market data."
+src/components/home/CoreValueProps.tsx:15:      description: "Advanced algorithms analyze thousands of data points to deliver the most accurate valuations available."
+src/components/home/CoreValueProps.tsx:33:              Built for professionals who demand accuracy, speed, and reliability in vehicle valuations.
+src/components/home/PremiumHeroSection.tsx:66:              Instant, accurate vehicle valuations powered by real market data and AI technology. 
+src/components/home/PremiumHeroSection.tsx:98:              <p className="text-muted-foreground">Get precise valuations in under 3 seconds</p>
+src/components/home/EnterpriseTestimonialsSection.tsx:45:            See how automotive and financial professionals leverage our platform for accurate, compliant valuations.
+src/integrations/supabase/types.ts:383:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:745:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:805:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:1389:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:1490:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:1873:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:2201:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:2340:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:2501:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:2530:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:2628:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:3452:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:3741:      valuations: {
+src/integrations/supabase/types.ts:4068:            referencedRelation: "valuations"
+src/integrations/supabase/types.ts:4100:            referencedRelation: "valuations"
+src/integrations/ai/serverClient.ts:61:        content: 'You are a vehicle valuation expert. Explain valuations clearly and professionally.'
+src/utils/diagnostics/valuationAudit.ts:27:      .from('valuations')
+src/utils/diagnostics/systemHealth.ts:19:      .from('valuations')
+src/utils/diagnostics/systemHealth.ts:49:    'valuations',
+src/utils/diagnostics/systemHealth.ts:84:  // 3. Check recent valuations (last 24 hours)
+src/utils/diagnostics/systemHealth.ts:88:      .from('valuations')
+src/utils/valuation.ts:41:      .from('valuations')
+src/utils/valuation.ts:101:      .from('valuations')
+src/utils/valuation.ts:167:      .from('valuations')
+src/App.routes.tsx:118:        path: "saved-valuations",
+src/utils/valuation/updateValuationData.ts:17:      .from("valuations")
+src/utils/valuation/updateValuationData.ts:34:      .from("valuations")
+src/utils/valuation/updateValuationData.ts:62:      .from("valuations")
+src/utils/valuation/updateValuationData.ts:74:      .from("valuations")
+src/utils/valuation/updateValuationData.ts:104:      .from("valuations")
+src/utils/getValuationContext.ts:12:      .from("valuations")
+src/utils/route-validation/ROUTE_SNAPSHOT.json:13:  "/my-valuations",
+src/utils/getListingsWithCondition.ts:29:    .from("valuations")
+src/utils/getListingsWithCondition.ts:89:    .from("valuations")
+src/utils/assistantContext.ts:142:        response = `I'm Car Detective's AI assistant, specialized in vehicle valuations and market insights. I can help you determine your ${vehicleInfo}'s true market value, understand how accidents impact pricing, develop selling strategies, analyze local market trends, and connect with potential buyers. What specific aspect of your vehicle's valuation would you like to explore today?`;
+src/utils/validation/validateCorrectedPipeline.ts:19:      .from('valuations')
+src/utils/emailService.ts:43:        <p>Thank you for signing up for Car Detective. We're excited to help you with your vehicle valuations!</p>
+src/utils/publicShareService.ts:26:        valuations (
+src/utils/publicShareService.ts:45:    if (!data || !data.valuations) {
+src/utils/publicShareService.ts:58:    const valuation = Array.isArray(data.valuations)
+src/utils/publicShareService.ts:60:        id: data.valuations[0].id,
+src/utils/publicShareService.ts:61:        make: data.valuations[0].make,
+src/utils/publicShareService.ts:62:        model: data.valuations[0].model,
+src/utils/publicShareService.ts:63:        year: Number(data.valuations[0].year),
+src/utils/publicShareService.ts:64:        mileage: Number(data.valuations[0].mileage),
+src/utils/publicShareService.ts:65:        condition_score: Number(data.valuations[0].condition_score),
+src/utils/publicShareService.ts:66:        estimated_value: Number(data.valuations[0].estimated_value),
+src/utils/publicShareService.ts:67:        created_at: data.valuations[0].created_at,
+src/utils/publicShareService.ts:69:      : data.valuations as SharedValuation;
+src/lib/ainClient.ts:1:// Hardened AIN client for professional valuations
+src/modules/qa-dashboard/components/ValuationTable.tsx:14:  valuations: Valuation[];
+src/modules/qa-dashboard/components/ValuationTable.tsx:24:  valuations,
+src/modules/qa-dashboard/components/ValuationTable.tsx:33:    return <div className="text-center py-4">Loading valuations...</div>;
+src/modules/qa-dashboard/components/ValuationTable.tsx:36:  if (!valuations || valuations.length === 0) {
+src/modules/qa-dashboard/components/ValuationTable.tsx:39:        <p className="text-muted-foreground">No valuations found</p>
+src/modules/qa-dashboard/components/ValuationTable.tsx:58:          {valuations.map((valuation) => (
+src/i18n/locales/en/common.json:5:    "tagline": "Get accurate vehicle valuations instantly"

@@ -2,13 +2,13 @@ import { getAIResponse } from '../../src/ain-backend/gpt4oService';
 import { AIContext } from '../../src/types/api';
 
 // Mock OpenAI
-jest.mock('openai', () => {
+vi.mock('openai', () => {
   return {
     __esModule: true,
-    default: jest.fn().mockImplementation(() => ({
+    default: vi.fn().mockImplementation(() => ({
       chat: {
         completions: {
-          create: jest.fn()
+          create: vi.fn()
         }
       }
     }))

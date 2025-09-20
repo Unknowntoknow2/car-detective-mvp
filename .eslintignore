@@ -1,0 +1,10 @@
+dist/
+node_modules/
+coverage/
+supabase/.temp/
+*.d.ts
+.next/
+build/
+out/
+test-results/
+playwright-report/

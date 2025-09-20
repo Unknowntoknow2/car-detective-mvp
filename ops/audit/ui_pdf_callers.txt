@@ -1,0 +1,29 @@
+src/__tests__/generateValuationPdf.test.ts:3:import { generateValuationPdf, ReportData } from "../utils/pdfService";
+src/__tests__/generateValuationPdf.test.ts:26:describe("generateValuationPdf", () => {
+src/__tests__/generateValuationPdf.test.ts:59:    const pdfBuffer = await generateValuationPdf(testData);
+src/__tests__/generateValuationPdf.test.ts:87:    const pdfBuffer = await generateValuationPdf(minimalData);
+src/hooks/useDownloadPdf.ts:8:  const downloadPdf = async (valuationId: string) => {
+src/hooks/useDownloadPdf.ts:33:    downloadPdf,
+src/docs/prompt-2-5-validation-summary.md:31:- **File**: `src/utils/pdf/generateValuationPdf.ts`
+src/components/pdf/PDFPreview.tsx:5:import { downloadPdf, convertVehicleInfoToReportData } from '@/utils/pdf';
+src/components/pdf/PDFPreview.tsx:48:      await downloadPdf(reportData);
+src/components/valuation/result/useValuationPdf.ts:3:import { downloadPdf, ReportData } from '@/utils/pdf';
+src/components/valuation/result/useValuationPdf.ts:12:export function useValuationPdf({ valuationId, valuationData, conditionData }: UseValuationPdfProps) {
+src/components/valuation/result/useValuationPdf.ts:99:      // Pass the reportData to the downloadPdf function
+src/components/valuation/result/useValuationPdf.ts:100:      await downloadPdf(reportData);
+src/components/valuation/result/useValuationPdf.ts:170:      await downloadPdf(sampleReportData);
+src/utils/pdf/index.ts:7:  generateValuationPdf,
+src/utils/pdf/index.ts:11:  downloadPdf
+src/utils/pdf/generateValuationPdf.ts:7:export async function generateValuationPdf(result: UnifiedValuationResult): Promise<Blob> {
+src/utils/pdf/generateValuationPdf.ts:449:  const pdfBlob = await generateValuationPdf(result);
+src/utils/valuation/validatePDFShareFunctionality.ts:9:import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
+src/utils/valuation/validatePDFShareFunctionality.ts:197:      const pdfBlob = await generateValuationPdf(mockValuationResult);
+src/modules/valuation-result/hooks/useValuationPdfHelper.ts:12:export function useValuationPdfHelper({
+src/modules/valuation-result/hooks/useValuationPdfHelper.ts:45:export default useValuationPdfHelper;
+src/utils/index.ts:9:  generateValuationPdf as generatePdf,
+src/utils/index.ts:10:  downloadValuationPdf as downloadPdf,
+src/utils/pdfService.ts:151:export async function generateValuationPdf(data: ReportData, options: PdfOptions = {}): Promise<Buffer> {
+src/utils/pdfService.ts:464:  const pdfBuffer = await generateValuationPdf(data, options);
+src/utils/pdfService.ts:485:    const pdfBuffer = await generateValuationPdf(data, options);
+src/utils/pdfService.ts:519:export const downloadPdf = downloadValuationPdf;
+src/utils/pdfService.ts:520:export const generateReport = generateValuationPdf;
