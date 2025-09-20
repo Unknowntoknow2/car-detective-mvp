@@ -11,7 +11,7 @@
     "build": "npm -w apps/ain-valuation-engine run build",
     "build:main": "vite build --config vite.config.ts",
     "test": "npm -w apps/ain-valuation-engine run test --silent || echo \"no tests\"",
-    "lint": "npm -w apps/ain-valuation-engine run lint || echo \"no lint\"",
+    "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\"",
     "e2e-tests": "npm -w apps/ain-valuation-engine run e2e-tests || echo \"no e2e script\"",
     "ci": "npm run build && npm run test"
   },

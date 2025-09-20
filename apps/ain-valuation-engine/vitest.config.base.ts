@@ -15,7 +15,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      openai: path.resolve(__dirname, "test-mocks/openai.ts"),
     },
   },
 });

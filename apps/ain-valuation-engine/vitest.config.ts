@@ -9,7 +9,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      openai: fileURLToPath(new URL('./tests/mocks/openai.ts', import.meta.url)),
     },
   },
 });

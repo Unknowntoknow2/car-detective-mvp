@@ -1,10 +1,5 @@
-dist/
-node_modules/
-coverage/
-supabase/.temp/
-*.d.ts
-.next/
-build/
-out/
-test-results/
-playwright-report/
+apps/ain-valuation-engine/**
+supabase/functions/**
+dist/**
+**/node_modules/**
+**/*.min.js

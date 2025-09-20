@@ -1,3 +1,4 @@
+
 /** Simple constants used by the valuation UI/engine */
 export const VehicleCondition = {
   EXCELLENT: 'excellent',
