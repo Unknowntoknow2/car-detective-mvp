@@ -156,14 +156,3 @@ export const AdjustmentTransparency: React.FC<AdjustmentTransparencyProps> = ({
             <Info className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-xs text-red-700">
-                <strong>Fallback Method Active:</strong> This valuation uses synthetic pricing models due to lack of 
-                current market data. All adjustments should be considered estimates only. For transactions over $20,000, 
-                we recommend obtaining professional appraisal or multiple valuations.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};

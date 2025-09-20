@@ -25,7 +25,7 @@ export function usePlateLookup() {
       const mockResult: PlateLookupResult = {
         plate,
         state,
-        vin: `MOCK${plate}${state}`,
+        vin: '',
         year: 2020,
         make: 'Honda',
         model: 'Civic',

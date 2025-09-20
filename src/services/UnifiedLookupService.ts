@@ -149,7 +149,7 @@ export class UnifiedLookupService {
         mileage: Math.floor(Math.random() * 60000) + 30000,
         condition: 'Good',
         confidenceScore: options.tier === 'premium' ? 90 : 75,
-        vin: 'MOCK_VIN_FROM_PLATE'
+        vin: ''
       };
 
       return {

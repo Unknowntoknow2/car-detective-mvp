@@ -159,7 +159,7 @@ export const ValuationTransparency: React.FC<ValuationTransparencyProps> = ({
           {isFallbackMethod && (
             <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs">
               <p className="text-red-700">
-                <strong>Data Quality Notice:</strong> This valuation is based on synthetic calculations, not real market transactions. 
+                <strong>Data Quality Notice:</strong> 
                 For high-value decisions, obtain multiple valuations or professional appraisal.
               </p>
             </div>

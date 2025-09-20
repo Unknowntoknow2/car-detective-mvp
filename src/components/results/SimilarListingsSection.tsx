@@ -68,7 +68,7 @@ export function SimilarListingsSection({ listings }: SimilarListingsSectionProps
                     alt={`${listing.year} ${listing.make} ${listing.model}`}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     onError={(e) => {
-                      e.currentTarget.src = '/placeholder.svg';
+                      
                     }}
                   />
                 ) : (
