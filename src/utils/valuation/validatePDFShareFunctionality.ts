@@ -132,6 +132,21 @@ export async function validatePDFShareFunctionality(vin: string): Promise<PDFSha
   };
   
   try {
+    const mockValuationResult: UnifiedValuationResult = {
+      id: `valuation-${Date.now()}`,
+      vin,
+      vehicle: {
+        year: 2021,
+        make: "Ford", 
+        model: "F-150",
+        trim: "XLT",
+        fuelType: "Gasoline"
+      },
+      zip: "12345",
+      mileage: 85000,
+      baseValue: 47428,
+      adjustments: [
+        {
           label: "High Mileage",
           amount: -2000,
           reason: "Above average mileage for year"
