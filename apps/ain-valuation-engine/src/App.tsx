@@ -3,9 +3,9 @@ import logger from "./utils/logger";
 import { GlobalErrorBoundary } from "@/components/security/GlobalErrorBoundary";
 import { VinLookupForm } from "@/components/lookup/vin/VinLookupForm";
 import { DataCollectionForm } from "@/components/followup/DataCollectionForm";
-import { ValuationResultsDisplay } from "@/components/result/ValuationResultsDisplay";
+import { UnifiedValuationResult } from "@/components/valuation/UnifiedValuationResult";
 import { VariableValue } from "./types/VariableValue";
-import { ValuationResult } from "./types/ValuationTypes";
+import { ValuationResult } from "@/types/vehicleData";
 
 /** Application state defining the current step in the valuation workflow */
 type AppState = 'vin-lookup' | 'data-collection' | 'valuation-results';
@@ -129,7 +129,7 @@ function App() {
       case 'valuation-results':
         return (
           <div>
-            {valuationResult && <ValuationResultsDisplay valuation={valuationResult} />}
+            {valuationResult && <UnifiedValuationResult result={valuationResult} />}
             <div className="text-center mt-8">
               <button 
                 onClick={handleStartOver}

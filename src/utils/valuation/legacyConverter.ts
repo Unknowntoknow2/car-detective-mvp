@@ -1,5 +1,5 @@
 // Legacy data converter for backward compatibility
-import type { UnifiedValuationResult } from '@/types/valuation';
+import type { UnifiedValuationResult } from '@/types/vehicleData';
 
 interface LegacyValuationData {
   id?: string; // Add ID field for forecast integration

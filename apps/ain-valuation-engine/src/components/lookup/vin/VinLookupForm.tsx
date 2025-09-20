@@ -1,8 +1,8 @@
 import { VariableValue } from '../../../types/VariableValue';
 
 import React, { useState } from 'react'
-import { Input } from '../../ui/input'
-import { Button } from '../../ui/button'
+import { Input } from '../../../../../src/components/ui/input'
+import { Button } from '../../../../../src/components/ui/button'
 import { CarFindCard } from '@/components/CarFindCard'
 import { decodeVin, VINDecodeError, isVinDecodeSuccessful } from '@/services/unifiedVinDecoder'
 import { convertToVariableValueArray } from '@/utils/convertToVariableValueArray'

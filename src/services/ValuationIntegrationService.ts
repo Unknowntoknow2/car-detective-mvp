@@ -1,7 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { UnifiedLookupService } from './UnifiedLookupService';
-import { ValuationApiService, ValuationRequest, ValuationResult } from './ValuationApiService';
+import { ValuationRequest, ValuationResult } from '@/types/vehicleData';
 import { DecodedVehicleInfo } from '@/types/vehicle';
+import { ValuationApiService } from "@/services/ValuationApiService";
 
 export interface EnrichmentData {
   vin: string;

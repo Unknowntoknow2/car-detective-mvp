@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { ValuationResult } from "@/types/valuation";
+import { ValuationResult } from "@/types/vehicleData";
 import { AICondition } from "@/types/photo";
 
 export interface UseValuationPdfHelperProps {

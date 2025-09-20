@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ValuationIntegrationService, ValuationPipelineResult } from '@/services/ValuationIntegrationService';
-import { ValuationRequest, ValuationResult } from '@/services/ValuationApiService';
+import { ValuationRequest, ValuationResult } from '@/types/vehicleData';
 import { toast } from 'sonner';
 
 interface UseValuationIntegrationOptions {

@@ -2,10 +2,10 @@
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import { StaticRouter } from "react-router-dom/server";
-import { ValuationResultsDisplay } from "./src/components/result/ValuationResultsDisplay";
+import { UnifiedValuationResult } from "@/components/valuation/UnifiedValuationResult";
 // If ValuationResultCard exists, import it as well
 // import { ValuationResultCard } from "./src/components/result/ValuationResultCard";
-import { ValuationResult } from "./src/types/ValuationTypes";
+import { ValuationResult } from "@/types/vehicleData";
 
 // Canonical debug valuation result from Step 3
 const sampleResult: ValuationResult = {
@@ -35,7 +35,7 @@ const sampleResult: ValuationResult = {
 function debugRender() {
   const displayHTML = ReactDOMServer.renderToString(
     <StaticRouter location="/results">
-      <ValuationResultsDisplay valuation={sampleResult} />
+      <UnifiedValuationResult result={sampleResult} />
     </StaticRouter>
   );
   // Uncomment if ValuationResultCard exists and is used in your UI

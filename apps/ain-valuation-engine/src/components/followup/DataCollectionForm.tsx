@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import { Button } from '../../../../src/components/ui/button';
+import { Input } from '../../../../src/components/ui/input';
 import { VariableValue } from '../../types/VariableValue';
-import { VehicleData, VehicleCondition, TitleStatus, DataGap, ValuationResult } from '../../types/ValuationTypes';
+import { VehicleData, VehicleCondition, TitleStatus, DataGap, ValuationResult } from '@/types/vehicleData';
 import { valuateVehicle } from '@/ain-backend/valuationEngine';
 
 interface DataCollectionFormProps {

@@ -1,5 +1,5 @@
 
-import { ValuationResult } from '@/types/valuation';
+import { ValuationResult } from '@/types/vehicleData';
 
 export interface ValuationSummaryProps {
   valuation?: ValuationResult;

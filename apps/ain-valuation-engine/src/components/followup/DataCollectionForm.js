@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import { Button } from '../../../../src/components/ui/button';
+import { Input } from '../../../../src/components/ui/input';
 import { VehicleCondition, TitleStatus } from '../../types/ValuationTypes';
 import { valuateVehicle } from '@/ain-backend/valuationEngine';
 export function DataCollectionForm({ decodedVin, vin, onComplete }) {

@@ -1,6 +1,6 @@
 
 import { AICondition } from "@/types/photo";
-import { ValuationResult } from "@/types/valuation";
+import { ValuationResult } from "@/types/vehicleData";
 
 export interface ValuationContextProps {
   valuationData: ValuationResult | null;

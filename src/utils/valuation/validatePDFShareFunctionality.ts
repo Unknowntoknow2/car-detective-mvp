@@ -5,7 +5,7 @@
  * and fallback handling in the valuation results pipeline.
  */
 
-import type { UnifiedValuationResult } from '@/types/valuation';
+import type { UnifiedValuationResult } from '@/types/vehicleData';
 import { generateValuationPdf } from '@/utils/pdf/generateValuationPdf';
 
 export interface PDFShareTestCase {

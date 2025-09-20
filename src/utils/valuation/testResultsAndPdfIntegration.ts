@@ -1,6 +1,6 @@
 // Integration test for ResultsPage and PDF Export with unified MarketListing type
 import { MarketListing, normalizeListing, getNormalizedUrl, getNormalizedSourceType } from '@/types/marketListing';
-import { EnhancedValuationResult } from '@/types/valuation';
+import { EnhancedValuationResult } from '@/types/vehicleData';
 import { convertVehicleInfoToReportData } from '@/utils/pdfService';
 
 /**

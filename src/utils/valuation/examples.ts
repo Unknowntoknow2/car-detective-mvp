@@ -3,7 +3,7 @@ import {
   FinalValuationResult,
   ValuationParams,
   ValuationResult,
-} from "./types";
+} from "@/types/vehicleData";
 
 // Example base market value
 export const baseMarketValue = 25000;

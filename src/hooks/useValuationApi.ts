@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import { ValuationApiService, ValuationRequest, ValuationResult, SourceStatus } from '@/services/ValuationApiService';
+import { ValuationRequest, ValuationResult, SourceStatus } from '@/types/vehicleData';
 import { toast } from 'sonner';
+import { ValuationApiService } from "@/services/ValuationApiService";
 
 export interface UseValuationApiReturn {
   // State
