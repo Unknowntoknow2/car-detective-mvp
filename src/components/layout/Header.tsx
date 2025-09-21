@@ -65,8 +65,8 @@ export const Header: React.FC = () => {
         {/* Auth Buttons or Profile */}
         <div className="flex items-center gap-4">
           {user ? (
-            <div className="flex items-center gap-2">
-              <span className="hidden md:inline text-sm text-muted-foreground">
+            <div className="flex items-center gap-3">
+              <span className="hidden md:inline text-sm text-muted-foreground truncate max-w-48">
                 {userDetails?.full_name || user.email}
               </span>
               {userDetails?.role && (
@@ -74,8 +74,9 @@ export const Header: React.FC = () => {
                   {userDetails.role}
                 </span>
               )}
-              <Button variant="ghost" onClick={handleLogout} className="flex items-center gap-1">
-                <LogOut className="h-4 w-4" /> Logout
+              <Button variant="ghost" onClick={handleLogout} className="flex items-center gap-2 ml-2">
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
               </Button>
             </div>
           ) : (
