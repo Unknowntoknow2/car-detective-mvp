@@ -74,7 +74,18 @@ export class ConsoleCleanupManager {
       'We\'re hiring!',
       'lovable.dev/careers',
       'DevTools',
-      '⠀⠀#######'
+      '⠀⠀#######',
+      
+      // Component Debug Messages
+      '🔄 App component rendering',
+      '🏠 ProfessionalHomePage rendering',
+      '✅ HomePage loaded',
+      '🔄 MainLayout rendering',
+      '✅ MainLayout mounted',
+      '✅ HomePage mounted in DOM',
+      'React Router Future Flag Warning',
+      'v7_startTransition',
+      'v7_relativeSplatPath'
     ];
 
     const shouldSuppress = (message: string): boolean => {
