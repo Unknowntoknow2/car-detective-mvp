@@ -217,8 +217,8 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
             zip_code: input.zipCode,
             estimated_value: result.finalValue,
             confidence_score: result.confidenceScore,
-            price_range_low: result.priceRange[0],
-            price_range_high: result.priceRange[1],
+            price_range_low: result.priceRange?.[0] ?? null,
+            price_range_high: result.priceRange?.[1] ?? null,
             adjustments: result.adjustments,
             vehicle_data: {
               fuel_type: input.fuelType,

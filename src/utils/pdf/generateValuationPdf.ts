@@ -4,7 +4,7 @@ import { formatDate } from '@/utils/formatters/formatDate';
 import type { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 import { MarketListing, getNormalizedUrl, getNormalizedSourceType, normalizeListing } from '@/types/marketListing';
 
-export async function generateValuationPdf(result: UnifiedValuationResult): Promise<Blob> {
+export async function generateValuationPdf(result: any): Promise<Blob> {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([612, 792]); // US Letter size
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -445,7 +445,7 @@ function splitTextIntoLines(text: string, maxWidth: number, font: any, fontSize:
   return lines;
 }
 
-export async function downloadValuationPdf(result: UnifiedValuationResult): Promise<void> {
+export async function downloadValuationPdf(result: any): Promise<void> {
   const pdfBlob = await generateValuationPdf(result);
   const url = URL.createObjectURL(pdfBlob);
   
