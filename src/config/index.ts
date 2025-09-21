@@ -51,16 +51,16 @@ function getConfigValue(key: keyof Config): string | undefined {
   return undefined;
 }
 
-// Build config object
+// Build config object with hardcoded values
 const rawConfig: Record<string, any> = {
-  SUPABASE_URL: getConfigValue('SUPABASE_URL'),
-  SUPABASE_ANON_KEY: getConfigValue('SUPABASE_ANON_KEY'),
-  VEHICLE_API_URL: getConfigValue('VEHICLE_API_URL'),
-  PUBLIC_API_BASE_URL: getConfigValue('PUBLIC_API_BASE_URL'),
-  EDGE_FUNCTION_BASE_URL: getConfigValue('EDGE_FUNCTION_BASE_URL'),
-  FEATURE_AUDIT: getConfigValue('FEATURE_AUDIT') || '0',
-  SENTRY_DSN: getConfigValue('SENTRY_DSN'),
-  MODE: getConfigValue('MODE') || 'development',
+  SUPABASE_URL: 'https://xltxqqzattxogxtqrggt.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsdHhxcXphdHR4b2d4dHFyZ2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NTYxMjYsImV4cCI6MjA2MTAzMjEyNn0.kUPmsyUdpcpnPLHWlnP7vODQiRgzCrWjOBfLib3lpvY',
+  VEHICLE_API_URL: undefined,
+  PUBLIC_API_BASE_URL: undefined,
+  EDGE_FUNCTION_BASE_URL: undefined,
+  FEATURE_AUDIT: '0',
+  SENTRY_DSN: undefined,
+  MODE: 'development',
 };
 
 // Validate and export config

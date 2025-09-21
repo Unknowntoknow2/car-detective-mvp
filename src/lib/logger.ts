@@ -5,27 +5,32 @@
  * In production, only errors and warnings are logged.
  */
 
-import { appConfig } from '@/config';
+const isDevelopment = import.meta.env.DEV || false;
 
 export const logger = {
   log: (...args: any[]) => {
-    if (appConfig.ENABLE_DIAGNOSTICS) {
+    if (isDevelopment) {
+      // Only log in development
     }
   },
   
   warn: (...args: any[]) => {
+    console.warn(...args);
   },
   
   error: (...args: any[]) => {
+    console.error(...args);
   },
   
   info: (...args: any[]) => {
-    if (appConfig.ENABLE_DIAGNOSTICS) {
+    if (isDevelopment) {
+      // Only log in development
     }
   },
   
   debug: (...args: any[]) => {
-    if (appConfig.ENABLE_DIAGNOSTICS) {
+    if (isDevelopment) {
+      // Only log in development
     }
   }
 };
