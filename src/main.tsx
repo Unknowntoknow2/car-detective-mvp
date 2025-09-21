@@ -6,10 +6,7 @@ import { AppProviders } from './providers/AppProviders';
 import './styles/index.css';
 import { validateAINConfiguration } from './utils/buildTimeChecks';
 import './utils/startupValidation'; // Enforce AIN in production
-import { setupPreviewErrorHandling } from './utils/preview-diagnostics';
-
-// Setup preview environment error handling
-setupPreviewErrorHandling();
+import './utils/console-cleanup'; // Initialize comprehensive console cleanup
 
 const renderApp = () => {
   try {

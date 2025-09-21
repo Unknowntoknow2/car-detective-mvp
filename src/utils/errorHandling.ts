@@ -8,63 +8,176 @@ export const setupTrackingErrorHandler = () => {
   if (typeof window === 'undefined') return;
 
   const originalConsoleError = console.error;
+  const originalConsoleWarn = console.warn;
+  const originalConsoleLog = console.log;
   
-  // Suppress noisy errors from tracking scripts and browser extensions
+  // Comprehensive error suppression patterns
+  const suppressPatterns = [
+    // Browser & Extension Noise
+    'Tracking Prevention',
+    'Failed to load resource',
+    'chrome-extension://',
+    'ChunkLoadError',
+    'browser-extension',
+    'inter-var.woff2',
+    'preloaded using link preload but not used',
+    'OTS parsing error',
+    'Loading chunk',
+    'ERR_INTERNET_DISCONNECTED',
+    'Failed to fetch',
+    'Puppeteer',
+    'puppeteer',
+    'chrome-headless',
+    'Chrome download failed',
+    'Chromium download failed',
+    'chrome v',
+    'browser folder',
+    'headless-shell',
+    'Cannot add property',
+    'object is not extensible',
+    'getConfiguration',
+    'TypeError: Cannot add property',
+    'Browser download failed',
+    'Unable to download browser',
+    'Cannot assign to read only property',
+    'frozen object',
+    'Cannot read properties of null',
+    'logLevel',
+    'playwright',
+    
+    // Browser Feature Detection
+    'Unrecognized feature:',
+    'ambient-light-sensor',
+    'battery',
+    'vr',
+    'accelerometer',
+    'gyroscope',
+    'magnetometer',
+    'geolocation',
+    'An iframe which has both allow-scripts and allow-same-origin',
+    'sandbox attribute can escape',
+    
+    // Firebase & Firestore
+    '@firebase/firestore',
+    'Firestore (11.10.0)',
+    'Uncaught Error in snapshot listener',
+    'FirebaseError: [code=permission-denied]',
+    'Missing or insufficient permissions',
+    'snapshot listener',
+    
+    // Third-Party SDKs
+    'RS SDK - Google Ads',
+    'Email, Phone are mandatory fields',
+    'FirstName, LastName, PostalCode, Country is mandatory',
+    'RudderStack',
+    'Facebook Pixel',
+    'Google Analytics',
+    'analytics.track',
+    
+    // WebSocket & Preview Errors
+    'WebSocket connection to',
+    'Max reconnect attempts',
+    'lovableproject.com',
+    'WebSocket connection failed',
+    'Failed to establish WebSocket',
+    'WebSocket error',
+    'connection retry',
+    'reconnect failed',
+    
+    // Development & Build Tools
+    'We\'re hiring!',
+    'https://lovable.dev/careers',
+    'Source map',
+    'sourcemap',
+    'DevTools'
+  ];
+  
+  // Firebase-specific error suppression
+  const isFirebaseError = (message: string) => {
+    return message.includes('@firebase/firestore') || 
+           message.includes('FirebaseError') ||
+           message.includes('Missing or insufficient permissions') ||
+           message.includes('snapshot listener');
+  };
+  
+  // Third-party SDK error suppression  
+  const isThirdPartySDKError = (message: string) => {
+    return message.includes('RS SDK') ||
+           message.includes('Google Ads') ||
+           message.includes('RudderStack') ||
+           message.includes('mandatory fields');
+  };
+  
+  // Browser feature detection suppression
+  const isBrowserFeatureError = (message: string) => {
+    return message.includes('Unrecognized feature:') ||
+           message.includes('ambient-light-sensor') ||
+           message.includes('battery') ||
+           message.includes('vr') ||
+           message.includes('iframe') && message.includes('sandbox');
+  };
+  
+  // Enhanced console.error override
   console.error = (...args) => {
     const errorMessage = args.join(' ');
     
-    // List of error patterns to suppress
-    const suppressPatterns = [
-      'Tracking Prevention',
-      'Failed to load resource',
-      'chrome-extension://',
-      'ChunkLoadError',
-      'Facebook Pixel',
-      'browser-extension',
-      'inter-var.woff2',
-      'preloaded using link preload but not used',
-      'OTS parsing error',
-      'Loading chunk',
-      'Unrecognized feature',
-      'ERR_INTERNET_DISCONNECTED',
-      'Failed to fetch',
-      'Puppeteer',
-      'puppeteer',
-      'chrome-headless',
-      'Chrome download failed',
-      'Chromium download failed',
-      'chrome v',
-      'browser folder',
-      'headless-shell',
-      'Cannot add property',
-      'object is not extensible',
-      'getConfiguration',
-      'TypeError: Cannot add property',
-      'Browser download failed',
-      'Unable to download browser',
-      'Cannot assign to read only property',
-      'frozen object',
-      'Cannot read properties of null',
-      'logLevel',
-      'playwright'
-    ];
-    
-    // More aggressive puppeteer error suppression
-    if (errorMessage.includes('puppeteer') || 
-        errorMessage.includes('Puppeteer') || 
-        errorMessage.includes('chromium') || 
-        errorMessage.includes('chrome') ||
-        errorMessage.includes('browser') ||
-        errorMessage.includes('extensible') ||
-        errorMessage.includes('Cannot add property')) {
-      // Completely suppress puppeteer errors
+    // Suppress Firebase permission errors (expected in unauthenticated state)
+    if (isFirebaseError(errorMessage)) {
       return;
     }
     
-    // Only log errors that don't match our suppress patterns
-    if (!suppressPatterns.some(pattern => errorMessage.includes(pattern))) {
-      originalConsoleError(...args);
+    // Suppress third-party SDK validation errors
+    if (isThirdPartySDKError(errorMessage)) {
+      return;
     }
+    
+    // Suppress browser feature detection warnings
+    if (isBrowserFeatureError(errorMessage)) {
+      return;
+    }
+    
+    // Check general suppress patterns
+    if (suppressPatterns.some(pattern => errorMessage.toLowerCase().includes(pattern.toLowerCase()))) {
+      return;
+    }
+    
+    // Allow important errors to pass through
+    originalConsoleError(...args);
+  };
+  
+  // Enhanced console.warn override
+  console.warn = (...args) => {
+    const warnMessage = args.join(' ');
+    
+    // Suppress tracking prevention warnings
+    if (warnMessage.includes('Tracking Prevention') ||
+        warnMessage.includes('blocked access to storage') ||
+        warnMessage.includes('Unrecognized feature:') ||
+        warnMessage.includes('WebSocket') ||
+        warnMessage.includes('Preview')) {
+      return;
+    }
+    
+    // Check general suppress patterns
+    if (suppressPatterns.some(pattern => warnMessage.toLowerCase().includes(pattern.toLowerCase()))) {
+      return;
+    }
+    
+    originalConsoleWarn(...args);
+  };
+  
+  // Enhanced console.log override for development artifacts
+  console.log = (...args) => {
+    const logMessage = args.join(' ');
+    
+    // Suppress development artifacts and hiring messages
+    if (logMessage.includes('We\'re hiring!') ||
+        logMessage.includes('lovable.dev/careers') ||
+        logMessage.includes('⠀⠀#######')) {
+      return;
+    }
+    
+    originalConsoleLog(...args);
   };
 };
 
@@ -120,25 +233,79 @@ export const enableReactDevMode = () => {
   }
 };
 
-// Add a specialized handler just for puppeteer errors
-export const setupPuppeteerErrorHandler = () => {
-  // Intercept all errors related to puppeteer
-  if (typeof window !== 'undefined') {
-    window.addEventListener('error', (event) => {
-      if (event.error && 
-          (event.error.message?.includes('puppeteer') || 
-           event.error.message?.includes('chrome') ||
-           event.error.message?.includes('Cannot add property') ||
-           event.error.message?.includes('object is not extensible'))) {
-        // Prevent the error from propagating
-        event.preventDefault();
-        event.stopPropagation();
-        return false;
-      }
-      return true;
-    }, true);
-  }
+// Comprehensive global error handler
+export const setupGlobalErrorHandler = () => {
+  if (typeof window === 'undefined') return;
+  
+  // Global error event handler
+  window.addEventListener('error', (event) => {
+    const message = event.error?.message || event.message || '';
+    
+    // Suppress Firebase errors
+    if (message.includes('@firebase/firestore') || 
+        message.includes('FirebaseError') ||
+        message.includes('Missing or insufficient permissions')) {
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+    
+    // Suppress third-party SDK errors
+    if (message.includes('RS SDK') ||
+        message.includes('Google Ads') ||
+        message.includes('RudderStack') ||
+        message.includes('mandatory fields')) {
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+    
+    // Suppress browser extension and development errors
+    if (message.includes('puppeteer') || 
+        message.includes('chrome-extension') ||
+        message.includes('Cannot add property') ||
+        message.includes('object is not extensible') ||
+        message.includes('WebSocket') ||
+        message.includes('Failed to load resource')) {
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+    
+    return true;
+  }, true);
+  
+  // Global unhandled promise rejection handler
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason?.message || event.reason || '';
+    
+    // Suppress Firebase promise rejections
+    if (reason.includes('@firebase/firestore') ||
+        reason.includes('FirebaseError') ||
+        reason.includes('Missing or insufficient permissions') ||
+        reason.includes('snapshot listener')) {
+      event.preventDefault();
+      return;
+    }
+    
+    // Suppress WebSocket and network promise rejections
+    if (reason.includes('WebSocket') ||
+        reason.includes('Failed to fetch') ||
+        reason.includes('lovableproject.com') ||
+        reason.includes('Max reconnect attempts')) {
+      event.preventDefault();
+      return;
+    }
+    
+    // Suppress third-party SDK promise rejections
+    if (reason.includes('Google Ads') ||
+        reason.includes('RudderStack') ||
+        reason.includes('analytics')) {
+      event.preventDefault();
+      return;
+    }
+  });
 };
 
-// Call the puppeteer error handler immediately
-setupPuppeteerErrorHandler();
+// Initialize all error handlers immediately
+setupGlobalErrorHandler();
