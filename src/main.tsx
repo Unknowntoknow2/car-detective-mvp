@@ -28,6 +28,15 @@ const renderApp = () => {
         </AppProviders>
       </React.StrictMode>
     );
+
+    // Notify parent preview that app connected
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'PREVIEW_CONNECTED', timestamp: Date.now() }, '*');
+      }
+    } catch (e) {
+      console.warn('Preview connected signal failed:', e);
+    }
   } catch (error) {
     const rootElement = document.getElementById('root');
     if (rootElement) {

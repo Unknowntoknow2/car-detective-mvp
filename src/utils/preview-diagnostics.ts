@@ -10,7 +10,9 @@ export interface PreviewStatus {
 }
 
 export const getPreviewStatus = (): PreviewStatus => {
-  const isLovablePreview = window !== window.parent && 
+  const params = new URLSearchParams(window.location.search);
+  const disablePreview = params.has('staticPreview') || params.get('preview') === 'off';
+  const isLovablePreview = !disablePreview && window !== window.parent && 
     (window.location.hostname.includes('lovable') || 
      window.location.hostname.includes('localhost'));
   

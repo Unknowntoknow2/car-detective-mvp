@@ -11,7 +11,14 @@ export function PreviewFallback({ children }: PreviewFallbackProps) {
   const [previewStatus, setPreviewStatus] = useState<PreviewStatus | null>(null);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [connectionIssue, setConnectionIssue] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.has('noPreviewBanner') || params.has('staticPreview');
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     const status = getPreviewStatus();
