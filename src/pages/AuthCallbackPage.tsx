@@ -24,7 +24,6 @@ export default function AuthCallbackPage() {
         toast.success("Authentication successful!");
         setTimeout(() => navigate("/"), 1500);
       } catch (err) {
-        console.error("Auth callback error:", err);
         setMessage("Something went wrong. Redirecting to login...");
         toast.error("Authentication process failed");
         setTimeout(() => navigate("/auth"), 3000);

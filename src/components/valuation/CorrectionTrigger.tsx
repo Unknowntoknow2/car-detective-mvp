@@ -43,7 +43,6 @@ export function CorrectionTrigger({
         onCorrectionComplete(correctionResults);
       }
     } catch (error) {
-      console.error('Correction failed:', error);
     }
   };
 

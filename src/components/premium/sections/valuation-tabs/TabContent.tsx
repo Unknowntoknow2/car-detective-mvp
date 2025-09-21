@@ -44,7 +44,6 @@ export const TabContent: React.FC<TabContentProps> = ({
         <PhotoUpload
           isLoading={isLoading}
           onSubmit={(files: File[]) => {
-            console.log('Photos uploaded:', files);
             onPhotoUpload(files);
           }}
         />

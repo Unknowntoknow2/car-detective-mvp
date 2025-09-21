@@ -57,7 +57,6 @@ export function AdjustmentHeatmap() {
       const heatmapData = await getAdjustmentBreakdownHeatmap();
       setData(heatmapData);
     } catch (error) {
-      console.error('Error loading heatmap data:', error);
       toast({
         title: "Error",
         description: "Failed to load adjustment heatmap data",

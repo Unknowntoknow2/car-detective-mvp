@@ -13,8 +13,6 @@ export interface SharedValuationData {
 
 export async function saveSharedValuation(data: SharedValuationData) {
   try {
-    console.log('🔗 Saving shared valuation metadata...', data);
-    
     const { data: result, error } = await supabase
       .from('saved_valuations')
       .insert({
@@ -28,14 +26,10 @@ export async function saveSharedValuation(data: SharedValuationData) {
       });
 
     if (error) {
-      console.error('❌ Error saving shared valuation:', error);
       throw error;
     }
-
-    console.log('✅ Shared valuation saved successfully:', result);
     return result;
   } catch (error) {
-    console.error('❌ Failed to save shared valuation:', error);
     throw error;
   }
 }
@@ -49,13 +43,11 @@ export async function getSharedValuation(shareToken: string) {
       .single();
 
     if (error) {
-      console.error('❌ Error fetching shared valuation:', error);
       throw error;
     }
 
     return data;
   } catch (error) {
-    console.error('❌ Failed to fetch shared valuation:', error);
     throw error;
   }
 }
@@ -63,12 +55,9 @@ export async function getSharedValuation(shareToken: string) {
 export async function incrementShareView(shareToken: string) {
   try {
     // Track share views - would need a proper shares table for this
-    console.log('📊 Tracking share view for token:', shareToken);
-    
     // For now, just log the view
     return { success: true };
   } catch (error) {
-    console.error('❌ Failed to track share view:', error);
     throw error;
   }
 }

@@ -137,7 +137,6 @@ export async function createCheckoutSession(options: {
     });
     
     if (error) {
-      console.error('Error creating checkout session:', error);
       return { 
         success: false, 
         url: '', 
@@ -153,7 +152,6 @@ export async function createCheckoutSession(options: {
       error: undefined
     };
   } catch (error) {
-    console.error('Error in createCheckoutSession:', error);
     return { 
       success: false, 
       url: '', 
@@ -175,7 +173,6 @@ export async function getStripePortalLink(redirectUrl?: string): Promise<Checkou
     });
     
     if (error) {
-      console.error('Error creating customer portal session:', error);
       return { 
         success: false, 
         url: '', 
@@ -191,7 +188,6 @@ export async function getStripePortalLink(redirectUrl?: string): Promise<Checkou
       error: undefined
     };
   } catch (error) {
-    console.error('Error in getStripePortalLink:', error);
     return { 
       success: false, 
       url: '', 
@@ -212,13 +208,11 @@ export async function verifyPaymentSession(sessionId: string) {
     });
     
     if (error) {
-      console.error('Error verifying payment session:', error);
       throw new Error(error.message || 'Failed to verify payment');
     }
     
     return data;
   } catch (error) {
-    console.error('Error in verifyPaymentSession:', error);
     throw error;
   }
 }

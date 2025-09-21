@@ -72,7 +72,6 @@ export const storeMarketListings = async (
 ) => {
   // Check if marketData has averages property and handle safely
   if (!marketData.averages) {
-    console.warn('No averages data provided for market listings');
     return;
   }
 

@@ -1,3 +1,4 @@
+import * as React from 'react';
 
 import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from 'next-themes';

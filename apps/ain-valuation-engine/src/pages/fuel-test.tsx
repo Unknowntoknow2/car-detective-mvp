@@ -10,7 +10,6 @@ export default function FuelTestPage() {
       try {
         // TODO: Implement profile fetching
       } catch (error) {
-        console.error('Failed to fetch valuation profile:', error)
       } finally {
         setLoading(false)
       }

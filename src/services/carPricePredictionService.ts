@@ -36,8 +36,6 @@ export async function getCarPricePrediction(
   request: CarPricePredictionRequest
 ): Promise<CarPricePredictionResponse> {
   try {
-    console.log('Calling car-price-prediction with:', request);
-    
     const { data, error } = await supabase.functions.invoke('car-price-prediction', {
       body: {
         make: request.make,
@@ -55,16 +53,12 @@ export async function getCarPricePrediction(
     });
 
     if (error) {
-      console.error('Car price prediction error:', error);
       throw new Error(error.message || 'Failed to get price prediction');
     }
 
     if (!data) {
       throw new Error('No data returned from price prediction service');
     }
-
-    console.log('Car price prediction success:', data);
-
     return {
       estimatedValue: data.estimatedValue || 0,
       confidenceScore: data.confidenceScore || 0,
@@ -82,7 +76,6 @@ export async function getCarPricePrediction(
       valuationId: data.id || data.valuationId
     };
   } catch (error) {
-    console.error('Error calling car price prediction:', error);
     throw error;
   }
 }

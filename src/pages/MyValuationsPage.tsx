@@ -27,7 +27,6 @@ const MyValuationsPage: React.FC = () => {
         if (error) throw error;
         setValuations(data || []);
       } catch (error) {
-        console.error("Error fetching saved valuations:", error);
       } finally {
         setLoading(false);
       }

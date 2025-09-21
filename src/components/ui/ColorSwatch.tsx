@@ -47,7 +47,6 @@ export function ColorSwatch(
 
         setColors(data || []);
       } catch (error) {
-        console.error("Error fetching colors:", error);
         toast.error("Failed to load color options");
       } finally {
         setLoading(false);

@@ -1,6 +1,7 @@
+import * as React from 'react';
 
 import { AICondition } from "@/types/photo";
-import { ValuationResult } from "@/types/valuation";
+import { ValuationResult } from "@/components/valuation/valuation-core/ValuationResult";
 
 export interface ValuationContextProps {
   valuationData: ValuationResult | null;

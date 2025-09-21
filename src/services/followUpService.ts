@@ -27,13 +27,11 @@ export class FollowUpService {
         });
 
       if (error) {
-        console.error('Error saving follow-up answers:', error);
         return { success: false, error: error.message };
       }
 
       return { success: true };
     } catch (error) {
-      console.error('Error in saveAnswers:', error);
       return { success: false, error: 'Failed to save answers' };
     }
   }
@@ -50,7 +48,6 @@ export class FollowUpService {
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching follow-up answers:', error);
         return { error: error.message };
       }
 
@@ -83,7 +80,6 @@ export class FollowUpService {
 
       return { data: undefined };
     } catch (error) {
-      console.error('Error in getAnswersByVin:', error);
       return { error: 'Failed to fetch answers' };
     }
   }
@@ -116,11 +112,8 @@ export class FollowUpService {
       const valuationData = transformForValuation(completedData);
 
       // Here you would typically call the valuation calculation service
-      console.log('Submitting for valuation:', valuationData);
-
       return { success: true, valuationId: `val_${Date.now()}` };
     } catch (error) {
-      console.error('Error in submitForValuation:', error);
       return { success: false, error: 'Failed to submit for valuation' };
     }
   }
@@ -142,13 +135,11 @@ export class FollowUpService {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching user history:', error);
         return { data: [], error: error.message };
       }
 
       return { data: data || [] };
     } catch (error) {
-      console.error('Error in getUserHistory:', error);
       return { data: [], error: 'Failed to fetch history' };
     }
   }

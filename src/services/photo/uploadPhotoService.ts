@@ -27,7 +27,7 @@ export async function uploadPhotos(
       }
 
       const url =
-        `${process.env.SUPABASE_URL}/storage/v1/object/public/vehicle-photos/${data?.path}`;
+        `${import.meta.env.SUPABASE_URL}/storage/v1/object/public/vehicle-photos/${data?.path}`;
 
       return {
         ...photo,
@@ -40,7 +40,6 @@ export async function uploadPhotos(
     const uploadedPhotos = await Promise.all(uploadPromises);
     return uploadedPhotos;
   } catch (error: any) {
-    console.error("Error uploading photos:", error);
     throw new Error(`Failed to upload photos: ${error.message}`);
   }
 }

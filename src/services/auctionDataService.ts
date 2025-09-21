@@ -49,7 +49,6 @@ export async function fetchAuctionHistory(vin: string): Promise<AuctionData[]> {
 
     return freshData?.data || [];
   } catch (error) {
-    console.error('Error fetching auction history:', error);
     return [];
   }
 }
@@ -77,13 +76,11 @@ export async function fetchMarketplaceListings(make: string, model: string, year
           });
         }
       } catch (error) {
-        console.warn(`Failed to fetch from ${platform}:`, error);
       }
     }
 
     return results;
   } catch (error) {
-    console.error('Error fetching marketplace listings:', error);
     return [];
   }
 }
@@ -109,7 +106,6 @@ export async function fetchIndustryLeaderData(vin: string, make: string, model: 
 
     return null;
   } catch (error) {
-    console.error('Error fetching industry leader data:', error);
     return null;
   }
 }

@@ -61,8 +61,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
   useEffect(() => {
     const loadData = async () => {
       try {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('🔍 Loading follow-up data for VIN:', vin);
+        if (import.meta.env.NODE_ENV !== 'production') {
         }
         
         // First try to load by VIN
@@ -73,9 +72,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
           .maybeSingle();
 
         if (error && error.code !== 'PGRST116') {
-          console.error('Error loading follow-up data:', error);
         } else if (data) {
-          console.log('✅ Loaded existing follow-up data for VIN:', vin);
           const mappedData = {
             ...data,
             payoffAmount: data.payoff_amount || 0
@@ -83,7 +80,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
           setFormData(prev => ({ ...prev, ...mappedData }));
         } else {
           // If no data by VIN, try to link to existing valuation
-          console.log('🔗 No follow-up data found, checking for valuation to link');
           const { data: valuationData } = await supabase
             .from('valuation_results')
             .select('id')
@@ -93,14 +89,12 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
             .maybeSingle();
 
           if (valuationData) {
-            console.log('✅ Found valuation to link:', valuationData.id);
             setFormData(prev => ({ 
               ...prev, 
               valuation_id: valuationData.id,
               vin: vin // FIXED: Ensure VIN is preserved
             }));
           } else {
-            console.log('⚠️ No valuation found to link for VIN:', vin);
             // Still preserve the VIN even if no valuation exists
             setFormData(prev => ({ 
               ...prev, 
@@ -109,7 +103,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
           }
         }
       } catch (error) {
-        console.error('Error loading follow-up data:', error);
       } finally {
         setIsLoading(false);
       }
@@ -118,7 +111,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
     if (vin) {
       loadData();
     } else {
-      console.warn('⚠️ No VIN provided to useSimpleFollowUpForm');
       setIsLoading(false);
     }
   }, [vin]);
@@ -131,7 +123,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
       // FIXED: Validate required fields before save
       if (!vin) {
-        console.error('❌ Cannot save follow-up data without VIN');
         setSaveError('VIN required for saving');
         return false;
       }
@@ -139,7 +130,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       // CRITICAL: Validate condition is valid enum value and not empty
       const validConditions = ['excellent', 'good', 'fair', 'poor'];
       if (!dataToSave.condition || dataToSave.condition === '' || !validConditions.includes(dataToSave.condition)) {
-        console.error('❌ Invalid condition value:', dataToSave.condition);
         setSaveError('Please select a valid vehicle condition');
         return false;
       }
@@ -177,7 +167,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
       // If no valuation_id, try to find and link one
       if (!saveData.valuation_id) {
-        console.log('🔗 Attempting to link follow-up to valuation via VIN:', vin);
         const { data: valuationData } = await supabase
           .from('valuation_results')
           .select('id')
@@ -188,30 +177,17 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
         if (valuationData) {
           saveData.valuation_id = valuationData.id;
-          console.log('✅ Linked to valuation:', valuationData.id);
         } else {
-          console.log('⚠️ No valuation found to link for VIN:', vin);
         }
       }
 
       // Remove the form-only field before saving
       const { payoffAmount, ...dbData } = saveData;
-
-      console.log('💾 Saving follow-up data:', {
-        vin: dbData.vin,
-        valuation_id: dbData.valuation_id,
-        mileage: dbData.mileage,
-        zip_code: dbData.zip_code,
-        condition: dbData.condition
-      });
-
       const { error } = await supabase
         .from('follow_up_answers')
         .upsert(dbData, { onConflict: 'vin' });
 
       if (error) {
-        console.error('Save error details:', error);
-        
         // Enhanced error classification
         if (error.message?.includes('follow_up_answers_condition_check')) {
           setSaveError('Please select a valid condition (excellent/good/fair/poor)');
@@ -229,11 +205,8 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
       setLastSaveTime(new Date());
       setSaveError(null);
-      console.log('✅ Follow-up data saved successfully');
       return true;
     } catch (error) {
-      console.error('Save error caught:', error);
-      
       // Enhanced error handling with user-friendly messages
       if (error instanceof Error) {
         if (error.message?.includes('condition_check')) {
@@ -302,22 +275,14 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       if (!formData.zip_code || !formData.mileage || !formData.condition) {
         return { success: false, message: 'Please complete all required fields (location, mileage, condition)' };
       }
-
-      console.log('🚀 [FOLLOW-UP] Starting submission for VIN:', vin);
-
       // PHASE 2 FIX: Ensure VIN is decoded before proceeding
       const { needsDecoding, decodeVin, getDecodedVehicle } = await import('@/services/valuation/vehicleDecodeService');
       
       if (await needsDecoding(vin)) {
-        console.log('🔍 [FOLLOW-UP] VIN not decoded, triggering decode first...');
-        
         const decodeResult = await decodeVin(vin);
         if (!decodeResult.success) {
-          console.error('❌ [FOLLOW-UP] VIN decode failed:', decodeResult.error);
           return { success: false, message: `VIN decode failed: ${decodeResult.error}` };
         }
-        
-        console.log('✅ [FOLLOW-UP] VIN decoded successfully during follow-up');
       }
 
       // Get decoded vehicle data for valuation
@@ -335,8 +300,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
       // 2. If no valuation exists, create a valuation record
       if (!valuation_id) {
-        console.log('🚀 [FOLLOW-UP] Creating new valuation record for VIN:', vin);
-        
         const { data: userData } = await supabase.auth.getUser();
         const userId = userData?.user?.id ?? null;
 
@@ -365,14 +328,11 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
           .single();
 
         if (valuationError || !newValuation) {
-          console.error('❌ [FOLLOW-UP] Failed to create valuation:', valuationError);
           return { success: false, message: 'Failed to create valuation record' };
         }
 
         valuation_id = newValuation.id;
-        console.log('✅ [FOLLOW-UP] Created valuation with ID:', valuation_id);
       } else {
-        console.log('✅ [FOLLOW-UP] Using existing valuation:', valuation_id);
       }
 
       // 3. Save follow-up data with valuation_id link
@@ -398,8 +358,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       // 4. PHASE 3 FIX: Trigger valuation calculation if needed
       const currentValuation = existingValuations?.[0];
       if (!currentValuation?.estimated_value || currentValuation.estimated_value <= 0) {
-        console.log('🧮 [FOLLOW-UP] Triggering valuation calculation...');
-        
         try {
           // Call the real AIN valuation API via our hardened endpoint
           const { data: ainResult, meta } = await runValuation({
@@ -412,19 +370,13 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
             condition: formData.condition as "poor" | "fair" | "good" | "very_good" | "excellent",
             requested_by: 'followup_form'
           });
-
-          console.log('✅ [AIN] Valuation completed:', ainResult);
-          console.log('🔍 [AIN] Route metadata:', meta);
-
           // Store the AIN result in the database
           const finalValue = ainResult?.finalValue ?? ainResult?.estimated_value ?? 0;
           if (finalValue > 0) {
-            console.log('📊 [AIN] Professional valuation received');
           }
 
         } catch (calcError) {
           const errorMessage = calcError instanceof Error ? calcError.message : 'AIN valuation failed';
-          console.error('❌ [AIN] Valuation error:', errorMessage);
         }
       }
 
@@ -435,7 +387,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       };
 
     } catch (error) {
-      console.error('❌ [FOLLOW-UP] Error in submitFollowUpAndStartValuation:', error);
       return { 
         success: false, 
         message: error instanceof Error ? error.message : 'Unexpected error during valuation process'

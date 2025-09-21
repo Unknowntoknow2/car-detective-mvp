@@ -81,7 +81,6 @@ export class RulesEngine {
           adjustments.push(adjustment);
         }
       } catch (error) {
-        console.error(`Error in calculator ${calculator.name}:`, error);
       }
     }
 

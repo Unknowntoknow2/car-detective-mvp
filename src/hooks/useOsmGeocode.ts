@@ -39,7 +39,6 @@ export function useOsmGeocode(zip: string) {
         );
 
         if (error) {
-          console.error("OSM geocode fetch error:", error);
           throw new Error(error.message || "Failed to fetch location data");
         }
 
@@ -48,7 +47,6 @@ export function useOsmGeocode(zip: string) {
         const errorMsg = err instanceof Error
           ? err.message
           : "Failed to fetch location data";
-        console.error("OSM geocode hook error:", err);
         toast.error(errorMsg);
         throw err;
       }

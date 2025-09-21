@@ -38,7 +38,6 @@ export function UnifiedPlateLookup({
         onVehicleFound(result);
       }
     } catch (err) {
-      console.error('Plate lookup failed:', err);
     }
   };
 

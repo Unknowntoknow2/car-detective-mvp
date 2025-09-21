@@ -17,13 +17,11 @@ export async function getAdjustmentBreakdownHeatmap(): Promise<HeatmapData[]> {
     const { data, error } = await supabase.rpc('get_adjustment_breakdown_heatmap');
     
     if (error) {
-      console.error('Error fetching heatmap data:', error);
       throw error;
     }
     
     return data || [];
   } catch (error) {
-    console.error('Failed to fetch adjustment breakdown heatmap:', error);
     throw error;
   }
 }

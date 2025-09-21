@@ -37,7 +37,9 @@ module.exports = [
         args: 'after-used',
         argsIgnorePattern: '^_',
         ignoreRestSiblings: true
-      }]
+      }],
+      // Production console bans - critical for clean production builds
+      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn'
     },
   },
 

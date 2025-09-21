@@ -56,8 +56,6 @@ export function useForecastData({
       setError(null);
       
       try {
-        console.log(`🚀 Fetching forecast for valuationId: ${valuationId}`);
-        
         const { data, error } = await supabase.functions.invoke(
           "valuation-forecast",
           {
@@ -66,16 +64,12 @@ export function useForecastData({
         );
 
         if (error) {
-          console.error('❌ Edge function error:', error);
           throw error;
         }
 
         if (!data) {
           throw new Error('No forecast data returned');
         }
-
-        console.log('✅ Forecast data received:', data);
-
         // Handle the case where no market data exists
         if (!data.months || !data.values || data.values.length === 0) {
           setError("Insufficient market data available for forecasting");
@@ -95,7 +89,6 @@ export function useForecastData({
 
         setForecastData(formattedData);
       } catch (err) {
-        console.error("❌ Error fetching forecast data:", err);
         setError("Failed to load market trend data. This may be due to insufficient historical market data for this vehicle.");
       } finally {
         setLoading(false);

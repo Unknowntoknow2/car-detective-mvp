@@ -64,7 +64,6 @@ export const SharedLoginForm: React.FC<SharedLoginFormProps> = ({
       toast.success('Login successful!');
       navigate(redirectPath);
     } catch (error) {
-      console.error('Login error:', error);
       toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);

@@ -18,8 +18,6 @@ export default function PlateValuationPage() {
   const [showFollowUp, setShowFollowUp] = useState(false);
 
   const handleVehicleFound = (data: any) => {
-    console.log('✅ Plate vehicle data:', data);
-    
     // Convert plate lookup data to DecodedVehicleInfo format
     const decodedVehicle: DecodedVehicleInfo = {
       vin: data.vin || `PLATE_${data.plate}_${data.state}`,
@@ -48,7 +46,6 @@ export default function PlateValuationPage() {
   };
 
   const handleFollowUpSubmit = async (followUpAnswers: FollowUpAnswers) => {
-    console.log('✅ Plate follow-up submitted:', followUpAnswers);
     toast.success('Plate valuation completed successfully!');
     // Navigate to results page
     window.location.href = `/results/${followUpAnswers.vin}`;

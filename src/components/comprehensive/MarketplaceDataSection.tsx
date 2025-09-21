@@ -25,7 +25,6 @@ export function MarketplaceDataSection({ make, model, year, zipCode }: Marketpla
       const data = await fetchMarketplaceListings(make, model, year, zipCode);
       setMarketplaceData(data);
     } catch (error) {
-      console.error('Failed to load marketplace data:', error);
     } finally {
       setIsLoading(false);
     }

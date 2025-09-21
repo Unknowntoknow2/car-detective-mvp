@@ -2,10 +2,10 @@ import { useState } from "react";
 import { GlobalErrorBoundary } from "@/components/security/GlobalErrorBoundary";
 import { VinLookupForm } from "@/components/lookup/vin/VinLookupForm";
 import { DataCollectionForm } from "@/components/followup/DataCollectionForm";
-import { ValuationResultsDisplay } from "@/components/result/ValuationResultsDisplay";
+import { ValuationResultsDisplay } from "@/components/valuation/UnifiedValuationResult";
 import logger from "./utils/logger";
 import type { VariableValue } from "./types/VariableValue";
-import type { ValuationResult } from "./types/ValuationTypes";
+import type { ValuationResult } from "@/components/valuation/valuation-core/ValuationResult";
 
 /** Application state defining the current step in the valuation workflow */
 type AppState = 'vin-lookup' | 'data-collection' | 'valuation-results';

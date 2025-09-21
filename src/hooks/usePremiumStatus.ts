@@ -16,8 +16,6 @@ export function usePremiumStatus(valuationId?: string) {
   const checkPremiumStatus = async (id: string) => {
     setIsLoading(true);
     try {
-      console.log("Checking premium status for valuation:", id);
-
       // For now, let's simulate an API call
       await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -29,11 +27,8 @@ export function usePremiumStatus(valuationId?: string) {
       const isPremiumValuation = premiumIds.includes(id);
 
       setIsPremium(isPremiumValuation);
-      console.log("Premium status check result:", isPremiumValuation);
-
       return isPremiumValuation;
     } catch (error) {
-      console.error("Error in premium status check:", error);
       setIsPremium(false);
       return false;
     } finally {
@@ -46,8 +41,6 @@ export function usePremiumStatus(valuationId?: string) {
     id: string,
   ): Promise<PremiumResponse> => {
     try {
-      console.log("Creating checkout session for valuation:", id);
-
       // First check if it's already unlocked
       const isPremiumValuation = await checkPremiumStatus(id);
 
@@ -69,7 +62,6 @@ export function usePremiumStatus(valuationId?: string) {
           `/premium-success?session_id=mock_session_${Date.now()}&valuation_id=${id}`,
       };
     } catch (error: any) {
-      console.error("Error in checkout session creation:", error);
       return {
         success: false,
         error: "An unexpected error occurred",

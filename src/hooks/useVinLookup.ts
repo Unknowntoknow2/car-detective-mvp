@@ -22,13 +22,11 @@ export const useVinLookup = () => {
       } else {
         const errorMessage = result?.error || 'VIN lookup failed';
         setError(errorMessage);
-        console.error('VIN lookup error:', errorMessage);
         return null;
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'VIN lookup failed';
       setError(errorMessage);
-      console.error('VIN lookup exception:', errorMessage);
       return null;
     } finally {
       setIsLoading(false);

@@ -92,7 +92,6 @@ export const EnterpriseValuationPanel = ({ vehicleData }: EnterpriseValuationPan
       });
 
     } catch (err: any) {
-      console.error('Enterprise aggregation error:', err);
       setError(err.message);
       setStatus('error');
       toast({
@@ -122,7 +121,6 @@ export const EnterpriseValuationPanel = ({ vehicleData }: EnterpriseValuationPan
       setAuditLogs(resultData.audit_logs || []);
 
     } catch (err: any) {
-      console.error('Error loading results:', err);
       setError(err.message);
     }
   };

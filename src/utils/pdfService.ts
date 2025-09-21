@@ -116,7 +116,6 @@ async function addWatermarkAndTracking(
     
     return await pdfDoc.save();
   } catch (error) {
-    console.error('Error adding watermark to PDF:', error);
     return pdfBytes;
   }
 }
@@ -140,10 +139,8 @@ async function logPdfGeneration(
       });
     
     if (error) {
-      console.error('Failed to log PDF generation:', error);
     }
   } catch (error) {
-    console.error('Error logging PDF generation:', error);
   }
 }
 
@@ -495,7 +492,6 @@ export async function uploadValuationPdf(
       });
 
     if (uploadError) {
-      console.error('Error uploading PDF to Supabase:', uploadError);
       return null;
     }
 
@@ -504,13 +500,11 @@ export async function uploadValuationPdf(
       .getPublicUrl(filePath);
 
     if (!publicUrlData?.publicUrl) {
-      console.error('Error getting public URL for PDF');
       return null;
     }
 
     return publicUrlData.publicUrl;
   } catch (error) {
-    console.error('Error uploading PDF:', error);
     return null;
   }
 }

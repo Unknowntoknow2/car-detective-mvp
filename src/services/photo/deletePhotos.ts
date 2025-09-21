@@ -33,7 +33,6 @@ export async function deletePhotos(photos: Photo[]): Promise<void> {
           .eq("id", photo.id);
       }
     } catch (err) {
-      console.error("Error deleting photo:", err);
     }
   }
 }

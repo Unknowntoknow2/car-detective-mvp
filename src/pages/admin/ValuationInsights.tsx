@@ -66,7 +66,6 @@ export default function ValuationInsights() {
         loadTrustTrends()
       ]);
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
     } finally {
       setLoading(false);
     }
@@ -80,7 +79,6 @@ export default function ValuationInsights() {
       .limit(10);
 
     if (error) {
-      console.error('Error loading fuel heatmap:', error);
     } else {
       setFuelHeatmap(data || []);
     }
@@ -96,7 +94,6 @@ export default function ValuationInsights() {
       .gte('fetched_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
     if (error) {
-      console.error('Error loading market stats:', error);
     } else if (data) {
       // Group by make/model and calculate stats
       const groupedData = data.reduce((acc: Record<string, any>, listing) => {
@@ -137,7 +134,6 @@ export default function ValuationInsights() {
       .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
 
     if (requestError) {
-      console.error('Error loading audit failures:', requestError);
       return;
     }
 

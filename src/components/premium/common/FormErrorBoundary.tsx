@@ -22,7 +22,6 @@ export class FormErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Form Error:", error, errorInfo);
   }
 
   public render() {

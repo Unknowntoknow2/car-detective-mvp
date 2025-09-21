@@ -22,7 +22,6 @@ export function useAuthTests(userId?: string) {
         "Role-based access": userId ? true : false,
       });
     } catch (error) {
-      console.error("Error running auth tests:", error);
     } finally {
       setIsRunning(false);
     }

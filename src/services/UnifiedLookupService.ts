@@ -28,7 +28,6 @@ export class UnifiedLookupService {
   static async lookupByVin(vin: string, options: LookupOptions): Promise<UnifiedVehicleLookupResult> {
     try {
       if (!this.validateVin(vin)) {
-        console.error('Invalid VIN format:', vin);
         return {
           success: false,
           source: 'failed',
@@ -44,8 +43,6 @@ export class UnifiedLookupService {
       const { data, error } = response;
 
       if (error) {
-        console.error('Edge function error:', error);
-        
         const smartFallbackVehicle = this.generateSmartFallbackVehicle(vin);
         
         return {
@@ -110,8 +107,6 @@ export class UnifiedLookupService {
       };
 
     } catch (error) {
-      console.error("VIN lookup exception:", error);
-      
       const smartFallbackVehicle = this.generateSmartFallbackVehicle(vin);
       
       return {
@@ -160,7 +155,6 @@ export class UnifiedLookupService {
         confidence: mockVehicle.confidenceScore
       };
     } catch (error) {
-      console.error("Plate lookup error:", error);
       return {
         success: false,
         source: 'failed',

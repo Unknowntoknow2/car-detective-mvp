@@ -19,7 +19,6 @@ export async function getConditionAnalysis(
       .maybeSingle();
 
     if (error) {
-      console.error("Error fetching condition analysis:", error);
       return null;
     }
 
@@ -38,7 +37,6 @@ export async function getConditionAnalysis(
       aiSummary: typeof data.summary === "string" ? data.summary : "",
     };
   } catch (error) {
-    console.error("Unexpected error in getConditionAnalysis:", error);
     return null;
   }
 }

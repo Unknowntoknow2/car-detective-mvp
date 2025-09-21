@@ -15,7 +15,6 @@ export async function getVehicleDataByVin(vin: string): Promise<VehicleSnapshot 
     });
 
     if (vinError) {
-      console.error('VIN decoding error:', vinError);
       return null;
     }
 
@@ -46,7 +45,6 @@ export async function getVehicleDataByVin(vin: string): Promise<VehicleSnapshot 
       .single();
 
     if (requestError || !requestData) {
-      console.error('Database lookup error:', requestError);
       return null;
     }
 
@@ -64,7 +62,6 @@ export async function getVehicleDataByVin(vin: string): Promise<VehicleSnapshot 
     };
 
   } catch (error) {
-    console.error('Error getting vehicle data:', error);
     return null;
   }
 }
@@ -78,7 +75,6 @@ export async function getVehicleDataByValuationId(valuationId: string): Promise<
       .single();
 
     if (error || !data) {
-      console.error('Valuation lookup error:', error);
       return null;
     }
 
@@ -96,7 +92,6 @@ export async function getVehicleDataByValuationId(valuationId: string): Promise<
     };
 
   } catch (error) {
-    console.error('Error getting valuation data:', error);
     return null;
   }
 }

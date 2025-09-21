@@ -28,7 +28,6 @@ export async function generateQRCode(text: string): Promise<string> {
     
     return `data:image/svg+xml;base64,${btoa(svg)}`;
   } catch (error) {
-    console.error('❌ QR Code generation failed:', error);
     return `data:image/svg+xml;base64,${btoa('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#f0f0f0"/><text x="50" y="50" text-anchor="middle" dy=".3em" font-size="12">QR Error</text></svg>')}`;
   }
 }

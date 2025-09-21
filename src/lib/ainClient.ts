@@ -105,13 +105,8 @@ export async function runValuation(payload: {
   };
 
   if (error) {
-    console.log('ain.route', { ok: false, ...meta });
     throw new Error(`valuation_failed corr_id=${corrId} detail=${error.message}`);
   }
-
-  console.log('ain.ok');
-  console.log('ain.route', { ok: true, ...meta });
-
   return { data: mapToLegacyResponse(data), meta };
 }
 

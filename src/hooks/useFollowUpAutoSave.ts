@@ -16,7 +16,7 @@ export function useFollowUpAutoSave({
   setIsSaving,
   setLastSaveTime
 }: UseFollowUpAutoSaveProps) {
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isSavingRef = useRef(false);
   const lastSavedDataRef = useRef<string>('');
@@ -24,14 +24,12 @@ export function useFollowUpAutoSave({
   const saveFormData = useCallback(async (dataToSave: FollowUpAnswers): Promise<boolean> => {
     // Prevent concurrent saves
     if (isSavingRef.current) {
-      console.log('Save already in progress, skipping...');
       return false;
     }
 
     // Check if data has actually changed
     const currentDataString = JSON.stringify(dataToSave);
     if (currentDataString === lastSavedDataRef.current) {
-      console.log('No changes detected, skipping save...');
       return true;
     }
 
@@ -64,13 +62,10 @@ export function useFollowUpAutoSave({
 
       // Check if request was aborted
       if (abortControllerRef.current?.signal.aborted) {
-        console.log('Save request was cancelled');
         return false;
       }
 
       if (error) {
-        console.error('Auto-save error details:', error);
-        
         // Enhanced error classification for auto-save
         if (error.message?.includes('condition_check')) {
           setSaveError('Invalid condition - please select excellent/good/fair/poor');
@@ -91,11 +86,8 @@ export function useFollowUpAutoSave({
     } catch (error) {
       // Don't log error if it was an abort
       if (error instanceof Error && error.name === 'AbortError') {
-        console.log('Save request was aborted');
         return false;
       }
-      
-      console.error('Save error:', error);
       setSaveError(error instanceof Error ? error.message : 'Unknown error');
       return false;
     } finally {

@@ -31,7 +31,6 @@ export function useCensus(zip: string) {
         );
 
         if (error) {
-          console.error("Census data fetch error:", error);
           throw new Error(error.message || "Failed to fetch census data");
         }
 
@@ -40,7 +39,6 @@ export function useCensus(zip: string) {
         const errorMsg = err instanceof Error
           ? err.message
           : "Failed to fetch census data";
-        console.error("Census hook error:", err);
         toast.error(errorMsg);
         throw err;
       }

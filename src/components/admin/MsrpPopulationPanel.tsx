@@ -22,7 +22,6 @@ export function MsrpPopulationPanel() {
       await populateMsrpsFromWebSearch();
       toast.success('MSRP population completed successfully!');
     } catch (error) {
-      console.error('MSRP population failed:', error);
       toast.error('MSRP population failed. Check console for details.');
     } finally {
       setIsRunning(false);

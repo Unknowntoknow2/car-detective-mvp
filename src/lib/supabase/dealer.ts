@@ -23,12 +23,10 @@ export async function getVerifiedDealersInZip(zipCode: string): Promise<Verified
       .eq('is_premium_dealer', true); // Only premium dealers get notifications
 
     if (error) {
-      console.error('❌ Error fetching dealers:', error);
       return [];
     }
 
     if (!data || data.length === 0) {
-      console.log('📭 No verified dealers found in system');
       return [];
     }
 
@@ -42,7 +40,6 @@ export async function getVerifiedDealersInZip(zipCode: string): Promise<Verified
       .eq('verified', true);
 
     if (dealersError) {
-      console.error('❌ Error fetching dealer emails:', dealersError);
       return [];
     }
 
@@ -61,11 +58,8 @@ export async function getVerifiedDealersInZip(zipCode: string): Promise<Verified
         };
       })
       .filter(Boolean) as VerifiedDealer[];
-
-    console.log(`✅ Found ${verifiedDealers.length} verified dealers`);
     return verifiedDealers;
   } catch (error) {
-    console.error('❌ Unexpected error in getVerifiedDealersInZip:', error);
     return [];
   }
 }
@@ -85,9 +79,7 @@ export async function markDealerAsNotified(
       });
 
     if (error) {
-      console.error('❌ Error logging dealer notification:', error);
     }
   } catch (error) {
-    console.error('❌ Unexpected error in markDealerAsNotified:', error);
   }
 }

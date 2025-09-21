@@ -15,14 +15,6 @@ export class AdjustmentEngine {
     const calculationNotes: string[] = [];
     let confidencePenalty = 0;
     let fallbackExplanation: string | undefined;
-
-    console.log('🔧 AdjustmentEngine: Starting calculation with context:', {
-      vehicleMileage: context.vehicleMileage,
-      marketListingsCount: context.marketListings.length,
-      condition: context.condition,
-      baseValue: context.baseValue
-    });
-
     // 1. MILEAGE ADJUSTMENT - Only if we have real market data
     const mileageAdjustment = this.calculateMileageAdjustment(context);
     if (mileageAdjustment) {
@@ -62,14 +54,6 @@ export class AdjustmentEngine {
     }
 
     const totalAdjustment = adjustments.reduce((sum, adj) => sum + adj.amount, 0);
-
-    console.log('✅ AdjustmentEngine: Calculation complete:', {
-      adjustmentsCount: adjustments.length,
-      totalAdjustment,
-      confidencePenalty,
-      calculationNotes
-    });
-
     return {
       adjustments,
       totalAdjustment,

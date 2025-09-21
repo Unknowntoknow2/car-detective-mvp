@@ -65,7 +65,6 @@ export async function checkPersistenceHealth(): Promise<PersistenceHealth> {
 
     return health;
   } catch (error) {
-    console.error('❌ Error checking persistence health:', error);
     return {
       auditLogsWorking: false,
       valuationRequestsWorking: false,

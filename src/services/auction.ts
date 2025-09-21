@@ -10,7 +10,6 @@ export async function fetchAuctionResultsByVin(vin: string): Promise<AuctionResu
     .order("sold_date", { ascending: false });
 
   if (error) {
-    console.error("Failed to fetch auction results:", error);
     return [];
   }
 

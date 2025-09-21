@@ -48,7 +48,6 @@ export const PDFPreview: React.FC<PDFPreviewProps> = ({
       await downloadPdf(reportData);
       toast.success("Sample PDF downloaded successfully");
     } catch (error) {
-      console.error("Error generating sample PDF:", error);
       toast.error("Failed to generate sample PDF");
     } finally {
       setIsSampleGenerating(false);

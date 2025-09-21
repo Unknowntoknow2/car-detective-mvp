@@ -13,25 +13,21 @@ export default function AuthCallback() {
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Auth callback error:', error);
           toast.error('Authentication failed');
           navigate('/');
           return;
         }
 
         if (data.session) {
-          console.log('Authentication successful:', data.session.user.email);
           toast.success('Successfully signed in!');
           
           // Redirect to home page or the page they were trying to access
           const redirectTo = new URLSearchParams(window.location.search).get('redirectTo') || '/';
           navigate(redirectTo);
         } else {
-          console.log('No session found in callback');
           navigate('/');
         }
       } catch (error) {
-        console.error('Unexpected error in auth callback:', error);
         toast.error('An unexpected error occurred');
         navigate('/');
       }

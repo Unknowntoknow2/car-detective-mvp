@@ -32,7 +32,6 @@ export function useZipValidation() {
         return { isValid: false, error: 'Unable to validate ZIP code' };
       }
     } catch (error) {
-      console.error('ZIP validation error:', error);
       return { isValid: false, error: 'Network error - please try again' };
     }
   };

@@ -23,7 +23,6 @@ export async function getBestPhotoUrl(
 
     return data.photo_url;
   } catch (err) {
-    console.error("Error getting best photo URL:", err);
     return null;
   }
 }
@@ -47,7 +46,6 @@ export async function getValuationPhotos(valuationId: string): Promise<any[]> {
 
     return data;
   } catch (err) {
-    console.error("Error getting valuation photos:", err);
     return [];
   }
 }
@@ -76,13 +74,11 @@ export async function updateValuationWithPhotoMetadata(
       });
 
     if (error) {
-      console.error("Error updating valuation photo metadata:", error);
       return false;
     }
 
     return true;
   } catch (err) {
-    console.error("Error updating valuation with photo metadata:", err);
     return false;
   }
 }

@@ -81,7 +81,6 @@ export default function FANGOrchestrationDashboard() {
       if (qaRes.data) setQAReports(qaRes.data);
       if (intelRes.data) setSourceIntel(intelRes.data);
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
       toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
@@ -106,7 +105,6 @@ export default function FANGOrchestrationDashboard() {
       // Refresh dashboard data
       setTimeout(loadDashboardData, 2000);
     } catch (error) {
-      console.error('Orchestrator error:', error);
       toast.error('Orchestration failed: ' + (error as Error).message);
     } finally {
       setIsRunning(false);
@@ -205,7 +203,6 @@ export default function FANGOrchestrationDashboard() {
               toast.success('AIN Full Market Protocol completed');
               setTimeout(loadDashboardData, 2000);
             }).catch(error => {
-              console.error('AIN Protocol Error:', error);
               toast.error('AIN Protocol failed');
             })}
             disabled={isRunning}

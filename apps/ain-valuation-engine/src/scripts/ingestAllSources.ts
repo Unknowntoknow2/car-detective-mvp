@@ -27,7 +27,6 @@ async function ingestSource(source: DataSourceMeta): Promise<NormalizedVehicleLi
         raw: item,
       }));
     } catch (err) {
-      console.error(`Failed to ingest from ${source.name}:`, err);
       return [];
     }
   }
@@ -45,10 +44,8 @@ async function runIngestionPhase(tier?: string) {
   const sources = tier ? DATA_SOURCES.filter(s => s.tier === tier) : DATA_SOURCES;
   for (const source of sources) {
     if (source.isActive === false) continue;
-    console.log(`Ingesting from: ${source.name}`);
     const listings = await ingestSource(source);
     // TODO: persist listings to DB, queue, or downstream pipeline
-    console.log(`Ingested ${listings.length} listings from ${source.name}`);
   }
 }
 
@@ -56,6 +53,5 @@ async function runIngestionPhase(tier?: string) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const tier = process.argv[2];
   runIngestionPhase(tier).then(() => {
-    console.log('Ingestion phase complete.');
   });
 }

@@ -20,7 +20,6 @@ const SettingsPage: React.FC = () => {
       await signOut();
       navigate("/");
     } catch (error) {
-      console.error("Error signing out:", error);
     }
   };
 

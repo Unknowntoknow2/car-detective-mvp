@@ -29,8 +29,6 @@ export interface ValuationRequestRecord {
  */
 export async function createValuationRequest(input: ValuationRequestInput): Promise<ValuationRequestRecord | null> {
   try {
-    console.log('📝 Creating valuation request record:', input);
-    
     const { data, error } = await supabase
       .from('valuation_requests')
       .insert({
@@ -48,14 +46,10 @@ export async function createValuationRequest(input: ValuationRequestInput): Prom
       .single();
 
     if (error) {
-      console.error('❌ Error creating valuation request:', error);
       return null;
     }
-
-    console.log('✅ Valuation request created with ID:', data.id);
     return data;
   } catch (error) {
-    console.error('❌ Failed to create valuation request:', error);
     return null;
   }
 }
@@ -70,8 +64,6 @@ export async function completeValuationRequest(
   auditLogId?: string
 ): Promise<boolean> {
   try {
-    console.log('✅ Completing valuation request:', requestId);
-    
     const { error } = await supabase
       .from('valuation_requests')
       .update({
@@ -85,14 +77,10 @@ export async function completeValuationRequest(
       .eq('id', requestId);
 
     if (error) {
-      console.error('❌ Error completing valuation request:', error);
       return false;
     }
-
-    console.log('✅ Valuation request completed successfully');
     return true;
   } catch (error) {
-    console.error('❌ Failed to complete valuation request:', error);
     return false;
   }
 }
@@ -102,8 +90,6 @@ export async function completeValuationRequest(
  */
 export async function failValuationRequest(requestId: string, errorMessage: string): Promise<boolean> {
   try {
-    console.log('❌ Marking valuation request as failed:', requestId);
-    
     const { error } = await supabase
       .from('valuation_requests')
       .update({
@@ -114,13 +100,11 @@ export async function failValuationRequest(requestId: string, errorMessage: stri
       .eq('id', requestId);
 
     if (error) {
-      console.error('❌ Error updating failed valuation request:', error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('❌ Failed to update valuation request status:', error);
     return false;
   }
 }

@@ -1,3 +1,4 @@
+import * as React from 'react';
 
 // src/types/globals.d.ts
 import type { BoundFunction, queries, Queries } from "@testing-library/dom";

@@ -6,8 +6,6 @@ import { MarketListing, normalizeListing, getNormalizedUrl, getNormalizedSourceT
  * with both live and database format listings
  */
 export function validateMarketListingIntegration(): boolean {
-  console.log('🔍 Validating MarketListing type integration...');
-  
   // Test 1: Live format listing (from web scraping/API)
   const liveListing = {
     price: 35000,
@@ -54,27 +52,6 @@ export function validateMarketListingIntegration(): boolean {
 
     const liveSourceType = getNormalizedSourceType(liveListing);
     const dbSourceType = getNormalizedSourceType(dbListing);
-
-    console.log('✅ Live listing normalized:', {
-      price: normalizedLive.price,
-      url: liveUrl,
-      sourceType: liveSourceType,
-      dealer: normalizedLive.dealerName || normalizedLive.dealer_name || normalizedLive.dealer
-    });
-
-    console.log('✅ DB listing normalized:', {
-      price: normalizedDb.price,
-      url: dbUrl,
-      sourceType: dbSourceType,
-      dealer: normalizedDb.dealerName || normalizedDb.dealer_name || normalizedDb.dealer
-    });
-
-    console.log('✅ Mixed listing normalized:', {
-      price: normalizedMixed.price,
-      url: mixedUrl,
-      dealer: normalizedMixed.dealerName || normalizedMixed.dealer_name || normalizedMixed.dealer
-    });
-
     // Validate that all listings can be processed in a unified way
     const allListings: MarketListing[] = [liveListing, dbListing, mixedListing];
     
@@ -86,15 +63,12 @@ export function validateMarketListingIntegration(): boolean {
     });
 
     if (pricesValid && sourcesValid && urlsAccessible) {
-      console.log('🎯 MarketListing integration validation PASSED');
       return true;
     } else {
-      console.error('❌ MarketListing integration validation FAILED');
       return false;
     }
 
   } catch (error) {
-    console.error('❌ MarketListing validation error:', error);
     return false;
   }
 }
@@ -103,8 +77,6 @@ export function validateMarketListingIntegration(): boolean {
  * Test confidence calculation with unified listings
  */
 export function testConfidenceCalculation(): void {
-  console.log('📊 Testing confidence calculation with unified listings...');
-  
   const testListings: MarketListing[] = [
     {
       price: 35000,
@@ -133,28 +105,12 @@ export function testConfidenceCalculation(): void {
 
   // Test exact VIN matches
   const exactMatches = testListings.filter(l => l.vin === '1FTEW1CP7MKD73632');
-  console.log(`🎯 Found ${exactMatches.length} exact VIN matches`);
-
   // Test price range calculation
   const prices = testListings.map(l => l.price);
   const avgPrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
-
-  console.log('📈 Price analysis:', {
-    average: avgPrice,
-    range: [minPrice, maxPrice],
-    variance: maxPrice - minPrice
-  });
-
   // Test confidence score access
   const confidenceScores = testListings.map(l => l.confidenceScore || l.confidence_score || 50);
   const avgConfidence = confidenceScores.reduce((sum, score) => sum + score, 0) / confidenceScores.length;
-
-  console.log('🎯 Confidence analysis:', {
-    scores: confidenceScores,
-    average: avgConfidence
-  });
-
-  console.log('✅ Confidence calculation test completed');
 }

@@ -67,7 +67,6 @@ export function useDealerValuations(dealerId?: string) {
           setTotalCount(count || 0);
         }
       } catch (err) {
-        console.error("Error fetching dealer valuations:", err);
         setError(err instanceof Error ? err.message : "Unknown error occurred");
       } finally {
         setLoading(false);
@@ -91,7 +90,6 @@ export function useDealerValuations(dealerId?: string) {
   // Handle download report
   const handleDownloadReport = (valuation: ValuationWithCondition) => {
     // Implementation for downloading report
-    console.log("Downloading report for valuation:", valuation.id);
     // Here you would call your PDF generation function
   };
 

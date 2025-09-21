@@ -8,7 +8,6 @@ export function useForecast(valuationId: string) {
   const [error, setError] = useState<string | null>('This hook is deprecated. Use useForecastData from MarketTrendSection instead.');
 
   useEffect(() => {
-    console.error('❌ DEPRECATED: useForecast hook is deprecated. Use useForecastData from MarketTrendSection instead.');
     setError('This hook is deprecated. Use useForecastData from MarketTrendSection instead.');
     setIsLoading(false);
   }, [valuationId]);

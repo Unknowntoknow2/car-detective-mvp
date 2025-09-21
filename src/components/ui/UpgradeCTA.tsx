@@ -13,7 +13,6 @@ interface UpgradeCTAProps {
 export function UpgradeCTA({ feature = "premium features", className }: UpgradeCTAProps) {
   const handleUpgrade = () => {
     // TODO: Implement upgrade flow
-    console.log('Upgrade clicked');
   };
 
   return (

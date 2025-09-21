@@ -242,7 +242,6 @@ const EnhancedUIExample: React.FC<EnhancedUIExampleProps> = ({
 
         // Process real data here...
         // For now, fall back to mock data
-        console.log('Fetched real data:', { marketResponse, adjusterResponse });
       }
 
       // Use mock data (for demo purposes or when real data isn't available)
@@ -250,7 +249,6 @@ const EnhancedUIExample: React.FC<EnhancedUIExampleProps> = ({
       setDashboardData(mockData);
 
     } catch (err) {
-      console.error('Error fetching dashboard data:', err);
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
       
       // Fall back to mock data even on error
@@ -273,14 +271,12 @@ const EnhancedUIExample: React.FC<EnhancedUIExampleProps> = ({
 
   // Handle export functionality
   const handleExport = async (format: 'pdf' | 'excel') => {
-    console.log(`Exporting dashboard data as ${format}...`);
     // Implement export functionality here
     alert(`Export as ${format.toUpperCase()} feature coming soon!`);
   };
 
   // Handle share functionality
   const handleShare = async () => {
-    console.log('Sharing dashboard...');
     // Implement share functionality here
     if (navigator.share) {
       try {
@@ -290,7 +286,6 @@ const EnhancedUIExample: React.FC<EnhancedUIExampleProps> = ({
           url: window.location.href
         });
       } catch (err) {
-        console.log('Share cancelled or failed:', err);
       }
     } else {
       // Fallback: copy URL to clipboard
@@ -320,7 +315,6 @@ const EnhancedUIExample: React.FC<EnhancedUIExampleProps> = ({
 
   // Show error state (but still render with mock data)
   if (error) {
-    console.warn('Using mock data due to error:', error);
   }
 
   return (
@@ -350,7 +344,6 @@ const EnhancedUIExample: React.FC<EnhancedUIExampleProps> = ({
         onExport={handleExport}
         onShare={handleShare}
         onConfigChange={(config) => {
-          console.log('Panel configuration changed:', config);
         }}
       />
     </div>

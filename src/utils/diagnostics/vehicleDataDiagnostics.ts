@@ -12,8 +12,6 @@ export interface VehicleDataDiagnostics {
 }
 
 export async function diagnoseVehicleData(): Promise<VehicleDataDiagnostics> {
-  console.log('🔍 Starting vehicle data diagnostics...');
-  
   try {
     // Get all makes
     const { data: allMakes, error: makesError } = await supabase
@@ -73,40 +71,25 @@ export async function diagnoseVehicleData(): Promise<VehicleDataDiagnostics> {
       orphanedModels,
       recommendedActions: recommendations
     };
-    
-    console.log('📊 Vehicle Data Diagnostics:', diagnostics);
-    
     return diagnostics;
     
   } catch (error) {
-    console.error('❌ Error running diagnostics:', error);
     throw error;
   }
 }
 
 export function logDiagnosticsReport(diagnostics: VehicleDataDiagnostics) {
   console.group('🔍 Vehicle Data Diagnostics Report');
-  console.log(`📊 Total Makes: ${diagnostics.totalMakes}`);
-  console.log(`✅ Makes with Models: ${diagnostics.makesWithModels}`);
-  console.log(`❌ Makes without Models: ${diagnostics.makesWithoutModels.length}`);
-  
   if (diagnostics.makesWithoutModels.length > 0) {
     console.group('Makes without models:');
-    diagnostics.makesWithoutModels.forEach(make => console.log(`  - ${make}`));
     console.groupEnd();
   }
-  
-  console.log(`📊 Total Models: ${diagnostics.totalModels}`);
-  console.log(`❌ Orphaned Models: ${diagnostics.orphanedModels.length}`);
-  
   if (diagnostics.orphanedModels.length > 0) {
     console.group('Orphaned models:');
-    diagnostics.orphanedModels.forEach(model => console.log(`  - ${model}`));
     console.groupEnd();
   }
   
   console.group('🔧 Recommended Actions:');
-  diagnostics.recommendedActions.forEach(action => console.log(`  - ${action}`));
   console.groupEnd();
   
   console.groupEnd();

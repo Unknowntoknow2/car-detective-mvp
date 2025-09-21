@@ -60,11 +60,6 @@ export function EnhancedVehicleSelector({
   // Handle make selection and fetch models
   const handleMakeChange = async (makeId: string) => {
     const selectedMake = findMakeById(makeId);
-    console.log('🎯 Make selected:', {
-      makeId,
-      makeName: selectedMake?.make_name,
-    });
-    
     onMakeChange(makeId);
     onModelChange('');
     onTrimChange('');
@@ -73,7 +68,6 @@ export function EnhancedVehicleSelector({
       try {
         await fetchModelsByMakeId(makeId);
       } catch (error) {
-        console.error('❌ Error in handleMakeChange:', error);
       }
     }
   };
@@ -81,8 +75,6 @@ export function EnhancedVehicleSelector({
   // Handle model selection and fetch trims
   const handleModelChange = async (modelId: string) => {
     const selectedModel = findModelById(modelId);
-    console.log('🎯 Model selected:', modelId, 'Model name:', selectedModel?.model_name);
-    
     onModelChange(modelId);
     onTrimChange('');
     
@@ -93,8 +85,6 @@ export function EnhancedVehicleSelector({
 
   // Handle year change and refetch trims
   const handleYearChange = (year: number) => {
-    console.log('🎯 Year selected:', year);
-    
     onYearChange(year);
     onTrimChange('');
     
@@ -439,7 +429,7 @@ export function EnhancedVehicleSelector({
       )}
 
       {/* Minimal Debug Information (only in development) */}
-      {process.env.NODE_ENV === 'development' && (
+      {import.meta.env.NODE_ENV === 'development' && (
         <details className="mt-6">
           <summary className="cursor-pointer text-xs text-gray-500 hover:text-gray-700 flex items-center gap-2">
             <Clock className="w-3 h-3" />

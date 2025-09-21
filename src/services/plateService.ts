@@ -30,7 +30,6 @@ export async function lookupPlate(plate: string, state: string): Promise<PlateLo
     // If not found, return null (could implement external API call here)
     return null;
   } catch (error) {
-    console.error('Error looking up plate:', error);
     return null;
   }
 }

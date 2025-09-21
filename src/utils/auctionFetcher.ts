@@ -49,7 +49,6 @@ export async function getAuctionResultsByVin(vin: string): Promise<AuctionResult
     .order('sold_date', { ascending: false });
 
   if (error) {
-    console.error('Error fetching auction results:', error);
     return [];
   }
 
@@ -78,7 +77,6 @@ export async function triggerAuctionDataFetch(vin: string): Promise<void> {
         .limit(1);
       
       if (recentData && recentData.length > 0) {
-        console.log('Recent auction data exists, skipping fetch');
         return;
       }
     }
@@ -89,32 +87,25 @@ export async function triggerAuctionDataFetch(vin: string): Promise<void> {
     });
 
     if (functionError) {
-      console.error('Error triggering auction data fetch:', functionError);
     } else {
-      console.log('Auction data fetch triggered successfully:', data);
     }
   } catch (error) {
-    console.error('Error in triggerAuctionDataFetch:', error);
   }
 }
 
 // Function to fetch Bid.Cars data
 export async function fetchBidCarsByVin(vin: string): Promise<BidCarsRecord[]> {
   try {
-    console.log('Fetching Bid.Cars data for VIN:', vin);
-    
     const { data, error } = await supabase.functions.invoke('fetch-bidcars-data', {
       body: { vin }
     });
 
     if (error) {
-      console.error('Error calling Bid.Cars Edge Function:', error);
       return [];
     }
 
     return data?.records || [];
   } catch (error) {
-    console.error('Error fetching Bid.Cars data:', error);
     return [];
   }
 }
@@ -122,20 +113,16 @@ export async function fetchBidCarsByVin(vin: string): Promise<BidCarsRecord[]> {
 // Function to fetch AutoAuctions.io data
 export async function fetchAutoAuctionsByVin(vin: string): Promise<AutoAuctionsRecord[]> {
   try {
-    console.log('Fetching AutoAuctions.io data for VIN:', vin);
-    
     const { data, error } = await supabase.functions.invoke('fetch-autoauctions-data', {
       body: { vin }
     });
 
     if (error) {
-      console.error('Error calling AutoAuctions.io Edge Function:', error);
       return [];
     }
 
     return data?.records || [];
   } catch (error) {
-    console.error('Error fetching AutoAuctions.io data:', error);
     return [];
   }
 }

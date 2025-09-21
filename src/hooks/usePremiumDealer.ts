@@ -42,7 +42,6 @@ export const usePremiumDealer = (): PremiumDealerStatus => {
         setIsPremium(isPremiumActive);
         setExpiryDate(data.premium_expires_at);
       } catch (err) {
-        console.error("Error checking premium status:", err);
         setError(err as Error);
       } finally {
         setIsLoading(false);

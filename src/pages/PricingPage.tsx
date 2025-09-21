@@ -26,10 +26,8 @@ export default function PricingPage() {
         await createPaymentSession(valuationId, returnUrl || undefined);
       } else {
         // Handle bundle purchase (would call a different endpoint in real app)
-        console.error('Bundle purchasing not implemented');
       }
     } catch (error) {
-      console.error('Purchase error:', error);
     }
   };
 

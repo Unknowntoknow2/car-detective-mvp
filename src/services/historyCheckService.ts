@@ -6,13 +6,10 @@ import type { TitleStatus, RecallEntry, TitleHistoryResult, RecallCheckResult } 
  */
 export async function lookupTitleStatus(vin: string): Promise<TitleHistoryResult | null> {
   if (!vin || vin.length !== 17) {
-    console.warn('🚨 [TITLE_CHECK] Invalid VIN provided:', vin);
     return null;
   }
 
   try {
-    console.log('🔍 [TITLE_CHECK] Checking title status for VIN:', vin);
-
     const response = await fetch('https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/fetch_nicb_vincheck', {
       method: 'POST',
       headers: {
@@ -23,13 +20,10 @@ export async function lookupTitleStatus(vin: string): Promise<TitleHistoryResult
     });
 
     if (!response.ok) {
-      console.error('❌ [TITLE_CHECK] NICB API error:', response.status, response.statusText);
       return null;
     }
 
     const data = await response.json();
-    console.log('📊 [TITLE_CHECK] NICB response received:', data);
-
     // Parse NICB response and determine title status
     let status: TitleStatus = 'clean';
     let confidence = 0.8;
@@ -61,7 +55,6 @@ export async function lookupTitleStatus(vin: string): Promise<TitleHistoryResult
     };
 
   } catch (error) {
-    console.error('❌ [TITLE_CHECK] Service error:', error);
     return null;
   }
 }
@@ -72,13 +65,10 @@ export async function lookupTitleStatus(vin: string): Promise<TitleHistoryResult
  */
 export async function lookupOpenRecalls(vin: string): Promise<RecallCheckResult | null> {
   if (!vin || vin.length !== 17) {
-    console.warn('🚨 [RECALL_CHECK] Invalid VIN provided:', vin);
     return null;
   }
 
   try {
-    console.log('🔍 [RECALL_CHECK] Checking recalls for VIN:', vin);
-
     // Call NHTSA recalls edge function
     const response = await fetch(
       'https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/fetch_nhtsa_recalls',
@@ -93,22 +83,17 @@ export async function lookupOpenRecalls(vin: string): Promise<RecallCheckResult 
     );
 
     if (!response.ok) {
-      console.error('❌ [RECALL_CHECK] NHTSA API error:', response.status);
       return null;
     }
 
     const data = await response.json();
     
     if (data.error) {
-      console.warn('🚨 [RECALL_CHECK] NHTSA service error:', data.error);
       return null;
     }
 
     const recalls: RecallEntry[] = data.recalls || [];
     const unresolved = recalls.filter(recall => !recall.isResolved);
-
-    console.log(`📊 [RECALL_CHECK] Found ${recalls.length} total recalls, ${unresolved.length} unresolved for ${data.year} ${data.make} ${data.model}`);
-
     return {
       recalls,
       unresolved,
@@ -119,7 +104,6 @@ export async function lookupOpenRecalls(vin: string): Promise<RecallCheckResult 
     };
 
   } catch (error) {
-    console.error('❌ [RECALL_CHECK] Service error:', error);
     return null;
   }
 }
@@ -149,7 +133,7 @@ function parseNHTSARecalls(data: any, vin: string): RecallEntry[] {
     });
 
     // Add mock recalls for testing purposes (remove in production)
-    if (process.env.NODE_ENV === 'development' && recalls.length === 0) {
+    if (import.meta.env.NODE_ENV === 'development' && recalls.length === 0) {
       recalls.push({
         id: `test_recall_${vin}`,
         description: 'Airbag deployment sensor may malfunction',
@@ -162,7 +146,6 @@ function parseNHTSARecalls(data: any, vin: string): RecallEntry[] {
     }
 
   } catch (error) {
-    console.error('❌ [RECALL_CHECK] Error parsing NHTSA data:', error);
   }
 
   return recalls;

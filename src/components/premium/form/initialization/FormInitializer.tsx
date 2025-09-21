@@ -36,7 +36,6 @@ export function FormInitializer({
 
           toast.success("Vehicle information loaded from previous lookup");
         } catch (error) {
-          console.error("Error parsing saved vehicle data:", error);
         }
       } else if (savedFormData) {
         setFormData(savedFormData);

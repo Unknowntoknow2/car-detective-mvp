@@ -86,7 +86,6 @@ const AuthPage: React.FC = () => {
       const { error } = await signInWithGoogle();
       if (error) {
         toast.error("Failed to sign in with Google");
-        console.error('Google sign-in error:', error);
       }
     } catch (error) {
       toast.error("An unexpected error occurred");

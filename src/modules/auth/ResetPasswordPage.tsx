@@ -96,7 +96,6 @@ export function ResetPasswordPage() {
       setIsSuccess(true);
       toast.success("Password reset link sent! Please check your email");
     } catch (error: any) {
-      console.error("Password reset error:", error);
       toast.error(error.message || "Failed to send reset link");
     } finally {
       setIsLoading(false);
@@ -118,7 +117,6 @@ export function ResetPasswordPage() {
       toast.success("Password updated successfully!");
       navigate("/auth/login");
     } catch (error: any) {
-      console.error("Password update error:", error);
       toast.error(error.message || "Failed to update password");
     } finally {
       setIsLoading(false);

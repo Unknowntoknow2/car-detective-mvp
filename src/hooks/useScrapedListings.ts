@@ -31,7 +31,6 @@ export function useScrapedListings(vin: string) {
         .limit(10);
 
       if (error) {
-        console.error('Error fetching scraped listings:', error);
         throw error;
       }
 

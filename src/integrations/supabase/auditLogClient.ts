@@ -4,13 +4,6 @@ import { EnhancedAuditLog } from "@/types/valuation";
 
 export async function saveAuditLog(audit: EnhancedAuditLog): Promise<string> {
   try {
-    console.log('💾 Saving audit log:', {
-      vin: audit.vin,
-      sources: audit.sources,
-      confidence: audit.confidence_score,
-      fallbackUsed: audit.fallbackUsed
-    });
-
     const { data, error } = await supabase
       .from('valuation_audit_logs')
       .insert({
@@ -41,15 +34,11 @@ export async function saveAuditLog(audit: EnhancedAuditLog): Promise<string> {
       .single();
 
     if (error) {
-      console.error('❌ Error saving audit log:', error);
       throw new Error(`Failed to save audit log: ${error.message}`);
     }
-
-    console.log('✅ Audit log saved with ID:', data.id);
     return data.id;
 
   } catch (error) {
-    console.error('❌ Critical error saving audit log:', error);
     // Return a placeholder ID rather than failing the entire valuation
     return 'audit_failed_' + Date.now();
   }
@@ -64,14 +53,12 @@ export async function getAuditLog(auditId: string): Promise<EnhancedAuditLog | n
       .single();
 
     if (error) {
-      console.error('❌ Error fetching audit log:', error);
       return null;
     }
 
     return data.audit_data as EnhancedAuditLog;
 
   } catch (error) {
-    console.error('❌ Error getting audit log:', error);
     return null;
   }
 }
@@ -86,14 +73,12 @@ export async function getValuationAuditHistory(vin: string): Promise<EnhancedAud
       .limit(10);
 
     if (error) {
-      console.error('❌ Error fetching audit history:', error);
       return [];
     }
 
     return data.map(log => log.audit_data as EnhancedAuditLog).filter(Boolean);
 
   } catch (error) {
-    console.error('❌ Error getting audit history:', error);
     return [];
   }
 }

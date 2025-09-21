@@ -30,7 +30,6 @@ export const GeoMultiplier: React.FC<GeoMultiplierProps> = ({ zip }) => {
         const multiplier = await getMarketMultiplier(zip);
         setMarketMultiplier(multiplier);
       } catch (error) {
-        console.error("Exception in fetchMarketMultiplier:", error);
       } finally {
         setIsLoadingMultiplier(false);
       }

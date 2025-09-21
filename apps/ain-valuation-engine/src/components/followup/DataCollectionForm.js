@@ -28,7 +28,6 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }) {
         // Google-level: log all decoded fields for mapping
         if (decoded && decoded.length > 0) {
             // eslint-disable-next-line no-console
-            console.log('[VIN DECODE] All decoded fields:', decoded);
         }
         decoded.forEach(item => {
             const val = item.Value !== undefined && item.Value !== null ? String(item.Value) : undefined;
@@ -240,7 +239,6 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }) {
             });
             // Log the full vehicleData for debugging
             // eslint-disable-next-line no-console
-            console.log('[Valuation Submission] vehicleData:', vd);
             if (missing.length > 0) {
                 alert('Missing or invalid required fields: ' + missing.join(', '));
                 setIsGeneratingValuation(false);
@@ -259,11 +257,9 @@ export function DataCollectionForm({ decodedVin, vin, onComplete }) {
                 onComplete(normalizeResult(result));
             }
             else {
-                console.error('Valuation failed');
             }
         }
         catch (error) {
-            console.error('Valuation error:', error);
         }
         finally {
             setIsGeneratingValuation(false);

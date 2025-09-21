@@ -76,7 +76,6 @@ export function VehicleHistorySection() {
       setHasFullServiceHistory(typedData.has_full_service_history || false);
       toast.success("Vehicle history loaded successfully");
     } catch (error: any) {
-      console.error("Error fetching vehicle history:", error);
       toast.error("Failed to fetch vehicle history: " + error.message);
     } finally {
       setIsLoading(false);
@@ -114,7 +113,6 @@ export function VehicleHistorySection() {
 
       toast.success("Vehicle history information saved successfully");
     } catch (error: any) {
-      console.error("Error saving vehicle history:", error);
       toast.error("Failed to save vehicle history: " + error.message);
     } finally {
       setIsLoading(false);

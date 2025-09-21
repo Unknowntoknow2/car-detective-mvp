@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { ValuationResult } from '../../types/ValuationTypes';
+import { ValuationResult } from '@/components/valuation/valuation-core/ValuationResult';
 
 interface ValuationResultsProps {
   valuation: ValuationResult;

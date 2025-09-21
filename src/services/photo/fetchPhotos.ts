@@ -29,7 +29,6 @@ export async function fetchValuationPhotos(
       thumbnail: item.photo_url, // Use same URL for thumbnail
     }));
   } catch (err) {
-    console.error("Error fetching valuation photos:", err);
     throw err;
   }
 }

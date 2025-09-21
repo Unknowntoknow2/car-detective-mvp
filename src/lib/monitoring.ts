@@ -1,3 +1,4 @@
+import * as React from 'react';
 /**
  * Production monitoring and error tracking utilities
  */
@@ -29,7 +30,7 @@ interface PerformanceMetric {
 }
 
 class MonitoringService {
-  private isDevelopment = process.env.NODE_ENV === 'development';
+  private isDevelopment = import.meta.env.NODE_ENV === 'development';
   private metricsBuffer: PerformanceMetric[] = [];
   private readonly BUFFER_SIZE = 100;
 

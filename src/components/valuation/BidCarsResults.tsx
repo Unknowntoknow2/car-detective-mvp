@@ -39,7 +39,6 @@ export function BidCarsResults({ vin }: BidCarsResultsProps) {
         const data = await fetchBidCarsByVin(vin);
         setRecords(data);
       } catch (err) {
-        console.error('Error fetching Bid.Cars data:', err);
         setError('Failed to load auction data');
       } finally {
         setIsLoading(false);

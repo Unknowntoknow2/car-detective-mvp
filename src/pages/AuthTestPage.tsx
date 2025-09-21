@@ -16,7 +16,6 @@ export default function AuthTestPage() {
         { test: "Permission Check", status: "passed" },
       ]);
     } catch (error) {
-      console.error("Auth test error:", error);
     } finally {
       setIsRunning(false);
     }

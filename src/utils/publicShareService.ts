@@ -38,7 +38,6 @@ export async function getValuationByToken(token: string) {
       .single();
 
     if (error) {
-      console.error("Error fetching valuation by token:", error);
       return null;
     }
 
@@ -75,7 +74,6 @@ export async function getValuationByToken(token: string) {
       expires_at: data.expires_at,
     };
   } catch (err) {
-    console.error("Error in getValuationByToken:", err);
     return null;
   }
 }

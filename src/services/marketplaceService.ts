@@ -44,13 +44,11 @@ export async function fetchMarketplaceData(params: MarketplaceSearchParams): Pro
     })
 
     if (error) {
-      console.error('❌ Marketplace data fetch error:', error)
       return { success: false, count: 0, error: error.message }
     }
 
     return data
   } catch (error) {
-    console.error('❌ Marketplace service error:', error)
     return { 
       success: false, 
       count: 0, 
@@ -88,13 +86,11 @@ export async function getScrapedListings(filters?: {
     const { data, error } = await query
 
     if (error) {
-      console.error('❌ Error fetching scraped listings:', error)
       return []
     }
 
     return data || []
   } catch (error) {
-    console.error('❌ Scraped listings service error:', error)
     return []
   }
 }
@@ -118,13 +114,11 @@ export async function searchListingsByVehicle(
       .limit(50)
 
     if (error) {
-      console.error('❌ Error searching listings:', error)
       return []
     }
 
     return data || []
   } catch (error) {
-    console.error('❌ Search listings service error:', error)
     return []
   }
 }

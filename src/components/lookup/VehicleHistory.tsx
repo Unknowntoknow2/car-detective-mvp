@@ -20,7 +20,6 @@ export function VehicleHistory({ vin, carfaxData }: VehicleHistoryProps) {
       const historyData = await carfaxService.getCarfaxData(vin);
       setData(historyData);
     } catch (error) {
-      console.error('Error fetching vehicle history:', error);
     } finally {
       setIsLoading(false);
     }

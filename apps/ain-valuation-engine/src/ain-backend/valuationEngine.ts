@@ -1,6 +1,6 @@
 // apps/ain-valuation-engine/src/ain-backend/valuationEngine.ts
 import * as svc from '@/services/valuationEngine'
-import type { VehicleData, ValuationResult } from '@/types/ValuationTypes'
+import type { VehicleData, ValuationResult } from '@/components/valuation/valuation-core/ValuationResult'
 
 /**
  * Stable façade for valuation calls used by the UI.

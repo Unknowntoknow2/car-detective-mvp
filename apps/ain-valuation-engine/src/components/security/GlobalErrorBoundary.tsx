@@ -23,7 +23,6 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Sentry removed: log error to console instead
-    console.error("GlobalErrorBoundary caught error:", error, errorInfo);
     this.setState({ errorId: undefined });
   }
 

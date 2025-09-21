@@ -26,7 +26,6 @@ async function callEnhancedMarketSearch(input: {
   if (!res.ok) {
     // Surface a helpful error; do not throw to keep pipeline resilient
     const text = await res.text().catch(()=>'');
-    console.warn(`[marketSearchAgent] ${EDGE_FN} non-200:`, res.status, text);
     return [];
   }
   const data = await res.json().catch(() => []);

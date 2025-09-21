@@ -44,7 +44,6 @@ export const DealerSignupForm: React.FC = () => {
         navigate("/auth");
       }
     } catch (error) {
-      console.error("Dealer signup error:", error);
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);

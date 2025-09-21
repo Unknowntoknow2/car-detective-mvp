@@ -78,7 +78,6 @@ const useValuation = (): ValuationResult => {
         throw new Error('No valuation result available');
       }
     } catch (err) {
-      console.error('Valuation error:', err);
       setError(err instanceof Error ? err.message : "Failed to generate valuation");
       return null;
     } finally {

@@ -1,5 +1,5 @@
 
-import { ValuationResult } from '@/types/valuation';
+import { ValuationResult } from '@/components/valuation/valuation-core/ValuationResult';
 
 export interface ValuationSummaryProps {
   valuation?: ValuationResult;

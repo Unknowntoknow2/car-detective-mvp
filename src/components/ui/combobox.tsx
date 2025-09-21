@@ -50,11 +50,6 @@ export function ComboBox({
 
   React.useEffect(() => {
     // Debug log
-    console.log(
-      `ComboBox (${id || "unnamed"}): ${
-        items?.length || 0
-      } items, current value: ${value || "none"}`,
-    );
   }, [items, value, id]);
 
   // Ensure we have a valid array
@@ -77,14 +72,7 @@ export function ComboBox({
           )}
           disabled={disabled}
           onClick={() => {
-            console.log(
-              `ComboBox (${id || "unnamed"}): Button clicked, items:`,
-              safeItems.length,
-            );
             if (safeItems.length === 0) {
-              console.warn(
-                `ComboBox (${id || "unnamed"}): No items available to display`,
-              );
             }
           }}
         >
@@ -117,11 +105,6 @@ export function ComboBox({
                       value={item.value}
                       onSelect={() => {
                         // Use item.value directly from the map to ensure correct selection
-                        console.log(
-                          `ComboBox (${
-                            id || "unnamed"
-                          }): Selected ${item.label} (${item.value})`,
-                        );
                         onChange(item.value);
                         setOpen(false);
                       }}
@@ -133,7 +116,6 @@ export function ComboBox({
                           alt=""
                           className="h-4 w-4 object-contain"
                           onError={(e) => {
-                            console.log("Image load error");
                             (e.target as HTMLImageElement).style.display =
                               "none";
                           }}

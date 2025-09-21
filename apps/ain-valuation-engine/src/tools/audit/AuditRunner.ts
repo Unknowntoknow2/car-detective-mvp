@@ -184,6 +184,6 @@ export default async function runAudit() {
 }
 
 if (process.argv[1]?.endsWith("AuditRunner.js")) {
-  (async () => { await runAudit(); })().catch(e => { console.error(e); process.exit(1); });
+  (async () => { await runAudit(); })().catch(e => { process.exit(1); });
 }
 

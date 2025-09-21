@@ -64,8 +64,6 @@ export default function ProfessionalResultsPage() {
 
       try {
         const identifier = id;
-        console.log('🔍 Loading valuation data for ID:', identifier);
-
         let valuationData = null;
         let fetchError = null;
 
@@ -116,8 +114,6 @@ export default function ProfessionalResultsPage() {
         // Only use real valuations - no fake data generation
         if (!valuationData.estimated_value || valuationData.estimated_value <= 0) {
           // Use the AIN valuation API
-          console.log('🔍 Using AIN API for professional valuation...');
-          
           const { runValuation } = await import('@/lib/ainClient');
           
           const ainResult = await runValuation({
@@ -130,9 +126,6 @@ export default function ProfessionalResultsPage() {
             zip_code: valuationData.zip_code || '95821',
             requested_by: 'professional_results'
           });
-
-          console.log('✅ [AIN] Professional valuation completed');
-          
           // Update database with AIN results
           if (ainResult?.data && typeof ainResult.data === 'object') {
             const ainData = ainResult.data as any;
@@ -208,7 +201,6 @@ export default function ProfessionalResultsPage() {
         });
 
       } catch (error) {
-        console.error('❌ Results page error:', error);
         setError(error instanceof Error ? error.message : 'Failed to load valuation data');
       }
 

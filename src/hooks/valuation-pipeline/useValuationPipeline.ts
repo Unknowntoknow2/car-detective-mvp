@@ -147,7 +147,6 @@ export function useValuationPipeline(): ValuationPipelineHook {
         dispatch({ type: "STOP_LOADING" });
         return vehicleData;
       } catch (err) {
-        console.error("Error during lookup:", err);
         dispatch({
           type: "SET_ERROR",
           payload: err instanceof Error
@@ -213,7 +212,6 @@ export function useValuationPipeline(): ValuationPipelineHook {
       dispatch({ type: "STOP_LOADING" });
       return resultData;
     } catch (err) {
-      console.error("Error during valuation submission:", err);
       dispatch({
         type: "SET_ERROR",
         payload: err instanceof Error

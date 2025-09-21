@@ -20,7 +20,6 @@ export function usePremiumCredits() {
         const isPremium = localStorage.getItem('premium_purchased') === 'true';
         setCredits(isPremium ? 1 : 0);
       } catch (error) {
-        console.error('Error loading premium credits:', error);
       } finally {
         setIsLoading(false);
       }
@@ -45,7 +44,6 @@ export function usePremiumCredits() {
       setCredits(prev => prev - 1);
       return true;
     } catch (error) {
-      console.error('Error using premium credit:', error);
       return false;
     }
   };

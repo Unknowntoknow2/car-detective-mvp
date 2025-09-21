@@ -27,8 +27,6 @@ export interface AuctionData {
 }
 
 export async function getStatvinData(vin: string): Promise<{ vin: string; data: AuctionData | null; error: string | null }> {
-  console.log(`🔍 Fetching auction data for VIN: ${vin}`);
-  
   try {
     // Call our enhanced auction data edge function instead of StatVin
     const response = await fetch(`https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/fetch-auction-data`, {
@@ -41,7 +39,6 @@ export async function getStatvinData(vin: string): Promise<{ vin: string; data: 
     });
 
     if (!response.ok) {
-      console.error(`❌ Auction data API failed: ${response.status}`);
       return {
         vin,
         data: null,
@@ -52,14 +49,12 @@ export async function getStatvinData(vin: string): Promise<{ vin: string; data: 
     const result = await response.json();
     
     if (result.success && result.data) {
-      console.log(`✅ Found auction data for VIN ${vin}`);
       return {
         vin,
         data: result.data,
         error: null
       };
     } else {
-      console.log(`ℹ️ No auction data found for VIN ${vin}`);
       return {
         vin,
         data: null,
@@ -68,7 +63,6 @@ export async function getStatvinData(vin: string): Promise<{ vin: string; data: 
     }
 
   } catch (error) {
-    console.error('❌ Auction data fetch failed:', error);
     return {
       vin,
       data: null,

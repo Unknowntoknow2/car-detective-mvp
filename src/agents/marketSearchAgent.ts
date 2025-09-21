@@ -134,24 +134,20 @@ export async function searchMarketListings(input: MarketSearchInput): Promise<Ma
 function validateListing(listing: MarketListing): boolean {
   // Check required fields
   if (!listing.price || listing.price <= 0) {
-    console.warn('⚠️ Invalid listing: price missing or invalid', listing.price);
     return false;
   }
   
   if (!listing.source || listing.source.trim() === '') {
-    console.warn('⚠️ Invalid listing: source missing');
     return false;
   }
   
   // Price sanity check (between $1,000 and $200,000)
   if (listing.price < 1000 || listing.price > 200000) {
-    console.warn('⚠️ Invalid listing: price out of reasonable range', listing.price);
     return false;
   }
   
   // Mileage sanity check if provided
   if (listing.mileage !== undefined && (listing.mileage < 0 || listing.mileage > 500000)) {
-    console.warn('⚠️ Invalid listing: mileage out of reasonable range', listing.mileage);
     return false;
   }
   
@@ -194,7 +190,6 @@ async function fallbackDatabaseSearch(params: { make: string; model: string; yea
       .limit(5);
 
     if (error) {
-      console.error('❌ Database search error:', error);
       return [];
     }
 
@@ -243,7 +238,6 @@ async function fallbackDatabaseSearch(params: { make: string; model: string; yea
     }));
 
   } catch (error) {
-    console.error('❌ Database fallback failed:', error);
     return [];
   }
 }

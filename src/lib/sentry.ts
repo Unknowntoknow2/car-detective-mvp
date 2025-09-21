@@ -21,7 +21,6 @@ export const initSentry = () => {
       logger.log('Sentry init skipped: Not enabled or missing DSN');
     }
   } catch (error) {
-    console.warn('Failed to initialize Sentry:', error);
   }
 };
 

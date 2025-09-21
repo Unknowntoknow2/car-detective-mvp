@@ -24,7 +24,6 @@ export function useFeatureFlags() {
     const auth = useAuth();
     user = auth?.user;
   } catch (error) {
-    console.warn('Auth context not available in useFeatureFlags');
   }
 
   useEffect(() => {
@@ -69,7 +68,6 @@ export function useFeatureFlags() {
           });
         }
       } catch (error) {
-        console.error('Error fetching feature flags:', error);
       } finally {
         setIsLoading(false);
       }

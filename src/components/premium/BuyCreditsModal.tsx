@@ -49,7 +49,6 @@ const creditPackages = [
 
 export function BuyCreditsModal({ isOpen, onOpenChange, currentCredits = 0 }: BuyCreditsModalProps) {
   const handlePurchase = (packageId: string) => {
-    console.log("Purchasing package:", packageId);
     // Implementation for purchase logic
   };
 

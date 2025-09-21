@@ -29,7 +29,6 @@ const ForgotPasswordPage: React.FC = () => {
       setIsSuccess(true);
       toast.success("Password reset instructions sent to your email");
     } catch (error) {
-      console.error("Reset password error:", error);
       toast.error("An unexpected error occurred. Please try again.");
     }
   };

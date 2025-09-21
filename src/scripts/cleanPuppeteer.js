@@ -9,9 +9,6 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-
-console.log('Starting Puppeteer cleanup...');
-
 // Set environment variables
 process.env.PUPPETEER_SKIP_DOWNLOAD = 'true';
 process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = 'true';
@@ -34,11 +31,9 @@ const dirs = [
 dirs.forEach(dir => {
   try {
     if (fs.existsSync(dir)) {
-      console.log(`Removing ${dir}...`);
       fs.rmSync(dir, { recursive: true, force: true });
     }
   } catch (err) {
-    console.error(`Error removing ${dir}:`, err);
   }
 });
 
@@ -56,5 +51,3 @@ module.exports = {
 `;
 
 fs.writeFileSync('.puppeteerrc.js', puppeteerRcContent);
-
-console.log('Puppeteer cleanup completed.');

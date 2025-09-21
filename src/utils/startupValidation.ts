@@ -4,5 +4,3 @@ if (import.meta.env.PROD) {
     throw new Error("AIN required in production - local engine removed");
   }
 }
-
-console.log('🔧 [BUILD] Startup validation complete - AIN API enforced');

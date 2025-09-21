@@ -20,7 +20,6 @@ export function AccidentHistoryStep({ form }: AccidentHistoryStepProps) {
   const hasAccident = form.watch("hasAccident");
 
   const handleAccidentChange = (value: any) => {
-    console.log("Accident changed:", value);
   };
 
   return (

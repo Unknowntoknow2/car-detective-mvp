@@ -9,7 +9,6 @@ export const VehicleDataInfo = () => {
   const { getYearOptions, getCurrentYear } = useVehicleData();
 
   const handleRefreshData = () => {
-    console.log("Refreshing vehicle data");
   };
 
   const currentYear = getCurrentYear();

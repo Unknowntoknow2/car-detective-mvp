@@ -16,7 +16,6 @@ export async function fetchAndExtract(urls, model = "gpt-4o-mini") {
         try {
             const host = new URL(url).hostname.replace(/^www\./, "");
             if (!isAllowedHost(host)) {
-                console.warn(`[skip] ${host} not in allowlist`);
                 continue;
             }
             // Use fetch cache if available
@@ -41,7 +40,6 @@ export async function fetchAndExtract(urls, model = "gpt-4o-mini") {
             rows.push(...listings);
         }
         catch (e) {
-            console.warn(`[fetch] ${url} -> ${e.message}`);
         }
     }
     return { rows, tokensIn, tokensOut };
@@ -50,7 +48,6 @@ export async function fetchAndExtract(urls, model = "gpt-4o-mini") {
         try {
             const host = new URL(url).hostname.replace(/^www\./, "");
             if (!isAllowedHost(host)) {
-                console.warn(`[skip] ${host} not in allowlist`);
                 continue;
             }
             const html = await limiterFor(host).run(() => got(url, {
@@ -66,7 +63,6 @@ export async function fetchAndExtract(urls, model = "gpt-4o-mini") {
             out.push(...listings);
         }
         catch (e) {
-            console.warn(`[fetch] ${url} -> ${e.message}`);
         }
     }
     return out;

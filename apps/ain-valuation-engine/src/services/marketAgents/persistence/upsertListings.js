@@ -24,7 +24,6 @@ export async function upsertListings(rows) {
         .upsert(mappedAll, { onConflict: "dedupe_key", ignoreDuplicates: false })
         .select("id");
     if (error) {
-        console.warn("[market_listings.upsert] error", error);
         return 0;
         return 0;
         return count ?? 0;

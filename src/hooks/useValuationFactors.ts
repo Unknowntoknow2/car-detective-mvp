@@ -72,7 +72,6 @@ export const useValuationFactors = () => {
 
         setCategoryFactors(factorsByCategory);
       } catch (err) {
-        console.error("Error fetching valuation factors:", err);
         setError(
           err instanceof Error
             ? err.message

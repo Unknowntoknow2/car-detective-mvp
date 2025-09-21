@@ -13,8 +13,6 @@ export async function getVehicleImageUrl(
   const defaultImage = 'https://placehold.co/600x400?text=Vehicle+Image';
   
   // In a real implementation, you would fetch from an API
-  console.log(`Getting image for ${year} ${make} ${model} ${trim || ''}`);
-  
   // Return placeholder image for now
   return defaultImage;
 }

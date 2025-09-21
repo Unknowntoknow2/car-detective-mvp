@@ -23,7 +23,6 @@ export const EnhancedPlateForm = () => {
 
     // Simulate API call
     setTimeout(() => {
-      console.log("Looking up plate:", plateNumber, "in state:", stateCode);
       setIsLoading(false);
     }, 1500);
   };

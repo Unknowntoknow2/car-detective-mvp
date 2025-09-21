@@ -1,5 +1,5 @@
 // Legacy data converter for backward compatibility
-import type { UnifiedValuationResult } from '@/types/valuation';
+import type { UnifiedValuationResult } from '@/components/valuation/UnifiedValuationResult';
 
 interface LegacyValuationData {
   id?: string; // Add ID field for forecast integration
@@ -36,7 +36,6 @@ export function convertLegacyToUnified(
   vehicleInfo: LegacyVehicleInfo,
   valuationData: LegacyValuationData
 ): UnifiedValuationResult {
-  console.log('🔄 Converting legacy data:', { vehicleInfo, valuationData });
   return {
     id: valuationData.id || crypto.randomUUID(), // ✅ FIX #2: Ensure ID is included for forecast integration
     vin: vehicleInfo.vin || '',

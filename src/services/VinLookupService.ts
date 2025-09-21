@@ -5,7 +5,6 @@ import { UnifiedLookupService } from "./UnifiedLookupService";
 // Legacy service - now redirects to unified service
 export class VinLookupService {
   static lookupVin = async (vin: string): Promise<any> => {
-    console.log("VinLookupService: Redirecting to UnifiedLookupService for VIN", vin);
     const result = await UnifiedLookupService.lookupByVin(vin, { tier: 'free' });
     return { success: result.success, data: result.vehicle };
   };

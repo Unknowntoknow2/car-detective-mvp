@@ -23,13 +23,11 @@ export async function createCheckoutSession(options: CheckoutOptions) {
     });
     
     if (error) {
-      console.error('Error creating checkout session:', error);
       throw new Error(error.message || 'Failed to create checkout session');
     }
     
     return data;
   } catch (error) {
-    console.error('Error in createCheckoutSession:', error);
     throw error;
   }
 }
@@ -42,13 +40,11 @@ export async function verifyPaymentSession(sessionId: string) {
     });
     
     if (error) {
-      console.error('Error verifying payment session:', error);
       throw new Error(error.message || 'Failed to verify payment');
     }
     
     return data;
   } catch (error) {
-    console.error('Error in verifyPaymentSession:', error);
     throw error;
   }
 }

@@ -39,7 +39,6 @@ export function GoogleAuthButton({
       onSuccess?.();
       
     } catch (error) {
-      console.error('Google sign-in error:', error);
       toast.error("Failed to sign in with Google");
       onError?.(error as Error);
     } finally {

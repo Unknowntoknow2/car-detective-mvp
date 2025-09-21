@@ -46,7 +46,6 @@ export function EquipmentSelector(
 
         setOptions(data || []);
       } catch (err) {
-        console.error("Error fetching equipment options:", err);
         setError(
           err instanceof Error
             ? err.message

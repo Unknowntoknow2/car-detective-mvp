@@ -60,13 +60,11 @@ export async function generateValuationExplanation(
     });
 
     if (error) {
-      console.error('Error calling generate-explanation function:', error);
       return generateFallbackExplanation(input);
     }
 
     return data?.explanation || generateFallbackExplanation(input);
   } catch (error) {
-    console.error('Error generating valuation explanation:', error);
     return generateFallbackExplanation(input);
   }
 }

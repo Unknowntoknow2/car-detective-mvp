@@ -17,7 +17,6 @@ export const PersistenceHealthDashboard: React.FC = () => {
       const healthData = await checkPersistenceHealth();
       setHealth(healthData);
     } catch (error) {
-      console.error('Failed to load persistence health:', error);
     } finally {
       setLoading(false);
     }
@@ -30,7 +29,6 @@ export const PersistenceHealthDashboard: React.FC = () => {
       setTestResults(results);
       await loadHealth(); // Refresh health after tests
     } catch (error) {
-      console.error('Failed to run persistence tests:', error);
     } finally {
       setTesting(false);
     }

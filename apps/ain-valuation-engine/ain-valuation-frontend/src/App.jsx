@@ -35,9 +35,7 @@ function App() {
     setError(null)
     setValuation(null)
     try {
-      console.log('🚗 Starting VIN decode for:', vin)
       const result = await decodeVin(vin)
-      console.log('✅ Decode successful:', result)
       if (!isVinDecodeSuccessful(result)) {
         throw new VINDecodeError(
           'VIN decode returned no data',
@@ -46,9 +44,7 @@ function App() {
         )
       }
       const vehicleInfo = extractVehicleInfo(result)
-      console.log('📋 Extracted vehicle info:', vehicleInfo)
       const quality = assessDataQuality(vehicleInfo)
-      console.log('🎯 Quality assessment:', quality)
       setDecodedData({
         raw: result.raw,
         categories: result.categories,
@@ -57,7 +53,6 @@ function App() {
         quality
       })
     } catch (err) {
-      console.error('❌ VIN decode failed:', err)
       if (err instanceof VINDecodeError) {
         setError(`${err.message}: ${err.details || ''}`)
       } else {

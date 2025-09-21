@@ -148,7 +148,6 @@ export function ServiceHistoryUploader(
         onUploadComplete();
       }
     } catch (error: any) {
-      console.error("Error uploading service record:", error);
       toast.error(`Failed to add service record: ${error.message}`);
     } finally {
       setIsUploading(false);

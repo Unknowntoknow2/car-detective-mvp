@@ -12,8 +12,6 @@ import { decodeVin as unifiedDecodeVin, extractLegacyVehicleInfo, isVinDecodeSuc
  * This API wrapper is maintained for backward compatibility only
  */
 export async function decodeVin(vin: string) {
-  console.warn('⚠️ src/api/decodeVin.ts is DEPRECATED. Use unifiedVinDecoder.decodeVin directly.');
-  
   try {
     const result = await unifiedDecodeVin(vin);
     

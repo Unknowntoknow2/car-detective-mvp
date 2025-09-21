@@ -33,7 +33,6 @@ export function ReferralModal({ isOpen, onClose, referralCode }: ReferralModalPr
           url: referralLink,
         });
       } catch (error) {
-        console.error('Error sharing:', error);
       }
     } else {
       copyToClipboard();

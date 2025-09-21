@@ -63,7 +63,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
       }
     } catch (error) {
-      console.error('Error fetching user details:', error);
     }
   };
 
@@ -134,7 +133,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       return { error: null };
     } catch (error: any) {
-      console.error('Sign in error:', error);
       return { error };
     }
   };
@@ -159,7 +157,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       return { error: null };
     } catch (error: any) {
-      console.error('Sign up error:', error);
       return { error };
     }
   };
@@ -181,7 +178,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       return { error: null };
     } catch (error: any) {
-      console.error('Google sign-in error:', error);
       return { error };
     }
   };
@@ -193,7 +189,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(null);
       setUserDetails(null);
     } catch (error) {
-      console.error('Sign out error:', error);
     }
   };
 
@@ -209,7 +204,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       return { error: null };
     } catch (error: any) {
-      console.error('Reset password error:', error);
       return { error };
     }
   };

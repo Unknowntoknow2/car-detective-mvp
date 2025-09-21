@@ -15,7 +15,6 @@ export const usePersistenceHealth = (intervalMs: number = 30000) => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to check persistence health';
       setError(errorMessage);
-      console.error('Persistence health check failed:', err);
     } finally {
       setLoading(false);
     }

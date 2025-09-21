@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import type { ValuationResult, AuditLog } from '@/types/valuation';
+import type { ValuationResult, AuditLog } from '@/components/valuation/valuation-core/ValuationResult';
 import type { MarketListing } from '@/types/marketListing';
 
 export interface ValuationRequest {
@@ -44,8 +44,6 @@ export class ValuationApiService {
     error?: string 
   }> {
     try {
-      console.log('📋 Creating valuation request:', requestData);
-
       const { data, error } = await supabase.functions.invoke('valuation-request', {
         body: requestData
       });
@@ -60,7 +58,6 @@ export class ValuationApiService {
       };
 
     } catch (error) {
-      console.error('❌ Error creating valuation request:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -81,8 +78,6 @@ export class ValuationApiService {
     error?: string;
   }> {
     try {
-      console.log('🚀 Triggering comprehensive aggregation for request:', requestId);
-
       // First get the request details
       const { data: requestData } = await supabase
         .from('valuation_requests')
@@ -95,8 +90,6 @@ export class ValuationApiService {
       }
 
       // Market aggregation feature has been removed
-      console.log('ℹ️ Market aggregation feature removed from ValuationApiService');
-
       return {
         success: true,
         total_comps: 0,
@@ -106,7 +99,6 @@ export class ValuationApiService {
       };
 
     } catch (error) {
-      console.error('❌ Error triggering aggregation:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -120,8 +112,6 @@ export class ValuationApiService {
    */
   static async getValuationResult(requestId: string): Promise<ValuationResult | null> {
     try {
-      console.log('📊 Getting valuation result for:', requestId);
-
       const { data, error } = await supabase.functions.invoke('valuation-result', {
         body: { request_id: requestId }
       });
@@ -152,7 +142,6 @@ export class ValuationApiService {
       };
 
     } catch (error) {
-      console.error('❌ Error getting valuation result:', error);
       return null;
     }
   }
@@ -170,8 +159,6 @@ export class ValuationApiService {
     };
   } | null> {
     try {
-      console.log('📊 Getting sources status');
-
       const { data, error } = await supabase.functions.invoke('valuation-sources');
 
       if (error) {
@@ -184,7 +171,6 @@ export class ValuationApiService {
       };
 
     } catch (error) {
-      console.error('❌ Error getting sources status:', error);
       return null;
     }
   }
@@ -214,7 +200,6 @@ export class ValuationApiService {
 
       attempts++;
       if (attempts >= maxAttempts) {
-        console.warn('⏰ Polling timeout reached for request:', requestId);
         return result;
       }
 
@@ -290,13 +275,11 @@ export class ValuationApiService {
         .limit(1);
 
       if (recentRequests && recentRequests.length > 0) {
-        console.log('🎯 Found cached valuation for VIN:', vin);
         return await this.getValuationResult(recentRequests[0].id);
       }
 
       return null;
     } catch (error) {
-      console.error('❌ Error checking cached valuation:', error);
       return null;
     }
   }

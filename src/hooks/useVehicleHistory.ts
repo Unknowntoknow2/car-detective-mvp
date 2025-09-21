@@ -51,7 +51,6 @@ export function useVehicleHistory(vin: string, valuationId: string) {
         const errorMessage = err instanceof Error
           ? err.message
           : "Failed to retrieve vehicle history";
-        console.error("Vehicle history error:", errorMessage);
         setError(errorMessage);
       } finally {
         setIsLoading(false);

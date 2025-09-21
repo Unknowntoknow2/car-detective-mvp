@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { ValuationResult } from "@/types/valuation";
+import { ValuationResult } from "@/components/valuation/valuation-core/ValuationResult";
 import { AICondition } from "@/types/photo";
 
 export interface UseValuationPdfHelperProps {
@@ -17,7 +17,6 @@ export function useValuationPdfHelper({
 
   const handleDownloadPdf = async (): Promise<void> => {
     if (!valuationData) {
-      console.error("Cannot download PDF: No valuation data");
       return;
     }
 
@@ -26,11 +25,8 @@ export function useValuationPdfHelper({
     try {
       // Simulating PDF download for now
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log("PDF would be downloaded for:", valuationData.id);
-
       // In a real implementation, this would call an API to generate and download a PDF
     } catch (error) {
-      console.error("Error downloading PDF:", error);
     } finally {
       setIsDownloading(false);
     }

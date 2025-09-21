@@ -102,7 +102,6 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
       toast.success('Valuation report downloaded successfully');
       return 'success';
     } catch (error) {
-      console.error('Error generating PDF:', error);
       toast.error('Failed to generate valuation report');
       return null;
     } finally {
@@ -119,7 +118,6 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
       
       toast.success('Report sent to your email');
     } catch (error) {
-      console.error('Error emailing PDF:', error);
       toast.error('Failed to email valuation report');
     } finally {
       setIsEmailSending(false);
@@ -172,7 +170,6 @@ export function useValuationPdf({ valuationId, valuationData, conditionData }: U
       toast.success('Sample report downloaded successfully');
       return true;
     } catch (error) {
-      console.error('Error generating sample PDF:', error);
       toast.error('Failed to generate sample report');
       return false;
     } finally {

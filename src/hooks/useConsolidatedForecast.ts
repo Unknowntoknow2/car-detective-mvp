@@ -44,8 +44,6 @@ export function useConsolidatedForecast(
       setError(null);
 
       try {
-        console.log(`🚀 Fetching consolidated forecast for: ${valuationId}`);
-        
         const { data, error: invokeError } = await supabase.functions.invoke(
           "valuation-forecast",
           {
@@ -54,16 +52,12 @@ export function useConsolidatedForecast(
         );
 
         if (invokeError) {
-          console.error('❌ Edge function error:', invokeError);
           throw new Error(`Forecast service error: ${invokeError.message}`);
         }
 
         if (!data) {
           throw new Error('No forecast data returned from service');
         }
-
-        console.log('✅ Raw forecast data:', data);
-
         // Validate required data
         if (!data.months || !data.values || data.values.length === 0) {
           setError("Insufficient market data available for accurate forecasting");
@@ -81,13 +75,10 @@ export function useConsolidatedForecast(
           confidenceScore: data.confidenceScore || 50,
           trend: data.trend || "stable",
         };
-
-        console.log('✅ Consolidated forecast data:', consolidatedData);
         setForecastData(consolidatedData);
 
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-        console.error("❌ Forecast fetch error:", errorMessage);
         setError(`Failed to load forecast: ${errorMessage}`);
       } finally {
         setLoading(false);

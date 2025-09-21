@@ -111,9 +111,8 @@ ${userContext ? `User context: ${JSON.stringify(userContext)}` : ""}`,
     });
 
     // Check for OpenAI API key
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = import.meta.env.OPENAI_API_KEY;
     if (!apiKey) {
-      console.error("Missing OpenAI API key");
       return new Response(
         JSON.stringify({ error: "Server configuration error" }),
         {
@@ -140,7 +139,6 @@ ${userContext ? `User context: ${JSON.stringify(userContext)}` : ""}`,
 
     if (!response.ok) {
       const error = await response.json();
-      console.error("OpenAI API error:", error);
       return new Response(
         JSON.stringify({ error: "Failed to get AI response" }),
         {
@@ -159,7 +157,6 @@ ${userContext ? `User context: ${JSON.stringify(userContext)}` : ""}`,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error processing AI request:", error);
     return new Response(
       JSON.stringify({ error: "An unexpected error occurred" }),
       {

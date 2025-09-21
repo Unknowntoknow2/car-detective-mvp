@@ -1,6 +1,6 @@
 import { decodeVin, isVinDecodeSuccessful, extractLegacyVehicleInfo } from '../services/unifiedVinDecoder'
 import { valuateVehicle } from '@/ain-backend/valuationEngine'
-import type { VehicleData, VehicleDataCanonical, ValuationResult } from '@/types/ValuationTypes'
+import type { VehicleData, VehicleDataCanonical, ValuationResult } from '@/components/valuation/valuation-core/ValuationResult'
 import { toCanonicalVehicleData } from '@/types/canonical'
 // Inline types for backend
 type ConversationState = Record<string, any>

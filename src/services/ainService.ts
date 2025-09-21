@@ -18,8 +18,6 @@ export async function askAIN(
   chatHistory?: ChatMessage[]
 ): Promise<AINResponse> {
   try {
-    console.log('🤖 Sending request to AIN:', { question, hasContext: !!vehicleContext });
-    
     const requestBody = {
       message: question,
       vinContext: vehicleContext,
@@ -31,8 +29,6 @@ export async function askAIN(
     });
 
     if (error) {
-      console.error('❌ Supabase function error:', error);
-      
       // Handle specific error types
       if (error.message?.includes('429') || error.message?.includes('rate_limit')) {
         return { 
@@ -53,7 +49,6 @@ export async function askAIN(
     }
 
     if (!data) {
-      console.error('❌ No data received from AIN service');
       return { 
         answer: '', 
         error: 'No response received from AIN. Please try again.' 
@@ -61,7 +56,6 @@ export async function askAIN(
     }
 
     if (data.error) {
-      console.error('❌ AIN service returned error:', data.error);
       return { 
         answer: '', 
         error: data.error 
@@ -69,18 +63,14 @@ export async function askAIN(
     }
 
     if (!data.answer) {
-      console.error('❌ Invalid response format:', data);
       return { 
         answer: '', 
         error: 'Invalid response from AIN. Please try again.' 
       };
     }
-
-    console.log('✅ AIN response received:', { answerLength: data.answer.length });
     return { answer: data.answer };
 
   } catch (error) {
-    console.error('❌ AIN service error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
     // Network or connection errors

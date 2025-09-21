@@ -45,7 +45,6 @@ export class ServerAIClient {
         usage: data.usage
       };
     } catch (error) {
-      console.error('AI completion error:', error);
       throw new Error('AI service temporarily unavailable. Please try again.');
     }
   }

@@ -9,7 +9,6 @@ interface EmailReportSectionProps {
 
 const EmailReportSection: React.FC<EmailReportSectionProps> = ({ valuationId }) => {
   const handleEmail = () => {
-    console.log('Emailing report for valuation:', valuationId);
   };
 
   return (

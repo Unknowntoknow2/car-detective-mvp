@@ -48,15 +48,6 @@ export function validateAINConfiguration() {
       );
     }
   }
-  
-  console.log('✅ AIN Configuration validated:', {
-    USE_AIN_VALUATION,
-    NODE_ENV,
-    PROD,
-    HAS_UPSTREAM_URL: !!AIN_UPSTREAM_URL,
-    HAS_API_KEY: !!AIN_API_KEY,
-    status: USE_AIN_VALUATION === 'true' ? 'AIN_ENABLED' : 'LOCAL_DEV'
-  });
 }
 
 // Export for use in app initialization

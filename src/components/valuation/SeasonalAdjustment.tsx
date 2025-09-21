@@ -92,7 +92,6 @@ export function SeasonalAdjustment({
         .then((res) => res.json());
 
       if (error) {
-        console.error("Error fetching seasonal tip:", error);
         return;
       }
 
@@ -106,7 +105,6 @@ export function SeasonalAdjustment({
         );
       }
     } catch (error) {
-      console.error("Error fetching seasonal tip:", error);
     }
   };
 

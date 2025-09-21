@@ -57,7 +57,6 @@ export function useValuationData(valuationId: string) {
           throw new Error('No valuation result found');
         }
       } catch (err) {
-        console.error('Error fetching valuation data:', err);
         setError('Failed to load valuation data');
         setValuationData(null);
       } finally {

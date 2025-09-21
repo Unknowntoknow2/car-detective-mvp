@@ -87,7 +87,6 @@ export function extractVehicleContext(conversation: { role: string; content: str
 
     return context;
   } catch (error) {
-    console.error('❌ Error in extractVehicleContext:', error);
     return {}; // prevent crashing loop
   }
 }
@@ -124,7 +123,6 @@ export function extractLocationContext(conversation: { role: string; content: st
     
     return locationInfo;
   } catch (error) {
-    console.error('❌ Error in extractLocationContext:', error);
     return {}; // prevent crashing
   }
 }

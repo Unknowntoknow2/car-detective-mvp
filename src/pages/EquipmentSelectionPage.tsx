@@ -69,7 +69,6 @@ export default function EquipmentSelectionPage() {
       toast.success("Equipment options saved successfully");
       navigate("/premium");
     } catch (error) {
-      console.error("Error saving equipment options:", error);
       toast.error("Failed to save equipment options");
     } finally {
       setIsSubmitting(false);

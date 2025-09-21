@@ -32,20 +32,16 @@ export async function fetchCompetitorPrices(
   error?: string
 }> {
   try {
-    console.log(`🔍 Fetching competitor prices for VIN: ${vin}`)
-
     const { data, error } = await supabase.functions.invoke('fetch-competitor-prices', {
       body: { vin, make, model, year }
     })
 
     if (error) {
-      console.error('❌ Competitor price fetch error:', error)
       return { success: false, error: error.message }
     }
 
     return { success: true, data: data?.data }
   } catch (error) {
-    console.error('❌ Competitor price service error:', error)
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -71,13 +67,11 @@ export async function getCachedCompetitorPrices(vin: string): Promise<Competitor
         // No data found
         return null
       }
-      console.error('❌ Error fetching cached competitor prices:', error)
       return null
     }
 
     return data
   } catch (error) {
-    console.error('❌ Cached competitor prices service error:', error)
     return null
   }
 }

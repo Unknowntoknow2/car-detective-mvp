@@ -17,7 +17,6 @@ export async function getEnrichedVehicleData(vin: string): Promise<Vehicle | nul
       condition: 'good'
     };
   } catch (error) {
-    console.error('Failed to get enriched vehicle data:', error);
     return null;
   }
 }

@@ -47,7 +47,6 @@ export function PremiumPdfSection({ valuationResult, isPremium }: PremiumPdfSect
       await downloadValuationPdf(reportData);
       toast.success('PDF downloaded successfully!');
     } catch (error) {
-      console.error('PDF download failed:', error);
       toast.error('Failed to download PDF');
     } finally {
       setIsDownloading(false);

@@ -57,7 +57,6 @@ export async function getListingsWithCondition(
   const { data, error } = await query;
 
   if (error) {
-    console.error("Error fetching listings with condition:", error);
     return [];
   }
 
@@ -114,7 +113,6 @@ export async function getListingsCount(
   const { count, error } = await query;
 
   if (error) {
-    console.error("Error getting listings count:", error);
     return 0;
   }
 

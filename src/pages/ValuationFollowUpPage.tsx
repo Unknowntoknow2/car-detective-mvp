@@ -62,11 +62,8 @@ export default function ValuationFollowUpPage() {
       // FIX #2: Ensure user session is valid or handle anonymous users
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError) {
-        console.warn('⚠️ [DEBUG] Auth error, proceeding as anonymous user:', authError);
       }
       const userId = user?.id || null;
-      console.log('🔍 [DEBUG] User ID:', userId || 'anonymous');
-      
       // FIXED: Load actual follow-up data instead of using defaults
       const { FollowUpService } = await import('@/services/followUpService');
       const { data: followUpData, error: followUpError } = await FollowUpService.getAnswersByVin(vehicleData.vin);

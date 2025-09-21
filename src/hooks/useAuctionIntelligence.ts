@@ -27,7 +27,6 @@ export function useAuctionIntelligence(vin: string) {
           .single();
 
         if (fetchError && fetchError.code !== 'PGRST116') {
-          console.error('Error fetching auction intelligence:', fetchError);
           setError('Failed to fetch auction intelligence');
           setIsLoading(false);
           return;
@@ -38,15 +37,12 @@ export function useAuctionIntelligence(vin: string) {
           (new Date().getTime() - new Date(existingData.updated_at).getTime()) > 24 * 60 * 60 * 1000;
 
         if (shouldGenerate) {
-          console.log('Generating new auction intelligence for VIN:', vin);
-          
           // Trigger intelligence generation
           const { error: functionError } = await supabase.functions.invoke('generate-auction-intelligence', {
             body: { vin }
           });
 
           if (functionError) {
-            console.error('Error generating auction intelligence:', functionError);
             // Don't fail completely, use existing data if available
             if (existingData) {
               setData(existingData);
@@ -65,7 +61,6 @@ export function useAuctionIntelligence(vin: string) {
             .single();
 
           if (refetchError) {
-            console.error('Error fetching updated auction intelligence:', refetchError);
             if (existingData) {
               setData(existingData);
             } else {
@@ -78,7 +73,6 @@ export function useAuctionIntelligence(vin: string) {
           setData(existingData);
         }
       } catch (err) {
-        console.error('Error in useAuctionIntelligence:', err);
         setError('An unexpected error occurred');
       } finally {
         setIsLoading(false);

@@ -27,7 +27,6 @@ export default async function submitFollowUp(followUpData: FollowUpAnswers) {
       .single();
 
     if (valuationError) {
-      console.error('Error creating valuation:', valuationError);
       throw new Error('Failed to create valuation');
     }
 
@@ -41,13 +40,11 @@ export default async function submitFollowUp(followUpData: FollowUpAnswers) {
       });
 
     if (followUpError) {
-      console.error('Error storing follow-up answers:', followUpError);
       throw new Error('Failed to store follow-up data');
     }
 
     return { success: true, id: valuation.id };
   } catch (error) {
-    console.error('Unexpected error:', error);
     throw error;
   }
 }

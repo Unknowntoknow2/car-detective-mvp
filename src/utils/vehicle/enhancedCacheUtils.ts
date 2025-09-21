@@ -40,7 +40,6 @@ export const enhancedCache = {
    */
   saveMakes: (makes: Make[]): void => {
     if (!makes || makes.length === 0) {
-      console.log("Not caching empty makes data");
       return;
     }
 
@@ -55,13 +54,7 @@ export const enhancedCache = {
         CACHE_CONFIG.KEYS.MAKES,
         JSON.stringify(cacheData),
       );
-
-      console.log(
-        `Cached ${makes.length} makes with version ${CACHE_CONFIG.VERSION}`,
-      );
     } catch (error) {
-      console.error("Error saving makes to cache:", error);
-
       // If storage is full, clear old caches to make room
       if (
         error instanceof DOMException && error.name === "QuotaExceededError"
@@ -76,7 +69,6 @@ export const enhancedCache = {
    */
   saveModels: (models: Model[]): void => {
     if (!models || models.length === 0) {
-      console.log("Not caching empty models data");
       return;
     }
 
@@ -91,13 +83,7 @@ export const enhancedCache = {
         CACHE_CONFIG.KEYS.MODELS,
         JSON.stringify(cacheData),
       );
-
-      console.log(
-        `Cached ${models.length} models with version ${CACHE_CONFIG.VERSION}`,
-      );
     } catch (error) {
-      console.error("Error saving models to cache:", error);
-
       // If storage is full, clear old caches to make room
       if (
         error instanceof DOMException && error.name === "QuotaExceededError"
@@ -112,7 +98,6 @@ export const enhancedCache = {
    */
   saveModelsByMake: (makeId: string, models: Model[]): void => {
     if (!models || models.length === 0) {
-      console.log(`Not caching empty models for make ${makeId}`);
       return;
     }
 
@@ -127,7 +112,6 @@ export const enhancedCache = {
         try {
           modelsByMake = JSON.parse(existingCache);
         } catch (e) {
-          console.error("Error parsing existing models by make cache", e);
           modelsByMake = {};
         }
       }
@@ -146,11 +130,7 @@ export const enhancedCache = {
         CACHE_CONFIG.KEYS.MODELS_BY_MAKE,
         JSON.stringify(modelsByMake),
       );
-
-      console.log(`Cached ${limitedModels.length} models for make ${makeId}`);
     } catch (error) {
-      console.error(`Error saving models for make ${makeId} to cache:`, error);
-
       // If storage is full, clear old caches to make room
       if (
         error instanceof DOMException && error.name === "QuotaExceededError"
@@ -174,15 +154,11 @@ export const enhancedCache = {
 
       // Validate version and expiry
       if (version !== CACHE_CONFIG.VERSION || isExpired(timestamp)) {
-        console.log("Makes cache is expired or version mismatch, clearing");
         localStorage.removeItem(CACHE_CONFIG.KEYS.MAKES);
         return null;
       }
-
-      console.log(`Loaded ${data.length} makes from cache`);
       return data;
     } catch (error) {
-      console.error("Error loading makes from cache:", error);
       return null;
     }
   },
@@ -201,15 +177,11 @@ export const enhancedCache = {
 
       // Validate version and expiry
       if (version !== CACHE_CONFIG.VERSION || isExpired(timestamp)) {
-        console.log("Models cache is expired or version mismatch, clearing");
         localStorage.removeItem(CACHE_CONFIG.KEYS.MODELS);
         return null;
       }
-
-      console.log(`Loaded ${data.length} models from cache`);
       return data;
     } catch (error) {
-      console.error("Error loading models from cache:", error);
       return null;
     }
   },
@@ -234,7 +206,6 @@ export const enhancedCache = {
 
       // Validate version and expiry
       if (version !== CACHE_CONFIG.VERSION || isExpired(timestamp)) {
-        console.log(`Cache for make ${makeId} is expired or version mismatch`);
         // Remove only this make's data from the cache
         delete modelsByMake[makeId];
         localStorage.setItem(
@@ -243,14 +214,8 @@ export const enhancedCache = {
         );
         return null;
       }
-
-      console.log(`Loaded ${data.length} models for make ${makeId} from cache`);
       return data;
     } catch (error) {
-      console.error(
-        `Error loading models for make ${makeId} from cache:`,
-        error,
-      );
       return null;
     }
   },
@@ -263,7 +228,6 @@ export const enhancedCache = {
     localStorage.removeItem(CACHE_CONFIG.KEYS.MODELS);
     localStorage.removeItem(CACHE_CONFIG.KEYS.MODELS_BY_MAKE);
     localStorage.removeItem(CACHE_CONFIG.KEYS.TIMESTAMP);
-    console.log("All vehicle data caches cleared");
   },
 };
 
@@ -289,6 +253,4 @@ function clearOldCaches(): void {
 
   // Also clear the models by make cache as it can be large
   localStorage.removeItem(CACHE_CONFIG.KEYS.MODELS_BY_MAKE);
-
-  console.log("Cleared old caches to make room for new data");
 }

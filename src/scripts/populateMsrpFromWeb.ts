@@ -44,8 +44,6 @@ function extractPrice(text: string): number | null {
 }
 
 export async function populateMsrpsFromWebSearch(): Promise<void> {
-  console.log('🚀 MSRP population moved to server-side Edge Function for security');
-  console.warn('❌ This client-side script is disabled. Use server-side implementation instead.');
   return;
 
 }

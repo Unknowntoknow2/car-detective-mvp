@@ -29,7 +29,6 @@ export const useUnifiedDecoder = () => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Decoding failed';
       setError(errorMessage);
-      console.error('Decoder error:', errorMessage);
       throw err;
     } finally {
       setIsDecoding(false);

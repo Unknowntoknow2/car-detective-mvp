@@ -17,16 +17,12 @@ export async function decodeVin(vin: string): Promise<VehicleDecodeResult> {
         error: 'Invalid VIN format. VIN must be 17 characters long.'
       };
     }
-
-    console.log('🔍 [VIN DECODE] Starting decode for VIN:', vin);
-
     // Call the unified-decode edge function
     const { data, error } = await supabase.functions.invoke('unified-decode', {
       body: { vin: vin.toUpperCase() }
     });
 
     if (error) {
-      console.error('❌ [VIN DECODE] Edge function error:', error);
       return {
         success: false,
         error: error.message || 'VIN decode service failed'
@@ -34,15 +30,11 @@ export async function decodeVin(vin: string): Promise<VehicleDecodeResult> {
     }
 
     if (!data || !data.success) {
-      console.error('❌ [VIN DECODE] Decode failed:', data?.error);
       return {
         success: false,
         error: data?.error || 'Failed to decode VIN'
       };
     }
-
-    console.log('✅ [VIN DECODE] Successfully decoded VIN:', data.decoded);
-
     // Verify the vehicle was saved to decoded_vehicles table
     const { data: savedVehicle, error: verifyError } = await supabase
       .from('decoded_vehicles')
@@ -53,11 +45,8 @@ export async function decodeVin(vin: string): Promise<VehicleDecodeResult> {
       .maybeSingle();
 
     if (verifyError) {
-      console.warn('⚠️ [VIN DECODE] Could not verify saved vehicle:', verifyError);
     } else if (savedVehicle) {
-      console.log('✅ [VIN DECODE] Verified vehicle saved to database');
     } else {
-      console.warn('⚠️ [VIN DECODE] Vehicle may not have been saved to database');
     }
 
     return {
@@ -66,7 +55,6 @@ export async function decodeVin(vin: string): Promise<VehicleDecodeResult> {
     };
 
   } catch (error) {
-    console.error('❌ [VIN DECODE] Service error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'VIN decode service failed'
@@ -88,13 +76,11 @@ export async function getDecodedVehicle(vin: string) {
       .maybeSingle();
 
     if (error) {
-      console.error('Error fetching decoded vehicle:', error);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error('Error in getDecodedVehicle:', error);
     return null;
   }
 }

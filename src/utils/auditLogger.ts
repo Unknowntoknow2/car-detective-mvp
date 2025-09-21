@@ -43,13 +43,6 @@ export class ValuationAuditLogger {
     this.auditQueue.push(auditEntry);
     
     // Log to console for development
-    console.log('🔍 Valuation Audit:', {
-      action: auditEntry.action,
-      entityType: auditEntry.entityType,
-      entityId: auditEntry.entityId,
-      dataSourcesUsed: auditEntry.dataSourcesUsed,
-      calculationMethod: auditEntry.calculationMethod
-    });
   }
 
   /**

@@ -32,7 +32,6 @@ const MakeAndModelSelector: React.FC<Props> = ({ makeId, setMakeId, modelId, set
     const fetchMakes = async () => {
       const { data, error } = await supabase.from("makes").select("id, make_name");
       if (error) {
-        console.error("Error loading makes:", error.message);
       } else {
         setMakes(data || []);
       }
@@ -54,7 +53,6 @@ const MakeAndModelSelector: React.FC<Props> = ({ makeId, setMakeId, modelId, set
         .eq("make_id", makeId);
 
       if (error) {
-        console.error("Error loading models:", error.message);
       } else {
         setModels(data || []);
       }

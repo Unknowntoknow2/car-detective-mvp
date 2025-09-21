@@ -21,8 +21,6 @@ export function useDealerOfferActions() {
     setIsProcessing(true);
     
     try {
-      console.log('✅ Processing offer acceptance:', options);
-
       // Get the current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
@@ -90,7 +88,6 @@ export function useDealerOfferActions() {
       toast.success('Offer accepted successfully! The dealer has been notified and will contact you soon.');
       return { success: true, acceptedOffer };
     } catch (error) {
-      console.error('❌ Error accepting offer:', error);
       toast.error('Failed to accept offer. Please try again.');
       return { success: false, error };
     } finally {
@@ -114,7 +111,6 @@ export function useDealerOfferActions() {
       toast.success('Offer rejected.');
       return { success: true };
     } catch (error) {
-      console.error('❌ Error rejecting offer:', error);
       toast.error('Failed to reject offer. Please try again.');
       return { success: false, error };
     } finally {
@@ -153,7 +149,6 @@ export function useDealerOfferActions() {
       toast.success('Accepted offer cancelled successfully.');
       return { success: true };
     } catch (error) {
-      console.error('❌ Error cancelling accepted offer:', error);
       toast.error('Failed to cancel accepted offer. Please try again.');
       return { success: false, error };
     } finally {

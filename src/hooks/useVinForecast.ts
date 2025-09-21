@@ -28,7 +28,6 @@ export function useVinForecast(vin: string) {
       } catch (err) {
         if (mounted) {
           setError('Failed to load forecast');
-          console.error('Error loading forecast:', err);
         }
       } finally {
         if (mounted) {

@@ -182,7 +182,6 @@ export function useAdminAnalytics() {
           topZipCodes,
         });
       } catch (err) {
-        console.error("Error fetching admin analytics:", err);
         setError("Failed to load analytics data");
       } finally {
         setIsLoading(false);

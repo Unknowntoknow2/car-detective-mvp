@@ -21,7 +21,6 @@ export function useDealerVehicles() {
       // Return success
       return true;
     } catch (error) {
-      console.error("Error adding vehicle:", error);
       toast("Failed to add vehicle. Please try again.");
       return false;
     } finally {

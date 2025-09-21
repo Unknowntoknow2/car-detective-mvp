@@ -16,7 +16,6 @@ export const Header: React.FC = () => {
     navigate = useNavigate();
     location = useLocation();
   } catch (error) {
-    console.error('Router context not available:', error);
     // Fallback for when router context is not available
     navigate = () => {};
     location = { pathname: '/' };

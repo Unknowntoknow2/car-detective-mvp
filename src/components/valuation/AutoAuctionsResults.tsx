@@ -40,7 +40,6 @@ export function AutoAuctionsResults({ vin }: AutoAuctionsResultsProps) {
         const data = await fetchAutoAuctionsByVin(vin);
         setRecords(data);
       } catch (err) {
-        console.error('Error fetching AutoAuctions.io data:', err);
         setError('Failed to load auction data');
       } finally {
         setIsLoading(false);

@@ -99,7 +99,6 @@ export default function ViewOfferPage() {
 
       setOffer(combinedOffer);
     } catch (err: any) {
-      console.error('Error fetching offer:', err);
       setError(err.message || 'Failed to load offer details');
     } finally {
       setLoading(false);
@@ -140,7 +139,6 @@ export default function ViewOfferPage() {
       // Show success and refresh
       setOffer({ ...offer, status: 'accepted' });
     } catch (err: any) {
-      console.error('Error accepting offer:', err);
       setError('Failed to accept offer. Please try again.');
     } finally {
       setAccepting(false);

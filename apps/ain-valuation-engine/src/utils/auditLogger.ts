@@ -6,6 +6,5 @@ export async function auditLogger(event: string, details: Record<string, any>) {
       body: JSON.stringify({ event, details, ts: new Date().toISOString() }),
     });
   } catch (e) {
-    console.warn("Audit log failed:", e);
   }
 }

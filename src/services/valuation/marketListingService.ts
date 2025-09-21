@@ -50,8 +50,6 @@ export async function saveMarketListings(
   }
 
   try {
-    console.log(`💾 Saving ${listings.length} market listings to database...`);
-
     // Transform listings to database format
     const listingsToInsert: MarketListingInsertData[] = listings.map(listing => ({
       vin: context.vin,
@@ -89,8 +87,6 @@ export async function saveMarketListings(
       .select('id');
 
     if (error) {
-      console.error('❌ Error saving market listings:', error);
-      
       // Try fallback: insert one by one to identify specific errors
       const fallbackResults = await insertListingsOneByOne(listingsToInsert);
       return {
@@ -101,8 +97,6 @@ export async function saveMarketListings(
     }
 
     const savedCount = data?.length || 0;
-    console.log(`✅ Successfully saved ${savedCount} market listings`);
-    
     return {
       success: true,
       savedCount,
@@ -110,7 +104,6 @@ export async function saveMarketListings(
     };
 
   } catch (error) {
-    console.error('❌ Critical error saving market listings:', error);
     return {
       success: false,
       savedCount: 0,
@@ -173,13 +166,11 @@ export async function getRecentMarketListings(
     const { data, error } = await query;
 
     if (error) {
-      console.error('❌ Error fetching recent listings:', error);
       return [];
     }
 
     return data || [];
   } catch (error) {
-    console.error('❌ Critical error fetching listings:', error);
     return [];
   }
 }

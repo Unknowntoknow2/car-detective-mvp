@@ -99,7 +99,6 @@ export function MarketSnapshot() {
           setIsLoading(false);
         }, 1000);
       } catch (error) {
-        console.error("Error fetching market data:", error);
         setIsLoading(false);
       }
     };

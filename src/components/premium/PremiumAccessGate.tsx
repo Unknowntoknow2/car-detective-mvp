@@ -39,7 +39,6 @@ export function PremiumAccessGate({ valuationId, children }: PremiumAccessGatePr
       // If no credits or failed, navigate to pricing page
       navigate(`/pricing?valuation=${valuationId}`);
     } catch (error) {
-      console.error('Error unlocking premium content:', error);
     } finally {
       setIsProcessing(false);
     }

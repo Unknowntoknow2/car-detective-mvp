@@ -25,7 +25,6 @@ const renderApp = () => {
       </React.StrictMode>
     );
   } catch (error) {
-    console.error('Failed to render application:', error);
     const rootElement = document.getElementById('root');
     if (rootElement) {
       rootElement.innerHTML = `

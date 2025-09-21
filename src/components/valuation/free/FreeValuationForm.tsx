@@ -90,7 +90,6 @@ export const FreeValuationForm = () => {
       toast.success("Valuation completed successfully!");
       navigate('/valuation');
     } catch (err) {
-      console.error("Valuation error:", err);
       setError("An unexpected error occurred. Please try again later.");
       toast.error("An error occurred while processing your request");
     } finally {

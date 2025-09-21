@@ -130,12 +130,10 @@ export function UnifiedLookupTabs() {
         navigate(`/valuation/followup?${params.toString()}`);
         
       } else {
-        console.error('❌ Plate Lookup: Failed:', result?.error);
         toast.error('Failed to find vehicle by license plate. Please try VIN lookup.');
       }
       
     } catch (error) {
-      console.error('❌ Plate lookup error:', error);
       toast.error('Plate lookup service temporarily unavailable. Please try again.');
     }
   };

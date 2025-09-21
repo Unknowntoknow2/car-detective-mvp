@@ -29,8 +29,7 @@ class ErrorHandler {
     this.errors.push(report);
     
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error(`[${context}]`, error);
+    if (import.meta.env.NODE_ENV === 'development') {
     }
   }
 
@@ -38,7 +37,6 @@ class ErrorHandler {
     this.errors.push(errorReport);
     
     // In a real app, this would send to monitoring service
-    console.warn('Error reported:', errorReport);
   }
 
   getErrors(): ErrorReport[] {

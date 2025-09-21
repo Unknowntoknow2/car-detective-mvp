@@ -57,7 +57,6 @@ export function AuthGuard({
             }}
             onError={(error) => {
               toast.error("Failed to sign in with Google");
-              console.error('Auth error:', error);
             }}
           />
           
@@ -91,7 +90,6 @@ export function UserProfile() {
       toast.success("Signed out successfully");
     } catch (error) {
       toast.error("Failed to sign out");
-      console.error('Sign out error:', error);
     }
   };
 

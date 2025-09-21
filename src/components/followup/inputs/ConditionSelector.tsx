@@ -45,7 +45,6 @@ export function ConditionSelector({
   const currentValue = watch ? watch("condition") : value;
 
   const handleOptionClick = (optionValue: string) => {
-    console.log(`🎯 ConditionSelector: Option clicked: ${optionValue}`);
     if (setValue) {
       setValue("condition", optionValue);
     }

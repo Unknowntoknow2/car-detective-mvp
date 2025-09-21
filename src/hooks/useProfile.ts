@@ -27,7 +27,6 @@ export function useProfile() {
         toast.error("Failed to fetch profile");
       }
     } catch (error: any) {
-      console.error("Error in fetchProfile:", error);
       toast.error("Failed to fetch profile", {
         description: error.message || "Unknown error occurred",
       });
@@ -61,7 +60,6 @@ export function useProfile() {
         throw new Error("Failed to update profile");
       }
     } catch (error: any) {
-      console.error("Error in updateProfile:", error);
       toast.error("Failed to update profile", {
         description: error.message || "Unknown error occurred",
       });
@@ -91,7 +89,6 @@ export function useProfile() {
         });
 
       if (uploadError) {
-        console.error("Avatar upload error:", uploadError);
         throw uploadError;
       }
 
@@ -107,7 +104,6 @@ export function useProfile() {
       toast.success("Avatar uploaded successfully");
       return updatedProfile;
     } catch (error: any) {
-      console.error("Error in uploadAvatar:", error);
       toast.error("Avatar upload failed", {
         description: error.message || "Unknown error occurred",
       });

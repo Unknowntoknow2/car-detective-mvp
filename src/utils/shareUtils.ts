@@ -17,8 +17,6 @@ export interface GeneratedShareData {
 
 export async function generateShareLinkAndQR(data: ShareLinkData): Promise<GeneratedShareData> {
   try {
-    console.log('🔗 Generating share link and QR code...', data);
-    
     // Generate a unique token for this valuation
     const token = generateShareToken(data);
     
@@ -35,16 +33,12 @@ export async function generateShareLinkAndQR(data: ShareLinkData): Promise<Gener
         light: '#FFFFFF'
       }
     });
-    
-    console.log('✅ Share link and QR generated successfully');
-    
     return {
       link: shareLink,
       qr: qrCodeDataUrl,
       token: token
     };
   } catch (error) {
-    console.error('❌ Failed to generate share link and QR:', error);
     throw error;
   }
 }
@@ -79,7 +73,6 @@ export function extractDataFromShareToken(token: string): { isValid: boolean; da
       data: { token }
     };
   } catch (error) {
-    console.error('❌ Failed to extract data from share token:', error);
     return { isValid: false };
   }
 }
@@ -95,7 +88,6 @@ export async function generateQRCodeOnly(url: string): Promise<string> {
       }
     });
   } catch (error) {
-    console.error('❌ Failed to generate QR code:', error);
     throw error;
   }
 }

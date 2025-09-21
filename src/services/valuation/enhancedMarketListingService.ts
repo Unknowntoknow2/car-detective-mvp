@@ -50,8 +50,6 @@ export class EnhancedMarketListingService {
    */
   static async fetchRealMarketListings(filters: EnhancedMarketListingFilters): Promise<EnhancedMarketListing[]> {
     try {
-      console.log('🔍 Fetching real market listings with filters:', filters);
-
       let query = supabase
         .from('market_listings')
         .select('*')
@@ -90,13 +88,11 @@ export class EnhancedMarketListingService {
       const { data, error } = await query;
 
       if (error) {
-        console.error('❌ Error fetching market listings:', error);
         toast.error('Failed to fetch market listings');
         return [];
       }
 
       if (!data || data.length === 0) {
-        console.log('📭 No market listings found with current filters');
         return [];
       }
 
@@ -129,12 +125,9 @@ export class EnhancedMarketListingService {
         is_validated: listing.is_validated || false,
         validation_errors: listing.validation_errors || []
       }));
-
-      console.log(`✅ Successfully fetched ${transformedListings.length} real market listings`);
       return transformedListings;
 
     } catch (error) {
-      console.error('❌ Critical error fetching real market listings:', error);
       toast.error('Failed to fetch market data');
       return [];
     }
@@ -144,12 +137,9 @@ export class EnhancedMarketListingService {
    * Search for similar vehicles in the market
    */
   static async searchSimilarVehicles(filters: EnhancedMarketListingFilters): Promise<EnhancedMarketListing[]> {
-    console.log('🔍 Searching for similar vehicles...');
-    
     // First try exact match
     const exactMatch = await this.fetchRealMarketListings(filters);
     if (exactMatch.length > 0) {
-      console.log(`✅ Found ${exactMatch.length} exact matches`);
       return exactMatch;
     }
 
@@ -169,12 +159,8 @@ export class EnhancedMarketListingService {
         listing.year && 
         Math.abs(listing.year - filters.year!) <= yearRange
       );
-      
-      console.log(`✅ Found ${filteredByYear.length} similar vehicles within ${yearRange} years`);
       return filteredByYear;
     }
-
-    console.log(`✅ Found ${broaderResults.length} similar vehicles`);
     return broaderResults;
   }
 
@@ -244,19 +230,16 @@ export class EnhancedMarketListingService {
     );
 
     if (!hasRequiredFields) {
-      console.warn('⚠️ Listing missing required fields:', listing);
       return false;
     }
 
     // Validate price range
     if (listing.price < 1000 || listing.price > 200000) {
-      console.warn('⚠️ Listing price out of range:', listing.price);
       return false;
     }
 
     // Validate mileage if present
     if (listing.mileage && (listing.mileage < 0 || listing.mileage > 500000)) {
-      console.warn('⚠️ Listing mileage out of range:', listing.mileage);
       return false;
     }
 
@@ -279,11 +262,9 @@ export class EnhancedMarketListingService {
         
         // Cache for 5 minutes
         if (cacheAgeMinutes < 5) {
-          console.log('📦 Using cached market listings');
           return parsed.data;
         }
       } catch (error) {
-        console.warn('⚠️ Failed to parse cached listings:', error);
       }
     }
 
@@ -297,7 +278,6 @@ export class EnhancedMarketListingService {
         timestamp: new Date().toISOString()
       }));
     } catch (error) {
-      console.warn('⚠️ Failed to cache listings:', error);
     }
     
     return freshData;

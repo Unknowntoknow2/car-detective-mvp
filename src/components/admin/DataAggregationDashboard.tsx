@@ -82,7 +82,6 @@ export function DataAggregationDashboard() {
       });
 
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
       toast.error('Failed to load dashboard data');
     } finally {
       setIsLoading(false);
@@ -101,7 +100,6 @@ export function DataAggregationDashboard() {
       toast.success(`Source ${!isActive ? 'activated' : 'deactivated'}`);
       loadDashboardData();
     } catch (error) {
-      console.error('Error updating source status:', error);
       toast.error('Failed to update source status');
     }
   };

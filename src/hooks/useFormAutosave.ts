@@ -11,7 +11,6 @@ export function useFormAutosave(formData: FormData) {
       }
       return null;
     } catch (error) {
-      console.error("Error loading saved form data:", error);
       return null;
     }
   }, []);
@@ -21,7 +20,6 @@ export function useFormAutosave(formData: FormData) {
     try {
       localStorage.setItem("premium_valuation_form", JSON.stringify(data));
     } catch (error) {
-      console.error("Error saving form data:", error);
     }
   }, []);
 
@@ -30,7 +28,6 @@ export function useFormAutosave(formData: FormData) {
     try {
       localStorage.removeItem("premium_valuation_form");
     } catch (error) {
-      console.error("Error clearing saved form data:", error);
     }
   }, []);
 

@@ -62,7 +62,6 @@ export function useFullValuationPipeline(): FullValuationPipelineReturn {
         actions.stopLoading();
         return vehicleData;
       } catch (err) {
-        console.error("Error during lookup:", err);
         actions.setError(
           err instanceof Error ? err.message : "Unknown error during lookup",
         );
@@ -119,7 +118,6 @@ export function useFullValuationPipeline(): FullValuationPipelineReturn {
       actions.stopLoading();
       return resultData;
     } catch (err) {
-      console.error("Error during valuation submission:", err);
       actions.setError(
         err instanceof Error ? err.message : "Unknown error during valuation",
       );

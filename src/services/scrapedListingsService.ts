@@ -28,13 +28,11 @@ export async function getScrapedListingsByVin(vin: string): Promise<ScrapedListi
       .limit(10);
 
     if (error) {
-      console.error('Error fetching scraped listings:', error);
       return [];
     }
 
     return data || [];
   } catch (error) {
-    console.error('Failed to fetch scraped listings:', error);
     return [];
   }
 }

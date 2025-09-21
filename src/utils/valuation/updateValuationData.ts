@@ -20,7 +20,6 @@ export async function updateValuationDataField(
       .single();
 
     if (fetchError) {
-      console.error("Error fetching valuation data:", fetchError);
       return false;
     }
 
@@ -36,13 +35,11 @@ export async function updateValuationDataField(
       .eq("id", valuationId);
 
     if (updateError) {
-      console.error("Error updating valuation:", updateError);
       return false;
     }
 
     return true;
   } catch (err) {
-    console.error("Error in updateValuationDataField:", err);
     return false;
   }
 }
@@ -65,7 +62,6 @@ export async function updateValuationDataFields(
       .single();
 
     if (fetchError) {
-      console.error("Error fetching valuation:", fetchError);
       return false;
     }
 
@@ -76,13 +72,11 @@ export async function updateValuationDataFields(
       .eq("id", valuationId);
 
     if (updateError) {
-      console.error("Error updating valuation:", updateError);
       return false;
     }
 
     return true;
   } catch (err) {
-    console.error("Error in updateValuationDataFields:", err);
     return false;
   }
 }
@@ -107,7 +101,6 @@ export async function getValuationDataField<T>(
       .single();
 
     if (error) {
-      console.error("Error fetching valuation:", error);
       return defaultValue;
     }
 
@@ -118,7 +111,6 @@ export async function getValuationDataField<T>(
 
     return defaultValue;
   } catch (err) {
-    console.error("Error in getValuationDataField:", err);
     return defaultValue;
   }
 }

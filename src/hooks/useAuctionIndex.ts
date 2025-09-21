@@ -28,7 +28,6 @@ export function useAuctionIndex(startDate?: string, endDate?: string) {
         );
 
         if (error) {
-          console.error("Auction index fetch error:", error);
           throw new Error(
             error.message || "Failed to fetch auction index data",
           );
@@ -39,7 +38,6 @@ export function useAuctionIndex(startDate?: string, endDate?: string) {
         const errorMsg = err instanceof Error
           ? err.message
           : "Failed to fetch auction index data";
-        console.error("Auction index hook error:", err);
         toast.error(errorMsg);
         throw err;
       }

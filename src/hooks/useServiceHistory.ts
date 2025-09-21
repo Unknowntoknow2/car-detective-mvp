@@ -50,7 +50,6 @@ export function useServiceHistory({ vin }: UseServiceHistoryProps) {
           ? err
           : new Error("Unknown error fetching records"),
       );
-      console.error("Error fetching service records:", err);
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +71,6 @@ export function useServiceHistory({ vin }: UseServiceHistoryProps) {
 
       return { success: true, data };
     } catch (err) {
-      console.error("Error adding service record:", err);
       return {
         success: false,
         error: err instanceof Error ? err : new Error("Failed to add record"),
@@ -93,7 +91,6 @@ export function useServiceHistory({ vin }: UseServiceHistoryProps) {
 
       return { success: true };
     } catch (err) {
-      console.error("Error deleting service record:", err);
       return {
         success: false,
         error: err instanceof Error

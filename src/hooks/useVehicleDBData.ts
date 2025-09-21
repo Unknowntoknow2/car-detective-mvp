@@ -36,7 +36,6 @@ export function useVehicleDBData() {
 
         setMakes(formattedMakes);
       } catch (err: any) {
-        console.error("Error fetching makes:", err);
         setError("Failed to load vehicle makes");
       } finally {
         setIsLoading(false);
@@ -74,7 +73,6 @@ export function useVehicleDBData() {
       setModels(formattedModels);
       return formattedModels;
     } catch (err: any) {
-      console.error("Error fetching models:", err);
       setError("Failed to load vehicle models");
       return [];
     } finally {
@@ -105,7 +103,6 @@ export function useVehicleDBData() {
 
       return data?.make_name || "Unknown Make";
     } catch (err: any) {
-      console.error("Error fetching make name:", err);
       return "Unknown Make";
     }
   };
@@ -123,7 +120,6 @@ export function useVehicleDBData() {
 
       return data?.model_name || "Unknown Model";
     } catch (err: any) {
-      console.error("Error fetching model name:", err);
       return "Unknown Model";
     }
   };

@@ -53,19 +53,9 @@ export function calculateAdvancedConfidence(inputs: ConfidenceInputs): number {
   let marketDataBonus = 0;
   const realListingsCount = listings.filter(l => l.source_type !== 'estimated' && l.source !== 'Market Estimate').length;
   const syntheticListingsCount = listings.length - realListingsCount;
-  
-  console.log('📊 Market Data Analysis:', {
-    totalListings: listings.length,
-    realListings: realListingsCount,
-    syntheticListings: syntheticListingsCount,
-    marketSearchStatus,
-    sources
-  });
-
   // Check for exact VIN match from REAL data only
   if (sources.includes('exact_vin_match') && realListingsCount > 0) {
     marketDataBonus += 25; // Major confidence boost for exact VIN
-    console.log('🎯 EXACT VIN MATCH CONFIDENCE BOOST: +25 points');
   }
   
   // Base market data availability - only for real listings
@@ -83,12 +73,9 @@ export function calculateAdvancedConfidence(inputs: ConfidenceInputs): number {
     if (sources.includes('web_search')) marketDataBonus += 2;
     
   } else if (marketSearchStatus === 'fallback' || realListingsCount === 0) {
-    console.log('⚠️ FALLBACK MODE DETECTED - Limited confidence');
-    
     // Severe penalty for synthetic/estimated data
     if (syntheticListingsCount > 0 && realListingsCount === 0) {
       marketDataBonus -= 20; // Major penalty for synthetic-only data
-      console.log('❌ Using synthetic data only, applying -20 confidence penalty');
     } else if (realListingsCount >= 3) {
       marketDataBonus += 8; // Good database coverage
     } else if (realListingsCount >= 1) {
@@ -164,16 +151,12 @@ export function calculateAdvancedConfidence(inputs: ConfidenceInputs): number {
   // PHASE 1 FIX: Stricter confidence caps for limited data
   if (realListingsCount === 0) {
     maxConfidence = 40; // Maximum 40% confidence without real market data
-    console.log('🚨 No real market data - capping confidence at 40%');
   } else if (realListingsCount === 1) {
     maxConfidence = 55; // Maximum 55% confidence with 1 real listing
-    console.log('⚠️ Very limited market data (1 listing) - capping confidence at 55%');
   } else if (realListingsCount === 2) {
     maxConfidence = 65; // Maximum 65% confidence with 2 real listings
-    console.log('⚠️ Limited market data (2 listings) - capping confidence at 65%');
   } else if (realListingsCount < 5) {
     maxConfidence = 75; // Maximum 75% confidence with 3-4 real listings
-    console.log('⚠️ Moderate market data (3-4 listings) - capping confidence at 75%');
   }
   
   const finalConfidence = Math.max(25, Math.min(maxConfidence, confidence));

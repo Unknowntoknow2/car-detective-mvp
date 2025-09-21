@@ -37,7 +37,6 @@ export function ZipMarketAnalysis(
         const multiplier = await getMarketMultiplier(zipCode);
         setMarketMultiplier(multiplier);
       } catch (err) {
-        console.error("Error fetching market data:", err);
         setError("Unable to fetch market data for this location");
       } finally {
         setIsLoading(false);

@@ -117,7 +117,6 @@ export const enableReactDevMode = () => {
       };
     }
   } catch (e) {
-    console.warn('Could not enable React dev tools integration:', e);
   }
 };
 
@@ -134,7 +133,6 @@ export const setupPuppeteerErrorHandler = () => {
         // Prevent the error from propagating
         event.preventDefault();
         event.stopPropagation();
-        console.warn('Puppeteer-related error suppressed');
         return false;
       }
       return true;

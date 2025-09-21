@@ -13,13 +13,11 @@ export async function getProfile(userId: string): Promise<Profile | null> {
       .maybeSingle();
 
     if (error) {
-      console.error("Error fetching profile:", error.message);
       throw error;
     }
 
     // If no profile exists, create one
     if (!data) {
-      console.log("No profile found, creating one...");
       // Ensure id is included and not optional
       const newProfile = {
         id: userId,
@@ -33,7 +31,6 @@ export async function getProfile(userId: string): Promise<Profile | null> {
         .single();
 
       if (createError) {
-        console.error("Error creating profile:", createError.message);
         throw createError;
       }
 
@@ -63,7 +60,6 @@ export async function updateProfile(
       .single();
 
     if (error) {
-      console.error("Error updating profile:", error.message);
       throw error;
     }
 

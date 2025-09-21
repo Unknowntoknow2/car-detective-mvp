@@ -21,12 +21,10 @@ export async function getTitleStatusAdjustmentFromDB(
       .single();
 
     if (error) {
-      console.error("Error fetching title status multiplier:", error);
       return 0; // No adjustment on error
     }
 
     if (!data) {
-      console.warn(`No multiplier found for title status: ${status}`);
       return 0; // No adjustment if no data found
     }
 
@@ -36,7 +34,6 @@ export async function getTitleStatusAdjustmentFromDB(
 
     return adjustment;
   } catch (error) {
-    console.error("Error calculating title status adjustment:", error);
     return 0; // No adjustment on error
   }
 }

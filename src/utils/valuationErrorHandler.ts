@@ -128,7 +128,6 @@ export async function withRetry<T>(
       
       if (attempt < maxRetries) {
         const delay = ValuationErrorHandler.getRetryDelay(attempt);
-        console.log(`⏱️ Retrying ${operationType} operation in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }

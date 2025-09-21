@@ -8,7 +8,6 @@ export default function AdminPage() {
     results: [],
     isRunning: false,
     runTests: async () => {
-      console.log("Running auth tests from AdminPage");
     },
   };
 

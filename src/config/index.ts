@@ -69,7 +69,6 @@ let config: Config;
 try {
   config = ConfigSchema.parse(rawConfig);
 } catch (error) {
-  console.error('Configuration validation failed:', error);
   throw new Error(`Invalid configuration: ${error instanceof z.ZodError ? error.message : 'Unknown error'}`);
 }
 

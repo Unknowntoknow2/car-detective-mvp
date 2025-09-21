@@ -24,7 +24,6 @@ export function MarketForecastCard({ vin, estimatedValue }: MarketForecastCardPr
         const forecastData = await getOrCreateVinForecast(vin);
         setForecast(forecastData);
       } catch (error) {
-        console.error('Error loading forecast:', error);
       } finally {
         setLoading(false);
       }

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { ValuationApiService, ValuationRequest, ValuationResult, SourceStatus } from '@/services/ValuationApiService';
+import { ValuationApiService, ValuationRequest, ValuationResult, SourceStatus } from '@/components/valuation/valuation-core/ValuationResult';
 import { toast } from 'sonner';
 
 export interface UseValuationApiReturn {
@@ -135,7 +135,6 @@ export function useValuationApi(): UseValuationApiReturn {
       }
 
     } catch (err) {
-      console.error('Failed to load sources:', err);
       toast.error('Failed to load sources status');
     }
   }, []);

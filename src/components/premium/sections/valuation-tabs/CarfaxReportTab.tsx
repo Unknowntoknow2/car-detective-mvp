@@ -21,7 +21,6 @@ export function CarfaxReportTab({ vin }: CarfaxReportTabProps) {
   }, [vin]);
 
   const downloadReport = () => {
-    console.log("Downloading CARFAX report for VIN:", vin);
   };
 
   if (!vin) {

@@ -19,7 +19,6 @@ export default function OffersPage() {
         mileage: 50000
       });
     } catch (err) {
-      console.error('Error calculating valuation:', err);
     }
   };
 

@@ -1,7 +1,7 @@
 // ValuationResultsDisplay expects a 'valuation' prop or will resolve from location or window context.
 import React from 'react';
 import { useLocation } from "react-router-dom";
-import { ValuationResult } from '../../types/ValuationTypes';
+import { ValuationResult } from '@/components/valuation/valuation-core/ValuationResult';
 
 interface ValuationResultsProps {
   valuation: ValuationResult;
@@ -9,7 +9,6 @@ interface ValuationResultsProps {
 
 const formatCurrency = (amount: number | null | undefined) => {
   if (amount === null || amount === undefined || !isFinite(amount)) {
-  console.warn("⚠️ Missing estimatedValue — showing N/A instead of $0");
     return "N/A";
   }
   return `$${amount.toLocaleString()}`;
@@ -79,8 +78,6 @@ export function ValuationResultsDisplay(props: ValuationResultsProps) {
       </div>
     );
   }
-
-  console.log("[ResultsPage] resolved valuation:", valuation);
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Header */}

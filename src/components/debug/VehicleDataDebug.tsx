@@ -30,7 +30,6 @@ export function VehicleDataDebug() {
       logDiagnosticsReport(result);
     } catch (err: any) {
       setError(err.message);
-      console.error('Failed to run diagnostics:', err);
     } finally {
       setIsRunning(false);
     }
@@ -84,7 +83,6 @@ export function VehicleDataDebug() {
       });
       
     } catch (err: any) {
-      console.error('Connection test failed:', err);
       setError('Connection test failed: ' + err.message);
       setConnectionTest({
         connected: false,

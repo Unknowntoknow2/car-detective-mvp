@@ -32,7 +32,6 @@ export function IndustryLeaderDataSection({
         const data = await fetchIndustryLeaderData(vin, make, model, year);
         setIndustryData(data);
       } catch (error) {
-        console.error('Failed to load industry data:', error);
       } finally {
         setIsLoading(false);
       }

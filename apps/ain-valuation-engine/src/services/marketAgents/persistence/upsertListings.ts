@@ -27,7 +27,6 @@ export async function upsertListings(rows: Listing[]): Promise<number> {
       .select("id");
 
     if (error) {
-      console.warn("[market_listings.upsert] error", error);
       return 0;
     return 0;
     return count ?? 0;

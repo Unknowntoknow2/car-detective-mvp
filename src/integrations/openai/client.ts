@@ -49,8 +49,7 @@ class OpenAIClient {
 // OpenAI functionality moved to server-side Edge Functions
 export const openai = null;
 
-if (process.env.NODE_ENV !== 'production') {
-  console.warn('OpenAI client disabled - use server-side Edge Functions for AI features');
+if (import.meta.env.NODE_ENV !== 'production') {
 }
 
 export default openai;

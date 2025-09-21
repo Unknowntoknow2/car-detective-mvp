@@ -20,19 +20,8 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({ 
 
   useEffect(() => {
     // Log the result data for debugging
-    console.log('UnifiedValuationResult received data:', {
-      id: result.id,
-      vin: result.vin,
-      vehicleInfo: result.vehicle,
-      baseValue: result.baseValue,
-      finalValue: result.finalValue,
-      confidenceScore: result.confidenceScore,
-      listingCount: result.listingCount
-    });
-
     // Validate that we have a proper estimated value
     if (!result.finalValue || result.finalValue <= 0) {
-      console.error('Invalid valuation amount detected:', result.finalValue);
     }
   }, [result]);
 

@@ -87,7 +87,6 @@ export class CarMaxSource {
       return listings;
 
     } catch (error) {
-      console.error('❌ CarMax search error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
       // Log the error
@@ -192,7 +191,6 @@ export class CarMaxSource {
         success_rate: Math.round(successRate)
       };
     } catch (error) {
-      console.error('❌ Error getting CarMax status:', error);
       return {
         name: this.SOURCE_NAME,
         type: this.SOURCE_TYPE,

@@ -66,23 +66,16 @@ export async function fetchMarketComps(input: MarketSearchInput): Promise<Market
         if (foundListings.length > 0) {
           listings.push(...foundListings);
           sources.push(searchResult.source);
-          console.log(`✅ ${searchResult.source}: Found ${foundListings.length} listings`);
         } else {
-          console.log(`ℹ️ ${searchResult.source}: No listings found`);
         }
       } else if (searchResult.error) {
         errors.push(`${searchResult.source}: ${searchResult.error}`);
-        console.warn(`⚠️ ${searchResult.source}: ${searchResult.error}`);
       }
     } else {
       const sourceName = ['EchoPark', 'Cars.com', 'Marketplaces'][index];
       errors.push(`${sourceName}: ${result.reason}`);
-      console.error(`❌ ${sourceName}: ${result.reason}`);
     }
   });
-
-  console.log(`📊 Market search completed: ${listings.length} total listings from ${sources.length} sources`);
-
   return {
     listings: listings.slice(0, 50), // Limit to top 50 results
     sources,
@@ -92,8 +85,6 @@ export async function fetchMarketComps(input: MarketSearchInput): Promise<Market
 }
 
 async function fetchMarketplaceListings(make: string, model: string, year: number, zipCode: string): Promise<MarketListing[]> {
-  console.log(`🔍 Fetching marketplace listings for ${year} ${make} ${model} in ${zipCode}`);
-  
   try {
     // Use the existing marketplace data edge function
     const response = await fetch(`https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/fetch-marketplace-data?query=${year} ${make} ${model}&zip=${zipCode}&platform=all`, {
@@ -104,7 +95,6 @@ async function fetchMarketplaceListings(make: string, model: string, year: numbe
     });
 
     if (!response.ok) {
-      console.warn(`⚠️ Marketplace API failed: ${response.status}`);
       return [];
     }
 
@@ -130,15 +120,12 @@ async function fetchMarketplaceListings(make: string, model: string, year: numbe
       })).filter((listing: MarketListing) => 
         listing.price > 1000 && listing.price < 200000 // Basic validation
       );
-
-      console.log(`✅ Marketplace listings: Found ${marketListings.length} valid listings`);
       return marketListings;
     }
 
     return [];
 
   } catch (error) {
-    console.error('❌ Marketplace listings fetch failed:', error);
     return [];
   }
 }
@@ -156,9 +143,6 @@ async function fetchEchoParkListings(args: { valuationId: string; make: string; 
       // Real EchoPark scraping with enhanced error handling
       const searchQuery = `${args.year} ${args.make} ${args.model}`.replace(/\s+/g, '+');
       const url = `https://www.echopark.com/search?query=${searchQuery}&zipCode=${args.zipCode}&radius=50`;
-      
-      console.log(`🔍 Fetching EchoPark listings (attempt ${retryCount + 1}):`, url);
-      
       // Randomize user agent to avoid detection
       const userAgents = [
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -192,7 +176,6 @@ async function fetchEchoParkListings(args: { valuationId: string; make: string; 
       
       if (!ok) {
         if (res.status === 429 && retryCount < maxRetries) {
-          console.warn(`⚠️ EchoPark rate limited, retrying in ${(retryCount + 1) * 2}s...`);
           await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 2000));
           retryCount++;
           continue;
@@ -204,7 +187,6 @@ async function fetchEchoParkListings(args: { valuationId: string; make: string; 
       
       if (html.includes('blocked') || html.includes('captcha') || html.length < 1000) {
         if (retryCount < maxRetries) {
-          console.warn('⚠️ EchoPark may have blocked request, retrying...');
           await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 3000));
           retryCount++;
           continue;
@@ -259,17 +241,13 @@ async function fetchEchoParkListings(args: { valuationId: string; make: string; 
         }
         if (parsed) break;
       }
-
-      console.log(`✅ EchoPark: Found ${listings.length} listings`);
       return { ok: true, httpStatus, listings };
       
     } catch (e: any) {
       error = e?.message ?? 'fetch_failed';
       if (retryCount >= maxRetries) {
-        console.error('❌ EchoPark fetch failed after retries:', error);
         break;
       }
-      console.warn(`⚠️ EchoPark attempt ${retryCount + 1} failed:`, error);
       retryCount++;
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
@@ -289,9 +267,6 @@ async function fetchCarsComListings(args: { valuationId: string; make: string; m
     const makeFormatted = args.make.toLowerCase().replace(/\s+/g, '-');
     const modelFormatted = args.model.toLowerCase().replace(/\s+/g, '-');
     const url = `https://www.cars.com/shopping/results/?makes[]=${makeFormatted}&models[]=${makeFormatted}-${modelFormatted}&list_price_max=&list_price_min=&makes[]=${makeFormatted}&maximum_distance=50&models[]=${modelFormatted}&page_size=20&sort=relevance&stock_type=used&year_max=${args.year}&year_min=${args.year}&zip=${args.zipCode}`;
-    
-    console.log('🔍 Fetching Cars.com listings:', url);
-    
     const res = await fetch(url, { 
       method: 'GET',
       headers: {
@@ -374,17 +349,13 @@ async function fetchCarsComListings(args: { valuationId: string; make: string; m
             }
           });
         } catch (parseError) {
-          console.warn('Failed to parse Apollo state:', parseError);
         }
       }
     }
-
-    console.log(`✅ Cars.com: Found ${listings.length} listings`);
     return { ok: true, httpStatus, listings };
     
   } catch (e: any) {
     error = e?.message ?? 'fetch_failed';
-    console.error('❌ Cars.com fetch failed:', error);
     return { ok: false, httpStatus, error, listings: [] };
   } finally {
     await recordListingAudit({

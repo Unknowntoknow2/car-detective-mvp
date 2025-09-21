@@ -44,13 +44,11 @@ export async function getValuationById(id: string): Promise<ValuationResult | nu
       .single();
     
     if (error) {
-      console.error('Error fetching valuation:', error);
       return null;
     }
     
     return data as ValuationResult;
   } catch (error) {
-    console.error('Error in getValuationById:', error);
     return null;
   }
 }
@@ -66,13 +64,11 @@ export async function createVinValuation(vin: string, userId?: string | null): P
     });
 
     if (decodeError) {
-      console.error('Error decoding VIN:', decodeError);
       return null;
     }
 
     const decodedVehicle = decodedData?.data;
     if (!decodedVehicle) {
-      console.error('No vehicle data returned from VIN decode');
       return null;
     }
 
@@ -92,7 +88,6 @@ export async function createVinValuation(vin: string, userId?: string | null): P
       .single();
 
     if (requestError) {
-      console.error('Error creating valuation request:', requestError);
       return null;
     }
 
@@ -118,13 +113,11 @@ export async function createVinValuation(vin: string, userId?: string | null): P
       .single();
     
     if (error) {
-      console.error('Error creating VIN valuation:', error);
       return null;
     }
     
     return data as ValuationResult;
   } catch (error) {
-    console.error('Error in createVinValuation:', error);
     return null;
   }
 }
@@ -136,10 +129,8 @@ export async function createPlateValuation(plate: string, state: string, userId?
   try {
     // TODO: Implement actual plate lookup API integration
     // For now, return null to force manual entry flow
-    console.log('Plate lookup not yet implemented for production use');
     return null;
   } catch (error) {
-    console.error('Error in createPlateValuation:', error);
     return null;
   }
 }
@@ -178,13 +169,11 @@ export async function createManualValuation(details: ValuationDetails, userId?: 
       .single();
     
     if (error) {
-      console.error('Error creating manual valuation:', error);
       return null;
     }
     
     return data as ValuationResult;
   } catch (error) {
-    console.error('Error in createManualValuation:', error);
     return null;
   }
 }

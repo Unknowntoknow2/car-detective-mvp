@@ -63,7 +63,6 @@ export function AINSummary({ vin, vehicleData }: AINSummaryProps) {
 
         setSummary(data?.answer || 'Unable to generate insights at this time.');
       } catch (err) {
-        console.error('Error generating AIN summary:', err);
         setError('Failed to generate AI insights. Please try again.');
       } finally {
         setIsLoading(false);

@@ -27,8 +27,6 @@ export interface ExplanationInput {
  */
 export async function generateAIExplanation(input: ExplanationInput): Promise<string> {
   try {
-    console.log('🤖 Generating AI explanation for valuation...');
-    
     // Prepare structured data for AI
     const explanationData = {
       vehicle: `${input.vehicle.year} ${input.vehicle.make} ${input.vehicle.model}${input.vehicle.trim ? ` ${input.vehicle.trim}` : ''}`,
@@ -53,19 +51,16 @@ export async function generateAIExplanation(input: ExplanationInput): Promise<st
     });
     
     if (error) {
-      console.error('AI explanation service error:', error);
       return generateFallbackExplanation(input);
     }
     
     if (data?.explanation) {
-      console.log('✅ AI explanation generated successfully');
       return data.explanation;
     }
     
     return generateFallbackExplanation(input);
     
   } catch (error) {
-    console.error('Error generating AI explanation:', error);
     return generateFallbackExplanation(input);
   }
 }

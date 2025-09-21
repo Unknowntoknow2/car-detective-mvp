@@ -57,8 +57,6 @@ export function usePrediction() {
 
       // In a real app, you would store this in the database
       // For now, we'll log it to the console
-      console.log("Generated prediction for", valuationId, mockPrediction);
-
       setIsLoading(false);
       return mockPrediction;
     } catch (err) {
@@ -68,8 +66,6 @@ export function usePrediction() {
       setError(errorMessage);
       setIsLoading(false);
       toast.error(errorMessage);
-
-      console.error("Prediction error:", err);
       return null;
     }
   };

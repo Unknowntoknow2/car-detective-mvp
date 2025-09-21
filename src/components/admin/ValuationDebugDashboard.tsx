@@ -66,7 +66,6 @@ export function ValuationDebugDashboard() {
         lastFeedback: latestFeedback.data
       });
     } catch (error) {
-      console.error('Error fetching debug stats:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);

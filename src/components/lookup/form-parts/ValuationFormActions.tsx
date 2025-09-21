@@ -35,7 +35,6 @@ export function ValuationFormActions({
 
   const handleContinueToFollowUp = () => {
     if (!formComplete || !vehicleData?.make || !vehicleData?.model || !vehicleData?.year) {
-      console.warn('Form not complete or missing vehicle data');
       return;
     }
 

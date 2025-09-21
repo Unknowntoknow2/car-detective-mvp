@@ -45,7 +45,6 @@ export function useNhtsaRecalls(
         );
 
         if (error) {
-          console.error("NHTSA recalls fetch error:", error);
           throw new Error(error.message || "Failed to fetch recall data");
         }
 
@@ -54,7 +53,6 @@ export function useNhtsaRecalls(
         const errorMsg = err instanceof Error
           ? err.message
           : "Failed to fetch recall data";
-        console.error("NHTSA recalls error:", err);
         toast.error(errorMsg);
         throw err;
       }

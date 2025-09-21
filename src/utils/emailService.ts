@@ -15,8 +15,6 @@ interface EmailResponse {
 export async function sendEmail(options: EmailOptions): Promise<EmailResponse> {
   try {
     // Mock email sending functionality
-    console.log('Sending email:', options);
-    
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     
@@ -26,7 +24,6 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResponse> {
     };
   } catch (err) {
     const error = err instanceof Error ? err.message : 'Unknown error occurred';
-    console.error('Email send error:', error);
     return {
       success: false,
       error

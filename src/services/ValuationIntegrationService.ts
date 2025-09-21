@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { UnifiedLookupService } from './UnifiedLookupService';
-import { ValuationApiService, ValuationRequest, ValuationResult } from './ValuationApiService';
+import { ValuationApiService, ValuationRequest, ValuationResult } from '@/components/valuation/valuation-core/ValuationResult';
 import { DecodedVehicleInfo } from '@/types/vehicle';
 
 export interface EnrichmentData {
@@ -47,8 +47,6 @@ export class ValuationIntegrationService {
     const startTime = Date.now();
 
     try {
-      console.log('🚀 Starting complete VIN to valuation pipeline for:', vin);
-
       // Stage 1: VIN Decode
       auditTrail.push({
         stage: 'vin_decode_start',
@@ -266,8 +264,6 @@ export class ValuationIntegrationService {
       };
 
     } catch (error) {
-      console.error('❌ VIN to valuation pipeline failed:', error);
-      
       auditTrail.push({
         stage: 'pipeline_failed',
         timestamp: new Date().toISOString(),
@@ -308,7 +304,6 @@ export class ValuationIntegrationService {
         buildData: data.build_data
       };
     } catch (error) {
-      console.error('Error fetching VIN enrichment data:', error);
       return null;
     }
   }
@@ -340,7 +335,6 @@ export class ValuationIntegrationService {
 
       return !error;
     } catch (error) {
-      console.error('Error storing VIN enrichment data:', error);
       return false;
     }
   }
@@ -368,7 +362,6 @@ export class ValuationIntegrationService {
 
       return null;
     } catch (error) {
-      console.error('Error checking cached valuation:', error);
       return null;
     }
   }
@@ -398,7 +391,6 @@ export class ValuationIntegrationService {
           processing_time_ms: Date.now() - new Date(auditTrail[0]?.timestamp).getTime()
         });
     } catch (error) {
-      console.error('Error logging compliance audit:', error);
     }
   }
 

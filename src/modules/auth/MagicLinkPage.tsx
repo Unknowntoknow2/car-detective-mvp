@@ -59,7 +59,6 @@ export function MagicLinkPage() {
       setIsSuccess(true);
       toast.success("Magic link sent! Please check your email");
     } catch (error: any) {
-      console.error("Magic link error:", error);
       toast.error(error.message || "Failed to send magic link");
     } finally {
       setIsLoading(false);

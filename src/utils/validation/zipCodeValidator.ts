@@ -72,7 +72,6 @@ export async function validateZipCode(
       };
     }
   } catch (err) {
-    console.error("Error checking ZIP code cache:", err);
   }
 
   // If not in cache, validate with API
@@ -84,7 +83,6 @@ export async function validateZipCode(
     }
 
     if (!response.ok) {
-      console.error("Error validating ZIP code:", response.statusText);
       return { isValid: false };
     }
 
@@ -114,12 +112,10 @@ export async function validateZipCode(
         valid_at: new Date().toISOString(),
       });
     } catch (cacheError) {
-      console.error("Error caching ZIP validation:", cacheError);
     }
 
     return result;
   } catch (error) {
-    console.error("Error validating ZIP code:", error);
     return { isValid: false };
   }
 }

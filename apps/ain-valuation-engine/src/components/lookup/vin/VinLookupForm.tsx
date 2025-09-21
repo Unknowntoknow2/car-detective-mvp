@@ -25,8 +25,6 @@ export function VinLookupForm({ onSuccess }: VinLookupFormProps) {
 
     try {
       const result = await decodeVin(vin)
-      console.log("🔍 Unified decode result:", result)
-
       if (!result || !isVinDecodeSuccessful(result)) {
         throw new Error(result?.metadata?.errorText || 'Failed to decode VIN')
       }

@@ -134,14 +134,6 @@ export async function valuateVehicle(vehicleData) {
         valuation.estimatedValue === 0 ||
         valuation.estimatedValue === null ||
         valuation.estimatedValue === undefined) {
-        console.error("🚨 ZERO/INVALID VALUATION DETECTED", {
-            vin: vehicleData.vin,
-            mileage: vehicleData.mileage,
-            zip: vehicleData.zip,
-            condition: vehicleData.condition,
-            titleStatus: vehicleData.titleStatus,
-            decodedVehicle: valuation?.vehicle || null,
-        });
         throw new Error("ValuationEngineError: Invalid valuation (zero/null) result");
     }
     return valuation;

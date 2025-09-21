@@ -9,7 +9,7 @@ export async function fetchStatVinData(vin: string): Promise<StatVinData | null>
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.BRIGHTDATA_API_KEY}`,
+        'Authorization': `Bearer ${import.meta.env.BRIGHTDATA_API_KEY}`,
       },
       body: JSON.stringify({
         vin: vin.toUpperCase(),
@@ -62,7 +62,6 @@ export async function fetchStatVinData(vin: string): Promise<StatVinData | null>
     };
 
   } catch (error) {
-    console.error('STAT.vin fetch error:', error);
     return await fallbackStatVinScraping(vin);
   }
 }
@@ -91,7 +90,6 @@ async function fallbackStatVinScraping(vin: string): Promise<StatVinData | null>
     return auctionData;
 
   } catch (error) {
-    console.error('STAT.vin fallback scraping failed:', error);
     return null;
   }
 }
@@ -121,7 +119,6 @@ function parseStatVinHTML(html: string, vin: string): StatVinData | null {
     };
 
   } catch (error) {
-    console.error('HTML parsing error:', error);
     return null;
   }
 }

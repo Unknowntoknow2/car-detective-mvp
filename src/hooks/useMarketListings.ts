@@ -36,8 +36,6 @@ export function useMarketListings({
       setError(null);
       
       try {
-        console.log('Fetching market listings with params:', { make, model, year, zipCode, vin, exact });
-        
         // Try to fetch exact VIN match first if provided
         if (vin) {
           const { data: vinMatches, error: vinError } = await supabase
@@ -47,7 +45,6 @@ export function useMarketListings({
             .limit(10);
             
           if (!vinError && vinMatches && vinMatches.length > 0) {
-            console.log(`Found ${vinMatches.length} exact VIN matches`);
             setListings(vinMatches);
             setLoading(false);
             return;
@@ -82,15 +79,11 @@ export function useMarketListings({
         const { data: listings, error: listingsError } = await query.limit(30);
         
         if (listingsError) {
-          console.error('Error fetching market listings:', listingsError);
           setError('Failed to fetch market listings');
           setListings([]);
         } else if (listings && listings.length > 0) {
-          console.log(`Found ${listings.length} market listings`);
           setListings(listings);
         } else {
-          console.log('No listings found, trying broader search...');
-          
           // Try a broader search without year exact match
           let broadQuery = supabase
             .from('market_listings')
@@ -102,15 +95,12 @@ export function useMarketListings({
           const { data: broadListings, error: broadError } = await broadQuery.limit(50);
           
           if (!broadError && broadListings && broadListings.length > 0) {
-            console.log(`Found ${broadListings.length} listings in broader search`);
             setListings(broadListings);
           } else {
-            console.log('No listings found in broader search');
             setListings([]);
           }
         }
       } catch (err) {
-        console.error('Error in useMarketListings hook:', err);
         setError('An unexpected error occurred');
         setListings([]);
       } finally {

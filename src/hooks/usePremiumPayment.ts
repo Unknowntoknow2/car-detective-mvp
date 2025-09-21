@@ -26,8 +26,6 @@ export function usePremiumPayment(): UsePremiumPaymentResult {
     try {
       // For now, simulate a successful payment creation
       // In a real implementation, this would call a Supabase function to create a Stripe checkout
-      console.log(`Creating payment session for valuation: ${valuationId}`);
-
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -38,7 +36,6 @@ export function usePremiumPayment(): UsePremiumPaymentResult {
       // In production, this would open Stripe checkout
       toast.success("Payment session created successfully");
     } catch (err: any) {
-      console.error("Error creating payment session:", err);
       setError(err.message || "Failed to initiate payment");
       toast.error(err.message || "Failed to initiate payment");
     } finally {
@@ -53,8 +50,6 @@ export function usePremiumPayment(): UsePremiumPaymentResult {
     try {
       // For now, simulate a successful payment verification
       // In a real implementation, this would call a Supabase function to verify the Stripe session
-      console.log(`Verifying payment session: ${sessionId}`);
-
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -82,7 +77,6 @@ export function usePremiumPayment(): UsePremiumPaymentResult {
         return false;
       }
     } catch (err: any) {
-      console.error("Error verifying payment:", err);
       setError(err.message || "Failed to verify payment");
       toast.error(err.message || "Failed to verify payment");
       return false;

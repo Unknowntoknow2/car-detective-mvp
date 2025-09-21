@@ -29,8 +29,6 @@ export type EnhancedApiError = {
  * Handles API errors in a consistent way
  */
 export function handleApiError(error: any): EnhancedApiError {
-  console.error("API Error:", error);
-
   // Network error
   if (error instanceof TypeError && error.message.includes("network")) {
     return {

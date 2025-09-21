@@ -28,7 +28,6 @@ export async function getValuationContext(
       .single();
 
     if (error) {
-      console.error("Error fetching valuation context:", error);
       return null;
     }
 
@@ -50,7 +49,6 @@ export async function getValuationContext(
       isPremium: data.premium_unlocked,
     };
   } catch (error) {
-    console.error("Failed to get valuation context:", error);
     return null;
   }
 }

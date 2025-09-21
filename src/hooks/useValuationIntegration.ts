@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ValuationIntegrationService, ValuationPipelineResult } from '@/services/ValuationIntegrationService';
-import { ValuationRequest, ValuationResult } from '@/services/ValuationApiService';
+import { ValuationRequest, ValuationResult } from '@/components/valuation/valuation-core/ValuationResult';
 import { toast } from 'sonner';
 
 interface UseValuationIntegrationOptions {
@@ -134,7 +134,6 @@ export const useValuationIntegration = (
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
       toast.error(errorMessage);
-      console.error('Valuation integration error:', err);
       return null;
     } finally {
       setIsProcessing(false);

@@ -35,25 +35,18 @@ export interface StatVinData {
 
 export async function getStatVinData(vin: string): Promise<StatVinData | null> {
   try {
-    console.log(`🔍 Fetching STAT.vin data for VIN: ${vin}`);
-    
     // Call the Supabase Edge Function for STAT.vin data
     const { data, error } = await supabase.functions.invoke('fetch-statvin-data', {
       body: { vin: vin.toUpperCase() }
     });
 
     if (error) {
-      console.error('❌ STAT.vin fetch error:', error);
       return null;
     }
 
     if (!data || data.error) {
-      console.log('ℹ️ No STAT.vin data found for this VIN');
       return null;
     }
-
-    console.log('✅ STAT.vin data retrieved successfully');
-    
     // Transform the response to our interface
     const statVinData: StatVinData = {
       vin: data.vin || vin,
@@ -89,7 +82,6 @@ export async function getStatVinData(vin: string): Promise<StatVinData | null> {
 
     return statVinData;
   } catch (error) {
-    console.error('❌ STAT.vin request failed:', error);
     return null;
   }
 }

@@ -40,8 +40,6 @@ export function useMarketplaceComparison({
     queryKey: ['marketplace-listings', vin, make, model, year],
     queryFn: async (): Promise<MarketplaceListing[]> => {
       try {
-        console.log('Fetching marketplace listings for comparison:', { vin, make, model, year });
-
         // First try enhanced market listings
         const { data: enhancedListings, error: enhancedError } = await supabase
           .from('enhanced_market_listings')
@@ -55,7 +53,6 @@ export function useMarketplaceComparison({
           .limit(20);
 
         if (!enhancedError && enhancedListings && enhancedListings.length > 0) {
-          console.log(`Found ${enhancedListings.length} enhanced market listings`);
           return enhancedListings.map(listing => ({
             id: listing.id,
             title: `${listing.year} ${listing.make} ${listing.model}${listing.trim ? ` ${listing.trim}` : ''}`,
@@ -79,7 +76,6 @@ export function useMarketplaceComparison({
             .limit(20);
           
           if (!vinError && vinData && vinData.length > 0) {
-            console.log(`Found ${vinData.length} VIN-based scraped listings`);
             return vinData as MarketplaceListing[];
           }
         }
@@ -95,14 +91,10 @@ export function useMarketplaceComparison({
             .limit(20);
 
           if (error) throw error;
-          console.log(`Found ${data?.length || 0} make/model/year scraped listings`);
           return data as MarketplaceListing[] || [];
         }
-
-        console.log('No marketplace listings found');
         return [];
       } catch (error) {
-        console.error('Error fetching marketplace listings:', error);
         toast.error('Failed to load marketplace listings');
         return [];
       }

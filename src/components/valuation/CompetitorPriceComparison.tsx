@@ -26,7 +26,6 @@ export const CompetitorPriceComparison: React.FC<CompetitorPriceComparisonProps>
         const prices = await getCachedCompetitorPrices(vin);
         setCompetitorPrices(prices);
       } catch (error) {
-        console.error('Error fetching competitor prices:', error);
       } finally {
         setIsLoading(false);
       }

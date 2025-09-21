@@ -79,7 +79,6 @@ export async function getFuelCostAdjustment(fuelType: string, zipCode: string): 
     const fuelData = await getFuelCostByZip(zipCode, fuelType);
     
     if (!fuelData) {
-      console.warn('No fuel data available, using fallback adjustment');
       return getFallbackFuelAdjustment(fuelType);
     }
     
@@ -93,7 +92,6 @@ export async function getFuelCostAdjustment(fuelType: string, zipCode: string): 
     
     return adjustment.adjustment;
   } catch (error) {
-    console.error('Error calculating fuel cost adjustment:', error);
     return getFallbackFuelAdjustment(fuelType);
   }
 }
