@@ -1,6 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-
-// Hardened AIN client for professional valuations
+import { type SupabaseClient } from '@supabase/supabase-js';
+import { supabase as sharedSupabase } from '@/integrations/supabase/client';
 export type AinMeta = {
   route?: string;
   corr_id?: string | null;
@@ -30,16 +29,7 @@ export type AinResponse = NormalizedValuationResponse & {
   base_value?: number;
 };
 
-const supabaseUrl = 'https://xltxqqzattxogxtqrggt.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsdHhxcXphdHR4b2d4dHFyZ2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NTYxMjYsImV4cCI6MjA2MTAzMjEyNn0.kUPmsyUdpcpnPLHWlnP7vODQiRgzCrWjOBfLib3lpvY';
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    storageKey: 'car-detective-auth-storage',
-  },
-});
+const supabase = sharedSupabase;
 
 function mapToLegacyResponse(data: NormalizedValuationResponse | null | undefined): AinResponse {
   const finalValue = data?.finalValue ?? 0;
