@@ -1,6 +1,6 @@
 
 # Step 1: Use official Node image with improved settings for package installation
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -50,13 +50,13 @@ RUN echo "ignore-scripts=true" >> .npmrc && \
 COPY . .
 
 # Build the app with more memory allowance
-RUN npm run build
+RUN npm run -w apps/ain-valuation-engine build
 
 # Step 2: Serve the built app using a lightweight web server
 FROM nginx:alpine
 
 # Copy built assets from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/apps/ain-valuation-engine/dist /usr/share/nginx/html
 
 # Expose port 80 and start NGINX
 EXPOSE 80
