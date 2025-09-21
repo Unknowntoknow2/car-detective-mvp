@@ -8,6 +8,7 @@ import { Header } from '@/components/layout/Header';
 import { AuthProvider } from '@/hooks/useAuth';
 import { ValuationProvider } from '@/contexts/ValuationContext';
 import { EnhancedErrorBoundary } from '@/components/common/EnhancedErrorBoundary';
+import { PreviewFallback } from '@/components/common/PreviewFallback';
 import routes from './App.routes';
 
 const queryClient = new QueryClient();
@@ -40,8 +41,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ValuationProvider>
-          <RouterProvider router={router} />
-          <Toaster />
+          <PreviewFallback>
+            <RouterProvider router={router} />
+            <Toaster />
+          </PreviewFallback>
         </ValuationProvider>
       </AuthProvider>
     </QueryClientProvider>
