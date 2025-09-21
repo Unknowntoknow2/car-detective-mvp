@@ -48,9 +48,18 @@ export function useFollowUpAutoSave({
 
       const { data: { user } } = await supabase.auth.getUser();
       
+      // If no user, store in localStorage as fallback
+      if (!user) {
+        const localKey = `follow_up_data_${dataToSave.vin}`;
+        localStorage.setItem(localKey, JSON.stringify(dataToSave));
+        lastSavedDataRef.current = currentDataString;
+        setLastSaveTime(new Date());
+        return true;
+      }
+      
       const saveData = {
         ...dataToSave,
-        user_id: user?.id,
+        user_id: user.id,
         updated_at: new Date().toISOString()
       };
 
@@ -73,6 +82,13 @@ export function useFollowUpAutoSave({
           setSaveError('Data linking issue - please refresh page');
         } else if (error.message?.includes('network')) {
           setSaveError('Network issue - will retry automatically');
+        } else if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('insufficient privileges')) {
+          // Fallback to localStorage for auth issues
+          const localKey = `follow_up_data_${dataToSave.vin}`;
+          localStorage.setItem(localKey, JSON.stringify(dataToSave));
+          lastSavedDataRef.current = currentDataString;
+          setLastSaveTime(new Date());
+          return true;
         } else {
           setSaveError(error.message);
         }

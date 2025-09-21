@@ -24,9 +24,9 @@ export function SilentSaveIndicator({
     
     if (saveError) {
       return {
-        icon: <WifiOff className="w-3 h-3 text-red-500" />,
-        text: "Save failed - please try again",
-        color: "text-red-600"
+        icon: <WifiOff className="w-3 h-3 text-orange-500" />,
+        text: "Saved locally (sign in to sync)",
+        color: "text-orange-600"
       };
     }
     

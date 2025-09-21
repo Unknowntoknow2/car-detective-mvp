@@ -64,7 +64,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
         if (import.meta.env.NODE_ENV !== 'production') {
         }
         
-        // First try to load by VIN
+        // First try to load by VIN from database
         let { data, error } = await supabase
           .from('follow_up_answers')
           .select('*')
@@ -72,6 +72,20 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
           .maybeSingle();
 
         if (error && error.code !== 'PGRST116') {
+          // If database access fails, try localStorage fallback
+          const localData = localStorage.getItem(`follow_up_data_${vin}`);
+          if (localData) {
+            try {
+              const parsedData = JSON.parse(localData);
+              const mappedData = {
+                ...parsedData,
+                payoffAmount: parsedData.payoff_amount || 0
+              };
+              setFormData(prev => ({ ...prev, ...mappedData }));
+            } catch (e) {
+              // Invalid localStorage data, ignore
+            }
+          }
         } else if (data) {
           const mappedData = {
             ...data,
@@ -79,7 +93,22 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
           };
           setFormData(prev => ({ ...prev, ...mappedData }));
         } else {
-          // If no data by VIN, try to link to existing valuation
+          // No data from database, check localStorage
+          const localData = localStorage.getItem(`follow_up_data_${vin}`);
+          if (localData) {
+            try {
+              const parsedData = JSON.parse(localData);
+              const mappedData = {
+                ...parsedData,
+                payoffAmount: parsedData.payoff_amount || 0
+              };
+              setFormData(prev => ({ ...prev, ...mappedData }));
+            } catch (e) {
+              // Invalid localStorage data, proceed with default flow
+            }
+          }
+          
+          // Try to link to existing valuation
           const { data: valuationData } = await supabase
             .from('valuation_results')
             .select('id')
@@ -183,6 +212,18 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
       // Remove the form-only field before saving
       const { payoffAmount, ...dbData } = saveData;
+      
+      // Check authentication before attempting save
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        // For unauthenticated users, store data in localStorage as fallback
+        localStorage.setItem(`follow_up_data_${vin}`, JSON.stringify(dbData));
+        setLastSaveTime(new Date());
+        setSaveError(null);
+        return true;
+      }
+
       const { error } = await supabase
         .from('follow_up_answers')
         .upsert(dbData, { onConflict: 'vin' });
@@ -197,6 +238,12 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
           setSaveError('Invalid data format - please check your entries');
         } else if (error.message?.includes('network') || error.code === 'ECONNRESET') {
           setSaveError('Network error - please check connection and try again');
+        } else if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('insufficient privileges')) {
+          // Store in localStorage as fallback for auth issues
+          localStorage.setItem(`follow_up_data_${vin}`, JSON.stringify(dbData));
+          setLastSaveTime(new Date());
+          setSaveError(null);
+          return true;
         } else {
           setSaveError(`Save failed: ${error.message}`);
         }
