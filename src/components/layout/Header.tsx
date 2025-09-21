@@ -74,9 +74,9 @@ export const Header: React.FC = () => {
                   {userDetails.role}
                 </span>
               )}
-              <Button variant="ghost" onClick={handleLogout} className="flex items-center gap-2 ml-2">
+              <Button variant="ghost" onClick={handleLogout} className="flex items-center gap-2">
                 <LogOut className="h-4 w-4" />
-                <span>Logout</span>
+                <span className="hidden sm:inline">Logout</span>
               </Button>
             </div>
           ) : (

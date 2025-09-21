@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { AlertCircle, Wifi, WifiOff, X, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getPreviewStatus, type PreviewStatus } from '@/utils/preview-diagnostics';
 
@@ -11,6 +11,7 @@ export function PreviewFallback({ children }: PreviewFallbackProps) {
   const [previewStatus, setPreviewStatus] = useState<PreviewStatus | null>(null);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [connectionIssue, setConnectionIssue] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
     const status = getPreviewStatus();
@@ -45,8 +46,16 @@ export function PreviewFallback({ children }: PreviewFallbackProps) {
     window.location.reload();
   };
 
-  // Show connection issue banner only in preview environment
-  if (previewStatus?.isLovablePreview && connectionIssue) {
+  const handleOpenStandalone = () => {
+    window.open(window.location.href, '_blank');
+  };
+
+  const handleDismiss = () => {
+    setIsDismissed(true);
+  };
+
+  // Show connection issue banner only in preview environment (unless dismissed)
+  if (previewStatus?.isLovablePreview && connectionIssue && !isDismissed) {
     return (
       <div className="min-h-screen bg-background">
         <div className="p-4 bg-amber-50 border-b border-amber-200">
@@ -66,6 +75,15 @@ export function PreviewFallback({ children }: PreviewFallbackProps) {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={handleOpenStandalone}
+                className="text-amber-700 border-amber-300"
+              >
+                <ExternalLink className="h-4 w-4 mr-1" />
+                Open Standalone
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowDiagnostics(!showDiagnostics)}
                 className="text-amber-700 border-amber-300"
               >
@@ -80,6 +98,14 @@ export function PreviewFallback({ children }: PreviewFallbackProps) {
               >
                 <Wifi className="h-4 w-4 mr-1" />
                 Reconnect
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDismiss}
+                className="text-amber-700 hover:bg-amber-100"
+              >
+                <X className="h-4 w-4" />
               </Button>
             </div>
           </div>
