@@ -43,7 +43,50 @@ export const setupPreviewErrorHandling = () => {
   
   console.log('🔍 Preview Environment Status:', status);
   
+  // Respond to parent preview health checks
+  try {
+    const respondToHealthCheck = (event: MessageEvent) => {
+      if (event.data?.type === 'PREVIEW_HEALTH_CHECK') {
+        try {
+          if (window.parent !== window) {
+            window.parent.postMessage({ type: 'PREVIEW_CONNECTED', timestamp: Date.now() }, '*');
+          }
+        } catch (e) {
+          console.warn('Preview healthcheck response failed:', e);
+        }
+      }
+    };
+    window.addEventListener('message', respondToHealthCheck);
+  } catch (e) {
+    console.warn('Unable to setup preview healthcheck responder:', e);
+  }
+  
   if (status.isLovablePreview) {
+    // Preview console noise suppression and error handling
+    try {
+      const patterns = [
+        'WebSocket connection to',
+        'Max reconnect attempts',
+        'lovableproject.com',
+        'Tracking Prevention blocked access to storage',
+        'Unrecognized feature:'
+      ];
+      const originalWarn = console.warn.bind(console);
+      const originalError = console.error.bind(console);
+      console.warn = (...args: any[]) => {
+        const msg = args.join(' ');
+        if (patterns.some(p => msg.includes(p))) return;
+        originalWarn(...args);
+      };
+      console.error = (...args: any[]) => {
+        const msg = args.join(' ');
+        if (patterns.some(p => msg.includes(p))) return;
+        originalError(...args);
+      };
+    } catch (_e) {
+      // noop
+    }
+
     // Handle preview-specific errors
     window.addEventListener('error', (event) => {
       if (event.error?.message?.includes('WebSocket') || 
