@@ -5,7 +5,6 @@ import { parseVehicleMetadataWithMpg } from '@/utils/vehicleMetaParser';
 
 export async function decodeVin(vin: string): Promise<VehicleDecodeResponse> {
   try {
-    console.log('🔍 Starting VIN decode for:', vin);
     
     const { data, error } = await supabase.functions.invoke('unified-decode', {
       body: { vin: vin.toUpperCase() }
@@ -21,7 +20,6 @@ export async function decodeVin(vin: string): Promise<VehicleDecodeResponse> {
       };
     }
 
-    console.log('✅ Decode response:', data);
     
     // Handle successful response
     if (data && data.success) {
@@ -35,7 +33,6 @@ export async function decodeVin(vin: string): Promise<VehicleDecodeResponse> {
         decoded.year || new Date().getFullYear()
       );
       
-      console.log('🔧 Parsed vehicle metadata:', metadata);
       
       return {
         success: true,
@@ -76,7 +73,6 @@ export async function retryDecode(vin: string, retryCount = 0): Promise<VehicleD
   const MAX_RETRIES = 3;
   
   try {
-    console.log(`🔄 Retrying decode (attempt ${retryCount + 1}/${MAX_RETRIES}) for VIN: ${vin}`);
     
     const result = await decodeVin(vin);
     
@@ -88,7 +84,6 @@ export async function retryDecode(vin: string, retryCount = 0): Promise<VehicleD
                               result.error?.includes('Service Unavailable');
       
       if (isTransientError) {
-        console.log(`🔄 Detected transient error, will retry: ${result.error}`);
         await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
         return retryDecode(vin, retryCount + 1);
       }
@@ -114,7 +109,6 @@ export async function auditDecodeSystem(): Promise<{
   recentFailures: any[];
 }> {
   try {
-    console.log('🔍 Starting VIN decode system audit...');
     
     // Get failure statistics from the past 30 days
     const thirtyDaysAgo = new Date();
@@ -153,7 +147,6 @@ export async function auditDecodeSystem(): Promise<{
     const totalAttempts = totalFailures + (successfulDecodes || 0);
     const successRate = totalAttempts > 0 ? ((successfulDecodes || 0) / totalAttempts) * 100 : 0;
     
-    console.log(`📊 Audit complete: ${totalAttempts} total attempts, ${successRate.toFixed(1)}% success rate`);
     
     return {
       totalAttempts,

@@ -11,7 +11,6 @@ export async function lookupTitleStatus(vin: string): Promise<TitleHistoryResult
   }
 
   try {
-    console.log('🔍 [TITLE_CHECK] Checking title status for VIN:', vin);
 
     const response = await fetch('https://xltxqqzattxogxtqrggt.supabase.co/functions/v1/fetch_nicb_vincheck', {
       method: 'POST',
@@ -28,7 +27,6 @@ export async function lookupTitleStatus(vin: string): Promise<TitleHistoryResult
     }
 
     const data = await response.json();
-    console.log('📊 [TITLE_CHECK] NICB response received:', data);
 
     // Parse NICB response and determine title status
     let status: TitleStatus = 'clean';
@@ -77,7 +75,6 @@ export async function lookupOpenRecalls(vin: string): Promise<RecallCheckResult 
   }
 
   try {
-    console.log('🔍 [RECALL_CHECK] Checking recalls for VIN:', vin);
 
     // Call NHTSA recalls edge function
     const response = await fetch(
@@ -107,7 +104,6 @@ export async function lookupOpenRecalls(vin: string): Promise<RecallCheckResult 
     const recalls: RecallEntry[] = data.recalls || [];
     const unresolved = recalls.filter(recall => !recall.isResolved);
 
-    console.log(`📊 [RECALL_CHECK] Found ${recalls.length} total recalls, ${unresolved.length} unresolved for ${data.year} ${data.make} ${data.model}`);
 
     return {
       recalls,
@@ -149,7 +145,7 @@ function parseNHTSARecalls(data: any, vin: string): RecallEntry[] {
     });
 
     // Add mock recalls for testing purposes (remove in production)
-    if (process.env.NODE_ENV === 'development' && recalls.length === 0) {
+    if (import.meta.env.NODE_ENV === 'development' && recalls.length === 0) {
       recalls.push({
         id: `test_recall_${vin}`,
         description: 'Airbag deployment sensor may malfunction',

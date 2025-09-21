@@ -6,7 +6,6 @@ export async function notifyDealersOfNewValuation(
   zipCode: string
 ): Promise<void> {
   try {
-    console.log('Notifying dealers of new valuation:', {
       vehicle: `${reportData.year} ${reportData.make} ${reportData.model}`,
       value: reportData.estimatedValue,
       zipCode
@@ -15,7 +14,6 @@ export async function notifyDealersOfNewValuation(
     // Mock dealer notification logic
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    console.log('Dealer notifications sent successfully');
   } catch (error) {
     console.error('Failed to notify dealers:', error);
     throw error;

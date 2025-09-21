@@ -10,7 +10,6 @@ export async function uploadToS3(
   // This would be an S3 upload in a real implementation
   // For now, simulate a successful upload and return a URL
   
-  console.log(`Uploading ${fileName} with content type ${contentType}`);
   
   // Simulate upload latency
   await new Promise(resolve => setTimeout(resolve, 500));

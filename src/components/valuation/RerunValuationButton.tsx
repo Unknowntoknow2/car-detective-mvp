@@ -15,7 +15,6 @@ export function RerunValuationButton() {
       // Rerun functionality would require storing the original input data
       // For now, we'll disable this feature since the engine result doesn't contain
       // the original input parameters needed for rerunning
-      console.log('Rerun functionality needs to be implemented with stored input data');
     } finally {
       setIsRerunning(false);
     }

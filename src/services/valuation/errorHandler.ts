@@ -62,7 +62,6 @@ export async function handleValuationError(
   // Apply fallback strategy if available and error is recoverable
   if (classifiedError.recoverable && fallbackStrategy) {
     try {
-      console.log(`🔄 [ErrorHandler] Applying fallback strategy: ${classifiedError.fallbackStrategy}`);
       return await fallbackStrategy();
     } catch (fallbackError) {
       console.error('❌ [ErrorHandler] Fallback strategy failed:', fallbackError);
@@ -166,7 +165,6 @@ function classifyValuationError(error: any): ValuationError {
  * Generate emergency fallback valuation
  */
 export async function generateEmergencyFallback(input: any): Promise<any> {
-  console.log('🚨 [ErrorHandler] Generating emergency fallback valuation');
   
   const currentYear = new Date().getFullYear();
   const estimatedYear = input.year || (currentYear - 5);

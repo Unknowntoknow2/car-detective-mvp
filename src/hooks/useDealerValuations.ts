@@ -91,7 +91,6 @@ export function useDealerValuations(dealerId?: string) {
   // Handle download report
   const handleDownloadReport = (valuation: ValuationWithCondition) => {
     // Implementation for downloading report
-    console.log("Downloading report for valuation:", valuation.id);
     // Here you would call your PDF generation function
   };
 

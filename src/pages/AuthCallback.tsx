@@ -20,14 +20,12 @@ export default function AuthCallback() {
         }
 
         if (data.session) {
-          console.log('Authentication successful:', data.session.user.email);
           toast.success('Successfully signed in!');
           
           // Redirect to home page or the page they were trying to access
           const redirectTo = new URLSearchParams(window.location.search).get('redirectTo') || '/';
           navigate(redirectTo);
         } else {
-          console.log('No session found in callback');
           navigate('/');
         }
       } catch (error) {

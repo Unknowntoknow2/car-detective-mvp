@@ -44,7 +44,6 @@ export function useConsolidatedForecast(
       setError(null);
 
       try {
-        console.log(`🚀 Fetching consolidated forecast for: ${valuationId}`);
         
         const { data, error: invokeError } = await supabase.functions.invoke(
           "valuation-forecast",
@@ -62,7 +61,6 @@ export function useConsolidatedForecast(
           throw new Error('No forecast data returned from service');
         }
 
-        console.log('✅ Raw forecast data:', data);
 
         // Validate required data
         if (!data.months || !data.values || data.values.length === 0) {
@@ -82,7 +80,6 @@ export function useConsolidatedForecast(
           trend: data.trend || "stable",
         };
 
-        console.log('✅ Consolidated forecast data:', consolidatedData);
         setForecastData(consolidatedData);
 
       } catch (err) {

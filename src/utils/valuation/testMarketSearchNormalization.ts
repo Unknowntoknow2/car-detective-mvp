@@ -6,7 +6,6 @@ import { MarketListing, getNormalizedUrl, getNormalizedSourceType } from '@/type
  * Test the unified market search agent output normalization
  */
 export async function testMarketSearchAgentNormalization() {
-  console.log('🧪 Testing Market Search Agent Output Normalization');
 
   // Test Case 1: Ford F-150 (likely to have database listings)
   const fordTest = {
@@ -26,10 +25,8 @@ export async function testMarketSearchAgentNormalization() {
 
   try {
     // Test fetchMarketComps function
-    console.log('\n📊 Testing fetchMarketComps...');
     
     const fordComps = await fetchMarketComps(fordTest);
-    console.log('✅ Ford F-150 Market Comps:', {
       totalFound: fordComps.totalFound,
       confidence: fordComps.confidence,
       trust: fordComps.trust,
@@ -40,7 +37,6 @@ export async function testMarketSearchAgentNormalization() {
     // Validate listing format
     if (fordComps.listings.length > 0) {
       const firstListing = fordComps.listings[0];
-      console.log('🔍 First listing validation:', {
         hasPrice: typeof firstListing.price === 'number' && firstListing.price > 0,
         hasSource: typeof firstListing.source === 'string' && firstListing.source.length > 0,
         hasUrl: !!getNormalizedUrl(firstListing),
@@ -50,10 +46,8 @@ export async function testMarketSearchAgentNormalization() {
     }
 
     // Test direct searchMarketListings function
-    console.log('\n🔍 Testing searchMarketListings...');
     
     const nissanListings = await searchMarketListings(nissanTest);
-    console.log('✅ Nissan Altima Direct Search:', {
       listingsFound: nissanListings.length,
       sources: nissanListings.map(l => l.source),
       sourceTypes: nissanListings.map(l => getNormalizedSourceType(l))
@@ -69,7 +63,6 @@ export async function testMarketSearchAgentNormalization() {
       );
     });
 
-    console.log('\n🎯 Normalization Test Results:', {
       allListingsValid,
       fordListingsCount: fordComps.listings.length,
       nissanListingsCount: nissanListings.length,
@@ -77,10 +70,8 @@ export async function testMarketSearchAgentNormalization() {
     });
 
     if (allListingsValid) {
-      console.log('✅ All listings successfully normalized to canonical MarketListing format');
       return { success: true, fordComps, nissanListings };
     } else {
-      console.log('❌ Some listings failed normalization validation');
       return { success: false, error: 'Listing validation failed' };
     }
 
@@ -97,7 +88,6 @@ export async function testMarketSearchAgentNormalization() {
  * Validate specific field mappings work correctly
  */
 export function validateFieldMappings() {
-  console.log('🔧 Validating field mappings...');
 
   // Mock listings with different format variations
   const testListings: MarketListing[] = [
@@ -124,7 +114,6 @@ export function validateFieldMappings() {
     const url = getNormalizedUrl(listing);
     const sourceType = getNormalizedSourceType(listing);
     
-    console.log(`Listing ${index + 1}:`, {
       price: listing.price,
       url,
       sourceType,
@@ -133,6 +122,5 @@ export function validateFieldMappings() {
     });
   });
 
-  console.log('✅ Field mapping validation completed');
   return testListings;
 }

@@ -22,7 +22,6 @@ export function calculateUnifiedConfidence(context: ConfidenceContext): number {
     getNormalizedSourceType(l) !== 'estimated' && l.source !== 'Market Estimate'
   ).length;
   
-  console.log('🔍 Confidence Calculation:', {
     totalListings: marketListings.length,
     realListings: realListingsCount,
     exactVinMatch,
@@ -32,7 +31,6 @@ export function calculateUnifiedConfidence(context: ConfidenceContext): number {
   // Exact VIN match bonus
   if (exactVinMatch && realListingsCount > 0) {
     confidence += 25;
-    console.log('🎯 Exact VIN match bonus: +25 points');
   }
   
   // Market data availability bonus
@@ -44,7 +42,6 @@ export function calculateUnifiedConfidence(context: ConfidenceContext): number {
     confidence += 8;
   } else {
     confidence -= 15; // Penalty for no real market data
-    console.log('⚠️ No real market data penalty: -15 points');
   }
   
   // Trust score integration
@@ -65,7 +62,6 @@ export function calculateUnifiedConfidence(context: ConfidenceContext): number {
   
   if (realListingsCount === 0) {
     maxConfidence = 60; // Maximum 60% without real market data
-    console.log('🚨 No real market data - capping confidence at 60%');
   } else if (realListingsCount === 1) {
     maxConfidence = 70;
   } else if (realListingsCount === 2) {
@@ -74,7 +70,6 @@ export function calculateUnifiedConfidence(context: ConfidenceContext): number {
   
   const finalConfidence = Math.max(25, Math.min(maxConfidence, confidence));
   
-  console.log(`📊 Final confidence: ${finalConfidence}% (capped at ${maxConfidence}%)`);
   
   return finalConfidence;
 }

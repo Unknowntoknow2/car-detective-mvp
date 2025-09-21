@@ -168,11 +168,9 @@ export default function ModalShowcase() {
         isOpen={photoToolOpen}
         onClose={() => setPhotoToolOpen(false)}
         onPhotoToolSelect={(option) => {
-          console.log('Selected photo tool option:', option);
           setPhotoToolOpen(false);
         }}
         onSkipToFinalOffer={() => {
-          console.log('Skipped to final offer');
           setPhotoToolOpen(false);
         }}
       />
@@ -183,7 +181,6 @@ export default function ModalShowcase() {
         initialOffer="$15,184"
         vehicleInfo={mockVehicleInfo}
         onConfirmOffer={(data) => {
-          console.log('Confirmed offer with data:', data);
           setConfirmOfferOpen(false);
         }}
       />
@@ -192,7 +189,6 @@ export default function ModalShowcase() {
         isOpen={valuationStepsOpen}
         onClose={() => setValuationStepsOpen(false)}
         onStartValuation={(type) => {
-          console.log('Started valuation type:', type);
           setValuationStepsOpen(false);
         }}
       />

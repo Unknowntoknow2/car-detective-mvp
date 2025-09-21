@@ -27,8 +27,8 @@ const argv = yargs(hideBin(process.argv))
 
 async function generateTestData() {
   // Create a Supabase client with the service role key for admin operations
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseUrl = import.meta.env.SUPABASE_URL;
+  const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseServiceKey) {
     console.error(
@@ -39,8 +39,6 @@ async function generateTestData() {
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-  console.log("Generating test data...");
-  console.log(
     argv.reset
       ? "Resetting existing test data first"
       : "Preserving existing test data",
@@ -55,15 +53,10 @@ async function generateTestData() {
       throw error;
     }
 
-    console.log("✅ Test data generation successful!");
-    console.log("Generated data:", data);
 
     // Output a message about how to use the test data
-    console.log("\nTest data is now available in your database.");
-    console.log(
       "You can use this data for running tests or local development.",
     );
-    console.log("Valuation IDs:", data.valuations);
   } catch (error: any) {
     console.error("❌ Error generating test data:", error.message);
     process.exit(1);

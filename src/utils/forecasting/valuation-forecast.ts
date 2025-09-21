@@ -44,7 +44,6 @@ export function generateForecast(data: any[]): ForecastData {
 
 export async function generateValuationForecast(valuationId: string): Promise<ForecastResult> {
   console.error('❌ DEPRECATED: This mock function has been replaced by the valuation-forecast Edge Function');
-  console.log('✅ Use MarketTrendSection component with useForecastData hook instead');
   
   throw new Error('This mock forecast function is deprecated. Use the real valuation-forecast Edge Function instead.');
 }

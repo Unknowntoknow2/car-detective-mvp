@@ -17,14 +17,12 @@ export function useValuationFallback(): ValuationFallbackHook {
 
   // Set fallback when VIN lookup fails
   const setFallbackForVin = useCallback(() => {
-    console.log("FALLBACK: VIN lookup failed, redirecting to manual entry");
     setFallbackState("vin_failed");
     toast.error("VIN lookup failed. Please try manual entry.");
   }, []);
 
   // Set fallback when plate lookup fails
   const setFallbackForPlate = useCallback(() => {
-    console.log("FALLBACK: Plate lookup failed, redirecting to manual entry");
     setFallbackState("plate_failed");
     toast.error("License plate lookup failed. Please try manual entry.");
   }, []);

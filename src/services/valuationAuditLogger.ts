@@ -17,7 +17,6 @@ export interface ValuationAuditPayload {
  */
 export async function logValuationAudit(payload: ValuationAuditPayload): Promise<string> {
   try {
-    console.log('📝 Logging valuation audit:', {
       source: payload.source,
       confidence: payload.confidence,
       listings_count: payload.listings_count,
@@ -63,7 +62,6 @@ export async function logValuationAudit(payload: ValuationAuditPayload): Promise
     }
 
     if (data?.success && data?.id) {
-      console.log('✅ Valuation audit logged with ID:', data.id);
       return data.id;
     } else {
       console.error('❌ Audit logging function returned no ID:', data);
@@ -92,7 +90,6 @@ export async function logPipelineStage(
   }
 ): Promise<void> {
   try {
-    console.log(`📊 Pipeline stage ${stage}:`, { vin, passed: metadata.passed, reason: metadata.reason });
     
     const stageData = {
       audit_id: auditId,
@@ -109,7 +106,6 @@ export async function logPipelineStage(
     const stageKey = `pipeline_stage_${auditId}_${stage}`;
     localStorage.setItem(stageKey, JSON.stringify(stageData));
     
-    console.log(`✅ Pipeline stage ${stage} logged`);
   } catch (error) {
     console.error(`❌ Error logging pipeline stage ${stage}:`, error);
   }
@@ -120,7 +116,6 @@ export async function logPipelineStage(
  */
 export async function logValuationAuditFallback(payload: ValuationAuditPayload): Promise<string> {
   try {
-    console.log('📝 Fallback audit logging:', payload.source);
     
     // Store in local storage as fallback
     const auditId = 'local_audit_' + Date.now();
@@ -131,7 +126,6 @@ export async function logValuationAuditFallback(payload: ValuationAuditPayload):
     };
     
     localStorage.setItem(`audit_${auditId}`, JSON.stringify(auditData));
-    console.log('✅ Audit logged locally:', auditId);
     
     return auditId;
   } catch (error) {

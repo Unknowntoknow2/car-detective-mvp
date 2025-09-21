@@ -38,7 +38,6 @@ export function useAuctionIntelligence(vin: string) {
           (new Date().getTime() - new Date(existingData.updated_at).getTime()) > 24 * 60 * 60 * 1000;
 
         if (shouldGenerate) {
-          console.log('Generating new auction intelligence for VIN:', vin);
           
           // Trigger intelligence generation
           const { error: functionError } = await supabase.functions.invoke('generate-auction-intelligence', {

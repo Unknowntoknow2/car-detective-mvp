@@ -26,7 +26,6 @@ export function usePremiumPayment(): UsePremiumPaymentResult {
     try {
       // For now, simulate a successful payment creation
       // In a real implementation, this would call a Supabase function to create a Stripe checkout
-      console.log(`Creating payment session for valuation: ${valuationId}`);
 
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -53,7 +52,6 @@ export function usePremiumPayment(): UsePremiumPaymentResult {
     try {
       // For now, simulate a successful payment verification
       // In a real implementation, this would call a Supabase function to verify the Stripe session
-      console.log(`Verifying payment session: ${sessionId}`);
 
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 1000));

@@ -44,7 +44,6 @@ export class ValuationApiService {
     error?: string 
   }> {
     try {
-      console.log('📋 Creating valuation request:', requestData);
 
       const { data, error } = await supabase.functions.invoke('valuation-request', {
         body: requestData
@@ -81,7 +80,6 @@ export class ValuationApiService {
     error?: string;
   }> {
     try {
-      console.log('🚀 Triggering comprehensive aggregation for request:', requestId);
 
       // First get the request details
       const { data: requestData } = await supabase
@@ -95,7 +93,6 @@ export class ValuationApiService {
       }
 
       // Market aggregation feature has been removed
-      console.log('ℹ️ Market aggregation feature removed from ValuationApiService');
 
       return {
         success: true,
@@ -120,7 +117,6 @@ export class ValuationApiService {
    */
   static async getValuationResult(requestId: string): Promise<ValuationResult | null> {
     try {
-      console.log('📊 Getting valuation result for:', requestId);
 
       const { data, error } = await supabase.functions.invoke('valuation-result', {
         body: { request_id: requestId }
@@ -170,7 +166,6 @@ export class ValuationApiService {
     };
   } | null> {
     try {
-      console.log('📊 Getting sources status');
 
       const { data, error } = await supabase.functions.invoke('valuation-sources');
 
@@ -290,7 +285,6 @@ export class ValuationApiService {
         .limit(1);
 
       if (recentRequests && recentRequests.length > 0) {
-        console.log('🎯 Found cached valuation for VIN:', vin);
         return await this.getValuationResult(recentRequests[0].id);
       }
 

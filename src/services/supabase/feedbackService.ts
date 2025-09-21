@@ -17,7 +17,6 @@ export interface ValuationFeedback {
 
 export async function saveValuationFeedback(feedback: ValuationFeedback) {
   try {
-    console.log('💬 Saving valuation feedback...', feedback);
     
     const { data, error } = await supabase
       .from('user_valuation_feedback')
@@ -39,7 +38,6 @@ export async function saveValuationFeedback(feedback: ValuationFeedback) {
       throw error;
     }
 
-    console.log('✅ Feedback saved successfully');
     return data;
   } catch (error) {
     console.error('❌ Failed to save feedback:', error);

@@ -29,7 +29,7 @@ class ErrorHandler {
     this.errors.push(report);
     
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.NODE_ENV === 'development') {
       console.error(`[${context}]`, error);
     }
   }

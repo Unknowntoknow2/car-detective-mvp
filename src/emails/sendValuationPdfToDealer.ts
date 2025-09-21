@@ -33,7 +33,6 @@ export async function sendValuationPdfToDealer(data: DealerEmailData): Promise<b
       return false;
     }
 
-    console.log('Successfully sent PDF to dealer:', result);
     await logEmailDelivery(data.dealerEmail, 'sent');
     return true;
   } catch (error) {
@@ -64,11 +63,9 @@ export async function sendPdfToVerifiedDealers(
     }
 
     if (!dealers || dealers.length === 0) {
-      console.log('No verified dealers found');
       return { sent: 0, failed: 0 };
     }
 
-    console.log(`Found ${dealers.length} verified dealers to notify`);
 
     // Send email to each verified dealer
     const emailPromises = dealers.map(dealer => 
@@ -86,7 +83,6 @@ export async function sendPdfToVerifiedDealers(
     const sent = results.filter(result => result.status === 'fulfilled' && result.value === true).length;
     const failed = results.length - sent;
 
-    console.log(`Email delivery complete: ${sent} sent, ${failed} failed`);
     
     return { sent, failed };
   } catch (error) {

@@ -101,7 +101,6 @@ const confidenceBreakdown = {
 ```typescript
 } else {
   // Use fallback MSRP-based pricing
-  console.log('🔄 Using fallback MSRP-based pricing');
   isUsingFallbackMethod = true;
   valuationMethod = 'fallbackMSRP';
   
@@ -164,8 +163,6 @@ return {
 
 **Code Evidence:**
 ```typescript
-console.log(`✅ Found ${marketListings.length} market listings`);
-console.log('📋 Listings breakdown:', {
   totalListings: marketListings.length,
   sources: [...new Set(marketListings.map(l => l.source))],
   priceRange: marketListings.length > 0 ? {

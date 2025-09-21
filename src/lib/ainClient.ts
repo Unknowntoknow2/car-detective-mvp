@@ -45,8 +45,6 @@ export async function runValuation(payload: {
   };
 
   // Signals for QA tools and Playwright
-  if (res.ok) console.log('ain.ok');
-  console.log('ain.route', { ok: res.ok, ...meta });
 
   if (!res.ok) {
     const body = await res.text().catch(() => '');

@@ -25,7 +25,6 @@ import {
 } from 'lucide-react';
 
 export default function ProfessionalHomePage() {
-  console.log('🏠 ProfessionalHomePage rendering - should be inside ValuationProvider');
   const navigate = useNavigate();
 
   return (

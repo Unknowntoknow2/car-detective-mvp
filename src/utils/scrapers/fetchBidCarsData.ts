@@ -6,8 +6,8 @@ import { z } from "zod";
 
 // Server-side environment values (Service Role Key only)
 const serverSupabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  import.meta.env.SUPABASE_URL!,
+  import.meta.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
 // Auction result schema

@@ -9,7 +9,7 @@ export async function fetchStatVinData(vin: string): Promise<StatVinData | null>
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.BRIGHTDATA_API_KEY}`,
+        'Authorization': `Bearer ${import.meta.env.BRIGHTDATA_API_KEY}`,
       },
       body: JSON.stringify({
         vin: vin.toUpperCase(),

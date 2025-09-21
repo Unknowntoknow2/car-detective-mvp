@@ -106,19 +106,12 @@ export async function runSystemHealthCheck(): Promise<SystemHealthCheck[]> {
 }
 
 export function printSystemHealth(checks: SystemHealthCheck[]): void {
-  console.log('\n🏥 SYSTEM HEALTH CHECK REPORT');
-  console.log(`📅 Timestamp: ${new Date().toISOString()}`);
   
   const healthy = checks.filter(c => c.status === 'healthy').length;
   const degraded = checks.filter(c => c.status === 'degraded').length;
   const down = checks.filter(c => c.status === 'down').length;
   
-  console.log(`\n📊 OVERALL STATUS:`);
-  console.log(`  ✅ Healthy: ${healthy}`);
-  console.log(`  ⚠️  Degraded: ${degraded}`);
-  console.log(`  ❌ Down: ${down}`);
   
-  console.log(`\n🔍 COMPONENT DETAILS:`);
   checks.forEach(check => {
     const icon = check.status === 'healthy' ? '✅' : 
                  check.status === 'degraded' ? '⚠️' : '❌';
@@ -137,9 +130,7 @@ export function printSystemHealth(checks: SystemHealthCheck[]): void {
       line += ` - ${JSON.stringify(check.details)}`;
     }
     
-    console.log(line);
   });
   
   const overallStatus = down > 0 ? 'CRITICAL' : degraded > 0 ? 'DEGRADED' : 'HEALTHY';
-  console.log(`\n🎯 OVERALL SYSTEM STATUS: ${overallStatus}`);
 }

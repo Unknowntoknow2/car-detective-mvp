@@ -50,7 +50,6 @@ export class EnhancedMarketListingService {
    */
   static async fetchRealMarketListings(filters: EnhancedMarketListingFilters): Promise<EnhancedMarketListing[]> {
     try {
-      console.log('🔍 Fetching real market listings with filters:', filters);
 
       let query = supabase
         .from('market_listings')
@@ -96,7 +95,6 @@ export class EnhancedMarketListingService {
       }
 
       if (!data || data.length === 0) {
-        console.log('📭 No market listings found with current filters');
         return [];
       }
 
@@ -130,7 +128,6 @@ export class EnhancedMarketListingService {
         validation_errors: listing.validation_errors || []
       }));
 
-      console.log(`✅ Successfully fetched ${transformedListings.length} real market listings`);
       return transformedListings;
 
     } catch (error) {
@@ -144,12 +141,10 @@ export class EnhancedMarketListingService {
    * Search for similar vehicles in the market
    */
   static async searchSimilarVehicles(filters: EnhancedMarketListingFilters): Promise<EnhancedMarketListing[]> {
-    console.log('🔍 Searching for similar vehicles...');
     
     // First try exact match
     const exactMatch = await this.fetchRealMarketListings(filters);
     if (exactMatch.length > 0) {
-      console.log(`✅ Found ${exactMatch.length} exact matches`);
       return exactMatch;
     }
 
@@ -170,11 +165,9 @@ export class EnhancedMarketListingService {
         Math.abs(listing.year - filters.year!) <= yearRange
       );
       
-      console.log(`✅ Found ${filteredByYear.length} similar vehicles within ${yearRange} years`);
       return filteredByYear;
     }
 
-    console.log(`✅ Found ${broaderResults.length} similar vehicles`);
     return broaderResults;
   }
 
@@ -279,7 +272,6 @@ export class EnhancedMarketListingService {
         
         // Cache for 5 minutes
         if (cacheAgeMinutes < 5) {
-          console.log('📦 Using cached market listings');
           return parsed.data;
         }
       } catch (error) {

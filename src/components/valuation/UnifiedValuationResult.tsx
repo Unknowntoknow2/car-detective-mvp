@@ -20,7 +20,6 @@ export const UnifiedValuationResult: React.FC<UnifiedValuationResultProps> = ({ 
 
   useEffect(() => {
     // Log the result data for debugging
-    console.log('UnifiedValuationResult received data:', {
       id: result.id,
       vin: result.vin,
       vehicleInfo: result.vehicle,

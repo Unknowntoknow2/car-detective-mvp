@@ -200,18 +200,14 @@ export function TabbedFollowUpForm({
     
     setIsSubmitting(true);
     try {
-      console.log('🚀 [TabbedFollowUpForm] Starting form submission...');
       
       // Use the new integrated submission function
       const result = await submitFollowUpAndStartValuation();
-      console.log('🔍 [TabbedFollowUpForm] Submission result:', result);
       
       if (result.success && result.valuationId) {
-        console.log('✅ [TabbedFollowUpForm] Existing valuation found, navigating to results');
         // Navigate to results using the parent's onSubmit (which handles navigation)
         await onSubmit();
       } else if (result.requiresValuation) {
-        console.log('🚀 [TabbedFollowUpForm] No valuation exists, calling parent to create valuation');
         // FIXED: Call parent's onSubmit when valuation creation is needed
         // This allows the parent (ValuationFollowUpPage) to create the valuation
         await onSubmit();

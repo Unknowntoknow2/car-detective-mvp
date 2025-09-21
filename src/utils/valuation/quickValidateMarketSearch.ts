@@ -6,7 +6,6 @@ import { MarketListing } from '@/types/marketListing';
  * Simple test to validate marketSearchAgent output matches unified MarketListing type
  */
 export const validateMarketSearchOutput = async () => {
-  console.log('🎯 Validating Market Search Agent Output...');
   
   try {
     // Test with a realistic vehicle search
@@ -38,7 +37,6 @@ export const validateMarketSearchOutput = async () => {
       );
     });
     
-    console.log('✅ Market Search Agent Validation Results:', {
       isValidResult,
       validListings,
       listingsCount: result.listings.length,
@@ -48,10 +46,8 @@ export const validateMarketSearchOutput = async () => {
     });
     
     if (isValidResult && validListings) {
-      console.log('🎯 Market Search Agent successfully normalized to canonical MarketListing format!');
       return true;
     } else {
-      console.log('❌ Market Search Agent output validation failed');
       return false;
     }
     

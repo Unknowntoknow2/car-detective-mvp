@@ -63,7 +63,6 @@ export function useFollowUpDataLoader({ vin, initialData }: UseFollowUpDataLoade
       }
 
       try {
-        console.log('📋 Loading follow-up data for VIN:', vin);
 
         // Try to load existing follow-up answers
         const { data: existingAnswers } = await supabase
@@ -73,13 +72,11 @@ export function useFollowUpDataLoader({ vin, initialData }: UseFollowUpDataLoade
           .maybeSingle();
 
         if (existingAnswers) {
-          console.log('📋 Found existing follow-up answers for VIN:', vin);
           
           // Fix valuation_id linking: resolve by VIN if missing
           let resolvedValuationId = existingAnswers.valuation_id;
           
           if (!resolvedValuationId) {
-            console.log('🔗 Resolving missing valuation_id for VIN:', vin);
             
             const { data: valuationData } = await supabase
               .from('valuation_results')
@@ -91,7 +88,6 @@ export function useFollowUpDataLoader({ vin, initialData }: UseFollowUpDataLoade
             
             if (valuationData) {
               resolvedValuationId = valuationData.id;
-              console.log('✅ Resolved valuation_id:', resolvedValuationId, 'for VIN:', vin);
               
               // Update the follow-up record with the resolved valuation_id
               await supabase
@@ -117,7 +113,6 @@ export function useFollowUpDataLoader({ vin, initialData }: UseFollowUpDataLoade
             }
           }));
         } else {
-          console.log('📋 No existing follow-up data found for VIN:', vin);
           
           // Try to link with an existing valuation even if no follow-up answers exist
           const { data: valuationData } = await supabase
@@ -129,7 +124,6 @@ export function useFollowUpDataLoader({ vin, initialData }: UseFollowUpDataLoade
             .maybeSingle();
           
           if (valuationData) {
-            console.log('🔗 Linking new follow-up to existing valuation:', valuationData.id);
             
             setFormData(prev => ({
               ...prev,

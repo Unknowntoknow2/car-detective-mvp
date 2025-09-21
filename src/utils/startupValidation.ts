@@ -5,4 +5,3 @@ if (import.meta.env.PROD) {
   }
 }
 
-console.log('🔧 [BUILD] Startup validation complete - AIN API enforced');

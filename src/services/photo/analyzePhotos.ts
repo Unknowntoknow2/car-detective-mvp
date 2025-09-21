@@ -22,7 +22,6 @@ export interface PhotoAnalysisResult {
 }
 
 export async function analyzePhotos(photoUrls: string[], valuationId: string): Promise<PhotoAnalysisResult> {
-  console.log(`🔍 Analyzing ${photoUrls.length} photos for valuation ${valuationId}`);
   
   if (!photoUrls || photoUrls.length === 0) {
     return {
@@ -56,7 +55,6 @@ export async function analyzePhotos(photoUrls: string[], valuationId: string): P
     }
 
     const result = await response.json();
-    console.log(`✅ Photo analysis completed: Overall score ${result.overallScore}`);
     
     return result;
 

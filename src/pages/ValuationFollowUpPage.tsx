@@ -65,7 +65,6 @@ export default function ValuationFollowUpPage() {
         console.warn('⚠️ [DEBUG] Auth error, proceeding as anonymous user:', authError);
       }
       const userId = user?.id || null;
-      console.log('🔍 [DEBUG] User ID:', userId || 'anonymous');
       
       // FIXED: Load actual follow-up data instead of using defaults
       const { FollowUpService } = await import('@/services/followUpService');

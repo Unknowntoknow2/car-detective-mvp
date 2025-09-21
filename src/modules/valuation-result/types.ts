@@ -1,3 +1,4 @@
+import * as React from 'react';
 
 import { AICondition } from "@/types/photo";
 import { ValuationResult } from "@/types/vehicleData";

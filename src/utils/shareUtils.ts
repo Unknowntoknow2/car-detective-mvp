@@ -17,7 +17,6 @@ export interface GeneratedShareData {
 
 export async function generateShareLinkAndQR(data: ShareLinkData): Promise<GeneratedShareData> {
   try {
-    console.log('🔗 Generating share link and QR code...', data);
     
     // Generate a unique token for this valuation
     const token = generateShareToken(data);
@@ -36,7 +35,6 @@ export async function generateShareLinkAndQR(data: ShareLinkData): Promise<Gener
       }
     });
     
-    console.log('✅ Share link and QR generated successfully');
     
     return {
       link: shareLink,

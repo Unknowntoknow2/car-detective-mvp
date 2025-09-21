@@ -8,7 +8,6 @@ interface MakeWithModels {
 
 export async function queryAllMakesWithModels(): Promise<MakeWithModels[]> {
   try {
-    console.log('🔍 Fetching all makes and their models from Supabase...');
     
     // First, get all makes
     const { data: makes, error: makesError } = await supabase
@@ -26,7 +25,6 @@ export async function queryAllMakesWithModels(): Promise<MakeWithModels[]> {
       return [];
     }
 
-    console.log(`✅ Found ${makes.length} makes`);
 
     // For each make, get all associated models
     const makesWithModels: MakeWithModels[] = [];
@@ -50,7 +48,6 @@ export async function queryAllMakesWithModels(): Promise<MakeWithModels[]> {
         models: modelNames
       });
 
-      console.log(`📋 ${make.make_name}: ${modelNames.length} models`);
     }
 
     return makesWithModels;
@@ -65,19 +62,12 @@ export async function executeMakesModelsQuery() {
   try {
     const makesWithModels = await queryAllMakesWithModels();
     
-    console.log('\n🎯 COMPLETE MAKES AND MODELS DATA:');
-    console.log('====================================');
     
     makesWithModels.forEach((makeData, index) => {
-      console.log(`\n${index + 1}. ${makeData.make} (${makeData.models.length} models):`);
       makeData.models.forEach((model, modelIndex) => {
-        console.log(`   ${modelIndex + 1}. ${model}`);
       });
     });
 
-    console.log('\n📊 SUMMARY:');
-    console.log(`Total Makes: ${makesWithModels.length}`);
-    console.log(`Total Models: ${makesWithModels.reduce((sum, make) => sum + make.models.length, 0)}`);
     
     return makesWithModels;
   } catch (error) {

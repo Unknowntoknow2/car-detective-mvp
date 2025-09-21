@@ -16,7 +16,6 @@ export const useShareReport = () => {
       setError(null);
       
       if (email) {
-        console.log(`Sharing report ${valuationId} to ${email}`);
       } else if (navigator.share) {
         await navigator.share({
           title: 'Vehicle Valuation Report',
@@ -26,7 +25,6 @@ export const useShareReport = () => {
       } else {
         // Fallback - copy to clipboard
         await navigator.clipboard.writeText(`${window.location.origin}/report/${valuationId}`);
-        console.log('Report link copied to clipboard');
       }
       
       return true;

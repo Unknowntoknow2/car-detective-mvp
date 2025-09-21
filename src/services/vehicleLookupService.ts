@@ -2,7 +2,6 @@ import { DecodedVehicleInfo } from '@/types/vehicle';
 import { supabase } from '@/integrations/supabase/client';
 
 export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo> {
-  console.log('🔄 vehicleLookupService: Routing to real NHTSA API via unified-decode for VIN:', vin);
   
   try {
     // Call the unified-decode edge function for real NHTSA data
@@ -44,7 +43,6 @@ export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo
         primaryPhoto: 'https://images.unsplash.com/photo-1549924231-f129b911e442?w=800&h=600&fit=crop'
       };
 
-      console.log('✅ vehicleLookupService: Successfully decoded vehicle from NHTSA:', vehicleInfo);
       return vehicleInfo;
     } else {
       console.error('❌ vehicleLookupService: No data returned from edge function');
@@ -57,7 +55,6 @@ export async function fetchVehicleByVin(vin: string): Promise<DecodedVehicleInfo
 }
 
 export async function fetchVehicleByPlate(plate: string, state: string): Promise<DecodedVehicleInfo> {
-  console.log('🔄 vehicleLookupService: Plate lookup for:', plate, 'state:', state);
   
   // Simulate API delay for plate lookup (this is still mock as there's no real plate API)
   await new Promise(resolve => setTimeout(resolve, 1200));
@@ -90,12 +87,10 @@ export async function fetchVehicleByPlate(plate: string, state: string): Promise
     primaryPhoto: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&h=600&fit=crop'
   };
   
-  console.log('✅ vehicleLookupService: Plate lookup completed (mock data):', mockVehicle);
   return mockVehicle;
 }
 
 export async function fetchTrimOptions(make: string, model: string, year: number): Promise<string[]> {
-  console.log('Fetching trim options for:', make, model, year);
   
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 500));

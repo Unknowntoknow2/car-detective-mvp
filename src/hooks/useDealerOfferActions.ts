@@ -21,7 +21,6 @@ export function useDealerOfferActions() {
     setIsProcessing(true);
     
     try {
-      console.log('✅ Processing offer acceptance:', options);
 
       // Get the current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();

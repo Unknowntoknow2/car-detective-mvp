@@ -6,7 +6,6 @@ export class DrivingBehaviorCalculator implements AdjustmentCalculator {
     // Since drivingProfile doesn't exist on RulesEngineInput, we'll return null for now
     // This feature would need to be implemented when driving behavior data is available
     
-    console.log('Driving behavior adjustment disabled - no driving profile data available');
     return null;
   }
 }

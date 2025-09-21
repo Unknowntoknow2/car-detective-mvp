@@ -189,7 +189,6 @@ test.describe('VIN to Result E2E Flow', () => {
     
     // If OpenAI fallback was used, should see indicators
     if (await sourceBadges.count() > 0 || await warningBanner.isVisible()) {
-      console.log('OpenAI fallback detected - appropriate warnings displayed');
     }
   });
 });

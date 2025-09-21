@@ -72,7 +72,6 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
   }, [valuationId]);
 
   const loadValuationData = async (id: string) => {
-    console.log('🔍 Loading valuation data for ID:', id);
     setIsLoading(true);
     setError(null);
 
@@ -138,7 +137,6 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
   };
 
   const rerunValuation = async (input: ValuationInput) => {
-    console.log('🔄 [ValuationContext] Calling AIN API for professional valuation via rerunValuation:', input);
     setIsLoading(true);
     setError(null);
 
@@ -156,8 +154,6 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
         requested_by: 'rerun_valuation'
       });
       
-      console.log('✅ [AIN] Professional valuation completed via AIN API');
-      console.log('🔍 [AIN] Route metadata:', meta);
       logger.log("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
       
       // Convert AIN result to our expected format
@@ -181,8 +177,6 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
       // Save the valuation result to database
       try {
         const userId = 'anonymous';
-        console.log('💾 [DEBUG] Saving valuation with user:', userId);
-        console.log('💾 [DEBUG] Valuation data to save:', result);
 
         const { data: savedValuation, error: insertError } = await supabase
           .from('valuations')
@@ -209,7 +203,6 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
           console.error('❌ Failed to save valuation to database:', insertError);
           console.error('❌ Insert error details:', JSON.stringify(insertError, null, 2));
         } else {
-          console.log('✅ Valuation saved to database successfully:', savedValuation);
         }
       } catch (saveError) {
         console.error('❌ Database save error:', saveError);
@@ -228,7 +221,6 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
   };
 
   const onUpgrade = () => {
-    console.log('🚀 Upgrade requested');
     // Implementation will be added when premium features are implemented
   };
 
@@ -236,7 +228,6 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
     setIsDownloading(true);
     try {
       // Implementation for PDF download
-      console.log('📄 PDF download requested');
     } catch (error) {
       console.error('❌ PDF download failed:', error);
       toast.error('Failed to download PDF');
@@ -249,7 +240,6 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
     setIsEmailSending(true);
     try {
       // Implementation for email PDF
-      console.log('📧 Email PDF requested');
     } catch (error) {
       console.error('❌ Email PDF failed:', error);
       toast.error('Failed to email PDF');

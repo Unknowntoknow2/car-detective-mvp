@@ -15,7 +15,6 @@ export async function runValuationAudit(vin: string): Promise<AuditResult> {
   const warnings: string[] = [];
   const dataPoints: Record<string, any> = {};
   
-  console.log(`🔍 Starting diagnostic audit for VIN: ${vin}`);
 
   try {
     // 1. Verify VIN format and valuation record
@@ -37,7 +36,6 @@ export async function runValuationAudit(vin: string): Promise<AuditResult> {
       errors.push(`❌ No valuation record found for VIN: ${vin}`);
     } else {
       dataPoints.valuation = valuation;
-      console.log(`✅ Found valuation record with ID: ${valuation.id}`);
       
       // Verify required valuation fields
       if (!valuation.estimated_value) errors.push('❌ Missing estimated_value in valuation');
@@ -54,7 +52,6 @@ export async function runValuationAudit(vin: string): Promise<AuditResult> {
 
     if (decodedVehicle) {
       dataPoints.decodedVehicle = decodedVehicle;
-      console.log(`✅ Found decoded vehicle data`);
     } else {
       warnings.push(`⚠️ No decoded vehicle data found for VIN: ${vin}`);
     }
@@ -68,7 +65,6 @@ export async function runValuationAudit(vin: string): Promise<AuditResult> {
 
     if (followupAnswers) {
       dataPoints.followupAnswers = followupAnswers;
-      console.log(`✅ Found follow-up answers`);
       
       // Verify critical follow-up fields
       if (followupAnswers.mileage === null) warnings.push('⚠️ Missing mileage in follow-up answers');
@@ -87,7 +83,6 @@ export async function runValuationAudit(vin: string): Promise<AuditResult> {
 
     if (auctionResults && auctionResults.length > 0) {
       dataPoints.auctionResults = auctionResults;
-      console.log(`✅ Found ${auctionResults.length} auction records`);
     } else {
       warnings.push(`⚠️ No auction data found for VIN: ${vin}`);
     }
@@ -101,7 +96,6 @@ export async function runValuationAudit(vin: string): Promise<AuditResult> {
 
     if (marketplaceListings && marketplaceListings.length > 0) {
       dataPoints.marketplaceListings = marketplaceListings;
-      console.log(`✅ Found ${marketplaceListings.length} marketplace listings`);
     } else {
       warnings.push(`⚠️ No marketplace listings found for VIN: ${vin}`);
     }
@@ -115,7 +109,6 @@ export async function runValuationAudit(vin: string): Promise<AuditResult> {
 
     if (dealerOffers && dealerOffers.length > 0) {
       dataPoints.dealerOffers = dealerOffers;
-      console.log(`✅ Found ${dealerOffers.length} dealer offers`);
     } else {
       warnings.push(`⚠️ No dealer offers found for this valuation`);
     }
@@ -131,7 +124,6 @@ export async function runValuationAudit(vin: string): Promise<AuditResult> {
 
     if (vinForecast) {
       dataPoints.vinForecast = vinForecast;
-      console.log(`✅ Found VIN forecast data`);
     } else {
       warnings.push(`⚠️ No current forecast data found for VIN: ${vin}`);
     }
@@ -146,7 +138,6 @@ export async function runValuationAudit(vin: string): Promise<AuditResult> {
 
     if (competitorPrices) {
       dataPoints.competitorPrices = competitorPrices;
-      console.log(`✅ Found competitor pricing data`);
     } else {
       warnings.push(`⚠️ No competitor pricing data found for VIN: ${vin}`);
     }
@@ -195,35 +186,16 @@ export async function runBatchAudit(vins: string[]): Promise<AuditResult[]> {
 }
 
 export function printAuditReport(result: AuditResult): void {
-  console.log(`\n🔍 DIAGNOSTIC AUDIT REPORT FOR VIN: ${result.vin}`);
-  console.log(`📅 Timestamp: ${result.timestamp}`);
-  console.log(`🎯 Status: ${result.status.toUpperCase()}`);
   
   if (result.errors.length > 0) {
-    console.log(`\n❌ ERRORS (${result.errors.length}):`);
-    result.errors.forEach(error => console.log(`  ${error}`));
   }
   
   if (result.warnings.length > 0) {
-    console.log(`\n⚠️  WARNINGS (${result.warnings.length}):`);
-    result.warnings.forEach(warning => console.log(`  ${warning}`));
   }
   
-  console.log(`\n📊 DATA SUMMARY:`);
-  console.log(`  • Valuation Record: ${result.dataPoints.valuation ? '✅' : '❌'}`);
-  console.log(`  • Decoded Vehicle: ${result.dataPoints.decodedVehicle ? '✅' : '⚠️'}`);
-  console.log(`  • Follow-up Answers: ${result.dataPoints.followupAnswers ? '✅' : '⚠️'}`);
-  console.log(`  • Auction Results: ${result.dataPoints.auctionResults ? `✅ (${result.dataPoints.auctionResults.length})` : '⚠️'}`);
-  console.log(`  • Marketplace Listings: ${result.dataPoints.marketplaceListings ? `✅ (${result.dataPoints.marketplaceListings.length})` : '⚠️'}`);
-  console.log(`  • Dealer Offers: ${result.dataPoints.dealerOffers ? `✅ (${result.dataPoints.dealerOffers.length})` : '⚠️'}`);
-  console.log(`  • VIN Forecast: ${result.dataPoints.vinForecast ? '✅' : '⚠️'}`);
-  console.log(`  • Competitor Prices: ${result.dataPoints.competitorPrices ? '✅' : '⚠️'}`);
   
   if (result.status === 'pass') {
-    console.log(`\n🎉 ALL SYSTEMS OPERATIONAL FOR VIN: ${result.vin}`);
   } else if (result.status === 'warning') {
-    console.log(`\n⚠️  SYSTEM FUNCTIONAL BUT HAS WARNINGS FOR VIN: ${result.vin}`);
   } else {
-    console.log(`\n🚨 SYSTEM ERRORS DETECTED FOR VIN: ${result.vin}`);
   }
 }

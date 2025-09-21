@@ -74,7 +74,6 @@ export function generateConfidenceScore(params: ConfidenceScoreParams): Confiden
     score += boost;
     breakdown.exactVinMatch = boost;
     explanation.push('Confidence boosted for exact VIN match.');
-    console.log(`📈 Confidence: +${boost} for exact VIN match`);
   }
 
   // +10 for multiple listings (market validation)
@@ -83,7 +82,6 @@ export function generateConfidenceScore(params: ConfidenceScoreParams): Confiden
     score += boost;
     breakdown.multipleListings = boost;
     explanation.push(`Multiple market listings found (${listingCount}).`);
-    console.log(`📈 Confidence: +${boost} for ${listingCount} listings`);
   }
 
   // +5 for certified listings (quality signal)
@@ -92,7 +90,6 @@ export function generateConfidenceScore(params: ConfidenceScoreParams): Confiden
     score += boost;
     breakdown.certifiedListings = boost;
     explanation.push(`${certifiedListingCount} certified listing${certifiedListingCount > 1 ? 's' : ''} found.`);
-    console.log(`📈 Confidence: +${boost} for ${certifiedListingCount} certified listings`);
   }
 
   // +5 for high-trust domain sources
@@ -112,7 +109,6 @@ export function generateConfidenceScore(params: ConfidenceScoreParams): Confiden
       .filter(Boolean)
       .join(', ');
     explanation.push(`Listings found from high-trust source${trustedDomains.length > 1 ? 's' : ''}: ${domainNames}`);
-    console.log(`📈 Confidence: +${boost} for trusted domains: ${domainNames}`);
   }
 
   // Additional trust score bonus (up to +5 based on search quality)
@@ -122,7 +118,6 @@ export function generateConfidenceScore(params: ConfidenceScoreParams): Confiden
     breakdown.trustScoreBonus = boost;
     if (boost > 0) {
       explanation.push(`High-quality market data detected.`);
-      console.log(`📈 Confidence: +${boost} for high trust score (${(trustScore * 100).toFixed(0)}%)`);
     }
   }
 
@@ -133,7 +128,6 @@ export function generateConfidenceScore(params: ConfidenceScoreParams): Confiden
     breakdown.capped = true;
     score = 95;
     explanation.push('Confidence capped at maximum 95%.');
-    console.log(`🧢 Confidence capped at 95% (was ${breakdown.total})`);
   }
 
   // Add baseline explanation
@@ -141,7 +135,6 @@ export function generateConfidenceScore(params: ConfidenceScoreParams): Confiden
     explanation.push(`Base confidence of ${base}% applied.`);
   }
 
-  console.log('🎯 Final Confidence Score:', {
     score: `${score}%`,
     factors: breakdown,
     explanations: explanation

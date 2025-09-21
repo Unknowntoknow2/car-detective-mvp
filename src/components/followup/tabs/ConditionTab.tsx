@@ -182,7 +182,6 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
 
   // Sync form state with prop changes
   useEffect(() => {
-    console.log('🔄 ConditionTab: Syncing form with formData:', {
       tire_condition: formData.tire_condition,
       exterior_condition: formData.exterior_condition,
       interior_condition: formData.interior_condition,
@@ -198,7 +197,6 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
   }, [formData.tire_condition, formData.exterior_condition, formData.interior_condition, formData.brake_condition, reset]);
 
   const handleConditionChange = (key: keyof FollowUpAnswers, value: string) => {
-    console.log(`🎯 Condition change: ${String(key)} = ${value}`);
     setValue(key as any, value);
     updateFormData({ [key]: value });
   };
@@ -208,7 +206,6 @@ export function ConditionTab({ formData, updateFormData }: ConditionTabProps) {
     const propValue = formData[key] as string;
     const formValue = watch(key as any);
     const result = propValue || formValue || 'good';
-    console.log(`📊 getConditionValue(${String(key)}): prop=${propValue}, form=${formValue}, result=${result}`);
     return result;
   };
 

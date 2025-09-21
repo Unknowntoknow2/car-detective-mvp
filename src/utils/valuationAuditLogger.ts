@@ -42,7 +42,6 @@ export async function logValuationAudit(
   data: AuditLogData
 ): Promise<string> {
   try {
-    console.log(`📊 Enhanced Audit Log [${status}]:`, data);
     
     // FIX #6: Use safe audit logging via edge function
     try {
@@ -78,7 +77,6 @@ export async function logValuationAudit(
       });
 
       if (!safeError && safeResponse?.success) {
-        console.log('✅ Safe audit logged:', safeResponse.auditId);
         return safeResponse.auditId;
       } else {
         console.warn('⚠️ Safe audit warning (non-blocking):', safeResponse?.warning || safeError?.message);
@@ -117,7 +115,6 @@ export async function logValuationStep(
   zipCode?: string
 ): Promise<void> {
   try {
-    console.log(`📋 Logging Step [${step}]:`, { vin, valuationRequestId, ...data });
     
     // Calculate adjustment percentage if we have both values
     const adjustmentPercentage = data.baseValue && data.baseValue > 0 && data.adjustment
@@ -164,7 +161,6 @@ export async function logValuationStep(
         .single();
       
       if (!dbError && insertedData) {
-        console.log(`✅ Step audit logged to valuation_audit_logs:`, insertedData.id);
       } else {
         console.warn('⚠️ Primary audit failed:', dbError?.message);
         
@@ -178,7 +174,6 @@ export async function logValuationStep(
         if (fallbackError) {
           console.warn('⚠️ Fallback audit also failed:', fallbackError.message);
         } else {
-          console.log('✅ Fallback audit succeeded:', fallbackData?.id);
         }
       }
     } catch (error) {

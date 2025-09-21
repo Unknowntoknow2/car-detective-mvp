@@ -28,16 +28,12 @@ class ValuationLogger {
     const phaseColor = this.getPhaseColor(entry.phase);
     
     console.group(`${emoji} [${entry.phase.toUpperCase()}] ${entry.action}`);
-    console.log(`🕐 Timestamp: ${entry.timestamp}`);
-    console.log(`🚗 VIN: ${entry.vin}`);
-    console.log(`📊 Success: ${entry.success}`);
     
     if (entry.error) {
       console.error(`🚨 Error: ${entry.error}`);
     }
     
     if (Object.keys(entry.data).length > 0) {
-      console.log(`📋 Data:`, entry.data);
     }
     
     console.groupEnd();

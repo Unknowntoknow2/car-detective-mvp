@@ -10,7 +10,6 @@ import { appConfig } from '@/config';
 export const logger = {
   log: (...args: any[]) => {
     if (appConfig.ENABLE_DIAGNOSTICS) {
-      console.log(...args);
     }
   },
   

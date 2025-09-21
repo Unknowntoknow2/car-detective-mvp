@@ -16,7 +16,6 @@ export class AdjustmentEngine {
     let confidencePenalty = 0;
     let fallbackExplanation: string | undefined;
 
-    console.log('🔧 AdjustmentEngine: Starting calculation with context:', {
       vehicleMileage: context.vehicleMileage,
       marketListingsCount: context.marketListings.length,
       condition: context.condition,
@@ -63,7 +62,6 @@ export class AdjustmentEngine {
 
     const totalAdjustment = adjustments.reduce((sum, adj) => sum + adj.amount, 0);
 
-    console.log('✅ AdjustmentEngine: Calculation complete:', {
       adjustmentsCount: adjustments.length,
       totalAdjustment,
       confidencePenalty,

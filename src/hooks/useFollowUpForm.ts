@@ -15,9 +15,7 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('📥 Follow-up form initialized with VIN:', vin);
-    console.log('📋 Initial data valuation_id:', initialData?.valuation_id || 'missing');
+  if (import.meta.env.NODE_ENV !== 'production') {
   }
 
   const { formData: loadedData, setFormData, isLoading } = useFollowUpDataLoader({ 
@@ -124,10 +122,8 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
         .maybeSingle();
 
       if (decodedVehicle) {
-        console.log('🧮 Running valuation with complete follow-up data');
         
         // Run valuation with complete follow-up data via AIN API
-        console.log('🧮 [useFollowUpForm] Calling AIN API for follow-up valuation');
         
         const t0 = performance.now();
         const { data: ainResult, meta } = await runValuation({
@@ -141,8 +137,6 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
           requested_by: 'followup_form'
         });
         
-        console.log('✅ [AIN] Follow-up valuation completed');
-        console.log('🔍 [AIN] Route metadata:', meta);
         logger.log("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
         
         // Convert AIN result to expected format with all required fields
@@ -181,7 +175,6 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
               })
               .eq('id', existingValuation.id);
             
-            console.log('✅ Updated existing valuation result');
           } else {
             const { data: newValuation } = await supabase
               .from('valuation_results')
@@ -196,7 +189,6 @@ export function useFollowUpForm(vin: string, initialData?: Partial<FollowUpAnswe
               .select()
               .single();
             
-            console.log('✅ Created new valuation result');
           }
           
           toast.success(`Valuation updated: $${valuationResult.finalValue.toLocaleString()} (${valuationResult.confidenceScore}% confidence)`);

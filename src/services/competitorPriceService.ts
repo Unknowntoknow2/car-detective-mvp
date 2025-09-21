@@ -32,7 +32,6 @@ export async function fetchCompetitorPrices(
   error?: string
 }> {
   try {
-    console.log(`🔍 Fetching competitor prices for VIN: ${vin}`)
 
     const { data, error } = await supabase.functions.invoke('fetch-competitor-prices', {
       body: { vin, make, model, year }

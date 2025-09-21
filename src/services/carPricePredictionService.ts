@@ -36,7 +36,6 @@ export async function getCarPricePrediction(
   request: CarPricePredictionRequest
 ): Promise<CarPricePredictionResponse> {
   try {
-    console.log('Calling car-price-prediction with:', request);
     
     const { data, error } = await supabase.functions.invoke('car-price-prediction', {
       body: {
@@ -63,7 +62,6 @@ export async function getCarPricePrediction(
       throw new Error('No data returned from price prediction service');
     }
 
-    console.log('Car price prediction success:', data);
 
     return {
       estimatedValue: data.estimatedValue || 0,

@@ -43,7 +43,6 @@ export function MaintenanceHistoryStep({
   };
 
   const addMaintenanceRecord = (val: any) => {
-    console.log("Adding maintenance record:", val);
   };
 
   return (

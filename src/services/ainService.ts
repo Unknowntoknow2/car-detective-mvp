@@ -18,7 +18,6 @@ export async function askAIN(
   chatHistory?: ChatMessage[]
 ): Promise<AINResponse> {
   try {
-    console.log('🤖 Sending request to AIN:', { question, hasContext: !!vehicleContext });
     
     const requestBody = {
       message: question,
@@ -76,7 +75,6 @@ export async function askAIN(
       };
     }
 
-    console.log('✅ AIN response received:', { answerLength: data.answer.length });
     return { answer: data.answer };
 
   } catch (error) {

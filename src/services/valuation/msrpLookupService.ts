@@ -17,25 +17,21 @@ export async function getDynamicMSRP(
   trim?: string
 ): Promise<number> {
   try {
-    console.log('🔍 Dynamic MSRP lookup for:', { year, make, model, trim });
 
     // Strategy 1: Check database for MSRP data
     const dbResult = await lookupMSRPFromDatabase(year, make, model, trim);
     if (dbResult.msrp > 0) {
-      console.log(`✅ MSRP found in database: $${dbResult.msrp.toLocaleString()}`);
       return dbResult.msrp;
     }
 
     // Strategy 2: Estimate based on similar vehicles
     const estimatedMSRP = await estimateMSRPFromSimilar(year, make, model);
     if (estimatedMSRP > 0) {
-      console.log(`✅ MSRP estimated from similar vehicles: $${estimatedMSRP.toLocaleString()}`);
       return estimatedMSRP;
     }
 
     // Strategy 3: Use year-based estimation
     const yearBasedMSRP = getYearBasedMSRPEstimate(year, make);
-    console.log(`⚠️ Using year-based MSRP estimate: $${yearBasedMSRP.toLocaleString()}`);
     return yearBasedMSRP;
 
   } catch (error) {
@@ -51,7 +47,6 @@ async function lookupMSRPFromDatabase(
   trim?: string
 ): Promise<MSRPResult> {
   try {
-    console.log(`🔍 Looking up MSRP in model_trims for: ${year} ${make} ${model} ${trim || 'no trim'}`);
     
     let query = supabase
       .from('model_trims')
@@ -62,14 +57,12 @@ async function lookupMSRPFromDatabase(
 
     // If trim is provided, try exact match first
     if (trim) {
-      console.log(`🎯 Searching for exact trim match: "${trim}"`);
       const { data: exactTrimData, error: exactError } = await query
         .ilike('trim_name', `%${trim}%`)
         .order('msrp', { ascending: false })
         .limit(1);
 
       if (!exactError && exactTrimData && exactTrimData.length > 0 && exactTrimData[0].msrp) {
-        console.log(`✅ Found exact trim match: ${exactTrimData[0].trim_name} - $${exactTrimData[0].msrp}`);
         return {
           msrp: exactTrimData[0].msrp,
           source: 'model_trims_exact',
@@ -79,7 +72,6 @@ async function lookupMSRPFromDatabase(
     }
 
     // If no exact trim match, get the highest MSRP for that make/model/year
-    console.log(`🔄 No exact trim match, getting highest MSRP for ${year} ${make} ${model}`);
     const { data: generalData, error: generalError } = await supabase
       .from('model_trims')
       .select('msrp, trim_name')
@@ -90,7 +82,6 @@ async function lookupMSRPFromDatabase(
       .limit(1);
 
     if (!generalError && generalData && generalData.length > 0 && generalData[0].msrp) {
-      console.log(`✅ Found general match: ${generalData[0].trim_name} - $${generalData[0].msrp}`);
       return {
         msrp: generalData[0].msrp,
         source: 'model_trims_general',
@@ -98,7 +89,6 @@ async function lookupMSRPFromDatabase(
       };
     }
 
-    console.log(`❌ No MSRP found in model_trims table`);
     return { msrp: 0, source: 'model_trims_miss', confidence: 0 };
   } catch (error) {
     console.error('❌ Database MSRP lookup error:', error);

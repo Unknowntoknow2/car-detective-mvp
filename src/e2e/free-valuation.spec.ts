@@ -14,7 +14,6 @@ test.describe("Free Valuation Flow", () => {
     await page.getByRole("tab", { name: /manual entry/i }).click({
       timeout: 2000,
     }).catch(() => {
-      console.log(
         "Manual entry tab not found, assuming we are already on manual form",
       );
     });
@@ -125,11 +124,8 @@ test.describe("Free Valuation Flow", () => {
     // This verification might not work if the app doesn't store form data
     // So we're making this a soft check that won't fail the entire test
     const makeValue = await page.getByLabel(/make/i).inputValue();
-    console.log("Saved make value:", makeValue);
     if (makeValue === "Honda") {
-      console.log("✅ Form data was successfully saved");
     } else {
-      console.log("ℹ️ Form data was not saved between sessions");
     }
   });
 });

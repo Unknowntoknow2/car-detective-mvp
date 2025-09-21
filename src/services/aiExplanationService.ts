@@ -27,7 +27,6 @@ export interface ExplanationInput {
  */
 export async function generateAIExplanation(input: ExplanationInput): Promise<string> {
   try {
-    console.log('🤖 Generating AI explanation for valuation...');
     
     // Prepare structured data for AI
     const explanationData = {
@@ -58,7 +57,6 @@ export async function generateAIExplanation(input: ExplanationInput): Promise<st
     }
     
     if (data?.explanation) {
-      console.log('✅ AI explanation generated successfully');
       return data.explanation;
     }
     

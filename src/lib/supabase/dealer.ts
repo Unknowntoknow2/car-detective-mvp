@@ -28,7 +28,6 @@ export async function getVerifiedDealersInZip(zipCode: string): Promise<Verified
     }
 
     if (!data || data.length === 0) {
-      console.log('📭 No verified dealers found in system');
       return [];
     }
 
@@ -62,7 +61,6 @@ export async function getVerifiedDealersInZip(zipCode: string): Promise<Verified
       })
       .filter(Boolean) as VerifiedDealer[];
 
-    console.log(`✅ Found ${verifiedDealers.length} verified dealers`);
     return verifiedDealers;
   } catch (error) {
     console.error('❌ Unexpected error in getVerifiedDealersInZip:', error);

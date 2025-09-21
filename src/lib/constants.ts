@@ -1,6 +1,6 @@
 
 // Debug flag for showing all components in development
-export const SHOW_ALL_COMPONENTS = process.env.NODE_ENV === 'development' && false;
+export const SHOW_ALL_COMPONENTS = import.meta.env.NODE_ENV === 'development' && false;
 
 // US States data
 export const US_STATES = [

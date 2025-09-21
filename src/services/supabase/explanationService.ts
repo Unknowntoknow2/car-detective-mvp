@@ -47,7 +47,6 @@ export async function saveValuationExplanation(data: ValuationExplanationData) {
       throw error;
     }
 
-    console.log('✅ Valuation explanation saved to database');
     return result;
   } catch (error) {
     console.error('Failed to save valuation explanation:', error);

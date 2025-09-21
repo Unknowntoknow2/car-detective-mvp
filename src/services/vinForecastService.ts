@@ -28,12 +28,10 @@ export async function getOrCreateVinForecast(vin: string): Promise<VinForecast |
       .maybeSingle();
 
     if (existingForecast) {
-      console.log('📊 Using cached forecast for VIN:', vin);
       return existingForecast;
     }
 
     // Generate new forecast
-    console.log('🔮 Generating new forecast for VIN:', vin);
     const forecastData = await generateVinForecast(vin);
 
     // Store in database
@@ -56,7 +54,6 @@ export async function getOrCreateVinForecast(vin: string): Promise<VinForecast |
       return null;
     }
 
-    console.log('✅ Forecast stored successfully');
     return newForecast;
 
   } catch (error) {

@@ -48,7 +48,6 @@ export class ValuationIntegrationService {
     const startTime = Date.now();
 
     try {
-      console.log('🚀 Starting complete VIN to valuation pipeline for:', vin);
 
       // Stage 1: VIN Decode
       auditTrail.push({

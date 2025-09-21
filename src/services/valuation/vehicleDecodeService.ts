@@ -18,7 +18,6 @@ export async function decodeVin(vin: string): Promise<VehicleDecodeResult> {
       };
     }
 
-    console.log('🔍 [VIN DECODE] Starting decode for VIN:', vin);
 
     // Call the unified-decode edge function
     const { data, error } = await supabase.functions.invoke('unified-decode', {
@@ -41,7 +40,6 @@ export async function decodeVin(vin: string): Promise<VehicleDecodeResult> {
       };
     }
 
-    console.log('✅ [VIN DECODE] Successfully decoded VIN:', data.decoded);
 
     // Verify the vehicle was saved to decoded_vehicles table
     const { data: savedVehicle, error: verifyError } = await supabase
@@ -55,7 +53,6 @@ export async function decodeVin(vin: string): Promise<VehicleDecodeResult> {
     if (verifyError) {
       console.warn('⚠️ [VIN DECODE] Could not verify saved vehicle:', verifyError);
     } else if (savedVehicle) {
-      console.log('✅ [VIN DECODE] Verified vehicle saved to database');
     } else {
       console.warn('⚠️ [VIN DECODE] Vehicle may not have been saved to database');
     }

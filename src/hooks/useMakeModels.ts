@@ -46,7 +46,6 @@ export function useMakeModels(): UseMakeModelsReturn {
 
   const fetchMakes = async () => {
     if (makesCache.length > 0) {
-      console.log('📦 Using cached makes:', makesCache.length);
       setMakes(makesCache);
       return;
     }
@@ -55,7 +54,6 @@ export function useMakeModels(): UseMakeModelsReturn {
     setError(null);
     
     try {
-      console.log('🔍 Fetching makes from Supabase...');
       
       const { data, error: fetchError } = await supabase
         .from('makes')
@@ -74,7 +72,6 @@ export function useMakeModels(): UseMakeModelsReturn {
         return;
       }
 
-      console.log('✅ Makes fetched successfully:', data.length);
 
       const formattedMakes: Make[] = data.map(make => ({
         id: make.id,
@@ -93,17 +90,14 @@ export function useMakeModels(): UseMakeModelsReturn {
   };
 
   const fetchModelsByMakeId = async (makeId: string): Promise<void> => {
-    console.log('🚀 fetchModelsByMakeId called with:', makeId);
     
     if (!makeId || makeId.trim() === '') {
-      console.log('🔍 No makeId provided, clearing models');
       setModels([]);
       setError(null);
       return;
     }
 
     const selectedMake = makes.find(make => make.id === makeId);
-    console.log('📝 Selected make details:', {
       makeId,
       makeName: selectedMake?.make_name || 'Unknown',
       makeFound: !!selectedMake
@@ -114,7 +108,6 @@ export function useMakeModels(): UseMakeModelsReturn {
     setModels([]);
     
     try {
-      console.log('🔍 Executing models query...');
       
       const { data, error: fetchError } = await supabase
         .from('models')
@@ -136,7 +129,6 @@ export function useMakeModels(): UseMakeModelsReturn {
         return;
       }
 
-      console.log('📈 Models query success:', {
         dataLength: data.length,
         makeId,
         makeName: selectedMake?.make_name,
@@ -157,7 +149,6 @@ export function useMakeModels(): UseMakeModelsReturn {
         return;
       }
 
-      console.log('✅ Models loaded successfully:', {
         count: data.length,
         makeName: selectedMake?.make_name,
         modelNames: data.slice(0, 5).map(m => m.model_name)
@@ -189,7 +180,6 @@ export function useMakeModels(): UseMakeModelsReturn {
       return;
     }
 
-    console.log('🔍 Fetching trims for modelId:', modelId, 'year:', year);
     setIsLoading(true);
     setError(null);
     
@@ -211,7 +201,6 @@ export function useMakeModels(): UseMakeModelsReturn {
         throw fetchError;
       }
 
-      console.log('✅ Raw trims loaded:', data?.length || 0, 'trims');
 
       if (!data || data.length === 0) {
         setTrims([]);
@@ -248,7 +237,6 @@ export function useMakeModels(): UseMakeModelsReturn {
         }
       }
 
-      console.log('✅ Filtered trims loaded:', {
         originalCount: data.length,
         filteredCount: filteredTrims.length,
         hasNonStandardTrims,

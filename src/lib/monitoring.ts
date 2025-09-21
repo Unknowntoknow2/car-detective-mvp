@@ -1,3 +1,4 @@
+import * as React from 'react';
 /**
  * Production monitoring and error tracking utilities
  */
@@ -29,7 +30,7 @@ interface PerformanceMetric {
 }
 
 class MonitoringService {
-  private isDevelopment = process.env.NODE_ENV === 'development';
+  private isDevelopment = import.meta.env.NODE_ENV === 'development';
   private metricsBuffer: PerformanceMetric[] = [];
   private readonly BUFFER_SIZE = 100;
 
@@ -80,7 +81,6 @@ class MonitoringService {
     }
 
     if (this.isDevelopment) {
-      console.log('Performance Metric:', metric);
     }
 
     // In production, send to analytics service
@@ -98,7 +98,6 @@ class MonitoringService {
    */
   trackEvent(event: string, properties?: Record<string, any>) {
     if (this.isDevelopment) {
-      console.log('Event Tracked:', { event, properties });
     }
 
     // Send to analytics service in production

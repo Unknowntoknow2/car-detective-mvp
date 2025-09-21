@@ -19,7 +19,6 @@ export function generateEmergencyFallbackValue(
   mileage: number,
   condition: string
 ): number {
-  console.log('🚨 Generating emergency fallback valuation for:', vehicleData);
   
   const currentYear = new Date().getFullYear();
   const vehicleAge = currentYear - (vehicleData.year || currentYear);
@@ -336,7 +335,6 @@ export function generateEmergencyFallbackValue(
   const minimumValue = Math.max(8000, vehicleAge > 15 ? 5000 : 8000);
   finalValue = Math.max(Math.round(finalValue), minimumValue);
   
-  console.log('✅ Generated emergency fallback valuation:', {
     originalBase: baseValue,
     afterDepreciation: Math.round(baseValue * (vehicleAge > 0 ? 0.80 : 1.0)),
     afterMileage: Math.round(finalValue + mileagePenalty),

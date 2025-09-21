@@ -26,7 +26,6 @@ export function useValuationPdfHelper({
     try {
       // Simulating PDF download for now
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log("PDF would be downloaded for:", valuationData.id);
 
       // In a real implementation, this would call an API to generate and download a PDF
     } catch (error) {

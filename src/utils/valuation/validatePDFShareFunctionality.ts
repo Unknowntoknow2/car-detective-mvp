@@ -83,7 +83,6 @@ export interface PDFShareValidationResult {
 }
 
 export async function validatePDFShareFunctionality(vin: string): Promise<PDFShareValidationResult> {
-  console.log(`🔍 [Prompt 2.5] Validating PDF Export & Share for VIN: ${vin}`);
   
   const testCase = PDF_SHARE_TEST_CASES.find(tc => tc.vin === vin);
   if (!testCase) {
@@ -191,7 +190,6 @@ export async function validatePDFShareFunctionality(vin: string): Promise<PDFSha
     };
     
     // 1. VALIDATE PDF GENERATION
-    console.log("✅ 1. Validating PDF Generation...");
     
     try {
       const pdfBlob = await generateValuationPdf(mockValuationResult);
@@ -205,14 +203,12 @@ export async function validatePDFShareFunctionality(vin: string): Promise<PDFSha
       result.pdfContainsTimestamp = true; // PDF includes timestamp
       result.pdfContainsVin = true; // VIN included in vehicle info
       
-      console.log(`   PDF Generated: ${pdfBlob.size} bytes`);
     } catch (error) {
       console.error("   PDF Generation failed:", error);
       result.issues.push("PDF generation failed");
     }
     
     // 2. VALIDATE SHARE BUTTON LOGIC
-    console.log("✅ 2. Validating Share Button Logic...");
     
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://example.com';
     const shareUrl = `${baseUrl}/results/${mockValuationResult.id}`;
@@ -225,11 +221,8 @@ export async function validatePDFShareFunctionality(vin: string): Promise<PDFSha
     result.twitterShareWorks = true; // Twitter share available
     result.shareContentPreFilled = shareText.includes(mockValuationResult.vehicle.make) && shareText.includes('$');
     
-    console.log(`   Share URL: ${shareUrl}`);
-    console.log(`   Share Text: ${shareText}`);
     
     // 3. VALIDATE QR CODE LOGIC  
-    console.log("✅ 3. Validating QR Code Logic...");
     
     result.qrCodeGenerated = true; // QrCodeDownload component available
     result.qrCodeUsesShareUrl = true; // Uses same URL as share buttons
@@ -237,14 +230,12 @@ export async function validatePDFShareFunctionality(vin: string): Promise<PDFSha
     result.qrCodeEnlargeable = true; // Can be enlarged on click
     
     // 4. VALIDATE SHARE LINK PERSISTENCE
-    console.log("✅ 4. Validating Share Link Persistence...");
     
     result.shareTokenGenerated = true; // SocialShareButtons generates tokens
     result.shareUrlPersistent = true; // URLs persist via valuation ID
     result.shareDataMatches = true; // Data consistency maintained
     
     // 5. VALIDATE FALLBACK & EDGE HANDLING
-    console.log("✅ 5. Validating Fallback & Edge Handling...");
     
     result.fallbackHandling = true;
     result.fallbackPdfExplanation = testCase.expectedFallback ? true : true; // PDF includes explanation
@@ -297,23 +288,10 @@ export async function validatePDFShareFunctionality(vin: string): Promise<PDFSha
     result.passed = result.overallScore >= 90 && result.issues.length === 0;
     
     // LOG RESULTS
-    console.log("📊 PDF & SHARE VALIDATION RESULTS:");
-    console.log(`   Test Case: ${result.testCase}`);
-    console.log(`   VIN: ${result.vin}`);
-    console.log(`   Overall Score: ${result.overallScore}%`);
-    console.log(`   Passed: ${result.passed ? '✅' : '❌'}`);
     
     if (result.issues.length > 0) {
-      console.log("❌ Issues Found:");
-      result.issues.forEach(issue => console.log(`   - ${issue}`));
     }
     
-    console.log("📋 Detailed Results:");
-    console.log(`   1. PDF Generation: ${result.pdfGenerationWorks ? '✅' : '❌'}`);
-    console.log(`   2. Share Logic: ${result.shareUrlConstructed ? '✅' : '❌'}`);
-    console.log(`   3. QR Code: ${result.qrCodeGenerated ? '✅' : '❌'}`);
-    console.log(`   4. Persistence: ${result.shareUrlPersistent ? '✅' : '❌'}`);
-    console.log(`   5. Fallback Handling: ${result.fallbackHandling ? '✅' : '❌'}`);
     
     return result;
     
@@ -326,12 +304,10 @@ export async function validatePDFShareFunctionality(vin: string): Promise<PDFSha
 }
 
 export async function validateAllPDFShareTestCases(): Promise<PDFShareValidationResult[]> {
-  console.log("🚀 [Prompt 2.5] Running ALL PDF Export & Share Validation Tests");
   
   const results: PDFShareValidationResult[] = [];
   
   for (const testCase of PDF_SHARE_TEST_CASES) {
-    console.log(`\n🧪 Testing: ${testCase.name}`);
     const result = await validatePDFShareFunctionality(testCase.vin);
     results.push(result);
   }
@@ -341,23 +317,12 @@ export async function validateAllPDFShareTestCases(): Promise<PDFShareValidation
   const totalTests = results.length;
   const overallSuccess = passedTests === totalTests;
   
-  console.log("\n📊 PROMPT 2.5 VALIDATION SUMMARY:");
-  console.log(`✅ Tests Passed: ${passedTests}/${totalTests}`);
-  console.log(`📊 Success Rate: ${Math.round((passedTests/totalTests) * 100)}%`);
-  console.log(`🎯 Overall Status: ${overallSuccess ? 'PASSED ✅' : 'FAILED ❌'}`);
   
   if (!overallSuccess) {
-    console.log("\n❌ FAILED VALIDATIONS:");
     results.filter(r => !r.passed).forEach(result => {
-      console.log(`   ${result.testCase}: ${result.issues.join(', ')}`);
     });
   }
   
-  console.log("\n✅ SUCCESS CRITERIA CHECKLIST:");
-  console.log(`   ✅ PDF renders valuation clearly and professionally: ${results.every(r => r.pdfGenerationWorks && r.pdfFormattingProfessional)}`);
-  console.log(`   ✅ Share links and QR codes function across devices: ${results.every(r => r.shareUrlConstructed && r.qrCodeGenerated)}`);
-  console.log(`   ✅ Fallback logic respected in exports: ${results.every(r => r.fallbackHandling)}`);
-  console.log(`   ✅ Valuation data consistent across UI, PDF, and share: ${results.every(r => r.shareDataMatches)}`);
   
   return results;
 }

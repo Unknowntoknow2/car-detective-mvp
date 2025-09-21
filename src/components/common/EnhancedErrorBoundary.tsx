@@ -86,7 +86,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
                   We encountered an unexpected error while rendering this
                   component.
                 </p>
-                {process.env.NODE_ENV !== "production" && this.state.error && (
+                {import.meta.env.NODE_ENV !== "production" && this.state.error && (
                   <details className="mt-2 text-sm">
                     <summary className="text-red-700 cursor-pointer font-medium">
                       Error Details

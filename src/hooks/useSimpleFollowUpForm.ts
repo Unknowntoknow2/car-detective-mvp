@@ -61,8 +61,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
   useEffect(() => {
     const loadData = async () => {
       try {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('🔍 Loading follow-up data for VIN:', vin);
+        if (import.meta.env.NODE_ENV !== 'production') {
         }
         
         // First try to load by VIN
@@ -75,7 +74,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
         if (error && error.code !== 'PGRST116') {
           console.error('Error loading follow-up data:', error);
         } else if (data) {
-          console.log('✅ Loaded existing follow-up data for VIN:', vin);
           const mappedData = {
             ...data,
             payoffAmount: data.payoff_amount || 0
@@ -83,7 +81,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
           setFormData(prev => ({ ...prev, ...mappedData }));
         } else {
           // If no data by VIN, try to link to existing valuation
-          console.log('🔗 No follow-up data found, checking for valuation to link');
           const { data: valuationData } = await supabase
             .from('valuations')
             .select('id')
@@ -93,14 +90,12 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
             .maybeSingle();
 
           if (valuationData) {
-            console.log('✅ Found valuation to link:', valuationData.id);
             setFormData(prev => ({ 
               ...prev, 
               valuation_id: valuationData.id,
               vin: vin // FIXED: Ensure VIN is preserved
             }));
           } else {
-            console.log('⚠️ No valuation found to link for VIN:', vin);
             // Still preserve the VIN even if no valuation exists
             setFormData(prev => ({ 
               ...prev, 
@@ -177,7 +172,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
       // If no valuation_id, try to find and link one
       if (!saveData.valuation_id) {
-        console.log('🔗 Attempting to link follow-up to valuation via VIN:', vin);
         const { data: valuationData } = await supabase
           .from('valuations')
           .select('id')
@@ -188,16 +182,13 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
         if (valuationData) {
           saveData.valuation_id = valuationData.id;
-          console.log('✅ Linked to valuation:', valuationData.id);
         } else {
-          console.log('⚠️ No valuation found to link for VIN:', vin);
         }
       }
 
       // Remove the form-only field before saving
       const { payoffAmount, ...dbData } = saveData;
 
-      console.log('💾 Saving follow-up data:', {
         vin: dbData.vin,
         valuation_id: dbData.valuation_id,
         mileage: dbData.mileage,
@@ -229,7 +220,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
       setLastSaveTime(new Date());
       setSaveError(null);
-      console.log('✅ Follow-up data saved successfully');
       return true;
     } catch (error) {
       console.error('Save error caught:', error);
@@ -303,13 +293,11 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
         return { success: false, message: 'Please complete all required fields (location, mileage, condition)' };
       }
 
-      console.log('🚀 [FOLLOW-UP] Starting submission for VIN:', vin);
 
       // PHASE 2 FIX: Ensure VIN is decoded before proceeding
       const { needsDecoding, decodeVin, getDecodedVehicle } = await import('@/services/valuation/vehicleDecodeService');
       
       if (await needsDecoding(vin)) {
-        console.log('🔍 [FOLLOW-UP] VIN not decoded, triggering decode first...');
         
         const decodeResult = await decodeVin(vin);
         if (!decodeResult.success) {
@@ -317,7 +305,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
           return { success: false, message: `VIN decode failed: ${decodeResult.error}` };
         }
         
-        console.log('✅ [FOLLOW-UP] VIN decoded successfully during follow-up');
       }
 
       // Get decoded vehicle data for valuation
@@ -335,7 +322,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
 
       // 2. If no valuation exists, create a valuation record
       if (!valuation_id) {
-        console.log('🚀 [FOLLOW-UP] Creating new valuation record for VIN:', vin);
         
         const { data: newValuation, error: valuationError } = await supabase
           .from('valuations')
@@ -362,9 +348,7 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
         }
 
         valuation_id = newValuation.id;
-        console.log('✅ [FOLLOW-UP] Created valuation with ID:', valuation_id);
       } else {
-        console.log('✅ [FOLLOW-UP] Using existing valuation:', valuation_id);
       }
 
       // 3. Save follow-up data with valuation_id link
@@ -390,7 +374,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
       // 4. PHASE 3 FIX: Trigger valuation calculation if needed
       const currentValuation = existingValuations?.[0];
       if (!currentValuation?.estimated_value || currentValuation.estimated_value <= 0) {
-        console.log('🧮 [FOLLOW-UP] Triggering valuation calculation...');
         
         try {
           // Call the real AIN valuation API via our hardened endpoint
@@ -405,12 +388,9 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
             requested_by: 'followup_form'
           });
 
-          console.log('✅ [AIN] Valuation completed:', ainResult);
-          console.log('🔍 [AIN] Route metadata:', meta);
           
           // Store the AIN result in the database
           if (ainResult && typeof ainResult === 'object' && 'estimated_value' in ainResult) {
-            console.log('📊 [AIN] Professional valuation received');
           }
 
         } catch (calcError) {

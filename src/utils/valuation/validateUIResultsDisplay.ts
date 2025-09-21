@@ -79,7 +79,6 @@ export interface UIValidationResult {
 }
 
 export async function validateUIResultsDisplay(vin: string): Promise<UIValidationResult> {
-  console.log(`🔍 [Prompt 2.4] Validating UI Results Display for VIN: ${vin}`);
   
   const testCase = UI_TEST_CASES.find(tc => tc.vin === vin);
   if (!testCase) {
@@ -121,10 +120,8 @@ export async function validateUIResultsDisplay(vin: string): Promise<UIValidatio
   
   try {
     // Simulate navigating to results page
-    console.log(`📍 Navigating to /results/${vin}`);
     
     // 1. VALIDATE VALUATION OUTPUT RENDERING
-    console.log("✅ 1. Validating Valuation Output Rendering...");
     
     // Check if ValuationSummary component would receive proper props
     const mockValuationData = {
@@ -155,7 +152,6 @@ export async function validateUIResultsDisplay(vin: string): Promise<UIValidatio
     result.fallbackWarningShown = mockValuationData.isUsingFallbackMethod;
     
     // 2. VALIDATE MARKET LISTINGS SECTION
-    console.log("✅ 2. Validating Market Listings Section...");
     
     result.listingsGridRendered = true;
     result.listingsCount = mockValuationData.marketListings.length;
@@ -164,7 +160,6 @@ export async function validateUIResultsDisplay(vin: string): Promise<UIValidatio
     result.emptyStateHandled = mockValuationData.marketListings.length === 0;
     
     // 3. VALIDATE CONFIDENCE & FALLBACK DISPLAY  
-    console.log("✅ 3. Validating Confidence & Fallback Display...");
     
     result.confidenceBarShown = true;
     result.confidenceColorCorrect = validateConfidenceColor(mockValuationData.confidenceScore);
@@ -172,14 +167,12 @@ export async function validateUIResultsDisplay(vin: string): Promise<UIValidatio
     result.fallbackDisclosureShown = mockValuationData.isUsingFallbackMethod && mockValuationData.marketListings.length === 0;
     
     // 4. VALIDATE PDF + SHARE ACTIONS
-    console.log("✅ 4. Validating PDF + Share Actions...");
     
     result.pdfDownloadAvailable = true; // ResultsPage has download button
     result.shareButtonAvailable = true; // ResultsPage has share button  
     result.qrCodeGenerated = true; // QR code can be generated with valuation ID
     
     // 5. VALIDATE EDGE CASES
-    console.log("✅ 5. Validating Edge Cases...");
     
     result.errorHandling = true; // ResultsPage has error state handling
     result.loadingStateHandled = true; // ResultsPage has loading state
@@ -226,23 +219,10 @@ export async function validateUIResultsDisplay(vin: string): Promise<UIValidatio
     result.passed = result.overallScore >= 90 && result.issues.length === 0;
     
     // LOG RESULTS
-    console.log("📊 UI VALIDATION RESULTS:");
-    console.log(`   Test Case: ${result.testCase}`);
-    console.log(`   VIN: ${result.vin}`);
-    console.log(`   Overall Score: ${result.overallScore}%`);
-    console.log(`   Passed: ${result.passed ? '✅' : '❌'}`);
     
     if (result.issues.length > 0) {
-      console.log("❌ Issues Found:");
-      result.issues.forEach(issue => console.log(`   - ${issue}`));
     }
     
-    console.log("📋 Detailed Results:");
-    console.log(`   1. Valuation Output: ${result.valuationDisplayed ? '✅' : '❌'}`);
-    console.log(`   2. Market Listings: ${result.listingsGridRendered ? '✅' : '❌'} (${result.listingsCount} listings)`);
-    console.log(`   3. Confidence Display: ${result.confidenceBarShown ? '✅' : '❌'}`);
-    console.log(`   4. PDF/Share Actions: ${result.pdfDownloadAvailable && result.shareButtonAvailable ? '✅' : '❌'}`);
-    console.log(`   5. Edge Case Handling: ${result.errorHandling && result.loadingStateHandled ? '✅' : '❌'}`);
     
     return result;
     
@@ -265,12 +245,10 @@ function validateConfidenceColor(confidenceScore: number): boolean {
 }
 
 export async function validateAllUITestCases(): Promise<UIValidationResult[]> {
-  console.log("🚀 [Prompt 2.4] Running ALL UI Results Display Validation Tests");
   
   const results: UIValidationResult[] = [];
   
   for (const testCase of UI_TEST_CASES) {
-    console.log(`\n🧪 Testing: ${testCase.name}`);
     const result = await validateUIResultsDisplay(testCase.vin);
     results.push(result);
   }
@@ -280,24 +258,12 @@ export async function validateAllUITestCases(): Promise<UIValidationResult[]> {
   const totalTests = results.length;
   const overallSuccess = passedTests === totalTests;
   
-  console.log("\n📊 PROMPT 2.4 VALIDATION SUMMARY:");
-  console.log(`✅ Tests Passed: ${passedTests}/${totalTests}`);
-  console.log(`📊 Success Rate: ${Math.round((passedTests/totalTests) * 100)}%`);
-  console.log(`🎯 Overall Status: ${overallSuccess ? 'PASSED ✅' : 'FAILED ❌'}`);
   
   if (!overallSuccess) {
-    console.log("\n❌ FAILED VALIDATIONS:");
     results.filter(r => !r.passed).forEach(result => {
-      console.log(`   ${result.testCase}: ${result.issues.join(', ')}`);
     });
   }
   
-  console.log("\n✅ SUCCESS CRITERIA CHECKLIST:");
-  console.log(`   ✅ UI fully reflects valuation engine output: ${results.every(r => r.valuationDisplayed)}`);
-  console.log(`   ✅ Market listings grid renders accurately: ${results.every(r => r.listingsGridRendered)}`);
-  console.log(`   ✅ Confidence and fallback status shown transparently: ${results.every(r => r.confidenceBarShown)}`);
-  console.log(`   ✅ PDF and share features are live and interactive: ${results.every(r => r.pdfDownloadAvailable && r.shareButtonAvailable)}`);
-  console.log(`   ✅ No crash on missing or malformed results: ${results.every(r => r.errorHandling)}`);
   
   return results;
 }

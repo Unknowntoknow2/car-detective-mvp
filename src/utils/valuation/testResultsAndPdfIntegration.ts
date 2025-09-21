@@ -7,7 +7,6 @@ import { convertVehicleInfoToReportData } from '@/utils/pdfService';
  * Test that ResultsPage displays and PDF export handles unified MarketListing correctly
  */
 export function testResultsPageAndPdfIntegration() {
-  console.log('🧪 Testing ResultsPage and PDF Export Integration');
 
   // Mock enhanced valuation result with mixed MarketListing formats
   const mockEnhancedResult: EnhancedValuationResult = {
@@ -62,11 +61,9 @@ export function testResultsPageAndPdfIntegration() {
 
   try {
     // Test 1: Validate normalization for ResultsPage display
-    console.log('\n📊 Testing ResultsPage listing normalization...');
     
     const normalizedForDisplay = mockEnhancedResult.marketListings?.map(normalizeListing) || [];
     
-    console.log('✅ Normalized listings for display:', normalizedForDisplay.map(listing => ({
       price: listing.price,
       source: listing.source,
       url: getNormalizedUrl(listing),
@@ -86,10 +83,8 @@ export function testResultsPageAndPdfIntegration() {
       );
     });
 
-    console.log('📱 UI Display Validation:', displayValidation ? 'PASSED' : 'FAILED');
 
     // Test 3: Test PDF export data preparation
-    console.log('\n📄 Testing PDF Export data preparation...');
     
     const mockVehicleInfo = {
       id: 'test-123',
@@ -115,7 +110,6 @@ export function testResultsPageAndPdfIntegration() {
       marketplaceListings: normalizedForDisplay
     });
 
-    console.log('✅ PDF Report Data prepared:', {
       make: pdfReportData.make,
       model: pdfReportData.model,
       year: pdfReportData.year,
@@ -136,10 +130,8 @@ export function testResultsPageAndPdfIntegration() {
       );
     }) ?? true;
 
-    console.log('📄 PDF Listings Validation:', pdfListingsValid ? 'PASSED' : 'FAILED');
 
     // Test 5: Validate field access patterns work correctly
-    console.log('\n🔍 Testing field access patterns...');
     
     normalizedForDisplay.forEach((listing, index) => {
       const dealerName = listing.dealerName || listing.dealer_name || listing.dealer || 'Unknown';
@@ -147,13 +139,11 @@ export function testResultsPageAndPdfIntegration() {
       const sourceType = getNormalizedSourceType(listing);
       const isCpo = listing.isCpo || listing.is_cpo || false;
       
-      console.log(`Listing ${index + 1}: ${dealerName} - $${listing.price.toLocaleString()} [${sourceType}] CPO: ${isCpo}`);
     });
 
     // Final validation
     const allTestsPassed = displayValidation && pdfListingsValid;
     
-    console.log('\n🎯 Integration Test Results:', {
       displayValidation,
       pdfListingsValid,
       allTestsPassed,
@@ -161,10 +151,8 @@ export function testResultsPageAndPdfIntegration() {
     });
 
     if (allTestsPassed) {
-      console.log('✅ ResultsPage and PDF Export integration with unified MarketListing type: SUCCESS');
       return { success: true, normalizedListings: normalizedForDisplay, pdfReportData };
     } else {
-      console.log('❌ ResultsPage and PDF Export integration: FAILED');
       return { success: false, error: 'Validation tests failed' };
     }
 
@@ -181,7 +169,6 @@ export function testResultsPageAndPdfIntegration() {
  * Test specific field mappings for UI components
  */
 export function testUIFieldMappings() {
-  console.log('🎨 Testing UI Field Mappings...');
 
   const testListings: MarketListing[] = [
     {
@@ -203,17 +190,14 @@ export function testUIFieldMappings() {
   ];
 
   // Test MarketDataStatus props
-  console.log('📊 MarketDataStatus props test:', {
     marketListings: testListings.map(normalizeListing),
     allNormalized: testListings.every(listing => normalizeListing(listing).price > 0)
   });
 
   // Test GoogleStyleListings props  
-  console.log('🔍 GoogleStyleListings props test:', {
     listings: testListings.map(normalizeListing),
     urlsAccessible: testListings.every(listing => !!getNormalizedUrl(listing))
   });
 
-  console.log('✅ UI Field Mappings validation completed');
   return testListings;
 }

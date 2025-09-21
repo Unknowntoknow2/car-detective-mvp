@@ -5,7 +5,6 @@ import { MarketListing, normalizeListing, getNormalizedUrl, getNormalizedSourceT
  * Comprehensive validation that the unified MarketListing type works across the entire pipeline
  */
 export const validateUnifiedMarketListingPipeline = () => {
-  console.log('🎯 Final Validation: Unified MarketListing Pipeline');
 
   // Sample data representing different source formats that the system should handle
   const mixedFormatListings = [
@@ -40,7 +39,6 @@ export const validateUnifiedMarketListingPipeline = () => {
     }
   ] as MarketListing[];
 
-  console.log('\n📊 Step 1: Normalize all listings...');
   const normalizedListings = mixedFormatListings.map(normalizeListing);
   
   // Validation 1: All listings normalized successfully
@@ -53,9 +51,7 @@ export const validateUnifiedMarketListingPipeline = () => {
     );
   });
 
-  console.log('✅ Normalization validation:', allNormalized ? 'PASSED' : 'FAILED');
 
-  console.log('\n🎨 Step 2: Test UI component compatibility...');
   
   // Validation 2: UI components can access all necessary fields
   const uiCompatible = normalizedListings.every(listing => {
@@ -67,9 +63,7 @@ export const validateUnifiedMarketListingPipeline = () => {
     return !!(url && sourceType && dealer !== undefined && cpo !== undefined);
   });
 
-  console.log('✅ UI compatibility validation:', uiCompatible ? 'PASSED' : 'FAILED');
 
-  console.log('\n📄 Step 3: Test PDF export compatibility...');
   
   // Validation 3: PDF export can process all normalized listings
   const pdfCompatible = normalizedListings.every(listing => {
@@ -81,9 +75,7 @@ export const validateUnifiedMarketListingPipeline = () => {
     return !!(dealerForPdf && sourceForPdf && listing.price > 0);
   });
 
-  console.log('✅ PDF compatibility validation:', pdfCompatible ? 'PASSED' : 'FAILED');
 
-  console.log('\n🔍 Step 4: Test helper function reliability...');
   
   // Validation 4: Helper functions work consistently
   const helperFunctionsWork = normalizedListings.every(listing => {
@@ -95,28 +87,13 @@ export const validateUnifiedMarketListingPipeline = () => {
     return url1 === url2 && sourceType1 === sourceType2;
   });
 
-  console.log('✅ Helper functions validation:', helperFunctionsWork ? 'PASSED' : 'FAILED');
 
   // Final assessment
   const allValidationsPassed = allNormalized && uiCompatible && pdfCompatible && helperFunctionsWork;
   
-  console.log('\n🎯 FINAL VALIDATION RESULTS:');
-  console.log('=' .repeat(50));
-  console.log(`✅ Listing Normalization: ${allNormalized ? 'PASSED' : 'FAILED'}`);
-  console.log(`🎨 UI Compatibility: ${uiCompatible ? 'PASSED' : 'FAILED'}`);
-  console.log(`📄 PDF Compatibility: ${pdfCompatible ? 'PASSED' : 'FAILED'}`);
-  console.log(`🔍 Helper Functions: ${helperFunctionsWork ? 'PASSED' : 'FAILED'}`);
-  console.log('=' .repeat(50));
   
   if (allValidationsPassed) {
-    console.log('🎉 UNIFIED MARKETLISTING TYPE INTEGRATION: COMPLETE SUCCESS!');
-    console.log('✅ ResultsPage.tsx properly displays normalized listings');
-    console.log('✅ PDF export correctly processes canonical MarketListing fields');
-    console.log('✅ All field variations (live/DB/mixed) work seamlessly');
-    console.log('✅ Helper functions provide consistent field access');
   } else {
-    console.log('❌ UNIFIED MARKETLISTING TYPE INTEGRATION: FAILED');
-    console.log('Some validation checks did not pass');
   }
 
   return {

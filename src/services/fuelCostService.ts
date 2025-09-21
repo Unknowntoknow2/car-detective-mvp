@@ -20,7 +20,6 @@ export interface FuelCostImpact {
  */
 export async function getFuelCostByZip(zipCode: string, fuelType: string = 'gasoline'): Promise<FuelCostData | null> {
   try {
-    console.log('🔍 Getting fuel cost for ZIP:', { zipCode, fuelType });
     
     // First, try to get recent cached data (within 7 days)
     const { data: cachedData, error: cacheError } = await supabase
@@ -32,7 +31,6 @@ export async function getFuelCostByZip(zipCode: string, fuelType: string = 'gaso
       .single();
 
     if (cachedData && !cacheError) {
-      console.log(`✅ Using cached fuel price: $${cachedData.cost_per_gallon}/gal`);
       return {
         cost_per_gallon: cachedData.cost_per_gallon,
         source: 'cache',
@@ -42,7 +40,6 @@ export async function getFuelCostByZip(zipCode: string, fuelType: string = 'gaso
     }
 
     // If no cache, fetch fresh data via edge function
-    console.log('🌐 Fetching fresh fuel data via EIA API...');
     const { data: freshData, error: fetchError } = await supabase.functions.invoke('fetch-eia-fuel-prices', {
       body: { zip_code: zipCode, fuel_type: fuelType }
     });
@@ -53,7 +50,6 @@ export async function getFuelCostByZip(zipCode: string, fuelType: string = 'gaso
     }
 
     if (freshData?.success && freshData.cost_per_gallon) {
-      console.log(`✅ Fresh fuel price: $${freshData.cost_per_gallon}/gal`);
       
       // FIX #3: Cache fresh fuel data to database
       try {
@@ -69,7 +65,6 @@ export async function getFuelCostByZip(zipCode: string, fuelType: string = 'gaso
           }, {
             onConflict: 'zip_code,fuel_type'
           });
-        console.log('✅ Fuel price cached to database');
       } catch (cacheError) {
         console.error('⚠️ Failed to cache fuel price:', cacheError);
       }

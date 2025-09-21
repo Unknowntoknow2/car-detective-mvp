@@ -4,7 +4,6 @@ import { EnhancedAuditLog } from "@/types/valuation";
 
 export async function saveAuditLog(audit: EnhancedAuditLog): Promise<string> {
   try {
-    console.log('💾 Saving audit log:', {
       vin: audit.vin,
       sources: audit.sources,
       confidence: audit.confidence_score,
@@ -45,7 +44,6 @@ export async function saveAuditLog(audit: EnhancedAuditLog): Promise<string> {
       throw new Error(`Failed to save audit log: ${error.message}`);
     }
 
-    console.log('✅ Audit log saved with ID:', data.id);
     return data.id;
 
   } catch (error) {

@@ -8,7 +8,6 @@ export const useSaveValuation = () => {
     if (!user) return null;
     
     // Mock save functionality
-    console.log('Saving valuation:', valuationData);
     return { id: 'mock-id', success: true };
   };
 

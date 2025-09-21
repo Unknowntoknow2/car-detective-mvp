@@ -2,10 +2,8 @@
 
 import { Make, Model } from "@/hooks/types/vehicle";
 import { toast } from "sonner";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase/client";
 import { appConfig } from "@/config";
-
-export const supabase = createClient(appConfig.SUPABASE_URL, appConfig.SUPABASE_ANON_KEY);
 
 const API_BASE_URL = appConfig.API_BASE_URL;
 

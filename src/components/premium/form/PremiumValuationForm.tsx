@@ -63,7 +63,6 @@ export function PremiumValuationForm() {
   const onSubmit = async (data: PremiumValuationFormData) => {
     setIsSubmitting(true);
     try {
-      console.log("Premium valuation form submitted:", data);
       toast.success("Valuation request submitted successfully!");
     } catch (error) {
       console.error("Error submitting valuation:", error);

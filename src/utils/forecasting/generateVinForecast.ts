@@ -20,7 +20,6 @@ interface ForecastResult {
 
 export async function generateVinForecast(vin: string): Promise<ForecastResult> {
   try {
-    console.log('🔮 Generating AIN forecast for VIN:', vin);
 
     // Get auction data trends
     const { data: auctionData } = await supabase
@@ -44,7 +43,6 @@ export async function generateVinForecast(vin: string): Promise<ForecastResult> 
     // Generate prediction using simple ML model
     const forecast = calculateForecast(marketFactors);
     
-    console.log('✅ Forecast generated:', forecast);
     return forecast;
 
   } catch (error) {

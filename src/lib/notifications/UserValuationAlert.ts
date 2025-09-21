@@ -13,7 +13,6 @@ export async function notifyUserOfDealerOffer({
   dealerName?: string;
 }) {
   try {
-    console.log('🔔 Triggering user notification for new dealer offer');
     
     const { data, error } = await supabase.functions.invoke('trigger-email-campaign', {
       body: {
@@ -34,7 +33,6 @@ export async function notifyUserOfDealerOffer({
       throw error;
     }
 
-    console.log('✅ User notification sent successfully:', data);
     return { success: true, data };
   } catch (error) {
     console.error('❌ Error sending user notification:', error);
@@ -54,7 +52,6 @@ export async function notifyDealerOfAcceptedOffer({
   offerPrice: number;
 }) {
   try {
-    console.log('🔔 Triggering dealer notification for accepted offer');
     
     const { data, error } = await supabase.functions.invoke('trigger-email-campaign', {
       body: {
@@ -75,7 +72,6 @@ export async function notifyDealerOfAcceptedOffer({
       throw error;
     }
 
-    console.log('✅ Dealer notification sent successfully:', data);
     return { success: true, data };
   } catch (error) {
     console.error('❌ Error sending dealer notification:', error);

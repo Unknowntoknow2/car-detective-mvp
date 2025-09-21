@@ -27,7 +27,7 @@ export async function uploadPhotos(
       }
 
       const url =
-        `${process.env.SUPABASE_URL}/storage/v1/object/public/vehicle-photos/${data?.path}`;
+        `${import.meta.env.SUPABASE_URL}/storage/v1/object/public/vehicle-photos/${data?.path}`;
 
       return {
         ...photo,

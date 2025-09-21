@@ -9,7 +9,6 @@ interface PDFDownloadSectionProps {
 
 const PDFDownloadSection: React.FC<PDFDownloadSectionProps> = ({ valuationId }) => {
   const handleDownload = () => {
-    console.log('Downloading PDF for valuation:', valuationId);
   };
 
   return (

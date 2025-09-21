@@ -37,7 +37,6 @@ export function useCorrectedValuation() {
   const runCorrection = async (params: CorrectedValuationParams) => {
     setIsRunning(true);
     try {
-      console.log('🔧 [useCorrectedValuation] Starting corrected valuation via AIN API...');
       toast.info('Recalculating valuation with corrected data...');
       
       const t0 = performance.now();
@@ -52,8 +51,6 @@ export function useCorrectedValuation() {
         requested_by: 'corrected_valuation'
       });
       
-      console.log('✅ [AIN] Corrected valuation completed');
-      console.log('🔍 [AIN] Route metadata:', meta);
       logger.log("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
       
       // Convert to expected format

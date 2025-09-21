@@ -27,14 +27,12 @@ export const useUnifiedLookup = (props: UseUnifiedLookupProps = {}) => {
     };
 
     try {
-      console.log('🔍 Starting VIN lookup for:', vin);
       const lookupResult = await UnifiedLookupService.lookupByVin(vin, options);
       setResult(lookupResult);
       
       if (lookupResult.success) {
         const sourceName = lookupResult.source === 'vpic' ? 'NHTSA' : lookupResult.source.toUpperCase();
         toast.success(`Vehicle found via ${sourceName}`);
-        console.log('✅ VIN lookup successful:', lookupResult.vehicle);
       } else {
         setError(lookupResult.error || 'VIN lookup failed');
         toast.error(lookupResult.error || 'VIN lookup failed');

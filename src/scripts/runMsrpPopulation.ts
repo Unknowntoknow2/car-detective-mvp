@@ -4,9 +4,7 @@ import { populateMsrpsFromWebSearch } from './populateMsrpFromWeb';
 // CLI runner for the MSRP population script
 async function main() {
   try {
-    console.log('🚀 Starting MSRP population process...');
     await populateMsrpsFromWebSearch();
-    console.log('✅ Process completed successfully');
     process.exit(0);
   } catch (error) {
     console.error('❌ Process failed:', error);

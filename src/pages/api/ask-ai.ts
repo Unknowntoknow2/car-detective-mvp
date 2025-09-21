@@ -111,7 +111,7 @@ ${userContext ? `User context: ${JSON.stringify(userContext)}` : ""}`,
     });
 
     // Check for OpenAI API key
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = import.meta.env.OPENAI_API_KEY;
     if (!apiKey) {
       console.error("Missing OpenAI API key");
       return new Response(

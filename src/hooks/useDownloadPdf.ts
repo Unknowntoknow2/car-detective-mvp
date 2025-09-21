@@ -16,7 +16,6 @@ export const useDownloadPdf = () => {
       setError(null);
       
       // Mock PDF download
-      console.log(`Downloading PDF for valuation ${valuationId}`);
       
       // Return a mock URL
       return `https://example.com/reports/${valuationId}.pdf`;

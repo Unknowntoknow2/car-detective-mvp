@@ -2,7 +2,6 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export async function validateCorrectedPipeline(vin: string) {
-  console.log('🔒 Starting validation for corrected pipeline:', vin);
   
   const validation = {
     valuationRecord: false,
@@ -53,7 +52,6 @@ export async function validateCorrectedPipeline(vin: string) {
     // Check if PDF can be generated
     validation.pdfGenerated = validation.valuationRecord && validation.ainSummary;
 
-    console.log('✅ Validation results:', validation);
     return validation;
 
   } catch (error) {
@@ -63,8 +61,6 @@ export async function validateCorrectedPipeline(vin: string) {
 }
 
 export function printValidationReport(validation: any, vin: string) {
-  console.log(`\n🔒 VALIDATION REPORT FOR ${vin}`);
-  console.log('=' .repeat(50));
   
   const checks = [
     ['Valuation Record Updated', validation.valuationRecord],
@@ -76,11 +72,8 @@ export function printValidationReport(validation: any, vin: string) {
 
   checks.forEach(([check, status]) => {
     const icon = status ? '✅' : '❌';
-    console.log(`${icon} ${check}`);
   });
 
-  console.log(`\n📊 Confidence Score: ${validation.confidence}%`);
   
   const overallStatus = checks.every(([_, status]) => status) ? 'PASSED' : 'NEEDS ATTENTION';
-  console.log(`🎯 Overall Status: ${overallStatus}`);
 }

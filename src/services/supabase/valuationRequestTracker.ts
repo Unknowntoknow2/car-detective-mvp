@@ -29,7 +29,6 @@ export interface ValuationRequestRecord {
  */
 export async function createValuationRequest(input: ValuationRequestInput): Promise<ValuationRequestRecord | null> {
   try {
-    console.log('📝 Creating valuation request record:', input);
     
     const { data, error } = await supabase
       .from('valuation_requests')
@@ -52,7 +51,6 @@ export async function createValuationRequest(input: ValuationRequestInput): Prom
       return null;
     }
 
-    console.log('✅ Valuation request created with ID:', data.id);
     return data;
   } catch (error) {
     console.error('❌ Failed to create valuation request:', error);
@@ -70,7 +68,6 @@ export async function completeValuationRequest(
   auditLogId?: string
 ): Promise<boolean> {
   try {
-    console.log('✅ Completing valuation request:', requestId);
     
     const { error } = await supabase
       .from('valuation_requests')
@@ -89,7 +86,6 @@ export async function completeValuationRequest(
       return false;
     }
 
-    console.log('✅ Valuation request completed successfully');
     return true;
   } catch (error) {
     console.error('❌ Failed to complete valuation request:', error);
@@ -102,7 +98,6 @@ export async function completeValuationRequest(
  */
 export async function failValuationRequest(requestId: string, errorMessage: string): Promise<boolean> {
   try {
-    console.log('❌ Marking valuation request as failed:', requestId);
     
     const { error } = await supabase
       .from('valuation_requests')

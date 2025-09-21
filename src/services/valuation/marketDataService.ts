@@ -31,7 +31,6 @@ export class MarketDataService {
    */
   static async fetchMarketData(filters: MarketDataFilters): Promise<MarketDataResult> {
     try {
-      console.log('🏪 Fetching market data with filters:', filters);
 
       // Try to fetch exact matches first
       const exactListings = await EnhancedMarketListingService.fetchRealMarketListings({
@@ -44,7 +43,6 @@ export class MarketDataService {
       });
 
       if (exactListings.length > 0) {
-        console.log(`✅ Found ${exactListings.length} exact market matches`);
         return this.processMarketData(exactListings, 'exact_match');
       }
 
@@ -58,7 +56,6 @@ export class MarketDataService {
       });
 
       if (similarListings.length > 0) {
-        console.log(`✅ Found ${similarListings.length} similar market listings`);
         return this.processMarketData(similarListings, 'similar_vehicles');
       }
 
@@ -66,7 +63,6 @@ export class MarketDataService {
       if (filters.make.toLowerCase().includes('ford') && filters.model.toLowerCase().includes('f-150')) {
         const fordTruckListings = await this.fetchFordTruckListings();
         if (fordTruckListings.length > 0) {
-          console.log(`✅ Found ${fordTruckListings.length} Ford truck listings`);
           return this.processMarketData(fordTruckListings, 'ford_trucks');
         }
       }
@@ -78,12 +74,10 @@ export class MarketDataService {
       });
 
       if (broaderListings.length > 0) {
-        console.log(`✅ Found ${broaderListings.length} broader market listings`);
         return this.processMarketData(broaderListings, 'broader_search');
       }
 
       // No real data found - add some sample Ford F-150 data for demonstration
-      console.log('📭 No market data found, adding sample Ford F-150 data');
       await this.addSampleFordF150Data();
       
       return {
@@ -187,7 +181,6 @@ export class MarketDataService {
       if (error) {
         console.error('Error adding sample Ford F-150 data:', error);
       } else {
-        console.log('✅ Added sample Ford F-150 data to database');
       }
     } catch (error) {
       console.error('Error in addSampleFordF150Data:', error);
@@ -245,7 +238,6 @@ export class MarketDataService {
     // Cap confidence at 95%
     confidenceScore = Math.min(confidenceScore, 95);
 
-    console.log(`📊 Processed ${validListings.length} valid listings, average price: $${Math.round(averagePrice)}, confidence: ${confidenceScore}%`);
 
     return {
       listings: validListings,

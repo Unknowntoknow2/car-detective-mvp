@@ -133,7 +133,6 @@ export async function createPlateValuation(plate: string, state: string, userId?
   try {
     // TODO: Implement actual plate lookup API integration
     // For now, return null to force manual entry flow
-    console.log('Plate lookup not yet implemented for production use');
     return null;
   } catch (error) {
     console.error('Error in createPlateValuation:', error);

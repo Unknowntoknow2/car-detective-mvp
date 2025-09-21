@@ -66,9 +66,7 @@ export async function fetchMarketComps(input: MarketSearchInput): Promise<Market
         if (foundListings.length > 0) {
           listings.push(...foundListings);
           sources.push(searchResult.source);
-          console.log(`✅ ${searchResult.source}: Found ${foundListings.length} listings`);
         } else {
-          console.log(`ℹ️ ${searchResult.source}: No listings found`);
         }
       } else if (searchResult.error) {
         errors.push(`${searchResult.source}: ${searchResult.error}`);
@@ -81,7 +79,6 @@ export async function fetchMarketComps(input: MarketSearchInput): Promise<Market
     }
   });
 
-  console.log(`📊 Market search completed: ${listings.length} total listings from ${sources.length} sources`);
 
   return {
     listings: listings.slice(0, 50), // Limit to top 50 results
@@ -92,7 +89,6 @@ export async function fetchMarketComps(input: MarketSearchInput): Promise<Market
 }
 
 async function fetchMarketplaceListings(make: string, model: string, year: number, zipCode: string): Promise<MarketListing[]> {
-  console.log(`🔍 Fetching marketplace listings for ${year} ${make} ${model} in ${zipCode}`);
   
   try {
     // Use the existing marketplace data edge function
@@ -131,7 +127,6 @@ async function fetchMarketplaceListings(make: string, model: string, year: numbe
         listing.price > 1000 && listing.price < 200000 // Basic validation
       );
 
-      console.log(`✅ Marketplace listings: Found ${marketListings.length} valid listings`);
       return marketListings;
     }
 
@@ -157,7 +152,6 @@ async function fetchEchoParkListings(args: { valuationId: string; make: string; 
       const searchQuery = `${args.year} ${args.make} ${args.model}`.replace(/\s+/g, '+');
       const url = `https://www.echopark.com/search?query=${searchQuery}&zipCode=${args.zipCode}&radius=50`;
       
-      console.log(`🔍 Fetching EchoPark listings (attempt ${retryCount + 1}):`, url);
       
       // Randomize user agent to avoid detection
       const userAgents = [
@@ -260,7 +254,6 @@ async function fetchEchoParkListings(args: { valuationId: string; make: string; 
         if (parsed) break;
       }
 
-      console.log(`✅ EchoPark: Found ${listings.length} listings`);
       return { ok: true, httpStatus, listings };
       
     } catch (e: any) {
@@ -290,7 +283,6 @@ async function fetchCarsComListings(args: { valuationId: string; make: string; m
     const modelFormatted = args.model.toLowerCase().replace(/\s+/g, '-');
     const url = `https://www.cars.com/shopping/results/?makes[]=${makeFormatted}&models[]=${makeFormatted}-${modelFormatted}&list_price_max=&list_price_min=&makes[]=${makeFormatted}&maximum_distance=50&models[]=${modelFormatted}&page_size=20&sort=relevance&stock_type=used&year_max=${args.year}&year_min=${args.year}&zip=${args.zipCode}`;
     
-    console.log('🔍 Fetching Cars.com listings:', url);
     
     const res = await fetch(url, { 
       method: 'GET',
@@ -379,7 +371,6 @@ async function fetchCarsComListings(args: { valuationId: string; make: string; m
       }
     }
 
-    console.log(`✅ Cars.com: Found ${listings.length} listings`);
     return { ok: true, httpStatus, listings };
     
   } catch (e: any) {

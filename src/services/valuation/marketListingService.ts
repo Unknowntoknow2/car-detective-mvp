@@ -50,7 +50,6 @@ export async function saveMarketListings(
   }
 
   try {
-    console.log(`💾 Saving ${listings.length} market listings to database...`);
 
     // Transform listings to database format
     const listingsToInsert: MarketListingInsertData[] = listings.map(listing => ({
@@ -101,7 +100,6 @@ export async function saveMarketListings(
     }
 
     const savedCount = data?.length || 0;
-    console.log(`✅ Successfully saved ${savedCount} market listings`);
     
     return {
       success: true,

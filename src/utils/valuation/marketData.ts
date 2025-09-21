@@ -22,7 +22,6 @@ export async function getMarketMultiplier(zipCode: string): Promise<number> {
     const now = Date.now();
     const cached = marketMultiplierCache.get(zipCode);
     if (cached && (now - cached.timestamp < CACHE_EXPIRY)) {
-      console.log(
         `Using cached market multiplier for ${zipCode}: ${cached.value}%`,
       );
       return cached.value;
@@ -47,7 +46,6 @@ export async function getMarketMultiplier(zipCode: string): Promise<number> {
       timestamp: now,
     });
 
-    console.log(`Fetched market multiplier for ${zipCode}: ${multiplier}%`);
     return multiplier;
   } catch (err) {
     console.error("Error in getMarketMultiplier:", err);

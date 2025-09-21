@@ -19,25 +19,21 @@ export class RealMarketplaceService {
    * Fetch real market listings from scraped/verified sources only
    */
   static async fetchRealListings(params: RealMarketplaceParams): Promise<MarketListing[]> {
-    console.log('🔍 RealMarketplaceService: Fetching verified market data', params);
     
     try {
       // 1. First try to get verified scraped listings
       const scrapedListings = await this.getScrapedListings(params);
       if (scrapedListings.length > 0) {
-        console.log(`✅ Found ${scrapedListings.length} real scraped listings`);
         return scrapedListings;
       }
 
       // 2. Try enhanced market listings (if they contain real data)
       const enhancedListings = await this.getVerifiedEnhancedListings(params);
       if (enhancedListings.length > 0) {
-        console.log(`✅ Found ${enhancedListings.length} verified enhanced listings`);
         return enhancedListings;
       }
 
       // 3. If no real data available, return empty array instead of fake data
-      console.log('ℹ️ No real marketplace data available');
       return [];
 
     } catch (error) {

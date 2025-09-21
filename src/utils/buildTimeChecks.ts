@@ -49,7 +49,6 @@ export function validateAINConfiguration() {
     }
   }
   
-  console.log('✅ AIN Configuration validated:', {
     USE_AIN_VALUATION,
     NODE_ENV,
     PROD,

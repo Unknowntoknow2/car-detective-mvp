@@ -116,7 +116,6 @@ export class FollowUpService {
       const valuationData = transformForValuation(completedData);
 
       // Here you would typically call the valuation calculation service
-      console.log('Submitting for valuation:', valuationData);
 
       return { success: true, valuationId: `val_${Date.now()}` };
     } catch (error) {

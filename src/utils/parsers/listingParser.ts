@@ -115,7 +115,6 @@ export function parseVehicleListingsFromWeb(text: string): ParsedListing[] {
     }
   }
 
-  console.log(`🔍 Parsed ${listings.length} listings from text (${text.length} chars)`);
   
   // Remove duplicates and return
   return deduplicateListings(listings);
