@@ -30,18 +30,16 @@ export type AinResponse = NormalizedValuationResponse & {
   base_value?: number;
 };
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = 'https://xltxqqzattxogxtqrggt.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsdHhxcXphdHR4b2d4dHFyZ2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NTYxMjYsImV4cCI6MjA2MTAzMjEyNn0.kUPmsyUdpcpnPLHWlnP7vODQiRgzCrWjOBfLib3lpvY';
 
-const supabase = supabaseUrl && supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        storageKey: 'car-detective-auth-storage',
-      },
-    })
-  : null;
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    storageKey: 'car-detective-auth-storage',
+  },
+});
 
 function mapToLegacyResponse(data: NormalizedValuationResponse | null | undefined): AinResponse {
   const finalValue = data?.finalValue ?? 0;
@@ -89,9 +87,6 @@ export async function runValuation(payload: {
   condition: "poor" | "fair" | "good" | "very_good" | "excellent";
   requested_by?: string;
 }): Promise<{ data: AinResponse; meta: AinMeta }> {
-  if (!supabase) {
-    throw new Error('Supabase environment not configured');
-  }
   const corrId = crypto.randomUUID();
   const { data, error } = await supabase.functions.invoke<NormalizedValuationResponse>('ain-valuation', {
     body: payload,

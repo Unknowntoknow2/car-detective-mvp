@@ -168,7 +168,7 @@ export function useValuationApi(): UseValuationApiReturn {
       const finalResult = await ValuationApiService.pollValuationProgress(
         requestId,
         (progressResult: any) => {
-          console.log('Progress update:', progressResult);
+          
         },
         30, // 30 attempts
         3000 // 3 second intervals

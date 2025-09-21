@@ -1,13 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-const url = import.meta.env.VITE_SUPABASE_URL;
-const anon = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = 'https://xltxqqzattxogxtqrggt.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsdHhxcXphdHR4b2d4dHFyZ2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NTYxMjYsImV4cCI6MjA2MTAzMjEyNn0.kUPmsyUdpcpnPLHWlnP7vODQiRgzCrWjOBfLib3lpvY';
 
-if (!url || !anon) {
-  // keep this explicit to avoid silent runtime failures
-  throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY');
-}
-
-export const supabase = createClient(url, anon, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: { 
+    persistSession: true, 
+    autoRefreshToken: true, 
+    detectSessionInUrl: true,
+    storageKey: 'car-detective-auth-storage',
+  },
 });

@@ -72,7 +72,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
   }, [valuationId]);
 
   const loadValuationData = async (id: string) => {
-    console.log('🔍 Loading valuation data for ID:', id);
+    
     setIsLoading(true);
     setError(null);
 
@@ -143,7 +143,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
   };
 
   const rerunValuation = async (input: ValuationInput) => {
-    console.log('🔄 [ValuationContext] Calling AIN API for professional valuation via rerunValuation:', input);
+    
     setIsLoading(true);
     setError(null);
 
@@ -161,8 +161,6 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
         requested_by: 'rerun_valuation'
       });
       
-      console.log('✅ [AIN] Professional valuation completed via AIN API');
-      console.log('🔍 [AIN] Route metadata:', meta);
       logger.log("ain.val.ms", Math.round(performance.now()-t0), { route: meta.route, corr_id: meta.corr_id });
       
       // Convert AIN result to our expected format
@@ -201,8 +199,6 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
       try {
         const { data: authData } = await supabase.auth.getUser();
         const userId = authData?.user?.id ?? null;
-        console.log('💾 [DEBUG] Saving valuation with user:', userId ?? 'anonymous');
-        console.log('💾 [DEBUG] Valuation data to save:', result);
 
         const { data: savedValuation, error: insertError } = await supabase
           .from('valuation_results')
@@ -234,7 +230,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
           console.error('❌ Failed to save valuation to database:', insertError);
           console.error('❌ Insert error details:', JSON.stringify(insertError, null, 2));
         } else {
-          console.log('✅ Valuation saved to database successfully:', savedValuation);
+          
         }
       } catch (saveError) {
         console.error('❌ Database save error:', saveError);

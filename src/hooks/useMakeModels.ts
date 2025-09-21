@@ -46,7 +46,7 @@ export function useMakeModels(): UseMakeModelsReturn {
 
   const fetchMakes = async () => {
     if (makesCache.length > 0) {
-      console.log('📦 Using cached makes:', makesCache.length);
+      
       setMakes(makesCache);
       return;
     }
@@ -55,7 +55,7 @@ export function useMakeModels(): UseMakeModelsReturn {
     setError(null);
     
     try {
-      console.log('🔍 Fetching makes from Supabase...');
+      
       
       const { data, error: fetchError } = await supabase
         .from('makes')
@@ -74,7 +74,7 @@ export function useMakeModels(): UseMakeModelsReturn {
         return;
       }
 
-      console.log('✅ Makes fetched successfully:', data.length);
+      
 
       const formattedMakes: Make[] = data.map(make => ({
         id: make.id,

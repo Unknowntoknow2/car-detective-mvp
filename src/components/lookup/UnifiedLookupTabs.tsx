@@ -15,7 +15,7 @@ import { valuationLogger } from '@/utils/valuationLogger';
 import { fetchVehicleByVin } from '@/services/vehicleLookupService';
 
 export function UnifiedLookupTabs() {
-  logger.log('🔍 UnifiedLookupTabs rendering v2.0 - FIXED - no context dependencies - ' + Date.now());
+  
   const [vin, setVin] = useState('');
   
   // Plate lookup states
