@@ -65,15 +65,15 @@ export function PreviewFallback({ children }: PreviewFallbackProps) {
   if (previewStatus?.isLovablePreview && connectionIssue && !isDismissed) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="p-4 bg-amber-50 border-b border-amber-200">
+        <div className="p-4 bg-card/90 border-b border-border/30 backdrop-blur-md">
           <div className="flex items-center justify-between max-w-4xl mx-auto">
             <div className="flex items-center gap-3">
-              <WifiOff className="h-5 w-5 text-amber-600" />
+              <WifiOff className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium text-amber-800">
+                <p className="text-sm font-medium text-foreground">
                   Preview Connection Issue
                 </p>
-                <p className="text-xs text-amber-700">
+                <p className="text-xs text-muted-foreground">
                   Live preview may not be working properly. Your app is still functional.
                 </p>
               </div>
@@ -83,7 +83,7 @@ export function PreviewFallback({ children }: PreviewFallbackProps) {
                 variant="outline"
                 size="sm"
                 onClick={handleOpenStandalone}
-                className="text-amber-700 border-amber-300"
+                className="glass-effect border-primary/20 hover:border-primary/40"
               >
                 <ExternalLink className="h-4 w-4 mr-1" />
                 Open Standalone
@@ -92,7 +92,7 @@ export function PreviewFallback({ children }: PreviewFallbackProps) {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowDiagnostics(!showDiagnostics)}
-                className="text-amber-700 border-amber-300"
+                className="glass-effect border-primary/20 hover:border-primary/40"
               >
                 <AlertCircle className="h-4 w-4 mr-1" />
                 Diagnostics
@@ -101,7 +101,7 @@ export function PreviewFallback({ children }: PreviewFallbackProps) {
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
-                className="text-amber-700 border-amber-300"
+                className="glass-effect border-primary/20 hover:border-primary/40"
               >
                 <Wifi className="h-4 w-4 mr-1" />
                 Reconnect
@@ -110,7 +110,7 @@ export function PreviewFallback({ children }: PreviewFallbackProps) {
                 variant="ghost"
                 size="sm"
                 onClick={handleDismiss}
-                className="text-amber-700 hover:bg-amber-100"
+                className="hover:bg-muted/50"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -118,30 +118,30 @@ export function PreviewFallback({ children }: PreviewFallbackProps) {
           </div>
           
           {showDiagnostics && previewStatus && (
-            <div className="mt-3 p-3 bg-amber-100 rounded-lg max-w-4xl mx-auto">
-              <h4 className="text-sm font-medium text-amber-800 mb-2">Preview Environment Status</h4>
+            <div className="mt-3 p-3 glass-effect rounded-lg max-w-4xl mx-auto">
+              <h4 className="text-sm font-medium text-foreground mb-2">Preview Environment Status</h4>
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="flex justify-between">
                   <span>Lovable Preview:</span>
-                  <span className={previewStatus.isLovablePreview ? 'text-green-600' : 'text-red-600'}>
+                  <span className={previewStatus.isLovablePreview ? 'text-accent' : 'text-destructive'}>
                     {previewStatus.isLovablePreview ? '✓' : '✗'}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>WebSocket Support:</span>
-                  <span className={previewStatus.hasWebSocket ? 'text-green-600' : 'text-red-600'}>
+                  <span className={previewStatus.hasWebSocket ? 'text-accent' : 'text-destructive'}>
                     {previewStatus.hasWebSocket ? '✓' : '✗'}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Parent Frame:</span>
-                  <span className={previewStatus.hasParentFrame ? 'text-green-600' : 'text-red-600'}>
+                  <span className={previewStatus.hasParentFrame ? 'text-accent' : 'text-destructive'}>
                     {previewStatus.hasParentFrame ? '✓' : '✗'}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Can Communicate:</span>
-                  <span className={previewStatus.canCommunicate ? 'text-green-600' : 'text-red-600'}>
+                  <span className={previewStatus.canCommunicate ? 'text-accent' : 'text-destructive'}>
                     {previewStatus.canCommunicate ? '✓' : '✗'}
                   </span>
                 </div>
