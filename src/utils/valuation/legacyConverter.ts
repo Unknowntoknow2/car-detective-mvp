@@ -35,7 +35,7 @@ interface LegacyVehicleInfo {
 export function convertLegacyToUnified(
   vehicleInfo: LegacyVehicleInfo,
   valuationData: LegacyValuationData
-): UnifiedValuationResult {
+): any {
   return {
     id: valuationData.id || crypto.randomUUID(), // ✅ FIX #2: Ensure ID is included for forecast integration
     vin: vehicleInfo.vin || '',

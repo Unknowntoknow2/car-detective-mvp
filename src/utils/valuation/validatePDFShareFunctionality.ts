@@ -133,7 +133,7 @@ export async function validatePDFShareFunctionality(vin: string): Promise<PDFSha
   
   try {
     // CREATE MOCK UNIFIED VALUATION RESULT
-    const mockValuationResult: UnifiedValuationResult = {
+    const mockValuationResult: any = {
       id: crypto.randomUUID(),
       vin: vin,
       vehicle: {

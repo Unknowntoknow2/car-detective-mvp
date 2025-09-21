@@ -128,7 +128,9 @@ export class ValuationApiService {
       return {
         request_id: requestId,
         status: data.valuation_request.status,
+        estimatedValue: data.valuation_result?.estimated_value || 0,
         estimated_value: data.valuation_result?.estimated_value,
+        confidenceScore: data.valuation_result?.confidence_score || 0,
         confidence_score: data.valuation_result?.confidence_score,
         comp_count: data.summary.comp_count,
         market_listings: data.market_listings.map(this.transformMarketListing),
@@ -242,7 +244,9 @@ export class ValuationApiService {
   private static transformAuditLog(log: any): AuditLog {
     return {
       id: log.id,
+      timestamp: new Date(log.created_at || Date.now()),
       action: log.action || log.event,
+      details: log.message || log.error_message || 'No details available',
       message: log.message || log.error_message,
       created_at: log.created_at,
       execution_time_ms: log.execution_time_ms,

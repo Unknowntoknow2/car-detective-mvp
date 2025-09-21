@@ -213,6 +213,9 @@ export interface EnhancedValuationParams {
   accidentCount?: number;
   trim?: string;
   bodyType?: string;
+  transmission?: string;
+  fuelType?: string;
+  aiConditionOverride?: any;
 }
 
 export interface FinalValuationResult extends ValuationResult {

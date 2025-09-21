@@ -61,7 +61,7 @@ function mapToLegacyResponse(data: NormalizedValuationResponse | null | undefine
 
   return {
     finalValue,
-    priceRange,
+    priceRange: [priceRange[0] || 0, priceRange[1] || 0] as [number, number],
     confidenceScore,
     adjustments,
     explanation: data?.explanation,
@@ -71,7 +71,7 @@ function mapToLegacyResponse(data: NormalizedValuationResponse | null | undefine
     confidence_score: confidenceScore,
     price_range_low: priceRange[0],
     price_range_high: priceRange[1],
-    price_range: priceRange,
+    price_range: [priceRange[0] || 0, priceRange[1] || 0] as [number, number],
     breakdown: adjustments,
     market_data: Object.keys(marketData).length ? marketData : undefined,
     base_value: data?.baseValue ?? finalValue,

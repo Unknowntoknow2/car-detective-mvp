@@ -156,7 +156,7 @@ export async function generateValuationPdf(result: any): Promise<Blob> {
         });
         
         // List first 3 recalls with risk levels
-        result.titleRecallInfo.recalls.slice(0, 3).forEach((recall, index) => {
+        result.titleRecallInfo.recalls.slice(0, 3).forEach((recall: any, index: number) => {
           const riskColor = recall.riskLevel === 'Critical' ? rgb(0.8, 0.1, 0.1) : 
                            recall.riskLevel === 'Important' ? rgb(0.8, 0.5, 0.1) : 
                            rgb(0.3, 0.3, 0.3);
@@ -210,7 +210,7 @@ export async function generateValuationPdf(result: any): Promise<Blob> {
         });
         
         // List first 3 recalls
-        result.recalls.slice(0, 3).forEach((recall, index) => {
+        result.recalls.slice(0, 3).forEach((recall: any, index: number) => {
           const truncatedRecall = recall.length > 60 ? recall.substring(0, 57) + '...' : recall;
           addText(`• ${truncatedRecall}`, { 
             x: margin + 20, 
@@ -237,7 +237,7 @@ export async function generateValuationPdf(result: any): Promise<Blob> {
 
   // Enhanced Market Listings section (if available)
   const normalizedListings = result.listings?.map(normalizeListing) || [];
-  const enhancedListings = normalizedListings.filter(listing => 
+  const enhancedListings = normalizedListings.filter((listing: any) => 
     ['facebook', 'craigslist', 'offerup', 'ebay', 'amazon'].includes(listing.source?.toLowerCase() || '')
   );
 
@@ -247,7 +247,7 @@ export async function generateValuationPdf(result: any): Promise<Blob> {
 
     // Platform breakdown using normalized listings
     const platformCounts: Record<string, number> = {};
-    enhancedListings.forEach(listing => {
+    enhancedListings.forEach((listing: any) => {
       const platform = listing.source?.toLowerCase() || 'other';
       platformCounts[platform] = (platformCounts[platform] || 0) + 1;
     });
@@ -265,7 +265,7 @@ export async function generateValuationPdf(result: any): Promise<Blob> {
 
     // Price range from enhanced listings
     if (enhancedListings.length > 1) {
-      const prices = enhancedListings.map(l => l.price).sort((a, b) => a - b);
+      const prices = enhancedListings.map((l: any) => l.price).sort((a: any, b: any) => a - b);
       addText('Price Range:', { size: 10, font: boldFont });
       addText(`$${prices[0].toLocaleString()} - $${prices[prices.length - 1].toLocaleString()}`, { 
         x: margin + 100, 
@@ -321,7 +321,7 @@ export async function generateValuationPdf(result: any): Promise<Blob> {
   addText('Base Value', { size: 10, font: boldFont });
   addText(formatCurrency(result.baseValue), { align: 'right', size: 10, y: yPosition + 10 + 8 });
 
-  result.adjustments.forEach((adj) => {
+  result.adjustments.forEach((adj: any) => {
     const sign = adj.amount >= 0 ? '+' : '';
     const color = adj.amount >= 0 ? successColor : rgb(0.8, 0.2, 0.2);
     
@@ -389,7 +389,7 @@ export async function generateValuationPdf(result: any): Promise<Blob> {
   addText('DATA SOURCES', { font: boldFont, size: 12, color: primaryColor });
   yPosition -= 5;
 
-  result.sources.forEach((source) => {
+  result.sources.forEach((source: any) => {
     addText(`• ${source}`, { size: 9 });
   });
 

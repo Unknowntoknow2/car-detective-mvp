@@ -10,7 +10,7 @@ export function testResultsPageAndPdfIntegration() {
   console.log('🧪 Testing ResultsPage and PDF Export Integration');
 
   // Mock enhanced valuation result with mixed MarketListing formats
-  const mockEnhancedResult: EnhancedValuationResult = {
+  const mockEnhancedResult: any = {
     estimatedValue: 35000,
     confidenceScore: 88,
     zipCode: '90210',
@@ -66,7 +66,7 @@ export function testResultsPageAndPdfIntegration() {
     
     const normalizedForDisplay = mockEnhancedResult.marketListings?.map(normalizeListing) || [];
     
-    console.log('✅ Normalized listings for display:', normalizedForDisplay.map(listing => ({
+    console.log('✅ Normalized listings for display:', normalizedForDisplay.map((listing: any) => ({
       price: listing.price,
       source: listing.source,
       url: getNormalizedUrl(listing),
@@ -76,7 +76,7 @@ export function testResultsPageAndPdfIntegration() {
     })));
 
     // Test 2: Validate all listings have required fields for UI display
-    const displayValidation = normalizedForDisplay.every(listing => {
+    const displayValidation = normalizedForDisplay.every((listing: any) => {
       return (
         typeof listing.price === 'number' &&
         listing.price > 0 &&
@@ -141,7 +141,7 @@ export function testResultsPageAndPdfIntegration() {
     // Test 5: Validate field access patterns work correctly
     console.log('\n🔍 Testing field access patterns...');
     
-    normalizedForDisplay.forEach((listing, index) => {
+    normalizedForDisplay.forEach((listing: any, index: number) => {
       const dealerName = listing.dealerName || listing.dealer_name || listing.dealer || 'Unknown';
       const url = getNormalizedUrl(listing);
       const sourceType = getNormalizedSourceType(listing);
