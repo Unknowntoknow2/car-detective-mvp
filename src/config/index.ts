@@ -68,13 +68,14 @@ let config: Config;
 
 try {
   config = ConfigSchema.parse(rawConfig);
+  console.log('✅ Config validation successful');
 } catch (error) {
-  console.warn('[config] Invalid configuration detected, applying safe defaults');
+  console.error('⚠️ Config validation failed, using safe defaults:', error);
   config = {
     SUPABASE_URL: 'https://xltxqqzattxogxtqrggt.supabase.co',
     SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsdHhxcXphdHR4b2d4dHFyZ2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NTYxMjYsImV4cCI6MjA2MTAzMjEyNn0.kUPmsyUdpcpnPLHWlnP7vODQiRgzCrWjOBfLib3lpvY',
-    MODE: 'development',
-    FEATURE_AUDIT: '0',
+    MODE: 'development' as const,
+    FEATURE_AUDIT: '0' as const,
   };
 }
 

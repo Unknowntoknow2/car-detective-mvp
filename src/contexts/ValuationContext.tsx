@@ -57,6 +57,7 @@ interface ValuationProviderProps {
 }
 
 export function ValuationProvider({ children, valuationId }: ValuationProviderProps) {
+  console.log('🔍 ValuationProvider rendering - checking for errors...');
   const [valuationData, setValuationData] = useState<ValuationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

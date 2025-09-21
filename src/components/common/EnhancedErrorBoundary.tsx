@@ -32,6 +32,10 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Log error details for debugging
+    console.error('ErrorBoundary caught an error:', error);
+    console.error('Error info:', errorInfo);
+    
     // Handle the error using our centralized error handler
     const context = this.props.context || "ErrorBoundary";
     errorHandler.handle(error, context);
@@ -65,6 +69,10 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
+      // Always log the error for debugging
+      console.error('🚨 ErrorBoundary active - Error caught:', this.state.error);
+      console.error('🚨 Error component stack:', this.state.errorInfo?.componentStack);
+      
       // Custom fallback UI if provided
       if (this.props.fallback) {
         return this.props.fallback;
