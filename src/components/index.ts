@@ -46,7 +46,6 @@ export { ScrollArea } from './ui/scroll-area';
 export { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 
 // Custom UI Components with unique names
-export { ThemeProvider } from './ui/theme-provider';
 export { PremiumBadge } from './ui/premium-badge';
 export { EmptyState as UIEmptyState } from './ui/empty-state';
 export { NoResults } from './ui/no-results';

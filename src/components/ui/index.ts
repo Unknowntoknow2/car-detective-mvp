@@ -44,7 +44,6 @@ export * from './scroll-area';
 export * from './table';
 
 // Custom UI Components
-export * from './theme-provider';
 export * from './premium-badge';
 export * from './empty-state';
 export * from './no-results';
