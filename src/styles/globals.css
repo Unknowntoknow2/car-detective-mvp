@@ -4,6 +4,7 @@
 @tailwind utilities;
 
 @import url("./premium-effects.css");
+@import url("./animations.css");
 
 /* FANG-Level Design System - Tesla/Apple Inspired */
 @layer base {

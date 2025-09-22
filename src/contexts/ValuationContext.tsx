@@ -57,7 +57,6 @@ interface ValuationProviderProps {
 }
 
 export function ValuationProvider({ children, valuationId }: ValuationProviderProps) {
-  console.log('🔍 ValuationProvider rendering - checking for errors...');
   const [valuationData, setValuationData] = useState<ValuationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -250,7 +249,6 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
   };
 
   const onUpgrade = () => {
-    console.log('🚀 Upgrade requested');
     // Implementation will be added when premium features are implemented
   };
 
@@ -258,9 +256,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
     setIsDownloading(true);
     try {
       // Implementation for PDF download
-      console.log('📄 PDF download requested');
     } catch (error) {
-      console.error('❌ PDF download failed:', error);
       toast.error('Failed to download PDF');
     } finally {
       setIsDownloading(false);
@@ -271,9 +267,7 @@ export function ValuationProvider({ children, valuationId }: ValuationProviderPr
     setIsEmailSending(true);
     try {
       // Implementation for email PDF
-      console.log('📧 Email PDF requested');
     } catch (error) {
-      console.error('❌ Email PDF failed:', error);
       toast.error('Failed to email PDF');
     } finally {
       setIsEmailSending(false);

@@ -15,7 +15,6 @@ import { valuationLogger } from '@/utils/valuationLogger';
 import { fetchVehicleByVin } from '@/services/vehicleLookupService';
 
 export function UnifiedLookupTabs() {
-  console.log('🔍 UnifiedLookupTabs rendering - checking for errors...');
   
   const [vin, setVin] = useState('');
   

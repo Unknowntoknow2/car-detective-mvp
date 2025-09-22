@@ -50,7 +50,7 @@ interface TabsListProps {
 
 export const TabsList: React.FC<TabsListProps> = ({ children, className }) => {
   return (
-    <div className={cn('flex space-x-1 rounded-md bg-muted p-1', className)}>
+    <div className={cn('glass-effect inline-flex h-14 items-center justify-center rounded-xl bg-muted/30 p-1 text-muted-foreground border border-border/20 shadow-card hover:shadow-card:hover transition-all duration-300', className)}>
       {children}
     </div>
   );
@@ -75,10 +75,10 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({
   return (
     <button
       className={cn(
-        'flex-1 rounded px-3 py-1.5 text-sm font-medium transition-colors',
+        'inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover-scale touch-target glass-effect border border-transparent',
         activeValue === value 
-          ? 'bg-background text-foreground shadow-sm' 
-          : 'text-muted-foreground hover:text-foreground',
+          ? 'bg-background text-foreground shadow-sm border-primary/20 shadow-button' 
+          : 'text-muted-foreground hover:text-foreground hover:bg-background/50',
         className
       )}
       onClick={() => setValue(value)}
@@ -107,7 +107,7 @@ export const TabsContent: React.FC<TabsContentProps> = ({
   if (activeValue !== value) return null;
 
   return (
-    <div className={className}>
+    <div className={cn('mt-6 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 animate-fade-in', className)}>
       {children}
     </div>
   );
