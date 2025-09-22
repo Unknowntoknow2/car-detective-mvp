@@ -25,10 +25,20 @@ const formatDate = (date: Date | string | number | undefined | null) => {
   }).format(d);
 };
 
-const getConfidenceColor = (confidence: number | undefined | null) => {
-  const c = typeof confidence === 'number' ? confidence : 0;
-  if (c >= 80) return 'text-green-600 bg-green-100';
-  if (c >= 60) return 'text-yellow-600 bg-yellow-100';
+const confidenceToPercent = (confidence?: number | null, confidencePercent?: number | null) => {
+  if (typeof confidencePercent === 'number' && isFinite(confidencePercent)) {
+    return confidencePercent;
+  }
+  if (typeof confidence === 'number' && isFinite(confidence)) {
+    return confidence <= 1 ? Math.round(confidence * 100) : confidence;
+  }
+  return 0;
+};
+
+const getConfidenceColor = (confidence: number | undefined | null, confidencePercent?: number | null) => {
+  const percent = confidenceToPercent(confidence, confidencePercent);
+  if (percent >= 80) return 'text-green-600 bg-green-100';
+  if (percent >= 60) return 'text-yellow-600 bg-yellow-100';
   return 'text-red-600 bg-red-100';
 };
 
@@ -42,6 +52,7 @@ const getAdjustmentColor = (percentage: number | undefined | null) => {
 export function ValuationResultsDisplay(props: ValuationResultsProps) {
   const location = useLocation();
   const valuation = (props as any)?.valuation ?? (location as any)?.state?.valuation ?? (typeof window !== "undefined" ? (window as any).__lastValuation : null);
+  const confidencePercent = confidenceToPercent(valuation?.confidence, valuation?.confidencePercent);
 
   // Google-level guardrail: never show $0 or N/A for estimatedValue or priceRange
   const isInvalidValuation =
@@ -106,10 +117,11 @@ export function ValuationResultsDisplay(props: ValuationResultsProps) {
             </div>
             <div
               className={`inline-block px-3 py-1 rounded-full text-sm font-medium mt-3 ${getConfidenceColor(
-                valuation.confidence
+                valuation?.confidence,
+                valuation?.confidencePercent
               )}`}
             >
-              {valuation.confidence}% Confidence
+              {Math.round(confidencePercent)}% Confidence
             </div>
           </div>
         </div>

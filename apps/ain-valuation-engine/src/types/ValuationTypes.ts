@@ -58,6 +58,7 @@ export interface Adjustment {
   factor: string;
   impact: number; // e.g. +500, -1200
   description: string;
+  percentage?: number; // optional percent change for UI display
 }
 
 export interface MarketFactor {
@@ -70,10 +71,12 @@ export interface ValuationResultCanonical {
   estimatedValue: number;
   priceRange: { low: number; high: number };
   confidence: number; // 0-1
+  confidencePercent?: number; // optional helper for UI display
   adjustments: Adjustment[];
   marketFactors: MarketFactor[];
   vehicleData: VehicleDataCanonical;
   explanation: string;
+  factors?: string[];
 }
 
 export interface RateLimit {
