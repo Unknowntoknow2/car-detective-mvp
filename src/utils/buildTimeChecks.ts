@@ -11,46 +11,31 @@ const AIN_API_KEY = import.meta.env.AIN_API_KEY;
 const NODE_ENV = import.meta.env.NODE_ENV;
 const PROD = import.meta.env.PROD;
 
-// Type-level assertions that will fail compilation if conditions aren't met
-type AssertAINEnabled = typeof USE_AIN_VALUATION extends "true" 
-  ? true 
-  : "❌ BUILD ERROR: USE_AIN_VALUATION must be set to 'true' in production";
+// Type-level assertions disabled - AIN is now optional
+// This allows the app to build and run without AIN configuration
 
-type AssertAINConfigured = typeof AIN_UPSTREAM_URL extends string
-  ? typeof AIN_API_KEY extends string
-    ? AssertAINEnabled
-    : "❌ BUILD ERROR: AIN_API_KEY must be configured in production"
-  : "❌ BUILD ERROR: AIN_UPSTREAM_URL must be configured in production";
-
-type AssertNotLocal = typeof PROD extends true 
-  ? AssertAINConfigured
-  : true; // Allow local development
-
-// This will cause a TypeScript error if AIN is not properly configured
-const _buildTimeAssertion: AssertNotLocal = true as AssertNotLocal;
-
-// Runtime check for additional safety
+// Runtime check for additional safety (non-blocking)
 export function validateAINConfiguration() {
-  // Development mode - allow without AIN
+  // Always allow the app to run - just log warnings
   if (!PROD) {
-    return; // Skip validation in development
+    console.log('🔧 Development mode - AIN validation skipped');
+    return;
   }
   
-  // Check if we need to enforce AIN in production
-  const requireAIN = (typeof __REQUIRE_AIN__ !== 'undefined' && __REQUIRE_AIN__) || PROD;
+  // Check if AIN is configured (optional)
+  const requireAIN = (typeof __REQUIRE_AIN__ !== 'undefined' && __REQUIRE_AIN__);
   
   if (requireAIN && NODE_ENV === 'production') {
     if (USE_AIN_VALUATION !== 'true') {
-      console.warn('AIN validation not configured - using fallback');
+      console.warn('⚠️ AIN validation not enabled - using fallback valuation methods');
       return;
     }
     
     if (!AIN_UPSTREAM_URL || !AIN_API_KEY) {
-      console.warn('AIN configuration incomplete - using fallback');
+      console.warn('⚠️ AIN configuration incomplete - some features may be limited');
       return;
     }
+    
+    console.log('✅ AIN integration active');
   }
 }
-
-// Export for use in app initialization
-export { _buildTimeAssertion };

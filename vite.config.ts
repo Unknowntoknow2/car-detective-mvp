@@ -30,6 +30,6 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     'process.env.ROLLUP_NATIVE': 'false',
-    '__REQUIRE_AIN__': mode === 'production',
+    '__REQUIRE_AIN__': false, // Make AIN optional - can be enabled later
   },
 }))

@@ -20,8 +20,10 @@ export class ConsoleCleanupManager {
   initialize(): void {
     if (this.isInitialized || typeof window === 'undefined') return;
     
-    // Initialize all error handling systems
-    this.setupComprehensiveConsoleOverrides();
+    // Temporarily disabled for debugging - allow all console messages through
+    console.log('ℹ️ Console cleanup temporarily disabled for debugging');
+    
+    // Still initialize error handlers
     setupTrackingErrorHandler();
     setupGlobalErrorHandler();
     setupPreviewErrorHandling();
