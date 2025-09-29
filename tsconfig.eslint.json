@@ -1,14 +1,18 @@
-{{
-
-  "extends": "./tsconfig.json",  "extends": "./tsconfig.json",
-
-  "include": [  "compilerOptions": { "noEmit": true },
-
-    "src/**/*.ts",  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
-
-    "src/**/*.tsx",  "exclude": ["node_modules","dist","coverage","apps/**"]
-
-    "eslint.config.cjs"}
-
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    "eslint.config.cjs"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "apps/**"
   ]
-} 
+}
