@@ -8,13 +8,12 @@
     "skipLibCheck": true,
     // revert extra strict flags until type errors are at 0
     "useUnknownInCatchVariables": false,
-    "baseUrl": ".",
     "paths": {
       "@/*": [
-        "../../src/*"
+        "./../../src/*"
       ],
       "@shared/*": [
-        "../../shared/*"
+        "./../../shared/*"
       ]
     },
     "types": [

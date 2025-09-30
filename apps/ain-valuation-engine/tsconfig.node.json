@@ -13,6 +13,12 @@
     "moduleDetection": "force",
     "noEmit": true,
 
+    /* Path mappings */
+    "paths": {
+      "@/*": ["./../../src/*"],
+      "@shared/*": ["./../../shared/*"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
