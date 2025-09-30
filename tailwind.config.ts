@@ -30,8 +30,11 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        
         primary: {
           DEFAULT: "hsl(var(--primary))",
+          light: "hsl(var(--primary-light))",
+          dark: "hsl(var(--primary-dark))",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -58,6 +61,32 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        
+        // Surface colors
+        surface: "hsl(var(--surface))",
+        "surface-card": "hsl(var(--surface-card))",
+        "surface-elevated": "hsl(var(--surface-elevated))",
+        
+        // Text colors
+        "text-primary": "hsl(var(--text-primary))",
+        "text-secondary": "hsl(var(--text-secondary))",
+        "text-tertiary": "hsl(var(--text-tertiary))",
+        
+        // Status colors
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          light: "hsl(var(--success-light))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          light: "hsl(var(--warning-light))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        
+        // Border variants
+        "border-dark": "hsl(var(--border-dark))",
+        
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -88,15 +117,11 @@ export default {
         "4xl": "96px",
       },
       boxShadow: {
-        "sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-        "md": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-        "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-        "xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-        "2xl": "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-        "inner": "inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)",
-        "glass": "0 8px 32px 0 rgba(31, 38, 135, 0.15)",
-        "btn": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-        "hover": "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+        "sm": "var(--shadow-sm)",
+        "md": "var(--shadow-md)",
+        "lg": "var(--shadow-lg)",
+        "xl": "var(--shadow-xl)",
+        "glow": "var(--shadow-glow)",
         "none": "none",
       },
       borderRadius: {
@@ -166,12 +191,9 @@ export default {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        "gradient-card": "linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%)",
-        "gradient-primary": "linear-gradient(90deg, #0062FF 0%, #60A5FA 100%)",
-        "gradient-success": "linear-gradient(90deg, #10B981 0%, #34D399 100%)",
-        "gradient-warning": "linear-gradient(90deg, #F59E0B 0%, #FBBF24 100%)",
-        "gradient-error": "linear-gradient(90deg, #EF4444 0%, #F87171 100%)",
-        "gradient-neumorph": "linear-gradient(145deg, #f3f4f6, #ffffff)",
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-subtle": "var(--gradient-subtle)",
+        "gradient-card": "var(--gradient-card)",
       },
       backdropFilter: {
         "none": "none",

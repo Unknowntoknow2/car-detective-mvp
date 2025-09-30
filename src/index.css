@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Core Color System - Professional car valuation platform */
+    --background: 220 14% 96%;          /* #f7f8fa - Light neutral background */
+    --foreground: 222 47% 11%;          /* #151b23 - Deep charcoal text */
+    
+    /* Primary - Professional navy blue */
+    --primary: 214 84% 56%;             /* #2563eb - Professional blue */
+    --primary-light: 213 93% 68%;       /* #3b82f6 - Lighter blue */
+    --primary-dark: 215 100% 46%;       /* #0052cc - Darker blue */
+    --primary-foreground: 0 0% 100%;    /* #ffffff - White text on primary */
+    
+    /* Secondary - Neutral grays */
+    --secondary: 210 6% 93%;            /* #f1f2f4 - Light gray */
+    --secondary-foreground: 222 13% 26%; /* #3d4852 - Dark gray */
+    
+    /* Accent - Success green */
+    --accent: 142 76% 36%;              /* #10b981 - Success green */
+    --accent-foreground: 0 0% 100%;     /* #ffffff - White text on accent */
+    
+    /* Surface colors */
+    --surface: 0 0% 100%;               /* #ffffff - Pure white */
+    --surface-card: 220 14% 98%;        /* #fafbfc - Slightly off-white */
+    --surface-elevated: 0 0% 100%;      /* #ffffff - Elevated surfaces */
+    
+    /* Muted colors */
+    --muted: 210 6% 93%;                /* #f1f2f4 - Muted backgrounds */
+    --muted-foreground: 215 16% 47%;    /* #64748b - Muted text */
+    
+    /* Border colors */
+    --border: 220 13% 91%;              /* #e5e7eb - Light borders */
+    --border-dark: 217 19% 27%;         /* #374151 - Dark borders */
+    
+    /* Input colors */
+    --input: 220 13% 91%;               /* #e5e7eb - Input borders */
+    --ring: 214 84% 56%;                /* #2563eb - Focus rings */
+    
+    /* Status colors */
+    --success: 142 76% 36%;             /* #10b981 - Success states */
+    --success-light: 141 84% 93%;       /* #d1fae5 - Light success bg */
+    --warning: 32 95% 44%;              /* #f59e0b - Warning states */
+    --warning-light: 48 100% 93%;       /* #fef3c7 - Light warning bg */
+    --destructive: 0 84% 60%;           /* #ef4444 - Error states */
+    --destructive-foreground: 0 0% 100%; /* #ffffff - White text on error */
+    
+    /* Card and popover */
+    --card: 0 0% 100%;                  /* #ffffff - Card backgrounds */
+    --card-foreground: 222 47% 11%;     /* #151b23 - Card text */
+    --popover: 0 0% 100%;               /* #ffffff - Popover backgrounds */
+    --popover-foreground: 222 47% 11%;  /* #151b23 - Popover text */
+    
+    /* Text hierarchy */
+    --text-primary: 222 47% 11%;        /* #151b23 - Primary text */
+    --text-secondary: 215 16% 47%;      /* #64748b - Secondary text */
+    --text-tertiary: 215 20% 65%;       /* #94a3b8 - Tertiary text */
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--surface)));
+    --gradient-card: linear-gradient(135deg, hsl(var(--surface)), hsl(var(--surface-card)));
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.3);
+
+    /* Sidebar variables */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Dark mode colors */
+    --background: 224 71% 4%;           /* #0a0f1c - Very dark blue */
+    --foreground: 213 31% 91%;          /* #e2e8f0 - Light text */
+    
+    --primary: 213 93% 68%;             /* #3b82f6 - Brighter blue for dark */
+    --primary-light: 214 95% 75%;       /* #60a5fa - Lighter blue */
+    --primary-dark: 214 84% 56%;        /* #2563eb - Primary blue */
+    --primary-foreground: 222 47% 11%;  /* #151b23 - Dark text on primary */
+    
+    --secondary: 215 28% 17%;           /* #1e293b - Dark gray */
+    --secondary-foreground: 213 31% 91%; /* #e2e8f0 - Light text */
+    
+    --accent: 142 76% 36%;              /* #10b981 - Keep success green */
+    --accent-foreground: 0 0% 100%;     /* #ffffff - White text */
+    
+    --surface: 224 71% 4%;              /* #0a0f1c - Dark surface */
+    --surface-card: 215 28% 17%;        /* #1e293b - Elevated dark */
+    --surface-elevated: 215 25% 27%;    /* #334155 - More elevated */
+    
+    --muted: 215 28% 17%;               /* #1e293b - Dark muted */
+    --muted-foreground: 217 11% 65%;    /* #94a3b8 - Muted text */
+    
+    --border: 215 28% 17%;              /* #1e293b - Dark borders */
+    --border-dark: 215 20% 65%;         /* #94a3b8 - Lighter dark borders */
+    
+    --input: 215 28% 17%;               /* #1e293b - Dark input borders */
+    --ring: 213 93% 68%;                /* #3b82f6 - Focus rings */
+    
+    --card: 215 28% 17%;                /* #1e293b - Dark cards */
+    --card-foreground: 213 31% 91%;     /* #e2e8f0 - Light card text */
+    --popover: 215 28% 17%;             /* #1e293b - Dark popovers */
+    --popover-foreground: 213 31% 91%;  /* #e2e8f0 - Light popover text */
+    
+    --text-primary: 213 31% 91%;        /* #e2e8f0 - Light primary text */
+    --text-secondary: 217 11% 65%;      /* #94a3b8 - Secondary text */
+    --text-tertiary: 215 16% 47%;       /* #64748b - Tertiary text */
+    
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary-dark)), hsl(var(--primary)));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--surface)));
+    --gradient-card: linear-gradient(135deg, hsl(var(--surface-card)), hsl(var(--surface-elevated)));
+    
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.2);
+
+    /* Dark sidebar */
+    --sidebar-background: 224 71% 4%;
+    --sidebar-foreground: 213 31% 91%;
+    --sidebar-primary: 213 31% 91%;
+    --sidebar-primary-foreground: 224 71% 4%;
+    --sidebar-accent: 215 28% 17%;
+    --sidebar-accent-foreground: 213 31% 91%;
+    --sidebar-border: 215 28% 17%;
+    --sidebar-ring: 213 93% 68%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-text-primary;
+  }
+  
+  p {
+    @apply text-text-secondary leading-relaxed;
+  }
+  
+  /* Selection styles */
+  ::selection {
+    @apply bg-primary/20 text-primary-dark;
+  }
+}
+
+@layer components {
+  /* Glass morphism effect */
+  .glass-effect {
+    @apply backdrop-blur-md bg-white/10 border border-white/20;
+  }
+  
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent;
+  }
+  
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground rounded-sm;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-accent;
+  }
+  
+  /* Button shimmer effect */
+  .btn-shimmer::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full;
+    animation: shimmer 2s infinite;
+  }
+  
+  /* Card hover effects */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+}
+
+@layer utilities {
+  /* Text balance utility */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Focus visible utilities */
+  .focus-glow:focus-visible {
+    @apply outline-none ring-2 ring-primary/50 ring-offset-2 ring-offset-background;
+  }
+}
