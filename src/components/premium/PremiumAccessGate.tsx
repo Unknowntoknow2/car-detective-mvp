@@ -28,7 +28,7 @@ export function PremiumAccessGate({ valuationId, children }: PremiumAccessGatePr
     
     try {
       // Try to use a credit
-      const success = await useCredit(valuationId);
+      const success = await useCredit();
       
       if (success) {
         // Refresh the page to show premium content

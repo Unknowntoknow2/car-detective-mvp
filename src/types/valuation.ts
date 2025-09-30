@@ -193,7 +193,7 @@ export interface ValuationResult {
   }>;
 }
 
-export { MarketListing } from './marketListing';
+export type { MarketListing } from './marketListing';
 
 export interface AuditLog {
   id: string;

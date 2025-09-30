@@ -128,7 +128,7 @@ test.describe('AIN API Network Validation', () => {
       // Even if it fails due to auth/config, we can validate the endpoint exists
       console.log('🔍 AIN endpoint response status:', response.status());
       
-      if (response.ok) {
+      if (response.ok()) {
         const headers = response.headers();
         expect(headers['x-ain-route']).toBeDefined();
         console.log('✅ AIN route header present:', headers['x-ain-route']);

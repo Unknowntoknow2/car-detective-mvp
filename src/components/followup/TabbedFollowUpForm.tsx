@@ -205,7 +205,7 @@ export function TabbedFollowUpForm({
       if (result.success && result.valuationId) {
         // Navigate to results using the parent's onSubmit (which handles navigation)
         await onSubmit();
-      } else if (result.requiresValuation) {
+      } else if (result.success) {
         // FIXED: Call parent's onSubmit when valuation creation is needed
         // This allows the parent (ValuationFollowUpPage) to create the valuation
         await onSubmit();

@@ -397,6 +397,6 @@ export function useSimpleFollowUpForm({ vin, initialData }: UseSimpleFollowUpFor
     isSaving,
     saveError,
     lastSaveTime,
-    isFormValid: isFormValid()
+    isFormValid: isFormValid
   };
 }

@@ -1,6 +1,6 @@
 
 // Re-export from centralized location
-export { 
+export type { 
   RulesEngineInput,
   AdjustmentBreakdown,
   ValuationData,

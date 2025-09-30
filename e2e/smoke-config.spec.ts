@@ -16,7 +16,7 @@ test.describe('Configuration Smoke Tests', () => {
     
     // Check that config is properly injected
     const configExists = await page.evaluate(() => {
-      return typeof window.__APP_CONFIG__ !== 'undefined';
+      return typeof (window as any).__APP_CONFIG__ !== 'undefined';
     });
     
     if (configExists) {

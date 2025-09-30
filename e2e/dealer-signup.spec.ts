@@ -81,7 +81,8 @@ test.describe("Dealer Signup and Authentication Flow", () => {
       // Wait for success message or redirect
       await Promise.race([
         page.waitForURL(/dealer-dashboard|confirm|login-dealer/),
-        page.waitForSelector(/Registration successful|Account created/i),
+        page.waitForSelector('text=Registration successful', { timeout: 10000 }).catch(() => 
+          page.waitForSelector('text=Account created', { timeout: 10000 })),
       ]);
     });
 
@@ -115,7 +116,7 @@ test.describe("Dealer Signup and Authentication Flow", () => {
             console.log(`Found existing user: ${userId}`);
 
             // Update the user's email_confirmed_at to bypass email verification
-            await supabase.auth.admin.updateUserById(userId, {
+            await supabase.auth.admin.updateUserById(userId!, {
               email_confirm: true,
               user_metadata: { full_name: testDealerName },
             });
