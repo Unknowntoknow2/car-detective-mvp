@@ -349,7 +349,6 @@ export async function processValuation(
 			throw error;
 		}
 	}
-}
 
 /**
  * Legacy compatibility function
