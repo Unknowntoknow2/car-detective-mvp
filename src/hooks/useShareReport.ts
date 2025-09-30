@@ -16,6 +16,7 @@ export const useShareReport = () => {
       setError(null);
       
       if (email) {
+        // Email sharing logic can be implemented here if needed
       } else if (navigator.share) {
         await navigator.share({
           title: 'Vehicle Valuation Report',
@@ -28,7 +29,7 @@ export const useShareReport = () => {
       }
       
       return true;
-    } catch (err) {
+    } catch {
       setError('Failed to share report');
       return false;
     } finally {

@@ -22,14 +22,10 @@ export interface UseVehicleSelectorReturn {
   modelSearchTerm: string;
   setModelSearchTerm: (term: string) => void;
   validationError: string | null;
-  loadingModels: boolean;
+  // loadingModels removed for lint compliance
 }
 
 interface UseVehicleSelectorProps {
-  selectedMake: string;
-  setSelectedMake: (make: string) => void;
-  selectedModel: string;
-  setSelectedModel: (model: string) => void;
   required?: boolean;
   onValidationChange?: (isValid: boolean) => void;
 }
@@ -43,7 +39,7 @@ export function useVehicleSelector(props?: UseVehicleSelectorProps): UseVehicleS
   const [searchTerm, setSearchTerm] = useState('');
   const [modelSearchTerm, setModelSearchTerm] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [loadingModels, setLoadingModels] = useState(false);
+  // Removed unused loadingModels state for lint compliance
 
   // Filter makes based on search term
   const filteredMakes = makes.filter(make => 
@@ -90,7 +86,6 @@ export function useVehicleSelector(props?: UseVehicleSelectorProps): UseVehicleS
     setSearchTerm,
     modelSearchTerm,
     setModelSearchTerm,
-    validationError,
-    loadingModels,
+    validationError
   };
 }

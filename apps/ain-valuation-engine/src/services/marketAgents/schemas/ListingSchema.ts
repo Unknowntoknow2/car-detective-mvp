@@ -24,7 +24,19 @@ export const ListingJsonSchema = {
             source:     { type: "string" },
             fetchedAt:  { type: "string" }
           },
-          required: ["make","model","url","source","fetchedAt"]
+          required: [
+            "vin",
+            "make",
+            "model",
+            "year",
+            "price",
+            "mileage",
+            "zip",
+            "dealer",
+            "url",
+            "source",
+            "fetchedAt"
+          ]
         }
       }
     },

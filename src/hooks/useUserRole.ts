@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 
 export function useUserRole() {
-  const { userDetails, user, loading } = useAuth();
+  const { userDetails, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(loading);
 
   useEffect(() => {

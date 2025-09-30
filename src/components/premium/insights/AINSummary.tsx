@@ -1,3 +1,5 @@
+// Canonical AINSummary.tsx
+// This is the unified version. Duplicate removed from src/components/valuation/premium/AINSummary.tsx
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

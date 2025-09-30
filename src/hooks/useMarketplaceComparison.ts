@@ -94,7 +94,7 @@ export function useMarketplaceComparison({
           return data as MarketplaceListing[] || [];
         }
         return [];
-      } catch (error) {
+      } catch {
         toast.error('Failed to load marketplace listings');
         return [];
       }

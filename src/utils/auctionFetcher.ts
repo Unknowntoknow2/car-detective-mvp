@@ -57,72 +57,53 @@ export async function getAuctionResultsByVin(vin: string): Promise<AuctionResult
 
 // Function to trigger background fetch of auction data
 export async function triggerAuctionDataFetch(vin: string): Promise<void> {
-  try {
-    // First check if we already have data for this VIN
-    const { count, error } = await supabase
+  // First check if we already have data for this VIN
+  const { count, error } = await supabase
+    .from('auction_results_by_vin')
+    .select('*', { count: 'exact', head: true })
+    .eq('vin', vin);
+
+  // If we already have data, don't fetch again unless it's older than 7 days
+  if (count && count > 0) {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const { data: recentData } = await supabase
       .from('auction_results_by_vin')
-      .select('*', { count: 'exact', head: true })
-      .eq('vin', vin);
-    
-    // If we already have data, don't fetch again unless it's older than 7 days
-    if (count && count > 0) {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      
-      const { data: recentData } = await supabase
-        .from('auction_results_by_vin')
-        .select('fetched_at')
-        .eq('vin', vin)
-        .gt('fetched_at', sevenDaysAgo.toISOString())
-        .limit(1);
-      
-      if (recentData && recentData.length > 0) {
-        return;
-      }
-    }
+      .select('fetched_at')
+      .eq('vin', vin)
+      .gt('fetched_at', sevenDaysAgo.toISOString())
+      .limit(1);
 
-    // Trigger the Edge Function to fetch auction data
-    const { data, error: functionError } = await supabase.functions.invoke('fetch-auction-data', {
-      body: { vin }
-    });
-
-    if (functionError) {
-    } else {
+    if (recentData && recentData.length > 0) {
+      return;
     }
-  } catch (error) {
   }
+
+  // Trigger the Edge Function to fetch auction data
+  await supabase.functions.invoke('fetch-auction-data', {
+    body: { vin }
+  });
 }
 
 // Function to fetch Bid.Cars data
 export async function fetchBidCarsByVin(vin: string): Promise<BidCarsRecord[]> {
-  try {
-    const { data, error } = await supabase.functions.invoke('fetch-bidcars-data', {
-      body: { vin }
-    });
-
-    if (error) {
-      return [];
-    }
-
-    return data?.records || [];
-  } catch (error) {
+  const { data, error } = await supabase.functions.invoke('fetch-bidcars-data', {
+    body: { vin }
+  });
+  if (error) {
     return [];
   }
+  return data?.records || [];
 }
 
 // Function to fetch AutoAuctions.io data
 export async function fetchAutoAuctionsByVin(vin: string): Promise<AutoAuctionsRecord[]> {
-  try {
-    const { data, error } = await supabase.functions.invoke('fetch-autoauctions-data', {
-      body: { vin }
-    });
-
-    if (error) {
-      return [];
-    }
-
-    return data?.records || [];
-  } catch (error) {
+  const { data, error } = await supabase.functions.invoke('fetch-autoauctions-data', {
+    body: { vin }
+  });
+  if (error) {
     return [];
   }
+  return data?.records || [];
 }

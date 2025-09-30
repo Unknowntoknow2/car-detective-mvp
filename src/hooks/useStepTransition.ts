@@ -1,23 +1,11 @@
 
-import { useCallback, useEffect, useState } from "react";
-import { FormData } from "@/types/premium-valuation";
+import { useCallback, useState } from "react";
 
-interface StepConfig {
-  component: string;
-  shouldShow: boolean;
-  props?: any;
-}
+
 
 export function useStepTransition(
   currentStep: number,
-  formData: FormData,
-  isLoading: boolean,
-  lookupVehicle: (
-    type: "vin" | "plate" | "manual" | "photo",
-    identifier: string,
-    state?: string,
-    manualData?: any,
-  ) => Promise<void>
+  // Only currentStep is used; other params removed for lint compliance
 ) {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -30,7 +18,7 @@ export function useStepTransition(
         return Math.max(current - 1, 1);
       }
     },
-    [formData, isLoading]
+  []
   );
 
   return {

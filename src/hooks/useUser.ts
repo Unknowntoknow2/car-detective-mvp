@@ -8,7 +8,7 @@ interface User {
 }
 
 export function useUser() {
-  const { user, userDetails, loading } = useAuth();
+  const { user, loading } = useAuth();
   
   const userData: User | null = user ? {
     id: user.id,

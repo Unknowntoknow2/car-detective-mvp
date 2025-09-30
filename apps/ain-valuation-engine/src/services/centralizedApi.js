@@ -1,6 +1,6 @@
 // Centralized API service to eliminate duplication
 // ⚠️ DEPRECATED: Use unifiedVinDecoder.ts instead for VIN decode operations
-import { ApiClient } from './apiClient';
+import { ApiClient } from './apiClient.ts';
 import { withErrorHandling } from '../utils/errorHandling';
 import { decodeVin, isVinDecodeSuccessful } from './unifiedVinDecoder';
 // Single instance of API client

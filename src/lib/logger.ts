@@ -6,7 +6,9 @@
  * Integrates with console cleanup system to avoid noise.
  */
 
-const isDevelopment = import.meta.env.DEV || false;
+const isDevelopment = (typeof import.meta !== 'undefined' && import.meta.env && typeof import.meta.env.DEV !== 'undefined')
+  ? import.meta.env.DEV
+  : (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development');
 
 // Check if debug mode is enabled
 const isDebugMode = (): boolean => {

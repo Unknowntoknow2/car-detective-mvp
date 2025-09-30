@@ -1,14 +1,14 @@
 
-import { useState, useCallback } from 'react';
+
+import React, { useState, useCallback } from 'react';
 
 interface UseVinInputProps {
   initialValue?: string;
-  onValidChange?: (valid: boolean) => void;
+  onValidChange?: (isValid: boolean) => void;
 }
 
 export const useVinInput = (props?: UseVinInputProps) => {
   const [vin, setVin] = useState<string>(props?.initialValue || '');
-  const [isValid, setIsValid] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
@@ -28,16 +28,13 @@ export const useVinInput = (props?: UseVinInputProps) => {
     const cleanVin = newVin?.trim() || '';
     setVin(cleanVin);
     setTouched(true);
-    
     if (cleanVin) {
-      const valid = validateVin(cleanVin);
-      setIsValid(valid);
-      const errorMsg = valid ? null : 'Invalid VIN format';
+      const isValidNow = validateVin(cleanVin);
+      const errorMsg = isValidNow ? null : 'Invalid VIN format';
       setError(errorMsg);
       setValidationError(errorMsg);
-      props?.onValidChange?.(valid);
+      props?.onValidChange?.(isValidNow);
     } else {
-      setIsValid(false);
       setError(null);
       setValidationError(null);
       props?.onValidChange?.(false);
@@ -50,7 +47,6 @@ export const useVinInput = (props?: UseVinInputProps) => {
 
   return {
     vin,
-    isValid,
     error,
     validationError,
     touched,

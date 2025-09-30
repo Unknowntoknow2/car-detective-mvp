@@ -5,7 +5,7 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 
 // Minimal Deno declaration for editors without full Deno env
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 declare const Deno: { test: (name: string, fn: () => void | Promise<void>) => void };
 
 interface SafetyEquipment {

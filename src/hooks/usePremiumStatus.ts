@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+// import { supabase } from "@/integrations/supabase/client";
 
 interface PremiumResponse {
   success: boolean;
@@ -28,7 +28,7 @@ export function usePremiumStatus(valuationId?: string) {
 
       setIsPremium(isPremiumValuation);
       return isPremiumValuation;
-    } catch (error) {
+    } catch {
       setIsPremium(false);
       return false;
     } finally {
@@ -61,7 +61,7 @@ export function usePremiumStatus(valuationId?: string) {
         url:
           `/premium-success?session_id=mock_session_${Date.now()}&valuation_id=${id}`,
       };
-    } catch (error: any) {
+    } catch {
       return {
         success: false,
         error: "An unexpected error occurred",

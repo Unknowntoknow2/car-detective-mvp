@@ -13,15 +13,9 @@ export interface HeatmapData {
 }
 
 export async function getAdjustmentBreakdownHeatmap(): Promise<HeatmapData[]> {
-  try {
-    const { data, error } = await supabase.rpc('get_adjustment_breakdown_heatmap');
-    
-    if (error) {
-      throw error;
-    }
-    
-    return data || [];
-  } catch (error) {
+  const { data, error } = await supabase.rpc('get_adjustment_breakdown_heatmap');
+  if (error) {
     throw error;
   }
+  return data || [];
 }

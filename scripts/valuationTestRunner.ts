@@ -298,7 +298,7 @@ async function main() {
     printSeparator('ERROR DETAILS');
     console.error('❌ Valuation failed with error:');
     console.error('');
-    
+    console.error('Full error object:', error);
     if (error instanceof Error) {
       console.error(`Error Message: ${error.message}`);
       console.error('');
@@ -307,10 +307,8 @@ async function main() {
     } else {
       console.error('Unknown error:', error);
     }
-    
     console.error('');
     printSeparator();
-    
     // Exit with error code
     process.exit(1);
   }

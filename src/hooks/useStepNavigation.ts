@@ -28,14 +28,11 @@ export function useStepNavigation({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLookup = useCallback(async (
-    type: LookupType,
-    value: string,
-    state?: string,
-    manualData?: ManualEntryFormData
+    ...args: Parameters<typeof onLookup>
   ) => {
     setIsLoading(true);
     try {
-      await onLookup(type, value, state, manualData);
+      await onLookup(...args);
     } finally {
       setIsLoading(false);
     }

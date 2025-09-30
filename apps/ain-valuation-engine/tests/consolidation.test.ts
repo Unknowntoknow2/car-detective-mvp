@@ -7,7 +7,7 @@ import { fetchFuelEconomyByYearMakeModel } from '../src/services/fuelEconomyServ
 describe('Consolidated Services Integration', () => {
   describe('UnifiedVinDecoder', () => {
     it('should decode VIN with proper type safety', async () => {
-      const mockVin = '1HGCM82633A123456';
+  const mockVin = '1HGCM82633A004352'; // Valid Honda Accord VIN
       
       // Mock the API response to avoid actual network calls in tests
       const result = await decodeVin(mockVin, { forceDirectAPI: true });
@@ -26,7 +26,7 @@ describe('Consolidated Services Integration', () => {
     }, 15000); // Increase timeout for API call
 
     it('should handle invalid VIN with proper error handling', async () => {
-      const invalidVin = 'INVALID';
+  const invalidVin = 'INVALID123';
       
       try {
         await decodeVin(invalidVin);
@@ -38,7 +38,7 @@ describe('Consolidated Services Integration', () => {
     });
 
     it('should handle invalid checksum with proper error handling', async () => {
-      const invalidCheckDigitVin = '1HGCM82633A123457'; // Wrong check digit
+  const invalidCheckDigitVin = '1HGCM82633A004353'; // Wrong check digit
       
       try {
         await decodeVin(invalidCheckDigitVin);
@@ -54,7 +54,7 @@ describe('Consolidated Services Integration', () => {
 describe('VIN Decode Consolidation Integration', () => {
   describe('UnifiedVinDecoder', () => {
     it('should decode VIN with proper type safety', async () => {
-      const mockVin = '1HGCM82633A123456';
+  const mockVin = '1HGCM82633A004352'; // Valid Honda Accord VIN
       
       // Mock the API response to avoid actual network calls in tests
       const result = await decodeVin(mockVin, { forceDirectAPI: true });
@@ -73,7 +73,7 @@ describe('VIN Decode Consolidation Integration', () => {
     }, 15000); // Increase timeout for API call
 
     it('should handle invalid VIN with proper error handling', async () => {
-      const invalidVin = 'INVALID';
+  const invalidVin = 'INVALID123';
       
       try {
         await decodeVin(invalidVin);
@@ -85,7 +85,7 @@ describe('VIN Decode Consolidation Integration', () => {
     });
 
     it('should handle invalid checksum with proper error handling', async () => {
-      const invalidCheckDigitVin = '1HGCM82633A123457'; // Wrong check digit
+  const invalidCheckDigitVin = '1HGCM82633A004353'; // Wrong check digit
       
       try {
         await decodeVin(invalidCheckDigitVin);
@@ -101,38 +101,55 @@ describe('VIN Decode Consolidation Integration', () => {
     it('should use unified decoder and show deprecation warning', async () => {
       // Capture console warnings
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
-      
-      const result = await VinService.decodeVin('1HGCM82633A123456');
-      
-      // Should follow the same error structure across all services
-      expect(result).toMatchObject({
-        success: expect.any(Boolean)
-      });
-      
-      // Should show deprecation warning
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('DEPRECATED')
-      );
-      
-      warnSpy.mockRestore();
-      
-      if (!result.success) {
-        expect(result).toHaveProperty('error');
-        expect(typeof result.error).toBe('string');
+      try {
+        const result = await VinService.decodeVin('1HGCM82633A004352');
+        // Should follow the same error structure across all services
+        expect(result).toMatchObject({
+          success: expect.any(Boolean)
+        });
+        // Debug: print captured warnings
+        // eslint-disable-next-line no-console
+        console.log('Captured warnSpy calls:', warnSpy.mock.calls);
+        // Should show deprecation warning
+        const calls = warnSpy.mock.calls.flat();
+        expect(calls.some(msg => typeof msg === 'string' && msg.includes('DEPRECATED'))).toBe(true);
+        if (!result.success) {
+          expect(result).toHaveProperty('error');
+          expect(typeof result.error).toBe('string');
+        }
+      } finally {
+        warnSpy.mockRestore();
       }
     }, 15000);
   });
 
   describe('Fuel Economy Service Integration', () => {
     it('should fetch fuel economy data with proper types', async () => {
+      // Mock ExternalApiService used by fetchFuelEconomyByYearMakeModel
+      const mockGetFuelEconomyData = jest.fn().mockResolvedValue({
+        ok: true,
+        data: { menuItem: [{ value: '12345', text: '2020 Toyota Camry' }] }
+      });
+      const mockMakeExternalCall = jest.fn().mockResolvedValue({
+        ok: true,
+        data: {
+          fuelType: 'Gasoline',
+          city08: '28',
+          highway08: '39',
+          comb08: '32'
+        }
+      });
+      jest.spyOn(require('../src/services/centralizedApi'), 'ExternalApiService', 'get').mockReturnValue({
+        getFuelEconomyData: mockGetFuelEconomyData,
+        makeExternalCall: mockMakeExternalCall
+      });
+      const { fetchFuelEconomyByYearMakeModel } = require('../src/services/fuelEconomyService');
       const result = await fetchFuelEconomyByYearMakeModel(2020, 'Toyota', 'Camry');
-      
       if (result) {
         expect(result).toHaveProperty('fuelType');
         expect(result).toHaveProperty('cityMpg');
         expect(result).toHaveProperty('highwayMpg');
         expect(result).toHaveProperty('combinedMpg');
-        
         expect(typeof result.fuelType).toBe('string');
         expect(result.cityMpg === null || typeof result.cityMpg === 'number').toBe(true);
         expect(result.highwayMpg === null || typeof result.highwayMpg === 'number').toBe(true);
@@ -143,7 +160,7 @@ describe('VIN Decode Consolidation Integration', () => {
 
   describe('VIN Decode Consolidation Verification', () => {
     it('should have the same data structure from both unified and deprecated APIs', async () => {
-      const testVin = '1HGCM82633A123456';
+  const testVin = '1HGCM82633A004352'; // Valid Honda Accord VIN
       
       // Suppress deprecation warnings for this test
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation();

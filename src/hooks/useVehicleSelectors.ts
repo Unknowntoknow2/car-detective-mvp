@@ -34,7 +34,7 @@ export const useVehicleSelectors = () => {
         if (error) throw error;
 
         setMakes(data || []);
-      } catch (err: any) {
+      } catch {
         setError("Failed to load vehicle makes");
       } finally {
         setIsLoading(false);
@@ -64,7 +64,7 @@ export const useVehicleSelectors = () => {
         if (error) throw error;
 
         setModels(data || []);
-      } catch (err: any) {
+      } catch {
         setError("Failed to load vehicle models");
       } finally {
         setIsLoading(false);

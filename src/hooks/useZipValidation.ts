@@ -1,7 +1,5 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 export interface ZipLocation {
   "place name": string;
@@ -31,7 +29,7 @@ export function useZipValidation() {
       } else {
         return { isValid: false, error: 'Unable to validate ZIP code' };
       }
-    } catch (error) {
+    } catch {
       return { isValid: false, error: 'Network error - please try again' };
     }
   };

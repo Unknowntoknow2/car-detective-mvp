@@ -1,0 +1,4112 @@
+.
+├── .env
+├── .eslintrc.json
+├── .eslintrc.production.json
+├── .github
+│   └── workflows
+│       ├── build.yml
+│       ├── disabled
+│       │   ├── ain-route-validation.yml
+│       │   ├── build-guard.yml
+│       │   ├── e2e-ain-validation.yml
+│       │   ├── e2e-tests.yml
+│       │   └── route-integrity.yml
+│       └── repo-audit.yml
+├── .gitignore
+├── .npmignore
+├── .npmrc
+├── .nvmrc
+├── .puppeteerrc.js
+├── .vscode
+│   └── settings.json
+├── CLEANUP_AUDIT_JUN2025.md
+├── CLEANUP_HISTORY.md
+├── CLEANUP_REPORT.md
+├── DEPLOYMENT-INSTRUCTIONS.md
+├── Dockerfile
+├── FOLLOW_UP_FORM_FIX_SUMMARY.md
+├── README.md
+├── Settings
+├── __tests__
+│   ├── authRoles.test.ts
+│   └── dealerDashboard.test.ts
+├── alias-imports.txt
+├── all.txt
+├── all_files_full_list.txt
+├── alternative-install.sh
+├── apps
+│   └── ain-valuation-engine
+│       ├── .coverage
+│       ├── .coveragerc
+│       ├── .dockerignore
+│       ├── .eslintignore
+│       ├── .eslintrc.cjs
+│       ├── .github
+│       │   ├── __init__.py
+│       │   ├── workflows
+│       │   │   ├── __init__.py
+│       │   │   ├── ain-valuation-engine.yml
+│       │   │   ├── backfill-safety-json.yml
+│       │   │   ├── ci-cd.yml
+│       │   │   ├── ci-gates.yml
+│       │   │   ├── ci.yml
+│       │   │   ├── deno-ci.yml
+│       │   │   ├── main.yml
+│       │   │   ├── pipeline.yml
+│       │   │   ├── python-ci.yml
+│       │   │   └── smoke-vin-validate.yml
+│       │   ├── workflows_archive
+│       │   │   ├── __init__.py
+│       │   │   ├── ci-cd-backup.yml
+│       │   │   └── main.yml
+│       │   └── workflows_disabled
+│       │       └── __init__.py
+│       ├── .gitignore
+│       ├── .pre-commit-config.yaml
+│       ├── .vercelignore
+│       ├── AIN_Enterprise_Development_Manual.md
+│       ├── API_INTEGRATION_GUIDE.md
+│       ├── ARCHITECTURE_VEHICLE_PRICE_PIPELINE.md
+│       ├── AUDIT_LOG_EXPORT_RUNBOOK.md
+│       ├── AUDIT_REPORT_2025_08_07.md
+│       ├── AUTOMATED_MONITORING_SETUP.md
+│       ├── BEST_PRACTICES.md
+│       ├── BEST_PRACTICES_CHECKLIST.md
+│       ├── CHANGELOG.md
+│       ├── CI_CD_IMPROVEMENTS.md
+│       ├── CODE_QUALITY_IMPROVEMENTS.md
+│       ├── COMPLETE_PHASE1_2_PACKAGE.md
+│       ├── COMPLETE_SUCCESS_REPORT.md
+│       ├── COMPLIANCE_RUNBOOK.md
+│       ├── CONTRIBUTING.md
+│       ├── DATA_COLLECTION_INSTRUCTIONS.md
+│       ├── DECODER_COVERAGE_MATRIX.md
+│       ├── DEPLOYMENT_CHECKLIST.md
+│       ├── DEPLOYMENT_SUCCESS_SUMMARY.md
+│       ├── DEPLOY_SUCCESS.sh
+│       ├── DOCUMENTATION_IMPROVEMENTS.md
+│       ├── DOCUMENTATION_INDEX.md
+│       ├── Dockerfile
+│       ├── ENHANCED_MODEL_IMPLEMENTATION.md
+│       ├── FULL_REPOSITORY_AUDIT_REPORT.md
+│       ├── LICENSE
+│       ├── MANUAL_INTEGRATION_GUIDE.md
+│       ├── MILESTONE.md
+│       ├── MODEL_CARD.md
+│       ├── Makefile
+│       ├── ONBOARDING.md
+│       ├── PERFORMANCE_MONITORING_COMPLETE.md
+│       ├── PHASE2_FREE_ENRICHMENT_SOURCES.md
+│       ├── PHASE3_4_ANALYTICS_USER_COMPLIANCE.md
+│       ├── PHASE_1_2_IMPLEMENTATION_PLAN.md
+│       ├── PROGRESS.md
+│       ├── PROVIDER_ABSTRACTION_LAYER.md
+│       ├── PR_A_IIHS_COMPLETE.md
+│       ├── PR_C_COMPLETE_SUMMARY.md
+│       ├── PR_D_MARKET_SIGNALS_COMPLETE.md
+│       ├── PR_D_MARKET_SIGNALS_PLAN.md
+│       ├── PR_D_SAFETY_COMPLETE.md
+│       ├── PR_E_VALUATION_ADJUSTERS_COMPLETE.md
+│       ├── PR_E_VALUATION_ADJUSTERS_PLAN.md
+│       ├── PR_F_BACKFILL_COMPLETE.md
+│       ├── PR_F_UI_ENHANCEMENT_COMPLETE.md
+│       ├── PR_F_UI_ENHANCEMENT_PLAN.md
+│       ├── PR_G_QA_OPS_GOLDEN_VINS_COMPLETE.md
+│       ├── PR_G_QA_OPS_GOLDEN_VINS_PLAN.md
+│       ├── READ me. test .md
+│       ├── README.md
+│       ├── README_FAANG_PRODUCTION_CHECKLIST.md
+│       ├── README_VALUATION_ENGINE_PRODUCTION.md
+│       ├── README_VEHICLE_PRICE_API.md
+│       ├── README_VIN_DECODER_PIPELINE.md
+│       ├── SECTION_2_COMPLETE_SUMMARY.md
+│       ├── SECURITY.md
+│       ├── SYSTEM_DOCUMENTATION.md
+│       ├── TEST_IMPROVEMENT_PLAN.md
+│       ├── TROUBLESHOOTING_GUIDE.md
+│       ├── TYPESCRIPT_FIXES_SUMMARY.md
+│       ├── UNIFIED_VIN_DECODER_COMPLETE.md
+│       ├── US_VEHICLE_DATA_MASTER_LIST.md
+│       ├── VIDEO_ANALYSIS_IMPLEMENTATION.md
+│       ├── VIN_DECODE_AUTH_REMOVAL.md
+│       ├── VIN_DECODE_CONSOLIDATION_COMPLETE.md
+│       ├── __init__.py
+│       ├── __mocks__
+│       │   ├── @supabase
+│       │   │   └── supabase-js.ts
+│       │   └── openai.ts
+│       ├── _archive_ui
+│       │   ├── ValuationResults.tsx.backup
+│       │   ├── ValuationResults.tsx.broken-backup
+│       │   └── ValuationResultsDisplay.tsx.bak.wire
+│       ├── _backup_removed
+│       │   └── valuationEngine.ts
+│       ├── ab_testing_feedback.py
+│       ├── actionlint
+│       ├── aggregate_all_sources.py
+│       ├── aggregate_marketplace_listings.py
+│       ├── ain-backend
+│       │   ├── __init__.py
+│       │   └── routes
+│       │       ├── __init__.py
+│       │       └── openai.ts
+│       ├── ain-jwtless-project
+│       │   ├── __init__.py
+│       │   ├── ain-jwtless-project
+│       │   │   ├── __init__.py
+│       │   │   └── supabase
+│       │   │       ├── .gitignore
+│       │   │       ├── __init__.py
+│       │   │       ├── config.toml
+│       │   │       ├── functions
+│       │   │       │   ├── __init__.py
+│       │   │       │   └── decode-vin
+│       │   │       │       ├── __init__.py
+│       │   │       │       └── index.ts
+│       │   │       └── seed.sql
+│       │   └── supabase
+│       │       ├── .gitignore
+│       │       ├── __init__.py
+│       │       ├── config.toml
+│       │       ├── functions
+│       │       │   ├── __init__.py
+│       │       │   └── decode-vin
+│       │       │       ├── __init__.py
+│       │       │       └── index.ts
+│       │       └── seed.sql
+│       ├── ain-valuation-frontend
+│       │   ├── .gitignore
+│       │   ├── README.md
+│       │   ├── __init__.py
+│       │   ├── index.html
+│       │   ├── package-lock.json
+│       │   ├── package.json
+│       │   ├── public
+│       │   │   ├── __init__.py
+│       │   │   └── vite.svg
+│       │   └── src
+│       │       ├── App.css
+│       │       ├── App.jsx
+│       │       ├── __init__.py
+│       │       ├── assets
+│       │       │   ├── __init__.py
+│       │       │   └── react.svg
+│       │       ├── components
+│       │       │   ├── VINInput.css
+│       │       │   ├── VINInput.jsx
+│       │       │   ├── VehicleDataPanels.jsx
+│       │       │   └── __init__.py
+│       │       ├── index.css
+│       │       ├── services
+│       │       │   └── __init__.py
+│       │       └── utils
+│       │           └── __init__.py
+│       ├── airflow_dag_vehicle_valuation.py
+│       ├── airflow_dag_vin_pipeline.py
+│       ├── all-package-jsons.txt
+│       ├── all-readmes.txt
+│       ├── analytics_report.py
+│       ├── analyze_marketplace_listings.py
+│       ├── api
+│       │   ├── __init__.py
+│       │   ├── app.py
+│       │   ├── engine
+│       │   │   ├── confidence.py
+│       │   │   ├── explain.py
+│       │   │   ├── fallbacks.py
+│       │   │   └── fuel_adjuster.py
+│       │   ├── reference_options.py
+│       │   └── requirements.txt
+│       ├── app
+│       │   └── routes
+│       │       └── inventory.py
+│       ├── apps
+│       │   ├── __init__.py
+│       │   ├── edge
+│       │   │   ├── __init__.py
+│       │   │   └── services
+│       │   │       ├── __init__.py
+│       │   │       ├── iihsService.ts
+│       │   │       ├── marketSignalsService.ts
+│       │   │       └── oemFeaturesService.ts
+│       │   └── valuation
+│       │       ├── __init__.py
+│       │       └── valuation-adjusters-v2.ts
+│       ├── artifacts
+│       │   ├── conformal.json
+│       │   ├── feature_spec.json
+│       │   ├── metrics.json
+│       │   └── model_bundle.joblib.sha256
+│       ├── auction_data_analysis.py
+│       ├── audit_log.jsonl
+│       ├── audits
+│       │   ├── listings-data-fetch
+│       │   │   ├── AUDIT_INDEX.json
+│       │   │   ├── AUDIT_PROGRESS.txt
+│       │   │   ├── AUDIT_REPORT.md
+│       │   │   └── GAPS_FIXLIST.md
+│       │   └── sql
+│       │       └── market_ingest.sql
+│       ├── auto_patch_tests.sh
+│       ├── automated_monitoring.py
+│       ├── automated_retraining.py
+│       ├── backend_output.json
+│       ├── bias_fairness_audit.py
+│       ├── bin
+│       │   ├── __init__.py
+│       │   └── actionlint
+│       ├── canonical_vehicle_schema.py
+│       ├── comprehensive_verification.mjs
+│       ├── comprehensive_verification.sh
+│       ├── comps_outlier_filter.py
+│       ├── confidence.py
+│       ├── configs
+│       │   ├── acceptance.v1.yaml
+│       │   ├── features.v1.yaml
+│       │   └── weights.v1.yaml
+│       ├── coverage
+│       │   └── python-coverage.xml
+│       ├── coverage.xml
+│       ├── dags
+│       │   └── market_ingest_openai.py
+│       ├── data_collection_debug.ts
+│       ├── db
+│       │   └── migrations
+│       │       └── 001_init.sql
+│       ├── db_output.json
+│       ├── debug_unknown_values.cjs
+│       ├── demo_iihs_integration.mjs
+│       ├── depcheck-report.txt
+│       ├── deploy
+│       │   └── docker-compose.yml
+│       ├── deploy_fix.sh
+│       ├── digital_twin
+│       │   ├── __init__.py
+│       │   └── schema
+│       │       ├── __init__.py
+│       │       └── car_schema.json
+│       ├── docker-compose.monitoring.yml
+│       ├── docker-compose.yml
+│       ├── docs
+│       │   ├── ML_model_README.md
+│       │   ├── __init__.py
+│       │   ├── adr
+│       │   │   ├── 001-ai-ml-stack-selection.md
+│       │   │   ├── 002-database-architecture.md
+│       │   │   ├── 003-api-design-patterns.md
+│       │   │   ├── README.md
+│       │   │   └── __init__.py
+│       │   ├── history
+│       │   │   ├── README.md
+│       │   │   ├── __init__.py
+│       │   │   ├── pr-001-vpic-integration.md
+│       │   │   ├── pr-002-safety-ratings.md
+│       │   │   └── pr-003-data-backfill.md
+│       │   ├── retrain_runbook.md
+│       │   ├── schema
+│       │   │   ├── __init__.py
+│       │   │   └── vehicle_specs.md
+│       │   ├── schema.md
+│       │   ├── section2.md
+│       │   └── vin_decoder.md
+│       ├── email_alert.py
+│       ├── engine
+│       │   ├── api.py
+│       │   ├── api_tests.py
+│       │   ├── batch_api.py
+│       │   ├── calibrate_intervals.py
+│       │   ├── comps_filter.py
+│       │   ├── comps_selector.py
+│       │   ├── confidence.py
+│       │   ├── config_loader.py
+│       │   ├── explain_api.py
+│       │   ├── inference_dnn.py
+│       │   ├── inference_ensemble.py
+│       │   ├── inference_xgb.py
+│       │   ├── llm_explain.py
+│       │   ├── logging_config.py
+│       │   ├── pricing_core.py
+│       │   ├── print_config.py
+│       │   ├── shap_explain.py
+│       │   └── types.py
+│       ├── entrypoints.txt
+│       ├── env.d.ts
+│       ├── etl_market_data.py
+│       ├── etl_market_data_example.py
+│       ├── examples
+│       │   ├── __init__.py
+│       │   └── video_analysis_examples.py
+│       ├── explain_factors.py
+│       ├── explainability
+│       │   ├── __init__.py
+│       │   └── shap_example.py
+│       ├── explainability_shap.py
+│       ├── export_utils.py
+│       ├── extract_cardekho_features.py
+│       ├── fetch_auction_and_dataset_data.py
+│       ├── fetch_marketplace_data.py
+│       ├── files_with_runValuation.txt
+│       ├── final_verification.sh
+│       ├── fix-supabase-ts.sh
+│       ├── fixtures
+│       │   ├── __init__.py
+│       │   └── golden_vins.json
+│       ├── frontend
+│       │   └── components
+│       │       └── SimilarListingsSection.tsx
+│       ├── frontend_output.json
+│       ├── frontend_results_debug.tsx
+│       ├── fuel_type_adjustments.py
+│       ├── general_openai_websearch_to_csv.py
+│       ├── github-issues-ready-to-paste.md
+│       ├── governance
+│       │   └── __init__.py
+│       ├── grafana_dashboard_bias_fairness.json
+│       ├── grafana_dashboard_valuation_engine.json
+│       ├── grafana_dashboard_vehicle_price_api.json
+│       ├── in_out
+│       │   ├── camry_carmax_comps.json
+│       │   ├── merged_camry_comps.json
+│       │   ├── raw_comps
+│       │   │   ├── camry_seed.json
+│       │   │   ├── sample_camry.json
+│       │   │   └── sample_camry_normed.json
+│       │   └── train_metrics.json
+│       ├── index.html
+│       ├── infra
+│       │   ├── bluegreen_deploy.yaml
+│       │   ├── mlflow
+│       │   │   ├── mlflow_backend.tf
+│       │   │   └── retrain_cron.sh
+│       │   ├── scripts
+│       │   │   ├── README.md
+│       │   │   └── deploy.sh
+│       │   └── terraform
+│       │       ├── README.md
+│       │       ├── main.tf
+│       │       └── modules
+│       │           ├── api
+│       │           │   ├── README.md
+│       │           │   ├── main.tf
+│       │           │   ├── outputs.tf
+│       │           │   └── variables.tf
+│       │           ├── ecr
+│       │           │   ├── README.md
+│       │           │   ├── main.tf
+│       │           │   ├── outputs.tf
+│       │           │   └── variables.tf
+│       │           ├── ecs
+│       │           │   ├── README.md
+│       │           │   ├── main.tf
+│       │           │   ├── outputs.tf
+│       │           │   └── variables.tf
+│       │           ├── observability
+│       │           │   ├── README.md
+│       │           │   ├── main.tf
+│       │           │   ├── otel_collector.tf
+│       │           │   ├── outputs.tf
+│       │           │   └── variables.tf
+│       │           ├── s3_cf
+│       │           │   ├── README.md
+│       │           │   ├── main.tf
+│       │           │   ├── outputs.tf
+│       │           │   └── variables.tf
+│       │           ├── secrets
+│       │           │   ├── README.md
+│       │           │   ├── main.tf
+│       │           │   ├── outputs.tf
+│       │           │   └── variables.tf
+│       │           └── vpc
+│       │               ├── README.md
+│       │               ├── main.tf
+│       │               ├── outputs.tf
+│       │               └── variables.tf
+│       ├── jest.config.cjs
+│       ├── k6
+│       │   └── __init__.py
+│       ├── listing_provider_interface.py
+│       ├── manufacturer_feature_extraction_template.md
+│       ├── map_db_output_to_api_input.py
+│       ├── market_value_api.py
+│       ├── metrics_log.py
+│       ├── migrations
+│       │   ├── 20240818_add_vin_corrections_and_audit.sql
+│       │   ├── 20240818_indexing.sql
+│       │   └── 20240818_reference_body_styles_and_features.sql
+│       ├── minimal_test.py
+│       ├── ml
+│       │   ├── DATA_FORMATS_AND_USAGE.md
+│       │   ├── data_schema.yaml
+│       │   ├── dnn_model.py
+│       │   ├── drift_report.py
+│       │   ├── ensemble.py
+│       │   ├── eval_metrics.py
+│       │   ├── feature_pipeline.py
+│       │   ├── feature_spec_utils.py
+│       │   ├── image_cnn.py
+│       │   ├── model_card.md
+│       │   ├── register_model.py
+│       │   ├── requirements-ml.txt
+│       │   ├── text_bert.py
+│       │   ├── train_dnn.py
+│       │   ├── train_ensemble.py
+│       │   └── train_xgb.py
+│       ├── ml-model-registry
+│       │   ├── .gitignore
+│       │   ├── README.md
+│       │   ├── __init__.py
+│       │   ├── package-lock.json
+│       │   ├── package.json
+│       │   ├── public
+│       │   │   ├── __init__.py
+│       │   │   ├── favicon.ico
+│       │   │   ├── index.html
+│       │   │   ├── logo192.png
+│       │   │   ├── logo512.png
+│       │   │   ├── manifest.json
+│       │   │   └── robots.txt
+│       │   └── src
+│       │       ├── App.css
+│       │       ├── __init__.py
+│       │       ├── index.css
+│       │       └── logo.svg
+│       ├── model_retraining_pipeline.py
+│       ├── models
+│       │   ├── __init__.py
+│       │   └── train_model.py
+│       ├── monitoring
+│       │   ├── __init__.py
+│       │   ├── grafana
+│       │   │   ├── __init__.py
+│       │   │   ├── dashboards
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── ain-dashboard.json
+│       │   │   │   └── ain-valuation-dashboard.json
+│       │   │   └── provisioning
+│       │   │       ├── __init__.py
+│       │   │       ├── dashboards
+│       │   │       │   ├── __init__.py
+│       │   │       │   └── dashboard.yml
+│       │   │       └── datasources
+│       │   │           ├── __init__.py
+│       │   │           └── prometheus.yml
+│       │   └── prometheus.yml
+│       ├── monitoring.py
+│       ├── monitoring_alerting_template.md
+│       ├── mvp-backend
+│       │   ├── carApiService.js
+│       │   ├── carSpecsService.js
+│       │   ├── logger.js
+│       │   ├── normalizeVehicleData.js
+│       │   ├── package-lock.json
+│       │   ├── package.json
+│       │   ├── residualValueService.js
+│       │   ├── server.js
+│       │   ├── server.mjs
+│       │   ├── server.ts
+│       │   ├── vehiclePricingService.js
+│       │   ├── vinLookupService.js
+│       │   └── vinValuationService.js
+│       ├── nhtsa_response.json
+│       ├── nicb_vincheck_instructions.md
+│       ├── observability
+│       │   ├── dashboards
+│       │   │   └── api.json
+│       │   └── otel-collector.yaml
+│       ├── openai_ain_pipeline.py
+│       ├── openai_batch_acquisition.py
+│       ├── openai_compliance_guardrails.py
+│       ├── openai_websearch_gsa_example.py
+│       ├── openai_websearch_parse_to_structured.py
+│       ├── openapi
+│       │   ├── __init__.py
+│       │   ├── openapi.yaml
+│       │   └── vin-validate.yaml
+│       ├── ops
+│       │   ├── audit_log.py
+│       │   ├── backup_db.py
+│       │   └── shadow_predict.py
+│       ├── package-lock.json
+│       ├── package.json
+│       ├── pdf
+│       │   ├── __init__.py
+│       │   └── generateValuationPdf.ts
+│       ├── phase2_code
+│       │   ├── __init__.py
+│       │   └── section2
+│       │       ├── __init__.py
+│       │       └── sql
+│       │           ├── 20250808_section2_schema.sql
+│       │           └── __init__.py
+│       ├── photo_signal.py
+│       ├── pipelines
+│       │   ├── __init__.py
+│       │   └── etl.py
+│       ├── pnpm-lock.yaml
+│       ├── postcss.config.js
+│       ├── process_vin_realtime.py
+│       ├── process_vin_with_user_input.py
+│       ├── prometheus_alerts_vehicle_price_api.yml
+│       ├── provider_amazon_autos.py
+│       ├── provider_autoscout24.py
+│       ├── provider_autotempest.py
+│       ├── provider_barrettjackson.py
+│       ├── provider_bringatrailer.py
+│       ├── provider_cardekho_dataset.py
+│       ├── provider_cargurus.py
+│       ├── provider_carmax.py
+│       ├── provider_carsandbids.py
+│       ├── provider_carscom.py
+│       ├── provider_carsoup.py
+│       ├── provider_carvana.py
+│       ├── provider_compliance_monitor.py
+│       ├── provider_copart.py
+│       ├── provider_craigslist.py
+│       ├── provider_ebay_motors.py
+│       ├── provider_eia_fuel_price.py
+│       ├── provider_epa_fuel_economy.py
+│       ├── provider_fhwa_highway_stats.py
+│       ├── provider_gsa_auctions.py
+│       ├── provider_hemmings.py
+│       ├── provider_iihs_safety.py
+│       ├── provider_iseecars.py
+│       ├── provider_kaggle_used_car_auction.py
+│       ├── provider_letgo.py
+│       ├── provider_mecum.py
+│       ├── provider_nhtsa_vpic.py
+│       ├── provider_offerup.py
+│       ├── provider_oodle.py
+│       ├── provider_privateauto.py
+│       ├── provider_recycler.py
+│       ├── provider_regional_classifieds.py
+│       ├── provider_tred.py
+│       ├── provider_truckbay.py
+│       ├── provider_uci_automobile_dataset.py
+│       ├── public
+│       │   ├── __init__.py
+│       │   └── vite.svg
+│       ├── pyproject.toml
+│       ├── pytest.ini
+│       ├── python-files.txt
+│       ├── python-stdnum
+│       │   ├── .github
+│       │   │   └── workflows
+│       │   │       └── test.yml
+│       │   ├── .gitignore
+│       │   ├── CONTRIBUTING.md
+│       │   ├── COPYING
+│       │   ├── ChangeLog
+│       │   ├── MANIFEST.in
+│       │   ├── NEWS
+│       │   ├── README.md
+│       │   ├── docs
+│       │   │   ├── _templates
+│       │   │   │   └── autosummary
+│       │   │   │       └── module.rst
+│       │   │   ├── changes.rst
+│       │   │   ├── conf.py
+│       │   │   ├── contributing.rst
+│       │   │   ├── index.rst
+│       │   │   ├── stdnum.ad.nrt.rst
+│       │   │   ├── stdnum.al.nipt.rst
+│       │   │   ├── stdnum.ar.cbu.rst
+│       │   │   ├── stdnum.ar.cuit.rst
+│       │   │   ├── stdnum.ar.dni.rst
+│       │   │   ├── stdnum.at.businessid.rst
+│       │   │   ├── stdnum.at.postleitzahl.rst
+│       │   │   ├── stdnum.at.tin.rst
+│       │   │   ├── stdnum.at.uid.rst
+│       │   │   ├── stdnum.at.vnr.rst
+│       │   │   ├── stdnum.au.abn.rst
+│       │   │   ├── stdnum.au.acn.rst
+│       │   │   ├── stdnum.au.tfn.rst
+│       │   │   ├── stdnum.be.bis.rst
+│       │   │   ├── stdnum.be.eid.rst
+│       │   │   ├── stdnum.be.iban.rst
+│       │   │   ├── stdnum.be.nn.rst
+│       │   │   ├── stdnum.be.ssn.rst
+│       │   │   ├── stdnum.be.vat.rst
+│       │   │   ├── stdnum.bg.egn.rst
+│       │   │   ├── stdnum.bg.pnf.rst
+│       │   │   ├── stdnum.bg.vat.rst
+│       │   │   ├── stdnum.bic.rst
+│       │   │   ├── stdnum.bitcoin.rst
+│       │   │   ├── stdnum.br.cnpj.rst
+│       │   │   ├── stdnum.br.cpf.rst
+│       │   │   ├── stdnum.by.unp.rst
+│       │   │   ├── stdnum.ca.bc_phn.rst
+│       │   │   ├── stdnum.ca.bn.rst
+│       │   │   ├── stdnum.ca.sin.rst
+│       │   │   ├── stdnum.casrn.rst
+│       │   │   ├── stdnum.cfi.rst
+│       │   │   ├── stdnum.ch.esr.rst
+│       │   │   ├── stdnum.ch.ssn.rst
+│       │   │   ├── stdnum.ch.uid.rst
+│       │   │   ├── stdnum.ch.vat.rst
+│       │   │   ├── stdnum.cl.rut.rst
+│       │   │   ├── stdnum.cn.ric.rst
+│       │   │   ├── stdnum.cn.uscc.rst
+│       │   │   ├── stdnum.co.nit.rst
+│       │   │   ├── stdnum.cr.cpf.rst
+│       │   │   ├── stdnum.cr.cpj.rst
+│       │   │   ├── stdnum.cr.cr.rst
+│       │   │   ├── stdnum.cu.ni.rst
+│       │   │   ├── stdnum.cusip.rst
+│       │   │   ├── stdnum.cy.vat.rst
+│       │   │   ├── stdnum.cz.bankaccount.rst
+│       │   │   ├── stdnum.cz.dic.rst
+│       │   │   ├── stdnum.cz.rc.rst
+│       │   │   ├── stdnum.damm.rst
+│       │   │   ├── stdnum.de.handelsregisternummer.rst
+│       │   │   ├── stdnum.de.idnr.rst
+│       │   │   ├── stdnum.de.stnr.rst
+│       │   │   ├── stdnum.de.vat.rst
+│       │   │   ├── stdnum.de.wkn.rst
+│       │   │   ├── stdnum.dk.cpr.rst
+│       │   │   ├── stdnum.dk.cvr.rst
+│       │   │   ├── stdnum.do.cedula.rst
+│       │   │   ├── stdnum.do.ncf.rst
+│       │   │   ├── stdnum.do.rnc.rst
+│       │   │   ├── stdnum.dz.nif.rst
+│       │   │   ├── stdnum.ean.rst
+│       │   │   ├── stdnum.ec.ci.rst
+│       │   │   ├── stdnum.ec.ruc.rst
+│       │   │   ├── stdnum.ee.ik.rst
+│       │   │   ├── stdnum.ee.kmkr.rst
+│       │   │   ├── stdnum.ee.registrikood.rst
+│       │   │   ├── stdnum.eg.tn.rst
+│       │   │   ├── stdnum.es.cae.rst
+│       │   │   ├── stdnum.es.ccc.rst
+│       │   │   ├── stdnum.es.cif.rst
+│       │   │   ├── stdnum.es.cups.rst
+│       │   │   ├── stdnum.es.dni.rst
+│       │   │   ├── stdnum.es.iban.rst
+│       │   │   ├── stdnum.es.nie.rst
+│       │   │   ├── stdnum.es.nif.rst
+│       │   │   ├── stdnum.es.postal_code.rst
+│       │   │   ├── stdnum.es.referenciacatastral.rst
+│       │   │   ├── stdnum.eu.at_02.rst
+│       │   │   ├── stdnum.eu.banknote.rst
+│       │   │   ├── stdnum.eu.ecnumber.rst
+│       │   │   ├── stdnum.eu.eic.rst
+│       │   │   ├── stdnum.eu.nace.rst
+│       │   │   ├── stdnum.eu.oss.rst
+│       │   │   ├── stdnum.eu.vat.rst
+│       │   │   ├── stdnum.exceptions.rst
+│       │   │   ├── stdnum.fi.alv.rst
+│       │   │   ├── stdnum.fi.associationid.rst
+│       │   │   ├── stdnum.fi.hetu.rst
+│       │   │   ├── stdnum.fi.veronumero.rst
+│       │   │   ├── stdnum.fi.ytunnus.rst
+│       │   │   ├── stdnum.figi.rst
+│       │   │   ├── stdnum.fo.vn.rst
+│       │   │   ├── stdnum.fr.nif.rst
+│       │   │   ├── stdnum.fr.nir.rst
+│       │   │   ├── stdnum.fr.siren.rst
+│       │   │   ├── stdnum.fr.siret.rst
+│       │   │   ├── stdnum.fr.tva.rst
+│       │   │   ├── stdnum.gb.nhs.rst
+│       │   │   ├── stdnum.gb.sedol.rst
+│       │   │   ├── stdnum.gb.upn.rst
+│       │   │   ├── stdnum.gb.utr.rst
+│       │   │   ├── stdnum.gb.vat.rst
+│       │   │   ├── stdnum.gh.tin.rst
+│       │   │   ├── stdnum.gn.nifp.rst
+│       │   │   ├── stdnum.gr.amka.rst
+│       │   │   ├── stdnum.gr.vat.rst
+│       │   │   ├── stdnum.grid.rst
+│       │   │   ├── stdnum.gs1_128.rst
+│       │   │   ├── stdnum.gt.nit.rst
+│       │   │   ├── stdnum.hr.oib.rst
+│       │   │   ├── stdnum.hu.anum.rst
+│       │   │   ├── stdnum.iban.rst
+│       │   │   ├── stdnum.id.nik.rst
+│       │   │   ├── stdnum.id.npwp.rst
+│       │   │   ├── stdnum.ie.pps.rst
+│       │   │   ├── stdnum.ie.vat.rst
+│       │   │   ├── stdnum.il.hp.rst
+│       │   │   ├── stdnum.il.idnr.rst
+│       │   │   ├── stdnum.imei.rst
+│       │   │   ├── stdnum.imo.rst
+│       │   │   ├── stdnum.imsi.rst
+│       │   │   ├── stdnum.in_.aadhaar.rst
+│       │   │   ├── stdnum.in_.epic.rst
+│       │   │   ├── stdnum.in_.gstin.rst
+│       │   │   ├── stdnum.in_.pan.rst
+│       │   │   ├── stdnum.in_.vid.rst
+│       │   │   ├── stdnum.is_.kennitala.rst
+│       │   │   ├── stdnum.is_.vsk.rst
+│       │   │   ├── stdnum.isan.rst
+│       │   │   ├── stdnum.isbn.rst
+│       │   │   ├── stdnum.isil.rst
+│       │   │   ├── stdnum.isin.rst
+│       │   │   ├── stdnum.ismn.rst
+│       │   │   ├── stdnum.isni.rst
+│       │   │   ├── stdnum.iso11649.rst
+│       │   │   ├── stdnum.iso6346.rst
+│       │   │   ├── stdnum.iso7064.rst
+│       │   │   ├── stdnum.isrc.rst
+│       │   │   ├── stdnum.issn.rst
+│       │   │   ├── stdnum.it.aic.rst
+│       │   │   ├── stdnum.it.codicefiscale.rst
+│       │   │   ├── stdnum.it.iva.rst
+│       │   │   ├── stdnum.jp.cn.rst
+│       │   │   ├── stdnum.jp.in_.rst
+│       │   │   ├── stdnum.ke.pin.rst
+│       │   │   ├── stdnum.kr.brn.rst
+│       │   │   ├── stdnum.kr.rrn.rst
+│       │   │   ├── stdnum.lei.rst
+│       │   │   ├── stdnum.li.peid.rst
+│       │   │   ├── stdnum.lt.asmens.rst
+│       │   │   ├── stdnum.lt.pvm.rst
+│       │   │   ├── stdnum.lu.tva.rst
+│       │   │   ├── stdnum.luhn.rst
+│       │   │   ├── stdnum.lv.pvn.rst
+│       │   │   ├── stdnum.ma.ice.rst
+│       │   │   ├── stdnum.mac.rst
+│       │   │   ├── stdnum.mc.tva.rst
+│       │   │   ├── stdnum.md.idno.rst
+│       │   │   ├── stdnum.me.iban.rst
+│       │   │   ├── stdnum.me.pib.rst
+│       │   │   ├── stdnum.meid.rst
+│       │   │   ├── stdnum.mk.edb.rst
+│       │   │   ├── stdnum.mt.vat.rst
+│       │   │   ├── stdnum.mu.nid.rst
+│       │   │   ├── stdnum.mx.curp.rst
+│       │   │   ├── stdnum.mx.rfc.rst
+│       │   │   ├── stdnum.my.nric.rst
+│       │   │   ├── stdnum.nl.brin.rst
+│       │   │   ├── stdnum.nl.bsn.rst
+│       │   │   ├── stdnum.nl.btw.rst
+│       │   │   ├── stdnum.nl.identiteitskaartnummer.rst
+│       │   │   ├── stdnum.nl.onderwijsnummer.rst
+│       │   │   ├── stdnum.nl.postcode.rst
+│       │   │   ├── stdnum.no.fodselsnummer.rst
+│       │   │   ├── stdnum.no.iban.rst
+│       │   │   ├── stdnum.no.kontonr.rst
+│       │   │   ├── stdnum.no.mva.rst
+│       │   │   ├── stdnum.no.orgnr.rst
+│       │   │   ├── stdnum.nz.bankaccount.rst
+│       │   │   ├── stdnum.nz.ird.rst
+│       │   │   ├── stdnum.pe.cui.rst
+│       │   │   ├── stdnum.pe.ruc.rst
+│       │   │   ├── stdnum.pk.cnic.rst
+│       │   │   ├── stdnum.pl.nip.rst
+│       │   │   ├── stdnum.pl.pesel.rst
+│       │   │   ├── stdnum.pl.regon.rst
+│       │   │   ├── stdnum.pt.cc.rst
+│       │   │   ├── stdnum.pt.nif.rst
+│       │   │   ├── stdnum.py.ruc.rst
+│       │   │   ├── stdnum.ro.cf.rst
+│       │   │   ├── stdnum.ro.cnp.rst
+│       │   │   ├── stdnum.ro.cui.rst
+│       │   │   ├── stdnum.ro.onrc.rst
+│       │   │   ├── stdnum.rs.pib.rst
+│       │   │   ├── stdnum.ru.inn.rst
+│       │   │   ├── stdnum.ru.ogrn.rst
+│       │   │   ├── stdnum.se.orgnr.rst
+│       │   │   ├── stdnum.se.personnummer.rst
+│       │   │   ├── stdnum.se.postnummer.rst
+│       │   │   ├── stdnum.se.vat.rst
+│       │   │   ├── stdnum.sg.uen.rst
+│       │   │   ├── stdnum.si.ddv.rst
+│       │   │   ├── stdnum.si.emso.rst
+│       │   │   ├── stdnum.si.maticna.rst
+│       │   │   ├── stdnum.sk.dph.rst
+│       │   │   ├── stdnum.sk.rc.rst
+│       │   │   ├── stdnum.sm.coe.rst
+│       │   │   ├── stdnum.sv.nit.rst
+│       │   │   ├── stdnum.th.moa.rst
+│       │   │   ├── stdnum.th.pin.rst
+│       │   │   ├── stdnum.th.tin.rst
+│       │   │   ├── stdnum.tn.mf.rst
+│       │   │   ├── stdnum.tr.tckimlik.rst
+│       │   │   ├── stdnum.tr.vkn.rst
+│       │   │   ├── stdnum.tw.ubn.rst
+│       │   │   ├── stdnum.ua.edrpou.rst
+│       │   │   ├── stdnum.ua.rntrc.rst
+│       │   │   ├── stdnum.us.atin.rst
+│       │   │   ├── stdnum.us.ein.rst
+│       │   │   ├── stdnum.us.itin.rst
+│       │   │   ├── stdnum.us.ptin.rst
+│       │   │   ├── stdnum.us.rtn.rst
+│       │   │   ├── stdnum.us.ssn.rst
+│       │   │   ├── stdnum.us.tin.rst
+│       │   │   ├── stdnum.uy.rut.rst
+│       │   │   ├── stdnum.vatin.rst
+│       │   │   ├── stdnum.ve.rif.rst
+│       │   │   ├── stdnum.verhoeff.rst
+│       │   │   ├── stdnum.vn.mst.rst
+│       │   │   ├── stdnum.za.idnr.rst
+│       │   │   └── stdnum.za.tin.rst
+│       │   ├── online_check
+│       │   │   ├── README
+│       │   │   ├── jquery-3.5.1.min.map
+│       │   │   ├── stdnum.wsgi
+│       │   │   └── template.html
+│       │   ├── python_stdnum-1.18-py2.py3-none-any.whl
+│       │   ├── scripts
+│       │   │   └── check_headers.py
+│       │   ├── setup.cfg
+│       │   ├── setup.py
+│       │   ├── stdnum
+│       │   │   ├── __init__.py
+│       │   │   ├── ad
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── nrt.py
+│       │   │   ├── al
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── nipt.py
+│       │   │   ├── ar
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── cbu.py
+│       │   │   │   ├── cuit.py
+│       │   │   │   └── dni.py
+│       │   │   ├── at
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── businessid.py
+│       │   │   │   ├── fa.dat
+│       │   │   │   ├── postleitzahl.dat
+│       │   │   │   ├── postleitzahl.py
+│       │   │   │   ├── tin.py
+│       │   │   │   ├── uid.py
+│       │   │   │   └── vnr.py
+│       │   │   ├── au
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── abn.py
+│       │   │   │   ├── acn.py
+│       │   │   │   └── tfn.py
+│       │   │   ├── be
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── banks.dat
+│       │   │   │   ├── bis.py
+│       │   │   │   ├── eid.py
+│       │   │   │   ├── iban.py
+│       │   │   │   ├── nn.py
+│       │   │   │   ├── ssn.py
+│       │   │   │   └── vat.py
+│       │   │   ├── bg
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── egn.py
+│       │   │   │   ├── pnf.py
+│       │   │   │   └── vat.py
+│       │   │   ├── bic.py
+│       │   │   ├── bitcoin.py
+│       │   │   ├── br
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── cnpj.py
+│       │   │   │   └── cpf.py
+│       │   │   ├── by
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── unp.py
+│       │   │   ├── ca
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── bc_phn.py
+│       │   │   │   ├── bn.py
+│       │   │   │   └── sin.py
+│       │   │   ├── casrn.py
+│       │   │   ├── cfi.dat
+│       │   │   ├── cfi.py
+│       │   │   ├── ch
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── esr.py
+│       │   │   │   ├── ssn.py
+│       │   │   │   ├── uid.py
+│       │   │   │   └── vat.py
+│       │   │   ├── cl
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── rut.py
+│       │   │   ├── cn
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── loc.dat
+│       │   │   │   ├── ric.py
+│       │   │   │   └── uscc.py
+│       │   │   ├── co
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── nit.py
+│       │   │   ├── cr
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── cpf.py
+│       │   │   │   ├── cpj.py
+│       │   │   │   └── cr.py
+│       │   │   ├── cu
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── ni.py
+│       │   │   ├── cusip.py
+│       │   │   ├── cy
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── vat.py
+│       │   │   ├── cz
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── bankaccount.py
+│       │   │   │   ├── banks.dat
+│       │   │   │   ├── dic.py
+│       │   │   │   └── rc.py
+│       │   │   ├── damm.py
+│       │   │   ├── de
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── handelsregisternummer.py
+│       │   │   │   ├── idnr.py
+│       │   │   │   ├── stnr.py
+│       │   │   │   ├── vat.py
+│       │   │   │   └── wkn.py
+│       │   │   ├── dk
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── cpr.py
+│       │   │   │   └── cvr.py
+│       │   │   ├── do
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── cedula.py
+│       │   │   │   ├── ncf.py
+│       │   │   │   └── rnc.py
+│       │   │   ├── dz
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── nif.py
+│       │   │   ├── ean.py
+│       │   │   ├── ec
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── ci.py
+│       │   │   │   └── ruc.py
+│       │   │   ├── ee
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── ik.py
+│       │   │   │   ├── kmkr.py
+│       │   │   │   └── registrikood.py
+│       │   │   ├── eg
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── tn.py
+│       │   │   ├── es
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── cae.py
+│       │   │   │   ├── ccc.py
+│       │   │   │   ├── cif.py
+│       │   │   │   ├── cups.py
+│       │   │   │   ├── dni.py
+│       │   │   │   ├── iban.py
+│       │   │   │   ├── nie.py
+│       │   │   │   ├── nif.py
+│       │   │   │   ├── postal_code.py
+│       │   │   │   └── referenciacatastral.py
+│       │   │   ├── eu
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── at_02.py
+│       │   │   │   ├── banknote.py
+│       │   │   │   ├── ecnumber.py
+│       │   │   │   ├── eic.py
+│       │   │   │   ├── nace.dat
+│       │   │   │   ├── nace.py
+│       │   │   │   ├── oss.py
+│       │   │   │   └── vat.py
+│       │   │   ├── exceptions.py
+│       │   │   ├── fi
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── alv.py
+│       │   │   │   ├── associationid.py
+│       │   │   │   ├── hetu.py
+│       │   │   │   ├── veronumero.py
+│       │   │   │   └── ytunnus.py
+│       │   │   ├── figi.py
+│       │   │   ├── fo
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── vn.py
+│       │   │   ├── fr
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── nif.py
+│       │   │   │   ├── nir.py
+│       │   │   │   ├── siren.py
+│       │   │   │   ├── siret.py
+│       │   │   │   └── tva.py
+│       │   │   ├── gb
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── nhs.py
+│       │   │   │   ├── sedol.py
+│       │   │   │   ├── upn.py
+│       │   │   │   ├── utr.py
+│       │   │   │   └── vat.py
+│       │   │   ├── gh
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── tin.py
+│       │   │   ├── gn
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── nifp.py
+│       │   │   ├── gr
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── amka.py
+│       │   │   │   └── vat.py
+│       │   │   ├── grid.py
+│       │   │   ├── gs1_128.py
+│       │   │   ├── gs1_ai.dat
+│       │   │   ├── gt
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── nit.py
+│       │   │   ├── hr
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── oib.py
+│       │   │   ├── hu
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── anum.py
+│       │   │   ├── iban.dat
+│       │   │   ├── iban.py
+│       │   │   ├── id
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── loc.dat
+│       │   │   │   ├── nik.py
+│       │   │   │   └── npwp.py
+│       │   │   ├── ie
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── pps.py
+│       │   │   │   └── vat.py
+│       │   │   ├── il
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── hp.py
+│       │   │   │   └── idnr.py
+│       │   │   ├── imei.py
+│       │   │   ├── imo.py
+│       │   │   ├── imsi.dat
+│       │   │   ├── imsi.py
+│       │   │   ├── in_
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── aadhaar.py
+│       │   │   │   ├── epic.py
+│       │   │   │   ├── gstin.py
+│       │   │   │   ├── pan.py
+│       │   │   │   └── vid.py
+│       │   │   ├── is_
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── kennitala.py
+│       │   │   │   └── vsk.py
+│       │   │   ├── isan.py
+│       │   │   ├── isbn.dat
+│       │   │   ├── isbn.py
+│       │   │   ├── isil.dat
+│       │   │   ├── isil.py
+│       │   │   ├── isin.py
+│       │   │   ├── ismn.py
+│       │   │   ├── isni.py
+│       │   │   ├── iso11649.py
+│       │   │   ├── iso6346.py
+│       │   │   ├── iso7064
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── mod_11_10.py
+│       │   │   │   ├── mod_11_2.py
+│       │   │   │   ├── mod_37_2.py
+│       │   │   │   ├── mod_37_36.py
+│       │   │   │   └── mod_97_10.py
+│       │   │   ├── iso9362.py
+│       │   │   ├── isrc.py
+│       │   │   ├── issn.py
+│       │   │   ├── it
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── aic.py
+│       │   │   │   ├── codicefiscale.py
+│       │   │   │   └── iva.py
+│       │   │   ├── jp
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── cn.py
+│       │   │   │   └── in_.py
+│       │   │   ├── ke
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── pin.py
+│       │   │   ├── kr
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── brn.py
+│       │   │   │   └── rrn.py
+│       │   │   ├── lei.py
+│       │   │   ├── li
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── peid.py
+│       │   │   ├── lt
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── asmens.py
+│       │   │   │   └── pvm.py
+│       │   │   ├── lu
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── tva.py
+│       │   │   ├── luhn.py
+│       │   │   ├── lv
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── pvn.py
+│       │   │   ├── ma
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── ice.py
+│       │   │   ├── mac.py
+│       │   │   ├── mc
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── tva.py
+│       │   │   ├── md
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── idno.py
+│       │   │   ├── me
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── iban.py
+│       │   │   │   └── pib.py
+│       │   │   ├── meid.py
+│       │   │   ├── mk
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── edb.py
+│       │   │   ├── mt
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── vat.py
+│       │   │   ├── mu
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── nid.py
+│       │   │   ├── mx
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── curp.py
+│       │   │   │   └── rfc.py
+│       │   │   ├── my
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── bp.dat
+│       │   │   │   └── nric.py
+│       │   │   ├── mz
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── nuit.py
+│       │   │   ├── nl
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── brin.py
+│       │   │   │   ├── bsn.py
+│       │   │   │   ├── btw.py
+│       │   │   │   ├── identiteitskaartnummer.py
+│       │   │   │   ├── onderwijsnummer.py
+│       │   │   │   └── postcode.py
+│       │   │   ├── no
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── fodselsnummer.py
+│       │   │   │   ├── iban.py
+│       │   │   │   ├── kontonr.py
+│       │   │   │   ├── mva.py
+│       │   │   │   └── orgnr.py
+│       │   │   ├── numdb.py
+│       │   │   ├── nz
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── bankaccount.py
+│       │   │   │   ├── banks.dat
+│       │   │   │   └── ird.py
+│       │   │   ├── oui.dat
+│       │   │   ├── pe
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── cui.py
+│       │   │   │   └── ruc.py
+│       │   │   ├── pk
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── cnic.py
+│       │   │   ├── pl
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── nip.py
+│       │   │   │   ├── pesel.py
+│       │   │   │   └── regon.py
+│       │   │   ├── pt
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── cc.py
+│       │   │   │   └── nif.py
+│       │   │   ├── py
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── ruc.py
+│       │   │   ├── py.typed
+│       │   │   ├── ro
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── cf.py
+│       │   │   │   ├── cnp.py
+│       │   │   │   ├── cui.py
+│       │   │   │   └── onrc.py
+│       │   │   ├── rs
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── pib.py
+│       │   │   ├── ru
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── inn.py
+│       │   │   │   └── ogrn.py
+│       │   │   ├── se
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── orgnr.py
+│       │   │   │   ├── personnummer.py
+│       │   │   │   ├── postnummer.py
+│       │   │   │   └── vat.py
+│       │   │   ├── sg
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── uen.py
+│       │   │   ├── si
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── ddv.py
+│       │   │   │   ├── emso.py
+│       │   │   │   └── maticna.py
+│       │   │   ├── sk
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── dph.py
+│       │   │   │   └── rc.py
+│       │   │   ├── sm
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── coe.py
+│       │   │   ├── sv
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── nit.py
+│       │   │   ├── th
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── moa.py
+│       │   │   │   ├── pin.py
+│       │   │   │   └── tin.py
+│       │   │   ├── tn
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── mf.py
+│       │   │   ├── tr
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── tckimlik.py
+│       │   │   │   └── vkn.py
+│       │   │   ├── tw
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── ubn.py
+│       │   │   ├── ua
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── edrpou.py
+│       │   │   │   └── rntrc.py
+│       │   │   ├── us
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── atin.py
+│       │   │   │   ├── ein.dat
+│       │   │   │   ├── ein.py
+│       │   │   │   ├── itin.py
+│       │   │   │   ├── ptin.py
+│       │   │   │   ├── rtn.py
+│       │   │   │   ├── ssn.py
+│       │   │   │   └── tin.py
+│       │   │   ├── util.py
+│       │   │   ├── uy
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── rut.py
+│       │   │   ├── vatin.py
+│       │   │   ├── ve
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── rif.py
+│       │   │   ├── verhoeff.py
+│       │   │   ├── vn
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── mst.py
+│       │   │   └── za
+│       │   │       ├── __init__.py
+│       │   │       ├── idnr.py
+│       │   │       └── tin.py
+│       │   ├── tests
+│       │   │   ├── numdb-test.dat
+│       │   │   ├── test_ad_nrt.doctest
+│       │   │   ├── test_al_nipt.doctest
+│       │   │   ├── test_ar_cbu.doctest
+│       │   │   ├── test_ar_cuit.doctest
+│       │   │   ├── test_at_tin.doctest
+│       │   │   ├── test_au_abn.doctest
+│       │   │   ├── test_au_acn.doctest
+│       │   │   ├── test_au_tfn.doctest
+│       │   │   ├── test_be_bis.doctest
+│       │   │   ├── test_be_iban.doctest
+│       │   │   ├── test_be_nn.doctest
+│       │   │   ├── test_be_ssn.doctest
+│       │   │   ├── test_be_vat.doctest
+│       │   │   ├── test_bg_egn.doctest
+│       │   │   ├── test_bg_vat.doctest
+│       │   │   ├── test_bic.doctest
+│       │   │   ├── test_bitcoin.doctest
+│       │   │   ├── test_br_cnpj.doctest
+│       │   │   ├── test_by_unp.doctest
+│       │   │   ├── test_by_unp.py
+│       │   │   ├── test_ca_bn.doctest
+│       │   │   ├── test_casrn.doctest
+│       │   │   ├── test_cfi.doctest
+│       │   │   ├── test_ch_esr.doctest
+│       │   │   ├── test_ch_ssn.doctest
+│       │   │   ├── test_ch_uid.doctest
+│       │   │   ├── test_ch_uid.py
+│       │   │   ├── test_ch_vat.doctest
+│       │   │   ├── test_cl_rut.doctest
+│       │   │   ├── test_cn_ric.doctest
+│       │   │   ├── test_cn_uscc.doctest
+│       │   │   ├── test_co_nit.doctest
+│       │   │   ├── test_cr_cpf.doctest
+│       │   │   ├── test_cr_cpj.doctest
+│       │   │   ├── test_cr_cr.doctest
+│       │   │   ├── test_cusip.doctest
+│       │   │   ├── test_cz_bankaccount.doctest
+│       │   │   ├── test_cz_rc.doctest
+│       │   │   ├── test_damm.doctest
+│       │   │   ├── test_de_handelsregisternummer.doctest
+│       │   │   ├── test_de_handelsregisternummer.py
+│       │   │   ├── test_de_idnr.doctest
+│       │   │   ├── test_de_stnr.doctest
+│       │   │   ├── test_de_wkn.doctest
+│       │   │   ├── test_do_cedula.doctest
+│       │   │   ├── test_do_cedula.py
+│       │   │   ├── test_do_ncf.doctest
+│       │   │   ├── test_do_ncf.py
+│       │   │   ├── test_do_rnc.doctest
+│       │   │   ├── test_do_rnc.py
+│       │   │   ├── test_dz_nif.doctest
+│       │   │   ├── test_ean.doctest
+│       │   │   ├── test_ec_ci.doctest
+│       │   │   ├── test_ec_ruc.doctest
+│       │   │   ├── test_ee_ik.doctest
+│       │   │   ├── test_ee_registrikood.doctest
+│       │   │   ├── test_eg_tn.doctest
+│       │   │   ├── test_es_cae.doctest
+│       │   │   ├── test_es_cups.doctest
+│       │   │   ├── test_es_nif.doctest
+│       │   │   ├── test_es_referenciacatastral.doctest
+│       │   │   ├── test_eu_banknote.doctest
+│       │   │   ├── test_eu_ecnumber.doctest
+│       │   │   ├── test_eu_eic.doctest
+│       │   │   ├── test_eu_oss.doctest
+│       │   │   ├── test_eu_vat.doctest
+│       │   │   ├── test_eu_vat.py
+│       │   │   ├── test_fi_hetu.doctest
+│       │   │   ├── test_figi.doctest
+│       │   │   ├── test_fo_vn.doctest
+│       │   │   ├── test_fr_siren.doctest
+│       │   │   ├── test_fr_siret.doctest
+│       │   │   ├── test_gb_sedol.doctest
+│       │   │   ├── test_gb_utr.doctest
+│       │   │   ├── test_gb_vat.doctest
+│       │   │   ├── test_gh_tin.doctest
+│       │   │   ├── test_gn_nifp.doctest
+│       │   │   ├── test_gr_amka.doctest
+│       │   │   ├── test_gs1_128.doctest
+│       │   │   ├── test_gt_nit.doctest
+│       │   │   ├── test_iban.doctest
+│       │   │   ├── test_id_npwp.doctest
+│       │   │   ├── test_ie_pps.doctest
+│       │   │   ├── test_ie_vat.doctest
+│       │   │   ├── test_il_hp.doctest
+│       │   │   ├── test_imei.doctest
+│       │   │   ├── test_imsi.doctest
+│       │   │   ├── test_in_pan.doctest
+│       │   │   ├── test_is_kennitala.doctest
+│       │   │   ├── test_isan.doctest
+│       │   │   ├── test_isbn.doctest
+│       │   │   ├── test_isil.doctest
+│       │   │   ├── test_isin.doctest
+│       │   │   ├── test_ismn.doctest
+│       │   │   ├── test_iso11649.doctest
+│       │   │   ├── test_iso6346.doctest
+│       │   │   ├── test_iso7064.doctest
+│       │   │   ├── test_isrc.doctest
+│       │   │   ├── test_it_aic.doctest
+│       │   │   ├── test_it_codicefiscale.doctest
+│       │   │   ├── test_jp_cn.doctest
+│       │   │   ├── test_ke_pin.doctest
+│       │   │   ├── test_kr_brn.doctest
+│       │   │   ├── test_kr_rrn.doctest
+│       │   │   ├── test_lei.doctest
+│       │   │   ├── test_li_peid.doctest
+│       │   │   ├── test_lt_asmens.doctest
+│       │   │   ├── test_luhn.doctest
+│       │   │   ├── test_ma_ice.doctest
+│       │   │   ├── test_mac.doctest
+│       │   │   ├── test_md_idno.doctest
+│       │   │   ├── test_me_pib.doctest
+│       │   │   ├── test_meid.doctest
+│       │   │   ├── test_mk_edb.doctest
+│       │   │   ├── test_mu_nid.doctest
+│       │   │   ├── test_mx_curp.doctest
+│       │   │   ├── test_mx_rfc.doctest
+│       │   │   ├── test_my_nric.doctest
+│       │   │   ├── test_mz_nuit.doctest
+│       │   │   ├── test_no_fodselsnummer.doctest
+│       │   │   ├── test_no_mva.doctest
+│       │   │   ├── test_nz_bankaccount.doctest
+│       │   │   ├── test_nz_ird.doctest
+│       │   │   ├── test_pe_cui.doctest
+│       │   │   ├── test_pe_ruc.doctest
+│       │   │   ├── test_pk_cnic.doctest
+│       │   │   ├── test_pl_regon.doctest
+│       │   │   ├── test_pt_cc.doctest
+│       │   │   ├── test_py_ruc.doctest
+│       │   │   ├── test_ro_onrc.doctest
+│       │   │   ├── test_robustness.doctest
+│       │   │   ├── test_rs_pib.doctest
+│       │   │   ├── test_ru_inn.doctest
+│       │   │   ├── test_ru_ogrn.doctest
+│       │   │   ├── test_se_personnummer.doctest
+│       │   │   ├── test_se_postnummer.doctest
+│       │   │   ├── test_sg_uen.doctest
+│       │   │   ├── test_si_emso.doctest
+│       │   │   ├── test_si_maticna.doctest
+│       │   │   ├── test_sv_nit.doctest
+│       │   │   ├── test_th_moa.doctest
+│       │   │   ├── test_th_pin.doctest
+│       │   │   ├── test_th_tin.doctest
+│       │   │   ├── test_tn_mf.doctest
+│       │   │   ├── test_tr_tckimlik.doctest
+│       │   │   ├── test_tr_vkn.doctest
+│       │   │   ├── test_tw_ubn.doctest
+│       │   │   ├── test_ua_edrpou.doctest
+│       │   │   ├── test_ua_rntrc.doctest
+│       │   │   ├── test_util.doctest
+│       │   │   ├── test_uy_rut.doctest
+│       │   │   ├── test_vatin.doctest
+│       │   │   ├── test_ve_rif.doctest
+│       │   │   ├── test_verhoeff.doctest
+│       │   │   ├── test_vn_mst.doctest
+│       │   │   ├── test_za_idnr.doctest
+│       │   │   └── test_za_tin.doctest
+│       │   ├── tox.ini
+│       │   ├── update
+│       │   │   ├── README
+│       │   │   ├── at_postleitzahl.py
+│       │   │   ├── be_banks.py
+│       │   │   ├── cfi.py
+│       │   │   ├── cn_loc.py
+│       │   │   ├── cz_banks.py
+│       │   │   ├── do_whitelists.py
+│       │   │   ├── gs1_ai.py
+│       │   │   ├── iban.py
+│       │   │   ├── imsi.py
+│       │   │   ├── isbn.py
+│       │   │   ├── isil.py
+│       │   │   ├── my_bp.py
+│       │   │   ├── numlist.py
+│       │   │   ├── nz_banks.py
+│       │   │   ├── oui.py
+│       │   │   └── requirements.txt
+│       │   └── vin.py
+│       ├── python_stdnum-2.1-py3-none-any.whl
+│       ├── quick_test.py
+│       ├── repo-structure.txt
+│       ├── repo_structure.tx
+│       ├── repo_structure.txt
+│       ├── repo_tree.txt
+│       ├── requirements.txt
+│       ├── run_additional_public_providers.py
+│       ├── run_all_automatable_providers.py
+│       ├── run_iihs_provider.py
+│       ├── run_vin_lookup_test.sh
+│       ├── runbooks
+│       │   ├── RB-001-API-5xx-spike.md
+│       │   ├── RB-002-Valuation-Fallback.md
+│       │   └── RB-003-Valuation-Accuracy.md
+│       ├── sample-valuation-input.json
+│       ├── schemas
+│       │   ├── vehicle_decoded_schema_v1.json
+│       │   └── vehicle_decoded_schema_v2.json
+│       ├── scrape_craigslist.py
+│       ├── scrape_ebay_motors.py
+│       ├── scripts
+│       │   ├── __init__.py
+│       │   ├── apply_rls_hardening.sh
+│       │   ├── e2e_market_cohort_test.ts
+│       │   ├── harvest_paste.py
+│       │   ├── inspect_artifact.py
+│       │   ├── merge_comps.py
+│       │   ├── migrate-deno-serve.sh
+│       │   ├── retrain_and_verify.sh
+│       │   ├── run-openai-agent.cjs
+│       │   ├── run-openai-agent.mts
+│       │   ├── run-openai-agent.ts
+│       │   ├── run-valuation.ts
+│       │   ├── smoke_iihs.sh
+│       │   ├── smoke_oem.sh
+│       │   ├── smoke_predict.py
+│       │   ├── smoke_recalls.sh
+│       │   ├── smoke_vin_validation.sh
+│       │   ├── train_tabular.py
+│       │   ├── validate_comps.py
+│       │   ├── verify_artifact_checksum.py
+│       │   └── write_artifact_checksum.py
+│       ├── secrets_manager.py
+│       ├── seed_reference_data.py
+│       ├── server
+│       │   ├── __init__.py
+│       │   └── routes
+│       │       └── __init__.py
+│       ├── setup.cfg
+│       ├── sql
+│       │   ├── __init__.py
+│       │   ├── rls_policies.sql
+│       │   └── vin_validation_functions.sql
+│       ├── src
+│       │   ├── App.tsx
+│       │   ├── Dockerfile
+│       │   ├── __init__.py
+│       │   ├── __mocks__
+│       │   │   ├── @supabase
+│       │   │   │   └── supabase-js.ts
+│       │   │   └── openai.ts
+│       │   ├── __tests__
+│       │   │   └── smoke.spec.ts
+│       │   ├── _archive
+│       │   │   └── components
+│       │   │       ├── ValuationResults.js
+│       │   │       └── ValuationResults.tsx
+│       │   ├── ain-backend
+│       │   │   ├── Dockerfile
+│       │   │   ├── __init__.py
+│       │   │   ├── conversationApi.js
+│       │   │   ├── conversationApi.ts
+│       │   │   ├── conversationEngine.js
+│       │   │   ├── conversationEngine.ts
+│       │   │   ├── gpt4oService.js
+│       │   │   ├── gpt4oService.ts
+│       │   │   ├── logger.js
+│       │   │   ├── logger.ts
+│       │   │   ├── routes
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── features.js
+│       │   │   │   ├── features.ts
+│       │   │   │   ├── input.js
+│       │   │   │   ├── input.ts
+│       │   │   │   ├── valuate.js
+│       │   │   │   └── valuate.ts
+│       │   │   ├── schemas
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── conversationFlow.json
+│       │   │   ├── server.js
+│       │   │   ├── server.py
+│       │   │   ├── server.ts
+│       │   │   ├── supabaseClient.js
+│       │   │   ├── supabaseClient.ts
+│       │   │   ├── valuationEngine.js
+│       │   │   ├── valuationEngine.ts
+│       │   │   ├── vinDecoder.js
+│       │   │   ├── vinDecoder.ts
+│       │   │   ├── visionService.js
+│       │   │   ├── visionService.ts
+│       │   │   ├── whisperService.js
+│       │   │   └── whisperService.ts
+│       │   ├── api
+│       │   │   ├── __init__.py
+│       │   │   ├── decodeVin.js
+│       │   │   ├── decodeVin.ts
+│       │   │   ├── enhanced_valuation_api.py
+│       │   │   └── flask_compat.py
+│       │   ├── api_integrations
+│       │   │   ├── __init__.py
+│       │   │   ├── vin_api.py
+│       │   │   └── vin_decoder.py
+│       │   ├── components
+│       │   │   ├── CarFindCard.js
+│       │   │   ├── CarFindCard.tsx
+│       │   │   ├── EditVinDetailsForm.jsx
+│       │   │   ├── JokeGenerator.js
+│       │   │   ├── JokeGenerator.tsx
+│       │   │   ├── VehicleForm.jsx
+│       │   │   ├── __init__.py
+│       │   │   ├── enhanced-ui
+│       │   │   │   ├── EnhancedUIDashboard.js
+│       │   │   │   ├── EnhancedUIDashboard.tsx
+│       │   │   │   ├── EnhancedUIDemo.js
+│       │   │   │   ├── EnhancedUIDemo.tsx
+│       │   │   │   ├── EnhancedUIExample.js
+│       │   │   │   ├── EnhancedUIExample.tsx
+│       │   │   │   ├── README.md
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── index.js
+│       │   │   │   ├── index.ts
+│       │   │   │   ├── interactive
+│       │   │   │   │   └── __init__.py
+│       │   │   │   ├── panels
+│       │   │   │   │   ├── AdjusterBreakdownPanel.js
+│       │   │   │   │   ├── AdjusterBreakdownPanel.tsx
+│       │   │   │   │   ├── ConfidenceMetricsPanel.js
+│       │   │   │   │   ├── ConfidenceMetricsPanel.tsx
+│       │   │   │   │   ├── HistoricalTrendsPanel.js
+│       │   │   │   │   ├── HistoricalTrendsPanel.tsx
+│       │   │   │   │   ├── MarketIntelligencePanel.js
+│       │   │   │   │   ├── MarketIntelligencePanel.tsx
+│       │   │   │   │   ├── RegionalComparisonPanel.js
+│       │   │   │   │   ├── RegionalComparisonPanel.tsx
+│       │   │   │   │   └── __init__.py
+│       │   │   │   └── visualizations
+│       │   │   │       └── __init__.py
+│       │   │   ├── followup
+│       │   │   │   ├── DataCollectionForm.js
+│       │   │   │   ├── DataCollectionForm.tsx
+│       │   │   │   ├── DataCollectionForm.tsx.bak.navigate
+│       │   │   │   ├── FollowUpForm.js
+│       │   │   │   ├── FollowUpForm.tsx
+│       │   │   │   └── __init__.py
+│       │   │   ├── lookup
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── vin
+│       │   │   │       ├── VinLookupForm.js
+│       │   │   │       ├── VinLookupForm.tsx
+│       │   │   │       └── __init__.py
+│       │   │   ├── result
+│       │   │   │   ├── ValuationResultCard.js
+│       │   │   │   ├── ValuationResultCard.tsx
+│       │   │   │   ├── ValuationResultsDisplay.tsx
+│       │   │   │   ├── VinDecodedDetails.js
+│       │   │   │   ├── VinDecodedDetails.tsx
+│       │   │   │   ├── VinDecodedDisplay.js
+│       │   │   │   ├── VinDecodedDisplay.tsx
+│       │   │   │   └── __init__.py
+│       │   │   ├── security
+│       │   │   │   ├── GlobalErrorBoundary.js
+│       │   │   │   └── GlobalErrorBoundary.tsx
+│       │   │   └── ui
+│       │   │       ├── __init__.py
+│       │   │       ├── button.js
+│       │   │       ├── button.tsx
+│       │   │       ├── input.js
+│       │   │       └── input.tsx
+│       │   ├── config
+│       │   │   ├── security.js
+│       │   │   └── security.ts
+│       │   ├── data
+│       │   │   └── autoDataSources.ts
+│       │   ├── db
+│       │   │   ├── supabaseClient.js
+│       │   │   └── supabaseClient.ts
+│       │   ├── engines
+│       │   │   ├── __init__.py
+│       │   │   ├── cli.js
+│       │   │   ├── cli.ts
+│       │   │   ├── decodedVehicle.test.js
+│       │   │   ├── decodedVehicle.test.ts
+│       │   │   ├── enrichment
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── fallbackPrompt.js
+│       │   │   │   ├── fallbackPrompt.ts
+│       │   │   │   ├── fuelEconomy.js
+│       │   │   │   ├── fuelEconomy.ts
+│       │   │   │   ├── index.js
+│       │   │   │   ├── index.ts
+│       │   │   │   ├── nhtsaRecalls.js
+│       │   │   │   ├── nhtsaRecalls.ts
+│       │   │   │   ├── valuationEstimator.js
+│       │   │   │   └── valuationEstimator.ts
+│       │   │   ├── marketSearchAgent.js
+│       │   │   ├── marketSearchAgent.ts
+│       │   │   ├── valuation
+│       │   │   │   └── __init__.py
+│       │   │   ├── valuationAuditLog.test.js
+│       │   │   ├── valuationAuditLog.test.ts
+│       │   │   ├── valuationEngine.adversarial.test.js
+│       │   │   └── valuationEngine.adversarial.test.ts
+│       │   ├── index.css
+│       │   ├── integrations
+│       │   │   ├── __init__.py
+│       │   │   └── supabase
+│       │   │       ├── __init__.py
+│       │   │       ├── client.js
+│       │   │       └── client.ts
+│       │   ├── lib
+│       │   │   ├── __init__.py
+│       │   │   └── vin
+│       │   │       ├── __init__.py
+│       │   │       ├── __tests__
+│       │   │       │   ├── __init__.py
+│       │   │       │   ├── validateVin.test.js
+│       │   │       │   └── validateVin.test.ts
+│       │   │       ├── validateVin.js
+│       │   │       └── validateVin.ts
+│       │   ├── logger.js
+│       │   ├── logger.ts
+│       │   ├── main.py
+│       │   ├── main.tsx
+│       │   ├── pages
+│       │   │   ├── __init__.py
+│       │   │   ├── fuel-test.js
+│       │   │   ├── fuel-test.tsx
+│       │   │   └── valuation
+│       │   │       ├── VinValuationPage.js
+│       │   │       ├── VinValuationPage.tsx
+│       │   │       └── __init__.py
+│       │   ├── scripts
+│       │   │   ├── ingestAllSources.js
+│       │   │   ├── ingestAllSources.ts
+│       │   │   ├── run-audit.mjs
+│       │   │   ├── run-audit.mts
+│       │   │   ├── run-openai-agent.mjs
+│       │   │   ├── run-openai-agent.mts
+│       │   │   ├── seed-zip-centroids.mjs
+│       │   │   └── seed-zip-centroids.mts
+│       │   ├── server.js
+│       │   ├── server.ts
+│       │   ├── services
+│       │   │   ├── README_VIN_DECODER.md
+│       │   │   ├── VideoAnalysisService.py
+│       │   │   ├── __init__.py
+│       │   │   ├── apiClient.js
+│       │   │   ├── apiClient.ts
+│       │   │   ├── carApiService.js
+│       │   │   ├── carApiService.ts
+│       │   │   ├── carSpecsService.js
+│       │   │   ├── carSpecsService.ts
+│       │   │   ├── centralizedApi.js
+│       │   │   ├── centralizedApi.ts
+│       │   │   ├── deduplicateListings.js
+│       │   │   ├── deduplicateListings.ts
+│       │   │   ├── fuelEconomyService.js
+│       │   │   ├── fuelEconomyService.ts
+│       │   │   ├── geo
+│       │   │   │   ├── ZipGeo.js
+│       │   │   │   └── ZipGeo.ts
+│       │   │   ├── index.js
+│       │   │   ├── index.ts
+│       │   │   ├── marketAgents
+│       │   │   │   ├── OpenAIListingsFetcher.js
+│       │   │   │   ├── OpenAIListingsFetcher.ts
+│       │   │   │   ├── aggregateSearch.js
+│       │   │   │   ├── aggregateSearch.ts
+│       │   │   │   ├── base
+│       │   │   │   │   ├── BaseMarketAgent.js
+│       │   │   │   │   └── BaseMarketAgent.ts
+│       │   │   │   ├── config
+│       │   │   │   │   ├── policy.js
+│       │   │   │   │   ├── policy.ts
+│       │   │   │   │   ├── sources.js
+│       │   │   │   │   ├── sources.json
+│       │   │   │   │   ├── sources.master.js
+│       │   │   │   │   ├── sources.master.json
+│       │   │   │   │   ├── sources.master.ts
+│       │   │   │   │   ├── sources.ts
+│       │   │   │   │   ├── sourcesData.js
+│       │   │   │   │   ├── sourcesData.ts
+│       │   │   │   │   └── tierPresets.json
+│       │   │   │   ├── extractors
+│       │   │   │   │   ├── openaiExtractor.js
+│       │   │   │   │   └── openaiExtractor.ts
+│       │   │   │   ├── filters.js
+│       │   │   │   ├── filters.ts
+│       │   │   │   ├── openaiSearch.js
+│       │   │   │   ├── openaiSearch.ts
+│       │   │   │   ├── openaiSearchStructured.js
+│       │   │   │   ├── openaiSearchStructured.ts
+│       │   │   │   ├── persistence
+│       │   │   │   │   ├── runLogs.js
+│       │   │   │   │   ├── runLogs.ts
+│       │   │   │   │   ├── upsertListings.js
+│       │   │   │   │   └── upsertListings.ts
+│       │   │   │   ├── promptKits
+│       │   │   │   │   ├── auction.js
+│       │   │   │   │   ├── auction.ts
+│       │   │   │   │   ├── domainPromptKitMap.js
+│       │   │   │   │   ├── domainPromptKitMap.ts
+│       │   │   │   │   ├── intl.js
+│       │   │   │   │   ├── intl.ts
+│       │   │   │   │   ├── oem.js
+│       │   │   │   │   ├── oem.ts
+│       │   │   │   │   ├── specialty.js
+│       │   │   │   │   ├── specialty.ts
+│       │   │   │   │   ├── us_t1.js
+│       │   │   │   │   ├── us_t1.ts
+│       │   │   │   │   ├── us_t2.js
+│       │   │   │   │   └── us_t2.ts
+│       │   │   │   ├── prompts
+│       │   │   │   │   ├── kit.js
+│       │   │   │   │   └── kit.ts
+│       │   │   │   ├── retail
+│       │   │   │   │   ├── OpenAIListingsAgent.js
+│       │   │   │   │   └── OpenAIListingsAgent.ts
+│       │   │   │   ├── router.js
+│       │   │   │   ├── router.ts
+│       │   │   │   ├── schemas
+│       │   │   │   │   ├── ListingSchema.js
+│       │   │   │   │   └── ListingSchema.ts
+│       │   │   │   └── utils
+│       │   │   │       ├── cache.js
+│       │   │   │       ├── cache.ts
+│       │   │   │       ├── canonical.js
+│       │   │   │       ├── canonical.ts
+│       │   │   │       ├── dedupe.js
+│       │   │   │       ├── dedupe.ts
+│       │   │   │       ├── dedupeIngest.js
+│       │   │   │       ├── dedupeIngest.ts
+│       │   │   │       ├── numbers.js
+│       │   │   │       ├── numbers.ts
+│       │   │   │       ├── sanity.js
+│       │   │   │       ├── sanity.ts
+│       │   │   │       ├── stats.js
+│       │   │   │       ├── stats.ts
+│       │   │   │       ├── throttle.js
+│       │   │   │       ├── throttle.ts
+│       │   │   │       ├── time.js
+│       │   │   │       ├── time.ts
+│       │   │   │       ├── urls.js
+│       │   │   │       └── urls.ts
+│       │   │   ├── marketListingsService.js
+│       │   │   ├── marketListingsService.ts
+│       │   │   ├── marketPricingService.js
+│       │   │   ├── marketPricingService.ts
+│       │   │   ├── marketSearchAgent.js
+│       │   │   ├── marketSearchAgent.ts
+│       │   │   ├── marketValuationUnified.js
+│       │   │   ├── marketValuationUnified.ts
+│       │   │   ├── multiTierSearchAgent.js
+│       │   │   ├── multiTierSearchAgent.ts
+│       │   │   ├── normalizeListing.js
+│       │   │   ├── normalizeListing.ts
+│       │   │   ├── normalizeVehicleData.js
+│       │   │   ├── normalizeVehicleData.ts
+│       │   │   ├── pricing
+│       │   │   │   ├── currency.js
+│       │   │   │   ├── currency.ts
+│       │   │   │   ├── inflation.js
+│       │   │   │   ├── inflation.ts
+│       │   │   │   ├── normalizeListingPrice.js
+│       │   │   │   ├── normalizeListingPrice.ts
+│       │   │   │   ├── outliers.js
+│       │   │   │   ├── outliers.ts
+│       │   │   │   ├── region.js
+│       │   │   │   └── region.ts
+│       │   │   ├── residualValueService.js
+│       │   │   ├── residualValueService.ts
+│       │   │   ├── testUnifiedDecoder.js
+│       │   │   ├── testUnifiedDecoder.ts
+│       │   │   ├── unifiedSupabase.js
+│       │   │   ├── unifiedSupabase.ts
+│       │   │   ├── unifiedVinDecoder.js
+│       │   │   ├── unifiedVinDecoder.ts
+│       │   │   ├── unifiedVinDecoder.ts.bak.envguard
+│       │   │   ├── valuation
+│       │   │   │   ├── CohortStats.js
+│       │   │   │   └── CohortStats.ts
+│       │   │   ├── valuationEngine.js
+│       │   │   ├── valuationEngine.ts
+│       │   │   ├── valuationNormalizer.js
+│       │   │   ├── valuationNormalizer.ts
+│       │   │   ├── vehicleHistoryService.js
+│       │   │   ├── vehicleHistoryService.ts
+│       │   │   ├── vehiclePricingService.js
+│       │   │   ├── vehiclePricingService.ts
+│       │   │   ├── vinExamples.js
+│       │   │   ├── vinExamples.ts
+│       │   │   ├── vinLookupService.js
+│       │   │   ├── vinLookupService.ts
+│       │   │   ├── vinMigration.js
+│       │   │   ├── vinMigration.ts
+│       │   │   ├── vinValidation.js
+│       │   │   ├── vinValidation.ts
+│       │   │   ├── vinValuationService.js
+│       │   │   └── vinValuationService.ts
+│       │   ├── tools
+│       │   │   ├── audit
+│       │   │   │   ├── AuditRunner.js
+│       │   │   │   ├── AuditRunner.mjs
+│       │   │   │   ├── AuditRunner.mts
+│       │   │   │   └── AuditRunner.ts
+│       │   │   ├── decodeVin.js
+│       │   │   └── decodeVin.ts
+│       │   ├── types
+│       │   │   ├── ValuationTypes.js
+│       │   │   ├── ValuationTypes.ts
+│       │   │   ├── VariableValue.js
+│       │   │   ├── VariableValue.ts
+│       │   │   ├── VehicleData.js
+│       │   │   ├── VehicleData.ts
+│       │   │   ├── api.d.ts
+│       │   │   ├── canonical.ts
+│       │   │   ├── index.js
+│       │   │   ├── index.ts
+│       │   │   ├── marketListing.js
+│       │   │   ├── marketListing.ts
+│       │   │   ├── valuation.js
+│       │   │   └── valuation.ts
+│       │   ├── types_custom
+│       │   │   ├── DecodedVehicle.js
+│       │   │   ├── DecodedVehicle.ts
+│       │   │   ├── ValuationTypes.js
+│       │   │   ├── ValuationTypes.ts
+│       │   │   ├── VariableValue.js
+│       │   │   ├── VariableValue.ts
+│       │   │   ├── VehicleDataForValuation.js
+│       │   │   ├── VehicleDataForValuation.ts
+│       │   │   ├── __init__.py
+│       │   │   ├── api.js
+│       │   │   ├── api.ts
+│       │   │   ├── decoded-vehicle.js
+│       │   │   ├── decoded-vehicle.ts
+│       │   │   ├── deno-globals.d.ts
+│       │   │   ├── globals.d.ts
+│       │   │   ├── valuation.js
+│       │   │   ├── valuation.ts
+│       │   │   ├── valuationAuditLog.js
+│       │   │   └── valuationAuditLog.ts
+│       │   ├── utils
+│       │   │   ├── __init__.py
+│       │   │   ├── auditLogger.js
+│       │   │   ├── auditLogger.ts
+│       │   │   ├── convertToVariableValueArray.js
+│       │   │   ├── convertToVariableValueArray.ts
+│       │   │   ├── errorHandling.js
+│       │   │   ├── errorHandling.ts
+│       │   │   ├── logger-browser.js
+│       │   │   ├── logger-browser.ts
+│       │   │   ├── logger.js
+│       │   │   ├── logger.ts
+│       │   │   ├── metrics-browser.js
+│       │   │   ├── metrics-browser.ts
+│       │   │   ├── metrics.js
+│       │   │   ├── metrics.ts
+│       │   │   ├── metricsMiddleware.js
+│       │   │   ├── metricsMiddleware.ts
+│       │   │   ├── normalizeVehicleData.js
+│       │   │   ├── normalizeVehicleData.ts
+│       │   │   ├── validation.js
+│       │   │   ├── validation.ts
+│       │   │   └── vin_validation.py
+│       │   ├── valuation
+│       │   │   ├── CohortStats.js
+│       │   │   └── CohortStats.ts
+│       │   ├── vin_decoder_abstraction.py
+│       │   └── vite-env.d.ts
+│       ├── step3_cleanup.sh
+│       ├── step6_flow_audit.sh
+│       ├── step7_integration_audit.sh
+│       ├── step8_security_audit.sh
+│       ├── step9_pentest.sh
+│       ├── supabase
+│       │   ├── .gitignore
+│       │   ├── __init__.py
+│       │   ├── config.toml
+│       │   ├── functions
+│       │   │   ├── __init__.py
+│       │   │   ├── _shared
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── negCache.ts
+│       │   │   │   ├── rateLimit.ts
+│       │   │   │   └── type-guards.ts
+│       │   │   ├── complaints
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── index.ts
+│       │   │   ├── decode-vin
+│       │   │   │   ├── __init__.py
+│       │   │   │   ├── __tests__
+│       │   │   │   │   ├── __init__.py
+│       │   │   │   │   └── mapping.test.ts
+│       │   │   │   ├── index.ts
+│       │   │   │   ├── index.ts.backup
+│       │   │   │   ├── index.ts.complex
+│       │   │   │   ├── supabase.toml
+│       │   │   │   └── test-simple.ts
+│       │   │   ├── enhanced-valuation
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── index.ts
+│       │   │   ├── error-analyzer
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── index.ts
+│       │   │   ├── iihs
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── index.ts
+│       │   │   ├── import_map.json
+│       │   │   ├── investigations
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── index.ts
+│       │   │   ├── jobs
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── backfill-safety-json
+│       │   │   │       ├── __init__.py
+│       │   │   │       └── index.ts
+│       │   │   ├── market-signals
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── index.ts
+│       │   │   ├── oem-features
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── index.ts
+│       │   │   ├── openai-market-search
+│       │   │   │   └── index.ts
+│       │   │   ├── operational-health
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── index.ts
+│       │   │   ├── qa-test-runner
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── index.ts
+│       │   │   ├── recalls
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── index.ts
+│       │   │   ├── safety
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── index.ts
+│       │   │   ├── test-complaints
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── index.ts
+│       │   │   ├── tests
+│       │   │   │   └── __init__.py
+│       │   │   ├── tsconfig.json
+│       │   │   ├── types
+│       │   │   │   ├── __init__.py
+│       │   │   │   └── node-shim.d.ts
+│       │   │   └── vin-validate
+│       │   │       ├── __init__.py
+│       │   │       └── index.ts
+│       │   ├── migrations
+│       │   │   ├── 20250808000001_create_core_tables.sql
+│       │   │   ├── 20250808000002_create_views_and_functions.sql
+│       │   │   ├── 20250808000003_insert_sample_data.sql
+│       │   │   ├── 20250808000005_phase1_phase2_enhancement.sql
+│       │   │   ├── 20250808000005_phase1_phase2_enhancement.sql.skip
+│       │   │   ├── 20250808120001_phase1_phase2_production.sql
+│       │   │   ├── 20250808213006_safety_airbags_lighting.sql
+│       │   │   ├── 20250808214043_safety_equipment_schema.sql
+│       │   │   ├── 20250808214150_enhance_vehicle_profiles_view.sql
+│       │   │   ├── 20250808214624_enhance_vehicle_profiles_materialized_view.sql
+│       │   │   ├── 20250808215421_vpic_safety_rpc_functions.sql
+│       │   │   ├── 20250808220001_recalls_rpc_functions.sql
+│       │   │   ├── 20250808223001_safety_rpc_functions.sql
+│       │   │   ├── 20250808224001_iihs_ratings_table.sql
+│       │   │   ├── 20250808224002_update_vehicle_profiles_iihs.sql
+│       │   │   ├── 20250808225001_nhtsa_complaints_investigations.sql
+│       │   │   ├── 20250808225001_oem_features_table.sql
+│       │   │   ├── 20250808225002_update_vehicle_profiles_complaints.sql
+│       │   │   ├── 20250808225002_update_vehicle_profiles_oem.sql
+│       │   │   ├── 20250811200001_market_signals_baseline.sql
+│       │   │   ├── 20250811201001_enhanced_valuation_adjusters.sql
+│       │   │   ├── 20250811202001_qa_ops_golden_vins.sql
+│       │   │   ├── 20250811202002_golden_vins_dataset.sql
+│       │   │   ├── 20250819_zip_centroids.sql
+│       │   │   ├── 20250822_rls_hardening.sql
+│       │   │   ├── README.md
+│       │   │   ├── __init__.py
+│       │   │   └── backup
+│       │   │       ├── 20250808213006_safety_airbags_lighting.sql
+│       │   │       ├── 20250808214043_safety_equipment_schema.sql
+│       │   │       ├── 20250808214150_enhance_vehicle_profiles_view.sql
+│       │   │       ├── 20250808214624_enhance_vehicle_profiles_materialized_view.sql
+│       │   │       ├── 20250808215421_vpic_safety_rpc_functions.sql
+│       │   │       ├── 20250808220001_recalls_rpc_functions.sql
+│       │   │       ├── 20250808223001_safety_rpc_functions.sql
+│       │   │       ├── 20250808224001_iihs_ratings_table.sql
+│       │   │       ├── 20250808224002_update_vehicle_profiles_iihs.sql
+│       │   │       ├── 20250808225001_nhtsa_complaints_investigations.sql
+│       │   │       ├── 20250808225001_oem_features_table.sql
+│       │   │       ├── 20250808225002_update_vehicle_profiles_complaints.sql
+│       │   │       ├── 20250808225002_update_vehicle_profiles_oem.sql
+│       │   │       └── __init__.py
+│       │   └── seed.sql
+│       ├── tailwind.config.js
+│       ├── tech_inventory_sample.json
+│       ├── test
+│       │   └── setup.ts
+│       ├── test-vin-decode.sh
+│       ├── test_enrichment_edge_cases.py
+│       ├── test_export_pdf.py
+│       ├── test_export_utils.py
+│       ├── test_extraction_fix.cjs
+│       ├── test_feature_spec.json
+│       ├── test_fixed_vin_decoder.mjs
+│       ├── test_frontend_decoder.mjs
+│       ├── test_frontend_js.cjs
+│       ├── test_iihs_integration.mjs
+│       ├── test_llm_comprehensive.py
+│       ├── test_pr_b_vpic_mapping.sql
+│       ├── test_pr_c_recalls.sql
+│       ├── test_pr_d_market_signals.cjs
+│       ├── test_pr_d_safety.sql
+│       ├── test_pr_e_enhanced_valuation.cjs
+│       ├── test_pr_f_backfill.sh
+│       ├── test_pr_f_sanity.sh
+│       ├── test_problematic_vin.py
+│       ├── test_simple_backfill.sh
+│       ├── test_valuation_engine_enrichment.py
+│       ├── test_vehicle_data_enrichment.py
+│       ├── test_vin_decoder_abstraction.py
+│       ├── test_vin_decoder_pipeline_integration.py
+│       ├── test_vin_flow.py
+│       ├── test_vin_lookup_flow.py
+│       ├── test_vin_usage.py
+│       ├── testfile
+│       ├── tests
+│       │   ├── __init__.py
+│       │   ├── assert_acceptance.py
+│       │   ├── backtest.py
+│       │   ├── codeQuality.test.ts
+│       │   ├── conftest.py
+│       │   ├── consolidation.test.ts
+│       │   ├── engine
+│       │   │   ├── test_confidence.py
+│       │   │   ├── test_explain.py
+│       │   │   ├── test_fallbacks.py
+│       │   │   ├── test_fuel_adjuster.py
+│       │   │   ├── test_reference_options.py
+│       │   │   └── test_vin_correction.py
+│       │   ├── services
+│       │   │   ├── __init__.py
+│       │   │   ├── gpt4oService.test.ts
+│       │   │   └── valuationEngine.test.ts
+│       │   ├── setup.ts
+│       │   ├── smoke.test.ts
+│       │   ├── test_api.py
+│       │   ├── test_basic.py
+│       │   ├── test_cli.py
+│       │   ├── test_comps_selector.py
+│       │   ├── test_config_loader.py
+│       │   ├── test_etl_market_data.py
+│       │   ├── test_explainability.py
+│       │   ├── test_feature_contract.py
+│       │   ├── test_inference.py
+│       │   ├── test_model_retraining.py
+│       │   ├── test_monitoring.py
+│       │   ├── test_video_integration.py
+│       │   ├── test_vin_decoder.py
+│       │   ├── test_vin_utils.py
+│       │   ├── test_vin_validation.py
+│       │   ├── unifiedVinDecoder.test.ts
+│       │   ├── utils
+│       │   │   ├── __init__.py
+│       │   │   └── errorHandling.test.ts
+│       │   ├── valuation_audit.ts
+│       │   └── valuation_e2e_debug.ts
+│       ├── tests_ml
+│       │   ├── __init__.py
+│       │   ├── test_drift_report.py
+│       │   ├── test_ensemble.py
+│       │   ├── test_feature_alignment.py
+│       │   ├── test_feature_contract.py
+│       │   ├── test_feature_pipeline.py
+│       │   ├── test_golden_set.py
+│       │   ├── test_inference_smoke.py
+│       │   ├── test_llm_explain.py
+│       │   ├── test_load_latency.py
+│       │   ├── test_shap_local.py
+│       │   └── test_vin_inference.py
+│       ├── train_market_value_model.py
+│       ├── tree-in.txt
+│       ├── tree-out.txt
+│       ├── ts-prune-report.txt
+│       ├── tsc-strict-report.txt
+│       ├── tsconfig.app.json
+│       ├── tsconfig.backend-only.json
+│       ├── tsconfig.backend.json
+│       ├── tsconfig.json
+│       ├── tsconfig.node.json
+│       ├── tsconfig.scripts.json
+│       ├── tsconfig.tmp.json
+│       ├── user_enrichment_template.py
+│       ├── ux
+│       │   ├── __init__.py
+│       │   └── feedback
+│       │       ├── __init__.py
+│       │       └── feedback_template.md
+│       ├── val_engine
+│       │   ├── __init__.py
+│       │   ├── api.py
+│       │   ├── comprehensive_test_data.py
+│       │   ├── enhanced_valuation_api.py
+│       │   ├── llm_summary.py
+│       │   ├── main.py
+│       │   ├── market.py
+│       │   ├── model.py
+│       │   ├── openapi.yaml
+│       │   ├── pipeline_loader.py
+│       │   ├── requirements.txt
+│       │   ├── shap_explainer.py
+│       │   ├── test_api.py
+│       │   ├── test_comprehensive_shap.py
+│       │   ├── train_tabular.py
+│       │   └── utils
+│       │       ├── __init__.py
+│       │       ├── conformal.py
+│       │       ├── data_loader.py
+│       │       ├── epa_lookup.py
+│       │       ├── feature_align.py
+│       │       ├── feature_builder.py
+│       │       ├── normalize_listing.py
+│       │       ├── schema.py
+│       │       └── vin.py
+│       ├── validate_db_output.py
+│       ├── validate_phase1_2.sh
+│       ├── validate_pr_c.sh
+│       ├── validate_pr_c_final.sh
+│       ├── validate_pr_f.sh
+│       ├── validation.py
+│       ├── valuation_computation_debug.ts
+│       ├── valuation_output.json
+│       ├── valuation_output_buy.json
+│       ├── valuation_output_sell.json
+│       ├── valuation_test_run.ts
+│       ├── vehicle_data_enrichment.py
+│       ├── vehicle_ensemble_and_llm.py
+│       ├── vehicle_price_api.py
+│       ├── vehicle_streaming_consumer.py
+│       ├── verify_vin_flow.py
+│       ├── vin_data_validation.py
+│       ├── vin_decode_debug.ts
+│       ├── vin_decode_module.py
+│       ├── vin_decoder_abstraction.py
+│       ├── vin_decoder_abstraction_FAANG_README.md
+│       ├── vin_decoder_coverage_matrix.py
+│       ├── vin_decoder_docs.md
+│       ├── vin_decoder_pipeline_integration.py
+│       ├── vin_fuzzy_deduplication.py
+│       ├── vin_golden_test_suite.py
+│       ├── vin_pipeline_alerts.py
+│       ├── vin_pipeline_metrics_exporter.py
+│       ├── vin_utils.py
+│       ├── vite.config.js
+│       ├── vite.config.ts
+│       ├── vite.config.ts.bak.bak.single-entry
+│       ├── vitest.config.ts
+│       └── 🧠
+├── audit-duplicates-report.txt
+├── bun.lockb
+├── components.json
+├── deno.lock
+├── depcheck-report.json
+├── deploy-edge-function.sh
+├── deploy-valuation-function.sh
+├── diagnose-db.js
+├── docs
+│   ├── CONFIG.md
+│   ├── DATA_SOURCES_AUDIT.md
+│   ├── MARKET_SEARCH_PIPELINE_FIXES.md
+│   ├── PLATFORM_WORKFLOW_OVERVIEW.md
+│   ├── README.md
+│   ├── ain-ops-card.md
+│   ├── ain-rollout-runbook.md
+│   ├── api
+│   │   └── README.md
+│   ├── canary-observation-log-example.md
+│   ├── canary-observation-log.md
+│   ├── operations
+│   │   └── runbook.md
+│   ├── operator-rollout-checklist.md
+│   └── staging-validation.md
+├── e "git push" to publish your local commits)
+├── e2e
+│   ├── ain-integration-smoke.spec.ts
+│   ├── ain-route-validation.spec.ts
+│   ├── ain-validation.test.ts
+│   ├── auth-access-flow.spec.ts
+│   ├── auth.test.ts
+│   ├── dashboard.test.ts
+│   ├── dealer-dashboard.spec.ts
+│   ├── dealer-offer-flow.spec.ts
+│   ├── dealer-signup.spec.ts
+│   ├── dealerInventory.test.ts
+│   ├── download-and-premium.spec.ts
+│   ├── download-report.spec.ts
+│   ├── explanation.spec.ts
+│   ├── free-valuation-flow.spec.ts
+│   ├── lookup.spec.ts
+│   ├── pdf-generation.spec.ts
+│   ├── pdfExport.test.ts
+│   ├── premium-payment-flow.spec.ts
+│   ├── premium-upgrade-flow.spec.ts
+│   ├── premium-valuation-flow.spec.ts
+│   ├── premium.spec.ts
+│   ├── route-integrity.spec.ts
+│   ├── smoke-config.spec.ts
+│   ├── stripe-flow.spec.ts
+│   ├── valuation-flow.spec.ts
+│   ├── valuationFlow.test.ts
+│   └── vinLookup.test.ts
+├── edmunds_import.py
+├── eslint.config.cjs
+├── eslint.config.js
+├── fix-rollup-issue.sh
+├── global.d.ts
+├── index.html
+├── install.sh
+├── package-lock.json
+├── package.json
+├── playwright-report
+│   └── index.html
+├── playwright.config.ts
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── postcss.config.cjs
+├── ptional=false
+├── public
+│   ├── favicon.ico
+│   ├── fonts
+│   │   └── inter-var.woff2
+│   ├── images
+│   │   ├── grid-pattern.svg
+│   │   ├── hero-car.png
+│   │   └── pdf-preview.png
+│   ├── logos
+│   │   ├── carfax.png
+│   │   ├── military.png
+│   │   └── stripe.png
+│   ├── placeholder.svg
+│   └── robots.txt
+├── repo_tree.txt
+├── rollup.config.js
+├── run_import.bat
+├── scripts
+│   ├── README.md
+│   ├── analyzeConfidenceFailures.ts
+│   ├── check-import-guard.sh
+│   ├── clean-remaining-logs.js
+│   ├── cleanup-console-logs.js
+│   ├── deploy-ain-valuation.sh
+│   ├── final-verification.sh
+│   ├── inject-runtime-config.ts
+│   ├── mass-console-cleanup.js
+│   ├── refactors
+│   │   ├── fix-browser-env-and-react.ts
+│   │   ├── remove-console-statements.ts
+│   │   └── update-valuation-imports.ts
+│   ├── regressionSuite.ts
+│   ├── validate-ain-integration.sh
+│   ├── validate-no-banned-patterns.sh
+│   └── valuationTestRunner.ts
+├── shared
+│   └── types
+│       └── vehicle-data.ts
+├── src
+│   ├── App.css
+│   ├── App.routes.tsx
+│   ├── App.tsx
+│   ├── SCRAPER_CLEANUP_LOG.md
+│   ├── __archive__
+│   │   ├── README.md
+│   │   └── auction-utils.ts
+│   ├── __tests__
+│   │   ├── acceptance
+│   │   │   └── HomeAndPremium.test.tsx
+│   │   ├── followUpFormFixTests.test.ts
+│   │   ├── generateValuationPdf.test.ts
+│   │   ├── rls-access.test.ts
+│   │   └── utils
+│   │       └── formatCurrency.test.ts
+│   ├── agents
+│   │   ├── marketPriceEstimator.ts
+│   │   ├── marketSearchAgent.ts
+│   │   └── marketSearchHelpers.ts
+│   ├── api
+│   │   ├── sources
+│   │   │   └── carmax.ts
+│   │   └── vehicleApi.ts
+│   ├── components
+│   │   ├── AinRouteBadge.tsx
+│   │   ├── SimilarListingsSection.tsx
+│   │   ├── admin
+│   │   │   ├── DataAggregationDashboard.tsx
+│   │   │   ├── FANGOrchestrationDashboard.tsx
+│   │   │   ├── MsrpPopulationPanel.tsx
+│   │   │   ├── PersistenceHealthDashboard.tsx
+│   │   │   ├── SystemHealthDashboard.tsx
+│   │   │   ├── ValuationDebugDashboard.tsx
+│   │   │   ├── heatmap
+│   │   │   │   └── AdjustmentHeatmap.tsx
+│   │   │   └── testing
+│   │   │       └── AuthTestPanel.tsx
+│   │   ├── animations
+│   │   │   ├── AnimatedCounter.tsx
+│   │   │   ├── EmptyStateAnimation.tsx
+│   │   │   ├── ProgressRing.tsx
+│   │   │   ├── index.ts
+│   │   │   └── utils.ts
+│   │   ├── audit
+│   │   │   └── AuditChecklist.tsx
+│   │   ├── auth
+│   │   │   ├── AuthGuard.tsx
+│   │   │   ├── GoogleAuthButton.tsx
+│   │   │   └── forms
+│   │   │       └── SharedLoginForm.tsx
+│   │   ├── chat
+│   │   │   ├── AIChatBubble.tsx
+│   │   │   └── AINAssistantTrigger.tsx
+│   │   ├── common
+│   │   │   ├── CarFinderQaherHeader.tsx
+│   │   │   ├── EnhancedErrorBoundary.tsx
+│   │   │   ├── ExteriorConditionSelectorBar.tsx
+│   │   │   ├── InteriorConditionSelectorBar.tsx
+│   │   │   ├── RouteRedirect.tsx
+│   │   │   ├── SEO.tsx
+│   │   │   ├── TireConditionSelectorBar.tsx
+│   │   │   ├── UnifiedConditionSelector.tsx
+│   │   │   ├── UnifiedLoadingSystem.tsx
+│   │   │   ├── ZipCodeInput.tsx
+│   │   │   ├── __tests__
+│   │   │   │   └── ZipCodeInput.test.tsx
+│   │   │   └── index.ts
+│   │   ├── comprehensive
+│   │   │   ├── ComprehensiveValuationReport.tsx
+│   │   │   ├── IndustryLeaderDataSection.tsx
+│   │   │   └── MarketplaceDataSection.tsx
+│   │   ├── dashboard
+│   │   │   ├── DashboardRouter.tsx
+│   │   │   └── PremiumBadge.tsx
+│   │   ├── dealer
+│   │   │   ├── AcceptedOfferCard.tsx
+│   │   │   ├── DealerDashboardContent.tsx
+│   │   │   ├── DealerOfferForm.tsx
+│   │   │   ├── DealerOffersList.tsx
+│   │   │   ├── DealerSidebar.tsx
+│   │   │   ├── DealerSignupForm.tsx
+│   │   │   ├── OfferAcceptanceModal.tsx
+│   │   │   ├── OfferScoreBadge.tsx
+│   │   │   └── index.ts
+│   │   ├── dealer-messages
+│   │   │   ├── DealerMessagesLayout.tsx
+│   │   │   └── context
+│   │   │       └── LeadsContext.tsx
+│   │   ├── debug
+│   │   │   ├── MakesModelsDisplay.tsx
+│   │   │   └── VehicleDataDebug.tsx
+│   │   ├── dev
+│   │   │   └── ComponentVisibilityHelper.tsx
+│   │   ├── effects
+│   │   │   └── ConfettiEffect.tsx
+│   │   ├── enriched
+│   │   │   ├── EnrichedDataCard.tsx
+│   │   │   └── PremiumEnrichmentGate.tsx
+│   │   ├── features
+│   │   │   ├── EnhancedFeaturesSelector.tsx
+│   │   │   └── FeatureCard.tsx
+│   │   ├── followup
+│   │   │   ├── FollowUpProgress.tsx
+│   │   │   ├── QuickOverviewCard.tsx
+│   │   │   ├── SaveStatusIndicator.tsx
+│   │   │   ├── SilentSaveIndicator.tsx
+│   │   │   ├── TabNavigation.tsx
+│   │   │   ├── TabProgressHeader.tsx
+│   │   │   ├── TabValidationAlerts.tsx
+│   │   │   ├── TabbedFollowUpForm.tsx
+│   │   │   ├── UnifiedFollowUpForm.tsx
+│   │   │   ├── index.ts
+│   │   │   ├── inputs
+│   │   │   │   ├── ConditionSelector.tsx
+│   │   │   │   ├── EnhancedZipCodeInput.tsx
+│   │   │   │   ├── MileageInput.tsx
+│   │   │   │   ├── SimpleMileageInput.tsx
+│   │   │   │   ├── SimpleZipCodeInput.tsx
+│   │   │   │   └── ZipCodeInput.tsx
+│   │   │   ├── tabs
+│   │   │   │   ├── AccidentHistoryTab.tsx
+│   │   │   │   ├── AccidentsTab.tsx
+│   │   │   │   ├── AudioEntertainmentTab.tsx
+│   │   │   │   ├── BasicInfoTab.tsx
+│   │   │   │   ├── ClimateControlTab.tsx
+│   │   │   │   ├── ConditionTab.tsx
+│   │   │   │   ├── DashboardLightsTab.tsx
+│   │   │   │   ├── DriverAssistanceTab.tsx
+│   │   │   │   ├── ExteriorFeaturesTab.tsx
+│   │   │   │   ├── FeaturesTab.tsx
+│   │   │   │   ├── FinalReviewTab.tsx
+│   │   │   │   ├── InteriorMaterialsTab.tsx
+│   │   │   │   ├── LuxuryMaterialsTab.tsx
+│   │   │   │   ├── ModificationsTab.tsx
+│   │   │   │   ├── PerformancePackagesTab.tsx
+│   │   │   │   ├── PhysicalFeaturesTab.tsx
+│   │   │   │   ├── ReviewTab.tsx
+│   │   │   │   ├── SafetySecurityTab.tsx
+│   │   │   │   ├── ServiceHistoryTab.tsx
+│   │   │   │   ├── ServiceMaintenanceTab.tsx
+│   │   │   │   ├── SimplifiedBasicInfoTab.tsx
+│   │   │   │   ├── TechnologyTab.tsx
+│   │   │   │   ├── TiresBrakesTab.tsx
+│   │   │   │   ├── TitleOwnershipTab.tsx
+│   │   │   │   ├── VehicleBasicsTab.tsx
+│   │   │   │   ├── VehicleConditionTab.tsx
+│   │   │   │   ├── VehicleIssuesTab.tsx
+│   │   │   │   └── index.ts
+│   │   │   └── validation
+│   │   │       └── TabValidation.ts
+│   │   ├── footer
+│   │   │   └── index.ts
+│   │   ├── form
+│   │   │   ├── VehicleFormToolTip.tsx
+│   │   │   ├── index.ts
+│   │   │   └── validation.ts
+│   │   ├── home
+│   │   │   ├── AiAssistantPreview.tsx
+│   │   │   ├── CarCard.tsx
+│   │   │   ├── ComparisonTable.tsx
+│   │   │   ├── CoreValueProps.tsx
+│   │   │   ├── EnhancedFeatures.tsx
+│   │   │   ├── EnhancedTestimonialsCarousel.tsx
+│   │   │   ├── EnterpriseFeaturesSection.tsx
+│   │   │   ├── EnterpriseHeroSection.tsx
+│   │   │   ├── EnterpriseStatsSection.tsx
+│   │   │   ├── EnterpriseTestimonialsSection.tsx
+│   │   │   ├── FangHeroSection.tsx
+│   │   │   ├── FeaturesOverview.tsx
+│   │   │   ├── FinalCTA.tsx
+│   │   │   ├── IndustryProof.tsx
+│   │   │   ├── InstantTrustBar.tsx
+│   │   │   ├── KeyFeatures.tsx
+│   │   │   ├── LookupTabs.tsx
+│   │   │   ├── MarketSnapshot.tsx
+│   │   │   ├── OnboardingTour.tsx
+│   │   │   ├── PdfPreview.tsx
+│   │   │   ├── PhotoScoringWidget.tsx
+│   │   │   ├── PremiumFeatures.tsx
+│   │   │   ├── PremiumHeroSection.tsx
+│   │   │   ├── PremiumServicesGrid.tsx
+│   │   │   ├── ProofPointsSection.tsx
+│   │   │   ├── SocialProofSection.tsx
+│   │   │   ├── TestimonialsSection.tsx
+│   │   │   ├── TrustIndicatorsSection.tsx
+│   │   │   ├── ValuePropositionGrid.tsx
+│   │   │   ├── ValuePropositionSection.tsx
+│   │   │   └── WelcomeBanner.tsx
+│   │   ├── index.ts
+│   │   ├── layout
+│   │   │   ├── Footer.tsx
+│   │   │   ├── Header.tsx
+│   │   │   ├── MobileMenu.tsx
+│   │   │   ├── Navbar.tsx
+│   │   │   ├── ReactNodeWrapper.tsx
+│   │   │   ├── index.ts
+│   │   │   └── seo
+│   │   │       └── index.tsx
+│   │   ├── lookup
+│   │   │   ├── ConditionSelectorSegmented.tsx
+│   │   │   ├── UnifiedLookupTabs.tsx
+│   │   │   ├── UnifiedPlateLookup.tsx
+│   │   │   ├── VehicleDetailsGrid.tsx
+│   │   │   ├── VehicleHistory.tsx
+│   │   │   ├── VehicleInfoCard.tsx
+│   │   │   ├── VehicleScoring.tsx
+│   │   │   ├── followup
+│   │   │   │   ├── FollowupStep.tsx
+│   │   │   │   └── FollowupStepManager.tsx
+│   │   │   ├── forecast
+│   │   │   │   ├── ForecastMetrics.tsx
+│   │   │   │   └── ForecastTrendIndicator.tsx
+│   │   │   ├── form-parts
+│   │   │   │   ├── AdditionalDetailsSection.tsx
+│   │   │   │   ├── ConditionAndFuelInputs.tsx
+│   │   │   │   ├── EnhancedVehicleSelector.tsx
+│   │   │   │   ├── EnhancedVehicleSelectorWithLogos.tsx
+│   │   │   │   ├── FormSelect.tsx
+│   │   │   │   ├── MakeAndModelSelector.tsx
+│   │   │   │   ├── TitleStatusSection.tsx
+│   │   │   │   ├── TrimSelector.tsx
+│   │   │   │   ├── UnifiedFollowUpQuestions.tsx
+│   │   │   │   ├── ValuationFormActions.tsx
+│   │   │   │   ├── VehicleConditionSlider.tsx
+│   │   │   │   ├── VehicleDetailsInputs.tsx
+│   │   │   │   ├── VehicleFeatureSelect.tsx
+│   │   │   │   └── fields
+│   │   │   │       └── FuelTypeSelect.tsx
+│   │   │   ├── index.ts
+│   │   │   ├── photo
+│   │   │   │   └── PhotoLookupForm.tsx
+│   │   │   ├── plate
+│   │   │   │   └── PlateInfoCard.tsx
+│   │   │   ├── scoring
+│   │   │   │   ├── BreakdownItem.tsx
+│   │   │   │   ├── BreakdownList.tsx
+│   │   │   │   ├── ConfidenceScore.tsx
+│   │   │   │   └── VehicleScoreInfo.tsx
+│   │   │   └── types
+│   │   │       └── valuation.ts
+│   │   ├── market
+│   │   │   └── GoogleStyleListings.tsx
+│   │   ├── marketing
+│   │   │   ├── AnnouncementBar.tsx
+│   │   │   ├── FeatureBanner.tsx
+│   │   │   ├── MarketingBanner.tsx
+│   │   │   └── index.ts
+│   │   ├── modals
+│   │   │   ├── ConfirmOfferModal.tsx
+│   │   │   ├── PhotoToolModal.tsx
+│   │   │   ├── ValuationStepsModal.tsx
+│   │   │   └── index.ts
+│   │   ├── navbar
+│   │   │   └── index.ts
+│   │   ├── notifications
+│   │   │   └── DealerOfferNotification.tsx
+│   │   ├── pdf
+│   │   │   └── PDFPreview.tsx
+│   │   ├── premium
+│   │   │   ├── BuyCreditsModal.tsx
+│   │   │   ├── ComparisonSection.tsx
+│   │   │   ├── FeaturesSection.tsx
+│   │   │   ├── MarketOffersTab.tsx
+│   │   │   ├── MarketTrends.tsx
+│   │   │   ├── PremiumAccessGate.tsx
+│   │   │   ├── PremiumAccessRequired.tsx
+│   │   │   ├── PremiumCard.tsx
+│   │   │   ├── PremiumHero.tsx
+│   │   │   ├── PremiumSuccessPage.tsx
+│   │   │   ├── PremiumUpgradeCTA.tsx
+│   │   │   ├── PremiumValuationSection.tsx
+│   │   │   ├── ValuationBreakdown.tsx
+│   │   │   ├── VehicleDataInfo.tsx
+│   │   │   ├── account
+│   │   │   │   └── index.ts
+│   │   │   ├── checkout
+│   │   │   │   ├── CheckoutSummary.tsx
+│   │   │   │   ├── PremiumCheckoutButton.tsx
+│   │   │   │   └── index.ts
+│   │   │   ├── common
+│   │   │   │   ├── FormErrorBoundary.tsx
+│   │   │   │   └── FormValidationError.tsx
+│   │   │   ├── condition
+│   │   │   │   └── DetailedConditionRating.tsx
+│   │   │   ├── dashboard
+│   │   │   │   └── index.ts
+│   │   │   ├── features
+│   │   │   │   ├── ComprehensiveFeatureSelector.tsx
+│   │   │   │   ├── EnhancedPremiumFeaturesTabs.tsx
+│   │   │   │   ├── FeatureGrid.tsx
+│   │   │   │   ├── PremiumCondition.tsx
+│   │   │   │   ├── PremiumFeatureCard.tsx
+│   │   │   │   ├── PremiumFeaturesGrid.tsx
+│   │   │   │   ├── PremiumFeaturesTabs.tsx
+│   │   │   │   ├── PremiumHistory.tsx
+│   │   │   │   ├── PremiumInfoCards.tsx
+│   │   │   │   └── data
+│   │   │   │       └── premium-features.ts
+│   │   │   ├── form
+│   │   │   │   ├── AccuracyMeter.tsx
+│   │   │   │   ├── FormStepLayout.tsx
+│   │   │   │   ├── FormStepNavigation.tsx
+│   │   │   │   ├── FormSteps.tsx
+│   │   │   │   ├── PremiumValuationForm.tsx
+│   │   │   │   ├── ProgressIndicator.tsx
+│   │   │   │   ├── StepProgressIndicator.tsx
+│   │   │   │   ├── initialization
+│   │   │   │   │   └── FormInitializer.tsx
+│   │   │   │   ├── steps
+│   │   │   │   │   ├── AccidentHistoryStep.tsx
+│   │   │   │   │   ├── ConditionStep.tsx
+│   │   │   │   │   ├── DrivingBehaviorStep.tsx
+│   │   │   │   │   ├── FeatureSelectionStep.tsx
+│   │   │   │   │   ├── FuelTypeStep.tsx
+│   │   │   │   │   ├── MaintenanceHistoryStep.tsx
+│   │   │   │   │   ├── MileageStep.tsx
+│   │   │   │   │   ├── PredictionReviewStep.tsx
+│   │   │   │   │   ├── StateSelect.tsx
+│   │   │   │   │   ├── VehicleDetailsStep.tsx
+│   │   │   │   │   ├── VehicleIdentificationStep.tsx
+│   │   │   │   │   ├── accident-history
+│   │   │   │   │   │   └── AccidentHistoryForm.tsx
+│   │   │   │   │   ├── features
+│   │   │   │   │   │   ├── FeaturesGrid.tsx
+│   │   │   │   │   │   └── FeaturesTotalValue.tsx
+│   │   │   │   │   ├── prediction-review
+│   │   │   │   │   │   ├── FeaturesDisplay.tsx
+│   │   │   │   │   │   ├── GetValuationButton.tsx
+│   │   │   │   │   │   └── VehicleSummaryCard.tsx
+│   │   │   │   │   ├── review
+│   │   │   │   │   │   ├── DrivingBehaviorSummary.tsx
+│   │   │   │   │   │   ├── FeaturesSummary.tsx
+│   │   │   │   │   │   ├── PhotosSummary.tsx
+│   │   │   │   │   │   ├── ReviewActions.tsx
+│   │   │   │   │   │   ├── VehicleDetailsSummary.tsx
+│   │   │   │   │   │   └── VehicleSummary.tsx
+│   │   │   │   │   └── vehicle-details
+│   │   │   │   │       ├── AccidentHistorySection.tsx
+│   │   │   │   │       └── VehicleDetailsFields.tsx
+│   │   │   │   └── vehicle-details
+│   │   │   │       ├── RecallToggle.tsx
+│   │   │   │       ├── TransmissionSelect.tsx
+│   │   │   │       └── WarrantySelect.tsx
+│   │   │   ├── hero
+│   │   │   │   ├── CarfaxBadge.tsx
+│   │   │   │   ├── CarfaxHighlights.tsx
+│   │   │   │   ├── FeatureCards.tsx
+│   │   │   │   └── PremiumValuationCard.tsx
+│   │   │   ├── index.ts
+│   │   │   ├── insights
+│   │   │   │   ├── AINSummary.tsx
+│   │   │   │   └── CarfaxSummary.tsx
+│   │   │   ├── lookup
+│   │   │   │   ├── PhotoUpload.tsx
+│   │   │   │   ├── PlateLookup.tsx
+│   │   │   │   ├── VinSubmitButton.tsx
+│   │   │   │   ├── form-parts
+│   │   │   │   │   ├── AccidentSection.tsx
+│   │   │   │   │   ├── BasicVehicleInfo.tsx
+│   │   │   │   │   ├── FeatureValueDisplay.tsx
+│   │   │   │   │   ├── FormHeader.tsx
+│   │   │   │   │   ├── SectionCard.tsx
+│   │   │   │   │   ├── SubmitButton.tsx
+│   │   │   │   │   └── fields
+│   │   │   │   │       └── YearMileageInputs.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── plate
+│   │   │   │   │   ├── EnhancedPlateForm.tsx
+│   │   │   │   │   └── VehicleFoundCard.tsx
+│   │   │   │   ├── shared
+│   │   │   │   │   ├── ValuationErrorState.tsx
+│   │   │   │   │   ├── ValuationStages.tsx
+│   │   │   │   │   └── states-data.ts
+│   │   │   │   └── vin
+│   │   │   │       ├── CarfaxErrorAlert.tsx
+│   │   │   │       └── VinDecoderResults.tsx
+│   │   │   ├── sections
+│   │   │   │   ├── ConditionAssessmentSection.tsx
+│   │   │   │   ├── FreeVsPremiumComparison.tsx
+│   │   │   │   ├── PremiumConditionSection.tsx
+│   │   │   │   ├── PremiumFaq.tsx
+│   │   │   │   ├── PremiumFeaturesSection.tsx
+│   │   │   │   ├── PremiumPricing.tsx
+│   │   │   │   ├── PremiumTestimonials.tsx
+│   │   │   │   ├── ValueEstimateCard.tsx
+│   │   │   │   └── valuation-tabs
+│   │   │   │       ├── CarfaxReportTab.tsx
+│   │   │   │       ├── DealerOffersTab.tsx
+│   │   │   │       ├── PhotoLookupTab.tsx
+│   │   │   │       ├── PhotoUploadTab.tsx
+│   │   │   │       ├── TabContent.tsx
+│   │   │   │       ├── TabContentWrapper.tsx
+│   │   │   │       ├── TabHeader.tsx
+│   │   │   │       ├── TwelveMonthForecastTab.tsx
+│   │   │   │       ├── UnauthorizedRedirectTab.tsx
+│   │   │   │       ├── forecast
+│   │   │   │       │   ├── ForecastChart.tsx
+│   │   │   │       │   └── ForecastSummary.tsx
+│   │   │   │       ├── form-parts
+│   │   │   │       │   ├── AccidentDetailsForm.tsx
+│   │   │   │       │   └── VehicleDetailsForm.tsx
+│   │   │   │       ├── hooks
+│   │   │   │       │   └── useValuationState.ts
+│   │   │   │       ├── market-analysis
+│   │   │   │       │   ├── ComparableListingsTable.tsx
+│   │   │   │       │   ├── LocalMarketCard.tsx
+│   │   │   │       │   ├── MarketAnalysisTab.tsx
+│   │   │   │       │   ├── MarketInsightsTab.tsx
+│   │   │   │       │   ├── MarketPriceRange.tsx
+│   │   │   │       │   ├── MarketTrendCard.tsx
+│   │   │   │       │   ├── PriceComparisonChart.tsx
+│   │   │   │       │   └── PriceDistributionChart.tsx
+│   │   │   │       ├── services.ts
+│   │   │   │       └── services.tsx
+│   │   │   └── types.ts
+│   │   ├── privacy
+│   │   │   └── CookieBanner.tsx
+│   │   ├── professional
+│   │   │   └── ProfessionalResultsPage.tsx
+│   │   ├── profile
+│   │   │   ├── AvatarUpload.tsx
+│   │   │   └── ProfileForm.tsx
+│   │   ├── referrals
+│   │   │   ├── ReferralHistoryList.tsx
+│   │   │   ├── ReferralModal.tsx
+│   │   │   └── ReferralStatusCard.tsx
+│   │   ├── result
+│   │   │   ├── ResultHeader.tsx
+│   │   │   ├── VehicleDetailsCard.tsx
+│   │   │   └── useValuationId.ts
+│   │   ├── results
+│   │   │   └── SimilarListingsSection.tsx
+│   │   ├── saved
+│   │   │   └── SavedValuationsList.tsx
+│   │   ├── service-history
+│   │   │   ├── AddServiceForm.tsx
+│   │   │   ├── EmptyState.tsx
+│   │   │   ├── FileDropzone.tsx
+│   │   │   ├── ServiceDetailsForm.tsx
+│   │   │   ├── ServiceHistoryDisplay.tsx
+│   │   │   ├── ServiceHistoryUploader.tsx
+│   │   │   ├── ServiceRecordsEmpty.tsx
+│   │   │   ├── ServiceRecordsList.tsx
+│   │   │   ├── UploadStatusButton.tsx
+│   │   │   └── index.ts
+│   │   ├── sharing
+│   │   │   └── SocialShareButtons.tsx
+│   │   ├── stats
+│   │   │   ├── AnimatedCounter.tsx
+│   │   │   ├── LeaderboardRow.tsx
+│   │   │   ├── StatCard.tsx
+│   │   │   ├── StatsCard.tsx
+│   │   │   └── index.ts
+│   │   ├── steps
+│   │   │   └── VehicleLookup.tsx
+│   │   ├── test
+│   │   │   ├── PDFShareValidationComponent.tsx
+│   │   │   └── UIResultsDisplayValidationComponent.tsx
+│   │   ├── testing
+│   │   │   └── AuthTestPanel.tsx
+│   │   ├── theme
+│   │   │   ├── ThemeProvider.tsx
+│   │   │   ├── ThemeToggle.tsx
+│   │   │   └── index.ts
+│   │   ├── title-ownership
+│   │   │   ├── OwnershipHistory.tsx
+│   │   │   ├── TitleStatusSelector.tsx
+│   │   │   ├── VehicleHistoryForm.tsx
+│   │   │   ├── VehicleHistorySection.tsx
+│   │   │   ├── VinInputSection.tsx
+│   │   │   └── index.ts
+│   │   ├── ui
+│   │   │   ├── ColorSwatch.tsx
+│   │   │   ├── ErrorMessage.tsx
+│   │   │   ├── MarkdownRenderer.tsx
+│   │   │   ├── UpgradeCTA.tsx
+│   │   │   ├── accordion.tsx
+│   │   │   ├── alert-dialog.tsx
+│   │   │   ├── alert.tsx
+│   │   │   ├── animated-button.tsx
+│   │   │   ├── animated-card.tsx
+│   │   │   ├── aspect-ratio.tsx
+│   │   │   ├── avatar.tsx
+│   │   │   ├── badge-enhanced.tsx
+│   │   │   ├── badge.tsx
+│   │   │   ├── breadcrumb.tsx
+│   │   │   ├── button-enhanced.tsx
+│   │   │   ├── button.tsx
+│   │   │   ├── calendar.tsx
+│   │   │   ├── card-enhanced.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── carousel.tsx
+│   │   │   ├── chart.tsx
+│   │   │   ├── checkbox.tsx
+│   │   │   ├── collapsible.tsx
+│   │   │   ├── combo-box.tsx
+│   │   │   ├── combobox.d.ts
+│   │   │   ├── combobox.tsx
+│   │   │   ├── command.tsx
+│   │   │   ├── condition-badge.tsx
+│   │   │   ├── container.tsx
+│   │   │   ├── context-menu.tsx
+│   │   │   ├── custom-button.tsx
+│   │   │   ├── data-table.tsx
+│   │   │   ├── delete-confirmation-dialog.tsx
+│   │   │   ├── design-system
+│   │   │   │   ├── DesignCard.tsx
+│   │   │   │   └── SectionHeader.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── drawer.tsx
+│   │   │   ├── dropdown-menu.tsx
+│   │   │   ├── empty-state.tsx
+│   │   │   ├── enhanced
+│   │   │   │   ├── FeatureSection.tsx
+│   │   │   │   ├── PricingSection.tsx
+│   │   │   │   ├── ProfessionalButton.tsx
+│   │   │   │   ├── ProfessionalCard.tsx
+│   │   │   │   ├── ProfessionalHero.tsx
+│   │   │   │   ├── ProfessionalModal.tsx
+│   │   │   │   ├── TestimonialSection.tsx
+│   │   │   │   └── index.ts
+│   │   │   ├── entity-card.tsx
+│   │   │   ├── form.tsx
+│   │   │   ├── hover-card.tsx
+│   │   │   ├── icons.tsx
+│   │   │   ├── index.ts
+│   │   │   ├── input-enhanced.tsx
+│   │   │   ├── input-otp.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── label.tsx
+│   │   │   ├── menubar.tsx
+│   │   │   ├── modal.tsx
+│   │   │   ├── navigation-menu.tsx
+│   │   │   ├── no-results.tsx
+│   │   │   ├── pagination.tsx
+│   │   │   ├── popover.tsx
+│   │   │   ├── premium-badge.tsx
+│   │   │   ├── progress.tsx
+│   │   │   ├── radio-group.tsx
+│   │   │   ├── resizable.tsx
+│   │   │   ├── resource-header.tsx
+│   │   │   ├── scroll-area.tsx
+│   │   │   ├── search-and-filter-bar.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── separator.tsx
+│   │   │   ├── sheet.tsx
+│   │   │   ├── sidebar.tsx
+│   │   │   ├── skeleton-select.tsx
+│   │   │   ├── skeleton.tsx
+│   │   │   ├── slider.tsx
+│   │   │   ├── sonner.tsx
+│   │   │   ├── spinner.tsx
+│   │   │   ├── stepper.tsx
+│   │   │   ├── switch.tsx
+│   │   │   ├── table-enhanced.tsx
+│   │   │   ├── table.tsx
+│   │   │   ├── tabs-improved.tsx
+│   │   │   ├── tabs.tsx
+│   │   │   ├── textarea.tsx
+│   │   │   ├── theme-provider.tsx
+│   │   │   ├── toast.tsx
+│   │   │   ├── toaster.tsx
+│   │   │   ├── toggle-group.tsx
+│   │   │   ├── toggle.tsx
+│   │   │   └── tooltip.tsx
+│   │   ├── ui-kit
+│   │   │   ├── CDBadge.tsx
+│   │   │   ├── CDCard.tsx
+│   │   │   ├── CDFooter.tsx
+│   │   │   ├── CDInput.tsx
+│   │   │   ├── CDMobileCards.tsx
+│   │   │   ├── CDModal.tsx
+│   │   │   ├── CDMotionCard.tsx
+│   │   │   ├── CDNavbar.tsx
+│   │   │   ├── CDTable.tsx
+│   │   │   ├── CDTabs.tsx
+│   │   │   ├── CDTooltip.tsx
+│   │   │   ├── button
+│   │   │   │   └── CDButton.tsx
+│   │   │   ├── demo
+│   │   │   │   └── Demo.tsx
+│   │   │   ├── index.ts
+│   │   │   ├── tests
+│   │   │   │   └── components.test.tsx
+│   │   │   ├── tokens.ts
+│   │   │   └── typography.tsx
+│   │   ├── valuation
+│   │   │   ├── AIConditionBadge.tsx
+│   │   │   ├── AccidentImpactCard.tsx
+│   │   │   ├── AuctionHistorySection.tsx
+│   │   │   ├── AuctionInsightCard.tsx
+│   │   │   ├── AuctionIntelligenceCard.tsx
+│   │   │   ├── AuctionIntelligencePriceChart.tsx
+│   │   │   ├── AuctionResults.tsx
+│   │   │   ├── AuditAndSourcesAccordion.tsx
+│   │   │   ├── AutoAuctionsResults.tsx
+│   │   │   ├── BidCarsResults.tsx
+│   │   │   ├── CarFinderQaherCard.tsx
+│   │   │   ├── CensusIncomeTip.tsx
+│   │   │   ├── CompetitorPriceCard.tsx
+│   │   │   ├── CompetitorPriceComparison.tsx
+│   │   │   ├── ConfidenceExplanationBadge.tsx
+│   │   │   ├── ConfidenceScore.tsx
+│   │   │   ├── CorrectionTrigger.tsx
+│   │   │   ├── DataIntegrityPanel.tsx
+│   │   │   ├── DealerOffersSection.tsx
+│   │   │   ├── DrivingBehaviorInput.tsx
+│   │   │   ├── EpaMpgTip.tsx
+│   │   │   ├── FollowUpQuestions.tsx
+│   │   │   ├── GeoMultiplier.tsx
+│   │   │   ├── ListingProcessAuditForm.tsx
+│   │   │   ├── MarketBreakdownPanel.tsx
+│   │   │   ├── MarketDataWarning.tsx
+│   │   │   ├── MarketForecastCard.tsx
+│   │   │   ├── MarketListingCard.tsx
+│   │   │   ├── MarketTrendSection.tsx
+│   │   │   ├── MarketplaceComparisonCard.tsx
+│   │   │   ├── MarketplaceInsightCard.tsx
+│   │   │   ├── MissingInfoPrompt.tsx
+│   │   │   ├── NhtsaRecalls.tsx
+│   │   │   ├── NicbVinCheck.tsx
+│   │   │   ├── PhotoConditionScore.tsx
+│   │   │   ├── PhotoUploadAndScore.tsx
+│   │   │   ├── PredictionResult.tsx
+│   │   │   ├── PremiumPdfSection.tsx
+│   │   │   ├── ProcessAuditTrail.tsx
+│   │   │   ├── QrCodeDownload.tsx
+│   │   │   ├── RerunValuationButton.tsx
+│   │   │   ├── SeasonalAdjustment.tsx
+│   │   │   ├── SeasonalFactorDisplay.tsx
+│   │   │   ├── StarRating.tsx
+│   │   │   ├── TitleRecallPanel.tsx
+│   │   │   ├── UnifiedValuationResult.tsx
+│   │   │   ├── ValuationAuditTrail.tsx
+│   │   │   ├── ValuationDetailsForm.tsx
+│   │   │   ├── ValuationEmptyState.tsx
+│   │   │   ├── ValuationProgressDisplay.tsx
+│   │   │   ├── ValuationResultCard.tsx
+│   │   │   ├── ValuationResultsProps.ts
+│   │   │   ├── ValueBreakdown.tsx
+│   │   │   ├── VehicleFoundCard.tsx
+│   │   │   ├── WhyNotCountedCard.tsx
+│   │   │   ├── YearScroller.tsx
+│   │   │   ├── ZipMarketAnalysis.tsx
+│   │   │   ├── __tests__
+│   │   │   │   └── EpaMpgTip.test.tsx
+│   │   │   ├── comprehensive
+│   │   │   │   └── ComprehensiveValuationForm.tsx
+│   │   │   ├── condition
+│   │   │   │   ├── ConditionCategory.tsx
+│   │   │   │   ├── ConditionEvaluationGrid.tsx
+│   │   │   │   ├── ConditionSlider.tsx
+│   │   │   │   ├── ConditionTips.tsx
+│   │   │   │   ├── FactorSlider.tsx
+│   │   │   │   ├── ValuationFactorEngine.tsx
+│   │   │   │   ├── ValuationFactorExterior.tsx
+│   │   │   │   ├── ValuationFactorInterior.tsx
+│   │   │   │   ├── ValuationFactorPaint.tsx
+│   │   │   │   ├── ValuationFactorTires.tsx
+│   │   │   │   ├── ValuationFactorTransmission.tsx
+│   │   │   │   ├── conditionData.ts
+│   │   │   │   ├── conditionDescriptions.ts
+│   │   │   │   ├── conditionTips.ts
+│   │   │   │   ├── factors
+│   │   │   │   │   └── TitleStatusFactorCard.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   └── types.ts
+│   │   │   ├── detail
+│   │   │   │   └── VehicleDataTable.tsx
+│   │   │   ├── enhanced-followup
+│   │   │   │   └── EnhancedVehicleCard.tsx
+│   │   │   ├── enterprise
+│   │   │   │   └── EnterpriseValuationPanel.tsx
+│   │   │   ├── equipment
+│   │   │   │   ├── EquipmentSelector.tsx
+│   │   │   │   └── EquipmentSummary.tsx
+│   │   │   ├── free
+│   │   │   │   ├── FeaturesIncluded.tsx
+│   │   │   │   ├── FreeValuationForm.tsx
+│   │   │   │   └── UpsellBanner.tsx
+│   │   │   ├── header
+│   │   │   │   ├── UnifiedValuationHeader.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   └── types.ts
+│   │   │   ├── hooks
+│   │   │   │   └── useValuationData.ts
+│   │   │   ├── index.ts
+│   │   │   ├── market-trend
+│   │   │   │   ├── AnalysisSection.tsx
+│   │   │   │   ├── MarketTrendChart.tsx
+│   │   │   │   ├── MarketTrendContent.tsx
+│   │   │   │   ├── PremiumLockSection.tsx
+│   │   │   │   ├── TrendIndicator.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   └── useForecastData.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── offers
+│   │   │   │   ├── DealerOfferCard.tsx
+│   │   │   │   └── DealerOfferList.tsx
+│   │   │   ├── photo-upload
+│   │   │   │   ├── PhotoGrid.tsx
+│   │   │   │   ├── PhotoGuidance.tsx
+│   │   │   │   ├── PhotoHeader.tsx
+│   │   │   │   ├── PhotoPreview.tsx
+│   │   │   │   ├── PhotoUploadDropzone.tsx
+│   │   │   │   ├── PhotoUploadError.tsx
+│   │   │   │   ├── PhotoUploadList.tsx
+│   │   │   │   ├── PhotoUploader.tsx
+│   │   │   │   └── usePhotoUpload.ts
+│   │   │   ├── premium
+│   │   │   │   ├── AuctionSummary.tsx
+│   │   │   │   ├── DealerOffers.tsx
+│   │   │   │   ├── EmailReportSection.tsx
+│   │   │   │   └── PDFDownloadSection.tsx
+│   │   │   ├── redesign
+│   │   │   │   ├── ConfidenceRing.tsx
+│   │   │   │   ├── InteractiveValueBreakdown.tsx
+│   │   │   │   ├── LinearProgressStepper.tsx
+│   │   │   │   ├── MarketListingsGrid.tsx
+│   │   │   │   ├── PremiumFeatureOverlay.tsx
+│   │   │   │   ├── TabbedResultsPanels.tsx
+│   │   │   │   ├── ValueShowcase.tsx
+│   │   │   │   └── VehicleHeroCard.tsx
+│   │   │   ├── report
+│   │   │   │   ├── ValuationReport.tsx
+│   │   │   │   ├── ValuationReportHeader.tsx
+│   │   │   │   └── index.ts
+│   │   │   ├── result
+│   │   │   │   ├── AdjustmentTransparency.tsx
+│   │   │   │   ├── EnhancedConfidenceScore.tsx
+│   │   │   │   ├── EnhancedValuationResult.tsx
+│   │   │   │   ├── FallbackMethodDisclosure.tsx
+│   │   │   │   ├── MarketComparison.tsx
+│   │   │   │   ├── MarketDataStatus.tsx
+│   │   │   │   ├── PremiumFeatures.tsx
+│   │   │   │   ├── PriceRangeChart.tsx
+│   │   │   │   ├── ValuationActions.tsx
+│   │   │   │   ├── ValuationSummary.tsx
+│   │   │   │   ├── ValuationTransparency.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── sections
+│   │   │   │   │   ├── Explanation.tsx
+│   │   │   │   │   └── PDFActions.tsx
+│   │   │   │   └── useValuationPdf.ts
+│   │   │   ├── types.ts
+│   │   │   ├── valuation-complete
+│   │   │   │   └── ValuationComplete.tsx
+│   │   │   └── valuation-core
+│   │   │       ├── ValuationFactorsGrid.tsx
+│   │   │       ├── ValuationReport.tsx
+│   │   │       ├── ValuationReportHeader.tsx
+│   │   │       ├── ValuationResult.tsx
+│   │   │       └── ValuationScoreBar.tsx
+│   │   └── vehicle
+│   │       └── EpaMpgDisplay.tsx
+│   ├── config
+│   │   └── index.ts
+│   ├── contexts
+│   │   ├── ReferralContext.tsx
+│   │   └── ValuationContext.tsx
+│   ├── data
+│   │   ├── enhanced-features-database.ts
+│   │   ├── us-states.ts
+│   │   ├── vehicle-data.ts
+│   │   └── vehicle-features.ts
+│   ├── docs
+│   │   ├── prompt-2-3-audit-summary.md
+│   │   └── prompt-2-5-validation-summary.md
+│   ├── e2e
+│   │   ├── dealer-inventory.spec.ts
+│   │   ├── free-valuation.spec.ts
+│   │   ├── photo-upload-flow.spec.ts
+│   │   └── valuation-flow.test.ts
+│   ├── emails
+│   │   └── sendValuationPdfToDealer.ts
+│   ├── enrichment
+│   │   ├── getEnrichedVehicleData.ts
+│   │   ├── parsers
+│   │   │   └── normalizeAuction.ts
+│   │   ├── sources
+│   │   │   ├── fetchStatVinData.ts
+│   │   │   └── statvin.ts
+│   │   └── types.ts
+│   ├── env.d.ts
+│   ├── guards
+│   │   └── DealerGuard.tsx
+│   ├── hooks
+│   │   ├── index.ts
+│   │   ├── types
+│   │   │   ├── savedValuation.ts
+│   │   │   └── vehicle.ts
+│   │   ├── use-mobile.ts
+│   │   ├── use-mobile.tsx
+│   │   ├── use-toast.tsx
+│   │   ├── useAccidentImpact.ts
+│   │   ├── useAdminAnalytics.ts
+│   │   ├── useAnimatedInView.ts
+│   │   ├── useAuctionIndex.ts
+│   │   ├── useAuctionIntelligence.ts
+│   │   ├── useAuth.tsx
+│   │   ├── useAuthTests.ts
+│   │   ├── useCensus.ts
+│   │   ├── useCompetitorPrices.ts
+│   │   ├── useConsolidatedForecast.ts
+│   │   ├── useCorrectedValuation.ts
+│   │   ├── useDealerInsights.ts
+│   │   ├── useDealerNotifications.ts
+│   │   ├── useDealerOfferActions.ts
+│   │   ├── useDealerOfferComparison.ts
+│   │   ├── useDealerOffers.ts
+│   │   ├── useDealerValuations.ts
+│   │   ├── useDealerVehicles.ts
+│   │   ├── useDownloadPdf.ts
+│   │   ├── useEpaMpg.ts
+│   │   ├── useFeatureFlags.ts
+│   │   ├── useFollowUpAutoSave.ts
+│   │   ├── useFollowUpDataLoader.ts
+│   │   ├── useFollowUpForm.ts
+│   │   ├── useForecast.ts
+│   │   ├── useFormAutosave.ts
+│   │   ├── useFormSteps.ts
+│   │   ├── useFormValidation.ts
+│   │   ├── useFullValuationPipeline.ts
+│   │   ├── useLocalStorage.ts
+│   │   ├── useMakeModels.ts
+│   │   ├── useMarketInsights.ts
+│   │   ├── useMarketListings.ts
+│   │   ├── useMarketplaceComparison.ts
+│   │   ├── useMissingFieldAnalysis.ts
+│   │   ├── useNhtsaRecalls.ts
+│   │   ├── useNicbVinCheck.ts
+│   │   ├── useOsmGeocode.ts
+│   │   ├── usePersistenceHealth.ts
+│   │   ├── usePlateLookup.ts
+│   │   ├── usePrediction.ts
+│   │   ├── usePremiumAccess.ts
+│   │   ├── usePremiumCredits.ts
+│   │   ├── usePremiumDealer.ts
+│   │   ├── usePremiumPayment.ts
+│   │   ├── usePremiumStatus.ts
+│   │   ├── useProfile.ts
+│   │   ├── usePublicShare.ts
+│   │   ├── useSaveValuation.ts
+│   │   ├── useScrapedListings.ts
+│   │   ├── useServiceHistory.ts
+│   │   ├── useShareReport.ts
+│   │   ├── useSimpleFollowUpForm.ts
+│   │   ├── useStepNavigation.ts
+│   │   ├── useStepTransition.ts
+│   │   ├── useUnifiedDecoder.ts
+│   │   ├── useUnifiedLookup.ts
+│   │   ├── useUser.ts
+│   │   ├── useUserPlan.ts
+│   │   ├── useUserRole.ts
+│   │   ├── useValidation.ts
+│   │   ├── useValuationApi.ts
+│   │   ├── useValuationChat.ts
+│   │   ├── useValuationData.ts
+│   │   ├── useValuationFactors.ts
+│   │   ├── useValuationFallback.ts
+│   │   ├── useValuationIntegration.ts
+│   │   ├── useValuationResult.ts
+│   │   ├── useVehicleDBData.ts
+│   │   ├── useVehicleData.ts
+│   │   ├── useVehicleHistory.ts
+│   │   ├── useVehicleLookup.ts
+│   │   ├── useVehicleSelector.ts
+│   │   ├── useVehicleSelectors.ts
+│   │   ├── useVinForecast.ts
+│   │   ├── useVinInput.ts
+│   │   ├── useVinLookup.ts
+│   │   ├── useVpicVinLookup.ts
+│   │   ├── useZipValidation.ts
+│   │   └── valuation-pipeline
+│   │       ├── index.ts
+│   │       ├── service.ts
+│   │       ├── types.ts
+│   │       └── useValuationPipeline.ts
+│   ├── i18n
+│   │   ├── config.ts
+│   │   ├── locales
+│   │   │   ├── ar
+│   │   │   │   └── vehicle.json
+│   │   │   └── en
+│   │   │       └── common.json
+│   │   └── useLocalization.ts
+│   ├── index.ts
+│   ├── integrations
+│   │   ├── ai
+│   │   │   └── serverClient.ts
+│   │   ├── openai
+│   │   │   └── client.ts
+│   │   └── supabase
+│   │       ├── auditLogClient.ts
+│   │       ├── client.ts
+│   │       └── types.ts
+│   ├── layouts
+│   │   ├── AuthLayout.tsx
+│   │   ├── AuthenticatedLayout.tsx
+│   │   ├── DealerLayout.tsx
+│   │   └── MainLayout.tsx
+│   ├── lib
+│   │   ├── ainClient.ts
+│   │   ├── constants.ts
+│   │   ├── designSystem.ts
+│   │   ├── fonts.ts
+│   │   ├── initPlatform.ts
+│   │   ├── logger.ts
+│   │   ├── monitoring.ts
+│   │   ├── notifications
+│   │   │   ├── DealerNotification.ts
+│   │   │   └── UserValuationAlert.ts
+│   │   ├── sentry.ts
+│   │   ├── states.ts
+│   │   ├── supabase
+│   │   │   └── dealer.ts
+│   │   ├── utils.ts
+│   │   └── valuation
+│   │       └── extractVehicleContext.ts
+│   ├── main.tsx
+│   ├── modules
+│   │   ├── auth
+│   │   │   ├── ConfirmationPage.tsx
+│   │   │   ├── MagicLinkPage.tsx
+│   │   │   ├── ResetPasswordPage.tsx
+│   │   │   └── animations
+│   │   │       └── index.ts
+│   │   ├── qa-dashboard
+│   │   │   ├── components
+│   │   │   │   ├── ValuationRow.tsx
+│   │   │   │   └── ValuationTable.tsx
+│   │   │   └── types.ts
+│   │   ├── valuation-homepage
+│   │   │   └── layout.tsx
+│   │   └── valuation-result
+│   │       ├── MobileLayout.tsx
+│   │       ├── ValuePresenter.tsx
+│   │       ├── hooks
+│   │       │   └── useValuationPdfHelper.ts
+│   │       ├── logic.ts
+│   │       ├── sections
+│   │       │   ├── Breakdown.tsx
+│   │       │   ├── PhotoAnalysis.tsx
+│   │       │   └── Summary.tsx
+│   │       ├── styles.ts
+│   │       └── types.ts
+│   ├── pages
+│   │   ├── AboutPage.tsx
+│   │   ├── AccessDeniedPage.tsx
+│   │   ├── AccountPage.tsx
+│   │   ├── AccountSettingsPage.tsx
+│   │   ├── AdminDashboardPage.tsx
+│   │   ├── AdminPage.tsx
+│   │   ├── AuthCallback.tsx
+│   │   ├── AuthCallbackPage.tsx
+│   │   ├── AuthLandingPage.tsx
+│   │   ├── AuthPage.tsx
+│   │   ├── AuthTestPage.tsx
+│   │   ├── Contact.tsx
+│   │   ├── ContactPage.tsx
+│   │   ├── Dashboard.tsx
+│   │   ├── DashboardPage.tsx
+│   │   ├── DealerDashboard.tsx
+│   │   ├── DealerInsightsPage.tsx
+│   │   ├── DealerMessagesPage.tsx
+│   │   ├── DealerProfileSettings.tsx
+│   │   ├── DealerSignup.tsx
+│   │   ├── DealerSubscriptionPage.tsx
+│   │   ├── DebugMakesModels.tsx
+│   │   ├── DesignSystem.tsx
+│   │   ├── EquipmentPage.tsx
+│   │   ├── EquipmentSelectionPage.tsx
+│   │   ├── ForgotPasswordPage.tsx
+│   │   ├── GetValuationPage.tsx
+│   │   ├── HomePage.tsx
+│   │   ├── ModalShowcase.tsx
+│   │   ├── MyValuationsPage.tsx
+│   │   ├── NicbVinCheckPage.tsx
+│   │   ├── NotFound.tsx
+│   │   ├── NotFoundPage.tsx
+│   │   ├── OffersPage.tsx
+│   │   ├── PaymentCancelledPage.tsx
+│   │   ├── PaymentSuccessPage.tsx
+│   │   ├── PhotoAnalysisPage.tsx
+│   │   ├── PlatformDiagnosticsPage.tsx
+│   │   ├── Premium.tsx
+│   │   ├── PremiumConditionPage.tsx
+│   │   ├── PremiumPage.tsx
+│   │   ├── PremiumResultsPage.tsx
+│   │   ├── PremiumValuationPage.tsx
+│   │   ├── PricingPage.tsx
+│   │   ├── Privacy.tsx
+│   │   ├── PrivacyPolicyPage.tsx
+│   │   ├── ProfessionalHomePage.tsx
+│   │   ├── ProfilePage.tsx
+│   │   ├── ReferralDashboardPage.tsx
+│   │   ├── ResetPasswordPage.tsx
+│   │   ├── ResultsPage.tsx
+│   │   ├── ServiceHistoryPage.tsx
+│   │   ├── SettingsPage.tsx
+│   │   ├── StatsPage.tsx
+│   │   ├── Terms.tsx
+│   │   ├── TermsOfServicePage.tsx
+│   │   ├── ValuationFollowUpPage.tsx
+│   │   ├── ValuationPage.tsx
+│   │   ├── VehicleDetailsPage.tsx
+│   │   ├── VehicleHistoryPage.tsx
+│   │   ├── admin
+│   │   │   ├── AuditPage.tsx
+│   │   │   ├── ValuationInsights.tsx
+│   │   │   └── ValuationInsightsPage.tsx
+│   │   ├── api
+│   │   │   ├── ask-ai.ts
+│   │   │   └── valuation
+│   │   │       └── submit-followup.ts
+│   │   ├── valuation
+│   │   │   ├── ValuationPage.tsx
+│   │   │   ├── plate
+│   │   │   │   └── PlateValuationPage.tsx
+│   │   │   └── result
+│   │   │       └── ValuationResultPage.tsx
+│   │   └── view-offer
+│   │       └── ViewOfferPage.tsx
+│   ├── providers
+│   │   └── AppProviders.tsx
+│   ├── public
+│   │   └── illustrations
+│   │       └── premium-only.svg
+│   ├── render.yaml
+│   ├── router.legacy.bak
+│   ├── schemas
+│   │   └── ainResponseSchema.ts
+│   ├── scrapers
+│   │   ├── index.ts
+│   │   └── types.ts
+│   ├── scraping
+│   │   └── brightdata
+│   │       └── getStatVinData.ts
+│   ├── scripts
+│   │   ├── cleanPuppeteer.js
+│   │   ├── generate-test-data.ts
+│   │   ├── populateMsrpFromWeb.ts
+│   │   └── runMsrpPopulation.ts
+│   ├── services
+│   │   ├── UnifiedLookupService.ts
+│   │   ├── ValuationApiService.ts
+│   │   ├── ValuationIntegrationService.ts
+│   │   ├── VinLookupService.ts
+│   │   ├── __tests__
+│   │   │   └── photoScoring.test.ts
+│   │   ├── adjustmentEngine.ts
+│   │   ├── adjustmentHelpers.ts
+│   │   ├── aiExplanationService.ts
+│   │   ├── ainService.ts
+│   │   ├── auction.ts
+│   │   ├── auctionDataService.ts
+│   │   ├── basePriceService.ts
+│   │   ├── carPricePredictionService.ts
+│   │   ├── competitorPriceService.ts
+│   │   ├── confidenceExplainer.ts
+│   │   ├── followUpService.ts
+│   │   ├── fuelCostService.ts
+│   │   ├── generateConfidenceScore.ts
+│   │   ├── historyCheckService.ts
+│   │   ├── marketListings.ts
+│   │   ├── marketSearchAgent.ts
+│   │   ├── marketplaceService.ts
+│   │   ├── persistence
+│   │   │   └── persistenceMonitor.ts
+│   │   ├── photo
+│   │   │   ├── analyzePhotos.ts
+│   │   │   ├── deletePhotos.ts
+│   │   │   ├── fetchPhotos.ts
+│   │   │   └── uploadPhotoService.ts
+│   │   ├── photoScoringService.ts
+│   │   ├── plateService.ts
+│   │   ├── realMarketplaceService.ts
+│   │   ├── scrapedListingsService.ts
+│   │   ├── supabase
+│   │   │   ├── explanationService.ts
+│   │   │   ├── feedbackService.ts
+│   │   │   ├── heatmapService.ts
+│   │   │   ├── shareTrackingService.ts
+│   │   │   ├── valuationRequestService.ts
+│   │   │   └── valuationRequestTracker.ts
+│   │   ├── valuation
+│   │   │   ├── confidenceEngine.ts
+│   │   │   ├── dataValidation.ts
+│   │   │   ├── enhancedMarketListingService.ts
+│   │   │   ├── errorHandler.ts
+│   │   │   ├── index.ts
+│   │   │   ├── listingAuditService.ts
+│   │   │   ├── marketDataService.ts
+│   │   │   ├── marketListingService.ts
+│   │   │   ├── msrpLookupService.ts
+│   │   │   ├── vehicleDataService.ts
+│   │   │   └── vehicleDecodeService.ts
+│   │   ├── valuationAuditLogger.ts
+│   │   ├── vehicleDecodeService.ts
+│   │   ├── vehicleLookupService.ts
+│   │   └── vinForecastService.ts
+│   ├── stores
+│   │   └── useAINStore.ts
+│   ├── styles
+│   │   ├── animations.css
+│   │   ├── base
+│   │   │   ├── reset.css
+│   │   │   └── variables.css
+│   │   ├── components
+│   │   │   ├── buttons.css
+│   │   │   ├── cards.css
+│   │   │   ├── effects.css
+│   │   │   ├── forms.css
+│   │   │   ├── multistep-form.css
+│   │   │   ├── patterns.css
+│   │   │   └── steps.css
+│   │   ├── globals.css
+│   │   ├── index.css
+│   │   ├── mobile-optimizations.css
+│   │   ├── premium-effects.css
+│   │   └── tailwind-extensions.css
+│   ├── tailwind.config.extended.ts
+│   ├── test-setup.ts
+│   ├── tests
+│   │   └── e2e
+│   │       ├── valuation-flow.test.tsx
+│   │       └── vinToResult.e2e.test.ts
+│   ├── types
+│   │   ├── adjustments.ts
+│   │   ├── assistant.ts
+│   │   ├── auction.ts
+│   │   ├── auctionIntelligence.ts
+│   │   ├── audit.ts
+│   │   ├── auth.ts
+│   │   ├── condition.ts
+│   │   ├── dealer.ts
+│   │   ├── dealerVehicle.ts
+│   │   ├── declarations.d.ts
+│   │   ├── follow-up-answers.ts
+│   │   ├── globals.d.ts
+│   │   ├── i18next.d.ts
+│   │   ├── listing.ts
+│   │   ├── listings.ts
+│   │   ├── lookup.ts
+│   │   ├── market-orchestration.ts
+│   │   ├── marketListing.ts
+│   │   ├── nicb.ts
+│   │   ├── photo.ts
+│   │   ├── premium-valuation.ts
+│   │   ├── profile.ts
+│   │   ├── referral.ts
+│   │   ├── resultTypes.ts
+│   │   ├── section-header.ts
+│   │   ├── serviceRecord.d.ts
+│   │   ├── steps.ts
+│   │   ├── ui-components.ts
+│   │   ├── unified-lookup.ts
+│   │   ├── unified.ts
+│   │   ├── user.ts
+│   │   ├── valuation-history.ts
+│   │   ├── valuation.ts
+│   │   ├── valuationTypes.ts
+│   │   ├── vehicle-decode.ts
+│   │   ├── vehicle-lookup.ts
+│   │   ├── vehicle.ts
+│   │   └── vpic.ts
+│   ├── utils
+│   │   ├── adjustments
+│   │   │   ├── accidentAdjustments.ts
+│   │   │   ├── conditionAdjustments.ts
+│   │   │   ├── descriptions.ts
+│   │   │   ├── features
+│   │   │   │   ├── calculators.ts
+│   │   │   │   ├── database.ts
+│   │   │   │   ├── formatters.ts
+│   │   │   │   └── types.ts
+│   │   │   ├── index.ts
+│   │   │   ├── locationAdjustments.ts
+│   │   │   ├── mileageAdjustments.ts
+│   │   │   ├── packageAdjustments.ts
+│   │   │   ├── titleStatusAdjustments.ts
+│   │   │   ├── trimAdjustments.ts
+│   │   │   └── types.ts
+│   │   ├── ain
+│   │   │   ├── generateSummaryForPdf.ts
+│   │   │   └── scoreDealerOffers.ts
+│   │   ├── animations.ts
+│   │   ├── api-utils.ts
+│   │   ├── assistantContext.ts
+│   │   ├── auctionFetcher.ts
+│   │   ├── auctions
+│   │   │   └── vinSummary.ts
+│   │   ├── auditLogger.ts
+│   │   ├── buildTimeChecks.ts
+│   │   ├── carfax
+│   │   │   └── carfaxService.ts
+│   │   ├── cn.ts
+│   │   ├── confidence-documentation.md
+│   │   ├── confidenceCalculator.test.ts
+│   │   ├── confidenceCalculator.ts
+│   │   ├── confidenceRules.ts
+│   │   ├── confidenceScore.ts
+│   │   ├── constants.ts
+│   │   ├── dateUtils.ts
+│   │   ├── dealerSources.ts
+│   │   ├── diagnostics
+│   │   │   ├── marketDataDiagnostics.ts
+│   │   │   ├── systemHealth.ts
+│   │   │   ├── valuationAudit.ts
+│   │   │   └── vehicleDataDiagnostics.ts
+│   │   ├── emailService.ts
+│   │   ├── enhanced-features-calculator.ts
+│   │   ├── error-handling.ts
+│   │   ├── errorClassification.ts
+│   │   ├── errorHandling.ts
+│   │   ├── followUpDataHelpers.ts
+│   │   ├── followUpFormValidation.ts
+│   │   ├── forecasting
+│   │   │   ├── generateVinForecast.ts
+│   │   │   └── valuation-forecast.ts
+│   │   ├── format.ts
+│   │   ├── formatters
+│   │   │   ├── adjustment-formatter.ts
+│   │   │   ├── formatCurrency.ts
+│   │   │   ├── formatDate.ts
+│   │   │   ├── formatNumber.ts
+│   │   │   ├── formatPercent.ts
+│   │   │   ├── formatPhone.ts
+│   │   │   ├── formatRelativeTime.ts
+│   │   │   ├── formatVin.ts
+│   │   │   ├── index.ts
+│   │   │   └── stringFormatters.ts
+│   │   ├── formatters.ts
+│   │   ├── generateValuationExplanation.ts
+│   │   ├── getConditionAnalysis.ts
+│   │   ├── getListingsWithCondition.ts
+│   │   ├── getValuationContext.ts
+│   │   ├── helpers.ts
+│   │   ├── index.ts
+│   │   ├── lookupService.ts
+│   │   ├── marketListings
+│   │   │   └── processListings.ts
+│   │   ├── normalization
+│   │   │   └── normalizeListings.ts
+│   │   ├── p2pSources.ts
+│   │   ├── parsers
+│   │   │   └── listingParser.ts
+│   │   ├── pdf
+│   │   │   ├── defaultReportOptions.ts
+│   │   │   ├── generateDebugInfo.ts
+│   │   │   ├── generateValuationPdf.ts
+│   │   │   ├── index.ts
+│   │   │   └── styles.ts
+│   │   ├── pdfService.ts
+│   │   ├── photoService.ts
+│   │   ├── premiumService.ts
+│   │   ├── profileService.ts
+│   │   ├── publicShareService.ts
+│   │   ├── qrCodeGenerator.ts
+│   │   ├── queryMakesModels.ts
+│   │   ├── responsive-testing.ts
+│   │   ├── route-validation
+│   │   │   └── ROUTE_SNAPSHOT.json
+│   │   ├── route-validation.ts
+│   │   ├── rules
+│   │   │   ├── RulesEngine.ts
+│   │   │   ├── calculators
+│   │   │   │   ├── accidentCalculator.ts
+│   │   │   │   ├── adjustmentCalculator.ts
+│   │   │   │   ├── carfaxCalculator.ts
+│   │   │   │   ├── colorCalculator.ts
+│   │   │   │   ├── conditionCalculator.ts
+│   │   │   │   ├── equipmentCalculator.ts
+│   │   │   │   ├── featuresCalculator.ts
+│   │   │   │   ├── fuelTypeCalculator.ts
+│   │   │   │   ├── helpers.ts
+│   │   │   │   ├── locationCalculator.ts
+│   │   │   │   ├── mileageCalculator.ts
+│   │   │   │   ├── photoScoreCalculator.ts
+│   │   │   │   ├── recallCalculator.ts
+│   │   │   │   ├── transmissionCalculator.ts
+│   │   │   │   ├── trimCalculator.ts
+│   │   │   │   └── warrantyCalculator.ts
+│   │   │   ├── interfaces
+│   │   │   │   └── Calculator.ts
+│   │   │   └── types.ts
+│   │   ├── safeDataAccess.ts
+│   │   ├── schemas.ts
+│   │   ├── scrapers
+│   │   │   ├── fetchBidCarsData.ts
+│   │   │   └── utils
+│   │   │       └── normalizeVehicleData.ts
+│   │   ├── shareUtils.ts
+│   │   ├── startupValidation.ts
+│   │   ├── storage.ts
+│   │   ├── stripe-error-handling.ts
+│   │   ├── stripeClient.ts
+│   │   ├── stripeService.ts
+│   │   ├── types
+│   │   │   └── unifiedTypes.ts
+│   │   ├── unifiedConfidenceCalculator.ts
+│   │   ├── validation
+│   │   │   ├── CarDetectiveValidator.ts
+│   │   │   ├── __tests__
+│   │   │   │   └── zipCodeValidator.test.ts
+│   │   │   ├── enhanced-vin-validation.ts
+│   │   │   ├── plate-validation-helpers.ts
+│   │   │   ├── schemas.ts
+│   │   │   ├── types.ts
+│   │   │   ├── validateCorrectedPipeline.ts
+│   │   │   ├── vin-validation-helpers.tsx
+│   │   │   ├── vin-validation.ts
+│   │   │   └── zipCodeValidator.ts
+│   │   ├── validation.ts
+│   │   ├── valuation
+│   │   │   ├── aggregateValuationSources.ts
+│   │   │   ├── calculateAccidentImpact.ts
+│   │   │   ├── calculateUnifiedConfidence.ts
+│   │   │   ├── conditionAdjustment.ts
+│   │   │   ├── conditionHelpers.ts
+│   │   │   ├── confidence.ts
+│   │   │   ├── confidenceExplainer.ts
+│   │   │   ├── depreciation.ts
+│   │   │   ├── emergencyFallbackUtils.ts
+│   │   │   ├── examples.ts
+│   │   │   ├── featureAdjustments.ts
+│   │   │   ├── fuelAdjustment.ts
+│   │   │   ├── generateConfidenceExplanation.ts
+│   │   │   ├── legacyConverter.ts
+│   │   │   ├── listingInclusionAnalyzer.ts
+│   │   │   ├── marketData.ts
+│   │   │   ├── mileageAdjustment.ts
+│   │   │   ├── missingFieldAnalyzer.ts
+│   │   │   ├── msrpInflationNormalizer.ts
+│   │   │   ├── photoUtils.ts
+│   │   │   ├── progressTracker.ts
+│   │   │   ├── quickValidateMarketSearch.ts
+│   │   │   ├── rules
+│   │   │   │   └── types.ts
+│   │   │   ├── rulesEngine.ts
+│   │   │   ├── specializedAdjustments.ts
+│   │   │   ├── testMarketSearchNormalization.ts
+│   │   │   ├── testResultsAndPdfIntegration.ts
+│   │   │   ├── titleAdjustment.ts
+│   │   │   ├── types.ts
+│   │   │   ├── updateValuationData.ts
+│   │   │   ├── validateMarketListingIntegration.ts
+│   │   │   ├── validatePDFShareFunctionality.ts
+│   │   │   ├── validateUIResultsDisplay.ts
+│   │   │   └── validateUnifiedPipeline.ts
+│   │   ├── valuation-adjustments
+│   │   │   ├── DrivingBehaviorCalculator.ts
+│   │   │   ├── MarketDemandCalculator.ts
+│   │   │   └── SeasonalCalculator.ts
+│   │   ├── valuation.ts
+│   │   ├── valuationAuditLogger.ts
+│   │   ├── valuationErrorHandler.ts
+│   │   ├── valuationLogger.ts
+│   │   ├── valuationRules.json
+│   │   ├── vehicle
+│   │   │   ├── cacheUtils.ts
+│   │   │   └── enhancedCacheUtils.ts
+│   │   ├── vehicleConversion.ts
+│   │   ├── vehicleImages.ts
+│   │   └── vehicleMetaParser.ts
+│   ├── valuation
+│   │   ├── calculateVehicleValue.ts
+│   │   └── types.ts
+│   └── vite-env.d.ts
+├── structure.txt
+├── supabase
+│   ├── .temp
+│   │   ├── cli-latest
+│   │   ├── gotrue-version
+│   │   ├── pooler-url
+│   │   ├── postgres-version
+│   │   ├── project-ref
+│   │   ├── rest-version
+│   │   └── storage-version
+│   ├── config.toml
+│   ├── functions
+│   │   ├── _shared
+│   │   │   ├── cors.ts
+│   │   │   └── puppeteer-launch.ts
+│   │   ├── admin-qa-dashboard
+│   │   │   └── index.ts
+│   │   ├── ai-photo-analyzer
+│   │   │   └── index.ts
+│   │   ├── ain-franchise-dealer-search
+│   │   │   └── index.ts
+│   │   ├── ain-marketplace-classifieds-search
+│   │   │   └── index.ts
+│   │   ├── ain-valuation
+│   │   │   └── index.ts
+│   │   ├── ain-wholesale-auction-search
+│   │   │   └── index.ts
+│   │   ├── analyze-driving-data
+│   │   │   └── index.ts
+│   │   ├── analyze-photos
+│   │   │   ├── database.ts
+│   │   │   ├── index.ts
+│   │   │   ├── openai-service.ts
+│   │   │   ├── types.ts
+│   │   │   └── validation.ts
+│   │   ├── analyze-vehicle-condition
+│   │   │   └── index.ts
+│   │   ├── anomaly-detector
+│   │   │   └── index.ts
+│   │   ├── ask-ai
+│   │   │   └── index.ts
+│   │   ├── ask-ain
+│   │   │   └── index.ts
+│   │   ├── ask-valuation-bot
+│   │   │   └── index.ts
+│   │   ├── car-price-prediction
+│   │   │   └── index.ts
+│   │   ├── create-billing-portal
+│   │   │   └── index.ts
+│   │   ├── create-checkout
+│   │   │   └── index.ts
+│   │   ├── create-payment
+│   │   │   └── index.ts
+│   │   ├── create-public-token
+│   │   │   ├── cors.ts
+│   │   │   └── index.ts
+│   │   ├── customer-portal
+│   │   │   └── index.ts
+│   │   ├── daily_calibration
+│   │   │   └── index.ts
+│   │   ├── data-quality-enrichment
+│   │   │   └── index.ts
+│   │   ├── data-quality-orchestrator
+│   │   │   └── index.ts
+│   │   ├── data-validator
+│   │   │   └── index.ts
+│   │   ├── decode-vin
+│   │   │   └── index.ts
+│   │   ├── deno.json
+│   │   ├── deno.lock
+│   │   ├── email-valuation-pdf
+│   │   │   ├── cors.ts
+│   │   │   └── index.ts
+│   │   ├── enhanced-car-price-prediction
+│   │   │   └── index.ts
+│   │   ├── enrichment-cache
+│   │   │   └── index.ts
+│   │   ├── explainable-ai-engine
+│   │   │   └── index.ts
+│   │   ├── export-valuation-json
+│   │   │   └── index.ts
+│   │   ├── fang-task-orchestrator
+│   │   │   └── index.ts
+│   │   ├── fetch-auction-data
+│   │   │   └── index.ts
+│   │   ├── fetch-auction-history
+│   │   │   ├── .vscode
+│   │   │   │   └── settings.json
+│   │   │   ├── deno.json
+│   │   │   ├── index.ts
+│   │   │   └── lib
+│   │   │       ├── autoauctions.ts
+│   │   │       ├── bidcars.ts
+│   │   │       └── statvin.ts
+│   │   ├── fetch-auctionexport
+│   │   │   └── index.ts
+│   │   ├── fetch-autoauctions-data
+│   │   │   ├── helper.ts
+│   │   │   └── index.ts
+│   │   ├── fetch-autobidmaster
+│   │   │   └── index.ts
+│   │   ├── fetch-bidcars
+│   │   │   └── index.ts
+│   │   ├── fetch-bidcars-data
+│   │   │   └── index.ts
+│   │   ├── fetch-carsfromwest
+│   │   │   └── index.ts
+│   │   ├── fetch-competitor-prices
+│   │   │   ├── index.ts
+│   │   │   └── scrapers
+│   │   │       ├── autotrader.ts
+│   │   │       ├── carfax.ts
+│   │   │       ├── carmax.ts
+│   │   │       ├── carsdotcom.ts
+│   │   │       ├── carvana.ts
+│   │   │       └── edmunds.ts
+│   │   ├── fetch-copart-data
+│   │   │   └── helper.ts
+│   │   ├── fetch-eia-fuel-prices
+│   │   │   └── index.ts
+│   │   ├── fetch-fuel-prices
+│   │   │   └── index.ts
+│   │   ├── fetch-iaai-data
+│   │   │   └── helper.ts
+│   │   ├── fetch-market-intelligence
+│   │   │   └── index.ts
+│   │   ├── fetch-market-listings
+│   │   │   └── index.ts
+│   │   ├── fetch-marketplace-data
+│   │   │   ├── index.ts
+│   │   │   └── scrapers
+│   │   │       ├── craigslist.ts
+│   │   │       ├── ebay.ts
+│   │   │       ├── facebook.ts
+│   │   │       └── offerup.ts
+│   │   ├── fetch-oem-data
+│   │   │   └── index.ts
+│   │   ├── fetch-regional-fuel-costs
+│   │   │   └── index.ts
+│   │   ├── fetch-repokar
+│   │   │   └── index.ts
+│   │   ├── fetch-statvin
+│   │   │   └── index.ts
+│   │   ├── fetch-statvin-data
+│   │   │   └── index.ts
+│   │   ├── fetch-vehicle-history
+│   │   │   └── index.ts
+│   │   ├── fetch_auction_index
+│   │   │   └── index.ts
+│   │   ├── fetch_census_demographics
+│   │   │   └── index.ts
+│   │   ├── fetch_epa_mpg
+│   │   │   └── index.ts
+│   │   ├── fetch_nhtsa_recalls
+│   │   │   └── index.ts
+│   │   ├── fetch_nicb_vincheck
+│   │   │   └── index.ts
+│   │   ├── fetch_osm_geocode
+│   │   │   └── index.ts
+│   │   ├── fetch_vpic_data
+│   │   │   └── index.ts
+│   │   ├── fetch_zippopotamus
+│   │   │   └── index.ts
+│   │   ├── generate-auction-intelligence
+│   │   │   └── index.ts
+│   │   ├── generate-explanation
+│   │   │   ├── cors.ts
+│   │   │   ├── fallbackGenerator.ts
+│   │   │   ├── gptGenerator.ts
+│   │   │   ├── index.ts
+│   │   │   └── types.ts
+│   │   ├── generate-test-data
+│   │   │   └── index.ts
+│   │   ├── generate-valuation-pdf
+│   │   │   └── index.ts
+│   │   ├── get-color-multiplier
+│   │   │   └── index.ts
+│   │   ├── get-fuel-type-multiplier
+│   │   │   └── index.ts
+│   │   ├── get-pricing-curve
+│   │   │   └── index.ts
+│   │   ├── get-seasonal-factor
+│   │   │   └── index.ts
+│   │   ├── get-transmission-multiplier
+│   │   │   └── index.ts
+│   │   ├── lib
+│   │   │   └── inferenceModel.ts
+│   │   ├── log-valuation-audit
+│   │   │   └── index.ts
+│   │   ├── model-retraining-automation
+│   │   │   └── index.ts
+│   │   ├── partner-api-gateway
+│   │   │   └── index.ts
+│   │   ├── populate-market-data
+│   │   │   └── index.ts
+│   │   ├── predict
+│   │   │   └── index.ts
+│   │   ├── process-referral
+│   │   │   └── index.ts
+│   │   ├── safe-audit-logger
+│   │   │   └── index.ts
+│   │   ├── schedule-email-campaigns
+│   │   │   └── index.ts
+│   │   ├── score-image
+│   │   │   └── index.ts
+│   │   ├── scrape-carmax
+│   │   │   └── index.ts
+│   │   ├── search-market-listings
+│   │   │   └── index.ts
+│   │   ├── send-dealer-notification
+│   │   │   └── index.ts
+│   │   ├── send-referral-email
+│   │   │   └── index.ts
+│   │   ├── send-valuation-to-dealer
+│   │   │   └── index.ts
+│   │   ├── sql
+│   │   │   └── use-premium-credit.sql
+│   │   ├── stripe-webhook
+│   │   │   └── index.ts
+│   │   ├── submit-dealer-offer
+│   │   │   └── index.ts
+│   │   ├── submit-followup
+│   │   │   └── index.ts
+│   │   ├── test-email-integration
+│   │   │   └── index.ts
+│   │   ├── trigger-email-campaign
+│   │   │   └── index.ts
+│   │   ├── unified-decode
+│   │   │   ├── index.ts
+│   │   │   └── utils
+│   │   │       └── fetchWithRetry.ts
+│   │   ├── update-platform-stats
+│   │   │   └── index.ts
+│   │   ├── use-premium-credit
+│   │   │   └── index.ts
+│   │   ├── user-feedback-collector
+│   │   │   └── index.ts
+│   │   ├── validate-zip
+│   │   │   └── index.ts
+│   │   ├── valuation
+│   │   │   └── index.ts
+│   │   ├── valuation-aggregate
+│   │   │   └── index.ts
+│   │   ├── valuation-forecast
+│   │   │   └── index.ts
+│   │   ├── valuation-request
+│   │   │   └── index.ts
+│   │   ├── valuation-result
+│   │   │   └── index.ts
+│   │   ├── valuation-sources
+│   │   │   └── index.ts
+│   │   ├── vehicle_history_functions
+│   │   │   └── index.ts
+│   │   ├── verify-payment
+│   │   │   └── index.ts
+│   │   └── vin-enrichment-processor
+│   │       └── index.ts
+│   └── migrations
+│       ├── 20230501000000_create_epa_mpg_cache.sql
+│       ├── 20240501_add_driving_profile.sql
+│       ├── 20241224_add_missing_followup_columns.sql
+│       ├── 20250425_update_makes_models_tables.sql
+│       ├── 20250429_create_valuation_photos_table.sql
+│       ├── 20250429_create_vehicle_photos_bucket.sql
+│       ├── 20250430_create_vehicle_photos_bucket.sql
+│       ├── 20250430_update_valuation_photos_table.sql
+│       ├── 20250505_add_premium_unlocked_to_valuations.sql
+│       ├── 20250506000000_add_json_update_functions.sql
+│       ├── 20250506_add_premium_unlocked_function.sql
+│       ├── 20250522113000_create_premium_credit_function.sql
+│       ├── 20250620182106-26e154a8-d7ff-4e8e-83ae-e22970bce305.sql
+│       ├── 20250624025808-4458b1ea-8032-4ba9-a643-32a538081bcd.sql
+│       ├── 20250624032115-5c00d3f4-477b-410a-9978-eaafa656bfab.sql
+│       ├── 20250624203132-93befeeb-0391-4a0a-883c-da539670286f.sql
+│       ├── 20250624212011-43fce579-fbc5-43ac-9083-657e235e953d.sql
+│       ├── 20250624212529-aadf058f-194e-4c7e-b3c2-e84a36005313.sql
+│       ├── 20250624213509-ca8cdeb7-ead5-4ed7-ab49-0ca54dbe8447.sql
+│       ├── 20250625154140-fe042cb7-361a-448b-bbd2-5e96b01c3409.sql
+│       ├── 20250630233043-2e97ec99-6aa7-4797-bf81-ed86f9772b61.sql
+│       ├── 20250702211020-a5caddb3-c145-4a8d-a8e8-5318406795c6.sql
+│       ├── 20250702211043-70da6d9c-beb2-4e3b-bb04-66f340bbf53d.sql
+│       ├── 20250702214027-fdd8accd-2b3b-4b27-9179-cdb5c362361e.sql
+│       ├── 20250702215412-605ef129-54d4-4101-95b9-18927dcbb525.sql
+│       ├── 20250702222401-1a8cd70f-46fd-4273-bd61-ed120180d422.sql
+│       ├── 20250702222524-fe03eae7-5a9c-4073-8782-9d38058213f5.sql
+│       ├── 20250702222553-7d4334be-42f3-4ef3-822d-323ccc57842a.sql
+│       ├── 20250702222620-254bae3c-61e6-4ff4-8a3a-20f3118dba28.sql
+│       ├── 20250702222700-cfe54436-67e9-4e86-8355-64ebb098d139.sql
+│       ├── 20250702222806-dd627e7a-c757-4d33-a054-65bb16c21ae6.sql
+│       ├── 20250702223719-aca444ba-8dc5-4e17-a219-9dfc863d4915.sql
+│       ├── 20250702225651-29c12e11-cde1-4681-985b-878380b7d357.sql
+│       ├── 20250702225844-a5be350b-e6be-4706-9c75-bb3a709dd894.sql
+│       ├── 20250702230018-11842545-a6e2-4fc0-9d0a-f27114e99fa9.sql
+│       ├── 20250702231639-2abb15ee-8e93-459f-ab0c-f4ff2e0faebc.sql
+│       ├── 20250702233200-6ee9e3b7-51f4-4f09-94d1-5294c9fe5a66.sql
+│       ├── 20250702233341-c7c58704-0aad-4646-83aa-50d40b755187.sql
+│       ├── 20250702233453-a4210d6d-66b8-469f-a7f3-ece44d6b27dc.sql
+│       ├── 20250702234833-f6037be7-b7d5-4195-8c38-cf21e09b6624.sql
+│       ├── 20250702235001-17396082-9ebf-45c2-ba37-90beccd5e726.sql
+│       ├── 20250707161917-bfe1375e-ca37-464d-b158-46356130e4b2.sql
+│       ├── 20250707162042-7b3c22d1-af45-4bbc-a942-63023116f5e4.sql
+│       ├── 20250707184419-d6dd0c60-af22-4c1f-9e7a-b491098484e7.sql
+│       ├── 20250707184444-cb514d5f-2754-4b1c-a93b-f91ce6fd2a23.sql
+│       ├── 20250707184510-6a6e3500-e22c-41dd-a6ad-937bb70ac800.sql
+│       ├── 20250707192755-3279180e-ef3e-4967-86f7-9843ca32dbfb.sql
+│       ├── 20250707193012-b20ed8d5-5e41-4b42-a4ea-216d08e81342.sql
+│       ├── 20250707211620-0e6a68fe-fc31-46f0-b206-b3f053de62ab.sql
+│       ├── 20250708211416-b8f12223-2a03-4078-bddc-b1dacfd5b68d.sql
+│       ├── 20250709171023-edd2db4b-7199-4150-a312-30ee6df892dc.sql
+│       ├── 20250709185328-45a1faef-116d-4b27-97cf-e1d5df39c06e.sql
+│       ├── 20250709214218-2ea9c2b1-559e-48b8-9a8f-be78676434bb.sql
+│       ├── 20250709215406-8faadc88-e081-4029-9b1b-02b3a581aa03.sql
+│       ├── 20250709220449-1fafbb83-9422-41a4-b638-15c8960faef2.sql
+│       ├── 20250709221420-376a1451-f58e-43df-91b2-3be3772a3b2b.sql
+│       ├── 20250709222958-9a4e1c6d-7808-479e-9771-46c6692bfb2b.sql
+│       ├── 20250709235327-21130f06-eac9-452f-845c-d8fe19559615.sql
+│       ├── 20250710160801-d9d602bc-6ec7-4035-a772-a413c369b108.sql
+│       ├── 20250710161908-0ceb60f0-134e-4d5a-8e9c-3dc6817a6310.sql
+│       ├── 20250710161956-76efd3c9-b246-4223-9e12-16de6dd4f14d.sql
+│       ├── 20250710162133-aad8b453-0159-45c6-8aad-c08e2d0661e6.sql
+│       ├── 20250710181108-4aeb1c85-9568-4241-a76e-b80f9b1520cf.sql
+│       ├── 20250710182802-d312b3f1-3cf4-4e17-9c49-c62890d935c1.sql
+│       ├── 20250710183726-c54cc779-b497-4a67-8c34-3efda6bf16c3.sql
+│       ├── 20250710192929-ba0a1fc7-753c-47fc-9de4-8abd7509ddac.sql
+│       ├── 20250710201859-a5b2cd71-3063-45db-a626-c69593535079.sql
+│       ├── 20250711201635-8cfc43f7-e5cb-4dcc-a889-15685555541a.sql
+│       ├── 20250711202410-d69dd843-2b80-45ac-abf6-a1c93c17a7f7.sql
+│       ├── 20250711202433-44a0aab9-b318-4ab3-b0bd-0a1359ef313e.sql
+│       ├── 20250711210511-c05b1219-c153-491a-9ea8-94b6ed34ae85.sql
+│       ├── 20250711211931-0208609f-4120-4d92-8d47-a82e45a7444d.sql
+│       ├── 20250711212017-9b02d5ca-fc57-4481-9486-bdc8fc8aa101.sql
+│       ├── 20250711212103-70bbe66c-020f-4769-bc63-1c37705e69f3.sql
+│       ├── 20250711212245-a54e4a16-3c87-4d88-9bf2-0ea6321b3040.sql
+│       ├── 20250711212309-0f684341-da12-4778-86a7-74adcd0e8781.sql
+│       ├── 20250711213916-e7283fa0-bd56-4637-8b99-21d2b988ca6a.sql
+│       ├── 20250711213954-62e75a42-0e7b-43b6-8c2f-360e4c381831.sql
+│       ├── 20250711214204-5c828051-776f-4c41-becd-eb05d478cbcc.sql
+│       ├── 20250715022324-b414be6e-f396-48b1-a874-4192520d8910.sql
+│       ├── 20250715035348-da942283-f94b-4956-987e-80606dde3d80.sql
+│       ├── 20250721184628-2ea747eb-bdd4-4e3b-ac9e-065df2cfa4f1.sql
+│       ├── 20250721184658-86b18843-be33-4eac-bd36-ea3b2364fb5e.sql
+│       ├── 20250721201452-8144a6d1-a469-497d-b35f-3f0b452e11ba.sql
+│       ├── 20250721220700-ddfb38f4-a6f3-4b00-9519-0688de31d0c7.sql
+│       ├── 20250721220907-b2bc1878-4a84-44e4-ad9a-317818bfd6d2.sql
+│       ├── 20250721221301-880338b9-1739-4785-976c-46b24fbffbd9.sql
+│       ├── 20250722161416-3d5251af-3470-49bb-8142-d1e2aae8a368.sql
+│       ├── 20250722202040-142863de-0d75-43ed-bb7c-be3eefd16105.sql
+│       ├── 20250722211337-1a53d9f4-958e-4f70-a724-8952b503762e.sql
+│       ├── 20250722211436-a232210b-f251-48a5-bd59-c7738788eba0.sql
+│       ├── 20250723000002-4ff3430d-31be-451d-a09a-18777cd17cf2.sql
+│       ├── 20250723190915-ff8c79c5-f923-4e2a-8fcd-3e2b40a25b7e.sql
+│       ├── 20250723191832-b405ff37-49ec-4197-a984-1895487683fd.sql
+│       ├── 20250724155826-df9a8587-4c20-4e1b-9b17-cb38815aa0ec.sql
+│       ├── 20250724160454-52b4840b-16be-4ef3-84d9-84735cacd0d7.sql
+│       ├── 20250724161115-f4d9c37e-1312-4125-bb07-a28e77907919.sql
+│       ├── 20250724182100-5b358cfd-da83-470b-8c33-d53119547773.sql
+│       ├── 20250724182445-ae051182-2eae-421d-8b8a-0d8a08356519.sql
+│       ├── 20250724184325-d5bef872-860a-4ab2-aec8-0638d44181ca.sql
+│       ├── 20250724184552-ec91996d-5794-4bf8-b318-5206bb1760c9.sql
+│       ├── 20250815230624_2d2a0c28-7666-4edf-ac11-3b241b621758.sql
+│       ├── 20250909182115_52594d4d-8440-403e-9e81-8516e1a7bbf5.sql
+│       ├── 20250910155358_ef6e5903-ed85-45d7-8315-8691f512c78e.sql
+│       ├── 20250910155758_53049d57-1b31-4b5f-bedf-4e916673980b.sql
+│       ├── 20250910160107_77f58e75-4c8e-467e-b3a1-6704ab228691.sql
+│       ├── 20250910160754_28ed5cdd-4cf2-4991-9088-a04396545320.sql
+│       ├── 20250910160851_a84a4fa9-a6e4-43c9-b2d2-b7730de96e34.sql
+│       ├── 20250910160937_b7ccc2fe-91b7-4bb1-b5f0-bc397f98009d.sql
+│       ├── 20250910161155_fab5b389-df08-4057-9910-6498067f5142.sql
+│       ├── 20250910161552_e7a6e440-7757-4aca-8909-798bc68717bb.sql
+│       ├── 20250910162326_ba90a98a-1f85-4b9d-8ca5-193d2fabe84e.sql
+│       ├── 20250910162837_ad26d266-bcba-468d-8900-a8bea0b52b64.sql
+│       ├── 20250910162936_faf0a002-e209-4a36-95e5-b8bf15970fb2.sql
+│       ├── 20250910163029_a9786831-f12d-46fc-bd89-c4768ad7a310.sql
+│       ├── 20250910163104_6ccc8ae4-c3e6-4fb0-8f28-808bdad5636e.sql
+│       ├── 20250910163151_9b9a34be-2ea6-46b3-b9c0-6539ff2b1564.sql
+│       ├── 20250910163212_28176f6c-529e-4007-bf1f-e919274b8439.sql
+│       ├── add_missing_competitor_columns.sql
+│       └── email_logs.sql
+├── supabase-cli
+├── sync_nhtsa_to_supabase.py
+├── tailwind.config.ts
+├── test-results
+│   └── .last-run.json
+├── tests
+│   ├── ain.live.spec.ts
+│   ├── ain.security.spec.ts
+│   ├── auth.spec.ts
+│   ├── home.spec.ts
+│   └── vehicle-select.spec.ts
+├── tsconfig.app.json
+├── tsconfig.base.json
+├── tsconfig.eslint.json
+├── tsconfig.json
+├── tsconfig.node.json
+├── tsconfig.test.json
+├── used.txt
+├── vercel.json
+├── vite.config.ts
+└── vitest.config.ts
+
+649 directories, 3461 files

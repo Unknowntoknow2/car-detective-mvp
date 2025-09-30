@@ -2,7 +2,7 @@ import { useState } from "react";
 import { GlobalErrorBoundary } from "@/components/security/GlobalErrorBoundary";
 import { VinLookupForm } from "@/components/lookup/vin/VinLookupForm";
 import { DataCollectionForm } from "@/components/followup/DataCollectionForm";
-import { ValuationResultsDisplay } from "@/components/valuation/UnifiedValuationResult";
+import UnifiedValuationResult from "@/components/valuation/UnifiedValuationResult";
 import logger from "./utils/logger";
 import type { VariableValue } from "./types/VariableValue";
 import type { ValuationResult } from "@/components/valuation/valuation-core/ValuationResult";
@@ -129,7 +129,7 @@ function App() {
       case 'valuation-results':
         return (
           <div>
-            {valuationResult && <ValuationResultsDisplay valuation={valuationResult} />}
+            {valuationResult && <UnifiedValuationResult result={valuationResult} />}
             <div className="text-center mt-8">
               <button 
                 onClick={handleStartOver}

@@ -3,7 +3,9 @@
 
 import { ApiClient } from './apiClient';
 import { withErrorHandling } from '../utils/errorHandling';
-import { DecodedVinResult, ApiResponse } from '@/types/ValuationTypes';
+// import { DecodedVinResult, ApiResponse } from '@/types/ValuationTypes';
+
+type DecodedVinResult = any; // TODO: Replace with real type if available
 import { decodeVin, extractLegacyVehicleInfo, isVinDecodeSuccessful } from './unifiedVinDecoder';
 
 // Single instance of API client
@@ -18,6 +20,8 @@ export class VinService {
    * This method now redirects to the unified decoder for consistency
    */
   static async decodeVin(vin: string): Promise<{ success: boolean; data?: DecodedVinResult[]; error?: string }> {
+    // Log deprecation warning
+    console.warn('[DEPRECATED] VinService.decodeVin is deprecated. Use decodeVin from unifiedVinDecoder.ts instead.');
     try {
       const result = await decodeVin(vin);
       
@@ -63,40 +67,29 @@ export class SupabaseService {
     return { url, key };
   }
 
-  static async callFunction<T = unknown>(
+  static async callFunction(
     functionName: string, 
     payload: Record<string, unknown> = {}
-  ): Promise<{ success: boolean; data?: T; error?: string }> {
-    const result = await withErrorHandling(async () => {
-      const { url, key } = this.getConfig();
-      
-      const response = await fetch(`${url}/functions/v1/${functionName}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${key}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Supabase function call failed: ${errorText}`);
-      }
-
-      return await response.json() as T;
-    }, 'supabase-function');
-
-    return result.success 
-      ? { success: true, data: result.data as T }
-      : { success: false, error: result.error?.message };
+  ): Promise<any> {
+    const { url, key } = this.getConfig();
+    const response = await fetch(`${url}/functions/v1/${functionName}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${key}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Supabase function call failed: ${errorText}`);
+    }
+    return await response.json();
   }
-}
-
 // External API service for third-party integrations
 export class ExternalApiService {
   // Centralized method for making external API calls with consistent error handling
-  static async makeExternalCall<T>(
+  static async makeExternalCall(
     url: string, 
     options: {
       method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -104,9 +97,9 @@ export class ExternalApiService {
       body?: Record<string, unknown>;
       timeout?: number;
     } = {}
-  ): Promise<ApiResponse<T>> {
+  ): Promise<any> {
     const result = await withErrorHandling(async () => {
-      const response = await apiClient.get<T>(url, options.headers);
+      const response = await apiClient.get(url, options.headers);
       if (!response.ok) {
         const errorMsg = response.error || 'External API call failed';
         throw new Error(errorMsg);
@@ -115,7 +108,7 @@ export class ExternalApiService {
     }, 'external-api');
 
     return (result && 'ok' in result)
-      ? (result as ApiResponse<T>)
+      ? result
       : { ok: false, error: (result as any)?.error?.message };
   }
 

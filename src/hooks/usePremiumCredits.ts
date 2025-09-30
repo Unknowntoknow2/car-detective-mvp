@@ -6,25 +6,18 @@ export function usePremiumCredits() {
   const { user } = useAuth();
   const [credits, setCredits] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   useEffect(() => {
     const loadCredits = async () => {
       setIsLoading(true);
-      
       try {
-        // In a real app, we would fetch from API
-        // For now, simulate fetching credits
         await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Check if user has premium status in localStorage
         const isPremium = localStorage.getItem('premium_purchased') === 'true';
         setCredits(isPremium ? 1 : 0);
-      } catch (error) {
       } finally {
         setIsLoading(false);
       }
     };
-    
     if (user) {
       loadCredits();
     } else {
@@ -32,21 +25,17 @@ export function usePremiumCredits() {
       setIsLoading(false);
     }
   }, [user]);
-  
-  const useCredit = async (valuationId: string): Promise<boolean> => {
+
+  const useCredit = async (): Promise<boolean> => {
     if (credits <= 0) return false;
-    
     try {
-      // In a real app, we would call API to use a credit
       await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Update local state
       setCredits(prev => prev - 1);
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   };
-  
+
   return { credits, isLoading, useCredit };
 }

@@ -1,5 +1,2 @@
-// Example value for Google-level build hygiene
-export const DefaultAdjustmentBreakdown = {
-    label: 'Base',
-    amount: 0,
-};
+// Proxy to root-level runtime stubs for test compatibility
+export * from '../../../../src/types/valuation.js';

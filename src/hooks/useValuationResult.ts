@@ -38,7 +38,7 @@ export const useValuationResult = (valuationId?: string) => {
           zipCode: data.state
         });
       }
-    } catch (err) {
+    } catch {
       setError('Failed to fetch valuation');
     } finally {
       setLoading(false);
@@ -53,7 +53,7 @@ export const useValuationResult = (valuationId?: string) => {
       // This would integrate with actual valuation service
       const result = await fetchValuation(data.id);
       return result;
-    } catch (err) {
+    } catch {
       setError('Failed to calculate valuation');
       return null;
     } finally {

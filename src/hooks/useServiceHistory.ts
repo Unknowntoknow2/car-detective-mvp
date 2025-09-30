@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 // Export the ServiceRecord type
@@ -22,7 +22,7 @@ export function useServiceHistory({ vin }: UseServiceHistoryProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchRecords = async () => {
+  const fetchRecords = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -53,7 +53,7 @@ export function useServiceHistory({ vin }: UseServiceHistoryProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [vin]);
 
   const addServiceRecord = async (
     record: Omit<ServiceRecord, "id" | "created_at">,
@@ -110,7 +110,7 @@ export function useServiceHistory({ vin }: UseServiceHistoryProps) {
     if (vin) {
       fetchRecords();
     }
-  }, [vin]);
+  }, [vin, fetchRecords]);
 
   return {
     records,

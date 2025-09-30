@@ -1,3 +1,9 @@
+
+/**
+ * Repo-wide HTTP client enforcing retry/backoff, timeout, and error handling.
+ * All HTTP/API calls should use ApiClient methods for audit compliance and reliability.
+ * If you add new fetch/HTTP logic, wrap it with retry/backoff as in makeRequest.
+ */
 import axios, { AxiosResponse } from 'axios';
 import { ApiResponse, RateLimit } from '../types/ValuationTypes';
 

@@ -9,10 +9,8 @@ export interface MakeModel {
 export function useVehicleDBData() {
   const [makes, setMakes] = useState<MakeModel[]>([]);
   const [models, setModels] = useState<MakeModel[]>([]);
-  const [years, setYears] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedMake, setSelectedMake] = useState<string | null>(null);
 
   // Fetch makes
   useEffect(() => {
@@ -35,7 +33,7 @@ export function useVehicleDBData() {
         }));
 
         setMakes(formattedMakes);
-      } catch (err: any) {
+      } catch {
         setError("Failed to load vehicle makes");
       } finally {
         setIsLoading(false);
@@ -72,7 +70,7 @@ export function useVehicleDBData() {
 
       setModels(formattedModels);
       return formattedModels;
-    } catch (err: any) {
+    } catch {
       setError("Failed to load vehicle models");
       return [];
     } finally {
@@ -102,7 +100,7 @@ export function useVehicleDBData() {
       if (error) throw error;
 
       return data?.make_name || "Unknown Make";
-    } catch (err: any) {
+    } catch {
       return "Unknown Make";
     }
   };
@@ -119,7 +117,7 @@ export function useVehicleDBData() {
       if (error) throw error;
 
       return data?.model_name || "Unknown Model";
-    } catch (err: any) {
+    } catch {
       return "Unknown Model";
     }
   };
@@ -130,7 +128,6 @@ export function useVehicleDBData() {
     years: getYears(),
     isLoading,
     error,
-    setSelectedMake,
     getMakeName,
     getModelName,
     getModelsByMakeId,

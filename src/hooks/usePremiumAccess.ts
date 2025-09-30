@@ -26,7 +26,7 @@ export const usePremiumAccess = () => {
         setHasPremiumAccess(false);
       }
       setError(null);
-    } catch (err) {
+    } catch {
       setError('Failed to check premium access');
       setHasPremiumAccess(false);
     } finally {

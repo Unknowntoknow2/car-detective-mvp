@@ -49,88 +49,82 @@ export class EnhancedMarketListingService {
    * Fetch real market listings from the market_listings table
    */
   static async fetchRealMarketListings(filters: EnhancedMarketListingFilters): Promise<EnhancedMarketListing[]> {
-    try {
-      let query = supabase
-        .from('market_listings')
-        .select('*')
-        .order('fetched_at', { ascending: false });
+    let query = supabase
+      .from('market_listings')
+      .select('*')
+      .order('fetched_at', { ascending: false });
 
-      // Apply filters
-      if (filters.make) {
-        query = query.ilike('make', `%${filters.make}%`);
-      }
-      if (filters.model) {
-        query = query.ilike('model', `%${filters.model}%`);
-      }
-      if (filters.year) {
-        query = query.eq('year', filters.year);
-      }
-      if (filters.zipCode) {
-        query = query.eq('zip_code', filters.zipCode);
-      }
-      if (filters.condition) {
-        query = query.eq('condition', filters.condition);
-      }
-      if (filters.vin) {
-        query = query.eq('vin', filters.vin);
-      }
-      if (filters.minPrice) {
-        query = query.gte('price', filters.minPrice);
-      }
-      if (filters.maxPrice) {
-        query = query.lte('price', filters.maxPrice);
-      }
+    // Apply filters
+    if (filters.make) {
+      query = query.ilike('make', `%${filters.make}%`);
+    }
+    if (filters.model) {
+      query = query.ilike('model', `%${filters.model}%`);
+    }
+    if (filters.year) {
+      query = query.eq('year', filters.year);
+    }
+    if (filters.zipCode) {
+      query = query.eq('zip_code', filters.zipCode);
+    }
+    if (filters.condition) {
+      query = query.eq('condition', filters.condition);
+    }
+    if (filters.vin) {
+      query = query.eq('vin', filters.vin);
+    }
+    if (filters.minPrice) {
+      query = query.gte('price', filters.minPrice);
+    }
+    if (filters.maxPrice) {
+      query = query.lte('price', filters.maxPrice);
+    }
 
-      // Limit results
-      const limit = filters.maxResults || 20;
-      query = query.limit(limit);
+    // Limit results
+    const limit = filters.maxResults || 20;
+    query = query.limit(limit);
 
-      const { data, error } = await query;
+    const { data, error } = await query;
 
-      if (error) {
-        toast.error('Failed to fetch market listings');
-        return [];
-      }
-
-      if (!data || data.length === 0) {
-        return [];
-      }
-
-      // Transform data to EnhancedMarketListing format
-      const transformedListings: EnhancedMarketListing[] = data.map(listing => ({
-        id: listing.id,
-        vin: listing.vin,
-        make: listing.make,
-        model: listing.model,
-        year: listing.year,
-        trim: listing.trim,
-        price: listing.price,
-        mileage: listing.mileage,
-        location: listing.location,
-        condition: listing.condition || 'used',
-        source: listing.source,
-        source_type: listing.source_type,
-        listing_url: listing.listing_url,
-        dealer_name: listing.dealer_name,
-        is_cpo: listing.is_cpo || false,
-        confidence_score: listing.confidence_score || 85,
-        fetched_at: listing.fetched_at,
-        title_status: listing.title_status || 'clean',
-        zip_code: listing.zip_code,
-        raw_data: listing.raw_data,
-        photos: listing.photos || [],
-        features: listing.features || {},
-        geo_distance_miles: listing.geo_distance_miles,
-        days_listed: listing.days_listed,
-        is_validated: listing.is_validated || false,
-        validation_errors: listing.validation_errors || []
-      }));
-      return transformedListings;
-
-    } catch (error) {
-      toast.error('Failed to fetch market data');
+    if (error) {
+      toast.error('Failed to fetch market listings');
       return [];
     }
+
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // Transform data to EnhancedMarketListing format
+    const transformedListings: EnhancedMarketListing[] = data.map(listing => ({
+      id: listing.id,
+      vin: listing.vin,
+      make: listing.make,
+      model: listing.model,
+      year: listing.year,
+      trim: listing.trim,
+      price: listing.price,
+      mileage: listing.mileage,
+      location: listing.location,
+      condition: listing.condition || 'used',
+      source: listing.source,
+      source_type: listing.source_type,
+      listing_url: listing.listing_url,
+      dealer_name: listing.dealer_name,
+      is_cpo: listing.is_cpo || false,
+      confidence_score: listing.confidence_score || 85,
+      fetched_at: listing.fetched_at,
+      title_status: listing.title_status || 'clean',
+      zip_code: listing.zip_code,
+      raw_data: listing.raw_data,
+      photos: listing.photos || [],
+      features: listing.features || {},
+      geo_distance_miles: listing.geo_distance_miles,
+      days_listed: listing.days_listed,
+      is_validated: listing.is_validated || false,
+      validation_errors: listing.validation_errors || []
+    }));
+    return transformedListings;
   }
 
   /**
@@ -252,34 +246,36 @@ export class EnhancedMarketListingService {
   static async getCachedListings(filters: EnhancedMarketListingFilters): Promise<EnhancedMarketListing[]> {
     const cacheKey = JSON.stringify(filters);
     const cachedData = sessionStorage.getItem(`market_listings_${cacheKey}`);
-    
+
     if (cachedData) {
+      let parsed;
       try {
-        const parsed = JSON.parse(cachedData);
+        parsed = JSON.parse(cachedData);
+      } catch {
+        parsed = null;
+      }
+      if (parsed) {
         const cacheTime = new Date(parsed.timestamp);
         const now = new Date();
         const cacheAgeMinutes = (now.getTime() - cacheTime.getTime()) / (1000 * 60);
-        
         // Cache for 5 minutes
         if (cacheAgeMinutes < 5) {
           return parsed.data;
         }
-      } catch (error) {
       }
     }
 
     // Fetch fresh data
     const freshData = await this.fetchRealMarketListings(filters);
-    
+
     // Cache the result
     try {
       sessionStorage.setItem(`market_listings_${cacheKey}`, JSON.stringify({
         data: freshData,
         timestamp: new Date().toISOString()
       }));
-    } catch (error) {
-    }
-    
+    } catch {}
+
     return freshData;
   }
 }

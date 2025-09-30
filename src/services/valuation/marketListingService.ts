@@ -49,67 +49,58 @@ export async function saveMarketListings(
     return { success: true, savedCount: 0, errors: [] };
   }
 
-  try {
-    // Transform listings to database format
-    const listingsToInsert: MarketListingInsertData[] = listings.map(listing => ({
-      vin: context.vin,
-      valuation_id: context.valuationId || crypto.randomUUID(),
-      valuation_request_id: context.valuationRequestId,
-      make: listing.make,
-      model: listing.model,
-      year: listing.year,
-      trim: listing.trim,
-      price: listing.price,
-      mileage: listing.mileage,
-      location: listing.location,
-      zip_code: context.zipCode || listing.location,
-      source: listing.source || 'openai_search',
-      source_type: listing.source_type || 'marketplace',
-      listing_url: listing.listing_url || `https://openai-generated-${Date.now()}`,
-      url: listing.listing_url,
-      dealer_name: listing.dealer_name,
-      dealer: listing.dealer_name,
-      condition: listing.condition,
-      is_cpo: listing.is_cpo || false,
-      cpo: listing.is_cpo || false,
-      confidence_score: listing.confidence_score || 85,
-      fetched_at: listing.fetched_at || new Date().toISOString(),
-      listing_date: listing.fetched_at || new Date().toISOString(),
-      features: {},
-      extra: {},
-      notes: `Saved from ${listing.source || 'OpenAI search'} at ${new Date().toISOString()}`
-    }));
+  // Transform listings to database format
+  const listingsToInsert: MarketListingInsertData[] = listings.map(listing => ({
+    vin: context.vin,
+    valuation_id: context.valuationId || crypto.randomUUID(),
+    valuation_request_id: context.valuationRequestId,
+    make: listing.make,
+    model: listing.model,
+    year: listing.year,
+    trim: listing.trim,
+    price: listing.price,
+    mileage: listing.mileage,
+    location: listing.location,
+    zip_code: context.zipCode || listing.location,
+    source: listing.source || 'openai_search',
+    source_type: listing.source_type || 'marketplace',
+    listing_url: listing.listing_url || `https://openai-generated-${Date.now()}`,
+    url: listing.listing_url,
+    dealer_name: listing.dealer_name,
+    dealer: listing.dealer_name,
+    condition: listing.condition,
+    is_cpo: listing.is_cpo || false,
+    cpo: listing.is_cpo || false,
+    confidence_score: listing.confidence_score || 85,
+    fetched_at: listing.fetched_at || new Date().toISOString(),
+    listing_date: listing.fetched_at || new Date().toISOString(),
+    features: {},
+    extra: {},
+    notes: `Saved from ${listing.source || 'OpenAI search'} at ${new Date().toISOString()}`
+  }));
 
-    // Batch insert with conflict handling (avoid duplicates by URL and VIN within 24h)
-    const { data, error } = await supabase
-      .from('market_listings')
-      .insert(listingsToInsert)
-      .select('id');
+  // Batch insert with conflict handling (avoid duplicates by URL and VIN within 24h)
+  const { data, error } = await supabase
+    .from('market_listings')
+    .insert(listingsToInsert)
+    .select('id');
 
-    if (error) {
-      // Try fallback: insert one by one to identify specific errors
-      const fallbackResults = await insertListingsOneByOne(listingsToInsert);
-      return {
-        success: fallbackResults.savedCount > 0,
-        savedCount: fallbackResults.savedCount,
-        errors: [`Batch insert failed: ${error.message}`, ...fallbackResults.errors]
-      };
-    }
-
-    const savedCount = data?.length || 0;
+  if (error) {
+    // Try fallback: insert one by one to identify specific errors
+    const fallbackResults = await insertListingsOneByOne(listingsToInsert);
     return {
-      success: true,
-      savedCount,
-      errors: []
-    };
-
-  } catch (error) {
-    return {
-      success: false,
-      savedCount: 0,
-      errors: [error instanceof Error ? error.message : 'Unknown error']
+      success: fallbackResults.savedCount > 0,
+      savedCount: fallbackResults.savedCount,
+      errors: [`Batch insert failed: ${error.message}`, ...fallbackResults.errors]
     };
   }
+
+  const savedCount = data?.length || 0;
+  return {
+    success: true,
+    savedCount,
+    errors: []
+  };
 }
 
 /**
@@ -152,25 +143,21 @@ export async function getRecentMarketListings(
     limit?: number;
   }
 ): Promise<MarketListing[]> {
-  try {
-    let query = supabase
-      .from('market_listings')
-      .select('*')
-      .order('fetched_at', { ascending: false });
+  let query = supabase
+    .from('market_listings')
+    .select('*')
+    .order('fetched_at', { ascending: false });
 
-    if (filters.make) query = query.eq('make', filters.make);
-    if (filters.model) query = query.eq('model', filters.model);
-    if (filters.year) query = query.eq('year', filters.year);
-    if (filters.limit) query = query.limit(filters.limit);
+  if (filters.make) query = query.eq('make', filters.make);
+  if (filters.model) query = query.eq('model', filters.model);
+  if (filters.year) query = query.eq('year', filters.year);
+  if (filters.limit) query = query.limit(filters.limit);
 
-    const { data, error } = await query;
+  const { data, error } = await query;
 
-    if (error) {
-      return [];
-    }
-
-    return data || [];
-  } catch (error) {
+  if (error) {
     return [];
   }
+
+  return data || [];
 }

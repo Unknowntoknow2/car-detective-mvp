@@ -107,7 +107,7 @@
     "ts-prune": "^0.10.3",
     "tsx": "^4.20.4",
     "typescript": "^5.9.2",
-    "vite": "^7.0.6",
+    "vite": "^7.1.6",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4",
     "xml": "^1.0.1"

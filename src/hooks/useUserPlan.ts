@@ -19,18 +19,8 @@ export function useUserPlan(): UserPlan {
   const planType = !user ? 'free' : 
     hasPremiumAccess ? 'premium' : 'free';
 
-  const hasFeature = (feature: string): boolean => {
-    switch (feature) {
-      case 'pdf_download':
-      case 'advanced_sharing':
-      case 'detailed_market_data':
-        return hasPremiumAccess;
-      case 'basic_valuation':
-      case 'share_link':
-        return true;
-      default:
-        return false;
-    }
+  const hasFeature = () => {
+    return hasPremiumAccess;
   };
 
   return {

@@ -172,7 +172,6 @@ export function calculateAdvancedConfidence(inputs: ConfidenceInputs): number {
  */
 export function getConfidenceBreakdown(inputs: ConfidenceInputs): ConfidenceBreakdown {
   const confidence = calculateAdvancedConfidence(inputs);
-  
   // Return detailed breakdown (this is a simplified version)
   return {
     base: 30,

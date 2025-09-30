@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ValuationIntegrationService, ValuationPipelineResult } from '@/services/ValuationIntegrationService';
-import { ValuationRequest, ValuationResult } from '@/components/valuation/valuation-core/ValuationResult';
+import { ValuationRequest } from '@/components/valuation/valuation-core/ValuationResult';
 import { toast } from 'sonner';
 
 interface UseValuationIntegrationOptions {
@@ -45,8 +45,7 @@ export const useValuationIntegration = (
   }, []);
 
   const processVinToValuation = useCallback(async (
-    vin: string,
-    additionalData?: Partial<ValuationRequest>
+  vin: string
   ): Promise<ValuationPipelineResult | null> => {
     setIsProcessing(true);
     setError(null);
@@ -94,7 +93,7 @@ export const useValuationIntegration = (
       // Process the complete pipeline with progress tracking
       const pipelineResult = await ValuationIntegrationService.processVinToValuation(
         vin,
-        additionalData,
+        undefined,
         { tier, forceRefresh: false }
       );
 
@@ -162,10 +161,9 @@ export const useValuationIntegration = (
       } else {
         toast.info('No recent valuation found for this VIN');
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load cached valuation';
-      setError(errorMessage);
-      toast.error(errorMessage);
+    } catch {
+      setError('Failed to load cached valuation');
+      toast.error('Failed to load cached valuation');
     }
   }, [maxCacheHours]);
 

@@ -100,7 +100,7 @@ export function useMarketListings({
             setListings([]);
           }
         }
-      } catch (err) {
+      } catch {
         setError('An unexpected error occurred');
         setListings([]);
       } finally {

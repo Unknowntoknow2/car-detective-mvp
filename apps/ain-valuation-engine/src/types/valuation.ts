@@ -1,3 +1,36 @@
+// Google-level: Add missing types for codeQuality.test.ts compatibility
+export interface NHTSARecall {
+  recallNumber: string;
+  component: string;
+  summary: string;
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  issuedDate: string;
+  isResolved: boolean;
+}
+
+export interface VehicleSpecification {
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+  trim?: string;
+  bodyType?: string;
+  fuelType?: string;
+  transmission?: string;
+  color?: string;
+  [key: string]: any;
+}
+
+export interface EnrichedVehicleProfile {
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+  features?: string[];
+  recalls?: NHTSARecall[];
+  specifications?: VehicleSpecification;
+  [key: string]: any;
+}
 // Stub for valuation
 export interface AdjustmentBreakdown {
   label: string;
@@ -30,6 +63,5 @@ export interface ValuationOutput {
 }
 // Stub for valuation
 declare module "@/types/valuation" {
-  export type EnrichedVehicleProfile = any;
   export type ValuationInputs = any;
 }

@@ -22,7 +22,7 @@ export function useNicbVinCheck() {
       };
       
       setData(mockData);
-    } catch (err) {
+    } catch {
       setError('Failed to check VIN with NICB');
     } finally {
       setLoading(false);

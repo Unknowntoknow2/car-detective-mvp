@@ -27,26 +27,22 @@ export interface ValuationExplanationData {
  * Save AI explanation to the valuation_explanations table
  */
 export async function saveValuationExplanation(data: ValuationExplanationData) {
-  try {
-    const { data: result, error } = await supabase
-      .from('valuation_explanations')
-      .insert({
-        valuation_request_id: data.valuationRequestId,
-        explanation_markdown: data.explanationMarkdown,
-        adjustment_factors: data.adjustmentFactors,
-        confidence_breakdown: data.confidenceBreakdown,
-        source_weights: data.sourceWeights,
-        influential_comps: data.influentialComps || [],
-        price_range_explanation: data.priceRangeExplanation
-      })
-      .select()
-      .single();
+  const { data: result, error } = await supabase
+    .from('valuation_explanations')
+    .insert({
+      valuation_request_id: data.valuationRequestId,
+      explanation_markdown: data.explanationMarkdown,
+      adjustment_factors: data.adjustmentFactors,
+      confidence_breakdown: data.confidenceBreakdown,
+      source_weights: data.sourceWeights,
+      influential_comps: data.influentialComps || [],
+      price_range_explanation: data.priceRangeExplanation
+    })
+    .select()
+    .single();
 
-    if (error) {
-      throw error;
-    }
-    return result;
-  } catch (error) {
+  if (error) {
     throw error;
   }
+  return result;
 }

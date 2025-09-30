@@ -62,10 +62,9 @@ export function useValuationApi(): UseValuationApiReturn {
       toast.success('Valuation request created');
       return response.request_id;
 
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(errorMessage);
-      toast.error(`Failed to create valuation: ${errorMessage}`);
+    } catch {
+      setError('Failed to create valuation');
+      toast.error('Failed to create valuation');
       return null;
     } finally {
       setIsLoading(false);
@@ -89,10 +88,9 @@ export function useValuationApi(): UseValuationApiReturn {
       toast.success(`Market aggregation started - processing ${response.sources_processed} sources`);
       return true;
 
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(errorMessage);
-      toast.error(`Failed to start aggregation: ${errorMessage}`);
+    } catch {
+      setError('Failed to start aggregation');
+      toast.error('Failed to start aggregation');
       return false;
     } finally {
       setIsLoading(false);
@@ -167,9 +165,7 @@ export function useValuationApi(): UseValuationApiReturn {
       
       const finalResult = await ValuationApiService.pollValuationProgress(
         requestId,
-        (progressResult: any) => {
-          
-        },
+        () => {},
         30, // 30 attempts
         3000 // 3 second intervals
       );

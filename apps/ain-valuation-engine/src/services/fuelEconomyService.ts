@@ -17,6 +17,7 @@ export interface FuelEconomyApiResponse {
 }
 
 export interface VehicleDetailsResponse {
+
   fuelType: string;
   city08: string;
   highway08: string;

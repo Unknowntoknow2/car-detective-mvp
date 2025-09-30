@@ -28,30 +28,26 @@ export interface ValuationRequestRecord {
  * This ensures we have a request ID to track throughout the pipeline
  */
 export async function createValuationRequest(input: ValuationRequestInput): Promise<ValuationRequestRecord | null> {
-  try {
-    const { data, error } = await supabase
-      .from('valuation_requests')
-      .insert({
-        user_id: input.userId || null,
-        vin: input.vin,
-        zip_code: input.zipCode,
-        mileage: input.mileage || null,
-        make: input.make || 'UNKNOWN',
-        model: input.model || 'UNKNOWN', 
-        year: input.year || 2020,
-        status: 'processing',
-        additional_data: input.additionalData || {}
-      })
-      .select()
-      .single();
+  const { data, error } = await supabase
+    .from('valuation_requests')
+    .insert({
+      user_id: input.userId || null,
+      vin: input.vin,
+      zip_code: input.zipCode,
+      mileage: input.mileage || null,
+      make: input.make || 'UNKNOWN',
+      model: input.model || 'UNKNOWN', 
+      year: input.year || 2020,
+      status: 'processing',
+      additional_data: input.additionalData || {}
+    })
+    .select()
+    .single();
 
-    if (error) {
-      return null;
-    }
-    return data;
-  } catch (error) {
+  if (error) {
     return null;
   }
+  return data;
 }
 
 /**
@@ -63,48 +59,40 @@ export async function completeValuationRequest(
   confidenceScore: number,
   auditLogId?: string
 ): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('valuation_requests')
-      .update({
-        status: 'completed',
-        final_value: finalValue,
-        confidence_score: confidenceScore,
-        audit_log_id: auditLogId,
-        completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', requestId);
+  const { error } = await supabase
+    .from('valuation_requests')
+    .update({
+      status: 'completed',
+      final_value: finalValue,
+      confidence_score: confidenceScore,
+      audit_log_id: auditLogId,
+      completed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', requestId);
 
-    if (error) {
-      return false;
-    }
-    return true;
-  } catch (error) {
+  if (error) {
     return false;
   }
+  return true;
 }
 
 /**
  * Marks a valuation request as failed
  */
 export async function failValuationRequest(requestId: string, errorMessage: string): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('valuation_requests')
-      .update({
-        status: 'failed',
-        error_message: errorMessage,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', requestId);
+  const { error } = await supabase
+    .from('valuation_requests')
+    .update({
+      status: 'failed',
+      error_message: errorMessage,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', requestId);
 
-    if (error) {
-      return false;
-    }
-
-    return true;
-  } catch (error) {
+  if (error) {
     return false;
   }
+
+  return true;
 }

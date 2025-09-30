@@ -1,0 +1,32 @@
+Unused dependencies
+* @radix-ui/react-navigation-menu
+* @radix-ui/react-separator
+* @radix-ui/react-slider
+* @radix-ui/react-switch
+* @radix-ui/react-tabs
+* @radix-ui/react-toast
+* @radix-ui/react-toggle
+* @radix-ui/react-toggle-group
+* @tailwindcss/postcss
+Missing dependencies
+* @supabase/supabase-js: ./diagnose-db.js
+* @eslint/js: ./eslint.config.js
+* eslint-plugin-react-refresh: ./eslint.config.js
+* vite: ./tsconfig.json
+* vitest: ./tsconfig.json
+* @types/jest: ./tsconfig.test.json
+* @testing-library/jest-dom: ./tsconfig.test.json
+* @vitejs/plugin-react: ./vite.config.ts
+* npm:resend@2.0.0: ./supabase/functions/test-email-integration/index.ts
+* react: ./src/App.routes.tsx
+* react-router-dom: ./src/App.routes.tsx
+* react-dom: ./src/main.tsx
+* @testing-library/react: ./src/test-setup.ts
+* zod: ./src/utils/schemas.ts
+* lucide-react: ./src/utils/validation/vin-validation-helpers.tsx
+* @testing-library/dom: ./src/types/globals.d.ts
+* @shared/types: ./src/types/vehicle-lookup.ts
+* dotenv: ./src/scripts/generate-test-data.ts
+* yargs: ./src/scripts/generate-test-data.ts
+* @radix-ui/react-collapsible: ./src/components/ui/collapsible.tsx
+* glob: ./scripts/mass-console-cleanup.js

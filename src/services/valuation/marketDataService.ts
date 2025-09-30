@@ -30,167 +30,145 @@ export class MarketDataService {
    * Fetch comprehensive market data for a vehicle
    */
   static async fetchMarketData(filters: MarketDataFilters): Promise<MarketDataResult> {
-    try {
-      console.log('🏪 Fetching market data with filters:', filters);
+    console.log('🏪 Fetching market data with filters:', filters);
 
-      // Try to fetch exact matches first
-      const exactListings = await EnhancedMarketListingService.fetchRealMarketListings({
-        make: filters.make,
-        model: filters.model,
-        year: filters.year,
-        zipCode: filters.zipCode,
-        vin: filters.vin,
-        maxResults: 20
-      });
+    // Try to fetch exact matches first
+    const exactListings = await EnhancedMarketListingService.fetchRealMarketListings({
+      make: filters.make,
+      model: filters.model,
+      year: filters.year,
+      zipCode: filters.zipCode,
+      vin: filters.vin,
+      maxResults: 20
+    });
 
-      if (exactListings.length > 0) {
-        console.log(`✅ Found ${exactListings.length} exact market matches`);
-        return this.processMarketData(exactListings, 'exact_match');
-      }
-
-      // If no exact matches, try similar vehicles with year range
-      const similarListings = await EnhancedMarketListingService.searchSimilarVehicles({
-        make: filters.make,
-        model: filters.model,
-        year: filters.year,
-        zipCode: filters.zipCode,
-        maxResults: 30
-      });
-
-      if (similarListings.length > 0) {
-        console.log(`✅ Found ${similarListings.length} similar market listings`);
-        return this.processMarketData(similarListings, 'similar_vehicles');
-      }
-
-      // For Ford F-150, try broader Ford truck search
-      if (filters.make.toLowerCase().includes('ford') && filters.model.toLowerCase().includes('f-150')) {
-        const fordTruckListings = await this.fetchFordTruckListings();
-        if (fordTruckListings.length > 0) {
-          console.log(`✅ Found ${fordTruckListings.length} Ford truck listings`);
-          return this.processMarketData(fordTruckListings, 'ford_trucks');
-        }
-      }
-
-      // If still no matches, try broader search by make only
-      const broaderListings = await EnhancedMarketListingService.fetchRealMarketListings({
-        make: filters.make,
-        maxResults: 50
-      });
-
-      if (broaderListings.length > 0) {
-        console.log(`✅ Found ${broaderListings.length} broader market listings`);
-        return this.processMarketData(broaderListings, 'broader_search');
-      }
-
-      // No real data found - add some sample Ford F-150 data for demonstration
-      console.log('📭 No market data found, adding sample Ford F-150 data');
-      await this.addSampleFordF150Data();
-      
-      return {
-        listings: [],
-        averagePrice: 33297, // EchoPark price as baseline
-        confidenceScore: 45,
-        dataSource: 'baseline_estimate',
-        searchStrategy: 'none'
-      };
-
-    } catch (error) {
-      console.error('❌ Error fetching market data:', error);
-      toast.error('Failed to fetch market data');
-      return {
-        listings: [],
-        averagePrice: 0,
-        confidenceScore: 0,
-        dataSource: 'error',
-        searchStrategy: 'failed'
-      };
+    if (exactListings.length > 0) {
+      console.log(`✅ Found ${exactListings.length} exact market matches`);
+      return this.processMarketData(exactListings, 'exact_match');
     }
+
+    // If no exact matches, try similar vehicles with year range
+    const similarListings = await EnhancedMarketListingService.searchSimilarVehicles({
+      make: filters.make,
+      model: filters.model,
+      year: filters.year,
+      zipCode: filters.zipCode,
+      maxResults: 30
+    });
+
+    if (similarListings.length > 0) {
+      console.log(`✅ Found ${similarListings.length} similar market listings`);
+      return this.processMarketData(similarListings, 'similar_vehicles');
+    }
+
+    // For Ford F-150, try broader Ford truck search
+    if (filters.make.toLowerCase().includes('ford') && filters.model.toLowerCase().includes('f-150')) {
+      const fordTruckListings = await this.fetchFordTruckListings();
+      if (fordTruckListings.length > 0) {
+        console.log(`✅ Found ${fordTruckListings.length} Ford truck listings`);
+        return this.processMarketData(fordTruckListings, 'ford_trucks');
+      }
+    }
+
+    // If still no matches, try broader search by make only
+    const broaderListings = await EnhancedMarketListingService.fetchRealMarketListings({
+      make: filters.make,
+      maxResults: 50
+    });
+
+    if (broaderListings.length > 0) {
+      console.log(`✅ Found ${broaderListings.length} broader market listings`);
+      return this.processMarketData(broaderListings, 'broader_search');
+    }
+
+    // No real data found - add some sample Ford F-150 data for demonstration
+    console.log('📭 No market data found, adding sample Ford F-150 data');
+    await this.addSampleFordF150Data();
+    
+    return {
+      listings: [],
+      averagePrice: 33297, // EchoPark price as baseline
+      confidenceScore: 45,
+      dataSource: 'baseline_estimate',
+      searchStrategy: 'none'
+    };
   }
 
   /**
    * Fetch Ford truck specific listings
    */
   private static async fetchFordTruckListings(): Promise<EnhancedMarketListing[]> {
-    try {
-      const { data, error } = await supabase
-        .from('market_listings')
-        .select('*')
-        .ilike('make', '%Ford%')
-        .or('model.ilike.%F-150%,model.ilike.%F150%,model.ilike.%truck%')
-        .order('fetched_at', { ascending: false })
-        .limit(20);
+    const { data, error } = await supabase
+      .from('market_listings')
+      .select('*')
+      .ilike('make', '%Ford%')
+      .or('model.ilike.%F-150%,model.ilike.%F150%,model.ilike.%truck%')
+      .order('fetched_at', { ascending: false })
+      .limit(20);
 
-      if (error) {
-        console.error('Error fetching Ford truck listings:', error);
-        return [];
-      }
-
-      return data || [];
-    } catch (error) {
-      console.error('Error in fetchFordTruckListings:', error);
+    if (error) {
+      console.error('Error fetching Ford truck listings:', error);
       return [];
     }
+
+    return data || [];
   }
 
   /**
    * Add sample Ford F-150 data to demonstrate the feature
    */
   private static async addSampleFordF150Data(): Promise<void> {
-    try {
-      const sampleListings = [
-        {
-          id: crypto.randomUUID(),
-          vin: '1FTEW1C83PFB21608',
-          make: 'Ford',
-          model: 'F-150',
-          year: 2023,
-          trim: 'XLT',
-          price: 33297,
-          mileage: 48727,
-          condition: 'used',
-          source: 'EchoPark Sacramento',
-          source_type: 'dealer',
-          listing_url: 'https://echopark.com',
-          dealer_name: 'EchoPark Sacramento',
-          location: 'Sacramento, CA',
-          zip_code: '95821',
-          is_cpo: false,
-          confidence_score: 90,
-          fetched_at: new Date().toISOString(),
-          valuation_request_id: null,
-          features: {
-            'Apple CarPlay': true,
-            'Android Auto': true,
-            'Blind Spot Monitor': true,
-            'Lane Departure Warning': true,
-            'Forward Collision Warning': true,
-            'Parking Sensors': true,
-            'Backup Camera': true,
-            'Power Seats': true
-          },
-          extra: {
-            fuelEconomy: '18 City / 24 Hwy',
-            engine: 'Regular Unleaded V6 3.5 L EcoBoost',
-            drivetrain: 'RWD',
-            seats: 6,
-            exteriorColor: 'Black',
-            interiorColor: 'Black'
-          }
+    const sampleListings = [
+      {
+        id: crypto.randomUUID(),
+        vin: '1FTEW1C83PFB21608',
+        make: 'Ford',
+        model: 'F-150',
+        year: 2023,
+        trim: 'XLT',
+        price: 33297,
+        mileage: 48727,
+        condition: 'used',
+        source: 'EchoPark Sacramento',
+        source_type: 'dealer',
+        listing_url: 'https://echopark.com',
+        dealer_name: 'EchoPark Sacramento',
+        location: 'Sacramento, CA',
+        zip_code: '95821',
+        is_cpo: false,
+        confidence_score: 90,
+        fetched_at: new Date().toISOString(),
+        valuation_request_id: null,
+        features: {
+          'Apple CarPlay': true,
+          'Android Auto': true,
+          'Blind Spot Monitor': true,
+          'Lane Departure Warning': true,
+          'Forward Collision Warning': true,
+          'Parking Sensors': true,
+          'Backup Camera': true,
+          'Power Seats': true
+        },
+        extra: {
+          fuelEconomy: '18 City / 24 Hwy',
+          engine: 'Regular Unleaded V6 3.5 L EcoBoost',
+          drivetrain: 'RWD',
+          seats: 6,
+          exteriorColor: 'Black',
+          interiorColor: 'Black'
         }
-      ];
-
-      // Insert sample data into enhanced_market_listings
-      const { error } = await supabase
-        .from('enhanced_market_listings')
-        .upsert(sampleListings, { onConflict: 'vin' });
-
-      if (error) {
-        console.error('Error adding sample Ford F-150 data:', error);
-      } else {
-        console.log('✅ Added sample Ford F-150 data to database');
       }
-    } catch (error) {
-      console.error('Error in addSampleFordF150Data:', error);
+    ];
+
+    // Insert sample data into enhanced_market_listings
+    const { error } = await supabase
+      .from('enhanced_market_listings')
+      .upsert(sampleListings, { onConflict: 'vin' });
+
+    if (error) {
+      console.error('Error adding sample Ford F-150 data:', error);
+    } else {
+      console.log('✅ Added sample Ford F-150 data to database');
     }
   }
 

@@ -44,10 +44,7 @@ export async function decodeVin(vin: string): Promise<VehicleDecodeResult> {
       .limit(1)
       .maybeSingle();
 
-    if (verifyError) {
-    } else if (savedVehicle) {
-    } else {
-    }
+  // No-op blocks removed
 
     return {
       success: true,
@@ -66,23 +63,19 @@ export async function decodeVin(vin: string): Promise<VehicleDecodeResult> {
  * Get decoded vehicle data from database
  */
 export async function getDecodedVehicle(vin: string) {
-  try {
-    const { data, error } = await supabase
-      .from('decoded_vehicles')
-      .select('*')
-      .eq('vin', vin.toUpperCase())
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+  const { data, error } = await supabase
+    .from('decoded_vehicles')
+    .select('*')
+    .eq('vin', vin.toUpperCase())
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-    if (error) {
-      return null;
-    }
-
-    return data;
-  } catch (error) {
+  if (error) {
     return null;
   }
+
+  return data;
 }
 
 /**

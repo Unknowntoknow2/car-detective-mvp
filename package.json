@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "npm run -w apps/ain-valuation-engine build",
+    "dev": "npm run -w apps/ain-valuation-engine dev",
     "build:dev": "vite build --mode development",
     "typecheck:fast": "tsc -p apps/ain-valuation-engine/tsconfig.json --noEmit --pretty false",
     "test": "npm -w apps/ain-valuation-engine run test --silent || echo \"no tests\"",

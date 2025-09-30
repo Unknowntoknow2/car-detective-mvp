@@ -60,12 +60,5 @@ export interface PipelineActions {
   startLoading: () => void;
   stopLoading: () => void;
   setError: (error: string) => void;
-  runLookup?: (
-    type: string,
-    identifier: string,
-    state?: string,
-    manualData?: any,
-  ) => Promise<any>;
-  submitValuation?: (data: any) => Promise<any>;
-  reset?: () => void;
 }
+

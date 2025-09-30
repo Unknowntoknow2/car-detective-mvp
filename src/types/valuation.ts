@@ -1,3 +1,44 @@
+// --- Explicitly for test compatibility ---
+export interface NHTSARecall {
+  recallNumber: string;
+  manufacturer: string;
+  component: string;
+  summary: string;
+  consequence: string;
+  remedy: string;
+  notes: string;
+  reportReceivedDate: string;
+  nhtsaActionNumber: string;
+  riskLevel?: 'low' | 'medium' | 'high' | 'critical';
+  isResolved?: boolean;
+}
+
+export interface VehicleSpecification {
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+  trim?: string;
+  bodyType?: string;
+  engine?: string;
+  transmission?: string;
+  drivetrain?: string;
+  fuelType?: string;
+  color?: string;
+  [key: string]: any;
+}
+
+export interface EnrichedVehicleProfile {
+  vin: string;
+  specification: VehicleSpecification;
+  recalls: NHTSARecall[];
+  titleStatus: TitleStatus;
+  titleHistory?: TitleHistoryResult;
+  marketValue?: number;
+  confidenceScore?: number;
+  notes?: string[];
+}
+
 import { PDFFont, PDFPage, rgb } from 'pdf-lib';
 
 export interface ReportData {

@@ -27,21 +27,18 @@ export function useValuationData(options: UseValuationDataOptions = {}): UseValu
 
   const refreshData = async () => {
     if (!userId) return;
-    
     setIsLoading(true);
     setError(null);
-    
     try {
       // Mock implementation - replace with actual data fetching
       if (loadHistory) {
         setValuations([]);
       }
-      
       if (loadSaved) {
         setSavedValuations([]);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load data');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load data');
     } finally {
       setIsLoading(false);
     }
@@ -51,7 +48,7 @@ export function useValuationData(options: UseValuationDataOptions = {}): UseValu
     try {
       setValuations(prev => prev.filter(v => v.id !== id));
       setSavedValuations(prev => prev.filter(v => v.id !== id));
-    } catch (err) {
+    } catch {
       setError('Failed to delete valuation');
     }
   };
