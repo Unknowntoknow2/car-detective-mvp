@@ -1,40 +1,37 @@
+import * as React from 'react';
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
+import { cn } from '@/lib/utils';
 
-import React from 'react';
+// Provider & Root
+export const TooltipProvider = TooltipPrimitive.Provider;
+export const Tooltip = TooltipPrimitive.Root;
 
-interface TooltipProviderProps {
-  children: React.ReactNode;
-}
+// Trigger
+export const TooltipTrigger = TooltipPrimitive.Trigger;
 
-export function TooltipProvider({ children }: TooltipProviderProps) {
-  return <>{children}</>;
-}
+// Content
+export const TooltipContent = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+>(({ className, side = 'top', sideOffset = 8, ...props }, ref) => (
+  <TooltipPrimitive.Portal>
+    <TooltipPrimitive.Content
+      ref={ref}
+      side={side}
+      sideOffset={sideOffset}
+      className={cn(
+        // Use design tokens (no hardcoded colors)
+        'z-50 rounded-md border border-border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md',
+        // Smooth entrance animation from our utilities
+        'animate-fade-in',
+        className
+      )}
+      {...props}
+    >
+      {props.children}
+      <TooltipPrimitive.Arrow className="fill-border" />
+    </TooltipPrimitive.Content>
+  </TooltipPrimitive.Portal>
+));
 
-interface TooltipProps {
-  children: React.ReactNode;
-}
-
-export function Tooltip({ children }: TooltipProps) {
-  return <>{children}</>;
-}
-
-interface TooltipTriggerProps {
-  children: React.ReactNode;
-  asChild?: boolean;
-}
-
-export function TooltipTrigger({ children }: TooltipTriggerProps) {
-  return <>{children}</>;
-}
-
-interface TooltipContentProps {
-  children: React.ReactNode;
-  side?: 'top' | 'right' | 'bottom' | 'left';
-}
-
-export function TooltipContent({ children }: TooltipContentProps) {
-  return (
-    <div className="hidden">
-      {children}
-    </div>
-  );
-}
+TooltipContent.displayName = 'TooltipContent';
